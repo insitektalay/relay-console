@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "adobe-marketo-engage",
+  "name": "Adobe Marketo Engage",
+  "category": "crm_support",
+  "description": "Adobe Marketo Engage is a marketing automation platform for programs, campaigns, leads, activities, email, forms, assets, scoring, attribution, and revenue operations.",
+  "agentUseSummary": "Add credentials for one API-only custom service bound to an exact Marketo instance. Selected agents can list only bounded, minimized program metadata. Relay blocks person data, activities, campaigns, broader assets, bulk APIs, administration, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://business.adobe.com/products/marketo/adobe-marketo.html",
+    "docsUrl": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/authentication",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.adobe.com/legal/terms.html",
+    "privacyUrl": "https://www.adobe.com/privacy/policy.html"
+  },
+  "authentication": {"model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": "instance-bound:/identity/oauth/token", "revocationUrl": null},
+  "connection": {
+    "types": ["customer_owned_custom_service", "oauth2_client_credentials", "instance_bound"],
+    "credentialRequirements": [
+      {"name": "MARKETO_INSTANCE_ORIGIN", "label": "Marketo instance origin", "required": true, "secret": false, "helpText": "Exact HTTPS mktorest.com origin shown under Admin > Integration > Web Services."},
+      {"name": "MARKETO_CLIENT_ID", "label": "Marketo custom-service client ID", "required": true, "secret": true, "helpText": "Client ID for an API-only custom service whose role grants only Read-Only Assets."},
+      {"name": "MARKETO_CLIENT_SECRET", "label": "Marketo custom-service client secret", "required": true, "secret": true, "helpText": "Client secret stored encrypted and sent only to the bound identity endpoint."}
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [{"id": "marketing_program_read", "label": "Read marketing programs", "description": "List a bounded, minimized directory of programs visible to the API-only custom service.", "defaultSelected": true}],
+  "actions": {
+    "allowed": [{"id": "adobe_marketo_engage_read", "label": "List Marketo programs", "description": "List up to 20 minimized program metadata records from the bound Marketo instance."}],
+    "approvalRequired": [],
+    "blocked": [{"id": "adobe_marketo_engage_manage", "label": "Access people or change Marketo", "description": "Leads, people, companies, opportunities, activities, memberships, campaigns, emails, forms, files, tokens, bulk APIs, imports, exports, administration, and all mutations are unavailable."}]
+  },
+  "approvalProfiles": [{"id": "adobe_marketo_engage_safe", "label": "Safe", "description": "One bounded program-directory read runs directly. Person data, broader assets, bulk operations, administration, and every mutation remain blocked.", "defaultSelected": true, "allowedActions": ["adobe_marketo_engage_read"], "approvalRequiredActions": [], "blockedActions": ["adobe_marketo_engage_manage"]}],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {"format": "openclaw", "installSupport": "installable", "description": "Railway obtains short-lived tokens for one exact Marketo instance and exposes only a bounded program-directory wrapper."},
+    {"format": "hermes", "installSupport": "installable", "description": "Railway obtains short-lived tokens for one exact Marketo instance and exposes only a bounded program-directory wrapper."}
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer has supplied an API-only custom service bound to one Marketo instance with a role restricted to Read-Only Assets, and the credential lifecycle and non-production acceptance have not been validated.",
+    "nextAction": "A Marketo administrator creates an API-only user and custom service with only Read-Only Assets, records the exact mktorest.com origin, stores the origin/client ID/client secret in Railway through Relay's encrypted credential flow, then validates token renewal, bounded program reads, disconnect, rotation, revocation, and post-disconnect denial in non-production."
+  },
+  "evidence": [
+    {"url": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/authentication", "checkedAt": "2026-07-17", "supports": "Adobe documents two-legged OAuth, API-only custom services, instance identity URLs, one-hour tokens, role-based permissions, and bearer-header authentication."},
+    {"url": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/rest-api", "checkedAt": "2026-07-17", "supports": "Adobe documents REST API quotas, concurrency and size limits, API-only users, fine-grained roles, and Read-Only Assets/Lead permissions."},
+    {"url": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/assets/programs", "checkedAt": "2026-07-17", "supports": "Adobe documents programs as core marketing-activity assets and the program directory API."},
+    {"url": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/lead-database/leads", "checkedAt": "2026-07-17", "supports": "Adobe documents sensitive lead/person fields and broad CRUD capabilities, which Relay excludes from this connector."}
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "opentable",
+  "name": "OpenTable",
+  "category": "commerce",
+  "description": "OpenTable provides restaurant directory, reservation availability, experiences, booking, restaurant operations, guest relationship, and partner integration APIs.",
+  "agentUseSummary": "OpenTable cannot yet be connected through Relay. Every API integration requires OpenTable partner approval, a formal agreement, assigned API eligibility and credentials, sandbox certification, and production approval. Relay's intended diner boundary is visible restaurant discovery, availability, policies, fees, and explicitly confirmed reservations; voice-only booking, restaurant operations, guest CRM, and raw partner APIs remain excluded unless separately contracted.",
+  "provider": {
+    "websiteUrl": "https://www.opentable.com/",
+    "docsUrl": "https://docs.opentable.com/",
+    "developerConsoleUrl": "https://dev.opentable.com/partner-portal",
+    "termsUrl": "https://www.opentable.com/restaurant-solutions/api-partners/terms-and-conditions/",
+    "privacyUrl": "https://www.opentable.com/c/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "approved_integration_partner",
+      "relay_owned_partner_credentials",
+      "oauth2_client_credentials",
+      "sandbox_certification_required",
+      "production_contract_required",
+      "visual_consumer_booking_boundary"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/opentable/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "restaurant_directory_read",
+      "label": "Find OpenTable restaurants",
+      "description": "After partner acceptance, search or retrieve only the approved Directory API restaurant metadata and OpenTable reservation links.",
+      "defaultSelected": true
+    },
+    {
+      "id": "reservation_availability_read",
+      "label": "Check reservation availability",
+      "description": "After partner acceptance, read real-time availability, dining areas, experiences, booking and cancellation policies, deposits, card holds, and OpenTable-calculated fee totals for a selected restaurant.",
+      "defaultSelected": true
+    },
+    {
+      "id": "reservation_manage",
+      "label": "Manage diner reservations",
+      "description": "After partner acceptance, create, retrieve, change, or cancel a reservation only through OpenTable's approved visually accessible Consumer API flow and explicit diner confirmation.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "opentable_connect_before_approval",
+        "label": "Use OpenTable before partner approval",
+        "description": "Relay has no approved partnership, API tier, formal production agreement, credentials, sandbox certification, or production authorization."
+      },
+      {
+        "id": "opentable_directory_before_approval",
+        "label": "Read restaurants or reservation links",
+        "description": "Directory, restaurant profile, menu, review, availability, experience, policy, fee, and reservation-link data remain unavailable before approval."
+      },
+      {
+        "id": "opentable_booking_before_approval",
+        "label": "Manage reservations",
+        "description": "Slot locks, bookings, retrievals, changes, cancellations, deposits, card holds, fees, special requests, and guest details remain unavailable before approval."
+      },
+      {
+        "id": "opentable_voice_or_restaurant_operations",
+        "label": "Use uncontracted booking or restaurant APIs",
+        "description": "Voice AI booking, in-house booking, POS, CRM, guest profiles, Sync, reviews, menus, private dining, restaurant administration, and other partner tiers are blocked unless separately approved and contracted."
+      },
+      {
+        "id": "opentable_raw_credentials_scraping",
+        "label": "Use raw interfaces or restaurant credentials",
+        "description": "Arbitrary endpoints, raw responses, scraping, browser automation, OpenTable usernames or passwords, restaurant credentials, private APIs, and direct payment-card collection are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "opentable_provider_review",
+      "label": "Provider review pending",
+      "description": "No OpenTable action is enabled until OpenTable approves and contracts Relay's exact API tiers and the visual booking, guest-data, payment-tokenization, idempotency, and revocation contract passes sandbox and representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "opentable_connect_before_approval",
+        "opentable_directory_before_approval",
+        "opentable_booking_before_approval",
+        "opentable_voice_or_restaurant_operations",
+        "opentable_raw_credentials_scraping"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount OpenTable-approved directory and visual booking tools after partner certification; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount OpenTable-approved directory and visual booking tools after partner certification; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "OpenTable requires every API consumer to register and receive integration-partner approval, execute a formal agreement, receive eligibility for specific API tiers and assigned credentials, develop against curated sandbox data, and obtain production approval. Its new Consumer Booking API is for visually accessible online reservation flows with diner acceptance; Voice AI is a separate contract and the APIs may not be substituted for one another. Reservations may involve guest PII, five-minute slot locks, policies, experiences, deposits, card holds, third-party payment tokenization, and provider-calculated service fees. This worker cannot apply, sign terms, receive credentials, use the sandbox, or validate a restaurant or diner.",
+    "nextAction": "The exclusive partnership and production-acceptance task should apply with Relay's exact directory, availability and visually confirmed Consumer Booking use case, clients, monthly users, expected restaurants and explicit exclusion of voice and restaurant-operations data. After OpenTable approves the API tiers and contract, store assigned credentials only in Railway and certify in sandbox: directory and restaurant IDs, availability, policies, experiences, five-minute slot locks and cleanup, X-Request-Id idempotency, guest confirmations, changes and cancellation, Stripe or Spreedly tokenization without card storage, provider-calculated totals and service-fee disclosure, LZ4 and TLS support, errors, disconnect, and denial of all unapproved APIs before production access is requested."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.opentable.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "OpenTable requires integration-partner approval, a formal agreement, API-specific eligibility, sandbox development and production approval; documents OAuth 2.0 client credentials, TLS, LZ4, X-Request-Id idempotency, Directory and Booking APIs, five-minute slot locks, guest and payment-token fields, and separate visual Consumer versus Voice AI booking contracts."
+    },
+    {
+      "url": "https://www.opentable.com/restaurant-solutions/api-partners/faqs/",
+      "checkedAt": "2026-07-17",
+      "supports": "OpenTable directs API users through partner application and documents Directory API as the supported source of restaurant data and reservation links, with Powered by OpenTable attribution."
+    },
+    {
+      "url": "https://www.opentable.com/restaurant-solutions/api-partners/become-a-partner/",
+      "checkedAt": "2026-07-17",
+      "supports": "OpenTable's application collects company, product, launch, monthly-user, restaurant-customer, metadata, reservation, guest-data and write-back use-case details for partnership review."
+    },
+    {
+      "url": "https://www.opentable.com/restaurant-solutions/resources/security-and-integrations-on-opentable-what-you-should-know/",
+      "checkedAt": "2026-07-17",
+      "supports": "OpenTable warns against scraping and credential sharing, tells restaurants to confirm third-party integrations, and limits supported access to vetted partner APIs."
+    },
+    {
+      "url": "https://www.opentable.com/restaurant-solutions/api-partners/terms-and-conditions/",
+      "checkedAt": "2026-07-17",
+      "supports": "OpenTable's developer terms limit API data use to the expressly permitted app and contract, prohibit unapproved use or redistribution, and require commercially reasonable security."
+    }
+  ]
+}

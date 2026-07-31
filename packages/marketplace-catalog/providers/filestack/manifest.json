@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "filestack",
+  "name": "Filestack",
+  "category": "knowledge_documents",
+  "description": "Filestack is a cloud platform for uploading, transforming, managing, and delivering files inside websites and applications. Product teams use it for reliable file intake, image and document processing, secure storage, content workflows, and fast global delivery.",
+  "agentUseSummary": "Connect the customer's Filestack application API key and secret, then let Railway generate short-lived operation-scoped signatures for selected file, processing, and workflow actions under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "filestack",
+    "sourceUrl": "https://www.filestack.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://www.filestack.com/",
+    "docsUrl": "https://www.filestack.com/docs/",
+    "developerConsoleUrl": "https://dev.filestack.com/",
+    "termsUrl": "https://www.filestack.com/terms/",
+    "privacyUrl": "https://www.filestack.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_application_credentials", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "FILESTACK_API_KEY",
+        "label": "Filestack API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the application API key from your Filestack Developer Portal."
+      },
+      {
+        "name": "FILESTACK_APP_SECRET",
+        "label": "Filestack app secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the application secret from Security in your Filestack Developer Portal. Relay uses it only on Railway to sign short-lived policies."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "file_read", "label": "Read files", "description": "Download bounded file content and inspect metadata or EXIF data for an explicit Filestack handle." },
+    { "id": "file_manage", "label": "Manage files", "description": "Upload new files, overwrite existing handles, and permanently delete explicitly selected files." },
+    { "id": "file_process", "label": "Process files", "description": "Run documented Processing API task chains and customer-configured workflows against explicit handles." }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "filestack_download_file", "label": "Download file", "description": "Download one Filestack file up to Relay's five-megabyte agent response limit." },
+      { "id": "filestack_read_metadata", "label": "Read file metadata", "description": "Read bounded metadata, including optional EXIF data, for one Filestack handle." }
+    ],
+    "approvalRequired": [
+      { "id": "filestack_upload_file", "label": "Upload file", "description": "Upload one file up to five megabytes; Safe mode requires approval." },
+      { "id": "filestack_overwrite_file", "label": "Overwrite file", "description": "Replace the content behind one explicit Filestack handle; Safe mode requires approval." },
+      { "id": "filestack_delete_file", "label": "Delete file", "description": "Permanently delete one explicit Filestack handle; Safe mode requires approval." },
+      { "id": "filestack_process_file", "label": "Process file", "description": "Run one bounded Filestack Processing API task chain; Safe mode requires approval." },
+      { "id": "filestack_run_workflow", "label": "Run workflow", "description": "Run one configured Filestack workflow on one explicit handle; Safe mode requires approval." }
+    ],
+    "blocked": [
+      { "id": "filestack_secret_exposure", "label": "Expose signing credentials", "description": "The application secret, generated policy, and signature never enter agent-visible tool results or catalog data." },
+      { "id": "filestack_unbounded_transfer", "label": "Transfer an unbounded file", "description": "Relay limits agent upload, download, and processing payloads to five megabytes." },
+      { "id": "filestack_untrusted_origin", "label": "Call an alternate origin", "description": "File and Processing API requests are pinned to Filestack's documented HTTPS origins." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "filestack_safe",
+      "label": "Safe",
+      "description": "Bounded downloads and metadata reads run directly; uploads, overwrites, deletion, processing, and workflows require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["filestack_download_file", "filestack_read_metadata"],
+      "approvalRequiredActions": ["filestack_upload_file", "filestack_overwrite_file", "filestack_delete_file", "filestack_process_file", "filestack_run_workflow"],
+      "blockedActions": ["filestack_secret_exposure", "filestack_unbounded_transfer", "filestack_untrusted_origin"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Filestack operation runs without Relay per-action approval; ownership, fixed provider origins, payload bounds, short-lived scoped signatures, secret redaction, audits, account security, add-ons, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["filestack_download_file", "filestack_read_metadata", "filestack_upload_file", "filestack_overwrite_file", "filestack_delete_file", "filestack_process_file", "filestack_run_workflow"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["filestack_secret_exposure", "filestack_unbounded_transfer", "filestack_untrusted_origin"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts typed File, Processing, and Workflow API wrappers and signs a new five-minute provider policy for each operation." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts typed File, Processing, and Workflow API wrappers and signs a new five-minute provider policy for each operation." }
+  ],
+  "availability": "beta_available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No customer Filestack application API key, app secret, provider session, billable account, sample handle, or configured workflow is available for production acceptance.",
+    "nextAction": "A customer connects an application API key and secret with Filestack Security enabled, then verifies metadata and bounded download, Safe denial plus approval, Dangerous upload, overwrite, delete, processing and workflow execution, redaction, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://www.filestack.com/docs/security/policies/", "checkedAt": "2026-07-14", "supports": "Filestack documents application-key and app-secret authentication, Base64URL policies, HMAC-SHA256 signatures, expiry, optional resource restrictions, and pick, read, remove, store, write, convert, exif, stat, and runWorkflow calls." },
+    { "url": "https://www.filestack.com/docs/api/file/", "checkedAt": "2026-07-14", "supports": "Filestack documents upload, retrieve, overwrite, delete, and metadata operations on its fixed File API endpoint, with policy and signature requirements for protected operations." },
+    { "url": "https://www.filestack.com/docs/api/processing/", "checkedAt": "2026-07-14", "supports": "Filestack documents Processing API task chains for file transformations and conversions through its content CDN." },
+    { "url": "https://www.filestack.com/docs/api/workflows_api/", "checkedAt": "2026-07-14", "supports": "Filestack documents customer-configured workflow IDs and signed run_workflow calls against handles or URLs." },
+    { "url": "https://www.filestack.com/", "checkedAt": "2026-07-14", "supports": "Filestack describes file upload, transformation, intelligence, storage, workflow, and delivery products for websites and applications." }
+  ]
+}

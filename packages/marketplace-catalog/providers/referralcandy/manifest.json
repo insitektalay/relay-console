@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "referralcandy",
+  "name": "ReferralCandy",
+  "category": "marketing",
+  "description": "ReferralCandy is an ecommerce referral and affiliate platform for advocates, referred purchases, campaign incentives, rewards, tracking, and partner commissions.",
+  "agentUseSummary": "ReferralCandy cannot yet be connected through Relay. Its account API uses a static Access ID and Secret Key to create MD5-signed requests without granular permission scopes, and the same contract reads customer referral data and performs purchase and reward mutations; representative credential and lifecycle acceptance is required first.",
+  "provider": {
+    "websiteUrl": "https://www.referralcandy.com/",
+    "docsUrl": "https://www.referralcandy.com/api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.referralcandy.com/terms-of-service",
+    "privacyUrl": "https://www.referralcandy.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_access_id",
+      "customer_secret_key",
+      "md5_parameter_signature",
+      "unix_timestamp",
+      "exact_account_binding",
+      "no_granular_key_scopes"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "REFERRALCANDY_ACCESS_ID",
+        "label": "ReferralCandy API Access ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Customer account API Access ID from ReferralCandy Account Profile."
+      },
+      {
+        "name": "REFERRALCANDY_SECRET_KEY",
+        "label": "ReferralCandy API Secret Key",
+        "required": true,
+        "secret": true,
+        "helpText": "Static request-signing secret stored only in Railway's encrypted credential boundary."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "referralcandy_credentials",
+        "label": "Collect ReferralCandy credentials",
+        "description": "Relay does not collect static account signing credentials before representative ownership and lifecycle acceptance."
+      },
+      {
+        "id": "referralcandy_referral_reads",
+        "label": "Read referrals and customers",
+        "description": "Referred purchases, referrer relationships, customer emails, campaign IDs, and reward data remain unavailable."
+      },
+      {
+        "id": "referralcandy_purchase_reward_writes",
+        "label": "Send purchases or update rewards",
+        "description": "Purchase ingestion, returned-purchase changes, custom reward delivery, and any campaign-affecting operation are blocked."
+      },
+      {
+        "id": "referralcandy_raw",
+        "label": "Use raw ReferralCandy APIs",
+        "description": "Arbitrary methods, date-range extraction, unbounded polling, raw signatures, raw errors, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "referralcandy_unavailable",
+      "label": "Unavailable",
+      "description": "No ReferralCandy action is enabled before representative customer credential and authority acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "referralcandy_credentials",
+        "referralcandy_referral_reads",
+        "referralcandy_purchase_reward_writes",
+        "referralcandy_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No ReferralCandy wrappers are mounted until a representative account establishes the frozen signing contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No ReferralCandy wrappers are mounted until a representative account establishes the frozen signing contract."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "ReferralCandy requires each customer to retrieve a static Access ID and Secret Key from its account profile. Every request includes the Access ID, current UNIX timestamp, and an MD5 signature derived from the unscoped Secret Key; the same contract exposes customer emails and referred purchases and accepts purchase, return, and reward mutations, while public documentation does not establish key rotation or granular authority.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should obtain authorization from a representative paying merchant, provision dedicated account credentials without exposing them in reports, store them in Railway, and return exact-account binding, rotation and revocation, timestamp tolerance and replay behavior, schema, quota, privacy-redaction, denial, and disconnect evidence before connector implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://www.referralcandy.com/api",
+      "checkedAt": "2026-07-17",
+      "supports": "ReferralCandy documents v2.2 requests carrying the current UNIX timestamp, account Access ID, and an MD5 signature derived from a static API Secret Key, plus referral and referrer reads containing customer emails and purchase data and reward and purchase mutations."
+    },
+    {
+      "url": "https://help.referralcandy.com/en/articles/2457859-woocommerce-integration-guide",
+      "checkedAt": "2026-07-17",
+      "supports": "ReferralCandy instructs merchants to retrieve their API Access ID/App ID and API Secret ID/Secret Key from the dashboard's Account Profile API Tokens section."
+    },
+    {
+      "url": "https://help.referralcandy.com/en/articles/2457839-integration-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "ReferralCandy describes API integration as a store connection that sends purchase and referral data and requires checkout tracking, distinct from a read-only reporting integration."
+    }
+  ]
+}

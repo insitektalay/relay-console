@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "auth0",
+  "name": "Auth0",
+  "category": "developer",
+  "description": "Auth0 is an identity platform whose Management API exposes tenant Applications, Connections, users, organizations, and configuration to tenant-authorized administrative clients.",
+  "agentUseSummary": "Auth0 cannot be newly connected under Relay's provider-owned OAuth model. Auth0 explicitly blocks third-party applications, including AI agents and external partners, from its Management API; Relay therefore mounts no credentials or tools and does not substitute a customer-owned administrative M2M secret without a separately authorized product decision.",
+  "provider": {
+    "websiteUrl": "https://auth0.com/",
+    "docsUrl": "https://auth0.com/docs/get-started/applications/third-party-applications/security-controls",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.okta.com/agreements/",
+    "privacyUrl": "https://www.okta.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "third_party_system_api_unsupported",
+      "customer_tenant_m2m_requires_separate_product_decision",
+      "no_new_relay_connection"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "auth0_connect",
+        "label": "Connect Auth0",
+        "description": "Relay-owned third-party applications cannot access the Auth0 Management API."
+      },
+      {
+        "id": "auth0_customer_m2m",
+        "label": "Use customer M2M credentials",
+        "description": "Customer-owned tenant M2M client IDs and secrets are a distinct high-risk administrative credential product that is not authorized in V1."
+      },
+      {
+        "id": "auth0_management_api",
+        "label": "Use Auth0 Management API",
+        "description": "Client, Connection, user, organization, role, log, configuration, and other system-API reads or writes are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "auth0_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled because Auth0 blocks third-party applications from its system APIs.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "auth0_connect",
+        "auth0_customer_m2m",
+        "auth0_management_api"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Auth0 credentials or tools are mounted; Auth0 blocks Relay's third-party application from the Management API."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Auth0 credentials or tools are mounted; Auth0 blocks Relay's third-party application from the Management API."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Auth0's enhanced third-party application controls explicitly do not support Auth0 system APIs, including the Management API, for externally operated partners or AI agents. The supported tenant-owned M2M flow requires each customer to create and authorize an administrative application and share its client secret, which is a materially different product not authorized by this convergence batch.",
+    "nextAction": "Keep Auth0 unavailable unless a separate product decision explicitly authorizes customer-owned exact-tenant M2M credentials with narrow read:clients/read:connections grants, or Auth0 publishes a supported third-party Management API authorization contract."
+  },
+  "evidence": [
+    {
+      "url": "https://auth0.com/docs/get-started/applications/third-party-applications/security-controls",
+      "checkedAt": "2026-07-17",
+      "supports": "Auth0 explicitly lists Management API, MFA API, My Account API, and My Orgs API as unsupported system APIs for third-party applications and says they cannot be granted system-API access."
+    },
+    {
+      "url": "https://auth0.com/docs/get-started/applications/first-party-and-third-party-applications",
+      "checkedAt": "2026-07-17",
+      "supports": "Auth0 defines external partners and AI agents as third-party operators and states Auth0 system APIs are not accessible in third-party user flows."
+    },
+    {
+      "url": "https://support.auth0.com/center/s/article/third-party-application-unable-to-obtain-user-delegated-access-to-auth0-apis",
+      "checkedAt": "2026-07-17",
+      "supports": "Auth0 Support documents the April 2026 restriction and the unauthorized-client failure for third-party requests targeting Auth0 system API audiences."
+    },
+    {
+      "url": "https://auth0.com/docs/secure/tokens/access-tokens/management-api-access-tokens/get-management-api-access-tokens-for-production",
+      "checkedAt": "2026-07-17",
+      "supports": "Auth0 documents production Management API access through a tenant-created and authorized Machine-to-Machine Application using its client credentials."
+    },
+    {
+      "url": "https://auth0.com/docs/api/management/v2",
+      "checkedAt": "2026-07-17",
+      "supports": "Auth0 documents that Management API requests require an appropriately scoped Management API access token rather than an end-user login or ID token."
+    }
+  ]
+}

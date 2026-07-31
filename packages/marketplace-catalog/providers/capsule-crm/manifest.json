@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "capsule-crm",
+  "name": "Capsule CRM",
+  "category": "developer",
+  "description": "Capsule CRM manages people, organisations, opportunities, projects, tasks, activities, pipelines, and custom fields.",
+  "agentUseSummary": "Connect a customer-owned Capsule CRM Bearer token, then let agents list only bounded projected party custom-field metadata under approval. Relay excludes descriptions, tags, options, values, CRM records, writes, administration, beta MCP, bulk operations, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://capsulecrm.com/",
+    "docsUrl": "https://developer.capsulecrm.com/v2/operations/Custom_Field",
+    "developerConsoleUrl": "https://developer.capsulecrm.com/",
+    "termsUrl": "https://capsulecrm.com/terms/",
+    "privacyUrl": "https://capsulecrm.com/privacy/"
+  },
+  "authentication": {
+    "model": "customer_owned_bearer_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_bearer_token",
+      "fixed_api_origin",
+      "fixed_party_field_scope",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CAPSULE_CRM_ACCESS_TOKEN",
+        "label": "Capsule CRM access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Store a dedicated least-privilege Bearer token only through Relay's encrypted flow."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "party_custom_field_metadata",
+      "label": "List party custom-field metadata",
+      "description": "List at most 100 field IDs, names, types, display order, capture rules, and importance flags without descriptions, tags, options, values, or CRM records.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "capsule_crm_party_custom_fields_list",
+        "label": "List party custom-field metadata",
+        "description": "List bounded projected party custom-field definitions from Capsule CRM."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "capsule_crm_records",
+        "label": "Access CRM records",
+        "description": "Parties, people, organisations, opportunities, projects, tasks, activities, history, files, users, teams, and goals are blocked."
+      },
+      {
+        "id": "capsule_crm_private_schema_logic",
+        "label": "Access private schema logic",
+        "description": "Descriptions, data tags, list options, link templates, field values, and full definitions are blocked."
+      },
+      {
+        "id": "capsule_crm_mutation_administration",
+        "label": "Mutate or administer Capsule CRM",
+        "description": "Creates, updates, deletes, imports, exports, tracks, pipelines, milestones, boards, stages, users, teams, and settings changes are blocked."
+      },
+      {
+        "id": "capsule_crm_raw_mcp_bulk",
+        "label": "Use raw, MCP, or bulk access",
+        "description": "Arbitrary entities, paths, filters, embeds, raw responses, beta MCP, later pages, redirects, retries, and bulk access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "capsule_crm_party_custom_field_metadata_safe",
+      "label": "Safe",
+      "description": "The bounded field-metadata read requires approval; CRM records, private schema logic, writes, administration, MCP, bulk, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["capsule_crm_party_custom_fields_list"],
+      "blockedActions": [
+        "capsule_crm_records",
+        "capsule_crm_private_schema_logic",
+        "capsule_crm_mutation_administration",
+        "capsule_crm_raw_mcp_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded metadata read runs without Relay per-action approval; fixed origin/path/entity/query binding, projection, caps, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["capsule_crm_party_custom_fields_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "capsule_crm_records",
+        "capsule_crm_private_schema_logic",
+        "capsule_crm_mutation_administration",
+        "capsule_crm_raw_mcp_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned token to Capsule CRM's fixed API origin and projected party custom-field wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned token to Capsule CRM's fixed API origin and projected party custom-field wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Capsule CRM administrator must provision a dedicated least-privilege Bearer token and store it through Relay. No account, OAuth app, token, credential capture, consent, live request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized administrator provisions the least-privilege token, stores it through Relay, then verifies health, one approved metadata list, throttling, token rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.capsulecrm.com/v2/operations/Custom_Field",
+      "checkedAt": "2026-07-17",
+      "supports": "Capsule documents GET /api/v2/{entity}/fields/definitions with parties, opportunities, or kases, page/perPage bounds, and definition fields including descriptions, tags, capture rules, options, and importance. Relay fixes parties, page one, 100 results, and projects only low-risk identity/type fields."
+    },
+    {
+      "url": "https://developer.capsulecrm.com/v2/overview/announcements-and-changes",
+      "checkedAt": "2026-07-17",
+      "supports": "Capsule documents a private-beta local MCP server with broad read-only CRM tools. Relay blocks MCP and selects the narrower fixed REST metadata operation."
+    }
+  ]
+}

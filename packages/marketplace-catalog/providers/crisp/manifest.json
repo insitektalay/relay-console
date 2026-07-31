@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "crisp",
+  "name": "Crisp",
+  "category": "communication",
+  "description": "Crisp is a customer-messaging platform for shared inboxes, website chat, support conversations, contact management, automation, campaigns, knowledge bases, and service operations.",
+  "agentUseSummary": "Enter one customer-owned Crisp website identifier and website token keypair, then let selected agents use content-free conversation operations or approved documented website REST API v1 requests under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://crisp.chat/",
+    "docsUrl": "https://docs.crisp.chat/references/rest-api/v1/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://crisp.chat/en/terms/",
+    "privacyUrl": "https://crisp.chat/en/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["website:conversation:sessions", "website:conversation:states"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      { "name": "CRISP_WEBSITE_ID", "label": "Crisp website identifier", "required": true, "secret": false, "helpText": "Enter the workspace website identifier paired with the website token." },
+      { "name": "CRISP_TOKEN_IDENTIFIER", "label": "Crisp website token identifier", "required": true, "secret": true, "helpText": "Enter the identifier from a customer-generated single-workspace website token." },
+      { "name": "CRISP_TOKEN_KEY", "label": "Crisp website token key", "required": true, "secret": true, "helpText": "Enter the secret key from the same website token keypair." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "conversation_metadata_read", "label": "Read conversation operations", "description": "List bounded conversation operational metadata and read exact state without messages, previews, topics, people IDs, customer metadata, contact details, device/location data, compose contents, participants, mentions, segments, or attachments.", "defaultSelected": true },
+    { "id": "full_api", "label": "Crisp REST API v1", "description": "Use documented website-relative REST API v1 paths and methods allowed by the connected website token.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "crisp_conversation_list", "label": "List conversation metadata", "description": "List one fixed first page of content-free Crisp conversation operational summaries." },
+      { "id": "crisp_conversation_state_get", "label": "Read conversation state", "description": "Read the state of one exact Crisp conversation without messages or customer metadata." },
+      { "id": "crisp_full_api", "label": "Use REST API v1", "description": "Use a documented Crisp website REST API v1 operation authorized by the connected website token; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "crisp_safe", "label": "Safe", "description": "Content-free conversation reads and every broader REST API operation require approval; fixed origin/version/website binding, secret isolation, provider token authorization, and bounds remain enforced.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["crisp_conversation_list", "crisp_conversation_state_get", "crisp_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Selected token-authorized operations run without Relay per-action approval; fixed origin/version/website binding, secret isolation, bounds, audits, provider authorization, and Crisp quotas still apply.", "defaultSelected": false, "allowedActions": ["crisp_conversation_list", "crisp_conversation_state_get", "crisp_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts typed wrappers and attaches the encrypted website token only to the fixed Crisp REST API v1 origin and configured website." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts typed wrappers and attaches the encrypted website token only to the fixed Crisp REST API v1 origin and configured website." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer Crisp website identifier and website token keypair are required for live acceptance.",
+    "nextAction": "A workspace owner generates a website token, enters its identifier/key and website identifier in Relay, and verifies bounded reads, Safe approval, Dangerous broader-operation behavior, token regeneration/revocation, quota behavior, and disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://docs.crisp.chat/guides/rest-api/authentication/website-token/", "checkedAt": "2026-07-18", "supports": "Crisp's official guide documents single-workspace website tokens, identifier/key Basic authentication, the X-Crisp-Tier website header, website identifier binding, and the 10,000-request daily quota." },
+    { "url": "https://docs.crisp.chat/references/rest-api/v1/", "checkedAt": "2026-07-18", "supports": "Crisp's official REST API v1 reference documents the fixed api.crisp.chat origin, first-page conversation listing with 20-to-50 page size, exact conversation-state reads, website token tier support, and provider scopes." }
+  ]
+}

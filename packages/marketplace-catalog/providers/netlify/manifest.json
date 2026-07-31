@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "netlify",
+  "name": "Netlify",
+  "category": "developer",
+  "description": "Netlify is a cloud platform for building, deploying, and operating websites and web applications. Teams use Sites and Deploys to manage production and preview delivery, build configuration, domains, functions, and application services.",
+  "agentUseSummary": "Connect one Netlify Team or Personal Account with an expiring customer-owned PAT and bind one selected Site, then let agents list a bounded first page of account Sites, inspect that exact Site, and list bounded Deploy lifecycle summaries. Relay V1 excludes environment values, deploy files and source, logs, functions, form submissions, error messages, domains and certificates, writes, members, billing, administration, arbitrary REST, and pagination.",
+  "provider": {
+    "websiteUrl": "https://www.netlify.com/",
+    "docsUrl": "https://docs.netlify.com/api-and-cli-guides/api-guides/get-started-with-api/",
+    "developerConsoleUrl": "https://app.netlify.com/user/applications#personal-access-tokens",
+    "termsUrl": "https://www.netlify.com/legal/terms-of-use/",
+    "privacyUrl": "https://www.netlify.com/privacy/"
+  },
+  "authentication": {
+    "model": "personal_access_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false
+  },
+  "connection": {
+    "types": ["customer_owned_expiring_personal_access_token", "exact_account_slug", "exact_selected_site", "saml_team_grant_if_required", "provider_revocable"],
+    "credentialRequirements": [
+      { "name": "NETLIFY_PERSONAL_ACCESS_TOKEN", "label": "Netlify personal access token", "required": true, "secret": true, "helpText": "Create an expiring customer-owned PAT and, for SAML SSO, grant it access to the selected Team." },
+      { "name": "NETLIFY_ACCOUNT_SLUG", "label": "Netlify account slug", "required": true, "secret": false, "helpText": "Bind the connection to one exact Team or Personal Account slug." },
+      { "name": "NETLIFY_SITE_ID", "label": "Netlify Site ID", "required": true, "secret": false, "helpText": "Bind the connection to one exact selected Site ID in that account." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "site_read", "label": "Read Sites", "description": "List bounded Sites in one exact account and inspect one selected Site.", "defaultSelected": true },
+    { "id": "deploy_read", "label": "Read Deploys", "description": "List bounded Deploy lifecycle summaries for the selected Site.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "netlify_site_list", "label": "List Sites", "description": "List at most twenty-five Sites from the first page of one exact account." },
+      { "id": "netlify_site_get", "label": "Read selected Site", "description": "Read one exact selected Site after account-binding verification." },
+      { "id": "netlify_site_deploy_list", "label": "List Site Deploys", "description": "List at most twenty-five Deploys from the first page of the selected Site." }
+    ],
+    "blocked": [
+      { "id": "netlify_site_write", "label": "Change Sites", "description": "Site creation, update, disable, enable, unlink, transfer, and deletion are outside V1." },
+      { "id": "netlify_deploy_write", "label": "Change Deploys", "description": "Deploy creation, upload, cancel, retry, rollback, lock, publish, and deletion are outside V1." },
+      { "id": "netlify_private_content", "label": "Read private content", "description": "Environment values, deploy files and source, logs, functions, form submissions, and error messages are outside V1." },
+      { "id": "netlify_domain_admin", "label": "Manage domains", "description": "Domains, DNS, certificates, aliases, and verification detail are outside V1." },
+      { "id": "netlify_admin", "label": "Administer Netlify", "description": "Members, billing, audit logs, tokens, OAuth applications, hooks, add-ons, databases, and administration are outside V1." },
+      { "id": "netlify_raw_api", "label": "Use raw Netlify API", "description": "Arbitrary REST, hosts, paths, queries, cursors, pagination, and raw responses are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "netlify_safe", "label": "Safe", "description": "All three bounded Netlify reads require matching approval because the PAT itself has broad user authority.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["netlify_site_list", "netlify_site_get", "netlify_site_deploy_list"], "blockedActions": ["netlify_site_write", "netlify_deploy_write", "netlify_private_content", "netlify_domain_admin", "netlify_admin", "netlify_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while exact account/Site binding, fixed requests, limits, redaction, audit, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["netlify_site_list", "netlify_site_get", "netlify_site_deploy_list"], "approvalRequiredActions": [], "blockedActions": ["netlify_site_write", "netlify_deploy_write", "netlify_private_content", "netlify_domain_admin", "netlify_admin", "netlify_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three fixed Netlify read wrappers and attaches the encrypted customer PAT server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three fixed Netlify read wrappers and attaches the encrypted customer PAT server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_setup_required",
+    "blocker": "The customer must generate an expiring Netlify PAT and, when applicable, explicitly grant it access to the selected SAML SSO Team.",
+    "nextAction": "Generate an expiring PAT in Netlify Applications, grant its one SSO Team if required, then enter it with the exact account slug and selected Site ID."
+  },
+  "evidence": [
+    { "url": "https://docs.netlify.com/api-and-cli-guides/api-guides/get-started-with-api/", "checkedAt": "2026-07-17", "supports": "Netlify documents HTTPS bearer authentication, customer-generated PATs with optional expiration, password-reset invalidation, SAML Team grants, the fixed API origin, and the Sites endpoint." },
+    { "url": "https://docs.netlify.com/accounts-and-billing/user-settings/", "checkedAt": "2026-07-17", "supports": "Netlify documents personal access tokens, expiration, authorized-application revocation, and the rule that each token can be granted access to only one SSO Team." },
+    { "url": "https://open-api.netlify.com/", "checkedAt": "2026-07-17", "supports": "Netlify's OpenAPI reference documents account-scoped Site listing with page and per_page, exact Site reads, selected-Site Deploy listing, bearer authorization, and the Site and Deploy fields Relay redacts or returns." }
+  ]
+}

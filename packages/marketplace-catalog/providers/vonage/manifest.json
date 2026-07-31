@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "vonage",
+  "name": "Vonage",
+  "category": "communication",
+  "description": "Vonage Communications APIs provide programmable messaging, voice, video, verification, network, and account services.",
+  "agentUseSummary": "Add a dedicated customer-owned secondary API secret, then let agents inspect only the Communications APIs account's current EUR balance and auto-reload state through one fixed read without exposing communications, content, identity, top-ups, account settings, credential administration, writes, or raw APIs.",
+  "provider": {
+    "websiteUrl": "https://www.vonage.com/communications-apis/",
+    "docsUrl": "https://developer.vonage.com/en/api/account?source=account",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.vonage.com/legal/communications-apis/terms-of-use/",
+    "privacyUrl": "https://www.vonage.com/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key_and_secondary_secret",
+      "full_account_secret_read_surface_only",
+      "http_basic_authentication",
+      "canonical_rest_nexmo_com_origin",
+      "manual_provider_revocation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "VONAGE_API_KEY",
+        "label": "Vonage API key",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the Communications APIs account identifier used only as the HTTP Basic username for the fixed balance read."
+      },
+      {
+        "name": "VONAGE_API_SECRET",
+        "label": "Dedicated secondary API secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated 8–25 character secondary secret with upper case, lower case, and a digit. Relay encrypts it and exposes only the balance read; revoke it in Vonage Dashboard API Settings on disconnect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_balance_read",
+      "label": "Read account balance",
+      "description": "Inspect the connected Communications APIs account's EUR balance and auto-reload state through one fixed read.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "vonage_account_balance_get",
+        "label": "Read account balance",
+        "description": "Read only the current Vonage Communications APIs account balance in EUR and whether auto-reload is enabled."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "vonage_communications_content_identity",
+        "label": "Block communications, content, and identity",
+        "description": "SMS, MMS, WhatsApp, RCS, voice, video, Verify, Conversations, Messages, calls, recordings, transcripts, phone numbers, recipients, users, and content are unavailable."
+      },
+      {
+        "id": "vonage_account_financial_writes",
+        "label": "Block financial and account writes",
+        "description": "Top-ups, auto-reload changes, payments, pricing changes, account settings, callbacks, webhooks, subaccounts, reports, and billing mutations are unavailable."
+      },
+      {
+        "id": "vonage_credentials_admin_raw",
+        "label": "Block credential administration and raw access",
+        "description": "Secret listing, creation, retrieval, revocation, application/private-key/JWT management, arbitrary hosts, paths, queries, retries, writes, deletes, and raw APIs are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "vonage_safe",
+      "label": "Safe",
+      "description": "The one fixed balance read runs automatically; communications, content, account writes, top-ups, credential administration, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["vonage_account_balance_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "vonage_communications_content_identity",
+        "vonage_account_financial_writes",
+        "vonage_credentials_admin_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same fixed read runs without Relay per-action approval; the exact credential, route, response shape, audits, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["vonage_account_balance_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "vonage_communications_content_identity",
+        "vonage_account_financial_writes",
+        "vonage_credentials_admin_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts one typed balance read while Railway alone holds the customer-owned API key and dedicated secondary secret."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts one typed balance read while Railway alone holds the customer-owned API key and dedicated secondary secret."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A representative Vonage Communications APIs account, dedicated secondary secret, current legal/AUP/privacy review, staging credential entry, and live validation remain for separate authorized tasks.",
+    "nextAction": "After batch integration, an authorized account owner must create a dedicated secondary secret and validate fixed Basic authentication, the balance route, exact EUR/auto-reload response reduction, 64 KiB limit, no retry, encrypted-copy deletion, manual provider-secret revocation, and post-revocation denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.vonage.com/en/api/account?source=account",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Account API documents fixed GET https://rest.nexmo.com/account/get-balance, HTTP Basic API-key/secret authentication, and a response containing only numeric EUR value and autoReload state."
+    },
+    {
+      "url": "https://developer.vonage.com/en/account/technical-details",
+      "checkedAt": "2026-07-18",
+      "supports": "Vonage documents the API key as account identifier, the associated API secret as authentication and billing authority, and account balance/settings/report/log semantics."
+    },
+    {
+      "url": "https://developer.vonage.com/en/account/secret-management?source=account",
+      "checkedAt": "2026-07-18",
+      "supports": "Vonage documents up to two API secrets for rotation and Dashboard or Account API revocation, supporting a dedicated secondary-secret lifecycle."
+    },
+    {
+      "url": "https://developer.vonage.com/en/dashboard/control/api-settings",
+      "checkedAt": "2026-07-18",
+      "supports": "Vonage documents API Settings, account API keys, primary and secondary secrets, and separate keys for environments or use cases."
+    },
+    {
+      "url": "https://www.vonage.com/legal/",
+      "checkedAt": "2026-07-18",
+      "supports": "Vonage's current legal index links Communications APIs terms, general Acceptable Use Policy, messaging supplementary terms, privacy, and security materials that gate live release."
+    }
+  ]
+}

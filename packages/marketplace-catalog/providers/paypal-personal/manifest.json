@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "paypal-personal",
+  "name": "PayPal Personal",
+  "category": "commerce_payments",
+  "description": "PayPal Personal is a consumer digital wallet and online payment account for shopping, sending and receiving money, holding an eligible balance, and managing linked banks and cards. Customers use PayPal's app and website to review account activity, manage payment methods, track purchases, and access supported money-management features.",
+  "agentUseSummary": "PayPal Personal is visible as a regulated XS2A TPP-review preview only. It is separate from Relay's business-owned PayPal REST-app connector: Relay will not collect a PayPal email, password, passkey, one-time code, browser session, card or bank detail, TPP certificate private key, business REST-app secret, or other credential, and no personal-account action is callable until PayPal approves the exact XS2A integration.",
+  "provider": {
+    "websiteUrl": "https://www.paypal.com/us/digital-wallet/how-paypal-works",
+    "docsUrl": "https://developer.paypal.com/reference/guidelines/psd2-compliance/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.paypal.com/us/legalhub/paypal/useragreement-full",
+    "privacyUrl": "https://www.paypal.com/us/legalhub/paypal/privacy-full"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "paypal_xs2a_aisp_registration_required",
+      "tpp_license_certificate_and_scope_enablement_required",
+      "customer_consent_and_read_scope_approval_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "approved_personal_account_information_read",
+      "label": "Read approved PayPal Personal account information",
+      "description": "After PayPal approves Relay as a regulated AISP, expose only bounded non-mutating summaries for the connected customer's consented personal-account balance and recent transaction history within explicitly eligible countries and accounts.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "paypal_personal_connect_before_tpp_approval",
+        "label": "Connect before regulated TPP approval",
+        "description": "PayPal requires an AISP or PISP to register as a TPP, verifies the TPP license certificate, and then enables XS2A scopes on an approved REST Client ID. Relay has no verified AISP identity, customer-consent contract, enabled scopes, testing acceptance, or production access."
+      },
+      {
+        "id": "paypal_personal_collect_customer_credentials",
+        "label": "Collect customer or TPP credentials",
+        "description": "Relay will not ask customers for a PayPal email, password, passkey, one-time code, browser session, bearer token, card or bank detail, identity document, TPP certificate private key, business REST-app secret, or other secret as a substitute for PayPal-hosted consent and approved TPP authentication."
+      },
+      {
+        "id": "paypal_personal_api_actions_before_approval",
+        "label": "Run PayPal Personal API actions",
+        "description": "No personal account, balance, transaction, card, bank, wallet, purchase, payment, transfer, identity, consent, webhook, or other PayPal API action can run while regulated XS2A TPP review is pending."
+      },
+      {
+        "id": "paypal_personal_money_movement_blocked",
+        "label": "Money movement unavailable",
+        "description": "Payment initiation, sending or requesting money, checkout, transfers, card or bank changes, wallet maintenance, disputes, crypto, savings, rewards, and every other financial or account mutation remain outside Relay's planned read-only V1 even after approval."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "paypal_personal_xs2a_tpp_review",
+      "label": "Regulated PayPal XS2A TPP review pending",
+      "description": "Personal-account actions remain unavailable until Relay has AISP authorization and a verified TPP certificate, and PayPal enables the exact XS2A customer-consent, read scope, security profile, and production integration.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "paypal_personal_connect_before_tpp_approval",
+        "paypal_personal_collect_customer_credentials",
+        "paypal_personal_api_actions_before_approval",
+        "paypal_personal_money_movement_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No OpenClaw tools are callable until PayPal approves Relay's regulated personal-account integration and Relay implements the approved read-only Railway broker."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Hermes tools are callable until PayPal approves Relay's regulated personal-account integration and Relay implements the approved read-only Railway broker."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "PayPal's current PSD2 guidance says XS2A allows regulated TPPs to access a PayPal user's account information, including balances and transaction history. An AISP or PISP must register with PayPal; PayPal verifies the TPP license certificate and enables XS2A scopes on the approved REST Client ID before testing and go-live. Relay has no AISP authorization, verified certificate, registered PayPal TPP application, enabled scopes, exact customer-consent contract, testing acceptance, schema and rate-limit contract, privacy allocation, or production authority. Relay's existing PayPal business connector uses merchant-owned REST-app credentials and cannot authorize this personal-account surface.",
+    "nextAction": "An authorized Relay business, legal, compliance, privacy, and security owner must obtain the applicable AISP authorization and certificate, register Relay as a TPP with PayPal, obtain XS2A scope enablement, and secure written approval for the exact personal-account integration. The owner must document eligible countries and accounts, customer consent and duration, minimized balance and transaction-history fields, authorization and token contracts, certificate custody and rotation, testing and production onboarding, schemas and rate limits, data retention, revocation and disconnect, audits, incident duties, and go-live approval. Engineering can then implement a fixed-origin Railway consent broker and the smallest bounded read-only balance and recent transaction-history V1. Payment initiation and every mutation remain excluded."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.paypal.com/reference/guidelines/psd2-compliance/",
+      "checkedAt": "2026-07-18",
+      "supports": "PayPal documents XS2A access to user account balances and transaction history, requires regulated TPP registration and license-certificate verification, and enables XS2A scopes only on an approved REST Client ID."
+    },
+    {
+      "url": "https://developer.paypal.com/api/rest",
+      "checkedAt": "2026-07-18",
+      "supports": "PayPal's general REST integrations require client ID and secret credentials and a Business account for live integration, distinguishing the existing merchant-owned Relay connector from regulated personal-account XS2A access."
+    },
+    {
+      "url": "https://developer.paypal.com/log-in/how-it-works",
+      "checkedAt": "2026-07-18",
+      "supports": "Log in with PayPal shares basic non-financial identity information through OAuth and OpenID Connect; it does not authorize Relay to read personal balances or transaction history."
+    },
+    {
+      "url": "https://www.paypal.com/us/digital-wallet/how-paypal-works",
+      "checkedAt": "2026-07-18",
+      "supports": "PayPal describes its personal account and digital wallet as a consumer product for sending, receiving, shopping, managing linked banks and cards, balances, and money activity."
+    }
+  ]
+}

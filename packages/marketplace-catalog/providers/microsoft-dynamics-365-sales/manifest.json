@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-dynamics-365-sales",
+  "name": "Microsoft Dynamics 365 Sales",
+  "category": "crm",
+  "description": "Microsoft Dynamics 365 Sales is a customer relationship management product for managing accounts, contacts, leads, opportunities, sales activities, quotes, orders, invoices, campaigns, and relationship insights on Microsoft Dataverse.",
+  "agentUseSummary": "Choose the Dataverse environment hosting Dynamics 365 Sales, connect through Relay-owned Microsoft OAuth, and let selected agents verify only the bound environment and minimized user, organization, and business-unit IDs. Relay does not expose customer records, sales activity, arbitrary Dataverse tables or actions, or mutations in V1.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/en-us/dynamics-365/products/sales",
+    "docsUrl": "https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/web-api-functions-actions-sample",
+    "developerConsoleUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["offline_access", "user_impersonation"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "customer_selected_dataverse_environment"],
+    "credentialRequirements": [
+      {
+        "name": "DYNAMICS_365_SALES_ENVIRONMENT_URL",
+        "label": "Dynamics 365 Sales environment URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact Dataverse environment origin hosting the Dynamics 365 Sales app."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-dynamics-365-sales/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "microsoft_dynamics_365_sales_read",
+      "label": "Read connection summary",
+      "description": "Verify the selected environment and return minimized Dataverse user, organization, and business-unit IDs.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "microsoft_dynamics_365_sales_read",
+        "label": "Read Dynamics 365 Sales connection summary",
+        "description": "Call only environment-bound WhoAmI and return its three identity IDs."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "microsoft_dynamics_365_sales_manage",
+        "label": "Access sales records or change Dynamics 365 Sales",
+        "description": "Accounts, contacts, leads, opportunities, activities, orders, invoices, campaigns, cases, arbitrary tables, metadata, queries, actions, and mutations are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_dynamics_365_sales_safe",
+      "label": "Safe",
+      "description": "One environment-bound WhoAmI check runs directly. Sales data, arbitrary Dataverse access, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["microsoft_dynamics_365_sales_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["microsoft_dynamics_365_sales_manage"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one environment-bound Dataverse WhoAmI wrapper through Relay-owned Microsoft OAuth."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one environment-bound Dataverse WhoAmI wrapper through Relay-owned Microsoft OAuth."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's multi-tenant Entra application has not been configured and accepted for the production Dynamics CRM user_impersonation permission and exact Microsoft Dynamics 365 Sales callback, and no licensed customer Dataverse environment has completed consent and acceptance.",
+    "nextAction": "The provider-console owner registers or updates Relay's verified multi-tenant Entra application, adds the exact callback, grants delegated Dynamics CRM user_impersonation, stores the client ID and secret in Railway, then validates OAuth, refresh, WhoAmI, disconnect, and post-disconnect denial in a licensed non-production customer environment."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/dynamics365/sales/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft describes Dynamics 365 Sales as a Dataverse-based CRM for accounts, contacts, leads, opportunities, sales collateral, campaigns, and associated service cases."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/web-api-functions-actions-sample",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents the parameter-free Dataverse Web API GET /api/data/v9.2/WhoAmI function and its user, business-unit, and organization identifiers."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/power-apps/developer/data-platform/authenticate-oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft requires OAuth for Dataverse Web API clients and documents delegated user_impersonation for applications acting as the signed-in user."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/power-apps/developer/data-platform/api-limits",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents Dataverse service-protection limits, 429 responses, and Retry-After behavior; Relay's single bounded identity request stays far below bulk-use patterns."
+    }
+  ]
+}

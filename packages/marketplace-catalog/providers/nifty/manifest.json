@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "nifty",
+  "name": "Nifty",
+  "category": "work_management",
+  "description": "Nifty is a project and work-management platform that brings roadmaps, tasks, discussions, documents, files, and time tracking into one workspace. Teams use it to plan milestones, coordinate delivery, collaborate on project knowledge, track workloads, and report progress.",
+  "agentUseSummary": "Connect a Nifty workspace once, then choose which agents can read or manage its authorized projects and work under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://niftypm.com/",
+    "docsUrl": "https://developers.niftypm.com/",
+    "developerConsoleUrl": "https://niftypm.com/",
+    "termsUrl": "https://niftypm.com/terms/",
+    "privacyUrl": "https://niftypm.com/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["file", "label", "doc", "milestone", "message", "subtask", "project", "task_group", "task", "subteam", "member", "folder", "time_tracking"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://niftypm.com/",
+    "tokenUrl": "https://openapi.niftypm.com/oauth/token"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/nifty/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "work_management_read", "label": "Read Nifty work", "description": "Read authorized projects, tasks, milestones, discussions, documents, files, folders, members, labels, and time tracking.", "defaultSelected": true },
+    { "id": "work_management_manage", "label": "Manage Nifty work", "description": "Create, update, and delete authorized Nifty work through its documented API.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "nifty_api_read", "label": "Read Nifty", "description": "Read bounded resources from the connected Nifty workspace." }
+    ],
+    "approvalRequired": [
+      { "id": "nifty_api_manage", "label": "Manage Nifty", "description": "Create, update, or delete authorized Nifty work." }
+    ],
+    "blocked": [
+      { "id": "nifty_secret_exposure", "label": "Expose credentials", "description": "OAuth credentials never enter agent-visible requests or results." },
+      { "id": "nifty_unofficial_origin", "label": "Use another API origin", "description": "Every provider request stays on Nifty's documented OpenAPI origin." },
+      { "id": "nifty_unsupported_api", "label": "Call an unsupported API", "description": "Relay permits only documented Nifty API v1.0 and v2.0 routes." },
+      { "id": "nifty_unbounded_transfer", "label": "Run an unbounded transfer", "description": "Relay bounds queries, files, request bodies, responses, redirects, and execution time." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "nifty_safe",
+      "label": "Safe",
+      "description": "Reads run directly. Every provider mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["nifty_api_read"],
+      "approvalRequiredActions": ["nifty_api_manage"],
+      "blockedActions": ["nifty_secret_exposure", "nifty_unofficial_origin", "nifty_unsupported_api", "nifty_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected action authorized by the connected Nifty workspace runs without Relay per-action approval. Provider authority, fixed origin, request bounds, credential protection, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["nifty_api_read", "nifty_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["nifty_secret_exposure", "nifty_unofficial_origin", "nifty_unsupported_api", "nifty_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts bounded Nifty API tools and attaches refreshed OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts bounded Nifty API tools and attaches refreshed OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Nifty requires a developer account, a Business-plan workspace, and a registered Relay Console app before it reveals the app-specific authorization URL and production credentials.",
+    "nextAction": "Contact team@niftypm.com for a developer account, create Relay Console in Nifty's App Center with https://api.relayconsole.work/api/v1/marketplace/oauth/nifty/callback and every required scope, then store NIFTY_CLIENT_ID, NIFTY_CLIENT_SECRET, and the exact displayed NIFTY_AUTHORIZATION_URL in Railway. Deploy and run live connect, read, Safe approval, Dangerous mutation, refresh, disconnect, and post-disconnect denial checks."
+  },
+  "evidence": [
+    { "url": "https://developers.niftypm.com/", "checkedAt": "2026-07-15", "supports": "Nifty's current developer portal documents its fixed OpenAPI origin, bearer-token API, current version, rate limits, Business-plan requirement, and the documented REST surface." },
+    { "url": "https://help.niftypm.com/en/articles/6749505-nifty-api-webhooks", "checkedAt": "2026-07-15", "supports": "Nifty documents custom app creation, HTTPS redirect URLs, scope selection, client credentials, and the app-specific Authorize URL; third-party products must contact Nifty for a developer account." },
+    { "url": "https://developers.niftypm.com/reference/postoauth-token", "checkedAt": "2026-07-15", "supports": "Nifty documents authorization-code and refresh-token exchanges at /oauth/token using HTTP Basic client authentication and returning access, refresh, expiry, and scope data." },
+    { "url": "https://niftypm.com/pricing/", "checkedAt": "2026-07-15", "supports": "Nifty describes its project-management product and lists Open API access on the Business plan." }
+  ]
+}

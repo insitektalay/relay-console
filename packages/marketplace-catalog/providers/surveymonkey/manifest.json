@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "surveymonkey",
+  "name": "SurveyMonkey",
+  "category": "work_management",
+  "description": "SurveyMonkey is an online survey platform for designing questionnaires, collecting responses, and reviewing feedback. Organizations use it for customer and employee research, event feedback, market studies, and other structured survey programs.",
+  "agentUseSummary": "Connect one exact SurveyMonkey user through Relay-owned Public App OAuth with only users_read, surveys_read, and responses_read. Agents can list one bounded page of recent survey metadata, list one bounded page of response references for an exact survey, or inspect one exact response metadata resource; response content, identity, details, bulk access, arbitrary queries, pagination, exports, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.surveymonkey.com/",
+    "docsUrl": "https://api.surveymonkey.com/v3/docs",
+    "developerConsoleUrl": "https://developer.surveymonkey.com/apps/",
+    "termsUrl": "https://www.surveymonkey.com/mp/legal/terms-of-use/",
+    "privacyUrl": "https://www.surveymonkey.com/mp/legal/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["users_read", "surveys_read", "responses_read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://api.surveymonkey.com/oauth/authorize",
+    "tokenUrl": "https://api.surveymonkey.com/oauth/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_app_oauth",
+      "exact_authorizing_user_binding",
+      "provider_returned_regional_api_origin",
+      "authorizing_user_permission_inheritance",
+      "non_expiring_provider_token"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/surveymonkey/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "survey_list_recent",
+      "label": "List recent surveys",
+      "description": "Read a bounded page of recently modified survey summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "response_list",
+      "label": "List response references",
+      "description": "Read a bounded page of response metadata references for one exact survey.",
+      "defaultSelected": true
+    },
+    {
+      "id": "response_get",
+      "label": "Read response metadata",
+      "description": "Read one exact response metadata summary without response content.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "surveymonkey_survey_list_recent",
+        "label": "List recent surveys",
+        "description": "Read page one of twenty-five metadata-only surveys sorted by modification time."
+      },
+      {
+        "id": "surveymonkey_response_list",
+        "label": "List response references",
+        "description": "Read page one of twenty-five response metadata references for one exact survey."
+      },
+      {
+        "id": "surveymonkey_response_get",
+        "label": "Read response metadata",
+        "description": "Read one exact response metadata resource without response answers or identity."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "surveymonkey_mutation",
+        "label": "Change SurveyMonkey data",
+        "description": "Creating, editing, sending, collecting, sharing, or deleting SurveyMonkey resources is outside V1."
+      },
+      {
+        "id": "surveymonkey_private_response",
+        "label": "Read response content",
+        "description": "Answers, pages, questions, IP addresses, contacts, recipients, custom variables, collectors, device data, and locations are outside V1."
+      },
+      {
+        "id": "surveymonkey_broader_account",
+        "label": "Access broader account data",
+        "description": "Contacts, teams, workgroups, collectors, webhooks, libraries, analysis, and administration are outside V1."
+      },
+      {
+        "id": "surveymonkey_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary paths, filters, includes, pages, origins, query parameters, and raw API access are outside V1."
+      },
+      {
+        "id": "surveymonkey_bulk_export",
+        "label": "Export SurveyMonkey data",
+        "description": "Details and bulk endpoints, automatic pagination, crawling, synchronization, analysis, and export are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "surveymonkey_safe",
+      "label": "Safe",
+      "description": "Three bounded metadata-only reads run automatically; response content, broader account access, raw requests, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "surveymonkey_survey_list_recent",
+        "surveymonkey_response_list",
+        "surveymonkey_response_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "surveymonkey_mutation",
+        "surveymonkey_private_response",
+        "surveymonkey_broader_account",
+        "surveymonkey_raw_query",
+        "surveymonkey_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact-user and regional-origin binding, fixed requests, limits, audit, redaction, token validation, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "surveymonkey_survey_list_recent",
+        "surveymonkey_response_list",
+        "surveymonkey_response_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "surveymonkey_mutation",
+        "surveymonkey_private_response",
+        "surveymonkey_broader_account",
+        "surveymonkey_raw_query",
+        "surveymonkey_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded SurveyMonkey metadata wrappers and attaches the encrypted regional OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded SurveyMonkey metadata wrappers and attaches the encrypted regional OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "SurveyMonkey requires Relay to register and, for public multi-account use, publish a Public App with the exact Railway callback and client credentials. Railway staging credentials and an authorized acceptance account are not configured in this code-only task.",
+    "nextAction": "In the provider-console task, register or publish Relay's SurveyMonkey Public App with https://api.relayconsole.work/api/v1/marketplace/oauth/surveymonkey/callback, request only users_read surveys_read responses_read, configure Railway staging credentials, then verify exact /users/me and access_url binding, the three metadata reads, revocation, rate limits, plan behavior, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.surveymonkey.com/v3/docs",
+      "checkedAt": "2026-07-17",
+      "supports": "SurveyMonkey documents confidential authorization-code OAuth for multi-account apps, form-encoded token exchange, currently non-expiring revocable tokens, and provider-returned US, EU, or Canada access_url values."
+    },
+    {
+      "url": "https://api.surveymonkey.com/v3/docs",
+      "checkedAt": "2026-07-17",
+      "supports": "SurveyMonkey documents users_read, surveys_read, and responses_read separately from responses_read_detail; Relay requests only the three metadata scopes and excludes expanded response details."
+    },
+    {
+      "url": "https://api.surveymonkey.com/v3/docs",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /surveys supports bounded page and sort controls, while GET /surveys/{id}/responses and the exact response resource support metadata reads without using /details or /bulk."
+    }
+  ]
+}

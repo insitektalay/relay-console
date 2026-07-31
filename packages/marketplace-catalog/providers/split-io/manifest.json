@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "split-io",
+  "name": "Split.io",
+  "category": "developer",
+  "description": "Split.io, now Harness Feature Management & Experimentation, provides feature flags, targeting, progressive delivery, experimentation, and release monitoring.",
+  "agentUseSummary": "Connect an API_FEATURE_FLAG_VIEWER Admin API key scoped to one non-production project/workspace. Relay approval-gates a bounded metadata list and exact flag read; environment definitions, targeting, treatments, identities, owners, experiments, and mutations remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.split.io/",
+    "docsUrl": "https://docs.split.io/reference/list-feature-flags",
+    "developerConsoleUrl": "https://app.split.io/",
+    "termsUrl": "https://www.harness.io/legal/terms-of-use",
+    "privacyUrl": "https://www.harness.io/legal/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["API_FEATURE_FLAG_VIEWER", "WORKSPACE"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_admin_api_key",
+      "feature_flag_viewer_role",
+      "workspace_scope",
+      "fixed_admin_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SPLIT_IO_FEATURE_FLAG_VIEWER_API_KEY",
+        "label": "Split.io Feature Flag Viewer Admin API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use an API_FEATURE_FLAG_VIEWER key scoped to one project/workspace."
+      },
+      {
+        "name": "SPLIT_IO_WORKSPACE_ID",
+        "label": "Split.io project/workspace ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to the same non-production project/workspace as the key."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read feature-flag metadata",
+      "description": "Read bounded project-level feature-flag metadata with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "split_io_sensitive_read",
+        "label": "Read Split.io feature flags",
+        "description": "Read bounded project-level feature-flag metadata."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "split_io_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Admin API keys, Bearer headers, stored workspace routing, and credential-bearing fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "split_io_targeting_private",
+        "label": "Read targeting or identities",
+        "description": "Environment definitions, treatments, rules, segments, keys, attributes, owners, users, identities, impressions, metrics, and experiments are excluded."
+      },
+      {
+        "id": "split_io_mutation",
+        "label": "Mutate Split.io",
+        "description": "Flag creation, updates, rollout changes, kill/restore/archive/delete, definitions, change requests, segments, keys, users, projects, and every other mutation remain provider-side."
+      },
+      {
+        "id": "split_io_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only project-level flag list and exact metadata GETs run on api.split.io with stored workspace binding; arbitrary routes, environments, queries, pagination, SDK evaluation, exports, and raw API access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "split_io_safe",
+      "label": "Safe",
+      "description": "Both bounded metadata reads require approval; Viewer role/workspace scope, response bounds, redaction, audits, and definition/evaluation/mutation blocks remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["split_io_sensitive_read"],
+      "blockedActions": [
+        "split_io_secret_exposure",
+        "split_io_targeting_private",
+        "split_io_mutation",
+        "split_io_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected metadata read runs without Relay per-action approval; Viewer role/workspace scope, response bounds, redaction, audits, and definition/evaluation/mutation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["split_io_sensitive_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "split_io_secret_exposure",
+        "split_io_targeting_private",
+        "split_io_mutation",
+        "split_io_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted workspace-scoped Viewer key server-side and mounts two approval-gated metadata reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted workspace-scoped Viewer key server-side and mounts two approval-gated metadata reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Split.io requires a customer account and an Admin API key assigned API_FEATURE_FLAG_VIEWER and one project/workspace scope. No console, account, key, project, environment, flag, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create the restricted key outside this worker, configure its encrypted value and workspace ID in Railway staging, then verify role/scope binding, list/exact redaction, approval/access denial, response bounds, revocation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.split.io/reference/list-feature-flags",
+      "checkedAt": "2026-07-18",
+      "supports": "Split documents the workspace-bound list route, offset/limit bounds, response shape, and API_FEATURE_FLAG_VIEWER plus WORKSPACE access requirements."
+    },
+    {
+      "url": "https://docs.split.io/reference/get-feature-flag",
+      "checkedAt": "2026-07-18",
+      "supports": "Split documents the exact project-level metadata GET and sensitive owner data Relay excludes."
+    },
+    {
+      "url": "https://help.split.io/hc/en-us/articles/20685635523981-Managing-API-key-roles-and-scopes",
+      "checkedAt": "2026-07-18",
+      "supports": "Split documents immutable Admin API key roles/scopes, API_FEATURE_FLAG_VIEWER as view-only, project/environment restriction, revocation, and least-privilege behavior."
+    }
+  ]
+}

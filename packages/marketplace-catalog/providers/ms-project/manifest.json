@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ms-project",
+  "name": "Microsoft Project",
+  "category": "project_management",
+  "description": "Microsoft Project is a project and portfolio management product for planning schedules, dependencies, resources, milestones, costs, and delivery across complex work. Its current cloud scheduling experience is delivered through Planner premium and stores project schedules in Microsoft Dataverse, while the Project desktop application remains available for detailed plan authoring.",
+  "agentUseSummary": "Choose the Dataverse environment containing your Planner premium schedules, connect through Relay-owned Microsoft OAuth, then let agents read or manage all documented Project schedule entities and actions under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-365/planner/microsoft-planner",
+    "docsUrl": "https://learn.microsoft.com/dynamics365/project-operations/project-management/schedule-api-preview",
+    "developerConsoleUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["offline_access", "user_impersonation"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [
+      {
+        "name": "MS_PROJECT_ENVIRONMENT_URL",
+        "label": "Dataverse environment URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Choose the environment containing the Planner premium or Microsoft Project schedules you want agents to use."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/ms-project/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "project_read",
+      "label": "Read premium projects",
+      "description": "Read authorized projects, tasks, dependencies, assignments, buckets, team members, checklists, labels, task labels, and sprints.",
+      "defaultSelected": true
+    },
+    {
+      "id": "project_manage",
+      "label": "Manage premium project schedules",
+      "description": "Create, update, and delete authorized projects and scheduling entities through Microsoft's Project schedule actions.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "ms_project_read",
+        "label": "Read Microsoft Project schedules",
+        "description": "Read a bounded set of rows from one of the ten documented project scheduling entity sets."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "ms_project_schedule",
+        "label": "Change Microsoft Project schedules",
+        "description": "Run one documented Project schedule action; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "ms_project_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth tokens, authorization material, and environment secrets never enter agent-visible results."
+      },
+      {
+        "id": "ms_project_other_dataverse_data",
+        "label": "Access other Dataverse data",
+        "description": "Relay permits only the ten documented project scheduling entity sets and twelve schedule actions."
+      },
+      {
+        "id": "ms_project_untrusted_environment",
+        "label": "Call another environment",
+        "description": "Every request remains pinned to the Dataverse environment selected before Microsoft sign-in."
+      },
+      {
+        "id": "ms_project_unbounded_operation",
+        "label": "Run an unbounded operation",
+        "description": "Relay bounds query results, action collections, request size, response size, and redirects."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "ms_project_safe",
+      "label": "Safe",
+      "description": "Bounded schedule reads run directly; every create, update, assignment, execution, and delete action requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["ms_project_read"],
+      "approvalRequiredActions": ["ms_project_schedule"],
+      "blockedActions": [
+        "ms_project_secret_exposure",
+        "ms_project_other_dataverse_data",
+        "ms_project_untrusted_environment",
+        "ms_project_unbounded_operation"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Microsoft-authorized schedule read and action runs without Relay per-action approval; fixed environment binding, entity and action allowlists, bounds, redaction, audits, licensing, Dataverse roles, and Microsoft enforcement still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["ms_project_read", "ms_project_schedule"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "ms_project_secret_exposure",
+        "ms_project_other_dataverse_data",
+        "ms_project_untrusted_environment",
+        "ms_project_unbounded_operation"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded Microsoft Project schedule read and action wrappers and proxies delegated OAuth to the selected Dataverse environment."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded Microsoft Project schedule read and action wrappers and proxies delegated OAuth to the selected Dataverse environment."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Railway does not yet contain Relay's Microsoft Project Entra client ID and secret, and the multi-tenant application has not been configured with delegated Dynamics CRM user_impersonation consent and the production callback.",
+    "nextAction": "Register or update Relay Console as a verified multi-tenant Entra web application, add the production callback, grant delegated Dynamics CRM user_impersonation, create a client secret, store the client ID and secret in Railway, then run OAuth, refresh, WhoAmI, bounded reads, Safe mutation denial and approval, Dangerous schedule actions, disconnect, and post-disconnect denial acceptance against a licensed Planner premium environment."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/planner/licensing",
+      "checkedAt": "2026-07-15",
+      "supports": "Microsoft identifies Planner Plan 1 and Planner and Project Plan 3 or 5 as the subscriptions that provide Planner premium capabilities."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/microsoftteams/manage-planner-app",
+      "checkedAt": "2026-07-15",
+      "supports": "Microsoft states that premium plans and tasks are stored in Dataverse and that programmability is provided by the Project schedule APIs."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/dynamics365/project-operations/project-management/schedule-api-preview",
+      "checkedAt": "2026-07-15",
+      "supports": "Microsoft documents ten project scheduling entities and the V1 and V2 create, update, delete, team, operation-set, execution, and assignment-contour actions."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/dynamics365/project-operations/project-management/scheduling-apis-powerautomate-v3",
+      "checkedAt": "2026-07-15",
+      "supports": "Microsoft documents the current msdyn_ExecuteOperationSetV3 action for bounded create, update, and delete collections in one schedule request."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/power-apps/developer/data-platform/authenticate-oauth",
+      "checkedAt": "2026-07-15",
+      "supports": "Microsoft requires OAuth for Dataverse Web API clients and documents delegated user_impersonation for applications acting as the signed-in user."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/lifecycle/products/project-online",
+      "checkedAt": "2026-07-15",
+      "supports": "Microsoft lists 30 September 2026 as the retirement date for the separate Project Online service, so Relay does not build a new connector on that retiring API."
+    }
+  ]
+}

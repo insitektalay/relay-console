@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-docs",
+  "name": "Google Docs",
+  "category": "knowledge_documents",
+  "description": "Google Docs is Google's collaborative document editor for creating and working together on text documents. Individuals and teams use it for plans, notes, proposals, and shared writing.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth, explicitly choose documents for Relay, then let agents use four bounded tools for exact-document reads, local change preparation, creation, and constrained text updates. Relay V1 uses only drive.file and excludes Drive discovery, broad Docs scopes, permissions, sharing, comments, suggestions, export, deletion, moves, automatic pagination, and raw API or MCP access.",
+  "provider": {
+    "websiteUrl": "https://docs.google.com/",
+    "docsUrl": "https://developers.google.com/workspace/docs/api/auth",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials",
+    "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "email", "https://www.googleapis.com/auth/drive.file"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token"
+  },
+  "connection": {
+    "types": ["relay_owned_global_oauth", "exact_google_account_binding", "app_visible_document_corpus", "expiring_access_token", "offline_refresh_token", "provider_revocation"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-docs/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "document_read", "label": "Read documents", "description": "Read bounded text and metadata from one exact app-visible Google Doc.", "defaultSelected": true },
+    { "id": "document_draft", "label": "Prepare changes", "description": "Prepare and hash bounded document changes locally.", "defaultSelected": true },
+    { "id": "document_write", "label": "Create and update documents", "description": "Create documents and apply constrained text updates after policy checks.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_docs_read_document", "label": "Read document", "description": "Read bounded text and metadata from one user-specified, app-visible Google Doc." },
+      { "id": "google_docs_prepare_update", "label": "Prepare document change", "description": "Prepare and hash one bounded document change locally without changing Google Docs." }
+    ],
+    "approvalRequired": [
+      { "id": "google_docs_create_document", "label": "Create document", "description": "Create one bounded Google Doc and optionally insert its initial text." },
+      { "id": "google_docs_apply_document_update", "label": "Apply document update", "description": "Insert or replace bounded text in one exact app-visible Google Doc." }
+    ],
+    "blocked": [
+      { "id": "google_docs_discovery", "label": "Search Drive or discover documents", "description": "Drive search, whole-Drive access, automatic pagination, and shared-drive crawling are outside V1." },
+      { "id": "google_docs_collaboration_admin", "label": "Change sharing or collaboration", "description": "Permissions, ownership, comments, suggestions, domain-wide delegation, and administration are outside V1." },
+      { "id": "google_docs_destructive", "label": "Delete or move documents", "description": "Delete, trash, move, broad formatting replacement, and other destructive document operations are outside V1." },
+      { "id": "google_docs_raw", "label": "Run broad or raw operations", "description": "Export, import, raw API or MCP calls, media, and unbounded payloads are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "google_docs_safe", "label": "Safe", "description": "Bounded exact-document reads and local preparation run automatically; creates and updates require matching approval.", "defaultSelected": true, "allowedActions": ["google_docs_read_document", "google_docs_prepare_update"], "approvalRequiredActions": ["google_docs_create_document", "google_docs_apply_document_update"], "blockedActions": ["google_docs_discovery", "google_docs_collaboration_admin", "google_docs_destructive", "google_docs_raw"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All four selected tools run without Relay per-action approval while drive.file, exact-document targeting, account binding, payload limits, audit, redaction, refresh, revocation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["google_docs_read_document", "google_docs_prepare_update", "google_docs_create_document", "google_docs_apply_document_update"], "approvalRequiredActions": [], "blockedActions": ["google_docs_discovery", "google_docs_collaboration_admin", "google_docs_destructive", "google_docs_raw"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts four bounded Google Docs wrappers and attaches encrypted OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts four bounded Google Docs wrappers and attaches encrypted OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay must configure its Google Cloud project and confidential web client, enable Docs API, publish the OAuth consent screen with verified relayconsole.work domains and policy links, complete Google's verification required for the production app, configure Railway staging credentials, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the canonical Railway callback and exact scopes, complete Google's brand and verification workflow, configure staging credentials, then verify account binding, app-visible document enforcement, all four tools, Safe and Dangerous policy, token refresh and rotation, revocation, disconnect, quota/error mapping, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developers.google.com/workspace/docs/api/auth", "checkedAt": "2026-07-17", "supports": "Google documents drive.file as the recommended non-sensitive per-file scope accepted by Docs methods, while broad documents scopes are sensitive." },
+    { "url": "https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/get", "checkedAt": "2026-07-17", "supports": "documents.get reads one exact document resource from the fixed Docs API endpoint and accepts drive.file authorization." },
+    { "url": "https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/create", "checkedAt": "2026-07-17", "supports": "documents.create creates a new Google Doc with a title and returns its document resource." },
+    { "url": "https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/batchUpdate", "checkedAt": "2026-07-17", "supports": "documents.batchUpdate applies ordered document updates and supports revision-based write control." },
+    { "url": "https://developers.google.com/identity/protocols/oauth2/web-server", "checkedAt": "2026-07-17", "supports": "Google documents the confidential web-server authorization-code flow, exact redirect URI handling, offline access, refresh, and revocation." }
+  ]
+}

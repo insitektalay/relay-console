@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "acquire",
+  "name": "Acquire",
+  "category": "crm_support",
+  "description": "Acquire is a customer-engagement platform for live chat, messaging, video, voice, co-browsing, chatbots, cases, contacts, knowledge, analytics, and support operations.",
+  "agentUseSummary": "Enter one Acquire account ID and dedicated API key, then let selected agents use content-free case operations or approved documented API v1 requests under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://acquire.io/",
+    "docsUrl": "https://developer.acquire.io/rest-apis/authorization",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://acquire.io/terms/",
+    "privacyUrl": "https://acquire.io/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "ACQUIRE_ACCOUNT_ID",
+        "label": "Acquire account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the workspace hostname label before .acquire.io."
+      },
+      {
+        "name": "ACQUIRE_API_KEY",
+        "label": "Acquire API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated revocable API key with custom least-privilege permissions."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "case_metadata_read",
+      "label": "Read case operations",
+      "description": "List and inspect bounded case operational metadata without titles, descriptions, contacts, users, messages, fields, tags, feedback, timeline, visit data, device data, metadata, or raw records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Acquire API v1",
+      "description": "Use documented account-bound API v1 paths and methods allowed by the key's custom permissions.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "acquire_case_list",
+        "label": "List case metadata",
+        "description": "List one bounded first response of content-free Acquire case summaries."
+      },
+      {
+        "id": "acquire_case_get",
+        "label": "Read case metadata",
+        "description": "Read one exact Acquire case through Relay's content-free projection."
+      },
+      {
+        "id": "acquire_full_api",
+        "label": "Use Acquire API v1",
+        "description": "Use a documented Acquire API v1 operation authorized by the configured API key; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "acquire_safe",
+      "label": "Safe",
+      "description": "Content-free case reads and every broader API operation require approval; account/version binding, Bearer-key isolation, custom-permission context, bounds, and provider limits remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "acquire_case_list",
+        "acquire_case_get",
+        "acquire_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected key-authorized operations run without Relay per-action approval; account/version binding, Bearer-key isolation, bounds, audits, custom permissions, and Acquire limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "acquire_case_list",
+        "acquire_case_get",
+        "acquire_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted API key only to the account-bound Acquire API v1 origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted API key only to the account-bound Acquire API v1 origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer Acquire account ID and dedicated custom-permission API key are required for live acceptance.",
+    "nextAction": "Create a dedicated revocable Acquire API key with case read and only explicitly needed broader permissions, enter the account/key in Relay, and verify bounded reads, Safe approval, Dangerous broader operations, permission changes, provider limits, rotation, revocation, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.acquire.io/rest-apis/authorization",
+      "checkedAt": "2026-07-18",
+      "supports": "Acquire documents account-scoped HTTPS API origins, Bearer API-key authentication, selectable token permissions, one-time display, and key deletion/revocation."
+    },
+    {
+      "url": "https://help.acquire.io/for-developers/api-getting-started-guide",
+      "checkedAt": "2026-07-18",
+      "supports": "Acquire's official getting-started guide defines account IDs as instance subdomains and full-access versus custom-permission keys across product areas."
+    },
+    {
+      "url": "https://developer.acquire.io/rest-apis/conversation/conversation-or-cases/list",
+      "checkedAt": "2026-07-18",
+      "supports": "Acquire documents Bearer-authenticated case listing at /api/v1/crm/objects/case with bounded response metadata and optional filters/relations."
+    },
+    {
+      "url": "https://developer.acquire.io/rest-apis/conversation/conversation-or-cases/get",
+      "checkedAt": "2026-07-18",
+      "supports": "Acquire documents exact Bearer-authenticated case retrieval at /api/v1/crm/objects/case/{caseId}."
+    }
+  ]
+}

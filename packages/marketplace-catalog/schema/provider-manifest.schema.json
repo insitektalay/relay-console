@@ -1,0 +1,319 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://relayconsole.work/schemas/marketplace-provider-manifest.v1.json",
+  "title": "Relay Console Marketplace provider manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "slug",
+    "name",
+    "category",
+    "description",
+    "agentUseSummary",
+    "provider",
+    "authentication",
+    "connection",
+    "capabilities",
+    "actions",
+    "approvalProfiles",
+    "riskLevel",
+    "runtimeSupport",
+    "availability",
+    "evidence"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.marketplace-provider.v1" },
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "name": { "type": "string", "minLength": 1 },
+    "category": {
+      "enum": [
+        "communication",
+        "work_management",
+        "knowledge_documents",
+        "developer",
+        "commerce_payments",
+        "crm_support",
+        "content_creative"
+      ]
+    },
+    "description": { "type": "string", "minLength": 1 },
+    "agentUseSummary": { "type": "string", "minLength": 1 },
+    "icon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assetName", "sourceUrl"],
+      "properties": {
+        "assetName": { "type": "string", "minLength": 1 },
+        "sourceUrl": { "type": "string", "format": "uri" }
+      }
+    },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["websiteUrl", "docsUrl"],
+      "properties": {
+        "websiteUrl": { "type": "string", "format": "uri" },
+        "docsUrl": { "type": "string", "format": "uri" },
+        "developerConsoleUrl": { "type": ["string", "null"], "format": "uri" },
+        "accountCreationUrl": { "type": ["string", "null"], "format": "uri" },
+        "termsUrl": { "type": ["string", "null"], "format": "uri" },
+        "privacyUrl": { "type": ["string", "null"], "format": "uri" }
+      }
+    },
+    "authentication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model", "relayOwned", "scopes", "pkce", "refreshTokens"],
+      "properties": {
+        "model": {
+          "enum": [
+            "oauth2",
+            "oauth1",
+            "api_key",
+            "personal_access_token",
+            "service_account",
+            "basic",
+            "remote_mcp_oauth",
+            "none",
+            "unsupported"
+          ]
+        },
+        "relayOwned": { "type": "boolean" },
+        "scopes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "accessOptions": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "label",
+              "description",
+              "scopes",
+              "capabilityIds",
+              "defaultSelected"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(?:_[a-z0-9]+)*$"
+              },
+              "label": { "type": "string", "minLength": 1 },
+              "description": { "type": "string", "minLength": 1 },
+              "scopes": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "type": "string", "minLength": 1 },
+                "uniqueItems": true
+              },
+              "capabilityIds": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "type": "string", "minLength": 1 },
+                "uniqueItems": true
+              },
+              "defaultSelected": { "type": "boolean" }
+            }
+          }
+        },
+        "pkce": { "type": "boolean" },
+        "refreshTokens": { "type": "boolean" },
+        "authorizationUrl": { "type": ["string", "null"], "format": "uri" },
+        "tokenUrl": { "type": ["string", "null"], "format": "uri" },
+        "revocationUrl": { "type": ["string", "null"], "format": "uri" }
+      }
+    },
+    "connection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["types", "credentialRequirements", "callbackPath"],
+      "properties": {
+        "types": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "credentialRequirements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "label", "required", "secret", "helpText"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "label": { "type": "string", "minLength": 1 },
+              "required": { "type": "boolean" },
+              "secret": { "type": "boolean" },
+              "helpText": { "type": "string" },
+              "requiredForAuthTypes": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "inputType": { "type": "string", "enum": ["text", "select"] },
+              "options": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["value", "label"],
+                  "properties": {
+                    "value": { "type": "string", "minLength": 1 },
+                    "label": { "type": "string", "minLength": 1 }
+                  }
+                }
+              },
+              "defaultValue": { "type": "string" }
+            }
+          }
+        },
+        "callbackPath": {
+          "type": ["string", "null"],
+          "pattern": "^/api/v1/marketplace/oauth/[a-z0-9-]+/callback$"
+        },
+        "webhookRequirements": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/labelledPolicy" },
+      "uniqueItems": true
+    },
+    "actions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed", "approvalRequired", "blocked"],
+      "properties": {
+        "allowed": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/labelledPolicy" }
+        },
+        "approvalRequired": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/labelledPolicy" }
+        },
+        "blocked": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/labelledPolicy" }
+        }
+      }
+    },
+    "approvalProfiles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "description", "defaultSelected"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$"
+          },
+          "label": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" },
+          "defaultSelected": { "type": "boolean" },
+          "allowedActions": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/labelledPolicy" }
+          },
+          "approvalRequiredActions": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/labelledPolicy" }
+          },
+          "blockedActions": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/labelledPolicy" }
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "riskLevel": { "enum": ["low", "medium", "high", "critical"] },
+    "runtimeSupport": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["format", "installSupport", "description"],
+        "properties": {
+          "format": { "enum": ["openclaw", "hermes"] },
+          "installSupport": {
+            "enum": ["installable", "preview_only", "unsupported"]
+          },
+          "description": { "type": "string" }
+        }
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "availability": {
+      "enum": [
+        "available",
+        "preview",
+        "awaiting_provider_setup",
+        "provider_review_pending",
+        "product_decision_required",
+        "unsupported",
+        "deferred"
+      ]
+    },
+    "providerSetup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "not_required",
+            "not_started",
+            "configured",
+            "review_pending",
+            "blocked"
+          ]
+        },
+        "blocker": { "type": ["string", "null"] },
+        "nextAction": { "type": ["string", "null"] }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["url", "checkedAt", "supports"],
+        "properties": {
+          "url": { "type": "string", "format": "uri" },
+          "checkedAt": { "type": "string", "format": "date" },
+          "supports": { "type": "string", "minLength": 1 }
+        }
+      },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "labelledPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "description"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$" },
+        "label": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "defaultEnabled": { "type": "boolean" },
+        "defaultSelected": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "woocommerce",
+  "name": "WooCommerce",
+  "category": "commerce",
+  "description": "WooCommerce is an open-source commerce platform built for WordPress websites. Store owners use it to manage products, orders, customers, payments, shipping, taxes, promotions, and extensions while retaining control of their hosting and data.",
+  "agentUseSummary": "Connect one exact public HTTPS WooCommerce store with a dedicated read/write REST API key, then let agents inspect bounded products and categories, prepare product changes, create or update drafts, and publish an explicitly reviewed draft under Safe or Dangerous policy. Relay encrypts both consumer credentials, checks the store boundary before every request, and does not expose orders, customers, payments, refunds, inventory writes, coupons, webhooks, settings, reports, destructive operations, automatic pagination, or arbitrary REST access in V1.",
+  "provider": {
+    "websiteUrl": "https://woocommerce.com/",
+    "docsUrl": "https://developer.woocommerce.com/docs/apis/rest-api/v3/",
+    "developerConsoleUrl": "https://woocommerce.com/document/woocommerce-rest-api/",
+    "termsUrl": "https://automattic.com/terms-of-service/",
+    "privacyUrl": "https://automattic.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "woocommerce_application_authentication"],
+    "credentialRequirements": [
+      { "name": "WOOCOMMERCE_STORE_ORIGIN", "label": "Store address", "required": true, "secret": false, "helpText": "Enter the exact public HTTPS origin of the WordPress store, such as https://shop.example.com, without a path." },
+      { "name": "WOOCOMMERCE_CONSUMER_KEY", "label": "Consumer key", "required": true, "secret": true, "helpText": "Generate a dedicated read/write key through WooCommerce > Settings > Advanced > REST API or WooCommerce Application Authentication." },
+      { "name": "WOOCOMMERCE_CONSUMER_SECRET", "label": "Consumer secret", "required": true, "secret": true, "helpText": "Enter the matching consumer secret. Relay encrypts it and never exposes it to agents or clients after saving." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "product_read", "label": "Read products", "description": "List and inspect bounded product and category data from the connected store.", "defaultSelected": true },
+    { "id": "product_draft", "label": "Prepare and edit drafts", "description": "Prepare product changes locally and create or update draft products.", "defaultSelected": true },
+    { "id": "product_publish", "label": "Publish reviewed drafts", "description": "Publish one exact reviewed draft after checking its modification time.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "woocommerce_product_list", "label": "List products", "description": "Read one bounded page of recently modified products." },
+      { "id": "woocommerce_product_get", "label": "Read product", "description": "Read one explicit product and bounded related metadata." },
+      { "id": "woocommerce_category_list", "label": "List product categories", "description": "Read up to twenty-five product categories." },
+      { "id": "woocommerce_product_prepare", "label": "Prepare product change", "description": "Normalize and hash one proposed product change locally." }
+    ],
+    "approvalRequired": [
+      { "id": "woocommerce_product_create_draft", "label": "Create draft product", "description": "Create one reviewed product forced to draft status." },
+      { "id": "woocommerce_product_update_draft", "label": "Update draft product", "description": "Update one reviewed draft after an exact modification-time preflight." },
+      { "id": "woocommerce_product_publish", "label": "Publish product", "description": "Publish one exact reviewed draft after an exact modification-time preflight." }
+    ],
+    "blocked": [
+      { "id": "woocommerce_product_destructive", "label": "Delete or unpublish products", "description": "Deletion, force deletion, trashing, and unpublishing are outside V1." },
+      { "id": "woocommerce_commerce_admin", "label": "Administer store operations", "description": "Orders, customers, payments, refunds, inventory writes, coupons, shipping, taxes, reports, webhooks, settings, and extensions are outside V1." },
+      { "id": "woocommerce_raw_rest", "label": "Use arbitrary WooCommerce APIs", "description": "Arbitrary REST routes, query-string credential fallback, batch endpoints, and automatic pagination are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "woocommerce_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local preparation run directly; draft creation, draft updates, and publication require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["woocommerce_product_list", "woocommerce_product_get", "woocommerce_category_list", "woocommerce_product_prepare"],
+      "approvalRequiredActions": ["woocommerce_product_create_draft", "woocommerce_product_update_draft", "woocommerce_product_publish"],
+      "blockedActions": ["woocommerce_product_destructive", "woocommerce_commerce_admin", "woocommerce_raw_rest"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected WooCommerce V1 operation runs without Relay per-action approval; connection ownership, exact store binding, provider key authority, public-address checks, bounds, state checks, audits, redaction, idempotency, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["woocommerce_product_list", "woocommerce_product_get", "woocommerce_category_list", "woocommerce_product_prepare", "woocommerce_product_create_draft", "woocommerce_product_update_draft", "woocommerce_product_publish"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["woocommerce_product_destructive", "woocommerce_commerce_admin", "woocommerce_raw_rest"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts seven exact WooCommerce wrappers and injects the encrypted store credentials server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts seven exact WooCommerce wrappers and injects the encrypted store credentials server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No representative customer WooCommerce store, administrator authorization, or dedicated read/write REST API key was available for staging acceptance.",
+    "nextAction": "A store administrator enters the exact HTTPS store address and either uses WooCommerce Application Authentication or creates a dedicated read/write REST API key under WooCommerce > Settings > Advanced > REST API. Relay then verifies the store, bounded reads, Safe approval binding, Dangerous draft creation and update, explicit publication, key revocation, disconnect, and post-disconnect denial in staging."
+  },
+  "evidence": [
+    { "url": "https://developer.woocommerce.com/docs/apis/rest-api/v3/", "checkedAt": "2026-07-16", "supports": "WooCommerce REST API v3 is the current recommended integration and supports JSON create, read, update, and delete operations for store resources through WordPress REST routes." },
+    { "url": "https://woocommerce.github.io/woocommerce-rest-api-docs/", "checkedAt": "2026-07-16", "supports": "WooCommerce REST keys are generated for a WordPress user with read, write, or read/write access; Application Authentication uses /wc-auth/v1/authorize and posts the generated consumer key and secret to an HTTPS callback." },
+    { "url": "https://woocommerce.github.io/woocommerce-rest-api-docs/#authentication-over-https", "checkedAt": "2026-07-16", "supports": "HTTPS REST requests authenticate with HTTP Basic authentication using the consumer key and consumer secret; Relay deliberately does not use the documented query-string fallback." },
+    { "url": "https://woocommerce.github.io/woocommerce-rest-api-docs/#pagination", "checkedAt": "2026-07-16", "supports": "Collection routes use bounded page and per_page parameters and return X-WP-Total and X-WP-TotalPages metadata." },
+    { "url": "https://developer.woocommerce.com/docs/apis/", "checkedAt": "2026-07-16", "supports": "The authenticated WooCommerce REST API covers business resources including orders, products, coupons, customers, and shipping zones; Relay's V1 intentionally exposes only the bounded product subset." }
+  ]
+}

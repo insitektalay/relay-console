@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "livestorm",
+  "name": "Livestorm",
+  "category": "communication",
+  "description": "Livestorm is a browser-based event platform for webinars, virtual meetings, on-demand events, registration, engagement, recordings, analytics, and integrations.",
+  "agentUseSummary": "Connect a validated Livestorm workspace through Relay-owned Technology Partner OAuth with only identity and event read scopes, then inspect one fixed first page of content-free event lifecycle metadata.",
+  "provider": {
+    "websiteUrl": "https://livestorm.co",
+    "docsUrl": "https://developers.livestorm.co/docs/getting-started-api",
+    "developerConsoleUrl": "https://app.livestorm.co",
+    "termsUrl": "https://livestorm.co/terms",
+    "privacyUrl": "https://livestorm.co/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["identity:read", "events:read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.livestorm.co/oauth/authorize",
+    "tokenUrl": "https://app.livestorm.co/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_authorization_code",
+      "pkce",
+      "rotating_refresh_token",
+      "connected_workspace_binding"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "LIVESTORM_CLIENT_ID",
+        "label": "Relay Livestorm OAuth client ID",
+        "required": true,
+        "secret": false
+      },
+      {
+        "name": "LIVESTORM_CLIENT_SECRET",
+        "label": "Relay Livestorm OAuth client secret",
+        "required": true,
+        "secret": true
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/livestorm/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "event_lifecycle_read",
+      "label": "Read event lifecycle",
+      "description": "Inspect one bounded first page of content-free Livestorm event lifecycle metadata.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "livestorm_event_lifecycle_list",
+        "label": "List event lifecycle",
+        "description": "List one bounded first page of content-free event lifecycle metadata for the connected Livestorm workspace."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "livestorm_identity_content",
+        "label": "Identity and event content",
+        "description": "Event, session, organization, owner, and people IDs plus titles, descriptions, slugs, registration and room links, form fields, tags, and raw records are not returned."
+      },
+      {
+        "id": "livestorm_people_engagement",
+        "label": "People and engagement",
+        "description": "Registrants, attendees, hosts, moderators, guest speakers, contact details, answers, chat, questions, polls, votes, surveys, attendance, and engagement are not exposed."
+      },
+      {
+        "id": "livestorm_media_communications",
+        "label": "Media and communications",
+        "description": "Recordings, replay URLs, transcripts, audio, livestreams, emails, invitations, reminders, webhooks, and communications are not exposed."
+      },
+      {
+        "id": "livestorm_mutation_raw",
+        "label": "Changes and raw API",
+        "description": "Event and session creation, updates, publication, cancellation, registration, people, media, webhook, and every other mutation plus arbitrary paths, filters, includes, pages, origins, bodies, and tokens are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "livestorm_safe",
+      "label": "Safe",
+      "description": "Every connected-workspace event lifecycle read requires matching Relay approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["livestorm_event_lifecycle_list"],
+      "blockedActions": [
+        "livestorm_identity_content",
+        "livestorm_people_engagement",
+        "livestorm_media_communications",
+        "livestorm_mutation_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected lifecycle reads run without Relay per-action approval while connected-workspace binding, fixed origins and endpoints, first-page bounds, redaction, audits, exact OAuth scopes, workspace validation, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["livestorm_event_lifecycle_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "livestorm_identity_content",
+        "livestorm_people_engagement",
+        "livestorm_media_communications",
+        "livestorm_mutation_raw"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware content-free Livestorm event lifecycle tool and refreshes the workspace grant server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware content-free Livestorm event lifecycle tool and refreshes the workspace grant server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Livestorm OAuth is restricted to official Technology Partners. Relay must be approved, register an exact two-scope client and Railway callback, configure encrypted credentials, and authorize a validated Livestorm workspace.",
+    "nextAction": "Complete Technology Partner review, register the exact-scope PKCE client and Railway callback, configure encrypted credentials, authorize a representative validated workspace, exercise Safe denial/approval and Dangerous reads, verify refresh and local disconnect, deploy through the integration lane, and run live acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.livestorm.co/docs/oauth2-authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Livestorm documents partner-only confidential OAuth, optional PKCE, two-hour access tokens, refresh tokens, Bearer authentication, five requests per second, and exact identity:read and events:read scopes."
+    },
+    {
+      "url": "https://developers.livestorm.co/reference/get_me",
+      "checkedAt": "2026-07-18",
+      "supports": "Livestorm documents the OAuth-only GET /v1/me endpoint used to bind each read to the connected user and workspace."
+    },
+    {
+      "url": "https://developers.livestorm.co/reference/get_events",
+      "checkedAt": "2026-07-18",
+      "supports": "Livestorm documents GET /v1/events, page number and size controls, lifecycle status values, timestamps, and optional content-bearing filters/includes that Relay does not expose."
+    },
+    {
+      "url": "https://developers.livestorm.co/docs/rate-limits-and-quotas",
+      "checkedAt": "2026-07-18",
+      "supports": "Livestorm documents the default 10,000-call rolling monthly quota, five-request-per-second burst limit, 429 behavior, and rate-limit response headers."
+    }
+  ]
+}

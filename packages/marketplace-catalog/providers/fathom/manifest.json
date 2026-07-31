@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "fathom",
+  "name": "Fathom",
+  "category": "communication",
+  "description": "Fathom is an AI meeting assistant that records conversations and produces searchable transcripts, summaries, highlights, and action items. Individuals and teams use it to revisit calls, share meeting knowledge, analyze customer conversations, and organize recordings across teams.",
+  "agentUseSummary": "Connect a Fathom account once, then let agents list meetings, read summaries and transcripts, inspect teams and members, and manage post-meeting webhooks through Fathom's official hosted OAuth MCP under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.fathom.ai/",
+    "docsUrl": "https://developers.fathom.ai/mcp-docs",
+    "developerConsoleUrl": "https://api.fathom.ai/.well-known/oauth-authorization-server",
+    "termsUrl": "https://www.fathom.ai/terms",
+    "privacyUrl": "https://www.fathom.ai/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["mcp"],
+    "pkce": true,
+    "refreshTokens": false,
+    "authorizationUrl": "https://fathom.video/mcp/oauth/authorize",
+    "tokenUrl": "https://api.fathom.ai/mcp/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/fathom/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "meeting_knowledge",
+      "label": "Read meeting knowledge",
+      "description": "List meetings, retrieve summaries and speaker-attributed transcripts, and inspect teams and team members.",
+      "defaultSelected": true
+    },
+    {
+      "id": "webhook_management",
+      "label": "Manage meeting webhooks",
+      "description": "Create or delete post-meeting webhooks using public HTTPS destinations.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "fathom_mcp_read",
+        "label": "Use meeting read tools",
+        "description": "Use one exact documented Fathom meeting, transcript, summary, team, or member read tool."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "fathom_mcp_write",
+        "label": "Manage webhooks",
+        "description": "Create or delete a Fathom webhook; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "fathom_safe",
+      "label": "Safe",
+      "description": "Meeting, transcript, summary, team, and member reads run directly; webhook creation and deletion require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["fathom_mcp_read"],
+      "approvalRequiredActions": ["fathom_mcp_write"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized Fathom MCP operation runs without Relay per-action approval; ownership, provider permissions, exact tool allowlists, live schemas, public-HTTPS webhook boundaries, bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["fathom_mcp_read", "fathom_mcp_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts exact read/webhook wrappers and proxies Fathom OAuth to its official hosted MCP."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts exact read/webhook wrappers and proxies Fathom OAuth to its official hosted MCP."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay's dynamically registered public PKCE client, exact Railway callback, and non-secret Railway client ID are configured, but no signed-in Fathom user was available to complete production OAuth and MCP acceptance.",
+    "nextAction": "A Fathom user clicks Connect, approves MCP access, then Relay verifies MCP health, bounded reads, Safe webhook denial, an approved or Dangerous-mode webhook lifecycle, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.fathom.ai/mcp-docs",
+      "checkedAt": "2026-07-14",
+      "supports": "Fathom documents its official hosted MCP at https://api.fathom.ai/mcp for any compatible client and requires users to authenticate before accessing meeting data."
+    },
+    {
+      "url": "https://help.fathom.video/en/articles/11497793",
+      "checkedAt": "2026-07-14",
+      "supports": "Fathom documents one-click MCP authorization, permission-bounded meeting access, and seven individually toggleable tools for meeting context."
+    },
+    {
+      "url": "https://api.fathom.ai/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-14",
+      "supports": "Fathom publishes its MCP authorization, token, and dynamic-registration endpoints with authorization-code, S256 PKCE, public-client authentication, and the mcp scope."
+    },
+    {
+      "url": "https://developers.fathom.ai/sdks/available-methods",
+      "checkedAt": "2026-07-14",
+      "supports": "Fathom documents the complete seven-operation surface used by the hosted connector: meeting, summary, transcript, team, and member reads plus webhook create and delete."
+    },
+    {
+      "url": "https://developers.fathom.ai/api-overview",
+      "checkedAt": "2026-07-14",
+      "supports": "Fathom documents 60 requests per 60 seconds, lower limits for transcript and summary-heavy reads, and a separate customer API-key option; Relay selects hosted MCP OAuth for one-click connection."
+    }
+  ]
+}

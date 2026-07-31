@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "statamic",
+  "name": "Statamic",
+  "category": "knowledge_documents",
+  "description": "Statamic is a self-hosted content management system built on Laravel for websites and digital publishing. It supports collections, entries, taxonomies, assets, globals, forms, users, custom fields, multisite content, add-ons, a control panel, GraphQL, and a core read-only REST API.",
+  "agentUseSummary": "Relay calls the core read-only REST API for one preselected collection and entry, requests only id and status, and returns only that bounded state projection. The API is otherwise public unless protected and can expose augmented content, so Relay requires a dedicated authentication token and a configuration that enables only the selected collection, then blocks every list, other resource, custom route, and mutation.",
+  "provider": {
+    "websiteUrl": "https://statamic.com/",
+    "docsUrl": "https://statamic.dev/frontend/rest-api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://statamic.com/terms",
+    "privacyUrl": "https://statamic.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["selected collection only", "read only"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_operated_statamic",
+      "public_https_core_rest_api",
+      "dedicated_api_auth_token",
+      "selected_collection_and_entry"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "STATAMIC_SITE_BASE_URL",
+        "label": "Statamic HTTPS site base URL",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "STATAMIC_API_AUTH_TOKEN",
+        "label": "Dedicated REST API authentication token",
+        "required": true,
+        "secret": true,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "STATAMIC_COLLECTION_HANDLE",
+        "label": "Selected collection handle",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "STATAMIC_ENTRY_ID",
+        "label": "Selected entry ID",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "statamic_selected_entry_state_get",
+      "label": "Read selected entry state",
+      "description": "Read one selected entry's ID and publication status.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "statamic_selected_entry_state_get",
+        "label": "Read selected entry state",
+        "description": "Use the core read-only REST API for one selected collection and entry and return only ID and status."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "statamic_private_content",
+        "label": "Expose content or identities",
+        "description": "Titles, slugs, URLs, content, custom fields, authors, relations, assets, dates, revisions, and identities are excluded from Relay output."
+      },
+      {
+        "id": "statamic_mutation",
+        "label": "Mutate Statamic",
+        "description": "Entries, collections, taxonomies, assets, globals, forms, users, configuration, add-ons, and every write are blocked."
+      },
+      {
+        "id": "statamic_broad_access",
+        "label": "Use broad Statamic access",
+        "description": "Entry lists, other entry IDs, other collections, taxonomies, assets, globals, forms, users, GraphQL, custom routes, redirects, and administration are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "statamic_selected_entry_state_read",
+      "label": "Selected Entry State Read",
+      "description": "Read one selected entry's ID and publication status; content, identities, other resources, administration, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["statamic_selected_entry_state_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "statamic_private_content",
+        "statamic_mutation",
+        "statamic_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-entry state reader backed by Railway's bounded Statamic adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-entry state reader backed by Railway's bounded Statamic adapter."
+    }
+  ],
+  "availability": "preview",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An authorized public HTTPS Statamic staging site must enable the core REST API only for the selected collection, configure a dedicated long random API authentication token, provide one selected entry ID, and complete Fairfax validation.",
+    "nextAction": "In the provider-console lane, enable only the selected collection in Statamic's REST API configuration, set a dedicated authentication token, enter the site URL, collection handle, and entry ID through Relay, then validate exact-entry binding, fixed-field selection, content redaction, redirect and private-DNS denial, other-resource denial, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://statamic.dev/frontend/rest-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Official Statamic documentation defines the read-only Content REST API, opt-in API and resource configuration, the individual collection-entry GET route, top-level field selection, bearer authentication through STATAMIC_API_AUTH_TOKEN, and public access when no token is configured."
+    },
+    {
+      "url": "https://statamic.dev/content-modeling/collections",
+      "checkedAt": "2026-07-18",
+      "supports": "Official collection documentation states that entries have an ID and published status and are grouped by collection handles, supporting Relay's selected collection-and-entry boundary."
+    },
+    {
+      "url": "https://statamic.dev/frontend/augmentation",
+      "checkedAt": "2026-07-18",
+      "supports": "Official augmentation documentation explains that REST API resources can include augmented content and related data, supporting Relay's fixed fields query and output redaction boundary."
+    }
+  ]
+}

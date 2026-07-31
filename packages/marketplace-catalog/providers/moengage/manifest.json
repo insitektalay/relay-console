@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "moengage",
+  "name": "MoEngage",
+  "category": "communication",
+  "description": "MoEngage provides customer profiles, events, devices, campaigns, push, email, SMS, WhatsApp, cards, analytics, and data APIs.",
+  "agentUseSummary": "Connect a customer-owned workspace ID, dedicated Data API key, enumerated data center, and staging health customer. Relay pins two exact-user operations, both approval-gated: export one exact customer profile or update bounded non-consent attributes for one authorized customer.",
+  "provider": {
+    "websiteUrl": "https://www.moengage.com/",
+    "docsUrl": "https://www.postman.com/moengage-dev/api-docs/documentation/p593wcu/moengage-data-apis",
+    "developerConsoleUrl": "https://dashboard-01.moengage.com/",
+    "termsUrl": "https://www.moengage.com/terms-of-service/",
+    "privacyUrl": "https://www.moengage.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_workspace_id",
+      "customer_owned_data_api_key",
+      "enumerated_data_center",
+      "dedicated_health_customer"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MOENGAGE_WORKSPACE_ID",
+        "label": "MoEngage workspace ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the workspace ID associated with the dedicated Data API key."
+      },
+      {
+        "name": "MOENGAGE_DATA_API_KEY",
+        "label": "MoEngage Data API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated customer-owned key for User API and support-enabled Get User access only."
+      },
+      {
+        "name": "MOENGAGE_DATA_CENTER",
+        "label": "MoEngage data center",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the workspace REST data center, 01 through 06."
+      },
+      {
+        "name": "MOENGAGE_HEALTH_CUSTOMER_ID",
+        "label": "MoEngage health customer ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use one dedicated non-production customer for connection health checks."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read user",
+      "description": "Export one exact customer profile with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage one user",
+      "description": "Update bounded non-consent attributes for one authorized user with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "moengage_sensitive_read",
+        "label": "Read MoEngage user",
+        "description": "Export one exact customer profile."
+      },
+      {
+        "id": "moengage_manage",
+        "label": "Manage MoEngage user",
+        "description": "Update bounded non-consent attributes for one authorized user."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "moengage_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Workspace IDs, API keys, Basic authorization, health customer IDs, and credential-bearing fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "moengage_bulk_transfer",
+        "label": "Run bulk transfers",
+        "description": "Bulk import, user collections, segments, exports beyond one exact user, and mass data movement are excluded."
+      },
+      {
+        "id": "moengage_send_admin",
+        "label": "Send or administer campaigns",
+        "description": "Events, devices, user merge/delete, campaigns, push, email, SMS, WhatsApp, cards, content, and consent/subscription changes remain provider-side."
+      },
+      {
+        "id": "moengage_unbounded_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only two pinned Data/Get User routes run on enumerated DC-01 through DC-06 origins; arbitrary paths, data centers, queries, headers, attributes, and oversized results are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "moengage_safe",
+      "label": "Safe",
+      "description": "Every selected operation requires approval; one-user writes additionally require user authorization, while consent/subscription attributes and all bulk/send/admin APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["moengage_sensitive_read", "moengage_manage"],
+      "blockedActions": [
+        "moengage_secret_exposure",
+        "moengage_bulk_transfer",
+        "moengage_send_admin",
+        "moengage_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both selected operations run without Relay per-action approval; user authorization, fixed data-center routing, field/response bounds, audits, and bulk/send/admin/consent blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["moengage_sensitive_read", "moengage_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "moengage_secret_exposure",
+        "moengage_bulk_transfer",
+        "moengage_send_admin",
+        "moengage_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts two pinned exact-user MoEngage routes on enumerated data-center origins with Basic credentials kept server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts two pinned exact-user MoEngage routes on enumerated data-center origins with Basic credentials kept server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "MoEngage requires a customer-owned workspace, dedicated Data API key, support-enabled Get User API, data center, and staging health customer. No console, API key, support request, user, attributes, consent, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create a dedicated staging Data API key and health customer outside this worker, ask MoEngage to enable Get User if necessary, configure the workspace ID/key/data center/health customer in Railway staging, and verify exact-user reads, approval and user-authorization denial/allow, consent-attribute blocking, response bounds, key rotation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.postman.com/moengage-dev/api-docs/documentation/p593wcu/moengage-data-apis",
+      "checkedAt": "2026-07-17",
+      "supports": "MoEngage's official Postman collection documents the User API path, workspace query/path binding, Basic workspace/API-key authentication, user payload, and separate bulk/event/device APIs."
+    },
+    {
+      "url": "https://www.postman.com/moengage-dev/api-docs/documentation/fdgezz6/moengage-get-user-api",
+      "checkedAt": "2026-07-17",
+      "supports": "MoEngage's official collection documents the support-enabled exact-user export path, identifiers payload, and personal-profile sensitivity."
+    },
+    {
+      "url": "https://help.moengage.com/hc/en-us/articles/360057030512-Data-Centers-in-MoEngage",
+      "checkedAt": "2026-07-17",
+      "supports": "MoEngage documents exact REST origins for DC-01 through DC-06 and requires requests to use the workspace data center."
+    },
+    {
+      "url": "https://help.moengage.com/hc/en-us/articles/28332074311060-API-Key-Dashboard",
+      "checkedAt": "2026-07-17",
+      "supports": "MoEngage documents workspace-bound API keys, separate key purposes, rotation behavior, and early-access multi-key controls."
+    }
+  ]
+}

@@ -1,0 +1,202 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ringcentral",
+  "name": "RingCentral",
+  "category": "communication",
+  "description": "RingCentral is a cloud communications platform for business calling, messaging, video collaboration, contact-center workflows, and communications administration. Organizations use it to connect employees and customers, operate phone systems, manage conversations, and review communications activity.",
+  "agentUseSummary": "Connect one RingCentral extension with Relay-owned S256 PKCE OAuth, then let agents verify that exact extension, list at most ten first-page Simple call records, and inspect one record already present in that bounded set without exposing provider identities, names, raw phone numbers, detailed legs, recordings, communications actions, administration, other products, later pages, or raw APIs.",
+  "provider": {
+    "websiteUrl": "https://www.ringcentral.com/",
+    "docsUrl": "https://developers.ringcentral.com/guide/voice/call-log/api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.ringcentral.com/legal/apilitos.html",
+    "privacyUrl": "https://www.ringcentral.com/legal/privacy-notice.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["ReadAccounts", "ReadCallLog"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://platform.ringcentral.com/restapi/oauth/authorize",
+    "tokenUrl": "https://platform.ringcentral.com/restapi/oauth/token",
+    "revocationUrl": "https://platform.ringcentral.com/restapi/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_ringcentral_oauth_client",
+      "authorization_code_s256_pkce_single_use_refresh",
+      "app_configured_exact_permissions_scope_parameter_omitted",
+      "canonical_production_platform_only",
+      "exact_self_extension_binding",
+      "encrypted_state_token_bundle_and_revocation_secret"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "RINGCENTRAL_CLIENT_ID",
+        "label": "RingCentral OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held client ID for a RingCentral app configured with exactly ReadAccounts and ReadCallLog."
+      },
+      {
+        "name": "RINGCENTRAL_CLIENT_SECRET",
+        "label": "RingCentral OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-held secret used only for authorization-session revocation; never entered in Relay Console clients."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/ringcentral/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "extension_read",
+      "label": "Verify connected extension",
+      "description": "Verify the exact OAuth-bound extension without exposing provider IDs, extension number, or email.",
+      "defaultSelected": true
+    },
+    {
+      "id": "call_log_list",
+      "label": "List recent call activity",
+      "description": "List at most ten first-page Simple-view records with names removed and phone numbers masked.",
+      "defaultSelected": true
+    },
+    {
+      "id": "call_log_read",
+      "label": "Read one bounded call record",
+      "description": "Inspect one record already verified in the connected extension's first ten recent records.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "ringcentral_extension_get",
+        "label": "Verify connected extension",
+        "description": "Verify the exact OAuth-bound RingCentral extension without returning provider identity."
+      },
+      {
+        "id": "ringcentral_call_log_list",
+        "label": "List recent call activity",
+        "description": "List at most ten first-page Simple-view records with names removed and phone numbers masked."
+      },
+      {
+        "id": "ringcentral_call_log_get",
+        "label": "Read one bounded call record",
+        "description": "Read one record only after its ID appears in the connected extension's first ten recent records."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "ringcentral_mutations_communications",
+        "label": "Block communications and mutations",
+        "description": "Calls, RingOut, call control, SMS, fax, messages, voicemail, Team Messaging, webhooks, subscriptions, and every write are unavailable."
+      },
+      {
+        "id": "ringcentral_sensitive_adjacent",
+        "label": "Block sensitive adjacent data",
+        "description": "Names, raw phone numbers, email, extension and account IDs, detailed legs, telephony sessions, active calls, recordings, content, downloads, and analytics are unavailable."
+      },
+      {
+        "id": "ringcentral_admin_products_raw",
+        "label": "Block administration, other products, and raw access",
+        "description": "Account-wide and other-extension data, directories, contacts, presence, Video, Meetings, Webinars, Events, RingCX, Contact Center, partner domains, later pages, exports, and raw APIs are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "ringcentral_safe",
+      "label": "Safe",
+      "description": "The three selected fixed reads run automatically; provider identity, sensitive communications data, mutations, broad authority, later pages, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "ringcentral_extension_get",
+        "ringcentral_call_log_list",
+        "ringcentral_call_log_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "ringcentral_mutations_communications",
+        "ringcentral_sensitive_adjacent",
+        "ringcentral_admin_products_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three reads run without Relay per-action approval; exact extension binding, app permissions, fixed routes, bounds, audits, and secret isolation still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "ringcentral_extension_get",
+        "ringcentral_call_log_list",
+        "ringcentral_call_log_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "ringcentral_mutations_communications",
+        "ringcentral_sensitive_adjacent",
+        "ringcentral_admin_products_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed RingCentral reads while Railway alone holds the exact-permission OAuth client, single-use refresh-token bundle, revocation secret, and exact extension binding."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed RingCentral reads while Railway alone holds the exact-permission OAuth client, single-use refresh-token bundle, revocation secret, and exact extension binding."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A production RingCentral OAuth app configured with exactly ReadAccounts and ReadCallLog, exact Railway callback, credentials, API-license/privacy/trademark review, live consent, representative extension account, provider review or graduation if required, and staging validation remain for separate authorized tasks.",
+    "nextAction": "After batch integration, create or review the exact-permission RingCentral app, register the exact Railway callback, store credentials in staging, and validate state, omitted scope, S256 PKCE, returned permissions, single-use refresh replacement, exact extension binding, first-ten Simple call-log bounds, sensitive-field exclusion, response limits, rate-limit handling, session revocation, local deletion, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.ringcentral.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "RingCentral presents a cloud business-communications platform spanning calling, messaging, video collaboration, contact-center products, and communications administration."
+    },
+    {
+      "url": "https://developers.ringcentral.com/guide/authentication/auth-code-pkce-flow",
+      "checkedAt": "2026-07-18",
+      "supports": "RingCentral documents authorization-code OAuth with S256 PKCE, an ignored scope request parameter, access and single-use refresh tokens, and the current production authorization endpoint."
+    },
+    {
+      "url": "https://developers.ringcentral.com/guide/basics/permissions",
+      "checkedAt": "2026-07-18",
+      "supports": "RingCentral documents app-configured permissions, including read-only ReadAccounts and ReadCallLog and the distinct ReadCallRecording permission that Relay excludes."
+    },
+    {
+      "url": "https://developers.ringcentral.com/guide/authentication/tokens",
+      "checkedAt": "2026-07-18",
+      "supports": "RingCentral documents Bearer token use, token invalidation, and session-wide revocation through the current revoke endpoint using confidential Basic client authentication."
+    },
+    {
+      "url": "https://developers.ringcentral.com/guide/voice/call-log/api",
+      "checkedAt": "2026-07-18",
+      "supports": "RingCentral documents the self-extension call-log route, Simple versus Detailed views, provider identifiers, call metadata, parties, detailed legs, recordings, account-level access, and adjacent sensitive surfaces Relay excludes."
+    },
+    {
+      "url": "https://developers.ringcentral.com/guide/basics/rate-limits",
+      "checkedAt": "2026-07-18",
+      "supports": "RingCentral documents per-app and per-user usage groups, customizable limits, HTTP 429 responses, Retry-After guidance, and the need to stop requests during a penalty interval."
+    },
+    {
+      "url": "https://www.ringcentral.com/legal/apilitos.html",
+      "checkedAt": "2026-07-18",
+      "supports": "RingCentral's API License Agreement governs API and SDK use, user data, distribution, marks, and related materials, so live release and official branding remain externally gated."
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "growave",
+  "name": "Growave",
+  "category": "marketing",
+  "description": "Growave is a Shopify retention platform for loyalty and rewards, referrals, reviews, wishlists, gift registries, customer profiles, galleries, and user-generated content.",
+  "agentUseSummary": "Growave cannot yet be connected through Relay. API access requires a Plus-or-higher merchant to create a store-owned token with explicit resource scopes and an expiration policy in Growave Admin; representative credential, entitlement, and token-lifecycle acceptance is required first.",
+  "provider": {
+    "websiteUrl": "https://www.growave.io/",
+    "docsUrl": "https://api.growave.io/v2/docs",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.growave.io/terms-of-use",
+    "privacyUrl": "https://www.growave.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "personal_access_token",
+    "relayOwned": false,
+    "scopes": ["read_customer", "read_reward"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_generated_bearer_token",
+      "granular_resource_scopes",
+      "customer_selected_expiration",
+      "revocable_token",
+      "plus_or_higher_plan",
+      "exact_store_binding"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "GROWAVE_API_TOKEN",
+        "label": "Growave API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Dedicated scoped merchant token stored only in Railway's encrypted credential boundary."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "growave_credentials",
+        "label": "Collect a Growave token",
+        "description": "Relay does not collect a merchant token before representative plan, scope, expiration, revocation, and rotation acceptance."
+      },
+      {
+        "id": "growave_key_secret_substitution",
+        "label": "Collect broad API key and secret",
+        "description": "Relay does not replace a least-authority custom token with the merchant's broader account API key and secret."
+      },
+      {
+        "id": "growave_loyalty_reads",
+        "label": "Read Growave data",
+        "description": "Customers, rewards, reviews, wishlists, galleries, gift registries, loyalty, and account data remain unavailable."
+      },
+      {
+        "id": "growave_mutations_raw",
+        "label": "Mutate or use raw Growave APIs",
+        "description": "Customer, reward, review, wishlist, gift-registry, app-install and webhook changes, arbitrary endpoints, pagination, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "growave_unavailable",
+      "label": "Unavailable",
+      "description": "No Growave action is enabled before representative merchant credential and entitlement acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "growave_credentials",
+        "growave_key_secret_substitution",
+        "growave_loyalty_reads",
+        "growave_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Growave wrappers are mounted until a representative Plus merchant establishes the frozen token contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Growave wrappers are mounted until a representative Plus merchant establishes the frozen token contract."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Growave's developer toolkit is available on Plus and higher plans. A merchant must create a dedicated token in Growave Admin, select read/write resource scopes, choose a 7-, 30-, 90-day or non-expiring lifetime, and securely transfer the one credential; public documentation does not prove exact token formatting, rotation behavior, representative product entitlements, or denial schemas.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should obtain authorization from a representative Plus merchant, create a dedicated token with only read_customer and read_reward and a bounded expiration without exposing it in reports, store it in Railway, and return exact-store binding, rotation, revocation, expiry, schema, quota, denial, and privacy-redaction evidence before connector implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://help.growave.io/en/articles/14731725-settings-page-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Growave states the API tab is available on Plus and higher plans and lets merchants create, manage, and revoke tokens with resource-specific read/write scopes and 7-, 30-, 90-day or non-expiring lifetimes."
+    },
+    {
+      "url": "https://api.growave.io/v2/docs",
+      "checkedAt": "2026-07-17",
+      "supports": "Growave documents HTTPS bearer authentication, OAuth2 access-token retrieval from merchant API credentials, a 60-request bucket leaking at three requests per second, and broad data and mutation endpoints."
+    },
+    {
+      "url": "https://docs.growave.io/docs/",
+      "checkedAt": "2026-07-17",
+      "supports": "Growave documents server-side REST requests and webhook subscriptions for retrieving and updating Growave services alongside customer-facing SDKs."
+    }
+  ]
+}

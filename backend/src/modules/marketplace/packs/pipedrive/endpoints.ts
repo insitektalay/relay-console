@@ -1,0 +1,7 @@
+export const PIPEDRIVE_ENDPOINT_FAMILIES = [
+  { id: "deals_leads", label: "Deals and Leads", docsUrl: "https://developers.pipedrive.com/docs/api/v1", guidance: "Use deals, leads, dealFields, leadLabels, pipelines, stages, status, value, owner, participants, and conversion-aware reads with approval for stage/status/value writes." },
+  { id: "contacts", label: "Persons and Organizations", docsUrl: "https://pipedrive.readme.io/docs/core-api-concepts-about-pipedrive-api", guidance: "Use persons, organizations, personFields, organizationFields, search, and duplicate-aware reads before creating or updating contact records." },
+  { id: "activities_notes_products", label: "Activities, Notes, and Products", docsUrl: "https://developers.pipedrive.com/docs/api/v1", guidance: "Use activities, activity types, notes, files, products, and deal-product associations to plan sales follow-up and context writes." },
+  { id: "users_filters_fields", label: "Users, Filters, Fields, and Permissions", docsUrl: "https://pipedrive.readme.io/docs/core-api-concepts-authentication", guidance: "Use users, teams, filters, roles/permissions where exposed, and custom field endpoints to resolve valid ids and visible data before writes." },
+  { id: "webhooks_rate_limits", label: "Webhooks and Rate Limits", docsUrl: "https://pipedrive.readme.io/docs/guide-for-webhooks", guidance: "Use webhooks for deal/person/organization/activity/product change events and avoid polling that depletes token budgets." },
+];

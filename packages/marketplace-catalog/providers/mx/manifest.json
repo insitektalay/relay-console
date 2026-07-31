@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mx",
+  "name": "MX",
+  "category": "commerce_payments",
+  "description": "MX is a financial-data and open-finance platform for account aggregation, verification, transactions, holdings, identity, analytics, and embedded money experiences. Financial institutions and fintech companies use its APIs and Connect widgets to let their customers link accounts and work with permissioned financial data.",
+  "agentUseSummary": "Add a customer's MX client ID, API key, and official environment, then let agents read bounded enabled financial resources or use the full documented Platform API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.mx.com/",
+    "docsUrl": "https://docs.mx.com/api-reference/platform-api-2026/",
+    "developerConsoleUrl": "https://dashboard.mx.com/",
+    "termsUrl": "https://www.mx.com/terms/",
+    "privacyUrl": "https://www.mx.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_mx_contract",
+      "customer_owned_client_id_and_api_key",
+      "basic_authentication",
+      "fixed_official_mx_environment"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MX_API_ORIGIN",
+        "label": "MX API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact official MX production or integration API origin assigned to the customer."
+      },
+      {
+        "name": "MX_CLIENT_ID",
+        "label": "MX client ID",
+        "required": true,
+        "secret": true,
+        "helpText": "The customer's MX client ID, stored encrypted by Railway."
+      },
+      {
+        "name": "MX_API_KEY",
+        "label": "MX API key",
+        "required": true,
+        "secret": true,
+        "helpText": "The customer's MX API key, stored encrypted by Railway."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "financial_data_read",
+      "label": "Read financial data",
+      "description": "Read bounded users, members, institutions, accounts, transactions, holdings, identity, verification, and other enabled MX resources.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full MX Platform API",
+      "description": "Use the complete documented MX Platform API surface enabled for the customer's contract.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "mx_read",
+        "label": "Read MX data",
+        "description": "Read one bounded documented MX Platform API resource."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "mx_full_api",
+        "label": "Use full MX API",
+        "description": "Use a documented mutation or administrative operation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "mx_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; mutations and administration require approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "mx_read"
+      ],
+      "approvalRequiredActions": [
+        "mx_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected MX operation runs without Relay per-action approval; customer authorization, provider limits, secret isolation, request bounds, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "mx_read",
+        "mx_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts typed MX wrappers and attaches encrypted customer credentials only to an allowlisted MX API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts typed MX wrappers and attaches encrypted customer credentials only to an allowlisted MX API origin."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Each customer must hold an MX contract and supply its own environment-specific client ID and API key. Live Connect, institution OAuth/MFA, products, webhooks, and production entitlements remain external.",
+    "nextAction": "In the provider-console task, use an approved customer MX environment to validate Basic authentication, Connect, account linking, bounded reads, Safe approval, Dangerous mutation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.mx.com/products/data/data-access/data-architecture/",
+      "checkedAt": "2026-07-17",
+      "supports": "MX documents accessors, clients, users, members, institutions, accounts, transactions, environment-specific API keys, and IP controls."
+    },
+    {
+      "url": "https://docs.mx.com/api-reference/platform-api-2026/reference/create-member",
+      "checkedAt": "2026-07-17",
+      "supports": "MX documents Basic-authenticated Platform API requests and member creation for credential and OAuth institution connections."
+    },
+    {
+      "url": "https://docs.mx.com/api-reference/platform-api/v20111101/reference/members/",
+      "checkedAt": "2026-07-17",
+      "supports": "MX documents members, aggregation, OAuth and credential institution authentication, MFA states, and account connection status."
+    }
+  ]
+}

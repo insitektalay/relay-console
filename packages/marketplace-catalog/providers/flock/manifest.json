@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "flock",
+  "name": "Flock",
+  "category": "communication",
+  "description": "Flock is a team communication platform with channels, messages, calls, files, applications, bots, webhooks, and the FlockOS developer platform.",
+  "agentUseSummary": "Flock cannot currently be connected because an installed FlockOS app receives a persistent per-user token that acts on behalf of the user without granular read-only scopes. Bot and webhook integrations have different identities and authority, while publication for all Flock users requires provider involvement, so Relay requires an explicit product decision before defining actions.",
+  "provider": {
+    "websiteUrl": "https://www.flock.com/",
+    "docsUrl": "https://docs.flock.com/",
+    "developerConsoleUrl": "https://dev.flock.com/",
+    "termsUrl": "https://support.flock.com/hc/en-us/articles/360006986234-Terms-and-Conditions",
+    "privacyUrl": "https://support.flock.com/hc/en-us/articles/360006943853-Privacy-Policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "per_user_app_install_token",
+      "granular_read_only_scopes_not_documented",
+      "signed_event_listener_required",
+      "bot_and_webhook_are_separate_products",
+      "global_publication_requires_provider_approval"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "flock_user_install_app",
+        "label": "Install a user-authorized app",
+        "description": "Flock provides a persistent per-user installation token for API calls on behalf of the user without documented granular read-only scopes."
+      },
+      {
+        "id": "flock_bot_identity",
+        "label": "Use an app bot",
+        "description": "A Flock bot has a different application identity and channel membership/posting boundary that requires separate product and safety rules."
+      },
+      {
+        "id": "flock_webhooks",
+        "label": "Use incoming or outgoing webhooks",
+        "description": "Customer-owned webhooks expose intentionally different message and event surfaces and are not interchangeable with a delegated user connection."
+      },
+      {
+        "id": "flock_global_publication",
+        "label": "Publish Relay globally",
+        "description": "Publication for every Flock user requires provider review and approval that this worker cannot obtain or assume."
+      },
+      {
+        "id": "flock_data_and_mutations",
+        "label": "Access Flock data",
+        "description": "Users, teams, contacts, channels, chats, messages, files, calls, reminders, to-dos, integrations, broad history, raw methods, and every read or write remain unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "flock_unavailable",
+      "label": "Unavailable",
+      "description": "No agent action can be enabled until Relay selects one exact Flock user, bot, or webhook authority model and obtains any required publication approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "flock_user_install_app",
+        "flock_bot_identity",
+        "flock_webhooks",
+        "flock_global_publication",
+        "flock_data_and_mutations"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Flock identity, authority, or wrapper contract is authorized to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Flock identity, authority, or wrapper contract is authorized to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "FlockOS user installation provides broad per-user token authority without granular scopes; bot and webhook routes are different products, and global publication requires Flock involvement.",
+    "nextAction": "Do not request credentials or show Connect. Reconsider after an explicit product/security decision selects a user-install, least-privilege bot, or narrow webhook model and any necessary Flock publication approval is obtained."
+  },
+  "evidence": [
+    {
+      "url": "https://dev.flock.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Flock maintains a current platform for apps, messaging, bots, webhooks, methods, and events rather than a conventional OAuth provider surface."
+    },
+    {
+      "url": "https://docs.flock.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "FlockOS documents app install/uninstall events, persistent per-user tokens, signed event callbacks, and broad collaboration API methods without a granular read-only scope contract."
+    },
+    {
+      "url": "https://apps.flock.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Flock operates an app store and developer route for installable applications, distinct from customer-owned webhook integrations."
+    },
+    {
+      "url": "https://www.flock.com/apps",
+      "checkedAt": "2026-07-17",
+      "supports": "Flock describes incoming webhooks, outgoing webhooks, custom apps, and an API as separate integration mechanisms."
+    }
+  ]
+}

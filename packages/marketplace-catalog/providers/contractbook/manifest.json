@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "contractbook",
+  "name": "Contractbook",
+  "category": "knowledge_documents",
+  "description": "Contractbook is a contract lifecycle platform for drafting, signing, centralizing, and automating agreements.",
+  "agentUseSummary": "Connect a dedicated customer-owned Contractbook production API key and let agents list bounded document IDs, types, states, and lifecycle timestamps. Relay fixes Public API v3 to full=false and excludes titles, owners, parties, emails, fields, tags, workspaces, files, sharing, signing, writes, administration, cursors, and key material.",
+  "provider": {
+    "websiteUrl": "https://contractbook.com/",
+    "docsUrl": "https://api.contractbook.com/v3/docs/index.html",
+    "developerConsoleUrl": "https://contractbook.freshdesk.com/support/solutions/articles/206000046115-generate-api-keys-on-contractbook",
+    "termsUrl": "https://contractbook.com/terms-and-conditions",
+    "privacyUrl": "https://contractbook.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "bearer_header",
+      "production_environment_only",
+      "api_access_plan",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CONTRACTBOOK_API_KEY",
+        "label": "Contractbook API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated customer-owned production API key in Contractbook profile settings and store the one-time value only through Relay's encrypted connection flow."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "document_lifecycle_metadata_list",
+      "label": "List document lifecycles",
+      "description": "List bounded document IDs, types, states, and lifecycle timestamps without titles, people, fields, files, or cursors.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "contractbook_document_lifecycles_list",
+        "label": "List document lifecycles",
+        "description": "List at most 25 strictly projected document IDs, types, states, and lifecycle timestamps."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "contractbook_private_document_data",
+        "label": "Access private document data",
+        "description": "Titles, owners, parties, signees, emails, addresses, numbers, messages, data fields, tags, folders, workspaces, permissions, comments, tasks, and document content are blocked."
+      },
+      {
+        "id": "contractbook_files_sharing_signing",
+        "label": "Access files, sharing, or signing",
+        "description": "PDFs, attachments, download links, uploads, collaborators, sharing, signature requests, signing, resending, and webhook payloads are blocked."
+      },
+      {
+        "id": "contractbook_mutation_admin",
+        "label": "Mutate or administer Contractbook",
+        "description": "Draft creation, template use, document updates or deletion, automations, space changes, API-key management, and administration are blocked."
+      },
+      {
+        "id": "contractbook_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Full responses, raw paths, arbitrary filters, cursors, pagination, polling, retries, batches, exports, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "contractbook_lifecycle_read_only",
+      "label": "Read-only document lifecycle metadata",
+      "description": "One fixed privacy-redacted production document list runs automatically through a customer-owned API key.",
+      "defaultSelected": true,
+      "allowedActions": ["contractbook_document_lifecycles_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "contractbook_private_document_data",
+        "contractbook_files_sharing_signing",
+        "contractbook_mutation_admin",
+        "contractbook_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Customer ownership, production binding, fixed route and query, key secrecy, strict projection, result bounds, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["contractbook_document_lifecycles_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "contractbook_private_document_data",
+        "contractbook_files_sharing_signing",
+        "contractbook_mutation_admin",
+        "contractbook_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway confines the customer-owned production API key to health and one fixed strictly projected document-lifecycle read."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway confines the customer-owned production API key to health and one fixed strictly projected document-lifecycle read."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Contractbook API access is plan-gated and API keys authorize the customer's Public API v3 account surface. A production key is shown once when created. No account, plan confirmation, API-key generation, live provider session, Railway change, or production acceptance is available in this worker task.",
+    "nextAction": "An authorized Contractbook user enables API access, creates a dedicated production API key in profile settings, and stores its one-time value through Relay's encrypted connection flow. They then separately validate bounded lifecycle listing, least privilege, rate limits, key rotation and revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.contractbook.com/v3/docs/index.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Contractbook's official Public API v3 reference documents the production base URL, Bearer API-key authentication, one-time key display, GET /v3/documents, page_size maximum 100, cursor pagination, full=false versus full=true, document fields, and broad write/file/share/signing surfaces that Relay blocks."
+    },
+    {
+      "url": "https://contractbook.freshdesk.com/support/solutions/articles/206000046115-generate-api-keys-on-contractbook",
+      "checkedAt": "2026-07-17",
+      "supports": "Contractbook documents customer creation, naming, storage, management, and permanent revocation of API keys from profile settings, plus separate support-generated SCIM keys."
+    },
+    {
+      "url": "https://contractbook.com/pricing",
+      "checkedAt": "2026-07-17",
+      "supports": "Contractbook lists API access as a plan add-on for Centralize and Accelerate with fair-usage limits and describes broad contract creation and automation capability."
+    }
+  ]
+}

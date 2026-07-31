@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "grain",
+  "name": "Grain",
+  "category": "communication",
+  "description": "Grain is an AI meeting assistant that records conversations and turns them into searchable transcripts, notes, clips, and action items. Teams use it to revisit customer calls, coach sales conversations, organize meeting knowledge, and share important moments through playlists and stories.",
+  "agentUseSummary": "Connect a Grain account once, then let agents search meetings, read transcripts, notes, action items, coaching and deal intelligence, and create clips, tags, or playlists through Grain's official hosted OAuth MCP under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://grain.com/",
+    "docsUrl": "https://developers.grain.com/mcp",
+    "developerConsoleUrl": "https://api.grain.com/.well-known/oauth-authorization-server",
+    "termsUrl": "https://grain.com/terms",
+    "privacyUrl": "https://grain.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://grain.com/_/public-api/oauth2/authorize",
+    "tokenUrl": "https://api.grain.com/_/public-api/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/grain/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "meeting_knowledge",
+      "label": "Read meeting knowledge",
+      "description": "Search meetings and read transcripts, AI notes, action items, private notes, people, companies, and workspace users.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sales_intelligence",
+      "label": "Read coaching and deal intelligence",
+      "description": "Read plan-authorized coaching feedback, scorecards, and HubSpot-linked deal intelligence.",
+      "defaultSelected": true
+    },
+    {
+      "id": "content_management",
+      "label": "Create clips and organize meetings",
+      "description": "Create clips, add or remove meeting tags, and create, populate, or share playlists.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "grain_mcp_read",
+        "label": "Use Grain read tools",
+        "description": "Use one exact documented Grain identity, meeting, transcript, note, search, coaching, or deal read tool."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "grain_mcp_write",
+        "label": "Create and organize Grain content",
+        "description": "Create clips, tag meetings, and create or share playlists; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "grain_safe",
+      "label": "Safe",
+      "description": "Meeting, transcript, note, search, coaching, and deal reads run directly; clip, tag, and playlist changes require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["grain_mcp_read"],
+      "approvalRequiredActions": ["grain_mcp_write"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized Grain MCP operation runs without Relay per-action approval; ownership, provider permissions, plan limits, exact tool allowlists, live schemas, bounds, audits, and redaction still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["grain_mcp_read", "grain_mcp_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts exact Grain read and content-management wrappers and proxies user OAuth to Grain's hosted MCP."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts exact Grain read and content-management wrappers and proxies user OAuth to Grain's hosted MCP."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay's dynamically registered public PKCE client, exact Railway callback, and non-secret Railway client ID are configured, but no signed-in Grain user was available to complete production OAuth and MCP acceptance.",
+    "nextAction": "A Grain user clicks Connect, approves access, then Relay verifies refresh, the exact MCP tool surface, bounded reads, Safe write denial, an approved or Dangerous clip/tag/playlist lifecycle, local disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.grain.com/mcp",
+      "checkedAt": "2026-07-14",
+      "supports": "Grain documents its official hosted MCP at https://api.grain.com/_/mcp, one-click user approval, meeting, transcript, note, people, company, coaching, and deal tools, and plan-specific access."
+    },
+    {
+      "url": "https://support.grain.com/en/articles/14811968-grain-mcp",
+      "checkedAt": "2026-07-14",
+      "supports": "Grain documents OAuth connection from compatible clients and the current meeting-search, notes, action-items, private-notes, clip, tag, playlist, story, coaching, deal, and company-memory capability set."
+    },
+    {
+      "url": "https://api.grain.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-14",
+      "supports": "Grain publishes authorization, token, and dynamic-registration endpoints with authorization code, S256 PKCE, public-client authentication, and no static scope requirement."
+    },
+    {
+      "url": "https://developers.grain.com/",
+      "checkedAt": "2026-07-14",
+      "supports": "Grain documents refresh tokens, the current 2025-10-31 API version, 300 requests per minute, and separate personal or workspace token options; Relay selects hosted MCP OAuth for one-click connection."
+    },
+    {
+      "url": "https://grain.com/release-note/grain-mcp-and-api-updates",
+      "checkedAt": "2026-07-14",
+      "supports": "Grain's May 2026 release documents MCP clip creation and bulk meeting tagging and confirms personal API access on Starter plans."
+    }
+  ]
+}

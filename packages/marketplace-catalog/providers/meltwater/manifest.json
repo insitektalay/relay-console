@@ -1,0 +1,173 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "meltwater",
+  "name": "Meltwater",
+  "category": "communication",
+  "description": "Meltwater is a media-intelligence platform for monitoring editorial and social sources, organizing saved searches, and analyzing coverage and conversations. Its API products expose listening, analytics, Explore+, content ingestion, integrations, and AI-assisted insight workflows for eligible customer accounts.",
+  "agentUseSummary": "Add a customer-generated Meltwater API token, then let agents inspect redacted API-usage status and bounded saved-search references for the token's default company.",
+  "provider": {
+    "websiteUrl": "https://www.meltwater.com/",
+    "docsUrl": "https://developer.meltwater.com/api-reference/api-reference-overview/",
+    "developerConsoleUrl": "https://app.meltwater.com/",
+    "termsUrl": "https://www.meltwater.com/en/terms-of-service",
+    "privacyUrl": "https://www.meltwater.com/en/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_token", "token_default_company"],
+    "credentialRequirements": [
+      {
+        "name": "MELTWATER_API_TOKEN",
+        "label": "Meltwater API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated token under Account > Meltwater API. Relay encrypts it and sends it only in the apikey header to https://api.meltwater.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "media_intelligence_structure_read",
+      "label": "Read API usage and search structure",
+      "description": "Read a redacted 24-hour API-usage summary and at most twenty-five saved-search ID/update references for the token's default company.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "meltwater_api_usage_get",
+        "label": "Get Meltwater API usage",
+        "description": "Read only total request count, time unit, and time-series point count for the last twenty-four hours, excluding token IDs and endpoint-level call details."
+      },
+      {
+        "id": "meltwater_search_reference_list",
+        "label": "List Meltwater search references",
+        "description": "List at most twenty-five saved-search IDs and update timestamps without names, queries, keywords, filter sets, content, or analytics."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "meltwater_identity_or_search_configuration",
+        "label": "Access identity or search configuration",
+        "description": "Companies, workspaces, users, token IDs, names, descriptions, queries, keywords, filters, folders, tags, categories, sources, and configuration are blocked."
+      },
+      {
+        "id": "meltwater_content_or_analytics",
+        "label": "Access content or analytics",
+        "description": "Mentions, articles, posts, messages, URLs, media, authors, profiles, metrics, sentiment, reports, dashboards, endpoint-level usage, exports, and Mira responses remain blocked."
+      },
+      {
+        "id": "meltwater_write_import_or_administer",
+        "label": "Write, import, or administer Meltwater",
+        "description": "Creating, updating, or deleting searches, filters, exports, streams, hooks, imports, tags, content, tokens, users, integrations, or administration remains blocked."
+      },
+      {
+        "id": "meltwater_raw_api_stream_or_bulk",
+        "label": "Use raw API, streams, or bulk access",
+        "description": "Arbitrary paths, methods, queries, bodies, company overrides, pagination, polling, streaming, MCP, bulk operations, browser sessions, and undocumented endpoints remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "meltwater_safe",
+      "label": "Safe",
+      "description": "Both bounded reads require approval; identity, search configuration, content, analytics, writes, imports, streams, raw APIs, pagination, bulk, and export remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "meltwater_api_usage_get",
+        "meltwater_search_reference_list"
+      ],
+      "blockedActions": [
+        "meltwater_identity_or_search_configuration",
+        "meltwater_content_or_analytics",
+        "meltwater_write_import_or_administer",
+        "meltwater_raw_api_stream_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same two bounded reads run directly; fixed GET routes, default-company authority, redaction, response caps, audits, and provider rate responses remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "meltwater_api_usage_get",
+        "meltwater_search_reference_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "meltwater_identity_or_search_configuration",
+        "meltwater_content_or_analytics",
+        "meltwater_write_import_or_administer",
+        "meltwater_raw_api_stream_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives two bounded Meltwater reads with token-default-company authority and identity/content redaction."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same two bounded Meltwater reads with token-default-company authority and identity/content redaction."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Meltwater API access and limits depend on the customer's package and contract; a user with Admin-level Meltwater API permission must create the token.",
+    "nextAction": "An eligible customer administrator creates a dedicated Meltwater API token and completes a live read-only connection check."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.meltwater.com/api-reference/api-reference-overview/",
+      "checkedAt": "2026-07-18",
+      "supports": "Meltwater documents the fixed https://api.meltwater.com origin, API-token authentication through the apikey header, HTTPS-only requests, provider error codes, and HTTP 429 rate responses."
+    },
+    {
+      "url": "https://developer.meltwater.com/docs/meltwater-api/getting-started/api-credentials/",
+      "checkedAt": "2026-07-18",
+      "supports": "Official guidance says an Admin-level Meltwater API user creates and revokes tokens under Account > Meltwater API and the secret is displayed only once."
+    },
+    {
+      "url": "https://developer.meltwater.com/api-reference/v3/get-usage-statistics-for-your-api-calls",
+      "checkedAt": "2026-07-18",
+      "supports": "Official reference documents GET /v3/usage/me/requests, the fixed 24hours period, and count, units, and time_series response fields."
+    },
+    {
+      "url": "https://developer.meltwater.com/api-reference/v3/list-searches/",
+      "checkedAt": "2026-07-18",
+      "supports": "Official reference documents GET /v3/searches; Relay returns only at most twenty-five safe IDs and update timestamps and never includes saved-search names or queries."
+    },
+    {
+      "url": "https://developer.meltwater.com/docs/meltwater-api/getting-started/usage-limits/",
+      "checkedAt": "2026-07-18",
+      "supports": "Meltwater documents contract-dependent quotas, general API limits of 100 calls per minute, a platform-wide 2,000 requests per hour per IP limit, and rate-limit response headers."
+    }
+  ],
+  "securityNotes": [
+    "The customer token is encrypted as a secret reference; it is sent only in the apikey header to https://api.meltwater.com and never in URLs, prompts, logs, catalog records, or results.",
+    "Relay allowlists only GET /v3/usage/me/requests?period=24hours and GET /v3/searches and never supplies company_id, token_id, include_query, or other caller-controlled parameters.",
+    "Every request rejects redirects, caps responses at 1 MB, returns at most twenty-five saved-search references, and never follows pagination or starts exports, streams, analytics, search, imports, or Mira calls.",
+    "Search names, queries, keywords, filters, companies, workspaces, users, endpoint-level usage, content, authors, URLs, media, analytics, reports, writes, and administration are excluded.",
+    "Relay preserves provider HTTP 429 responses and does not promise a quota beyond Meltwater's contract-dependent package limits and published general platform limits."
+  ]
+}

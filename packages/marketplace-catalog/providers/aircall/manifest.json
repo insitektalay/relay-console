@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "aircall",
+  "name": "Aircall",
+  "category": "communication",
+  "description": "Aircall is a cloud business-phone and customer-communications platform for teams operating voice and messaging workflows.",
+  "agentUseSummary": "Connect one Aircall company through Relay-owned administrator OAuth, then let agents read bounded company aggregates and the first ten privacy-masked numbers without installer identity, users, communications, recordings, routing, writes, pagination, exports, or raw APIs.",
+  "provider": {
+    "websiteUrl": "https://aircall.io/",
+    "docsUrl": "https://developer.aircall.io/api-references/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://aircall.io/legal/",
+    "privacyUrl": "https://aircall.io/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["public_api"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://dashboard.aircall.io/oauth/authorize",
+    "tokenUrl": "https://api.aircall.io/v1/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_aircall_confidential_oauth_client",
+      "administrator_company_installation",
+      "non_expiring_bearer_access_token",
+      "exact_active_integration_and_company_binding",
+      "canonical_production_aircall_only",
+      "encrypted_state_client_secret_and_token_bundle"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "AIRCALL_CLIENT_ID",
+        "label": "Aircall OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held client ID for a reviewed Aircall technology-partner OAuth app."
+      },
+      {
+        "name": "AIRCALL_CLIENT_SECRET",
+        "label": "Aircall OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-encrypted confidential OAuth secret; never sent to Relay clients or agents."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/aircall/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "company_read",
+      "label": "Read connected company",
+      "description": "Inspect bounded aggregate details for the exact OAuth-bound Aircall company.",
+      "defaultSelected": true
+    },
+    {
+      "id": "phone_number_read",
+      "label": "List company numbers",
+      "description": "Inspect at most ten privacy-masked company phone numbers without users, routing, recordings, messages, or direct links.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "aircall_company_get",
+        "label": "Read connected company",
+        "description": "Read bounded aggregate company details without provider IDs or installer identity."
+      },
+      {
+        "id": "aircall_numbers_list",
+        "label": "List company numbers",
+        "description": "Read the first ten privacy-masked numbers without sensitive adjacent fields."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "aircall_users_installers_admin",
+        "label": "Block users, installers, and administration",
+        "description": "Users, installer identity, email, provider IDs, teams, roles, settings, and administration are unavailable."
+      },
+      {
+        "id": "aircall_communications_recordings",
+        "label": "Block communications and sensitive artifacts",
+        "description": "Calls, messages, recordings, voicemail, transcripts, contacts, routing, audio URLs, and communication intelligence are unavailable."
+      },
+      {
+        "id": "aircall_writes_exports_raw",
+        "label": "Block writes, exports, and raw access",
+        "description": "Dialing, messaging, AI voice, analytics exports, webhooks, pagination, arbitrary paths, writes, deletes, and raw APIs are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "aircall_safe",
+      "label": "Safe",
+      "description": "Two fixed company reads run automatically; sensitive adjacent data and all writes remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["aircall_company_get", "aircall_numbers_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "aircall_users_installers_admin",
+        "aircall_communications_recordings",
+        "aircall_writes_exports_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same two reads run without Relay per-action approval; company binding, masking, request bounds, audits, and secret isolation remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["aircall_company_get", "aircall_numbers_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "aircall_users_installers_admin",
+        "aircall_communications_recordings",
+        "aircall_writes_exports_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two typed Aircall reads while Railway alone holds the confidential OAuth client, non-expiring token, and company binding."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two typed Aircall reads while Railway alone holds the confidential OAuth client, non-expiring token, and company binding."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Aircall technology-partner OAuth credentials, exact Railway callback, API-license/privacy/brand review, provider Marketplace acceptance, representative administrator consent, and staging validation remain for separate authorized tasks.",
+    "nextAction": "After batch integration, register the exact callback and staging credentials, then validate state, JSON code exchange, exact public_api grant, private company binding and drift denial, both bounded reads, masking, 512 KiB limits, 429 behavior without retry, upstream integration disable, local deletion, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.aircall.io/",
+      "checkedAt": "2026-07-18",
+      "supports": "Aircall documents its business-phone platform, Public API, and webhook integration surface."
+    },
+    {
+      "url": "https://developer.aircall.io/tutorials/how-aircall-oauth-flow-works/",
+      "checkedAt": "2026-07-18",
+      "supports": "Aircall documents administrator company installation, state, public_api, ten-minute authorization codes, JSON token exchange, Bearer tokens, and non-expiring access tokens."
+    },
+    {
+      "url": "https://developer.aircall.io/api-references/",
+      "checkedAt": "2026-07-18",
+      "supports": "Aircall documents the canonical V1 root, integration/company/number reads, first-page pagination, rate limits, and sensitive communication surfaces Relay blocks."
+    },
+    {
+      "url": "https://aircall.io/legal/",
+      "checkedAt": "2026-07-18",
+      "supports": "Aircall publishes API, product, data-processing, privacy, communications, and branding terms that keep live release externally gated."
+    }
+  ]
+}

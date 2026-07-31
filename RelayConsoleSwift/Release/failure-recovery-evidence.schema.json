@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "failure-recovery-evidence.schema.json",
+  "title": "Relay Console release-bound failure and recovery evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "releaseId", "capturedAt", "drillsCompletedAt", "candidate", "releaseBinding",
+    "repository", "drills", "privacy"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.failure-recovery-evidence.v1" },
+    "releaseId": { "type": "string", "minLength": 1 },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "drillsCompletedAt": { "type": "string", "format": "date-time" },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCommit", "manifestSHA256"],
+      "properties": {
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "manifestSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "releaseBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceBranch", "productionDeploymentId", "stagingDeploymentId",
+        "railwayTopologySHA256", "railwayConfigurationSHA256", "remoteEvidenceSHA256"
+      ],
+      "properties": {
+        "sourceBranch": { "type": "string", "pattern": "^release/.+" },
+        "productionDeploymentId": { "type": "string", "minLength": 1 },
+        "stagingDeploymentId": { "type": "string", "minLength": 1 },
+        "railwayTopologySHA256": { "$ref": "#/$defs/sha256" },
+        "railwayConfigurationSHA256": { "$ref": "#/$defs/sha256" },
+        "remoteEvidenceSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "executedAt", "status", "journeyCount", "testFileCount",
+        "testSuiteCount", "passedTestSuiteCount", "testCount", "passedTestCount",
+        "sourceEvidenceSHA256", "backendCIRunId", "backendCIRunURL"
+      ],
+      "properties": {
+        "executedAt": { "type": "string", "format": "date-time" },
+        "status": { "const": "passed" },
+        "journeyCount": { "const": 10 },
+        "testFileCount": { "type": "integer", "minimum": 10 },
+        "testSuiteCount": { "type": "integer", "minimum": 10 },
+        "passedTestSuiteCount": { "type": "integer", "minimum": 10 },
+        "testCount": { "type": "integer", "minimum": 10 },
+        "passedTestCount": { "type": "integer", "minimum": 10 },
+        "sourceEvidenceSHA256": { "$ref": "#/$defs/sha256" },
+        "backendCIRunId": { "type": "integer", "minimum": 1 },
+        "backendCIRunURL": { "type": "string", "pattern": "^https://github\\.com/" }
+      }
+    },
+    "drills": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "railway_unavailable", "redis_or_queue_unavailable",
+        "database_migration_failure", "expired_or_revoked_human_session",
+        "expired_or_revoked_bridge_credential", "runtime_incompatible_or_offline",
+        "oauth_failure_and_recovery", "duplicate_or_delayed_billing_event",
+        "client_below_minimum_contract", "backend_rollback_and_database_restore"
+      ],
+      "properties": {
+        "railway_unavailable": { "$ref": "#/$defs/drill" },
+        "redis_or_queue_unavailable": { "$ref": "#/$defs/drill" },
+        "database_migration_failure": { "$ref": "#/$defs/drill" },
+        "expired_or_revoked_human_session": { "$ref": "#/$defs/drill" },
+        "expired_or_revoked_bridge_credential": { "$ref": "#/$defs/drill" },
+        "runtime_incompatible_or_offline": { "$ref": "#/$defs/drill" },
+        "oauth_failure_and_recovery": { "$ref": "#/$defs/drill" },
+        "duplicate_or_delayed_billing_event": { "$ref": "#/$defs/drill" },
+        "client_below_minimum_contract": { "$ref": "#/$defs/drill" },
+        "backend_rollback_and_database_restore": { "$ref": "#/$defs/drill" }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "credentialsIncluded", "secretValuesIncluded", "customerContentIncluded",
+        "customerIdentifiersIncluded", "rawCommandOutputIncluded"
+      ],
+      "properties": {
+        "credentialsIncluded": { "const": false },
+        "secretValuesIncluded": { "const": false },
+        "customerContentIncluded": { "const": false },
+        "customerIdentifiersIncluded": { "const": false },
+        "rawCommandOutputIncluded": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "drill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "environment", "deploymentId", "verifiedAt", "reviewer",
+        "evidenceURL", "recoveryConfirmed", "customerImpact",
+        "secretValuesIncluded", "customerContentIncluded"
+      ],
+      "properties": {
+        "status": { "const": "passed" },
+        "environment": { "enum": ["staging", "production", "sandbox"] },
+        "deploymentId": { "type": "string", "minLength": 1 },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "evidenceURL": { "type": "string", "pattern": "^https://" },
+        "recoveryConfirmed": { "const": true },
+        "customerImpact": { "enum": ["none", "synthetic-only"] },
+        "secretValuesIncluded": { "const": false },
+        "customerContentIncluded": { "const": false }
+      }
+    }
+  }
+}

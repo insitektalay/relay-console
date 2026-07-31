@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "teams-phone",
+  "name": "Teams Phone",
+  "category": "communication",
+  "description": "Teams Phone brings cloud calling, PSTN connectivity, telephone-number management, call queues, auto attendants, and telephony administration into Microsoft Teams.",
+  "agentUseSummary": "Connect one Microsoft 365 administrator through Relay-owned Microsoft OAuth, then let selected agents inspect bounded, masked telephone-number assignment state without assignee, location, call-record, or full-number data.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-teams/microsoft-teams-phone",
+    "docsUrl": "https://learn.microsoft.com/graph/api/teamsadministration-telephonenumbermanagementroot-list-numberassignments",
+    "developerConsoleUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["offline_access", "TeamsTelephoneNumber.Read.All"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "microsoft_graph", "fixed_number_inventory"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/teams-phone/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "number_inventory",
+      "label": "Read masked number inventory",
+      "description": "Inspect bounded Teams Phone assignment state without assignee, location, or full-number data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "teams_phone_assignments_list",
+        "label": "List number assignments",
+        "description": "List one bounded page of masked Teams Phone number-assignment metadata."
+      },
+      {
+        "id": "teams_phone_unassigned_list",
+        "label": "List unassigned numbers",
+        "description": "List one bounded page of masked, currently unassigned Teams Phone numbers."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "teams_phone_number_private",
+        "label": "Private telephone data",
+        "description": "Full telephone numbers, assignment-target IDs, operator IDs, emergency locations, addresses, network sites, and raw assignment IDs are not returned."
+      },
+      {
+        "id": "teams_phone_number_mutation",
+        "label": "Number changes",
+        "description": "Number assignment, unassignment, activation, porting, location changes, policy changes, and ordering are not exposed."
+      },
+      {
+        "id": "teams_phone_call_records",
+        "label": "Call records and content",
+        "description": "PSTN and Direct Routing call records, participant identity, call diagnostics, recordings, transcripts, voicemail, messages, and contacts are not exposed."
+      },
+      {
+        "id": "teams_phone_call_control",
+        "label": "Call control",
+        "description": "Calling bots, PSTN dialing, answering, transfer, redirect, media access, tones, and meeting operations are not exposed."
+      },
+      {
+        "id": "teams_phone_raw_graph",
+        "label": "Raw Microsoft Graph",
+        "description": "Arbitrary Graph paths, OData expressions, pagination links, caller-selected origins, and raw tokens are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "teams_phone_safe",
+      "label": "Safe",
+      "description": "Every organization-wide masked number-inventory read requires matching Relay approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "teams_phone_assignments_list",
+        "teams_phone_unassigned_list"
+      ],
+      "blockedActions": [
+        "teams_phone_number_private",
+        "teams_phone_number_mutation",
+        "teams_phone_call_records",
+        "teams_phone_call_control",
+        "teams_phone_raw_graph"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected masked inventory reads run without Relay per-action approval while fixed Graph paths, filters, bounds, masking, audits, Microsoft scopes, tenant roles, licensing, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "teams_phone_assignments_list",
+        "teams_phone_unassigned_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "teams_phone_number_private",
+        "teams_phone_number_mutation",
+        "teams_phone_call_records",
+        "teams_phone_call_control",
+        "teams_phone_raw_graph"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts two approval-aware masked Teams Phone inventory tools and attaches delegated Microsoft OAuth server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts two approval-aware masked Teams Phone inventory tools and attaches delegated Microsoft OAuth server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's multi-tenant Entra application must add delegated TeamsTelephoneNumber.Read.All, the exact production callback, publisher verification and admin-consent readiness before a licensed Microsoft 365 administrator can connect.",
+    "nextAction": "Configure the Relay-owned Entra application and Railway credentials, complete administrator consent in a test tenant with Teams Phone inventory, verify tenant and role binding, exercise Safe denial/approval and Dangerous reads, test refresh and disconnect, then deploy through the integration lane and run live acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/api/teamsadministration-telephonenumbermanagementroot-list-numberassignments?view=graph-rest-1.0",
+      "checkedAt": "2026-07-18",
+      "supports": "Microsoft Graph v1.0 documents tenant telephone-number assignment listing with delegated or application TeamsTelephoneNumber.Read.All and bounded OData top and filter parameters."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/api/teamsadministration-numberassignment-get?view=graph-rest-1.0",
+      "checkedAt": "2026-07-18",
+      "supports": "Microsoft documents number-assignment fields including number type, activation state, capabilities, source, assignment category and assignment status; Relay masks or excludes private identifiers."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/api/teamsadministration-numberassignment-assignnumber?view=graph-rest-1.0",
+      "checkedAt": "2026-07-18",
+      "supports": "Microsoft separates telephone-number mutation behind TeamsTelephoneNumber.ReadWrite.All; Relay does not request that permission or mount assignment actions."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/cloud-communications-callrecords",
+      "checkedAt": "2026-07-18",
+      "supports": "Microsoft describes sensitive tenant-wide call-record and diagnostic data under separate CallRecords.Read.All application permission; Relay excludes this surface."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/cloud-communications-concept-overview",
+      "checkedAt": "2026-07-18",
+      "supports": "Microsoft documents separate bot calling and media APIs with broad application permissions and compliance constraints; Relay excludes call control and media."
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "constant-contact-lead-gen",
+  "name": "Constant Contact Lead Gen & CRM",
+  "category": "crm_support",
+  "description": "Constant Contact Lead Gen & CRM manages leads, accounts, opportunities, campaigns, tasks, lists, email and client administration.",
+  "agentUseSummary": "Add an administrator-generated account ID and secret key, then let selected agents use all 115 pinned current Open API methods. Every read and mutation requires approval in Safe mode.",
+  "provider": {
+    "websiteUrl": "https://www.constantcontact.com/lead-gen-crm",
+    "docsUrl": "https://knowledgebase.constantcontact.com/lead-gen-crm/articles/KnowledgeBase/50374-Understanding-Lead-Gen--CRM-Open-API-Overview?lang=en_US",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.constantcontact.com/legal/terms",
+    "privacyUrl": "https://www.constantcontact.com/legal/privacy-notice"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_account_id_and_secret_key", "fixed_api_sharpspring_pubapi_v1_2_origin", "header_only_credentials", "server_bound_rpc_methods", "500_object_request_limit"],
+    "credentialRequirements": [
+      {
+        "name": "CONSTANT_CONTACT_LEAD_GEN_ACCOUNT_ID",
+        "label": "Lead Gen & CRM account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Generate this account identifier as an authorized Lead Gen & CRM administrator. Relay encrypts it and sends it only to api.sharpspring.com as X-Account-Id."
+      },
+      {
+        "name": "CONSTANT_CONTACT_LEAD_GEN_SECRET_KEY",
+        "label": "Lead Gen & CRM secret key",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a dedicated secret key as an authorized administrator. Relay encrypts it and sends it only to api.sharpspring.com as a bearer credential."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "constant_contact_lead_gen_read", "label": "Read CRM and email data", "description": "Use all 52 current documented reads under approval.", "defaultSelected": true },
+    { "id": "constant_contact_lead_gen_manage", "label": "Manage CRM, clients and email", "description": "Use all 63 current documented mutations under approval.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "constant_contact_lead_gen_read", "label": "Read Lead Gen & CRM data", "description": "Read contacts, accounts, opportunities, campaigns, email activity and administration data." },
+      { "id": "constant_contact_lead_gen_manage", "label": "Manage Lead Gen & CRM", "description": "Create, update or delete CRM records, lists and email, or change client and sending controls." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "constant_contact_lead_gen_safe",
+      "label": "Safe",
+      "description": "Every CRM/email read and mutation requires approval because the API contains personal records and real bulk-email and client controls.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["constant_contact_lead_gen_read", "constant_contact_lead_gen_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 115 pinned methods run without Relay per-action approval; fixed origin, server-bound method names, 500-object bounds, encrypted credentials, audits and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["constant_contact_lead_gen_read", "constant_contact_lead_gen_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts two approval-aware tools over 115 server-bound v1.2 methods with encrypted customer credentials." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts two approval-aware tools over 115 server-bound v1.2 methods with encrypted customer credentials." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An authorized Lead Gen & CRM administrator must generate an account ID and dedicated secret key. Live acceptance needs representative authorized CRM data and explicit permission to test sensitive records, list membership, bulk email, client administration and sending controls in Railway staging.",
+    "nextAction": "An authorized administrator generates dedicated credentials, stores them through Relay Console, then validates health, exact account binding, representative approved reads and mutations, 10-query-per-second and 500-object bounds, bulk-email safeguards, rotation, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    { "url": "https://knowledgebase.constantcontact.com/lead-gen-crm/articles/KnowledgeBase/50374-Understanding-Lead-Gen--CRM-Open-API-Overview?lang=en_US", "checkedAt": "2026-07-18", "supports": "The official overview documents administrator-generated account ID and secret-key authentication, header transport, HTTPS POST JSON requests, fixed v1/v1.2 endpoints, limits and response conventions." },
+    { "url": "https://knowledgebase.constantcontact.com/lead-gen-crm/articles/KnowledgeBase/50564-Understanding-Lead-Gen--CRM-Open-API-Methods?lang=en_US", "checkedAt": "2026-07-18", "supports": "The official methods page lists the 115 current account, campaign, client, email, event, field, folder, lead, list, note, opportunity, product, task and administration methods pinned by Relay." },
+    { "url": "https://www.constantcontact.com/lead-gen-crm", "checkedAt": "2026-07-18", "supports": "The current product page confirms Lead Gen & CRM remains an active Constant Contact product distinct from its separate Digital Marketing API." }
+  ]
+}

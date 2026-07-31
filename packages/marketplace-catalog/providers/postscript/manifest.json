@@ -1,0 +1,191 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "postscript",
+  "name": "Postscript",
+  "category": "communication",
+  "description": "Postscript is an SMS marketing and customer messaging platform for Shopify brands, with subscriber growth, keywords, campaigns, flows, two-way conversations, custom events, compliance, and webhook integrations.",
+  "agentUseSummary": "Connect an enterprise or grandfathered API-enabled shop using its customer-owned private key. Relay pins 20 current v2 operations: six structural reads run directly, four subscriber/message reads and ten mutations require approval, and webhook signing-token retrieval plus partner shop-token impersonation remain blocked.",
+  "provider": {
+    "websiteUrl": "https://postscript.io/",
+    "docsUrl": "https://developers.postscript.io/docs/getting-started",
+    "developerConsoleUrl": "https://app.postscript.io/",
+    "termsUrl": "https://postscript.io/terms",
+    "privacyUrl": "https://postscript.io/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_shop_private_api_key",
+      "bearer_authentication",
+      "enterprise_or_grandfathered_shop_access",
+      "exact_shop_binding",
+      "fixed_v2_rest_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "POSTSCRIPT_PRIVATE_API_KEY",
+        "label": "Postscript shop private API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated shop private key from an enterprise/grandfathered API-enabled account; never use the public key."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read shop structure",
+      "description": "Use six bounded shop, keyword, and webhook metadata reads.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read subscribers and messages",
+      "description": "Use four bounded subscriber, message-request, and sent-message reads with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage SMS engagement",
+      "description": "Use ten compliance, messaging, event, subscriber, and webhook mutations with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "postscript_structural_read",
+        "label": "Read Postscript structure",
+        "description": "Read exact shop identity, keywords, webhook subscriptions, and example event structure."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "postscript_sensitive_read",
+        "label": "Read subscribers or messages",
+        "description": "Read bounded subscriber, message-request, or sent-message data."
+      },
+      {
+        "id": "postscript_manage",
+        "label": "Manage Postscript",
+        "description": "Send messages or events and manage subscribers, compliance, and webhooks."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "postscript_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Private API keys, partner/shop tokens, webhook signing tokens, and authorization headers never enter agent-visible inputs or results."
+      },
+      {
+        "id": "postscript_signing_token",
+        "label": "Retrieve signing tokens",
+        "description": "The webhook signing-token endpoint is credential lifecycle plumbing and is not agent-facing."
+      },
+      {
+        "id": "postscript_partner_impersonation",
+        "label": "Impersonate another shop",
+        "description": "Relay never accepts a dynamic X-Postscript-Shop-Token or routes a shop key under unrelated partner authority."
+      },
+      {
+        "id": "postscript_unbounded_api",
+        "label": "Use arbitrary or unbounded APIs",
+        "description": "Only 20 pinned v2 operations run; legacy versions, arbitrary paths, origins, headers, pages, and oversized transfers are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "postscript_safe",
+      "label": "Safe",
+      "description": "Six structural reads run directly; all subscriber/message reads and ten mutations require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["postscript_structural_read"],
+      "approvalRequiredActions": [
+        "postscript_sensitive_read",
+        "postscript_manage"
+      ],
+      "blockedActions": [
+        "postscript_secret_exposure",
+        "postscript_signing_token",
+        "postscript_partner_impersonation",
+        "postscript_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 20 selected and shop-authorized operations run without Relay per-action approval; fixed routes, bounds, audits, provider compliance, and secret/impersonation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "postscript_structural_read",
+        "postscript_sensitive_read",
+        "postscript_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "postscript_secret_exposure",
+        "postscript_signing_token",
+        "postscript_partner_impersonation",
+        "postscript_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected pinned Postscript v2 tools and attaches the encrypted shop private key server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected pinned Postscript v2 tools and attaches the encrypted shop private key server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Postscript limits new custom shop API access to enterprise plans while grandfathered shops retain access; broader plan support requires an accepted integration partner and separate partner/shop tokens. No provider console or credential capture is allowed in this worker.",
+    "nextAction": "Use an authorized enterprise/grandfathered shop or complete Postscript partner acceptance, create a dedicated private key, store it in Railway staging, and verify shop binding, reads, approval denial, compliant opt-in/send/unsubscribe/redact behavior, webhook lifecycle, rate limits, key revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.postscript.io/reference/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Postscript documents bearer authentication with private shop keys, optional partner plus X-Postscript-Shop-Token authority, and forbids use of public keys."
+    },
+    {
+      "url": "https://developers.postscript.io/reference/new-object-identifiers",
+      "checkedAt": "2026-07-17",
+      "supports": "The current v2 reference publishes 21 endpoints across identity, compliance, events, keywords, messages, subscribers, and webhooks; Relay exposes 20 and blocks signing-token retrieval."
+    },
+    {
+      "url": "https://developers.postscript.io/docs/who-has-access-to-the-partner-api",
+      "checkedAt": "2026-07-17",
+      "supports": "New custom shop API access is enterprise-only, grandfathered shops retain access, and accepted integration partners can serve shops on other plans using both partner and shop authority."
+    },
+    {
+      "url": "https://developers.postscript.io/docs/compliance",
+      "checkedAt": "2026-07-17",
+      "supports": "API-created subscribers must confirm opt-in and collection surfaces require TCPA-compliant language with linked terms and privacy notices."
+    },
+    {
+      "url": "https://developers.postscript.io/docs/rate-limits",
+      "checkedAt": "2026-07-17",
+      "supports": "Postscript documents a 15-request-per-second per-token or partner/shop-combination limit and 429 responses."
+    }
+  ]
+}

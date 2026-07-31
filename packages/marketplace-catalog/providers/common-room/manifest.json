@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "common-room",
+  "name": "Common Room",
+  "category": "crm_support",
+  "description": "Common Room is a customer-intelligence platform that unifies product, community, social, CRM, and intent signals into contact and organization profiles. Go-to-market teams use it to identify, segment, research, and engage accounts and people from one workspace.",
+  "agentUseSummary": "Enter a room-admin API token from the customer's own Common Room workspace, select workspace reads or API v2 authority, and choose Safe or Dangerously skip permissions for each agent install.",
+  "provider": {
+    "websiteUrl": "https://www.commonroom.io/",
+    "docsUrl": "https://api.commonroom.io/docs/api-v2.html",
+    "developerConsoleUrl": "https://app.commonroom.io/",
+    "termsUrl": "https://www.commonroom.io/terms-of-use/",
+    "privacyUrl": "https://www.commonroom.io/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "COMMON_ROOM_API_TOKEN",
+        "label": "Common Room API token",
+        "required": true,
+        "secret": true,
+        "helpText": "A room admin creates a token in Common Room Settings > API tokens. Railway stores it encrypted and attaches it only to fixed-origin api.commonroom.io requests."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workspace_read",
+      "label": "Read workspace metadata",
+      "description": "Validate the token and list bounded segment and visible signal-provider metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "v2_api",
+      "label": "Common Room API v2",
+      "description": "Use the complete documented API v2 surface authorized by the customer's room-admin token.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "common_room_token_status",
+        "label": "Validate room token",
+        "description": "Validate the connected room-admin API token without exposing it."
+      },
+      {
+        "id": "common_room_list_segments",
+        "label": "List segments",
+        "description": "List one bounded page of segment summaries."
+      },
+      {
+        "id": "common_room_list_providers",
+        "label": "List signal providers",
+        "description": "List one bounded page of visible signal-provider summaries."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "common_room_v2_request",
+        "label": "Use documented API v2",
+        "description": "Call one bounded documented Common Room API v2 operation; Safe mode requires approval for every call outside the three pinned reads."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "common_room_private_export",
+        "label": "Export private people data",
+        "description": "Bulk contact, organization, activity, website-visit, enrichment, email, social-profile, and custom-field exports are not mounted as direct tools."
+      },
+      {
+        "id": "common_room_raw_origin",
+        "label": "Use arbitrary endpoints",
+        "description": "Caller-selected origins, v1 ingestion, SCIM, RTBF, private endpoints, browser automation, and undocumented paths are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "common_room_safe",
+      "label": "Safe",
+      "description": "Pinned workspace-metadata reads run directly; every other documented API v2 operation requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "common_room_token_status",
+        "common_room_list_segments",
+        "common_room_list_providers"
+      ],
+      "approvalRequiredActions": ["common_room_v2_request"],
+      "blockedActions": ["common_room_private_export", "common_room_raw_origin"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected token-authorized API v2 operation runs without Relay per-action approval while fixed origin, credential secrecy, request bounds, audits, provider authority, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "common_room_token_status",
+        "common_room_list_segments",
+        "common_room_list_providers",
+        "common_room_v2_request"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": ["common_room_private_export", "common_room_raw_origin"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected Common Room tools and injects the encrypted room token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected Common Room tools and injects the encrypted room token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "A room admin creates a least-privilege API token in the customer's Common Room instance, enters it in Relay, and validates the selected room, plan, role, data-governance, and rate limits before installing it on agents."
+  },
+  "evidence": [
+    {
+      "url": "https://api.commonroom.io/docs/api-v2.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Common Room publishes a fixed-origin API v2 for contact, organization, activity, segment, tag, provider, location, topic, custom-object and related read/write resources, with bounded pagination and 400/403/404/429 responses."
+    },
+    {
+      "url": "https://www.commonroom.io/docs/set-preferences/api-tokens/",
+      "checkedAt": "2026-07-17",
+      "supports": "Common Room documents customer-created API tokens and member, activity, lookup, and right-to-be-forgotten uses."
+    },
+    {
+      "url": "https://www.commonroom.io/developers/",
+      "checkedAt": "2026-07-17",
+      "supports": "Common Room presents its API as the supported developer surface for creating and updating members, adding activity, retrieving member information, and anonymizing personal data."
+    },
+    {
+      "url": "https://www.commonroom.io/docs/using-common-room/mcp-server/",
+      "checkedAt": "2026-07-17",
+      "supports": "Common Room also publishes an OAuth 2.1 hosted MCP surface with read and write tools; Relay does not mount its raw dynamic tool list and instead pins typed fixed-origin REST wrappers until the exact provider-hosted OAuth distribution lifecycle is accepted."
+    }
+  ]
+}

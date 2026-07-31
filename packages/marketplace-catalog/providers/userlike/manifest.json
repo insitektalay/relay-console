@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "userlike", "name": "Userlike", "category": "communication",
+  "description": "Userlike is a customer-messaging platform for website chat, mobile messaging channels, conversations, contacts, operators, chatbots, routing, analytics, and support workflows.",
+  "agentUseSummary": "Enter one customer-owned Userlike organization token, then let selected agents use content-free conversation operations or approved documented JSON API v3 requests under Safe or Dangerously skip permissions.",
+  "provider": { "websiteUrl": "https://www.userlike.com/", "docsUrl": "https://docs.userlike.com/a92a522a3ac940dfa5e5796c246a6842", "developerConsoleUrl": null, "termsUrl": "https://www.userlike.com/en/terms", "privacyUrl": "https://www.userlike.com/en/terms/privacy" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": { "types": ["customer_owned_api_key", "api_connector"], "credentialRequirements": [{ "name": "USERLIKE_ORGANIZATION_TOKEN", "label": "Userlike organization authentication token", "required": true, "secret": true, "helpText": "Create a dedicated organization token and, where appropriate, run requests in a least-privileged dedicated operator context." }], "callbackPath": null, "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "conversation_metadata_read", "label": "Read conversation operations", "description": "List and inspect bounded conversation operational metadata without messages, notes, contacts, names, emails, phones, topics, ratings, surveys, navigation, custom fields, or raw records.", "defaultSelected": true },
+    { "id": "full_api", "label": "Userlike JSON API v3", "description": "Use documented fixed-origin JSON API v3 paths and methods allowed by the connected organization token.", "defaultSelected": true }
+  ],
+  "actions": { "allowed": [], "approvalRequired": [
+    { "id": "userlike_conversation_list", "label": "List conversation metadata", "description": "List one fixed first page of content-free Userlike conversation summaries." },
+    { "id": "userlike_conversation_get", "label": "Read conversation metadata", "description": "Read one exact Userlike conversation through Relay's content-free projection." },
+    { "id": "userlike_full_api", "label": "Use JSON API v3", "description": "Use a documented Userlike JSON API v3 operation authorized by the organization token; Safe mode requires approval." }
+  ], "blocked": [] },
+  "approvalProfiles": [
+    { "id": "userlike_safe", "label": "Safe", "description": "Content-free conversation reads and every broader JSON API operation require approval; fixed origin/version, secret isolation, token permissions, bounds, and limits remain enforced.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["userlike_conversation_list", "userlike_conversation_get", "userlike_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Selected token-authorized operations run without Relay per-action approval; fixed origin/version, secret isolation, bounds, audits, and Userlike limits still apply.", "defaultSelected": false, "allowedActions": ["userlike_conversation_list", "userlike_conversation_get", "userlike_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [{ "format": "openclaw", "installSupport": "installable", "description": "Railway mounts typed wrappers and attaches the encrypted organization token only to the fixed Userlike JSON API v3 origin." }, { "format": "hermes", "installSupport": "installable", "description": "Railway mounts typed wrappers and attaches the encrypted organization token only to the fixed Userlike JSON API v3 origin." }],
+  "availability": "available",
+  "providerSetup": { "status": "customer_action_required", "blocker": "A customer Userlike organization token with appropriate organization/operator permissions is required for live acceptance.", "nextAction": "Create a dedicated organization token and least-privileged API operator where appropriate, enter the token in Relay, and verify bounded reads, Safe approval, Dangerous broader operations, rate limits, token rotation, and disconnect denial." },
+  "evidence": [{ "url": "https://docs.userlike.com/a92a522a3ac940dfa5e5796c246a6842", "checkedAt": "2026-07-18", "supports": "Userlike's official JSON API documentation defines the fixed api.userlike.com/api/um/v3 origin, authorization token header, organization token model, optional operator context, conversation list/single endpoints, pagination, mutations, and daily/burst limits." }]
+}

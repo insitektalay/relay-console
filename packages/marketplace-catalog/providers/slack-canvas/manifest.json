@@ -1,0 +1,191 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "slack-canvas",
+  "name": "Slack Canvas",
+  "category": "knowledge_documents",
+  "description": "Slack Canvas provides collaborative documents inside Slack for channel resources, project plans, onboarding guides, incident notes, and other shared context.",
+  "agentUseSummary": "Connect a customer-owned Slack app token, then let selected agents find canvas section IDs, draft content locally, or create and append bounded markdown under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://slack.com/features/canvas",
+    "docsUrl": "https://docs.slack.dev/surfaces/canvases/",
+    "developerConsoleUrl": "https://api.slack.com/apps",
+    "termsUrl": "https://slack.com/terms-of-service",
+    "privacyUrl": "https://slack.com/trust/privacy/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["canvases:read", "canvases:write"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_slack_app_token",
+      "fixed_slack_canvas_methods"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SLACK_CANVAS_TOKEN",
+        "label": "Slack Canvas app token",
+        "required": true,
+        "secret": true,
+        "helpText": "A bot or user token from the customer's own Slack app with canvases:read and canvases:write. Railway stores it encrypted and sends it only to slack.com/api."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "canvas_read",
+      "label": "Find canvas sections",
+      "description": "Find bounded section IDs in one explicit canvas.",
+      "defaultSelected": true
+    },
+    {
+      "id": "canvas_write",
+      "label": "Create and append canvas content",
+      "description": "Create a bounded standalone canvas or append markdown to one explicit canvas.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "slack_canvas_sections_lookup",
+        "label": "Find canvas sections",
+        "description": "Find bounded section IDs in one explicit canvas using supported heading and text criteria."
+      },
+      {
+        "id": "slack_canvas_draft",
+        "label": "Draft canvas content",
+        "description": "Prepare bounded Slack Canvas markdown locally without a provider side effect."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "slack_canvas_create",
+        "label": "Create standalone canvas",
+        "description": "Create one standalone canvas with bounded title and markdown content."
+      },
+      {
+        "id": "slack_canvas_append",
+        "label": "Append canvas content",
+        "description": "Append bounded markdown to the start or end of one explicit writable canvas."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "slack_canvas_destructive",
+        "label": "Destructive canvas changes",
+        "description": "Canvas deletion, section deletion, whole-document replacement, and arbitrary section-relative edits are not exposed."
+      },
+      {
+        "id": "slack_canvas_access",
+        "label": "Canvas access changes",
+        "description": "Ownership transfer and user or channel access grants and revocations are not exposed."
+      },
+      {
+        "id": "slack_canvas_sensitive_content",
+        "label": "Sensitive content expansion",
+        "description": "File downloads, broad canvas discovery, private-channel enumeration, and automatic content export are not exposed."
+      },
+      {
+        "id": "slack_canvas_raw_api",
+        "label": "Raw Slack APIs",
+        "description": "Arbitrary Slack methods, caller-selected origins, raw tokens, and unbounded requests are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "slack_canvas_safe",
+      "label": "Safe",
+      "description": "Section lookup and local drafting run directly; each canvas creation or append requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["slack_canvas_sections_lookup", "slack_canvas_draft"],
+      "approvalRequiredActions": ["slack_canvas_create", "slack_canvas_append"],
+      "blockedActions": [
+        "slack_canvas_destructive",
+        "slack_canvas_access",
+        "slack_canvas_sensitive_content",
+        "slack_canvas_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected create and append operations run without Relay per-action approval while fixed methods, bounds, audits, Slack scopes, workspace access, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "slack_canvas_sections_lookup",
+        "slack_canvas_draft",
+        "slack_canvas_create",
+        "slack_canvas_append"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "slack_canvas_destructive",
+        "slack_canvas_access",
+        "slack_canvas_sensitive_content",
+        "slack_canvas_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts four typed Slack Canvas tools and attaches the encrypted customer token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts four typed Slack Canvas tools and attaches the encrypted customer token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A Slack workspace owner must create the customer's own app, grant canvases:read and canvases:write, install it to the intended workspace, and enter the resulting bot or user token in Relay.",
+    "nextAction": "Create and install a least-privilege customer-owned Slack app, connect its token, verify the exact workspace and accessible canvases, test Safe approvals and Dangerous writes, then test token revocation and disconnect."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.slack.dev/surfaces/canvases/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents standalone and channel canvases, markdown content, and supported Canvas API formatting."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/methods/canvases.sections.lookup/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents canvases.sections.lookup with canvases:read, exact canvas IDs, heading/text criteria, and section-ID responses."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/methods/canvases.create/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents standalone canvas creation with canvases:write, bounded title, and markdown document content."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/methods/canvases.edit/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents one edit operation per call, including insert_at_start and insert_at_end used by Relay's append-only wrapper."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/scopes/canvases.read/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents canvases:read for accessing canvas contents through section lookup."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/scopes/canvases.write/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents canvases:write for create, edit, delete, and access methods; Relay mounts only create and append-only edit."
+    }
+  ]
+}

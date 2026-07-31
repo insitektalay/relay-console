@@ -1,0 +1,155 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoho-people",
+  "name": "Zoho People",
+  "category": "work_management",
+  "description": "Zoho People is a cloud human-resources platform for employee records, onboarding, attendance, leave, time tracking, performance, files, workflows, and organization structure. HR teams use it to administer the employee lifecycle and give staff access to workplace processes and information.",
+  "agentUseSummary": "Connect one organization-specific Zoho People grant through Relay-owned multi-data-center OAuth, then let selected agents list or inspect bounded entity, business-unit, and division metadata. Employee records, leave, attendance, compensation, files, custom forms, descriptions, writes, pagination, exports, and raw APIs are outside V1.",
+  "provider": {
+    "websiteUrl": "https://www.zoho.com/people/",
+    "docsUrl": "https://www.zoho.com/people/api/v3/overview.html",
+    "developerConsoleUrl": "https://api-console.zoho.com/",
+    "termsUrl": "https://www.zoho.com/terms.html",
+    "privacyUrl": "https://www.zoho.com/privacy.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["AaaServer.profile.Read", "ZOHOPEOPLE.orgstructure.READ"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.zoho.com/oauth/v2/auth",
+    "tokenUrl": "https://accounts.zoho.com/oauth/v2/token",
+    "revocationUrl": "https://accounts.zoho.com/oauth/v2/token/revoke"
+  },
+  "connection": {
+    "types": ["oauth_connector"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/zoho-people/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "organization_structure_read",
+      "label": "Read organization structure",
+      "description": "Read bounded entity, business-unit, and division metadata without employee, leave, attendance, compensation, file, or custom-form data."
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "zoho_people_structure_list",
+        "label": "List organization structure",
+        "description": "List at most twenty-five bounded entity, unit, or division summaries from the organization-specific Zoho People grant."
+      },
+      {
+        "id": "zoho_people_structure_get",
+        "label": "Read organization structure record",
+        "description": "Read one exact bounded Zoho People entity, unit, or division summary by positive numeric ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "zoho_people_employee_records",
+        "label": "Access employee records",
+        "description": "Employee identity, profile, reporting, contact, demographic, lifecycle, and custom-field records are outside V1."
+      },
+      {
+        "id": "zoho_people_hr_records",
+        "label": "Access HR records",
+        "description": "Leave, attendance, time, shift, compensation, performance, files, forms, reports, and automation are outside V1."
+      },
+      {
+        "id": "zoho_people_mutation_raw_export",
+        "label": "Modify or export Zoho People",
+        "description": "Writes, administration, arbitrary endpoints, automatic pagination, bulk operations, exports, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zoho_people_safe",
+      "label": "Safe",
+      "description": "Both bounded internal organization-structure reads require approval; employee and HR-record surfaces remain outside Relay's V1 contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "zoho_people_structure_list",
+        "zoho_people_structure_get"
+      ],
+      "blockedActions": [
+        "zoho_people_employee_records",
+        "zoho_people_hr_records",
+        "zoho_people_mutation_raw_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both selected structure reads run without Relay per-action approval; exact user, organization-specific grant, regional origin, scope, result bounds, audits, and privacy exclusions remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "zoho_people_structure_list",
+        "zoho_people_structure_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zoho_people_employee_records",
+        "zoho_people_hr_records",
+        "zoho_people_mutation_raw_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts two typed Zoho People structure wrappers and attaches the encrypted token only to the exact regional Accounts and API origins."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts two typed Zoho People structure wrappers and attaches the encrypted token only to the exact regional Accounts and API origins."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "Relay's multi-data-center Zoho server application, exact callback, shared client credentials, Railway staging configuration, and representative Zoho People organization consent are not configured in this code-only worker task.",
+    "nextAction": "In the separate provider-console task, create or extend Relay's Zoho server application, enable Multi-DC with shared credentials, register https://api.relayconsole.work/api/v1/marketplace/oauth/zoho-people/callback, request only AaaServer.profile.Read and ZOHOPEOPLE.orgstructure.READ, configure ZOHO_PEOPLE_CLIENT_ID and ZOHO_PEOPLE_CLIENT_SECRET on Railway staging, then validate organization-specific consent, exact-user and region binding, the two bounded wrappers, one-hour refresh, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.zoho.com/people/api/v3/overview.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents People as an HR integration API for employee and form data, requires OAuth or a valid authentication token, limits the API to paid People editions, and identifies developers, integrators, and People administrators as its audience."
+    },
+    {
+      "url": "https://www.zoho.com/people/api/v3/oauth-steps.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho People documents server-based authorization codes, organization-specific grants, offline refresh tokens, one-hour access tokens, comma-separated scopes, regional Accounts servers, token-returned api_domain routing, and refresh tokens bound to one organization and environment."
+    },
+    {
+      "url": "https://www.zoho.com/people/api/v3/orgstructure/bulk-record.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho People documents GET endpoints for entities, units, and divisions under ZOHOPEOPLE.orgstructure.READ with offset pagination, a 1-200 limit, IDs, names, codes, descriptions, and parent-division references. Relay fixes offset to the first page, caps limit at 25, and strips descriptions."
+    },
+    {
+      "url": "https://www.zoho.com/people/api/v3/orgstructure/single-record.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho People documents exact-ID GET endpoints for one entity, unit, or division under the read-only organization-structure scope."
+    },
+    {
+      "url": "https://www.zoho.com/accounts/protocol/oauth/multi-dc.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents Multi-DC server clients, location and accounts-server callback parameters, regional token exchange, api_domain routing, shared or per-region secrets, and the supported regional Accounts servers."
+    },
+    {
+      "url": "https://www.zoho.com/accounts/protocol/oauth/use-access-token.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents the regional Accounts oauth/user/info request with a bearer or Zoho-oauthtoken authorization header, which Relay uses only to bind the grant to the current user."
+    }
+  ]
+}

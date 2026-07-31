@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "finicity",
+  "name": "Finicity",
+  "category": "commerce_payments",
+  "description": "Finicity, part of Mastercard Open Finance, is a financial-data platform for account linking, aggregation, verification, transactions, cash-flow analytics, income and employment information, lending, and payments use cases. Financial institutions and fintech companies use Finicity Connect and its APIs to obtain consumer-permissioned data from supported institutions.",
+  "agentUseSummary": "Add a customer's Finicity partner ID, secret, app key, and fixed API origin, then let agents read bounded enabled Open Finance resources or use the full documented API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.finicity.com/",
+    "docsUrl": "https://developer.mastercard.com/open-banking-us/documentation/",
+    "developerConsoleUrl": "https://developer.mastercard.com/",
+    "termsUrl": "https://www.mastercard.com/global/en/vision/corp-responsibility/commitment-to-privacy/privacy.html",
+    "privacyUrl": "https://www.mastercard.com/global/en/vision/corp-responsibility/commitment-to-privacy/privacy.html"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_finicity_contract",
+      "partner_id_secret_and_app_key",
+      "short_lived_partner_app_token",
+      "fixed_finicity_api_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "FINICITY_API_ORIGIN",
+        "label": "Finicity API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "The official Finicity API origin assigned to the customer's environment."
+      },
+      {
+        "name": "FINICITY_PARTNER_ID",
+        "label": "Finicity partner ID",
+        "required": true,
+        "secret": true,
+        "helpText": "The customer's Finicity partner ID, stored encrypted by Railway."
+      },
+      {
+        "name": "FINICITY_PARTNER_SECRET",
+        "label": "Finicity partner secret",
+        "required": true,
+        "secret": true,
+        "helpText": "The customer's Finicity partner secret, stored encrypted by Railway."
+      },
+      {
+        "name": "FINICITY_APP_KEY",
+        "label": "Finicity app key",
+        "required": true,
+        "secret": true,
+        "helpText": "The customer's Finicity app key, stored encrypted by Railway."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "financial_data_read",
+      "label": "Read financial data",
+      "description": "Read bounded institutions, customers, accounts, transactions, owners, assets, verification, and other enabled Finicity resources.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Finicity API",
+      "description": "Use the complete documented Finicity Open Finance API surface enabled for the customer.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "finicity_read",
+        "label": "Read Finicity data",
+        "description": "Read one bounded documented Finicity resource."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "finicity_full_api",
+        "label": "Use full Finicity API",
+        "description": "Use a documented Connect, customer, account, refresh, verification, payment, mutation, or administrative operation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "finicity_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; Connect launches, refreshes, mutations, payments, and administration require approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "finicity_read"
+      ],
+      "approvalRequiredActions": [
+        "finicity_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Finicity operation runs without Relay per-action approval; customer authorization, provider limits, secret isolation, request bounds, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "finicity_read",
+        "finicity_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Finicity wrappers and mints partner app tokens server-side for the fixed official origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Finicity wrappers and mints partner app tokens server-side for the fixed official origin."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Each customer must hold a Mastercard Open Finance/Finicity contract and supply its own partner ID, secret, app key, products, Connect configuration, and production access. Live institution consent remains external.",
+    "nextAction": "In the provider-console task, use an approved customer environment to validate app-token issuance, Connect, consumer binding, enabled products, bounded reads, Safe approval, Dangerous mutation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.mastercard.com/open-banking-us/documentation/connect/components/integration/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mastercard documents Finicity Connect as the consumer-facing account-linking component for Open Finance integrations."
+    },
+    {
+      "url": "https://developer.mastercard.com/open-banking-us/documentation/api-reference/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mastercard publishes the Open Banking US API reference for partner authentication, customers, accounts, transactions, institutions, verification, analytics, and related products."
+    },
+    {
+      "url": "https://developer.mastercard.com/apis",
+      "checkedAt": "2026-07-17",
+      "supports": "Mastercard lists Open Finance US as a product for connecting customer financial data to applications."
+    }
+  ]
+}

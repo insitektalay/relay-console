@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "time-doctor",
+  "name": "Time Doctor",
+  "category": "work_management",
+  "description": "Time Doctor is workforce analytics and time-tracking software for distributed teams. Organizations use it to understand how working time is spent, manage projects and schedules, review attendance and activity, administer teams and payroll settings, and report on productivity and operational costs.",
+  "agentUseSummary": "Add a Time Doctor API token, then choose which agents can read or manage the connected companies and workforce data under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.timedoctor.com/",
+    "docsUrl": "https://timedoctor.redoc.ly/",
+    "developerConsoleUrl": "https://timedoctor.redoc.ly/#operation/login",
+    "termsUrl": "https://www.timedoctor.com/terms-of-service",
+    "privacyUrl": "https://www.timedoctor.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_jwt_token", "role_and_company_visibility_bound"],
+    "credentialRequirements": [
+      {
+        "key": "TIME_DOCTOR_JWT_TOKEN",
+        "label": "Time Doctor API token",
+        "secret": true,
+        "required": true,
+        "helpText": "Generate a token using Time Doctor's official API login flow, then paste only the token here. Relay encrypts it and sends it only to api2.timedoctor.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "time_doctor_read",
+      "label": "Read time and workforce data",
+      "description": "Use all 61 pinned reads for activity, time reports, companies, projects, tasks, people, schedules, notifications, payroll, approvals, calendar data, and software costs."
+    },
+    {
+      "id": "time_doctor_manage",
+      "label": "Manage time and workforce data",
+      "description": "Use all 58 pinned mutations for time edits, projects, tasks, people, groups, schedules, notifications, breaks, payroll, approvals, calendar sync, and software costs."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "time_doctor_read",
+        "label": "Read Time Doctor",
+        "description": "Run one exact selected Time Doctor GET operation from the pinned official API contract."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "time_doctor_manage",
+        "label": "Manage Time Doctor",
+        "description": "Run one exact selected Time Doctor mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "time_doctor_safe",
+      "label": "Safe",
+      "description": "All 61 bounded reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["time_doctor_read"],
+      "approvalRequiredActions": ["time_doctor_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 119 selected and token-authorized operations run without Relay per-action approval; ownership, exact routes, bounds, audits, redaction, rate limits, and Time Doctor permissions still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["time_doctor_read", "time_doctor_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 119 pinned Time Doctor API operations through the encrypted customer-token connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 119 pinned Time Doctor API operations through the encrypted customer-token connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Time Doctor API token or representative Premium account is available in this workspace.",
+    "nextAction": "A Premium-plan user should generate a write-authorized JWT token through Time Doctor's official login endpoint, save only that token through Relay Console, then verify company identity, role and visibility enforcement, bounded reads, Safe approvals, Dangerous mutations, token replacement and expiry, agent assignment, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://timedoctor.redoc.ly/",
+      "checkedAt": "2026-07-15",
+      "supports": "Time Doctor's official OpenAPI 3.0.2 contract has canonical SHA-256 0b563ce31c1e79ed0b4b18f76f01dd98dcec4416b54731d37ed0f25323f552d6 and defines the 119 selected workspace operations: 61 reads and 58 mutations."
+    },
+    {
+      "url": "https://support.timedoctor.com/knowledge/how-to-use-the-time-doctor-api",
+      "checkedAt": "2026-07-15",
+      "supports": "Time Doctor documents API access on the Premium plan, JWT authorization headers, role and visibility enforcement, tokens generated through the login endpoint, and six-month token expiry."
+    },
+    {
+      "url": "https://www.timedoctor.com/",
+      "checkedAt": "2026-07-15",
+      "supports": "Time Doctor describes automated time tracking, workforce analytics, attendance, scheduling, payroll integration, productivity reporting, and distributed-work management as product capabilities."
+    }
+  ]
+}

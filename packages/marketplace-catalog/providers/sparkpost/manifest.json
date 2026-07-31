@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "sparkpost", "name": "SparkPost", "category": "communication",
+  "description": "Email transmissions, templates, message events, deliverability metrics, domains, and administration through the SparkPost API.",
+  "agentUseSummary": "Connect a customer-owned regional API key, optionally pin a subaccount, select capabilities, and let agents inspect or transmit under Safe or Dangerous policy.",
+  "provider": { "websiteUrl": "https://www.sparkpost.com/", "docsUrl": "https://developers.sparkpost.com/api/", "developerConsoleUrl": "https://app.sparkpost.com/account/api-keys", "termsUrl": "https://www.sparkpost.com/policies/terms-of-use/", "privacyUrl": "https://www.sparkpost.com/policies/privacy/" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": { "types": ["user_owned_api_key"], "credentialRequirements": [
+    { "name": "SPARKPOST_API_KEY", "label": "SparkPost API key", "required": true, "secret": true, "helpText": "A customer-owned key with only the grants agents need." },
+    { "name": "SPARKPOST_REGION", "label": "SparkPost region", "required": true, "secret": false, "helpText": "US or EU; the regional accounts and API origins are independent." },
+    { "name": "SPARKPOST_SENDER_DOMAIN", "label": "Verified sender domain", "required": true, "secret": false, "helpText": "The exact verified domain agents may transmit from." },
+    { "name": "SPARKPOST_SUBACCOUNT_ID", "label": "Subaccount ID", "required": false, "secret": false, "helpText": "Optional exact numeric subaccount boundary." }
+  ], "callbackPath": null, "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "account", "label": "Account", "description": "Read bounded account metadata when the key grant permits it.", "defaultSelected": true },
+    { "id": "events", "label": "Message events", "description": "Search bounded delivery and engagement events.", "defaultSelected": true },
+    { "id": "metrics", "label": "Deliverability metrics", "description": "Read bounded deliverability summaries.", "defaultSelected": true },
+    { "id": "transmissions", "label": "Transmissions", "description": "Create transmissions through the bound sender domain.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full SparkPost API", "description": "Use all endpoints allowed by the customer key within its region and subaccount.", "defaultSelected": false }
+  ],
+  "actions": { "allowed": [
+    { "id": "sparkpost_read_account", "label": "Read account", "description": "Read bounded account metadata." },
+    { "id": "sparkpost_read_events", "label": "Read message events", "description": "Search a bounded time window of message events." },
+    { "id": "sparkpost_read_metrics", "label": "Read metrics", "description": "Read bounded deliverability metrics." }
+  ], "approvalRequired": [
+    { "id": "sparkpost_create_transmission", "label": "Create transmission", "description": "Creating a transmission requires approval in Safe mode." },
+    { "id": "sparkpost_full_api", "label": "Use full SparkPost API", "description": "All other API operations require approval in Safe mode." }
+  ], "blocked": [] },
+  "approvalProfiles": [
+    { "id": "sparkpost_safe", "label": "Safe", "description": "Bounded reads run directly; transmissions and all other API operations require approval.", "defaultSelected": true, "allowedActions": ["sparkpost_read_account", "sparkpost_read_events", "sparkpost_read_metrics"], "approvalRequiredActions": ["sparkpost_create_transmission", "sparkpost_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected key-authorized capability runs without Relay per-action approvals; ownership, regional/subaccount authority, sender binding, provider grants/limits, secret isolation, bounded evidence, and audits still apply.", "defaultSelected": false, "allowedActions": ["sparkpost_read_account", "sparkpost_read_events", "sparkpost_read_metrics", "sparkpost_create_transmission", "sparkpost_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high", "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected SparkPost tools and proxies the key server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected SparkPost tools and proxies the key server-side." }
+  ],
+  "availability": "available", "providerSetup": { "status": "not_required", "blocker": null, "nextAction": "The customer creates a least-privilege regional key and enters it with the verified sender domain and optional subaccount." },
+  "evidence": [
+    { "url": "https://developers.sparkpost.com/api/", "checkedAt": "2026-07-13", "supports": "SparkPost uses customer API keys, independent US/EU v1 origins, 420 sending-limit and 429 rate-limit responses." },
+    { "url": "https://support.sparkpost.com/docs/getting-started/create-api-keys", "checkedAt": "2026-07-13", "supports": "Customers create one-time-visible keys with chosen permissions and optional subaccount constraints." },
+    { "url": "https://developers.sparkpost.com/api/events/", "checkedAt": "2026-07-13", "supports": "Message events support explicit UTC windows and cursor pagination; Relay bounds typed reads to 100 events and seven days." },
+    { "url": "https://developers.sparkpost.com/api/transmissions/", "checkedAt": "2026-07-13", "supports": "Transmissions accept inline recipients or stored lists and impose a 20 MB content limit." },
+    { "url": "https://support.sparkpost.com/docs/user-guide/subaccounts", "checkedAt": "2026-07-13", "supports": "Subaccount keys isolate domains, reporting data, events, and transmission grants." }
+  ]
+}

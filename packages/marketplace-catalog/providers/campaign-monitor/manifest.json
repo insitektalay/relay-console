@@ -1,0 +1,180 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "campaign-monitor",
+  "name": "Campaign Monitor",
+  "category": "communication",
+  "description": "Campaign Monitor is an email marketing platform for agencies and businesses to manage Clients, subscriber lists, Campaigns, templates, journeys, transactional email, and reports.",
+  "agentUseSummary": "Connect Campaign Monitor through Relay-owned web-server OAuth with only ViewReports, then bind one exact visible Client. Relay serializes complete fourteen-day token-pair rotation and exposes only the selected Client ID/name, twenty recent sent Campaign IDs/dates, and aggregate counts for one Campaign proven to belong to that bounded list; subscribers, person-level reports, content, identity, links, broader APIs, arbitrary queries, pagination, exports, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.campaignmonitor.com/",
+    "docsUrl": "https://www.campaignmonitor.com/api/v3-3/getting-started/",
+    "developerConsoleUrl": "https://login.createsend.com/",
+    "termsUrl": "https://www.campaignmonitor.com/terms/",
+    "privacyUrl": "https://www.campaignmonitor.com/trust/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["ViewReports"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.createsend.com/oauth",
+    "tokenUrl": "https://api.createsend.com/oauth/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_web_server_oauth_app",
+      "view_reports_only",
+      "exact_visible_client_binding",
+      "fourteen_day_access_token",
+      "rotating_complete_token_pair",
+      "local_disconnect_and_provider_managed_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/campaign-monitor/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "client_metadata",
+      "label": "Selected Client metadata",
+      "description": "Read the exact selected Campaign Monitor Client summary.",
+      "defaultSelected": true
+    },
+    {
+      "id": "campaign_metadata",
+      "label": "Sent Campaign metadata",
+      "description": "List bounded recent sent Campaign lifecycle summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "campaign_summary",
+      "label": "Campaign aggregate summary",
+      "description": "Read privacy-minimized aggregate reporting counts for one bounded Campaign.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "campaign_monitor_client_get",
+        "label": "Read selected Client",
+        "description": "Read only the exact bound Campaign Monitor Client ID and name."
+      },
+      {
+        "id": "campaign_monitor_campaign_list_recent_sent",
+        "label": "List recent sent Campaigns",
+        "description": "Read page one of twenty recent sent Campaign IDs and dates, newest first."
+      },
+      {
+        "id": "campaign_monitor_campaign_summary_get",
+        "label": "Read Campaign aggregate summary",
+        "description": "Read aggregate delivery, open, click, bounce, unsubscribe, spam, forward, like, and mention counts for one Campaign from the bounded list."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "campaign_monitor_subscriber_private",
+        "label": "Access subscribers or person-level reports",
+        "description": "Subscriber identity, lists, segments, contact fields, consent, recipients, opens, clicks, locations, and drilldowns are outside V1."
+      },
+      {
+        "id": "campaign_monitor_campaign_content",
+        "label": "Access Campaign content or identity",
+        "description": "Campaign names, subjects, sender and reply identity, message content, URLs, links, tags, recipients, and audience detail are outside V1."
+      },
+      {
+        "id": "campaign_monitor_broader_api",
+        "label": "Access broader Campaign Monitor APIs",
+        "description": "Transactional messages, journeys, templates, account administration, people, billing, and broader Client resources are outside V1."
+      },
+      {
+        "id": "campaign_monitor_marketing_mutation",
+        "label": "Change or send Campaign Monitor data",
+        "description": "Creating, importing, updating, sending, administering, or deleting Campaign Monitor resources is outside V1."
+      },
+      {
+        "id": "campaign_monitor_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary Clients, dates, tags, pages, page sizes, sort directions, paths, pagination, crawling, exports, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "campaign_monitor_safe",
+      "label": "Safe",
+      "description": "Three bounded reporting reads run automatically; subscriber identity, person-level reports, content, broader APIs, raw requests, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "campaign_monitor_client_get",
+        "campaign_monitor_campaign_list_recent_sent",
+        "campaign_monitor_campaign_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "campaign_monitor_subscriber_private",
+        "campaign_monitor_campaign_content",
+        "campaign_monitor_broader_api",
+        "campaign_monitor_marketing_mutation",
+        "campaign_monitor_raw_query"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact-Client binding, ViewReports-only authority, bounded Campaign membership, fixed fields, page limits, audit, redaction, and token rotation remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "campaign_monitor_client_get",
+        "campaign_monitor_campaign_list_recent_sent",
+        "campaign_monitor_campaign_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "campaign_monitor_subscriber_private",
+        "campaign_monitor_campaign_content",
+        "campaign_monitor_broader_api",
+        "campaign_monitor_marketing_mutation",
+        "campaign_monitor_raw_query"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Campaign Monitor reporting wrappers and attaches the encrypted, Client-bound rotating OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Campaign Monitor reporting wrappers and attaches the encrypted, Client-bound rotating OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Campaign Monitor requires Relay to register a web-server OAuth application with the exact Railway callback, ViewReports only, and secure client credentials. Railway staging credentials plus representative agency and non-agency acceptance accounts are not configured in this code-only task.",
+    "nextAction": "In the provider-console task, register Relay's Campaign Monitor OAuth app with https://api.relayconsole.work/api/v1/marketplace/oauth/campaign-monitor/callback and only ViewReports, configure Railway staging client credentials, then verify state, visible-Client selection and exact binding for agency and non-agency grants, all three privacy-minimized reads, serialized complete-pair refresh, provider-managed revocation plus Relay-local disconnect, provider rate behavior, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.campaignmonitor.com/api/v3-3/getting-started/",
+      "checkedAt": "2026-07-17",
+      "supports": "Campaign Monitor documents preferred web-server OAuth, comma-delimited permissions including ViewReports, prefix-matched registered redirects, state, form token exchange, 1,209,600-second access tokens, complete refresh pairs, Bearer API calls, accessible Clients, and OAuth error semantics."
+    },
+    {
+      "url": "https://www.campaignmonitor.com/api/v3-3/clients/",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /api/v3.3/clients.json returns visible ClientID/Name pairs, and the sent-Campaign endpoint supports page, page size, and descending SentDate ordering while returning content and recipient fields that Relay strips."
+    },
+    {
+      "url": "https://www.campaignmonitor.com/api/v3-3/campaigns/",
+      "checkedAt": "2026-07-17",
+      "supports": "The Campaign summary endpoint returns aggregate delivery and engagement counts together with Campaign name and public URLs; Relay retains only the aggregate counts after bounded Client-membership validation."
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "tempo-timesheets",
+  "name": "Tempo Timesheets",
+  "aliases": ["tempo-planner"],
+  "category": "work_management",
+  "description": "Tempo Timesheets and Tempo Planner are Jira work-management products for recording actual effort and allocating future capacity. Teams use the shared Tempo platform to organize worklogs, accounts, resource plans, schedules and approval periods across delivery work.",
+  "agentUseSummary": "Add one scoped Tempo API token and its exact Jira Cloud site, then let agents read bounded worklogs, accounts and Planner allocations or use the broader documented Tempo API v4 surface under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.tempo.io/products/tempo-timesheets",
+    "docsUrl": "https://apidocs.tempo.io/",
+    "developerConsoleUrl": "https://help.tempo.io/timesheets/latest/using-rest-api-integrations",
+    "termsUrl": "https://www.tempo.io/legal/terms-of-service",
+    "privacyUrl": "https://www.tempo.io/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_token",
+    "relayOwned": false,
+    "scopes": ["worklogs:view", "accounts:view", "plans:view"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_scoped_api_token", "bearer_header", "exact_jira_site_binding", "fixed_tempo_api_v4_origin"],
+    "credentialRequirements": [
+      { "key": "TEMPO_API_TOKEN", "label": "Tempo API token", "secret": true, "required": true, "helpText": "Create a scoped token under Tempo Settings > Data Access > API Integration. Relay encrypts it and sends it only to Tempo's fixed API origin." },
+      { "key": "TEMPO_JIRA_SITE_URL", "label": "Jira Cloud site URL", "secret": false, "required": true, "helpText": "Enter the exact https://<site>.atlassian.net site where this token was created so Relay can bind the connection to one tenant." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "time_tracking_read", "label": "Read time-tracking data", "description": "Read bounded Tempo worklogs and account records from the connected Jira site.", "defaultSelected": true },
+    { "id": "planning_read", "label": "Read resource plans", "description": "Read bounded Tempo Planner resource allocations from the same exact Jira site and scoped token.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full Tempo API", "description": "Use the documented Tempo API v4 surface allowed by the token's exact scopes and Tempo permissions.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "tempo_timesheets_worklog_list", "label": "List worklogs", "description": "List at most twenty-five Tempo worklogs in an explicit window no longer than ninety days." },
+      { "id": "tempo_timesheets_worklog_get", "label": "Read a worklog", "description": "Read one exact Tempo worklog visible to the connected token." },
+      { "id": "tempo_planner_plan_search", "label": "Search plans", "description": "Search at most twenty-five Tempo Planner resource allocations in an explicit window no longer than ninety days." },
+      { "id": "tempo_timesheets_account_list", "label": "List accounts", "description": "List at most twenty-five Tempo accounts visible to the connected token." }
+    ],
+    "approvalRequired": [
+      { "id": "tempo_timesheets_full_api", "label": "Use full Tempo API", "description": "Use a documented Tempo API v4 operation authorized by the scoped token; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "tempo_timesheets_safe", "label": "Safe", "description": "Bounded worklog, account and resource-plan reads run directly; every other Tempo API operation requires approval.", "defaultSelected": true, "allowedActions": ["tempo_timesheets_worklog_list", "tempo_timesheets_worklog_get", "tempo_timesheets_account_list", "tempo_planner_plan_search"], "approvalRequiredActions": ["tempo_timesheets_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected token-authorized Tempo operation runs without Relay per-action approval; tenant binding, token scopes, fixed routing, bounds, audits, redaction and provider permissions still apply.", "defaultSelected": false, "allowedActions": ["tempo_timesheets_worklog_list", "tempo_timesheets_worklog_get", "tempo_timesheets_account_list", "tempo_planner_plan_search", "tempo_timesheets_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts typed Tempo Timesheets wrappers and attaches the encrypted token only to the fixed Tempo API v4 origin." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts typed Tempo Timesheets wrappers and attaches the encrypted token only to the fixed Tempo API v4 origin." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Tempo account, scoped API token or representative Jira Cloud site is available to this code-only worker.",
+    "nextAction": "A Tempo administrator creates a restricted API token with the intended Worklogs, Accounts and Plans view scopes, saves it with the exact Jira Cloud site through Relay Console, then verifies tenant binding, bounded reads, Safe approval, one permitted Dangerous action, credential replacement, disconnect, token regeneration and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    { "url": "https://help.tempo.io/timesheets/latest/using-rest-api-integrations", "checkedAt": "2026-07-18", "supports": "Tempo documents private user or OAuth tokens, configurable view/manage access scopes, token expiry, regeneration and deletion, including Worklogs, Accounts, Plans and other API namespaces." },
+    { "url": "https://apidocs.tempo.io/", "checkedAt": "2026-07-18", "supports": "Tempo documents bearer authentication, the universal HTTPS API origin, API v4 worklog and account operations, pagination, authorization-code OAuth for per-site applications, refresh and token revocation." },
+    { "url": "https://www.tempo.io/products/tempo-timesheets", "checkedAt": "2026-07-18", "supports": "Tempo presents Timesheets as Jira time-tracking software for worklogs, reporting, approvals, billable time and organizational visibility." },
+    { "url": "https://help.tempo.io/planner/latest/using-rest-api-integrations", "checkedAt": "2026-07-18", "supports": "Tempo Planner documents the same private user or OAuth token integration model and identifies Plans and Programs as token-scoped API namespaces." }
+  ]
+}

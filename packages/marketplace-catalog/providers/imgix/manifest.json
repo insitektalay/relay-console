@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "imgix",
+  "name": "Imgix",
+  "category": "knowledge_documents",
+  "description": "Imgix is a cloud platform for processing, optimizing, and delivering images and video from an existing content source. Product and creative teams use it to manage media assets, generate responsive transformations, control delivery, and understand content usage.",
+  "agentUseSummary": "Connect a customer-owned Imgix Management API key, then let agents inspect or manage the account's sources, assets, uploads, cache purges, publishing state, and reports under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "imgix",
+    "sourceUrl": "https://www.imgix.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://www.imgix.com/",
+    "docsUrl": "https://docs.imgix.com/apis/management",
+    "developerConsoleUrl": "https://dashboard.imgix.com/",
+    "termsUrl": "https://www.imgix.com/terms",
+    "privacyUrl": "https://www.imgix.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "IMGIX_MANAGEMENT_API_KEY",
+        "label": "Imgix Management API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create an API key in the Imgix dashboard with the Asset Browse, Asset Edit, Asset Purge, Sources, and Analytics permissions you want agents to use."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "media_read",
+      "label": "Read media and account data",
+      "description": "List and inspect authorized sources, assets, upload sessions, and retained analytics reports."
+    },
+    {
+      "id": "media_manage",
+      "label": "Manage media delivery",
+      "description": "Create and update sources, edit or upload assets, refresh processing, publish or unpublish media, and purge cached derivatives."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "imgix_read",
+        "label": "Read Imgix data",
+        "description": "Run a bounded, documented read operation against the customer's Imgix account."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "imgix_manage",
+        "label": "Change Imgix data",
+        "description": "Run one documented source, asset, upload, publishing, or purge mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "imgix_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Management API keys, origin credentials, secure URL tokens, authorization headers, and signed report links never enter agent-visible results."
+      },
+      {
+        "id": "imgix_unbounded_transfer",
+        "label": "Transfer unbounded data",
+        "description": "Relay bounds API results and direct asset uploads to five megabytes."
+      },
+      {
+        "id": "imgix_untrusted_origin",
+        "label": "Call an alternate origin",
+        "description": "Management requests are pinned to Imgix's documented HTTPS API origin."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "imgix_safe",
+      "label": "Safe",
+      "description": "Bounded source, asset, upload-session, and report reads run directly; every provider mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["imgix_read"],
+      "approvalRequiredActions": ["imgix_manage"],
+      "blockedActions": [
+        "imgix_secret_exposure",
+        "imgix_unbounded_transfer",
+        "imgix_untrusted_origin"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Imgix Management API operation runs without Relay per-action approval; ownership, provider-key permissions, fixed origin, payload bounds, secret redaction, audits, account plan limits, and provider rate limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["imgix_read", "imgix_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "imgix_secret_exposure",
+        "imgix_unbounded_transfer",
+        "imgix_untrusted_origin"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts typed Imgix Management API wrappers for the documented sources, assets, uploads, purges, publishing, and reports surface."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts typed Imgix Management API wrappers for the documented sources, assets, uploads, purges, publishing, and reports surface."
+    }
+  ],
+  "availability": "beta_available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No customer Imgix account, Management API key, billable plan, configured source, or sample asset is available for production acceptance.",
+    "nextAction": "A customer connects a least-privilege Management API key, then verifies bounded reads, Safe denial plus approval, Dangerous source and asset mutations, direct upload, refresh, publish and unpublish, purge, report redaction, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.imgix.com/apis/management",
+      "checkedAt": "2026-07-14",
+      "supports": "Imgix documents bearer Management API keys, explicit key permissions, the fixed api.imgix.com origin, JSON:API responses, and rate limits."
+    },
+    {
+      "url": "https://docs.imgix.com/apis/management/assets",
+      "checkedAt": "2026-07-14",
+      "supports": "Imgix documents asset listing and detail, metadata updates, direct and session uploads, adding and refreshing origin assets, and publish or unpublish operations."
+    },
+    {
+      "url": "https://docs.imgix.com/apis/management/sources",
+      "checkedAt": "2026-07-14",
+      "supports": "Imgix documents listing, retrieving, creating, and updating sources, including deployment state and source configuration."
+    },
+    {
+      "url": "https://docs.imgix.com/apis/management/purges",
+      "checkedAt": "2026-07-14",
+      "supports": "Imgix documents cache purges and sub-image purges under the Asset Purge permission."
+    },
+    {
+      "url": "https://docs.imgix.com/apis/management/reports",
+      "checkedAt": "2026-07-14",
+      "supports": "Imgix documents bounded report listing and retrieval under the Analytics permission, with plan-dependent report availability."
+    },
+    {
+      "url": "https://www.imgix.com/",
+      "checkedAt": "2026-07-14",
+      "supports": "Imgix describes real-time image and video processing, optimization, management, and delivery from customer content sources."
+    }
+  ]
+}

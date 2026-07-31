@@ -1,0 +1,242 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "webflow",
+  "name": "Webflow",
+  "category": "content_creative",
+  "description": "Webflow is a visual website experience platform for designing, building, managing, and optimizing responsive sites without relying on a traditional code-first workflow. Teams use its hosted CMS, visual canvas, localization, analytics, and publishing tools to run marketing sites and structured content.",
+  "agentUseSummary": "Connect Webflow once, then let agents inspect authorized sites, collection schemas, and bounded staged CMS items, prepare exact changes, update one staged item, or publish explicit reviewed item IDs under Safe or Dangerous policy. Relay never exposes the non-refreshable App token, follows pagination automatically, publishes an entire site, or offers arbitrary Webflow API access.",
+  "provider": {
+    "websiteUrl": "https://webflow.com/",
+    "docsUrl": "https://developers.webflow.com/data/reference/rest-introduction",
+    "developerConsoleUrl": "https://webflow.com/dashboard/apps",
+    "termsUrl": "https://webflow.com/legal/terms",
+    "privacyUrl": "https://webflow.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["sites:read", "cms:read", "cms:write"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://webflow.com/oauth/authorize",
+    "tokenUrl": "https://api.webflow.com/oauth/access_token",
+    "revocationUrl": "https://webflow.com/oauth/revoke_authorization"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/webflow/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "site_read",
+      "label": "Read sites",
+      "description": "List authorized sites and inspect one site's metadata, domains, and locales.",
+      "defaultSelected": true
+    },
+    {
+      "id": "collection_read",
+      "label": "Read collection schemas",
+      "description": "List collections and inspect one bounded typed CMS field schema.",
+      "defaultSelected": true
+    },
+    {
+      "id": "item_read",
+      "label": "Read staged CMS items",
+      "description": "Read one bounded staged item page or one explicit staged item.",
+      "defaultSelected": true
+    },
+    {
+      "id": "item_draft",
+      "label": "Prepare CMS changes",
+      "description": "Normalize and hash one staged update or explicit publication locally.",
+      "defaultSelected": true
+    },
+    {
+      "id": "item_update",
+      "label": "Update staged CMS items",
+      "description": "Update explicit fields on one staged item without publishing it.",
+      "defaultSelected": true
+    },
+    {
+      "id": "item_publish",
+      "label": "Publish CMS items",
+      "description": "Publish up to twenty-five explicit staged item IDs from one collection.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "webflow_site_list",
+        "label": "List sites",
+        "description": "List the sites authorized for this Webflow App grant."
+      },
+      {
+        "id": "webflow_site_get",
+        "label": "Read site",
+        "description": "Read useful metadata for one authorized Webflow site."
+      },
+      {
+        "id": "webflow_collection_list",
+        "label": "List collections",
+        "description": "List a bounded set of CMS collections for one site."
+      },
+      {
+        "id": "webflow_collection_get",
+        "label": "Read collection schema",
+        "description": "Read one collection and its bounded typed field schema."
+      },
+      {
+        "id": "webflow_collection_items",
+        "label": "List staged items",
+        "description": "List one bounded staged CMS item page."
+      },
+      {
+        "id": "webflow_item_get",
+        "label": "Read staged item",
+        "description": "Read one explicit staged CMS item and bounded field data."
+      },
+      {
+        "id": "webflow_item_prepare",
+        "label": "Prepare CMS change",
+        "description": "Normalize and hash one staged update or explicit publication locally."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "webflow_item_update",
+        "label": "Update staged item",
+        "description": "Update explicit fields on one staged CMS item without publishing it."
+      },
+      {
+        "id": "webflow_item_publish",
+        "label": "Publish CMS items",
+        "description": "Publish up to twenty-five explicit staged item IDs from one collection."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "webflow_cms_lifecycle",
+        "label": "Create or destroy CMS content",
+        "description": "Collection and item creation, deletion, archive, and unpublish are outside V1."
+      },
+      {
+        "id": "webflow_site_admin",
+        "label": "Publish or administer sites",
+        "description": "Full-site publishing and page, code, form, asset, ecommerce, webhook, domain, and site administration are outside V1."
+      },
+      {
+        "id": "webflow_broad_raw",
+        "label": "Crawl or call broad Webflow APIs",
+        "description": "Automatic pagination, broad ingestion, beta APIs, Designer APIs, and arbitrary provider calls are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "webflow_safe",
+      "label": "Safe",
+      "description": "Authorized site, collection, and staged-item reads plus local change preparation run directly; staged updates and publication require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "webflow_site_list",
+        "webflow_site_get",
+        "webflow_collection_list",
+        "webflow_collection_get",
+        "webflow_collection_items",
+        "webflow_item_get",
+        "webflow_item_prepare"
+      ],
+      "approvalRequiredActions": [
+        "webflow_item_update",
+        "webflow_item_publish"
+      ],
+      "blockedActions": [
+        "webflow_cms_lifecycle",
+        "webflow_site_admin",
+        "webflow_broad_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Webflow operation supported by this connector runs without Relay per-action approval; connection ownership, App-granted sites and workspaces, fixed Data API routes, bounds, audits, redaction, idempotency, and Webflow limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "webflow_site_list",
+        "webflow_site_get",
+        "webflow_collection_list",
+        "webflow_collection_get",
+        "webflow_collection_items",
+        "webflow_item_get",
+        "webflow_item_prepare",
+        "webflow_item_update",
+        "webflow_item_publish"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "webflow_cms_lifecycle",
+        "webflow_site_admin",
+        "webflow_broad_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts nine exact Webflow site and CMS wrappers and attaches the user's OAuth token without exposing it to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts nine exact Webflow site and CMS wrappers and attaches the user's OAuth token without exposing it to the agent."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's public Webflow App has not been confirmed with the production callback, three stable scopes, marketplace review approval, and production client credentials.",
+    "nextAction": "Create or update Relay Console in Webflow Apps, set the exact production callback and sites:read, cms:read, and cms:write scopes, complete Webflow marketplace review, store the client ID and secret in Railway, then test consent, introspection binding, bounded reads, Safe approval, Dangerous staged updates and publication, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.webflow.com/data/docs/oauth",
+      "checkedAt": "2026-07-16",
+      "supports": "Webflow documents authorization-code OAuth, its authorization and token endpoints, exact callback matching, single-use codes, and the client credentials required for exchange."
+    },
+    {
+      "url": "https://developers.webflow.com/data/reference/token/introspect",
+      "checkedAt": "2026-07-16",
+      "supports": "The token introspection endpoint returns the authorization, granted scopes, application, rate limit, and authorized sites, workspaces, and users used to bind a connection."
+    },
+    {
+      "url": "https://developers.webflow.com/data/reference/token/revoke",
+      "checkedAt": "2026-07-16",
+      "supports": "Webflow documents provider-side authorization revocation using the client ID, client secret, and access token."
+    },
+    {
+      "url": "https://developers.webflow.com/data/reference/sites/list",
+      "checkedAt": "2026-07-16",
+      "supports": "Webflow lists sites authorized by the App grant and exposes bounded site metadata, domains, and localization information."
+    },
+    {
+      "url": "https://developers.webflow.com/data/reference/cms/collection-items/staged-items/list-items",
+      "checkedAt": "2026-07-16",
+      "supports": "Webflow's stable Data API exposes staged collection items with explicit limit, offset, and locale controls."
+    },
+    {
+      "url": "https://developers.webflow.com/data/reference/cms/collection-items/staged-items/update-items",
+      "checkedAt": "2026-07-16",
+      "supports": "The stable staged-items update route accepts explicit item IDs and field data without publishing those changes."
+    },
+    {
+      "url": "https://developers.webflow.com/data/reference/cms/collection-items/live-items/publish-item",
+      "checkedAt": "2026-07-16",
+      "supports": "Webflow publishes explicit staged CMS item IDs separately from staged updates, preserving a review boundary."
+    }
+  ]
+}

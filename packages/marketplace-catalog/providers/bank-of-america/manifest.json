@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "bank-of-america",
+  "name": "Bank of America",
+  "category": "commerce_payments",
+  "description": "Bank of America is a U.S. bank offering checking and savings accounts, credit cards, lending, investing, and digital banking. Personal customers use Online and Mobile Banking to view balances and transactions, manage cards and statements, deposit checks, pay bills, transfer money, and receive account alerts.",
+  "agentUseSummary": "Bank of America is visible as a consumer-API review preview only. Relay will not collect an Online Banking ID, passcode, one-time code, browser session, account number, card detail, CashPro credential, or security answer, and no agent action is callable until Bank of America approves a production consumer account-data contract.",
+  "provider": {
+    "websiteUrl": "https://www.bankofamerica.com/",
+    "docsUrl": "https://developer.bankofamerica.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.bankofamerica.com/online-banking/service-agreement.go",
+    "privacyUrl": "https://www.bankofamerica.com/security-center/privacy-overview/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "consumer_account_data_api_contract_required",
+      "bank_of_america_partner_onboarding_required",
+      "customer_consent_and_read_scope_approval_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "approved_consumer_banking_read",
+      "label": "Read approved consumer banking data",
+      "description": "After Bank of America approves a consumer account-data contract, expose only bounded non-mutating summaries for the connected customer's authorized account types, balances, and recent transaction lifecycle.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "bank_of_america_connect_before_consumer_api_approval",
+        "label": "Connect before consumer API approval",
+        "description": "Bank of America's public CashPro APIs serve corporate treasury clients and authorized providers, not a self-service consumer banking integration. Relay has no approved consumer account-data product, partner contract, consent model, scopes, credentials, sandbox acceptance, or production authorization."
+      },
+      {
+        "id": "bank_of_america_collect_customer_credentials",
+        "label": "Collect customer credentials",
+        "description": "Relay will not ask customers for an Online Banking ID, passcode, one-time code, browser session, bearer token, account or routing number, card detail, PIN, security answer, Social Security number, CashPro credential, identity document, or other banking credential as a substitute for provider-approved consent."
+      },
+      {
+        "id": "bank_of_america_api_actions_before_approval",
+        "label": "Run Bank of America API actions",
+        "description": "No consumer account, balance, transaction, card, statement, check, deposit, alert, payment, transfer, bill-pay, identity, consent, webhook, lending, investing, or other API action can run while consumer API review is pending."
+      },
+      {
+        "id": "bank_of_america_money_movement_blocked",
+        "label": "Money movement unavailable",
+        "description": "Payments, transfers, deposits, bill pay, Zelle, wires, card controls, account maintenance, checks, disputes, lending, investing, and every other financial or account mutation remain outside Relay's planned read-only V1 even after approval."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "bank_of_america_consumer_api_review",
+      "label": "Consumer API review pending",
+      "description": "Agent actions remain unavailable until Bank of America approves Relay's consumer account-data relationship and engineering implements and validates the exact bounded read-only contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "bank_of_america_connect_before_consumer_api_approval",
+        "bank_of_america_collect_customer_credentials",
+        "bank_of_america_api_actions_before_approval",
+        "bank_of_america_money_movement_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No OpenClaw tools are callable until Bank of America approves Relay and Relay implements the contracted read-only Railway broker."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Hermes tools are callable until Bank of America approves Relay and Relay implements the contracted read-only Railway broker."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Bank of America's public developer portal documents CashPro APIs for business treasury clients, including account information, payments, checks, and notifications. Its API access form limits access to CashPro clients and authorized regulated TPPs and requires company, user, environment, source-network, capacity, and regulatory details. Relay has no official distributable consumer-banking account-data API contract, consent flow, scopes, schemas, credentials, sandbox acceptance, privacy allocation, or production authority, and CashPro must not be misrepresented as a personal account connection.",
+    "nextAction": "An authorized Relay business, legal, compliance, privacy, and security owner must obtain written Bank of America approval for a consumer account-data integration distinct from CashPro, or an authorized regulated data-access contract explicitly covering Bank of America personal customers. The owner must document eligible products and jurisdictions, exact read permissions, consent copy and duration, authorization and token contracts, credentials and security controls, sandbox and production onboarding, schemas and rate limits, data minimization and retention, revocation, disconnect, webhooks, audits, incident duties, and production approval. Engineering can then implement a fixed-origin Railway consent broker and the smallest bounded read-only account-type, balance, and recent transaction-lifecycle V1. Money movement and every mutation remain excluded."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.bankofamerica.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Bank of America's public Developer Studio presents CashPro business treasury APIs for account information, payments, checks, notifications, and other corporate services rather than a self-service personal banking account API."
+    },
+    {
+      "url": "https://developer.bankofamerica.com/CPODevPortal/apidocs/cms-api/public/content/hero/APISetupForm.pdf",
+      "checkedAt": "2026-07-18",
+      "supports": "The official API access form states that APIs are available to CashPro clients, requires CashPro company and user identity plus infrastructure details, and separately validates authorized PSD2 TPP status for account-information or payment access."
+    },
+    {
+      "url": "https://www.bankofamerica.com/online-banking/mobile-and-online-banking-features/",
+      "checkedAt": "2026-07-18",
+      "supports": "Bank of America describes consumer Online and Mobile Banking as the personal surface for checking, savings, credit and lending accounts, balances, transactions, statements, alerts, transfers, and bill pay."
+    },
+    {
+      "url": "https://www.bankofamerica.com/online-banking/online-banking-security-guarantee/",
+      "checkedAt": "2026-07-18",
+      "supports": "Bank of America tells customers never to share personal and financial information, including card data, PINs, authorization codes, User ID, and password, so Relay must not substitute customer credentials for an approved integration."
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "okta",
+  "name": "Okta",
+  "category": "developer",
+  "description": "Okta is an identity and access platform for workforce Applications, Groups, policies, authentication, and lifecycle management.",
+  "agentUseSummary": "Authorize Relay's published OIN API Service Integration in one exact Okta Org, store the generated Org-specific client ID and secret, and bind one selected Application. Agents can list bounded Applications, inspect the selected Application, and list assigned Groups with only okta.apps.read. Relay excludes users, members, credentials, settings, writes, administration, SSWS tokens, raw APIs, and pagination.",
+  "provider": {
+    "websiteUrl": "https://www.okta.com/",
+    "docsUrl": "https://developer.okta.com/docs/guides/oin-api-service-overview/",
+    "developerConsoleUrl": "https://oinmanager.okta.com/",
+    "termsUrl": "https://www.okta.com/agreements/",
+    "privacyUrl": "https://www.okta.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["okta.apps.read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://{customerOktaDomain}/oauth2/v1/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "published_oin_api_service_integration",
+      "customer_org_client_credentials",
+      "ephemeral_one_hour_access_token",
+      "exact_org",
+      "exact_selected_application"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "OKTA_ORG_ORIGIN",
+        "label": "Okta Org origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Exact HTTPS Okta Org origin on an allowlisted Okta domain."
+      },
+      {
+        "name": "OKTA_CLIENT_ID",
+        "label": "OIN API service client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Customer-Org-specific client ID generated when the published OIN integration is authorized."
+      },
+      {
+        "name": "OKTA_CLIENT_SECRET",
+        "label": "OIN API service client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Customer-Org-specific secret encrypted by Relay and never exposed to agents."
+      },
+      {
+        "name": "OKTA_APPLICATION_ID",
+        "label": "Selected Application ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind one exact selected Okta Application ID."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "application_read",
+      "label": "Read Applications",
+      "description": "List bounded Applications and inspect one selected Application.",
+      "defaultSelected": true
+    },
+    {
+      "id": "application_group_read",
+      "label": "Read assigned Groups",
+      "description": "List bounded Group assignments without users or members.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "okta_application_list",
+        "label": "List Applications",
+        "description": "List at most twenty-five Applications from the exact Okta Org's first page."
+      },
+      {
+        "id": "okta_application_get",
+        "label": "Read selected Application",
+        "description": "Read one exact selected Okta Application without credentials or settings."
+      },
+      {
+        "id": "okta_application_group_list",
+        "label": "List assigned Groups",
+        "description": "List at most twenty-five Groups assigned to the selected Application without members."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "okta_write",
+        "label": "Change Okta",
+        "description": "Application, assignment, Group, user, policy, factor, session, device, workflow, hook, schema, and lifecycle mutations are outside V1."
+      },
+      {
+        "id": "okta_sensitive_read",
+        "label": "Read sensitive Okta data",
+        "description": "Credentials, keys, settings/profile blobs, certificates, usernames, users, identities, group members, logs, factors, devices, sessions, and policies are outside V1."
+      },
+      {
+        "id": "okta_admin",
+        "label": "Administer Okta",
+        "description": "Admin roles, scope grants, OIN integration configuration, brands, templates, billing, and administration are outside V1."
+      },
+      {
+        "id": "okta_raw_api",
+        "label": "Use raw Okta API",
+        "description": "SSWS tokens, arbitrary paths or queries, raw bodies, pagination cursors, and automatic pagination are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "okta_safe",
+      "label": "Safe",
+      "description": "All three bounded Okta reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "okta_application_list",
+        "okta_application_get",
+        "okta_application_group_list"
+      ],
+      "blockedActions": [
+        "okta_write",
+        "okta_sensitive_read",
+        "okta_admin",
+        "okta_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected reads run without Relay per-action approval while exact Org/Application binding, ephemeral tokens, fixed routes, bounds, redaction, audit, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "okta_application_list",
+        "okta_application_get",
+        "okta_application_group_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "okta_write",
+        "okta_sensitive_read",
+        "okta_admin",
+        "okta_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three fixed Okta Application read wrappers and mints one-hour access tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three fixed Okta Application read wrappers and mints one-hour access tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay's OIN API Service Integration must be built, reviewed, and published with only okta.apps.read before customer Org authorization can generate supported per-Org credentials; staging credentials and acceptance remain external.",
+    "nextAction": "Publish the OIN API Service Integration with only okta.apps.read, authorize it in a staging Okta Org, store the generated Org domain/client ID/secret on Railway, select one Application, then validate one-hour tokens, binding, denial, rate limits, and all three reads."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.okta.com/docs/guides/oin-api-service-overview/",
+      "checkedAt": "2026-07-17",
+      "supports": "Okta documents publishable OIN API service integrations as the supported scoped OAuth path for external services to access customer Org Management APIs."
+    },
+    {
+      "url": "https://developer.okta.com/docs/guides/build-api-integration/",
+      "checkedAt": "2026-07-17",
+      "supports": "Okta documents per-customer Org domain, client ID and client secret generation, Client Credentials, exact registered scopes, one-hour bearer tokens, and server-side credential storage for OIN API service integrations."
+    },
+    {
+      "url": "https://developer.okta.com/docs/api/openapi/okta-management/management/tags/application/",
+      "checkedAt": "2026-07-17",
+      "supports": "Okta documents Application list/get with okta.apps.read, bounded limits, Link cursor pagination, and Application metadata."
+    },
+    {
+      "url": "https://developer.okta.com/docs/api/openapi/okta-management/management/tags/applicationgroups",
+      "checkedAt": "2026-07-17",
+      "supports": "Okta documents assigned-Group listing for one Application with okta.apps.read and provider page sizes beginning at twenty."
+    }
+  ]
+}

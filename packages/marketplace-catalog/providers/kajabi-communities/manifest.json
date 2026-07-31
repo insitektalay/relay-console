@@ -1,0 +1,262 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "kajabi-communities",
+  "name": "Kajabi Communities",
+  "category": "communication_collaboration",
+  "description": "Kajabi Communities is Kajabi's hosted community product for access groups, channels, discussions, events, challenges, live rooms, and member engagement.",
+  "agentUseSummary": "Connect a dedicated customer-owned Kajabi Public API User Key. Agents can identify Community products from documented product types, map Offers to products, find bounded Contacts in an exact Site, inspect Offer grants, and grant or revoke one exact Offer. Kajabi's documented public API does not expose Community Access Groups, channels, posts, chats, events, challenges, announcements, DMs, live rooms, or other Community content, so Relay blocks those operations.",
+  "provider": {
+    "websiteUrl": "https://kajabi.com/features/communities",
+    "docsUrl": "https://help.kajabi.com/api-reference/introduction",
+    "developerConsoleUrl": "https://app.kajabi.com/admin/settings/api_keys",
+    "termsUrl": "https://kajabi.com/policies/terms",
+    "privacyUrl": "https://kajabi.com/policies/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.kajabi.com/v1/oauth/token",
+    "revocationUrl": "https://api.kajabi.com/v1/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_credentials",
+      "short_lived_access_token",
+      "paid_provider_add_on"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "KAJABI_COMMUNITIES_CLIENT_ID",
+        "label": "Kajabi Public API client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Create a dedicated User API Key as a Kajabi Owner or Subowner with only the permissions this connection needs."
+      },
+      {
+        "name": "KAJABI_COMMUNITIES_CLIENT_SECRET",
+        "label": "Kajabi Public API client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the matching secret. Relay encrypts it and never exposes it to agents or clients after saving."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "catalog_read",
+      "label": "Read Community access catalog",
+      "description": "Inspect Sites, Products and documented product types, Offers, and Offer-product relationships.",
+      "defaultSelected": true
+    },
+    {
+      "id": "member_access_read",
+      "label": "Read member access",
+      "description": "Find bounded Contact identity within one exact Site and inspect Offer grants.",
+      "defaultSelected": true
+    },
+    {
+      "id": "member_access_write",
+      "label": "Change member access",
+      "description": "Grant or revoke one exact Offer for one exact Contact.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "kajabi_communities_site_list",
+        "label": "List sites",
+        "description": "List up to twenty-five Kajabi Sites."
+      },
+      {
+        "id": "kajabi_communities_product_list",
+        "label": "List products",
+        "description": "List bounded Product summaries so Community products can be identified by documented product type."
+      },
+      {
+        "id": "kajabi_communities_product_get",
+        "label": "Read product",
+        "description": "Read one exact Product including documented product type and aggregate member count."
+      },
+      {
+        "id": "kajabi_communities_offer_list",
+        "label": "List offers",
+        "description": "List bounded Offer summaries used to grant Product access."
+      },
+      {
+        "id": "kajabi_communities_offer_products_list",
+        "label": "List offer products",
+        "description": "List Products attached to one exact Offer."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "kajabi_communities_contact_list",
+        "label": "Find contacts",
+        "description": "Find up to twenty-five Contacts in one Site using only name, email, timestamps, and optional Offer membership."
+      },
+      {
+        "id": "kajabi_communities_contact_offers_list",
+        "label": "List contact offers",
+        "description": "List Offers granted to one exact Contact."
+      },
+      {
+        "id": "kajabi_communities_offer_grant",
+        "label": "Grant offer access",
+        "description": "Grant one exact Offer to one exact Contact without sending a welcome email."
+      },
+      {
+        "id": "kajabi_communities_offer_revoke",
+        "label": "Revoke offer access",
+        "description": "Revoke one exact Offer from one exact Contact."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "kajabi_communities_content",
+        "label": "Operate Community content",
+        "description": "Community Access Groups, channels, posts, chats, DMs, events, live rooms, recordings, challenges, announcements, and resources are not exposed by Kajabi's documented public API."
+      },
+      {
+        "id": "kajabi_communities_bulk_access",
+        "label": "Bulk or replace access",
+        "description": "Bulk grants, bulk revocations, and replace-all Offer operations are outside V1 because they can silently alter unrelated access."
+      },
+      {
+        "id": "kajabi_communities_broader_kajabi",
+        "label": "Administer broader Kajabi",
+        "description": "Courses, marketing, forms, payments, payouts, orders, purchases, subscriptions, webhooks, tags, notes, and account administration are outside this Communities-focused V1."
+      },
+      {
+        "id": "kajabi_communities_private_data",
+        "label": "Read broader contact data",
+        "description": "Phone numbers, addresses, business numbers, custom fields, tags, notes, and raw Contact records are outside V1."
+      },
+      {
+        "id": "kajabi_communities_raw_api",
+        "label": "Use arbitrary Kajabi APIs",
+        "description": "Arbitrary paths, origins, headers, fields, automatic pagination, and raw API responses are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "kajabi_communities_safe",
+      "label": "Safe",
+      "description": "Catalog reads run directly; Contact identity, access inspection, grants, and revocations require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "kajabi_communities_site_list",
+        "kajabi_communities_product_list",
+        "kajabi_communities_product_get",
+        "kajabi_communities_offer_list",
+        "kajabi_communities_offer_products_list"
+      ],
+      "approvalRequiredActions": [
+        "kajabi_communities_contact_list",
+        "kajabi_communities_contact_offers_list",
+        "kajabi_communities_offer_grant",
+        "kajabi_communities_offer_revoke"
+      ],
+      "blockedActions": [
+        "kajabi_communities_content",
+        "kajabi_communities_bulk_access",
+        "kajabi_communities_broader_kajabi",
+        "kajabi_communities_private_data",
+        "kajabi_communities_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All selected bounded Kajabi Communities V1 tools run without Relay per-action approval; credential encryption, fixed origin, audits, provider permissions, and system blocks still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "kajabi_communities_site_list",
+        "kajabi_communities_product_list",
+        "kajabi_communities_product_get",
+        "kajabi_communities_offer_list",
+        "kajabi_communities_offer_products_list",
+        "kajabi_communities_contact_list",
+        "kajabi_communities_contact_offers_list",
+        "kajabi_communities_offer_grant",
+        "kajabi_communities_offer_revoke"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "kajabi_communities_content",
+        "kajabi_communities_bulk_access",
+        "kajabi_communities_broader_kajabi",
+        "kajabi_communities_private_data",
+        "kajabi_communities_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts nine exact bounded Kajabi wrappers and derives short-lived access tokens from encrypted customer-owned User API Key credentials server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts nine exact bounded Kajabi wrappers and derives short-lived access tokens from encrypted customer-owned User API Key credentials server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No eligible Kajabi account, dedicated User API Key, or representative Community Product and Offer data was available for staging acceptance.",
+    "nextAction": "A Kajabi Owner or Subowner on a plan with Public API access creates a dedicated least-privilege User API Key, enters its client ID and secret, and verifies token exchange, exact account binding, Product type discovery, Offer-product mapping, Contact sparse-field redaction, Safe approval binding, Dangerous execution, one exact grant and revoke, credential rotation, disconnect, and post-disconnect denial in staging."
+  },
+  "evidence": [
+    {
+      "url": "https://help.kajabi.com/articles/api-integrations/public-api/using-kajabis-public-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Kajabi's Public API is included with the current Pro plan or available as a paid add-on, and Owners or Subowners create User API Keys with selected permissions."
+    },
+    {
+      "url": "https://help.kajabi.com/api-reference/authentication/get-access-token",
+      "checkedAt": "2026-07-18",
+      "supports": "Kajabi documents client_credentials exchange at the fixed api.kajabi.com token endpoint and bearer-token use for API calls."
+    },
+    {
+      "url": "https://help.kajabi.com/api-reference/products/product-details",
+      "checkedAt": "2026-07-18",
+      "supports": "Product details expose product_type_name, product_type_id, publish state, aggregate member count, and Site relationship, allowing documented identification of Community Products."
+    },
+    {
+      "url": "https://help.kajabi.com/api-reference/offers/list-offers-products",
+      "checkedAt": "2026-07-18",
+      "supports": "Kajabi documents reading the Products attached to one Offer."
+    },
+    {
+      "url": "https://help.kajabi.com/api-reference/contacts/list-contacts",
+      "checkedAt": "2026-07-18",
+      "supports": "Contact listing supports exact Site, search, Offer, pagination, and sparse-field filters; Relay fixes sparse fields to bounded identity only."
+    },
+    {
+      "url": "https://help.kajabi.com/api-reference/contacts/grant-offer-to-contact",
+      "checkedAt": "2026-07-18",
+      "supports": "Kajabi documents granting exact Offer identifiers to a Contact and permits suppressing the welcome email."
+    },
+    {
+      "url": "https://help.kajabi.com/articles/products/community/community-access-groups",
+      "checkedAt": "2026-07-18",
+      "supports": "Kajabi Community Access Groups are connected to Offers, and granting an Offer controls access to the associated Access Group."
+    },
+    {
+      "url": "https://help.kajabi.com/api-reference/introduction",
+      "checkedAt": "2026-07-18",
+      "supports": "The current public API reference enumerates Products, Offers, Contacts, Sites, and other Kajabi resources but no Community Access Group, channel, post, chat, event, challenge, announcement, or direct-message endpoints."
+    }
+  ]
+}

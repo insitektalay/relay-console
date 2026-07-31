@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "crunchbase",
+  "name": "Crunchbase",
+  "category": "commerce_payments",
+  "description": "Crunchbase is a private-market intelligence platform for company, funding, investor, people, acquisition, growth, and predictive business data.",
+  "agentUseSummary": "Crunchbase offers a read-only REST API using a customer API key, but the available endpoints, fields, predictions, internal-tool use, customer-facing use, and data rights depend on a separately purchased package and license. Crunchbase must approve Relay's agent-processing, model-disclosure, storage, attribution, output, and redistribution contract before any bounded tools can be published.",
+  "provider": {
+    "websiteUrl": "https://www.crunchbase.com/",
+    "docsUrl": "https://data.crunchbase.com/docs/using-the-api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://about.crunchbase.com/terms-of-service/",
+    "privacyUrl": "https://about.crunchbase.com/terms-of-service/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_crunchbase_api_key",
+      "crunchbase_api_package_and_data_license_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crunchbase_organization_read",
+      "label": "Read licensed organizations",
+      "description": "After Crunchbase approval, retrieve a small allowlisted organization profile by validated UUID or permalink using only fields licensed to the connected customer.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crunchbase_organization_search",
+      "label": "Search licensed organizations",
+      "description": "After Crunchbase approval, run one bounded organization search using only approved predicates, result counts, fields, and package entitlements.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "crunchbase_connect_before_license_approval",
+        "label": "Connect before license approval",
+        "description": "No Crunchbase connection or API call may run until Crunchbase confirms the customer's package and expressly permits Relay's hosted agent-processing, model, storage, output, attribution, and user contract."
+      },
+      {
+        "id": "crunchbase_platform_credentials_and_scraping",
+        "label": "Block platform credentials and scraping",
+        "description": "Crunchbase usernames, passwords, SSO sessions, MFA codes, cookies, browser or mobile automation, scraping, copied keys, reverse-engineered endpoints, and ordinary platform subscriptions are unavailable as API substitutes."
+      },
+      {
+        "id": "crunchbase_person_contact_and_prediction_data",
+        "label": "Block sensitive and unlicensed data",
+        "description": "People, contacts, emails, phones, personal profiles, predictions, proprietary insights, partner data, and any field outside the approved customer package are unavailable."
+      },
+      {
+        "id": "crunchbase_bulk_ai_redistribution_and_raw_access",
+        "label": "Block bulk, AI training, redistribution, and raw access",
+        "description": "Bulk export, full-collection traversal, pagination, caching, persistence, model training, derived substitutes, resale, sublicensing, public display, external sharing, arbitrary predicates, fields, endpoints, retries, raw REST, browser, CLI, or unrestricted API access are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "crunchbase_provider_review",
+      "label": "Crunchbase API review pending",
+      "description": "All actions remain unavailable until Crunchbase approves the API package and Relay's agent-processing, model-disclosure, storage, output, attribution, privacy, and redistribution boundaries.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "crunchbase_connect_before_license_approval",
+        "crunchbase_platform_credentials_and_scraping",
+        "crunchbase_person_contact_and_prediction_data",
+        "crunchbase_bulk_ai_redistribution_and_raw_access"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A bounded API-key wrapper can be mounted after Crunchbase license approval; no OpenClaw tools are callable while package and data rights are pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A bounded API-key wrapper can be mounted after Crunchbase license approval; no Hermes tools are callable while package and data rights are pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Crunchbase documents X-cb-user-key authentication and read-only organization lookup and search endpoints, but full API access requires an Enterprise or Applications license and returned fields depend on the purchased API package. Crunchbase's public terms make API export and inclusion in another product subject to the applicable program terms, prohibit content from training models, restrict redistribution, and require privacy-law compliance for personal information. Relay has no reviewed customer Order, approved agent or external-model processing terms, authorized test API key, package entitlement, field list, output rights, retention terms, or provider-mark approval.",
+    "nextAction": "Crunchbase must approve Relay's use case and the customer must purchase an API package whose Order defines endpoints, fields, people/contact exclusions, predictions, hosted agent and external-model processing, internal versus customer-facing users, attribution, output, retention, deletion, caching, derived data, redistribution, rate, audit, key issuance, rotation, revocation, staging, and production rights. After receiving the approved contract and test key, implement only one identifier-bound organization lookup and one bounded allowlisted organization search and verify response reduction, entitlements, attribution, limits, disconnect, rotation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://data.crunchbase.com/docs/using-the-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Crunchbase documents a read-only HTTPS REST API, customer API keys supplied as user_key or X-cb-user-key, package-dependent API access, a 200-calls-per-minute limit, internal-use guidance, attribution requirements, and restrictions on providing data to third parties."
+    },
+    {
+      "url": "https://data.crunchbase.com/reference/getorganization",
+      "checkedAt": "2026-07-18",
+      "supports": "Crunchbase documents exact organization lookup by UUID or permalink, selected field and card identifiers, X-cb-user-key authentication, and optional response fields."
+    },
+    {
+      "url": "https://data.crunchbase.com/reference/searchorganizations",
+      "checkedAt": "2026-07-18",
+      "supports": "Crunchbase documents organization search as a POST endpoint with required field and query arrays, package-selected results, bounded limits, and keyset pagination."
+    },
+    {
+      "url": "https://support.crunchbase.com/hc/en-us/articles/32319290128019-Crunchbase-API-FAQ",
+      "checkedAt": "2026-07-18",
+      "supports": "Crunchbase states that API access and returned data depend on the purchased Fundamentals, Insights, or Predictions package and directs prospects to Customer Success or sales."
+    },
+    {
+      "url": "https://about.crunchbase.com/products/crunchbase-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Crunchbase markets separately priced API and data licensing for internal tools, automation, products, financials, firmographics, and prediction packages."
+    },
+    {
+      "url": "https://about.crunchbase.com/terms-of-service/",
+      "checkedAt": "2026-07-18",
+      "supports": "Crunchbase's terms require separate program terms for API export or inclusion in products, prohibit content from training models, restrict redistribution and exploitation, and require privacy-law compliance for personal information."
+    },
+    {
+      "url": "https://about.crunchbase.com/terms-of-service/privacy-policy/",
+      "checkedAt": "2026-07-18",
+      "supports": "Crunchbase publishes its current privacy policy covering personal data collected and processed through its services."
+    }
+  ]
+}

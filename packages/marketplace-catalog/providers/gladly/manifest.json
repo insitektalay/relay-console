@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "gladly",
+  "name": "Gladly",
+  "category": "crm_support",
+  "description": "Gladly is a customer-service platform for people-centered support, conversations, messaging, voice, routing, scheduling, automation, knowledge, and service operations.",
+  "agentUseSummary": "Enter one Gladly organization, dedicated API-user email, and customer-owned API token, then let selected agents use content-free business-hours operations or approved documented REST API v1 requests under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.gladly.com/",
+    "docsUrl": "https://developer.gladly.com/rest/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.gladly.com/terms-of-use/",
+    "privacyUrl": "https://www.gladly.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "GLADLY_ORGANIZATION",
+        "label": "Gladly organization",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the organization name before .gladly.com; custom hosts and sandbox origins are not accepted."
+      },
+      {
+        "name": "GLADLY_AGENT_EMAIL",
+        "label": "Gladly API-user agent email",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the email address of a dedicated Gladly agent with the API User permission."
+      },
+      {
+        "name": "GLADLY_API_TOKEN",
+        "label": "Gladly API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a token for the dedicated API user. Gladly shows a new token only once."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "business_hours_metadata_read",
+      "label": "Read business-hours operations",
+      "description": "List and inspect bounded schedule configuration metadata without names, schedule blocks, exceptions, agents, customers, conversations, messages, contacts, or raw records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Gladly REST API v1",
+      "description": "Use documented tenant-bound REST API v1 paths and methods allowed by the connected API user's permissions.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "gladly_business_hours_list",
+        "label": "List business-hours metadata",
+        "description": "List a bounded set of content-free Gladly business-hours configuration summaries."
+      },
+      {
+        "id": "gladly_business_hours_get",
+        "label": "Read business-hours metadata",
+        "description": "Read one exact Gladly business-hours configuration through Relay's content-free projection."
+      },
+      {
+        "id": "gladly_full_api",
+        "label": "Use Gladly REST API v1",
+        "description": "Use a documented Gladly REST API v1 operation authorized by the API user; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "gladly_safe",
+      "label": "Safe",
+      "description": "Content-free schedule reads and every broader REST API operation require approval; tenant/version binding, Basic-auth secret isolation, API-user permissions, bounds, and limits remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "gladly_business_hours_list",
+        "gladly_business_hours_get",
+        "gladly_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected API-user-authorized operations run without Relay per-action approval; tenant/version binding, Basic-auth secret isolation, bounds, audits, and Gladly limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "gladly_business_hours_list",
+        "gladly_business_hours_get",
+        "gladly_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted API-user email and token only to the tenant-bound Gladly REST API v1 origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted API-user email and token only to the tenant-bound Gladly REST API v1 origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer Gladly organization plus a dedicated agent email and API token with API User permission are required for live acceptance.",
+    "nextAction": "Grant API User permission to a dedicated agent, create its one-time-view token, enter the organization/email/token in Relay, and verify bounded reads, Safe approval, Dangerous broader operations, rate limits, token rotation, permission removal, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.gladly.com/rest/",
+      "checkedAt": "2026-07-18",
+      "supports": "Gladly's official REST reference defines tenant-specific HTTPS origins, token-based Basic authentication using agent email plus API token, API User permissions, REST API v1 paths, business-hours list/single endpoints, response models, versioning, and rate limits."
+    }
+  ]
+}

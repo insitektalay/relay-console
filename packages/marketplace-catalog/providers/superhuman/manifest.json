@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "superhuman",
+  "name": "Superhuman Mail",
+  "category": "communication",
+  "description": "Superhuman Mail is an AI email and calendar client for Gmail and Microsoft 365 with Split Inboxes, threads, drafts, scheduling, personalization, and a hosted remote MCP server.",
+  "agentUseSummary": "Superhuman Mail cannot currently be connected through Relay because its official integration is a broad provider-hosted remote MCP server requiring a new OAuth discovery, dynamic-client-registration, PKCE, token, account-binding, and tool-schema foundation. Its advertised OAuth scopes are identity/refresh scopes rather than granular Mail authority, while the MCP can read sensitive email/calendar data and perform immediate mutations.",
+  "provider": {
+    "websiteUrl": "https://superhuman.com/",
+    "docsUrl": "https://help.superhuman.com/hc/en-us/articles/46005696690317-Superhuman-Mail-MCP-Server",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://superhuman.com/terms",
+    "privacyUrl": "https://superhuman.com/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "provider_hosted_remote_mcp",
+      "oauth_discovery_and_dynamic_registration",
+      "identity_scopes_are_not_mail_action_scopes",
+      "provider_read_only_mode_not_machine_contract",
+      "business_plan_and_admin_enablement_may_apply"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "superhuman_remote_mcp",
+        "label": "Connect the hosted MCP server",
+        "description": "Relay has not approved or implemented the generic remote-MCP OAuth discovery, DCR, S256 PKCE, callback, refresh, issuer/account binding, and schema-pinning foundation this provider requires."
+      },
+      {
+        "id": "superhuman_identity_scope_relabel",
+        "label": "Relabel identity scopes as Mail scopes",
+        "description": "Discovered openid/profile/email/offline_access scopes establish identity and refresh behavior but do not define granular read, draft, send, delete, calendar, or personalization authority."
+      },
+      {
+        "id": "superhuman_raw_mcp",
+        "label": "Expose raw MCP tools",
+        "description": "Dynamic tool discovery, arbitrary MCP calls, silent schema additions, broad semantic search, and unpinned raw tool output are not permitted."
+      },
+      {
+        "id": "superhuman_data_and_mutations",
+        "label": "Access Superhuman Mail data",
+        "description": "Accounts, Split Inboxes, labels, email/calendar search, messages, threads, attachments, read receipts, drafts, sends, events, availability, trash, unsubscribe, thread state, personalization, and every read or write remain unavailable."
+      },
+      {
+        "id": "superhuman_foreign_product_alias",
+        "label": "Alias another mail product",
+        "description": "Gmail, Outlook, and Superhuman Docs/Coda are separate provider products and cannot substitute for Superhuman Mail's native semantics."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "superhuman_unavailable",
+      "label": "Unavailable",
+      "description": "No agent action can be enabled until Relay approves the remote-MCP trust model and pins a narrow Superhuman-native wrapper contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "superhuman_remote_mcp",
+        "superhuman_identity_scope_relabel",
+        "superhuman_raw_mcp",
+        "superhuman_data_and_mutations",
+        "superhuman_foreign_product_alias"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "The hosted Superhuman MCP server is not mounted through Relay's unapproved remote-MCP foundation."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "The hosted Superhuman MCP server is not mounted through Relay's unapproved remote-MCP foundation."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Superhuman provides a real hosted MCP server with broad mail/calendar read-write tools, but Relay has no approved generic remote-MCP OAuth/DCR/schema-pinning product and the advertised identity scopes do not constrain Mail authority.",
+    "nextAction": "Do not show Connect or mount the raw server. Reconsider after explicit architecture/security approval of remote MCP, proof of persistent provider read-only enforcement, pinned reviewed tool schemas, issuer/account binding, refresh/disconnect handling, and external-AI data governance."
+  },
+  "evidence": [
+    {
+      "url": "https://help.superhuman.com/hc/en-us/articles/46005696690317-Superhuman-Mail-MCP-Server",
+      "checkedAt": "2026-07-17",
+      "supports": "Superhuman documents a hosted Streamable HTTP MCP server with browser authorization for arbitrary MCP clients, Business-plan requirements, and possible Enterprise admin enablement."
+    },
+    {
+      "url": "https://mcp.mail.superhuman.com/.well-known/oauth-protected-resource/mcp",
+      "checkedAt": "2026-07-17",
+      "supports": "The hosted MCP resource advertises a separate Superhuman authorization server through standards discovery."
+    },
+    {
+      "url": "https://mcp.auth.mail.superhuman.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-17",
+      "supports": "The authorization server advertises authorization-code, refresh, device, dynamic-registration, S256 PKCE, and identity/offline scopes rather than granular Mail action scopes."
+    },
+    {
+      "url": "https://help.superhuman.com/hc/en-us/articles/46005696690317-Superhuman-Mail-MCP-Server",
+      "checkedAt": "2026-07-17",
+      "supports": "The MCP tool surface includes sensitive reads and immediate draft/send, calendar, trash, unsubscribe, account, personalization, and thread-state mutations, with no MCP-specific audit marker."
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "factset-workstation",
+  "name": "FactSet Workstation",
+  "category": "commerce_payments",
+  "description": "FactSet Workstation is an institutional financial-data and analytics platform for market and company research, portfolio analysis, risk, performance, trading workflows, reports, news, estimates, and connected investment content.",
+  "agentUseSummary": "FactSet supports APIs and a third-party OAuth 2.0 machine-authorization flow, but Relay cannot offer Connect from an ordinary Workstation subscription. FactSet must license the intended APIs and content, create and entitle a customer machine account, and approve the customer-admin authorization, scopes, signing key, and Railway network origin before any bounded Relay tools can be mounted.",
+  "provider": {
+    "websiteUrl": "https://www.factset.com/",
+    "docsUrl": "https://developer.factset.com/",
+    "developerConsoleUrl": "https://developer.factset.com/",
+    "termsUrl": "https://www.factset.com/legal",
+    "privacyUrl": "https://www.factset.com/legal"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://auth.factset.com/as/token.oauth2",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_authorized_oauth_machine_account",
+      "provider_api_and_content_license_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/factset-workstation/callback",
+    "webhookRequirements": [
+      "FactSet and the customer must authorize Relay's Railway egress range for the machine account and confidential OAuth application."
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "factset_formula_read",
+      "label": "Read licensed FactSet data",
+      "description": "After FactSet approval, run small allowlisted Formula API time-series and cross-sectional reads against only the connected machine account's licensed datasets and identifiers.",
+      "defaultSelected": true
+    },
+    {
+      "id": "factset_entitlement_health",
+      "label": "Verify API entitlements",
+      "description": "After FactSet approval, verify the exact machine-account identity, Formula API availability, scopes, content entitlements, and usage limits without returning provider content.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "factset_connect_before_approval",
+        "label": "Connect before FactSet approval",
+        "description": "No FactSet connection or API call may run until the customer has a licensed machine account and authorizes Relay's confidential OAuth application, public signing key, scopes, and Railway origin."
+      },
+      {
+        "id": "factset_workstation_and_api_key_credentials",
+        "label": "Block Workstation and API-key credentials",
+        "description": "Workstation usernames, passwords, serials, API keys, copied OAuth configuration files or private keys, sessions, cookies, and individual-account credentials are unavailable as generic connection shortcuts."
+      },
+      {
+        "id": "factset_unlicensed_content_and_redistribution",
+        "label": "Block unlicensed content and redistribution",
+        "description": "Unentitled datasets, exchange data, broker research, news, estimates, indices, third-party content, downloads, caching, persistence, redistribution, client display, derived substitutes, and external sharing are unavailable unless every applicable license expressly permits them."
+      },
+      {
+        "id": "factset_trading_mutations_and_raw_access",
+        "label": "Block trading, mutations, and raw access",
+        "description": "Orders, routing, portfolio or database writes, file operations, uploads, deletes, administrative changes, batch jobs, arbitrary formulas or universes, broad screening, raw GraphQL, raw REST, SDK, MCP, CLI, browser automation, and unrestricted API catalog access are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "factset_provider_review",
+      "label": "FactSet setup pending",
+      "description": "All actions remain unavailable until FactSet and the customer approve the API product, content license, machine account, confidential OAuth application, scopes, key, network origin, and permitted output contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "factset_connect_before_approval",
+        "factset_workstation_and_api_key_credentials",
+        "factset_unlicensed_content_and_redistribution",
+        "factset_trading_mutations_and_raw_access"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A bounded Formula API wrapper can be mounted after FactSet and customer approval; no OpenClaw tools are callable while licensing and machine authorization are pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A bounded Formula API wrapper can be mounted after FactSet and customer approval; no Hermes tools are callable while licensing and machine authorization are pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "FactSet's third-party machine-to-machine flow requires a FactSet employee to create and entitle a customer machine account, a customer Developer Portal administrator to create a confidential machine-authorization application using the third party's public signing key, and authorization of scopes and network origins. API products, datasets, usage limits, AI/agent processing, display, storage, and redistribution rights are contract-specific. Relay has no customer authorization, FactSet machine account, approved key, Railway IP allowlist, scope grant, executed API/content license, or test entitlement for this provider.",
+    "nextAction": "A customer sponsor must ask its FactSet account team to license Formula API access and the intended content for Relay, create a least-privilege machine account, confirm agent/AI and output rights, and authorize a Relay confidential machine application with exact scopes, Relay's public signing key, and Railway staging/production egress ranges. After written approval, implement and test only small allowlisted Formula API health, time-series, and cross-sectional reads, then verify entitlements, attribution, bounds, rate and unique-security limits, redaction, disconnect, key rotation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.factset.com/learn/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "FactSet documents OAuth 2.0 and API-key authentication for its APIs and recommends OAuth 2.0."
+    },
+    {
+      "url": "https://developer.factset.com/learn/authentication-oauth2",
+      "checkedAt": "2026-07-18",
+      "supports": "FactSet documents a third-party client-credentials flow in which FactSet creates and entitles a customer machine account and the customer administrator authorizes the client's public signing key, scopes, and access."
+    },
+    {
+      "url": "https://developer.factset.com/learn/authentication-api-key",
+      "checkedAt": "2026-07-18",
+      "supports": "FactSet documents username-serial plus API-key Basic authentication, machine or individual account selection, IP allowlisting, key deletion, and an instruction not to share API keys or passwords."
+    },
+    {
+      "url": "https://developer.factset.com/learn/workstation-users-formula-api",
+      "checkedAt": "2026-07-18",
+      "supports": "FactSet documents that appropriately entitled Workstation users can use Formula API outside the Workstation after creating API authentication credentials."
+    },
+    {
+      "url": "https://developer.factset.com/api-catalog/formula-api",
+      "checkedAt": "2026-07-18",
+      "supports": "FactSet documents Formula API time-series and cross-sectional endpoints, contract-based usage limits, unique-security accounting, API-specific entitlements, 30-second synchronous timeouts, and optional batch subscriptions."
+    },
+    {
+      "url": "https://www.factset.com/ai-solutions",
+      "checkedAt": "2026-07-18",
+      "supports": "FactSet advertises APIs and MCP for licensed AI applications while stating that human, agent, machine, third-party, content, and IP entitlements are enforced across channels."
+    },
+    {
+      "url": "https://www.factset.com/third-party-terms",
+      "checkedAt": "2026-07-18",
+      "supports": "FactSet publishes dataset-specific third-party terms imposing internal-use, attribution, caching, storage, derived-data, external-distribution, and redistribution restrictions that vary by content provider."
+    },
+    {
+      "url": "https://www.factset.com/legal",
+      "checkedAt": "2026-07-18",
+      "supports": "FactSet publishes current legal and privacy notices applicable to its sites, products, clients, suppliers, and personal-data processing."
+    }
+  ]
+}

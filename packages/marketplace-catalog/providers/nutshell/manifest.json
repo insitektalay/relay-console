@@ -1,0 +1,195 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "nutshell",
+  "name": "Nutshell",
+  "category": "crm_support",
+  "description": "Nutshell is a sales and marketing customer relationship management platform with contact and company records, leads and pipelines, activities, email and calendar sync, automation, reporting, forms, messaging, proposals, and team collaboration. Sales teams use it to organize relationships, move opportunities through customizable processes, and coordinate follow-up from one system.",
+  "agentUseSummary": "Connect one customer-owned Nutshell user email and dedicated API key, then let agents use two approval-gated bounded reads for required-text or exact Lead summaries. Relay pins app.nutshell.com, uses only fixed REST GET paths, requires non-empty search text, fixes searches to page zero and twenty-five results, and excludes contacts, companies, owners, communications, descriptions, notes, custom fields, products, files, activities, relationships, writes, arbitrary APIs, pagination, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.nutshell.com/",
+    "docsUrl": "https://developers.nutshell.com/docs/api-authentication",
+    "developerConsoleUrl": "https://app.nutshell.com/",
+    "termsUrl": "https://www.nutshell.com/eula",
+    "privacyUrl": "https://www.nutshell.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "http_basic_authentication",
+      "exact_user_email_binding",
+      "api_key_permission_type_inheritance",
+      "authorizing_user_permission_inheritance"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "NUTSHELL_EMAIL",
+        "label": "Nutshell user email",
+        "secret": false,
+        "required": true,
+        "helpText": "Use the email address for a dedicated least-privilege Nutshell user. Relay validates and stores the binding encrypted."
+      },
+      {
+        "key": "NUTSHELL_API_KEY",
+        "label": "Nutshell API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated key under Settings > Connections > API keys. Relay stores it encrypted and never returns it to agents."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "lead_read",
+      "label": "Read leads",
+      "description": "Search with required text or inspect one exact Lead summary without people, companies, owners, communications, descriptions, notes, custom fields, products, files, activities, or relationships.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "nutshell_lead_search",
+        "label": "Search leads",
+        "description": "Search required text and return at most twenty-five bounded Lead summaries from fixed page zero."
+      },
+      {
+        "id": "nutshell_lead_get",
+        "label": "Read lead",
+        "description": "Read one exact bounded Lead summary by canonical API ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "nutshell_record_mutation",
+        "label": "Change Nutshell data",
+        "description": "Creating, updating, assigning, relating, tagging, closing, bulk-changing, or deleting Nutshell records is outside V1."
+      },
+      {
+        "id": "nutshell_private_crm",
+        "label": "Read private CRM data",
+        "description": "Contacts, companies, owners, watchers, emails, phone numbers, addresses, descriptions, notes, custom fields, products, competitors, files, activities, communications, and relationships are outside V1."
+      },
+      {
+        "id": "nutshell_broader_product",
+        "label": "Access broader Nutshell data",
+        "description": "Accounts, contacts, users, teams, territories, milestones, outcomes, sources, channels, reports, audiences, email sequences, marketing, forms, administration, SQL access, and webhooks are outside V1."
+      },
+      {
+        "id": "nutshell_raw_api",
+        "label": "Call arbitrary Nutshell APIs",
+        "description": "Arbitrary paths, methods, filters, sorts, pages, limits, payloads, REST, GraphQL, JSON-RPC, MCP, or SQL access are outside V1."
+      },
+      {
+        "id": "nutshell_bulk_export",
+        "label": "Export Nutshell data",
+        "description": "Empty-query enumeration, automatic pagination, crawling, synchronization, batch APIs, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "nutshell_safe",
+      "label": "Safe",
+      "description": "Both bounded private Lead reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["nutshell_lead_search", "nutshell_lead_get"],
+      "blockedActions": [
+        "nutshell_record_mutation",
+        "nutshell_private_crm",
+        "nutshell_broader_product",
+        "nutshell_raw_api",
+        "nutshell_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both selected read-only tools run without Relay per-action approval while exact user and resource binding, fixed origin and paths, provider permissions, limits, audits, redaction, and API-key isolation remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["nutshell_lead_search", "nutshell_lead_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "nutshell_record_mutation",
+        "nutshell_private_crm",
+        "nutshell_broader_product",
+        "nutshell_raw_api",
+        "nutshell_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded approval-gated Nutshell Lead reads and attaches the encrypted user credentials only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded approval-gated Nutshell Lead reads and attaches the encrypted user credentials only on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Nutshell account, dedicated least-privilege user email, or API key is available in this workspace.",
+    "nextAction": "In the provider-console task, a Nutshell administrator provisions a dedicated least-privilege user and API key, records the exact email, stores both through Relay, then validates user binding, bounded Lead search and exact reads, approval enforcement, permission denial, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.nutshell.com/docs/api-authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "The official authentication guide requires HTTPS under app.nutshell.com and HTTP Basic authentication using a Nutshell user's email as the username and an account-created API key as the password."
+    },
+    {
+      "url": "https://support.nutshell.com/en/articles/8429060-api-keys-create-api-keys-for-3rd-party-apps",
+      "checkedAt": "2026-07-18",
+      "supports": "The official help center documents administrator-created API keys under Settings > Connections, warns that keys provide access to CRM data, and identifies provider-defined permission types; live provisioning remains in the provider-console task."
+    },
+    {
+      "url": "https://developers.nutshell.com/reference/132e65861bebcb3781c3d37e66aff309",
+      "checkedAt": "2026-07-18",
+      "supports": "The official REST reference documents GET https://app.nutshell.com/rest/leads with full-text q search plus zero-indexed page and page-limit parameters; Relay requires q, fixes page to zero, and caps the limit at 25."
+    },
+    {
+      "url": "https://developers.nutshell.com/docs/quickstart",
+      "checkedAt": "2026-07-18",
+      "supports": "The official quickstart identifies accounts, contacts, and leads as the three core entities, documents exact entity GET paths and extensive mutation surfaces, and shows related Links data that Relay excludes from V1 results."
+    },
+    {
+      "url": "https://developers.nutshell.com/docs/api-ids",
+      "checkedAt": "2026-07-18",
+      "supports": "The official ID guide recommends canonical API IDs such as 7-contacts and distinguishes a lead's API ID from its human-facing lead number; Relay exact reads require the canonical n-leads form."
+    },
+    {
+      "url": "https://www.nutshell.com/features",
+      "checkedAt": "2026-07-18",
+      "supports": "The official product page describes CRM, sales and marketing automation, pipelines, reporting, email, forms, scheduling, proposals, contact management, team collaboration, messaging, and other broader surfaces excluded from Relay V1."
+    },
+    {
+      "url": "https://www.nutshell.com/eula",
+      "checkedAt": "2026-07-18",
+      "supports": "Nutshell publishes its End User License Agreement; Relay uses only bounded, documented, customer-authorized API access."
+    },
+    {
+      "url": "https://www.nutshell.com/legal/privacy",
+      "checkedAt": "2026-07-18",
+      "supports": "The official privacy policy covers Nutshell APIs and recognizes CRM contacts as personal data generally controlled by the customer; Relay excludes people and communication data from its Lead summaries."
+    }
+  ]
+}

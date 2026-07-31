@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "buzzsprout",
+  "name": "Buzzsprout",
+  "category": "content_creative",
+  "description": "Buzzsprout is a podcast hosting and publishing platform for creating, distributing, and measuring podcast episodes. Creators use it to host audio, schedule releases, maintain episode metadata, and distribute shows to listening platforms.",
+  "agentUseSummary": "Enter the API token and exact podcast ID from the customer's own Buzzsprout account, then let agents inspect that podcast and create or update episodes under Safe or Dangerous policy; imported audio consumes that account's upload allowance.",
+  "provider": {
+    "websiteUrl": "https://www.buzzsprout.com/",
+    "docsUrl": "https://www.buzzsprout.com/api",
+    "developerConsoleUrl": "https://www.buzzsprout.com/api",
+    "termsUrl": "https://www.buzzsprout.com/terms",
+    "privacyUrl": "https://www.buzzsprout.com/privacy"
+  },
+  "authentication": {
+    "model": "api_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "BUZZSPROUT_API_TOKEN",
+        "label": "Buzzsprout API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the API token from the customer's own Buzzsprout account."
+      },
+      {
+        "name": "BUZZSPROUT_PODCAST_ID",
+        "label": "Buzzsprout podcast ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind the connection to one numeric podcast ID returned by Buzzsprout."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "podcast_read",
+      "label": "Read connected podcast",
+      "description": "Read bounded redacted metadata for the exact connected podcast.",
+      "defaultSelected": true
+    },
+    {
+      "id": "episode_read",
+      "label": "Read episodes",
+      "description": "List bounded redacted episodes or inspect one exact episode.",
+      "defaultSelected": true
+    },
+    {
+      "id": "episode_publish",
+      "label": "Create and update episodes",
+      "description": "Create episodes and change their metadata, media URLs, privacy, or publication schedule.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "buzzsprout_podcast_read",
+        "label": "Read connected podcast",
+        "description": "Read redacted metadata for the exact podcast bound to this connection."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "buzzsprout_episode_list",
+        "label": "List episodes",
+        "description": "List at most fifty redacted episode summaries from the exact podcast."
+      },
+      {
+        "id": "buzzsprout_episode_get",
+        "label": "Read episode",
+        "description": "Read one exact redacted episode, including unpublished episode metadata."
+      },
+      {
+        "id": "buzzsprout_episode_create",
+        "label": "Create episode",
+        "description": "Create an episode, optionally import public HTTPS media, and consume the customer's upload allowance."
+      },
+      {
+        "id": "buzzsprout_episode_update",
+        "label": "Update episode",
+        "description": "Change episode metadata, privacy, publication schedule, or hosted media references."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "buzzsprout_episode_delete",
+        "label": "Delete episodes",
+        "description": "The official API documentation does not publish an episode deletion operation."
+      },
+      {
+        "id": "buzzsprout_local_file_upload",
+        "label": "Upload local files",
+        "description": "Multipart local-file upload is not mounted; V1 accepts only validated public HTTPS media URLs."
+      },
+      {
+        "id": "buzzsprout_account_admin",
+        "label": "Administer Buzzsprout",
+        "description": "Plans, billing, team members, podcast settings, directories, dynamic content, ads, subscriptions, and account administration are outside the documented API."
+      },
+      {
+        "id": "buzzsprout_raw_api",
+        "label": "Use arbitrary Buzzsprout APIs",
+        "description": "Arbitrary paths, query-token authentication, browser automation, and undocumented endpoints are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "buzzsprout_safe",
+      "label": "Safe",
+      "description": "Connected-podcast metadata runs directly; episode reads and every publishing change require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["buzzsprout_podcast_read"],
+      "approvalRequiredActions": [
+        "buzzsprout_episode_list",
+        "buzzsprout_episode_get",
+        "buzzsprout_episode_create",
+        "buzzsprout_episode_update"
+      ],
+      "blockedActions": [
+        "buzzsprout_episode_delete",
+        "buzzsprout_local_file_upload",
+        "buzzsprout_account_admin",
+        "buzzsprout_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected documented Buzzsprout API action runs without Relay per-action approval while exact-podcast binding, credential secrecy, fixed origin, URL and response bounds, audits, upload allowance, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "buzzsprout_podcast_read",
+        "buzzsprout_episode_list",
+        "buzzsprout_episode_get",
+        "buzzsprout_episode_create",
+        "buzzsprout_episode_update"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "buzzsprout_episode_delete",
+        "buzzsprout_local_file_upload",
+        "buzzsprout_account_admin",
+        "buzzsprout_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected Buzzsprout tools and injects the encrypted token and exact podcast binding server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected Buzzsprout tools and injects the encrypted token and exact podcast binding server-side."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer Buzzsprout API token, exact podcast ID, eligible plan, or signed-in provider session is available for production acceptance.",
+    "nextAction": "Accept Buzzsprout's experimental API terms, obtain a token and podcast ID for the customer's own account, connect them in Relay Console, then verify exact-podcast binding, bounded reads, Safe denial, approved or Dangerous draft creation and update, redaction, token rotation, and disconnect. Import media only deliberately because it consumes that account's upload allowance."
+  },
+  "evidence": [
+    {
+      "url": "https://www.buzzsprout.com/api",
+      "checkedAt": "2026-07-17",
+      "supports": "Buzzsprout publishes an experimental REST and JSON API for third-party integrations under API-specific terms."
+    },
+    {
+      "url": "https://github.com/Buzzsprout/buzzsprout-api/blob/master/sections/episodes.md",
+      "checkedAt": "2026-07-17",
+      "supports": "Official episode documentation publishes bounded list, read, create, and update operations and documents metadata, publication, privacy, public media URL, and multipart fields; no delete operation is published."
+    },
+    {
+      "url": "https://github.com/Buzzsprout/buzzsprout-api/blob/master/sections/podcasts.md",
+      "checkedAt": "2026-07-17",
+      "supports": "Official podcast documentation provides an account podcast list used to fail closed unless the token authorizes the exact configured podcast ID."
+    },
+    {
+      "url": "https://www.buzzsprout.com/help/40-overage",
+      "checkedAt": "2026-07-17",
+      "supports": "Buzzsprout documents that uploads consume the customer's monthly allowance and may trigger plan-specific overage behavior."
+    }
+  ]
+}

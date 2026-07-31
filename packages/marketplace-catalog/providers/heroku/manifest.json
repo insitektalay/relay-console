@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "heroku",
+  "name": "Heroku",
+  "category": "developer",
+  "description": "Heroku is a cloud application platform for deploying, running, and operating applications. Teams use Apps, Releases, and Dynos to understand deployed application state and runtime lifecycle.",
+  "agentUseSummary": "Connect one exact Heroku Team and selected App through Relay's confidential OAuth client with only the read scope, then let agents list a bounded first range of Team Apps and inspect redacted Release and Dyno lifecycle summaries for the selected App. Relay V1 excludes config vars, credential-bearing metadata, log drains and sessions, commands, attach and output streams, add-ons, source, writes, administration, arbitrary REST, and pagination.",
+  "provider": {
+    "websiteUrl": "https://www.heroku.com/",
+    "docsUrl": "https://devcenter.heroku.com/articles/platform-api-reference",
+    "developerConsoleUrl": "https://dashboard.heroku.com/account/applications",
+    "termsUrl": "https://www.heroku.com/policy/heroku-terms-of-service/",
+    "privacyUrl": "https://www.salesforce.com/company/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://id.heroku.com/oauth/authorize",
+    "tokenUrl": "https://id.heroku.com/oauth/token"
+  },
+  "connection": {
+    "types": ["relay_owned_confidential_oauth", "exact_read_scope", "expiring_access_token", "non_expiring_refresh_token", "exact_team", "exact_selected_app", "provider_revocable"],
+    "credentialRequirements": [
+      { "name": "HEROKU_CLIENT_ID", "label": "Heroku OAuth client ID", "required": true, "secret": false, "helpText": "Relay-owned confidential OAuth client ID configured only on Railway." },
+      { "name": "HEROKU_CLIENT_SECRET", "label": "Heroku OAuth client secret", "required": true, "secret": true, "helpText": "Relay-owned confidential OAuth client secret configured only on Railway." },
+      { "name": "HEROKU_TEAM_ID", "label": "Heroku Team UUID", "required": true, "secret": false, "helpText": "Bind the connection to one exact Heroku Team UUID before authorization." },
+      { "name": "HEROKU_APP_ID", "label": "Heroku App UUID", "required": true, "secret": false, "helpText": "Bind the connection to one exact selected Heroku App UUID before authorization." }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/heroku/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "app_read", "label": "Read Apps", "description": "List bounded Apps in one exact Team.", "defaultSelected": true },
+    { "id": "release_read", "label": "Read Releases", "description": "List bounded redacted Release lifecycle summaries for one selected App.", "defaultSelected": true },
+    { "id": "dyno_read", "label": "Read Dynos", "description": "List bounded redacted Dyno lifecycle summaries for one selected App.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "heroku_team_app_list", "label": "List Team Apps", "description": "List at most twenty-five Apps from the first bounded range of one exact Team." },
+      { "id": "heroku_app_release_list", "label": "List App Releases", "description": "List at most twenty-five redacted Release lifecycle summaries for one selected App." },
+      { "id": "heroku_app_dyno_list", "label": "List App Dynos", "description": "List at most twenty-five redacted Dyno lifecycle summaries for one selected App." }
+    ],
+    "blocked": [
+      { "id": "heroku_app_write", "label": "Change Apps", "description": "App creation, configuration, maintenance, transfer, archive, rename, and deletion are outside V1." },
+      { "id": "heroku_release_dyno_write", "label": "Change Releases or Dynos", "description": "Deploy, release, rollback, scale, restart, stop, run, attach, and command execution are outside V1." },
+      { "id": "heroku_sensitive_read", "label": "Read sensitive platform data", "description": "Config vars, log drains and sessions, commands, attach/output URLs, add-on credentials, source, slugs, files, builds, and pipelines are outside V1." },
+      { "id": "heroku_admin", "label": "Administer Heroku", "description": "Members, collaborators, permissions, billing, invoices, OAuth clients and authorizations, webhooks, domains, certificates, tokens, and account administration are outside V1." },
+      { "id": "heroku_raw_api", "label": "Use raw Heroku API", "description": "Arbitrary REST, hosts, paths, headers, ranges, cursors, pagination, and raw responses are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "heroku_safe", "label": "Safe", "description": "All three bounded Heroku reads require matching approval because the provider read scope covers more resources than Relay mounts.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["heroku_team_app_list", "heroku_app_release_list", "heroku_app_dyno_list"], "blockedActions": ["heroku_app_write", "heroku_release_dyno_write", "heroku_sensitive_read", "heroku_admin", "heroku_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while exact Team/App binding, fixed requests, limits, redaction, audit, token refresh, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["heroku_team_app_list", "heroku_app_release_list", "heroku_app_dyno_list"], "approvalRequiredActions": [], "blockedActions": ["heroku_app_write", "heroku_release_dyno_write", "heroku_sensitive_read", "heroku_admin", "heroku_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three fixed Heroku read wrappers and attaches refreshed OAuth access tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three fixed Heroku read wrappers and attaches refreshed OAuth access tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay's confidential Heroku OAuth client, exact Railway callback, read scope, and staging client credentials require provider-console completion and authorized staging acceptance.",
+    "nextAction": "Register the confidential Heroku OAuth client with Relay's exact Railway callback, configure staging credentials, and validate exact-scope consent, Team/App binding, refresh, revoke, denial, and the three bounded reads."
+  },
+  "evidence": [
+    { "url": "https://devcenter.heroku.com/articles/oauth", "checkedAt": "2026-07-17", "supports": "Heroku documents confidential authorization-code OAuth, CSRF state, exact read scope, eight-hour access tokens, non-expiring refresh tokens, refresh exchange, and the warning that some broad read resources can expose credentials." },
+    { "url": "https://devcenter.heroku.com/articles/platform-api-reference", "checkedAt": "2026-07-17", "supports": "Heroku's current Platform API reference documents the fixed API origin and media type, bounded Range semantics, rate limits, Team App list, Release list, Dyno list, response schemas, and the sensitive fields Relay excludes." }
+  ]
+}

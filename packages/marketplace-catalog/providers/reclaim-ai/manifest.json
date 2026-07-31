@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "reclaim-ai",
+  "name": "Reclaim.ai",
+  "category": "work_management",
+  "description": "Reclaim.ai is an intelligent calendar assistant that automatically schedules tasks, habits, focus time, breaks, and meetings around a person's real availability. Individuals and teams use it to protect priorities, coordinate schedules, share booking links, and keep plans current as calendars change.",
+  "agentUseSummary": "Add your Reclaim.ai API key once, then select which agents can read schedules or manage the supported Reclaim planning actions under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://reclaim.ai/",
+    "docsUrl": "https://help.reclaim.ai/en/articles/8136585-overview-raycast-extension-for-reclaim-ai",
+    "developerConsoleUrl": "https://app.reclaim.ai/settings/developer",
+    "termsUrl": "https://reclaim.ai/terms",
+    "privacyUrl": "https://reclaim.ai/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "RECLAIM_AI_API_KEY",
+        "label": "Reclaim.ai API key",
+        "required": true,
+        "secret": true,
+        "helpText": "In Reclaim, open Settings > Developer, generate an API key, and copy it when Reclaim shows it."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "schedule_read",
+      "label": "Read Reclaim schedules",
+      "description": "Read the authorized user, calendar events, tasks, smart habits, time policies, scheduling links, and scheduling-link groups.",
+      "defaultSelected": true
+    },
+    {
+      "id": "schedule_manage",
+      "label": "Manage Reclaim schedules",
+      "description": "Create and update tasks, start or stop task and habit sessions, add time, complete or reopen work, snooze tasks, interpret quick plans, and create one-off scheduling links.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "reclaim_ai_api_read",
+        "label": "Read Reclaim.ai",
+        "description": "Read one exact bounded endpoint used by Reclaim's supported Raycast integration."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "reclaim_ai_api_manage",
+        "label": "Manage Reclaim.ai",
+        "description": "Call one exact bounded supported scheduling mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "reclaim_ai_secret_exposure",
+        "label": "Expose the API key",
+        "description": "The API key remains encrypted and never enters agent-visible requests, URLs, or results."
+      },
+      {
+        "id": "reclaim_ai_unofficial_origin",
+        "label": "Use another origin",
+        "description": "Every request is pinned to Reclaim's public API origin used by its supported Raycast integration."
+      },
+      {
+        "id": "reclaim_ai_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only the exact Reclaim routes currently exercised by the supported Raycast integration."
+      },
+      {
+        "id": "reclaim_ai_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds paths, queries, bodies, redirects, results, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "reclaim_ai_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly. Every task, habit, planner, interpreter, or one-off-link mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["reclaim_ai_api_read"],
+      "approvalRequiredActions": ["reclaim_ai_api_manage"],
+      "blockedActions": ["reclaim_ai_secret_exposure", "reclaim_ai_unofficial_origin", "reclaim_ai_unsupported_endpoint", "reclaim_ai_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected key-authorized Reclaim operation runs without Relay per-action approval. Connection ownership, provider authority, exact endpoints, request bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["reclaim_ai_api_read", "reclaim_ai_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["reclaim_ai_secret_exposure", "reclaim_ai_unofficial_origin", "reclaim_ai_unsupported_endpoint", "reclaim_ai_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts separate exact-endpoint read and manage tools and injects the encrypted API key only at Reclaim's fixed public API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts separate exact-endpoint read and manage tools and injects the encrypted API key only at Reclaim's fixed public API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Reclaim's supported Raycast and Zapier integrations use a customer-generated bearer API key; Reclaim does not document a third-party OAuth app flow that Relay can own.",
+    "nextAction": "Generate a Reclaim API key in Settings > Developer, connect it in Relay Console, then verify representative reads, Safe mutation approval, Dangerous schedule management, redaction, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.reclaim.ai/en/articles/5224992-getting-started-with-reclaim",
+      "checkedAt": "2026-07-15",
+      "supports": "Reclaim describes itself as an intelligent calendar assistant that optimizes schedules around work and life priorities."
+    },
+    {
+      "url": "https://help.reclaim.ai/en/articles/8136585-overview-raycast-extension-for-reclaim-ai",
+      "checkedAt": "2026-07-15",
+      "supports": "Reclaim instructs users to generate an API key for its supported Raycast integration and documents calendar, task, habit, and scheduling-link features."
+    },
+    {
+      "url": "https://help.reclaim.ai/en/articles/13620524-connect-reclaim-on-zapier",
+      "checkedAt": "2026-07-15",
+      "supports": "Reclaim's Zapier connection also uses a customer-generated API key and supports creating automatically scheduled Reclaim tasks."
+    },
+    {
+      "url": "https://github.com/raycast/extensions/tree/main/extensions/reclaim-ai",
+      "checkedAt": "2026-07-15",
+      "supports": "The current Raycast Store source pins bearer-key requests to api.app.reclaim.ai/api and defines the exact supported read and scheduling-action routes Relay exposes."
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "trustpilot",
+  "name": "Trustpilot",
+  "category": "marketing",
+  "description": "Trustpilot is a consumer review platform for business profiles, service and product reviews, invitations, company responses, reputation insights, and public review discovery.",
+  "agentUseSummary": "Trustpilot cannot yet be connected through Relay. A distributable private integration requires Trustpilot's Trusted Integration Program, Partner Manager-issued credentials and redirect allowlisting, paid customer API-module access, admin partnership permission, per-customer key generation, and an OAuth flow that Trustpilot says does not support multi-factor authentication.",
+  "provider": {
+    "websiteUrl": "https://www.trustpilot.com/",
+    "docsUrl": "https://developers.trustpilot.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://legal.trustpilot.com/for-reviewers/end-user-terms-and-conditions",
+    "privacyUrl": "https://legal.trustpilot.com/for-reviewers/end-user-privacy-terms"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://authenticate.trustpilot.com",
+    "tokenUrl": "https://api.trustpilot.com/v1/oauth/oauth-business-users-for-applications/accesstoken",
+    "revocationUrl": "https://api.trustpilot.com/v1/oauth/oauth-business-users-for-applications/revoke"
+  },
+  "connection": {
+    "types": [
+      "trusted_integration_program",
+      "partner_manager_issued_credentials",
+      "allowlisted_https_redirect",
+      "customer_api_module_and_admin_permission",
+      "per_customer_partner_key",
+      "oauth_mfa_not_supported"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/trustpilot/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "trustpilot_partner_connection",
+        "label": "Connect through the partner program",
+        "description": "Relay is not an approved Trusted Integration Partner and has no Partner ID, credentials, allowlisted redirect, or customer-key lifecycle."
+      },
+      {
+        "id": "trustpilot_weaken_mfa",
+        "label": "Disable multi-factor authentication",
+        "description": "Relay will not instruct users to weaken account security to complete Trustpilot's documented authorization-code flow."
+      },
+      {
+        "id": "trustpilot_public_key_substitution",
+        "label": "Substitute a public API key",
+        "description": "Public API-key reads do not provide the account-owned private review, invitation, response, entitlement, and lifecycle contract required for a connected app."
+      },
+      {
+        "id": "trustpilot_data_and_mutations",
+        "label": "Access Trustpilot data",
+        "description": "Business units, public/private service reviews, product reviews, customer details, invitations, conversations, company replies, webhooks, analytics, partner operations, and every read or write remain unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "trustpilot_unavailable",
+      "label": "Unavailable",
+      "description": "No Trustpilot action is enabled before partner, entitlement, and secure-authentication approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "trustpilot_partner_connection",
+        "trustpilot_weaken_mfa",
+        "trustpilot_public_key_substitution",
+        "trustpilot_data_and_mutations"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Trustpilot wrappers are mounted before partner admission and an MFA-compatible delegated contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Trustpilot wrappers are mounted before partner admission and an MFA-compatible delegated contract."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Public partner integrations require admission to Trustpilot's Trusted Integration Program, Partner Manager-issued keys and Partner ID, redirect allowlisting, a paid customer API module, administrator Partnership Permissions, and customer-key generation. Trustpilot also states its authorization-code flow does not support MFA, creating an unresolved security conflict.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should pursue partner admission and obtain written confirmation of an MFA-compatible authorization route, exact private API entitlements, key/token isolation, redirect registration, revocation, deletion obligations, and representative paid-account access before any connector or Connect UI is implemented."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.trustpilot.com/build-a-partner-integration/",
+      "checkedAt": "2026-07-17",
+      "supports": "Trustpilot requires Trusted Integration Program membership, Partner Manager credentials and redirect allowlisting, customer API-module rights, admin Partnership Permissions, per-customer key creation, and partner OAuth."
+    },
+    {
+      "url": "https://developers.trustpilot.com/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Trustpilot distinguishes public API-key access from private OAuth, documents 100-hour access and 30-day refresh tokens plus revocation, and states authorization-code OAuth does not support MFA."
+    },
+    {
+      "url": "https://developers.trustpilot.com/business-units-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Trustpilot documents public review reads and separate private business-user reads that include sensitive customer email and order identifiers."
+    },
+    {
+      "url": "https://developers.trustpilot.com/introduction",
+      "checkedAt": "2026-07-17",
+      "supports": "Trustpilot requires a Business account with API-module access for private API data."
+    }
+  ]
+}

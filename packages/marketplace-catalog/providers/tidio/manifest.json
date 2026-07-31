@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "tidio",
+  "name": "Tidio",
+  "category": "crm_support",
+  "description": "Tidio is a customer-service platform for live chat, helpdesk ticketing, contacts, operators, automation, conversational AI, and support workflows.",
+  "agentUseSummary": "Enter one customer-owned Tidio OpenAPI client keypair, then let selected agents use content-free ticket operations or approved documented OpenAPI requests under Safe or Dangerously skip permissions.",
+  "provider": { "websiteUrl": "https://www.tidio.com/", "docsUrl": "https://developers.tidio.com/reference", "developerConsoleUrl": null, "termsUrl": "https://www.tidio.com/terms/", "privacyUrl": "https://www.tidio.com/privacy-policy/" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      { "name": "TIDIO_OPENAPI_CLIENT_ID", "label": "Tidio OpenAPI client ID", "required": true, "secret": true, "helpText": "Enter the customer-generated OpenAPI client ID (prefixed ci_)." },
+      { "name": "TIDIO_OPENAPI_CLIENT_SECRET", "label": "Tidio OpenAPI client secret", "required": true, "secret": true, "helpText": "Enter the secret from the same OpenAPI keypair (prefixed cs_)." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "ticket_metadata_read", "label": "Read ticket operations", "description": "List and inspect bounded ticket operational metadata without subjects, messages, internal notes, contacts, names, emails, phones, custom fields, tags, or raw records.", "defaultSelected": true },
+    { "id": "full_api", "label": "Tidio OpenAPI", "description": "Use documented fixed-origin OpenAPI paths and methods allowed by the connected client keypair.", "defaultSelected": true }
+  ],
+  "actions": { "allowed": [], "approvalRequired": [
+    { "id": "tidio_ticket_list", "label": "List ticket metadata", "description": "List one fixed first page of content-free Tidio ticket summaries." },
+    { "id": "tidio_ticket_get", "label": "Read ticket metadata", "description": "Read one exact Tidio ticket through Relay's content-free projection, discarding messages and customer data." },
+    { "id": "tidio_full_api", "label": "Use OpenAPI", "description": "Use a documented Tidio OpenAPI operation authorized by the connected client keypair; Safe mode requires approval." }
+  ], "blocked": [] },
+  "approvalProfiles": [
+    { "id": "tidio_safe", "label": "Safe", "description": "Content-free ticket reads and every broader OpenAPI operation require approval; fixed origin, secret isolation, provider plan/access, and bounds remain enforced.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["tidio_ticket_list", "tidio_ticket_get", "tidio_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Selected keypair-authorized operations run without Relay per-action approval; fixed origin, secret isolation, bounds, audits, and Tidio plan/access controls still apply.", "defaultSelected": false, "allowedActions": ["tidio_ticket_list", "tidio_ticket_get", "tidio_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts typed wrappers and attaches the encrypted client keypair only to the fixed api.tidio.com origin." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts typed wrappers and attaches the encrypted client keypair only to the fixed api.tidio.com origin." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "customer_action_required", "blocker": "A customer Tidio project with OpenAPI plan access and client keypair is required for live acceptance.", "nextAction": "A project owner or admin generates an OpenAPI keypair, enters it in Relay, and verifies bounded reads, Safe approval, Dangerous broader-operation behavior, plan restrictions, key rotation, and disconnect denial." },
+  "evidence": [
+    { "url": "https://developers.tidio.com/docs/openapi-authorization", "checkedAt": "2026-07-18", "supports": "Tidio's official guide documents project owner/admin-generated client keypairs and the X-Tidio-Openapi-Client-Id and X-Tidio-Openapi-Client-Secret headers against api.tidio.com." },
+    { "url": "https://developers.tidio.com/reference/get_tickets", "checkedAt": "2026-07-18", "supports": "Tidio's official reference documents a cursor-paginated ticket list without messages on the fixed /tickets endpoint." },
+    { "url": "https://developers.tidio.com/reference/get_tickets-ticketid", "checkedAt": "2026-07-18", "supports": "Tidio documents exact ticket retrieval including messages; Relay discards those messages and exposes only a content-free operational projection." },
+    { "url": "https://developers.tidio.com/docs/openapi-enable", "checkedAt": "2026-07-18", "supports": "Tidio documents current plan restrictions for OpenAPI endpoints, making customer plan access part of live acceptance." }
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "binance",
+  "name": "Binance",
+  "category": "commerce_payments",
+  "description": "Binance is a global digital-asset platform offering spot markets, portfolio tools, and other cryptocurrency services where available. Customers use its Spot API to inspect market and account data and manage exchange orders programmatically.",
+  "agentUseSummary": "Add a dedicated customer-owned Binance Spot HMAC API key and secret, then choose which agents can read bounded public markets and private account data or place and cancel exact spot orders under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.binance.com/",
+    "docsUrl": "https://developers.binance.com/en/docs/products/spot/rest-api",
+    "developerConsoleUrl": "https://www.binance.com/en/my/settings/api-management",
+    "termsUrl": "https://www.binance.com/en/terms",
+    "privacyUrl": "https://www.binance.com/en/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["USER_DATA", "TRADE"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key_pair",
+      "hmac_sha256_signed_spot_rest",
+      "timestamp_and_recv_window",
+      "fixed_binance_api_origin",
+      "permission_restricted"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "BINANCE_API_KEY",
+        "label": "Binance API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated HMAC key with USER_DATA access and enable Spot trading only when the trading capability is selected. Keep withdrawals disabled; use the narrowest supported IP restriction for Relay's Railway egress when operationally available."
+      },
+      {
+        "key": "BINANCE_API_SECRET",
+        "label": "Binance secret key",
+        "secret": true,
+        "required": true,
+        "helpText": "Paste the HMAC secret shown by Binance. Relay encrypts it and uses it only to sign timestamped requests sent to the fixed Binance Spot REST origin."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "market_data",
+      "label": "Read spot market data",
+      "description": "Read a bounded public 24-hour ticker, 20-level order book, or 100-candlestick summary for one exact spot symbol.",
+      "defaultSelected": true
+    },
+    {
+      "id": "account_read",
+      "label": "Read account and trading data",
+      "description": "Read bounded non-zero balances, open orders, order history, and trade history authorized by the customer key.",
+      "defaultSelected": true
+    },
+    {
+      "id": "spot_trading",
+      "label": "Place and cancel spot orders",
+      "description": "Place one typed market or GTC limit spot order and cancel one exact order, subject to Binance key permissions, symbol filters, and trading limits.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "binance_market_read",
+        "label": "Read Binance spot markets",
+        "description": "Read one bounded public ticker, order-book, or candlestick summary."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "binance_account_read",
+        "label": "Read Binance account data",
+        "description": "Read one bounded balance, open-order, order-history, or trade-history result; Safe mode requires approval."
+      },
+      {
+        "id": "binance_order_place",
+        "label": "Place a Binance spot order",
+        "description": "Place one typed market or limit spot order; Safe mode requires approval."
+      },
+      {
+        "id": "binance_order_cancel",
+        "label": "Cancel a Binance spot order",
+        "description": "Cancel one exact spot order; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "binance_funding_blocked",
+        "label": "Funding and transfers unavailable",
+        "description": "Deposits, withdrawals, wallet transfers, Convert, Pay, P2P, gift cards, and address management are outside Relay's V1 surface."
+      },
+      {
+        "id": "binance_broader_trading_blocked",
+        "label": "Broader trading unavailable",
+        "description": "Batch and replace orders, margin, futures, options, portfolio margin, OTC, algo trading, subaccounts, WebSocket/FIX sessions, and raw endpoint delegation are outside V1."
+      },
+      {
+        "id": "binance_earn_admin_blocked",
+        "label": "Earn and administration unavailable",
+        "description": "Simple Earn, staking, mining, loans, copy trading, reports, tax exports, and API-key administration are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "binance_safe",
+      "label": "Safe",
+      "description": "Public market summaries run directly; every private account read and every financial order action requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["binance_market_read"],
+      "approvalRequiredActions": [
+        "binance_account_read",
+        "binance_order_place",
+        "binance_order_cancel"
+      ],
+      "blockedActions": [
+        "binance_funding_blocked",
+        "binance_broader_trading_blocked",
+        "binance_earn_admin_blocked"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All selected Binance market, account, and spot-order actions run without Relay per-action approval; connection ownership, key permissions, fixed routing, signing, bounds, redaction, audits, and Binance limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "binance_market_read",
+        "binance_account_read",
+        "binance_order_place",
+        "binance_order_cancel"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "binance_funding_blocked",
+        "binance_broader_trading_blocked",
+        "binance_earn_admin_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Binance Spot wrappers and performs timestamping and HMAC signing server-side without exposing either key to the runtime."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Binance Spot wrappers and performs timestamping and HMAC signing server-side without exposing either key to the runtime."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No eligible customer-owned Binance account, dedicated HMAC API key pair, or representative Spot account is available to this code-only worker; Binance availability and API-key features also depend on the customer's jurisdiction and account status.",
+    "nextAction": "An eligible Binance customer creates a dedicated HMAC key with USER_DATA and only the selected Spot trading permission, keeps withdrawals and every broader product permission disabled, applies the narrowest operational IP restriction, saves the key pair through Relay Console, and verifies account health, bounded market/account reads, Safe approval, one permitted Spot order, exact cancellation, rate-limit backoff, timestamp handling, credential replacement, disconnect, key revocation, and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.binance.com/en/docs/products/spot/rest-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Binance documents the fixed api.binance.com Spot REST endpoint, query-string parameters, HTTP and rate-limit behavior, and public market endpoints including ticker, depth, and klines."
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/products/spot/rest-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Binance documents X-MBX-APIKEY, SIGNED requests, HMAC-SHA256 signatures, timestamp and recvWindow checks, USER_DATA and TRADE security types, and that trading permission is disabled by default."
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/binance-spot-api-docs/rest-api/account-endpoints",
+      "checkedAt": "2026-07-17",
+      "supports": "Binance documents signed Spot account information, open orders, all orders, and account trade-list endpoints with symbol and limit parameters."
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/binance-spot-api-docs/rest-api/trading-endpoints",
+      "checkedAt": "2026-07-17",
+      "supports": "Binance documents signed TRADE endpoints for placing typed Spot orders and cancelling an exact order by symbol and order ID."
+    },
+    {
+      "url": "https://developers.binance.com/en/docs/introduction",
+      "checkedAt": "2026-07-17",
+      "supports": "Binance's official developer portal separates Spot from Futures, Wallet, Margin, and other product families and recommends dedicated test or demo environments where supported before production use."
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-forms-pro",
+  "name": "Microsoft Forms Pro",
+  "category": "crm_support",
+  "description": "Microsoft Forms Pro was rebranded as Dynamics 365 Customer Voice, whose survey projects, questions, invitations, responses, templates, reminders, metrics, and recipients are stored as environment-specific Microsoft Dataverse entities.",
+  "agentUseSummary": "Microsoft Forms Pro cannot be connected as named because the product is now Dynamics 365 Customer Voice. Its developer surface is not Microsoft Forms or Microsoft Graph; it is the organization-specific Dataverse Web API with Customer Voice entities, environment roles, and respondent data. Relay exposes nothing until product owners approve the rename and Customer Voice versus consumer Microsoft Forms boundary.",
+  "provider": {
+    "websiteUrl": "https://dynamics.microsoft.com/customer-voice/overview/",
+    "docsUrl": "https://learn.microsoft.com/dynamics365/customer-voice/",
+    "developerConsoleUrl": "https://admin.powerplatform.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/licensing/terms/productoffering/Dynamics365/all",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "product_renamed_to_dynamics_365_customer_voice",
+      "product_boundary_unresolved_against_microsoft_forms",
+      "customer_voice_solution_installed_in_dataverse_environment",
+      "environment_specific_dataverse_organization_url",
+      "dataverse_web_api_odata_v4",
+      "microsoft_entra_oauth_and_dataverse_security_roles",
+      "customer_voice_entity_and_response_privacy_boundary"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "customer_voice_metadata_candidate",
+      "label": "Survey metadata candidate",
+      "description": "If product selects Dynamics 365 Customer Voice, read bounded project, survey, question, template, metric, and aggregate metadata from one exact Dataverse environment."
+    },
+    {
+      "id": "customer_voice_response_candidate",
+      "label": "Survey response candidate",
+      "description": "If separately approved, read minimized survey, question-response, invitation, and recipient records with purpose, retention, consent, export, and field-redaction controls."
+    },
+    {
+      "id": "customer_voice_distribution_candidate",
+      "label": "Survey distribution candidate",
+      "description": "If critically approved, create or send one survey invitation through supported Customer Voice and Power Automate mechanisms with recipient, template, locale, unsubscribe, and anti-abuse safeguards."
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "forms_pro_connect_before_product_decision",
+        "label": "Connect before product rename and boundary decision",
+        "description": "Relay has no approved mapping from obsolete Forms Pro to Dynamics 365 Customer Voice or Microsoft Forms and therefore no valid environment or auth contract."
+      },
+      {
+        "id": "forms_pro_survey_and_response_reads",
+        "label": "Read surveys or respondent data",
+        "description": "Projects, surveys, questions, answers, responses, respondents, contacts, recipients, invitations, delivery, templates, reminders, alerts, metrics, exports, and metadata remain unavailable."
+      },
+      {
+        "id": "forms_pro_survey_distribution_mutations",
+        "label": "Create or distribute surveys",
+        "description": "Creating, editing, translating, copying, sharing, publishing, sending, reminding, resending, exporting, closing, or deleting surveys and invitations is blocked."
+      },
+      {
+        "id": "forms_pro_dataverse_and_automation_mutations",
+        "label": "Change Dataverse or automation state",
+        "description": "Dataverse row CRUD, batch operations, impersonation, environment or solution changes, Power Automate flows, connection references, roles, sharing, and custom tables are blocked."
+      },
+      {
+        "id": "forms_pro_raw_cross_environment_and_console_bypass",
+        "label": "Bypass data or environment controls",
+        "description": "Cross-environment access, arbitrary OData or FetchXML, metadata discovery beyond allowlists, respondent exports, raw tokens, consumer Forms inference, private APIs, scraping, and provider-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "forms_pro_unavailable",
+      "label": "Product decision required",
+      "description": "No action is enabled until the record is renamed or replaced, product owners choose Customer Voice versus Microsoft Forms, and the selected environment, identity, data, response, distribution, automation, revocation, and disconnect contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "forms_pro_connect_before_product_decision",
+        "forms_pro_survey_and_response_reads",
+        "forms_pro_survey_distribution_mutations",
+        "forms_pro_dataverse_and_automation_mutations",
+        "forms_pro_raw_cross_environment_and_console_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Forms Pro wrapper is mounted before the obsolete name and Customer Voice versus Microsoft Forms boundary are resolved."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Forms Pro wrapper is mounted before the obsolete name and Customer Voice versus Microsoft Forms boundary are resolved."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Microsoft Forms Pro was rebranded as Dynamics 365 Customer Voice and requires the Customer Voice solution to be installed in a Microsoft Dataverse environment. The official entity model includes surveys, projects, questions, question responses, survey responses, survey invitations, email templates, reminders, alerts, metrics, and unsubscribed recipients. Dataverse exposes each environment at a distinct organization URL, requires OAuth, applies environment security roles and customizations, and permits OData CRUD, batch, conditional operations, and impersonation. Survey invitations can carry recipient identity and email delivery state and can be sent through Dynamics and Power Automate. This is not the consumer Microsoft Forms product or a generic Graph Forms API.",
+    "nextAction": "Product, privacy, and security owners must retire the Forms Pro name and decide whether this candidate means Dynamics 365 Customer Voice or Microsoft Forms. If Customer Voice is selected, rename the provider, require one exact non-production Dataverse environment with the installed solution, register a tenant-specific Entra app, and define an entity and column allowlist beginning with non-respondent survey metadata only. Representative acceptance must verify environment and tenant binding, security roles and team sharing, customizations, respondent identity and free text, invitations and unsubscribe state, email consent and anti-abuse, survey limits and phishing blocks, OData pagination and service protection, optimistic concurrency and duplicates, Power Automate boundaries, exports and deletion, audit and retention, token revocation, disconnect, and cross-environment denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/dynamics365/customer-voice/forms-pro-transition",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Forms Pro was rebranded as Dynamics 365 Customer Voice and requires the Customer Voice application to be installed in the environment."
+    },
+    {
+      "url": "https://learn.microsoft.com/dynamics365/customer-voice/developer/entity-reference/",
+      "checkedAt": "2026-07-17",
+      "supports": "Customer Voice defines Dataverse entities for projects, surveys, questions, responses, invitations, templates, reminders, alerts, metrics, and unsubscribed recipients."
+    },
+    {
+      "url": "https://learn.microsoft.com/power-apps/developer/data-platform/webapi/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Dataverse exposes data and metadata through an OData v4 Web API with retrieve, create, update, delete, functions, and actions."
+    },
+    {
+      "url": "https://learn.microsoft.com/power-apps/developer/data-platform/webapi/web-api-types-operations",
+      "checkedAt": "2026-07-17",
+      "supports": "Each Dataverse environment has a distinct organization URL and can contain unique custom tables, operations, customizations, and service metadata."
+    },
+    {
+      "url": "https://learn.microsoft.com/dynamics365/customer-voice/view-survey-invite",
+      "checkedAt": "2026-07-17",
+      "supports": "Customer Voice invitations include recipient and delivery state, support reporting and export, and can be deleted, creating privacy, anti-abuse, and retention obligations."
+    }
+  ]
+}

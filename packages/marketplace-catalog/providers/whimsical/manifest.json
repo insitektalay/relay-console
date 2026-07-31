@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "whimsical",
+  "name": "Whimsical",
+  "category": "content_creative",
+  "description": "Whimsical is a collaborative workspace for diagrams, flowcharts, mind maps, wireframes, whiteboards, and documents. Product teams use it to explore ideas, plan systems, design interfaces, and keep visual work connected to written project context.",
+  "agentUseSummary": "Connect a Whimsical account once, then let agents search and read workspace content or create and edit boards, diagrams, wireframes, documents, folders, and comments through Whimsical's hosted OAuth MCP under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://whimsical.com/",
+    "docsUrl": "https://whimsical.com/learn/integrations/mcp",
+    "developerConsoleUrl": "https://mcp.whimsical.com/.well-known/oauth-authorization-server",
+    "termsUrl": "https://whimsical.com/terms",
+    "privacyUrl": "https://whimsical.com/terms/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["profile", "mcp:read", "mcp:write"],
+    "pkce": true,
+    "refreshTokens": false,
+    "authorizationUrl": "https://api.whimsical.com/v1/oauth.authorize",
+    "tokenUrl": "https://api.whimsical.com/v1/oauth.token",
+    "revocationUrl": "https://api.whimsical.com/v1/oauth.revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/whimsical/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workspace_knowledge",
+      "label": "Read workspace content",
+      "description": "List workspaces, browse folders, search content, fetch boards or documents, and read comments.",
+      "defaultSelected": true
+    },
+    {
+      "id": "visual_creation",
+      "label": "Create visual work",
+      "description": "Create boards, flowcharts, mind maps, sequence diagrams, wireframes, sticky notes, tables, and documents.",
+      "defaultSelected": true
+    },
+    {
+      "id": "content_management",
+      "label": "Edit and organize content",
+      "description": "Edit boards, documents, wireframes, layouts, files, folders, and comment threads.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "whimsical_mcp_read",
+        "label": "Read Whimsical content",
+        "description": "Use one documented Whimsical workspace, file, folder, search, or comment read tool."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "whimsical_mcp_write",
+        "label": "Create or change Whimsical content",
+        "description": "Create or edit files, visual objects, layouts, folders, documents, or comments; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "whimsical_safe",
+      "label": "Safe",
+      "description": "Workspace, folder, file, search, and comment reads run directly; content and comment changes require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["whimsical_mcp_read"],
+      "approvalRequiredActions": ["whimsical_mcp_write"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized Whimsical MCP operation runs without Relay per-action approval; ownership, provider permissions, exact tool allowlists, live schemas, bounds, audits, and redaction still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["whimsical_mcp_read", "whimsical_mcp_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts exact Whimsical read and write wrappers and proxies user OAuth to Whimsical's hosted MCP."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts exact Whimsical read and write wrappers and proxies user OAuth to Whimsical's hosted MCP."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay's dynamically registered public PKCE client, exact Railway callback, and non-secret Railway client ID are configured, but no signed-in Whimsical user was available to complete production OAuth and MCP acceptance.",
+    "nextAction": "A Whimsical user clicks Connect, approves profile plus MCP read and write access, then Relay verifies the exact tool surface, bounded reads, Safe write denial, an approved or Dangerous create-edit-comment lifecycle, upstream revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://whimsical.com/learn/integrations/mcp",
+      "checkedAt": "2026-07-14",
+      "supports": "Whimsical documents its hosted MCP at https://mcp.whimsical.com/mcp, OAuth connection with a Whimsical account, and read and write access for compatible clients."
+    },
+    {
+      "url": "https://whimsical.com/learn/ai/mcp-tools",
+      "checkedAt": "2026-07-14",
+      "supports": "Whimsical lists eleven current MCP tools for search, fetch, creation, document creation, editing, wireframe editing, layout, folder browsing, workspace listing, and comment work."
+    },
+    {
+      "url": "https://mcp.whimsical.com/.well-known/oauth-protected-resource",
+      "checkedAt": "2026-07-14",
+      "supports": "Whimsical publishes the hosted MCP resource and profile, mcp:read, and mcp:write scopes."
+    },
+    {
+      "url": "https://mcp.whimsical.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-14",
+      "supports": "Whimsical publishes OAuth authorization, token, dynamic registration, and revocation endpoints with authorization code, public-client authentication, and required S256 PKCE."
+    },
+    {
+      "url": "https://whimsical.com/",
+      "checkedAt": "2026-07-14",
+      "supports": "Whimsical describes its product as a collaborative workspace for diagrams, flowcharts, mind maps, wireframes, whiteboards, documents, and product planning."
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "final-release-acceptance.schema.json",
+  "title": "Relay Console final release acceptance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "releaseId", "sourceCommit", "railwayDeploymentId",
+    "vercelDeploymentId", "completedAt", "gates"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.final-release-acceptance.v1" },
+    "releaseId": { "type": "string", "minLength": 1 },
+    "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "railwayDeploymentId": { "type": "string", "minLength": 1 },
+    "vercelDeploymentId": { "type": "string", "minLength": 1 },
+    "completedAt": { "type": "string", "format": "date-time" },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bridgeHosts", "billing", "marketplace", "railwayOperations",
+        "macOSDistribution", "iOSDistribution", "accountLifecycle",
+        "publicSurfaces", "humanGoNoGo"
+      ],
+      "properties": {
+        "bridgeHosts": { "$ref": "#/$defs/gate" },
+        "billing": { "$ref": "#/$defs/gate" },
+        "marketplace": { "$ref": "#/$defs/gate" },
+        "railwayOperations": { "$ref": "#/$defs/railwayOperationsGate" },
+        "macOSDistribution": { "$ref": "#/$defs/gate" },
+        "iOSDistribution": { "$ref": "#/$defs/gate" },
+        "accountLifecycle": { "$ref": "#/$defs/gate" },
+        "publicSurfaces": { "$ref": "#/$defs/gate" },
+        "humanGoNoGo": { "$ref": "#/$defs/humanGate" }
+      }
+    }
+  },
+  "$defs": {
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "verifiedAt", "reviewer", "evidenceURL"],
+      "properties": {
+        "passed": { "const": true },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "evidenceURL": { "type": "string", "pattern": "^https://" }
+      }
+    },
+    "humanGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "verifiedAt", "reviewer", "evidenceURL", "residualRiskAccepted"],
+      "properties": {
+        "passed": { "const": true },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "reviewer": { "type": "string", "minLength": 1 },
+        "evidenceURL": { "type": "string", "pattern": "^https://" },
+        "residualRiskAccepted": { "const": true }
+      }
+    },
+    "railwayOperationsGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passed", "verifiedAt", "reviewer", "reviewerRole", "controls",
+        "releaseEvidence", "evidenceURLs", "privacy"
+      ],
+      "properties": {
+        "passed": { "const": true },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "reviewer": { "$ref": "#/$defs/nonPlaceholder" },
+        "reviewerRole": { "$ref": "#/$defs/nonPlaceholder" },
+        "controls": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "stagingProductionSeparated", "deploymentsUseBackendRoot",
+            "migrationsRunOnStartup", "strongSecretsReviewed",
+            "automatedBackupsEnabled", "monitoringActive",
+            "allRequiredSignalsMonitored", "alertRecipientConfigured",
+            "testAlertReceived", "spendAlertsConfigured",
+            "capacityLimitsConfigured", "statusPageOperational",
+            "incidentOwnerAssigned", "backupRestoreDrillPassed",
+            "backendRollbackDrillPassed", "marketplaceKillSwitchDrillPassed"
+          ],
+          "properties": {
+            "stagingProductionSeparated": { "const": true },
+            "deploymentsUseBackendRoot": { "const": true },
+            "migrationsRunOnStartup": { "const": true },
+            "strongSecretsReviewed": { "const": true },
+            "automatedBackupsEnabled": { "const": true },
+            "monitoringActive": { "const": true },
+            "allRequiredSignalsMonitored": { "const": true },
+            "alertRecipientConfigured": { "const": true },
+            "testAlertReceived": { "const": true },
+            "spendAlertsConfigured": { "const": true },
+            "capacityLimitsConfigured": { "const": true },
+            "statusPageOperational": { "const": true },
+            "incidentOwnerAssigned": { "const": true },
+            "backupRestoreDrillPassed": { "const": true },
+            "backendRollbackDrillPassed": { "const": true },
+            "marketplaceKillSwitchDrillPassed": { "const": true }
+          }
+        },
+        "releaseEvidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "railwayTopologySHA256", "railwayConfigurationSHA256",
+            "publicSurfacesSHA256", "productionSmokeSHA256",
+            "failureRecoverySHA256"
+          ],
+          "properties": {
+            "railwayTopologySHA256": { "$ref": "#/$defs/sha256" },
+            "railwayConfigurationSHA256": { "$ref": "#/$defs/sha256" },
+            "publicSurfacesSHA256": { "$ref": "#/$defs/sha256" },
+            "productionSmokeSHA256": { "$ref": "#/$defs/sha256" },
+            "failureRecoverySHA256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "evidenceURLs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "environmentSeparation", "secretReview", "backups",
+            "monitoringAndAlert", "costControls", "statusAndIncident",
+            "productionDrills"
+          ],
+          "properties": {
+            "environmentSeparation": { "type": "string", "pattern": "^https://" },
+            "secretReview": { "type": "string", "pattern": "^https://" },
+            "backups": { "type": "string", "pattern": "^https://" },
+            "monitoringAndAlert": { "type": "string", "pattern": "^https://" },
+            "costControls": { "type": "string", "pattern": "^https://" },
+            "statusAndIncident": { "type": "string", "pattern": "^https://" },
+            "productionDrills": { "type": "string", "pattern": "^https://" }
+          }
+        },
+        "privacy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "credentialsIncluded", "secretValuesIncluded",
+            "customerContentIncluded", "customerIdentifiersIncluded",
+            "rawCommandOutputIncluded"
+          ],
+          "properties": {
+            "credentialsIncluded": { "const": false },
+            "secretValuesIncluded": { "const": false },
+            "customerContentIncluded": { "const": false },
+            "customerIdentifiersIncluded": { "const": false },
+            "rawCommandOutputIncluded": { "const": false }
+          }
+        }
+      }
+    },
+    "nonPlaceholder": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!.*[<>])(?!pending$)(?!tbd$).+$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

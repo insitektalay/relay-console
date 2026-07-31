@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoom-rooms",
+  "name": "Zoom Rooms",
+  "category": "communication",
+  "description": "Zoom Rooms provides software-based meeting-room systems for conferencing, wireless sharing, device management, calendars, signage, and room control.",
+  "agentUseSummary": "Connect a customer-owned Server-to-Server OAuth app with one granular list scope, then inspect one bounded page of anonymous Zoom Rooms fleet-health metadata.",
+  "provider": {
+    "websiteUrl": "https://www.zoom.com/en/products/meeting-rooms/",
+    "docsUrl": "https://developers.zoom.us/docs/api/rooms/",
+    "developerConsoleUrl": "https://marketplace.zoom.us/develop/create",
+    "termsUrl": "https://explore.zoom.us/en/terms/",
+    "privacyUrl": "https://explore.zoom.us/en/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["zoom_rooms:read:list_rooms:admin"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://zoom.us/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_server_to_server_oauth",
+      "anonymous_room_fleet_health"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ZOOM_ROOMS_ACCOUNT_ID",
+        "label": "Zoom account ID",
+        "required": true,
+        "secret": false
+      },
+      {
+        "name": "ZOOM_ROOMS_CLIENT_ID",
+        "label": "Zoom Server-to-Server OAuth client ID",
+        "required": true,
+        "secret": false
+      },
+      {
+        "name": "ZOOM_ROOMS_CLIENT_SECRET",
+        "label": "Zoom Server-to-Server OAuth client secret",
+        "required": true,
+        "secret": true
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "fleet_health",
+      "label": "Read anonymous fleet health",
+      "description": "Inspect bounded Zoom Rooms availability and type metadata without room identity or controls.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "zoom_rooms_fleet_list",
+        "label": "List room fleet health",
+        "description": "List one bounded page of anonymous Zoom Rooms status and type metadata."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "zoom_rooms_private_identity",
+        "label": "Room identity",
+        "description": "Room names, activation codes, room/location/user/calendar IDs, tag IDs, device IDs, IP addresses, serials, MAC addresses, and raw records are not returned."
+      },
+      {
+        "id": "zoom_rooms_controls",
+        "label": "Room controls",
+        "description": "Meeting start, join, invite, leave, end, mute, unmute, restart, shutdown, signage, alerts, and other room controls are not exposed."
+      },
+      {
+        "id": "zoom_rooms_settings_content",
+        "label": "Settings and content",
+        "description": "Meeting and phone passwords, calendars, device profiles, room settings, sensor data, recordings, participants, content, and communications data are not exposed."
+      },
+      {
+        "id": "zoom_rooms_mutation_raw",
+        "label": "Changes and raw API",
+        "description": "Room, device, location, tag, calendar, app, firmware, settings, and E911 changes plus arbitrary paths, filters, cursors, origins, and raw tokens are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zoom_rooms_safe",
+      "label": "Safe",
+      "description": "Every organization-wide Zoom Rooms fleet-health read requires matching Relay approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["zoom_rooms_fleet_list"],
+      "blockedActions": [
+        "zoom_rooms_private_identity",
+        "zoom_rooms_controls",
+        "zoom_rooms_settings_content",
+        "zoom_rooms_mutation_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected anonymous fleet reads run without Relay per-action approval while fixed origins, endpoint, bound, redaction, audit, scope, account roles, licensing, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["zoom_rooms_fleet_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zoom_rooms_private_identity",
+        "zoom_rooms_controls",
+        "zoom_rooms_settings_content",
+        "zoom_rooms_mutation_raw"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware anonymous Zoom Rooms fleet tool and obtains short-lived account tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware anonymous Zoom Rooms fleet tool and obtains short-lived account tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer administrator must create and activate a Server-to-Server OAuth app with only zoom_rooms:read:list_rooms:admin and provide encrypted credentials; a Zoom Rooms license is also required.",
+    "nextAction": "Configure the dedicated customer app and Railway credentials, verify licensing and account role, exercise Safe denial/approval and Dangerous reads, verify renewal/revocation, deploy through the integration lane, and run live acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.zoom.us/docs/api/rooms/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom documents GET /v2/rooms, a bounded page size, room status/type fields, the Zoom Rooms license prerequisite, and separate control and administration APIs."
+    },
+    {
+      "url": "https://developers.zoom.us/docs/integrations/oauth-scopes-granular/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom maps List Zoom Rooms to zoom_rooms:read:list_rooms:admin and separates profile, device, location, settings, calendar, sensor, tag, control, and mutation scopes."
+    },
+    {
+      "url": "https://developers.zoom.us/changelog/rooms/march-09-2026/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom added meeting and phone password fields to settings endpoints in March 2026; Relay excludes all room-settings and credential surfaces."
+    }
+  ]
+}

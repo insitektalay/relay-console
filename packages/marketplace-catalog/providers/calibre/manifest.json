@@ -1,0 +1,173 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "calibre",
+  "name": "Calibre",
+  "category": "knowledge_documents",
+  "description": "Calibre is an open-source application for organizing and reading ebook libraries. It provides desktop library management, format conversion, ebook editing, device sync, and an optional browser-accessible Content server.",
+  "agentUseSummary": "Connect a customer-operated Calibre Content server at one exact public HTTPS origin with a dedicated Basic-auth account, selected library ID, and selected book ID. Relay exposes only the selected book ID, selected library ID, added and modified timestamps, and format count while blocking all private book metadata and content, lists, search, OPDS browsing, downloads, uploads, conversions, edits, deletes, server administration, filesystem access, process control, local execution, and broader access.",
+  "provider": {
+    "websiteUrl": "https://calibre-ebook.com/",
+    "docsUrl": "https://manual.calibre-ebook.com/server.html",
+    "developerConsoleUrl": null,
+    "termsUrl": null,
+    "privacyUrl": null
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": ["selected_library_read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_operated_content_server",
+      "public_https_basic_auth",
+      "dedicated_restricted_user",
+      "selected_library",
+      "selected_book"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CALIBRE_SERVER_ORIGIN",
+        "label": "Calibre Content server HTTPS origin",
+        "required": true,
+        "secret": false,
+        "helpText": "One exact public HTTPS origin serving Calibre at the root with Basic authentication enabled; paths, embedded credentials, private hosts, and nonstandard ports are rejected."
+      },
+      {
+        "name": "CALIBRE_USERNAME",
+        "label": "Calibre read-only username",
+        "required": true,
+        "secret": false,
+        "helpText": "A dedicated Calibre Content server user restricted to the selected library and book where supported."
+      },
+      {
+        "name": "CALIBRE_PASSWORD",
+        "label": "Calibre password",
+        "required": true,
+        "secret": true,
+        "helpText": "The dedicated user's password; Relay encrypts it and sends it only through HTTPS Basic authentication to the configured origin."
+      },
+      {
+        "name": "CALIBRE_LIBRARY_ID",
+        "label": "Selected library ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact library ID containing the selected book."
+      },
+      {
+        "name": "CALIBRE_BOOK_ID",
+        "label": "Selected book ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The positive numeric ID of the single book Relay may inspect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "calibre_selected_book_lifecycle_get",
+      "label": "Read selected book lifecycle",
+      "description": "Read only the selected book ID, selected library ID, added and modified timestamps, and format count without title, author, comments, identifiers, tags, cover, files, download URLs, custom metadata, or reading state.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "calibre_selected_book_lifecycle_get",
+        "label": "Read selected book lifecycle",
+        "description": "Read only the selected book ID, selected library ID, added and modified timestamps, and format count."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "calibre_private_metadata_content",
+        "label": "Expose private book metadata or content",
+        "description": "Titles, authors, comments, identifiers, tags, publishers, languages, series, ratings, custom fields, covers, book files, download URLs, and reading state are excluded."
+      },
+      {
+        "id": "calibre_mutation",
+        "label": "Mutate Calibre or library state",
+        "description": "Uploads, downloads, conversions, metadata edits, deletes, user management, server configuration, process control, filesystem access, and every other mutation are blocked."
+      },
+      {
+        "id": "calibre_broad_access",
+        "label": "Use broad Calibre access",
+        "description": "Other books or libraries, lists, categories, search, OPDS browsing, arbitrary paths or queries, redirects, bulk access, and local library discovery are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "calibre_read_only",
+      "label": "Read Only",
+      "description": "Read one selected book's lifecycle summary; private metadata, book content, broader access, local execution, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["calibre_selected_book_lifecycle_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "calibre_private_metadata_content",
+        "calibre_mutation",
+        "calibre_broad_access"
+      ]
+    },
+    {
+      "id": "calibre_no_access",
+      "label": "No Access",
+      "description": "Expose no Calibre actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "calibre_selected_book_lifecycle_get",
+        "calibre_private_metadata_content",
+        "calibre_mutation",
+        "calibre_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted Content server credentials and selected IDs and mounts exactly one fixed-path projected read."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted Content server credentials and selected IDs and mounts exactly one fixed-path projected read."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A customer-operated Calibre staging Content server at a public root HTTPS origin, Basic-auth mode, dedicated restricted user, and exact library/book IDs are required. No authorized server or credentials are available in this worker lane.",
+    "nextAction": "The external setup lane must nominate a staging Content server, enable HTTPS and Basic auth, create a dedicated restricted user, capture credentials and selected IDs directly in Railway, then validate the projected read, public-host and fixed-path enforcement, private-field redaction, authentication failure, password rotation, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://manual.calibre-ebook.com/server.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Calibre documents the Content server for browser access to libraries, username/password protection for internet access, HTTPS as the maximum-security setup, reverse-proxy deployment, Basic-auth mode under SSL, and user permissions."
+    },
+    {
+      "url": "https://github.com/kovidgoyal/calibre/blob/master/src/calibre/srv/ajax.py",
+      "checkedAt": "2026-07-18",
+      "supports": "Calibre's official source defines GET /ajax/book/{book_id}/{library_id} as a selected-book JSON endpoint and supports category_urls=false; the implementation verifies the requested numeric book and the authenticated user's allowed IDs."
+    },
+    {
+      "url": "https://github.com/kovidgoyal/calibre/blob/master/src/calibre/ebooks/metadata/book/__init__.py",
+      "checkedAt": "2026-07-18",
+      "supports": "Calibre's official metadata source documents the private and publication fields returned for books, including title, authors, comments, identifiers, tags, timestamps, custom metadata, application ID, and formats; Relay retains only lifecycle timestamps, selected IDs, and a format count."
+    }
+  ]
+}

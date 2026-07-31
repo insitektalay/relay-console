@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "sched", "name": "Sched", "category": "communication",
+  "description": "Sched is an event scheduling and audience-engagement platform for managing sessions, speakers, sponsors, exhibitors, attendee agendas, registration, check-in, communications and event websites and apps.",
+  "agentUseSummary": "Sched is visible as a security-review preview. Relay will not connect while the documented API transmits an event API key in URL query strings and lacks a scoped multi-event authorization lifecycle.",
+  "provider": { "websiteUrl": "https://sched.com/", "docsUrl": "https://sched.com/api", "developerConsoleUrl": null, "termsUrl": "https://sched.com/terms/", "privacyUrl": "https://sched.com/privacy/" },
+  "authentication": { "model": "unsupported", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": { "types": ["legacy_query_api_key", "event_scoped_key", "security_review_required"], "credentialRequirements": [], "callbackPath": null, "webhookRequirements": [] },
+  "capabilities": [{ "id": "schedule_access", "label": "Access authorized schedule data", "description": "If Sched publishes a header-based scoped contract, expose only reviewed schedule capabilities for the selected event.", "defaultSelected": true }],
+  "actions": { "allowed": [], "approvalRequired": [], "blocked": [
+    { "id": "sched_query_key", "label": "Send API keys in URLs", "description": "Relay will not place an event API key in URL query strings where logs, intermediaries or diagnostics can retain it." },
+    { "id": "sched_people_data", "label": "Expose attendee and speaker data", "description": "Attendee, speaker, sponsor, exhibitor, profile, registration and check-in data are unavailable." },
+    { "id": "sched_mutations", "label": "Run Sched mutations", "description": "Session, speaker, user, sponsor, exhibitor, venue and other writes are unavailable." },
+    { "id": "sched_runtime_before_review", "label": "Run Sched actions before security review", "description": "No export or mutation is callable until Sched documents secure header authentication, scopes, key lifecycle, limits and distribution terms." }
+  ] },
+  "approvalProfiles": [{ "id": "sched_security_review", "label": "Security review required", "description": "Connection, installation and agent actions remain unavailable under Sched's current URL-query API-key contract.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": [], "blockedActions": ["sched_query_key", "sched_people_data", "sched_mutations", "sched_runtime_before_review"] }],
+  "riskLevel": "high", "runtimeSupport": [{ "format": "openclaw", "installSupport": "preview_only", "description": "No OpenClaw tools are callable under Sched's current query-key contract." }, { "format": "hermes", "installSupport": "preview_only", "description": "No Hermes tools are callable under Sched's current query-key contract." }],
+  "availability": "deferred", "providerSetup": { "status": "blocked", "blocker": "Sched's official API reference sends the per-event secret in the api_key URL query parameter. The public materials do not document header authentication, scopes, rotation/revocation semantics, cross-event tenant binding or a distributable third-party authorization flow.", "nextAction": "Ask Sched for a production header-based authorization contract with event/tenant scopes, key lifecycle, rate limits and third-party distribution terms. Re-run product and security review after publication." },
+  "evidence": [
+    { "url": "https://sched.com/api", "checkedAt": "2026-07-17", "supports": "Sched's official API reference documents event API methods and examples that include the secret api_key directly in the URL query string." },
+    { "url": "https://support.sched.com/knowledge/api-overview", "checkedAt": "2026-07-17", "supports": "Sched describes its API as an organizer integration surface and directs customers to event-specific API access." },
+    { "url": "https://support.sched.com/knowledge/add-speakers", "checkedAt": "2026-07-17", "supports": "Sched instructs organizers to obtain an event API key from the speaker export area and documents API-based speaker creation, demonstrating both people-data and mutation authority." }
+  ]
+}

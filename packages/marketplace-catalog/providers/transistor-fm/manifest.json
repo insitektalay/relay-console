@@ -1,0 +1,182 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "transistor-fm",
+  "name": "Transistor.fm",
+  "category": "content_creative",
+  "description": "Transistor.fm is a podcast hosting, publishing, private-podcast, analytics, and distribution platform. Creators and teams use it to manage shows and episodes, serve public or private feeds, and understand audience downloads.",
+  "agentUseSummary": "Enter an API key and exact show ID from the customer's own Transistor account, then let agents inspect redacted show metadata, bounded episode records, and aggregate downloads under Safe or Dangerous read-only policy.",
+  "provider": {
+    "websiteUrl": "https://transistor.fm/",
+    "docsUrl": "https://developers.transistor.fm/",
+    "developerConsoleUrl": "https://dashboard.transistor.fm/account",
+    "termsUrl": "https://transistor.fm/terms/",
+    "privacyUrl": "https://transistor.fm/privacy/"
+  },
+  "authentication": {
+    "model": "api_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "TRANSISTOR_API_KEY",
+        "label": "Transistor API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a resettable API key from the customer's Transistor account."
+      },
+      {
+        "name": "TRANSISTOR_SHOW_ID",
+        "label": "Transistor show ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one show ID or slug the key can access."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "show_read",
+      "label": "Read connected show",
+      "description": "Read redacted metadata for the exact show.",
+      "defaultSelected": true
+    },
+    {
+      "id": "episode_read",
+      "label": "Read episodes",
+      "description": "Read bounded protected episode records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "analytics",
+      "label": "Read analytics",
+      "description": "Read bounded aggregate show or episode downloads.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "transistor_show_read",
+        "label": "Read connected show",
+        "description": "Read redacted metadata for the exact connected show."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "transistor_episode_read",
+        "label": "Read episodes",
+        "description": "List or inspect bounded episode records, including drafts and scheduled episodes."
+      },
+      {
+        "id": "transistor_analytics_read",
+        "label": "Read analytics",
+        "description": "Read bounded aggregate show or episode download analytics."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "transistor_publishing",
+        "label": "Publish or change content",
+        "description": "Show and episode creation, update, scheduling, publication, unpublication, and deletion are outside the read-only V1 contract."
+      },
+      {
+        "id": "transistor_subscribers",
+        "label": "Access private subscribers",
+        "description": "Subscriber emails, private feed URLs, access grants, notifications, and subscriber administration are blocked."
+      },
+      {
+        "id": "transistor_uploads_webhooks",
+        "label": "Upload files or manage webhooks",
+        "description": "Presigned uploads, local-file transfer, and webhook reads or mutations are blocked."
+      },
+      {
+        "id": "transistor_raw_api",
+        "label": "Use arbitrary Transistor APIs",
+        "description": "Arbitrary paths, browser automation, caller-selected origins, and undocumented endpoints are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "transistor_safe",
+      "label": "Safe",
+      "description": "Redacted exact-show metadata runs directly; protected episode and analytics reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["transistor_show_read"],
+      "approvalRequiredActions": [
+        "transistor_episode_read",
+        "transistor_analytics_read"
+      ],
+      "blockedActions": [
+        "transistor_publishing",
+        "transistor_subscribers",
+        "transistor_uploads_webhooks",
+        "transistor_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected read-only actions run without Relay per-action approval while exact-show binding, key secrecy, fixed origin, bounds, redaction, audits, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "transistor_show_read",
+        "transistor_episode_read",
+        "transistor_analytics_read"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "transistor_publishing",
+        "transistor_subscribers",
+        "transistor_uploads_webhooks",
+        "transistor_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected read-only Transistor tools and injects the encrypted API key plus exact show binding server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected read-only Transistor tools and injects the encrypted API key plus exact show binding server-side."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer Transistor API key, exact show ID, eligible account, or signed-in provider session is available for production acceptance.",
+    "nextAction": "Reset or copy an API key from the customer's own Transistor account, choose one show ID or slug, connect both values in Relay Console, then verify exact-show binding, private-feed and owner-email redaction, bounded episode and analytics reads, Safe denial, key rotation, and disconnect. Publishing, subscribers, uploads, and webhooks remain outside V1."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.transistor.fm/",
+      "checkedAt": "2026-07-17",
+      "supports": "Transistor publishes a JSON:API contract using header API keys, role-inherited account permissions, a fixed API origin, show and episode reads, aggregate analytics, publishing, private subscribers, uploads, and webhooks with a ten-requests-per-ten-seconds limit."
+    },
+    {
+      "url": "https://support.transistor.fm/en/category/integrations-yuos5a/",
+      "checkedAt": "2026-07-17",
+      "supports": "Transistor documents supported integrations and API-driven workflows for customer podcast accounts."
+    },
+    {
+      "url": "https://support.transistor.fm/en/article/are-transistors-stats-iab-compliant-12u141c/",
+      "checkedAt": "2026-07-17",
+      "supports": "Transistor describes its podcast download statistics and IAB-aligned analytics context."
+    }
+  ]
+}

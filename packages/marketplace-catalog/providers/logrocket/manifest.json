@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "logrocket",
+  "name": "LogRocket",
+  "category": "developer",
+  "description": "LogRocket is a digital experience analytics platform for session replay, issue investigation, product analytics, and frontend monitoring.",
+  "agentUseSummary": "Connect one exact LogRocket project with a customer-owned project API key, then let agents query only the provider's read-only find_issues MCP tool under approval. Relay excludes sessions, replay watching, metrics, Galileo, account discovery, writes, exports, and raw MCP access.",
+  "provider": {
+    "websiteUrl": "https://logrocket.com/",
+    "docsUrl": "https://docs.logrocket.com/docs/mcp",
+    "developerConsoleUrl": "https://app.logrocket.com/",
+    "termsUrl": "https://logrocket.com/terms/",
+    "privacyUrl": "https://logrocket.com/privacy/"
+  },
+  "authentication": {
+    "model": "remote_mcp_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "mcp",
+      "customer_owned_project_api_key",
+      "exact_project_path",
+      "issues_toolset_only",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "LOGROCKET_API_KEY",
+        "label": "LogRocket project API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated project-scoped API key in LogRocket Settings > API Keys and store it only through Relay's encrypted connection flow."
+      },
+      {
+        "name": "LOGROCKET_ORGANIZATION_ID",
+        "label": "LogRocket organization ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the organization component from the exact project App ID."
+      },
+      {
+        "name": "LOGROCKET_PROJECT_ID",
+        "label": "LogRocket project ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the project component from the exact project App ID."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "project_issues_find",
+      "label": "Find project issues",
+      "description": "Query one exact project's issue summaries through LogRocket's issues-only MCP toolset.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "logrocket_find_issues",
+        "label": "Find project issues",
+        "description": "Call only the dynamically described find_issues tool against one exact project-scoped LogRocket issues endpoint."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "logrocket_session_data",
+        "label": "Access session recordings",
+        "description": "Session discovery, replay watching, user/account targeting, console logs, network bodies, DOM content, and session URLs are blocked."
+      },
+      {
+        "id": "logrocket_metrics_galileo",
+        "label": "Use metrics or Galileo",
+        "description": "Metrics, natural-language Galileo queries, generated investigations, funnels, heatmaps, dashboards, and arbitrary analytics are blocked."
+      },
+      {
+        "id": "logrocket_broader_account",
+        "label": "Access broader LogRocket account data",
+        "description": "Organization/project discovery, other projects, users, roles, settings, API keys, audit data, exports, integrations, and administration are blocked."
+      },
+      {
+        "id": "logrocket_raw_mcp",
+        "label": "Use raw or broad MCP access",
+        "description": "Raw tool names, tool discovery, unrestricted toolsets, custom MCP origins, pagination, polling, retries, batches, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "logrocket_issues_safe",
+      "label": "Safe",
+      "description": "The one project-scoped issue query requires approval; session replay, metrics, Galileo, discovery, administration, exports, and raw MCP remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["logrocket_find_issues"],
+      "blockedActions": [
+        "logrocket_session_data",
+        "logrocket_metrics_galileo",
+        "logrocket_broader_account",
+        "logrocket_raw_mcp"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The one project-scoped issue query runs without Relay per-action approval; exact project binding, issues-only toolset, dynamic schema check, encrypted key, output bounds, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["logrocket_find_issues"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "logrocket_session_data",
+        "logrocket_metrics_galileo",
+        "logrocket_broader_account",
+        "logrocket_raw_mcp"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned project API key to one exact issues-only MCP endpoint and one approval-gated find_issues wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned project API key to one exact issues-only MCP endpoint and one approval-gated find_issues wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer administrator must select one project, create a dedicated project-scoped LogRocket API key, and supply the exact organization/project App ID components. No account, key creation, credential capture, live MCP session, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized LogRocket administrator creates a dedicated API key for one project in Settings > API Keys and stores it with the exact project App ID through Relay's encrypted flow. They then separately verify issues-only tool discovery, one approved query, rate limits, key regeneration/revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.logrocket.com/docs/mcp",
+      "checkedAt": "2026-07-17",
+      "supports": "LogRocket documents its hosted MCP endpoint, organization/project path scoping, toolset filtering, the exact find_issues tool, OAuth and Bearer API-key authentication, and project-scoped API keys. Relay fixes the URL to one exact project with toolsets=issues and exposes no other remote tool."
+    },
+    {
+      "url": "https://docs.logrocket.com/docs/security",
+      "checkedAt": "2026-07-17",
+      "supports": "LogRocket states that REST API access requires a customer-regenerable access key and describes encryption, request authorization, payload restrictions, rate limiting, logging, SSO, and two-factor support."
+    },
+    {
+      "url": "https://docs.logrocket.com/docs/data-collected",
+      "checkedAt": "2026-07-17",
+      "supports": "LogRocket documents that session recording can contain DOM interaction, network request/response data, performance data, console logs, and application state. Relay therefore blocks session discovery and watching instead of exposing the broad sessions MCP toolset."
+    }
+  ]
+}

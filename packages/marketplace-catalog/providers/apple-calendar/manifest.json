@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "apple-calendar",
+  "name": "Apple Calendar",
+  "category": "work_management",
+  "description": "Apple Calendar is Apple's calendar application and iCloud-backed scheduling service for calendars, events, invitations, attendees, recurrence, availability, alerts, and shared calendars.",
+  "agentUseSummary": "Apple Calendar cannot yet be connected through Relay. Apple documents native EventKit access with per-device user permission and separately supports account authorization or an app-specific password for compatible third-party iCloud Calendar clients, but it publishes no Relay-ready server API, Calendar OAuth scope, enrollment path, or frozen CalDAV lifecycle contract; the product must choose and validate an authority architecture first.",
+  "provider": {
+    "websiteUrl": "https://www.icloud.com/calendar/",
+    "docsUrl": "https://developer.apple.com/documentation/eventkit/accessing-calendar-using-eventkit-and-eventkitui",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.apple.com/legal/internet-services/icloud/",
+    "privacyUrl": "https://www.apple.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "native_eventkit_candidate",
+      "per_device_user_permission",
+      "supported_third_party_account_authorization_candidate",
+      "app_specific_password_fallback_rejected",
+      "no_published_calendar_server_api",
+      "architecture_decision_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "apple_calendar_connection",
+        "label": "Connect Apple Calendar",
+        "description": "Connect remains unavailable until Relay selects and accepts a supported native or delegated server authority model."
+      },
+      {
+        "id": "apple_calendar_credentials",
+        "label": "Collect Apple credentials",
+        "description": "Apple Account passwords, app-specific passwords, verification codes, cookies, session tokens, and private framework material are never collected."
+      },
+      {
+        "id": "apple_calendar_reads",
+        "label": "Read calendars and events",
+        "description": "Calendars, events, attendees, invitations, recurrence, availability, locations, notes, URLs, and alarms remain unavailable."
+      },
+      {
+        "id": "apple_calendar_mutations_raw",
+        "label": "Change calendars or use raw interfaces",
+        "description": "Creating, updating, deleting, responding to, or inviting through events, private CalDAV discovery, scraping, device automation, arbitrary endpoints, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "apple_calendar_unavailable",
+      "label": "Unavailable",
+      "description": "No Apple Calendar action is enabled before a supported authority architecture and representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "apple_calendar_connection",
+        "apple_calendar_credentials",
+        "apple_calendar_reads",
+        "apple_calendar_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Apple Calendar wrapper is mounted before the local-versus-server authority architecture is frozen."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Apple Calendar wrapper is mounted before the local-versus-server authority architecture is frozen."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Apple's documented native EventKit path runs inside an Apple-platform app and requires explicit per-device calendar permission and sandbox entitlements. Apple's current support guidance also allows compatible third-party apps to authorize iCloud Calendar access with an Apple Account, or fall back to a broad app-specific password, but public developer documentation does not identify Calendar scopes, REST or CalDAV endpoints, client registration, token lifecycle, quotas, or server-to-server semantics for that supported-app flow.",
+    "nextAction": "The product and security owners should select either a Mac-local EventKit connector with an explicit runtime boundary or a provider-approved server authorization contract. The exclusive acceptance task must then obtain Apple entitlement or enrollment evidence, run consent on a representative account, verify exact calendar-only authority, revocation, schemas, recurrence, invitations, quotas, offline behavior, and disconnect denial, and return the frozen contract before implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.apple.com/documentation/eventkit/accessing-calendar-using-eventkit-and-eventkitui",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple documents native EventKit calendar access and requires applications to request the specific user authorization level they need, with calendar usage descriptions in the app bundle."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/eventkit/accessing-the-event-store",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple states sandboxed macOS apps need the personal-information calendars entitlement to access Calendar data, establishing a local app permission model rather than a Railway server API."
+    },
+    {
+      "url": "https://support.apple.com/en-us/121539",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple states compatible third-party apps can request Apple Account authorization for iCloud Calendar and users can revoke access through Account Data Sharing, but does not publish a Calendar developer scope or endpoint contract on that page."
+    },
+    {
+      "url": "https://support.apple.com/en-us/102654",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple documents app-specific passwords as a fallback for apps accessing iCloud Mail, Calendar, and Contacts, requires two-factor authentication, permits up to 25 credentials, and supports individual or global revocation; the credential is not calendar-scoped."
+    }
+  ]
+}

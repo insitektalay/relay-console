@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "any-do",
+  "name": "Any.do",
+  "category": "work_management",
+  "description": "Any.do is a productivity platform for personal planning, family organization, and team work. It combines tasks, lists, reminders, recurring routines, calendars, shared boards, project sections, assignments, and grocery planning across web, desktop, and mobile apps.",
+  "agentUseSummary": "Connect an Any.do account once, then select which agents can read or manage its authorized tasks, reminders, calendars, boards, and lists through Any.do's hosted MCP under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.any.do/",
+    "docsUrl": "https://support.any.do/en/articles/15505097-any-do-mcp",
+    "developerConsoleUrl": "https://mcp.any.do/.well-known/oauth-authorization-server",
+    "termsUrl": "https://www.any.do/terms",
+    "privacyUrl": "https://www.any.do/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["access_anydo_data", "update_anydo_data"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://mcp.any.do/authorize",
+    "tokenUrl": "https://mcp.any.do/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/any-do/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "productivity_read",
+      "label": "Read tasks, plans, and calendars",
+      "description": "Read personal tasks and lists, reminders, workspace boards and sections, calendar events, and grocery lists authorized by the connected account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "productivity_manage",
+      "label": "Manage tasks, plans, and calendars",
+      "description": "Create, update, complete, archive, or delete authorized tasks; manage reminders, workspace boards, calendar events, and grocery items through live-discovered provider tools.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "any_do_mcp_read",
+        "label": "Read Any.do",
+        "description": "Use one live-discovered non-mutating Any.do MCP tool with bounded arguments."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "any_do_mcp_manage",
+        "label": "Manage Any.do",
+        "description": "Use one live-discovered Any.do MCP tool; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "any_do_safe",
+      "label": "Safe",
+      "description": "Live-discovered reads run directly. Every task, reminder, board, calendar, grocery, sharing, or administrative mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["any_do_mcp_read"],
+      "approvalRequiredActions": ["any_do_mcp_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized Any.do MCP operation runs without Relay per-action approval. Connection ownership, provider authority, live schema discovery, bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["any_do_mcp_read", "any_do_mcp_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway discovers Any.do's live MCP schemas and mounts bounded read and manage wrappers with refreshed OAuth attached only to its fixed hosted endpoint."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway discovers Any.do's live MCP schemas and mounts bounded read and manage wrappers with refreshed OAuth attached only to its fixed hosted endpoint."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay Console's confidential S256 PKCE client is dynamically registered with Any.do and its client ID and secret are stored only on Railway. A signed-in Any.do user is still required for production OAuth and MCP acceptance.",
+    "nextAction": "An Any.do user clicks Connect, approves read and update access, then Relay verifies refresh, live MCP discovery, representative reads, Safe manage denial and approval, Dangerous management, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.any.do/en/articles/15505097-any-do-mcp",
+      "checkedAt": "2026-07-15",
+      "supports": "Any.do documents its hosted OAuth MCP at https://mcp.any.do/sse for tasks, reminders, workspace boards, calendar events, and grocery lists, and states it is available to all Any.do users."
+    },
+    {
+      "url": "https://mcp.any.do/.well-known/oauth-protected-resource/sse",
+      "checkedAt": "2026-07-15",
+      "supports": "Any.do publishes the exact protected SSE resource, Bearer authentication, authorization server, and access_anydo_data plus update_anydo_data scopes."
+    },
+    {
+      "url": "https://mcp.any.do/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-15",
+      "supports": "Any.do publishes authorization, token, and dynamic-registration endpoints with authorization-code, refresh-token, confidential client authentication, and S256 PKCE support."
+    },
+    {
+      "url": "https://support.any.do/en/articles/9760938-any-do-chatgpt",
+      "checkedAt": "2026-07-15",
+      "supports": "Any.do documents user-authorized AI access to read, create, update, delete, remind, recur, and manage calendar data through the same hosted integration surface."
+    }
+  ]
+}

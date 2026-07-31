@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "discord",
+  "name": "Discord",
+  "category": "communication",
+  "description": "Discord is a communications platform organized around servers, channels, messages, communities, voice, video, and apps. Relay's Discord V1 is limited to safe bot identity, one administrator-selected guild, its non-NSFW text-channel metadata, and recent plain-text messages from one selected channel.",
+  "agentUseSummary": "Install the Relay-owned bot into one selected guild so agents can review safe guild/channel metadata and up to twenty-five recent selected-channel text messages through four fixed GET-only wrappers. Self-bots, DMs, other guilds or channels, people and rich message data, search, writes, moderation, commands, Gateway, webhooks, pagination, and raw access are blocked.",
+  "provider": {
+    "websiteUrl": "https://discord.com/",
+    "docsUrl": "https://docs.discord.com/developers/resources/message#get-channel-messages",
+    "developerConsoleUrl": "https://discord.com/developers/applications",
+    "termsUrl": "https://discord.com/terms",
+    "privacyUrl": "https://discord.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["bot"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://discord.com/oauth2/authorize",
+    "botPermissions": "66560",
+    "messageContentPrivilegedIntentRequired": true
+  },
+  "connection": {
+    "types": ["discord_oauth2_bot_install", "relay_owned_bot", "selected_guild", "selected_non_nsfw_text_channel"],
+    "credentialRequirements": ["Relay-owned Discord bot token retained only by Railway", "Relay-owned application ID", "one administrator-verified guild ID", "one verified non-NSFW text-channel ID"],
+    "callbackPath": "/api/v1/marketplace/oauth/discord/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "bot_guild", "label": "Read bot and selected guild", "description": "Review safe identity and guild metadata for the installed Relay bot.", "readOnly": true },
+    { "id": "selected_channels", "label": "Read selected-guild channels", "description": "Review up to twenty-five safe non-NSFW text channels in the selected guild.", "readOnly": true },
+    { "id": "selected_messages", "label": "Read selected-channel messages", "description": "Review up to twenty-five recent plain-text messages in the selected channel.", "readOnly": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "discord_bot_get", "label": "Get Relay bot", "description": "Read the installed Relay bot's safe identity metadata." },
+      { "id": "discord_selected_guild_get", "label": "Get selected guild", "description": "Read safe metadata for the one administrator-selected Discord guild." },
+      { "id": "discord_selected_guild_channels_list", "label": "List selected-guild channels", "description": "Read up to twenty-five safe non-NSFW text-channel metadata records in the selected guild." },
+      { "id": "discord_selected_channel_messages_list", "label": "List selected-channel messages", "description": "Read up to twenty-five recent plain-text messages in the selected non-NSFW text channel." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "discord_user_account_automation", "label": "Automate a user account", "description": "Self-bots, user tokens, and acting as a Discord user are always blocked." },
+      { "id": "discord_dms_other_guilds_channels", "label": "Access broader conversations", "description": "DMs, other guilds or channels, threads, voice, stage, forum, media, and NSFW content are outside V1." },
+      { "id": "discord_people_presence_identities", "label": "Access people data", "description": "Authors, members, users, presence, emails, and other personal identity data are outside V1." },
+      { "id": "discord_mentions_media_reactions_polls", "label": "Access rich message data", "description": "Mentions, attachments, embeds, reactions, polls, components, snapshots, and other rich message data are excluded." },
+      { "id": "discord_search_writes_moderation_admin", "label": "Search, change, or administer Discord", "description": "Search, writes, deletes, moderation, roles, permissions, invites, audit logs, and administration are outside V1." },
+      { "id": "discord_commands_gateway_webhooks", "label": "Use event or command surfaces", "description": "Commands, interactions, Gateway connections, and webhooks are outside V1." },
+      { "id": "discord_pagination_raw", "label": "Use broad or raw access", "description": "Automatic pagination, raw provider requests, RPC, GraphQL, and MCP surfaces are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "discord_safe", "label": "Safe", "description": "Four fixed selected-guild/channel GET reads run automatically; user automation, broader conversations, people and rich message data, search, writes, administration, events, pagination, and raw access remain blocked.", "defaultSelected": true, "allowedActions": ["discord_bot_get", "discord_selected_guild_get", "discord_selected_guild_channels_list", "discord_selected_channel_messages_list"], "approvalRequiredActions": [], "blockedActions": ["discord_user_account_automation", "discord_dms_other_guilds_channels", "discord_people_presence_identities", "discord_mentions_media_reactions_polls", "discord_search_writes_moderation_admin", "discord_commands_gateway_webhooks", "discord_pagination_raw"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The same four reads run without per-action approval; exact bot permissions, selected-guild/channel containment, safe projections, limits, audit, and API controls still apply.", "defaultSelected": false, "allowedActions": ["discord_bot_get", "discord_selected_guild_get", "discord_selected_guild_channels_list", "discord_selected_channel_messages_list"], "approvalRequiredActions": [], "blockedActions": ["discord_user_account_automation", "discord_dms_other_guilds_channels", "discord_people_presence_identities", "discord_mentions_media_reactions_polls", "discord_search_writes_moderation_admin", "discord_commands_gateway_webhooks", "discord_pagination_raw"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "native_wrapper_tools", "description": "Mounts exactly four read-only selected-guild/channel Discord wrapper tools." },
+    { "format": "hermes", "installSupport": "native_wrapper_tools", "description": "Mounts exactly four read-only selected-guild/channel Discord wrapper tools." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A production Relay-owned Discord application/bot, Message Content privileged-intent approval, exact 66560 permissions install, selected guild/channel verification, and staging acceptance remain pending outside this worker lane.",
+    "nextAction": "Configure and review the Relay-owned bot with only View Channels and Read Message History, obtain Message Content approval, then validate one staging guild and one non-NSFW text channel through Railway.",
+    "requiredProviderArtifacts": ["production Discord application ID", "production Discord bot token", "Message Content privileged-intent approval", "bot install with permissions 66560", "one staging guild", "one non-NSFW text channel"]
+  },
+  "evidence": [
+    { "url": "https://docs.discord.com/developers/platform/oauth2-and-permissions", "checkedAt": "2026-07-17", "supports": "Discord documents dedicated bot-token authentication, the bot OAuth2 install scope, guild permissions, and least-privilege guidance." },
+    { "url": "https://docs.discord.com/developers/topics/permissions", "checkedAt": "2026-07-17", "supports": "Discord documents permission bitfields and channel-specific permission overwrites." },
+    { "url": "https://docs.discord.com/developers/resources/message#get-channel-messages", "checkedAt": "2026-07-17", "supports": "Discord documents the GET channel messages endpoint, its 1-100 bound, and View Channel plus Read Message History requirements." },
+    { "url": "https://docs.discord.com/developers/events/gateway#message-content-intent", "checkedAt": "2026-07-17", "supports": "Discord documents Message Content as a privileged intent affecting message content across APIs and requiring approval for verified applications." }
+  ]
+}

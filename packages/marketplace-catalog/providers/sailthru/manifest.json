@@ -1,0 +1,196 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sailthru",
+  "name": "Sailthru",
+  "category": "communication",
+  "description": "Marigold Engage by Sailthru provides audience profiles, lists, content, campaigns, triggered messaging, recommendations, and commerce events.",
+  "agentUseSummary": "Connect a customer-owned API key/secret and non-sensitive staging health list. Relay pins five signed operations: one exact list read runs directly, two exact user/template reads and two preference writes require approval, writes require contact authorization, and subscription or opt-out removal additionally requires double-opt-in evidence.",
+  "provider": {
+    "websiteUrl": "https://www.meetmarigold.com/products/engage-by-sailthru",
+    "docsUrl": "https://getstarted.meetmarigold.com/engagebysailthru/Content/developers/api-basics/technical.html",
+    "developerConsoleUrl": "https://my.sailthru.com/",
+    "termsUrl": "https://meetmarigold.com/company/compliance/services-agreement",
+    "privacyUrl": "https://meetmarigold.com/company/compliance/marigolds-privacy-notices"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "customer_owned_api_secret",
+      "md5_request_signature",
+      "fixed_api_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SAILTHRU_API_KEY",
+        "label": "Sailthru API key",
+        "required": true,
+        "secret": false,
+        "helpText": "Use a dedicated customer-owned API key, preferably restricted to Railway staging egress IPs."
+      },
+      {
+        "name": "SAILTHRU_API_SECRET",
+        "label": "Sailthru API secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay uses this only to calculate the provider-required per-request signature."
+      },
+      {
+        "name": "SAILTHRU_HEALTH_LIST",
+        "label": "Sailthru health-check list",
+        "required": true,
+        "secret": false,
+        "helpText": "Use one non-sensitive staging list name for exact read-only health checks."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read one list",
+      "description": "Use one exact aggregate list read.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read user or template",
+      "description": "Use exact user/template reads with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage user preferences",
+      "description": "Use exact list/opt-out writes with approval and authorization attestations.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "sailthru_structural_read",
+        "label": "Read Sailthru list",
+        "description": "Read aggregate metadata for one exact natural list."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "sailthru_sensitive_read",
+        "label": "Read Sailthru user or template",
+        "description": "Read one email user profile or one named messaging template."
+      },
+      {
+        "id": "sailthru_manage",
+        "label": "Manage Sailthru preferences",
+        "description": "Change one authorized user's exact list membership or email opt-out status."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "sailthru_secret_exposure",
+        "label": "Expose credentials",
+        "description": "API keys, secrets, request signatures, and credential-bearing response fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "sailthru_bulk_jobs",
+        "label": "Run bulk or job APIs",
+        "description": "Jobs, imports, exports, multi-send, files, purchase/event streams, recommendations, and unbounded reads are excluded."
+      },
+      {
+        "id": "sailthru_send_admin",
+        "label": "Send or administer messaging",
+        "description": "Send/blast launch, content/template/list mutation, user deletion, webhooks, settings, and account administration remain provider-side."
+      },
+      {
+        "id": "sailthru_unbounded_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only five pinned operations run on three fixed endpoints; arbitrary endpoints, methods, fields, URLs, headers, and oversized data are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sailthru_safe",
+      "label": "Safe",
+      "description": "One exact list read runs directly; exact user/template reads and preference writes require approval, writes require contact authorization, and subscribing or removing opt-out additionally requires double-opt-in evidence.",
+      "defaultSelected": true,
+      "allowedActions": ["sailthru_structural_read"],
+      "approvalRequiredActions": ["sailthru_sensitive_read", "sailthru_manage"],
+      "blockedActions": [
+        "sailthru_secret_exposure",
+        "sailthru_bulk_jobs",
+        "sailthru_send_admin",
+        "sailthru_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All five selected operations run without Relay per-action approval; authorization/double-opt-in attestations, fixed routing, signing, bounds, audits, and bulk/send/admin blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "sailthru_structural_read",
+        "sailthru_sensitive_read",
+        "sailthru_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sailthru_secret_exposure",
+        "sailthru_bulk_jobs",
+        "sailthru_send_admin",
+        "sailthru_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts five pinned Sailthru operations and calculates the provider-required signature without exposing the API secret or signature to agents."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts five pinned Sailthru operations and calculates the provider-required signature without exposing the API secret or signature to agents."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Sailthru requires a customer-owned API key/secret, optional IP restrictions, non-sensitive staging health list, and permission-based subscription process. No console, account, key/secret, list, user, consent, template, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Configure dedicated staging credentials and health list in Railway staging, restrict source IPs where practical, and verify signing, list/user/template reads, approval and contact/double-opt-in denial/allow, subscribe/unsubscribe and opt-out behavior, response/rate bounds, credential rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://getstarted.meetmarigold.com/engagebysailthru/Content/developers/api-basics/technical.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Sailthru documents the fixed HTTPS API origin, GET/POST behavior, form-encoded JSON requests, API key/secret signature algorithm, JSON responses, optional IP restrictions, and endpoint/method rate headers."
+    },
+    {
+      "url": "https://getstarted.meetmarigold.com/engagebysailthru/Content/developers/api-client/java.html",
+      "checkedAt": "2026-07-17",
+      "supports": "The official Java client guide documents exact user GET/POST and template GET semantics, email-key lookup, list membership maps, and profile fields."
+    },
+    {
+      "url": "https://getstarted.meetmarigold.com/engagebysailthru/Content/audience/managing-users/set-variables-on-users.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Sailthru documents user variables, profile sensitivity, list and API update paths, value limits, and bulk alternatives excluded by Relay."
+    },
+    {
+      "url": "https://meetmarigold.com/company/compliance/acceptable-use-policy",
+      "checkedAt": "2026-07-17",
+      "supports": "Marigold documents permission, privacy, and restricted sensitive-data obligations applicable to messaging services."
+    }
+  ]
+}

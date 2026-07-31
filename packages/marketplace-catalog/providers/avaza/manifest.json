@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "avaza",
+  "name": "Avaza",
+  "category": "project_management",
+  "description": "Avaza is a work-management platform for projects, tasks, resource scheduling, time and expenses, quotes, invoices and team collaboration. Professional-services teams use it to plan client delivery, coordinate people and track operational and financial work in one account.",
+  "agentUseSummary": "Relay uses a dedicated customer-admin-generated Avaza personal access token with only read_projects, binds the connection to one preselected project ID, and exposes one metadata-only project-state read. Titles, notes, companies, sections, members, rates, budgets, tags, other resources, writes and arbitrary API, webhook or MCP access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.avaza.com/",
+    "docsUrl": "https://api.avaza.com/swagger/ui/index",
+    "developerConsoleUrl": "https://www.avaza.com/avaza-api-authentication-with-personal-access-tokens/",
+    "termsUrl": "https://www.avaza.com/terms-conditions-use/",
+    "privacyUrl": "https://www.avaza.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["read_projects"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_personal_access_token",
+      "avaza_api_v1",
+      "read_projects_scope",
+      "selected_avaza_project"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "AVAZA_PERSONAL_ACCESS_TOKEN",
+        "label": "Avaza personal access token",
+        "required": true,
+        "secret": true,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "AVAZA_PROJECT_ID",
+        "label": "Selected project ID",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "avaza_selected_project_state_get",
+      "label": "Read selected project state",
+      "description": "Read one selected project's ID, status flags and lifecycle dates.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "avaza_selected_project_state_get",
+        "label": "Read selected project state",
+        "description": "Use the fixed individual-project route for one selected project and return only bounded lifecycle metadata."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "avaza_private_project_data",
+        "label": "Expose private project data",
+        "description": "Titles, codes, notes, companies, owners, sections, members, emails, rates, budgets, tags, URLs, categories, billing configuration and identities are excluded."
+      },
+      {
+        "id": "avaza_other_resources",
+        "label": "Read broader Avaza resources",
+        "description": "Project lists, other projects, contacts, companies, users, tasks, schedules, timesheets, expenses, invoices, estimates, bills, payments, webhooks and account configuration are blocked."
+      },
+      {
+        "id": "avaza_mutation",
+        "label": "Mutate Avaza",
+        "description": "Projects, members, tasks, schedules, time, expenses, financials, files, webhooks, configuration and every write or destructive action are blocked."
+      },
+      {
+        "id": "avaza_raw_api",
+        "label": "Run arbitrary Avaza calls",
+        "description": "Agents cannot choose origins, paths, IDs, fields, filters, searches, pagination, bodies, scopes or raw REST, webhook or MCP operations."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "avaza_selected_project_state_read",
+      "label": "Selected Project State Read",
+      "description": "Read one selected project's bounded lifecycle state; private content, people, companies, financials, other resources, administration and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["avaza_selected_project_state_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "avaza_private_project_data",
+        "avaza_other_resources",
+        "avaza_mutation",
+        "avaza_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-project state reader backed by Railway's fixed-origin Avaza adapter and an encrypted read_projects personal access token."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-project state reader backed by Railway's fixed-origin Avaza adapter and an encrypted read_projects personal access token."
+    }
+  ],
+  "availability": "preview",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Avaza personal access tokens are created by an account Administrator and inherit both selected scopes and the creating user's account permissions. No paid disposable account, synthetic project or dedicated admin-owned token was available in this lane, and provider-console work is separately owned.",
+    "nextAction": "In the provider-console acceptance task, use a paid disposable Avaza account containing only synthetic data, create a dedicated admin-owned personal access token with exactly read_projects, bind one synthetic project ID through Relay, then validate metadata-only output, other-project and broader-resource denial, rate handling, token deletion, disconnect and post-disconnect denial. Never reuse a production administrator token or grant write_projects."
+  },
+  "evidence": [
+    {
+      "url": "https://api.avaza.com/swagger/ui/index",
+      "checkedAt": "2026-07-18",
+      "supports": "Avaza's official public Swagger reference documents the fixed HTTPS API origin, GET /api/Project/{id}, exact read_projects scope, PascalCase project response fields and broad adjacent private read/write resources."
+    },
+    {
+      "url": "https://www.avaza.com/avaza-api-authentication-with-personal-access-tokens/",
+      "checkedAt": "2026-07-18",
+      "supports": "Avaza's official authentication guidance documents administrator-created personal access tokens, creator permission inheritance, granular access scopes, one-time token display, Bearer authentication and token deletion."
+    },
+    {
+      "url": "https://www.avaza.com/avaza-api-oauth2-authentication/",
+      "checkedAt": "2026-07-18",
+      "supports": "Avaza's official OAuth guidance documents granular comma-separated scopes, fixed authorization and token endpoints, access and refresh lifetimes and the broader alternative authorization-code flow."
+    },
+    {
+      "url": "https://www.avaza.com/avaza-api-webhook-notifications/",
+      "checkedAt": "2026-07-18",
+      "supports": "Avaza's official webhook guide documents project and other account events plus webhook creation, confirming an adjacent stateful surface excluded from this connector."
+    },
+    {
+      "url": "https://www.avaza.com/terms-conditions-use/",
+      "checkedAt": "2026-07-18",
+      "supports": "Avaza's current terms establish subscription and user authority, access levels, API-call limits, customer-data responsibilities and third-party application obligations."
+    },
+    {
+      "url": "https://www.avaza.com/privacy-policy/",
+      "checkedAt": "2026-07-18",
+      "supports": "Avaza's current privacy policy describes account and service data handled by the platform, reinforcing exclusion of private project, people and company data."
+    }
+  ]
+}

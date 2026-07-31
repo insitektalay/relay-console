@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "bluesky",
+  "name": "Bluesky",
+  "category": "content_creative",
+  "description": "Bluesky is a decentralized social network built on the open AT Protocol. People and organizations use it to publish posts, follow accounts, and participate in portable public conversations.",
+  "agentUseSummary": "Connect one account through AT Protocol OAuth, then let agents read the exact bound profile, list up to ten original posts, draft locally, and publish one approval-controlled text post without exposing tokens, DPoP keys, or raw XRPC access.",
+  "provider": {
+    "websiteUrl": "https://bsky.app/",
+    "docsUrl": "https://docs.bsky.app/",
+    "developerConsoleUrl": "https://docs.bsky.app/docs/advanced-guides/oauth-client",
+    "termsUrl": "https://bsky.social/about/support/tos",
+    "privacyUrl": "https://bsky.social/about/support/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["atproto", "repo:app.bsky.feed.post?action=create"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://AUTHORIZATION_ISSUER/authorize",
+    "tokenUrl": "https://AUTHORIZATION_ISSUER/token",
+    "revocationUrl": "https://AUTHORIZATION_ISSUER/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_metadata_client",
+      "authorization_code_pkce_par_dpop",
+      "dynamic_protected_resource_and_authorization_server_discovery",
+      "bidirectional_handle_did_binding",
+      "exact_did_pds_issuer_binding",
+      "dns_pinned_no_redirect_transport"
+    ],
+    "credentialRequirements": ["BLUESKY_HANDLE"],
+    "callbackPath": "/api/v1/marketplace/oauth/bluesky/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "profile_read",
+      "label": "Read profile",
+      "description": "Read the public profile for the exact OAuth-bound DID.",
+      "defaultSelected": true
+    },
+    {
+      "id": "own_posts_read",
+      "label": "Read own posts",
+      "description": "List at most ten original no-embed posts authored by the bound DID.",
+      "defaultSelected": true
+    },
+    {
+      "id": "text_post_draft",
+      "label": "Draft text post",
+      "description": "Draft one 1–300-grapheme text post locally with no provider side effect.",
+      "defaultSelected": true
+    },
+    {
+      "id": "text_post_publish",
+      "label": "Publish text post",
+      "description": "Publish one exact text-only app.bsky.feed.post record.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "bluesky_profile_get",
+        "label": "Read bound profile",
+        "description": "Read provider-correct public fields for the exact OAuth-bound DID."
+      },
+      {
+        "id": "bluesky_own_posts_list",
+        "label": "List own original posts",
+        "description": "List at most ten original no-embed posts authored by the bound DID without pagination."
+      },
+      {
+        "id": "bluesky_text_post_draft",
+        "label": "Draft text post",
+        "description": "Prepare one normalized 1–300-grapheme text post locally."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "bluesky_text_post_publish",
+        "label": "Publish text post",
+        "description": "Create one exact approval-controlled text-only record on the bound PDS."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "bluesky_non_text_social_action",
+        "label": "Block broader social actions",
+        "description": "Replies, quotes, reposts, likes, follows, deletes, media, embeds, facets, links, private data, discovery, chat, moderation, firehose, pagination, and bulk actions are not registered."
+      },
+      {
+        "id": "bluesky_raw_or_unbound_access",
+        "label": "Block raw and unbound access",
+        "description": "Transition scopes, arbitrary XRPC, alternate identities, unverified PDS or issuer endpoints, private-network answers, redirects, token exposure, and automatic write retry are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "bluesky_safe",
+      "label": "Safe",
+      "description": "Bound-profile reads, bounded own-post reads, and local drafts run automatically; exact text publishing requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "bluesky_profile_get",
+        "bluesky_own_posts_list",
+        "bluesky_text_post_draft"
+      ],
+      "approvalRequiredActions": ["bluesky_text_post_publish"],
+      "blockedActions": [
+        "bluesky_non_text_social_action",
+        "bluesky_raw_or_unbound_access"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected Bluesky actions run without Relay per-action approval; exact identity binding, bounds, DPoP, audits, secret isolation, and no-retry behavior still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "bluesky_profile_get",
+        "bluesky_own_posts_list",
+        "bluesky_text_post_draft",
+        "bluesky_text_post_publish"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "bluesky_non_text_social_action",
+        "bluesky_raw_or_unbound_access"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Bluesky wrappers and attaches the encrypted DPoP-bound token only inside Railway's exact DID, PDS, and issuer adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Bluesky wrappers and attaches the encrypted DPoP-bound token only inside Railway's exact DID, PDS, and issuer adapter."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "The sharded worker may not deploy Railway or run live AT Protocol consent; staging deployment and representative-account OAuth acceptance remain for the integration and provider-console tasks.",
+    "nextAction": "After batch integration, deploy only Railway staging, then use the separate provider-console task to validate public client metadata, dynamic discovery, PAR, PKCE, DPoP nonce handling, issuer and exact DID/PDS binding, bounded reads, approved and dangerous-mode publishing, revocation, SSRF and redirect denial, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.bsky.app/docs/advanced-guides/oauth-client",
+      "checkedAt": "2026-07-17",
+      "supports": "Bluesky documents public OAuth client metadata, authorization-code flow, PKCE, PAR, DPoP, callbacks, token refresh, and revocation."
+    },
+    {
+      "url": "https://atproto.com/specs/oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "The AT Protocol OAuth profile defines protected-resource and authorization-server discovery, issuer binding, public clients, PKCE, PAR, DPoP, token subject binding, and callback issuer handling."
+    },
+    {
+      "url": "https://atproto.com/guides/permission-sets",
+      "checkedAt": "2026-07-17",
+      "supports": "AT Protocol permission-set guidance documents granular repository scopes and warns that transition:generic grants broad account access."
+    },
+    {
+      "url": "https://atproto.com/specs/permission",
+      "checkedAt": "2026-07-17",
+      "supports": "The granular permission syntax supports create-only access for the app.bsky.feed.post collection."
+    },
+    {
+      "url": "https://docs.bsky.app/docs/api/app-bsky-feed-get-author-feed",
+      "checkedAt": "2026-07-17",
+      "supports": "The Bluesky API documents bounded author-feed reads used for the exact-own-post wrapper."
+    },
+    {
+      "url": "https://atproto.com/blog/create-post",
+      "checkedAt": "2026-07-17",
+      "supports": "AT Protocol documents creation of app.bsky.feed.post records and the 300-grapheme text limit."
+    }
+  ]
+}

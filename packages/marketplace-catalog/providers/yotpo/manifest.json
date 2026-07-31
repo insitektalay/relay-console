@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "yotpo",
+  "name": "Yotpo",
+  "category": "marketing",
+  "description": "Yotpo is an ecommerce retention platform for product and site reviews, visual user-generated content, loyalty, referrals, SMS, email, customer insights, and product catalogs.",
+  "agentUseSummary": "Yotpo cannot yet be connected through Relay. Its merchant APIs use a customer's Store ID and administrator-only API secret to mint broad account tokens, while public CDN review endpoints do not establish an account-owned connection; representative credential, entitlement, and authority acceptance is required.",
+  "provider": {
+    "websiteUrl": "https://www.yotpo.com/",
+    "docsUrl": "https://apidocs.yotpo.com/reference/welcome",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.yotpo.com/terms-of-service/",
+    "privacyUrl": "https://www.yotpo.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "client_credentials",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.yotpo.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_store_id",
+      "customer_admin_api_secret",
+      "client_credentials_account_token",
+      "plan_and_product_entitlements",
+      "public_cdn_reads_are_not_account_auth"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "YOTPO_STORE_ID",
+        "label": "Yotpo Store ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Customer Store ID, formerly called the App Key."
+      },
+      {
+        "name": "YOTPO_API_SECRET",
+        "label": "Yotpo API secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Administrator-only customer secret stored solely in Railway's encrypted credential boundary."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "yotpo_credentials",
+        "label": "Collect Yotpo credentials",
+        "description": "Relay does not collect the administrator-only API secret before representative authority and lifecycle acceptance."
+      },
+      {
+        "id": "yotpo_public_read_substitution",
+        "label": "Substitute public widget reads",
+        "description": "CDN product/site review endpoints expose storefront content but do not prove account ownership, private authority, or disconnect semantics."
+      },
+      {
+        "id": "yotpo_private_data",
+        "label": "Access private Yotpo data",
+        "description": "Reviews, users, orders, products, metadata, insights, media, privacy exports, and customer personal data remain unavailable."
+      },
+      {
+        "id": "yotpo_mutations_raw",
+        "label": "Mutate or use raw Yotpo APIs",
+        "description": "Review creation, verification email, order/customer ingestion, metadata updates, deletion/anonymization, arbitrary endpoints, and broad pagination are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "yotpo_unavailable",
+      "label": "Unavailable",
+      "description": "No Yotpo action is enabled before customer-admin credential and entitlement acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "yotpo_credentials",
+        "yotpo_public_read_substitution",
+        "yotpo_private_data",
+        "yotpo_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Yotpo wrappers are mounted until a representative merchant credential establishes the frozen contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Yotpo wrappers are mounted until a representative merchant credential establishes the frozen contract."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Yotpo requires a customer administrator to reveal the Store ID and API secret, which mint a private account token without granular scopes. Public documentation shows broad review, customer/order metadata, verification-email, and privacy mutation surfaces, but no representative entitlement, token expiry, rotation, or revocation evidence is available.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should obtain authorization from a representative Yotpo merchant, provision a dedicated credential without exposing it in reports, record enabled products and token lifecycle, inspect exact schemas and quotas without external writes, and return a frozen authority contract before connector implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://apidocs.yotpo.com/reference/finding-your-app-key-and-api-secret",
+      "checkedAt": "2026-07-17",
+      "supports": "Yotpo documents the customer Store ID and administrator-only API secret used for ecommerce and third-party integrations and warns that the keys carry many privileges."
+    },
+    {
+      "url": "https://apidocs.yotpo.com/reference/yotpo-authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Yotpo documents client-credentials token minting from Store ID/API secret for private account APIs."
+    },
+    {
+      "url": "https://apidocs.yotpo.com/reference/about-merchant-reviews",
+      "checkedAt": "2026-07-17",
+      "supports": "Yotpo documents merchant review reads and creation, including customer verification emails and premium-plan endpoints."
+    },
+    {
+      "url": "https://apidocs.yotpo.com/reference/about-privacy-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Yotpo documents private user-data checks/exports and irreversible deletion or anonymization operations."
+    }
+  ]
+}

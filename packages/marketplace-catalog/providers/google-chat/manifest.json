@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-chat",
+  "name": "Google Chat",
+  "category": "communication",
+  "description": "Google Chat is Google's messaging service for direct conversations and team Spaces. Individuals and organizations use it for threaded collaboration alongside Google Workspace.",
+  "agentUseSummary": "Connect one Google account through Relay-owned user OAuth, then let agents use four bounded wrappers to read one explicit Space, list the newest first page of at most twenty-five privacy-bounded plain-text messages, prepare a message locally, and send one idempotent plain-text message or fail-closed same-Space thread reply. Relay V1 excludes Space discovery and administration, memberships and identities, existing-message mutation or deletion, private and rich content, cards, attachments, media, reactions, app or bot authentication, administrator access, import mode, pagination, delegation, and raw tools.",
+  "provider": { "websiteUrl": "https://chat.google.com/", "docsUrl": "https://developers.google.com/workspace/chat/api/overview", "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials", "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy", "privacyUrl": "https://policies.google.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["openid", "email", "https://www.googleapis.com/auth/chat.spaces.readonly", "https://www.googleapis.com/auth/chat.messages.readonly", "https://www.googleapis.com/auth/chat.messages.create"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth", "tokenUrl": "https://oauth2.googleapis.com/token" },
+  "connection": { "types": ["relay_owned_global_oauth", "exact_google_account_binding", "expiring_access_token", "offline_refresh_token", "provider_revocation"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/google-chat/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "space_read", "label": "Read explicit Spaces", "description": "Read bounded metadata for one caller-supplied Chat Space.", "defaultSelected": true },
+    { "id": "message_read", "label": "Read plain-text messages", "description": "Read one newest-first page of privacy-bounded messages.", "defaultSelected": true },
+    { "id": "message_write", "label": "Prepare and send messages", "description": "Prepare locally and send one bounded plain-text message or fail-closed reply.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_chat_space_get", "label": "Get Chat space", "description": "Read bounded metadata for one explicit Chat Space." },
+      { "id": "google_chat_messages_list", "label": "List Chat messages", "description": "Read the newest first page of at most twenty-five plain-text messages in one explicit Space." },
+      { "id": "google_chat_message_prepare", "label": "Prepare Chat message", "description": "Validate a bounded plain-text message or explicit-thread reply locally." }
+    ],
+    "approvalRequired": [
+      { "id": "google_chat_message_create", "label": "Send Chat message", "description": "Send one bounded plain-text message or fail-closed thread reply." }
+    ],
+    "blocked": [
+      { "id": "google_chat_space_list_search", "label": "Discover Chat spaces", "description": "Broad Space listing and search are blocked in V1." },
+      { "id": "google_chat_space_admin", "label": "Administer Chat spaces", "description": "Creating, updating, deleting, or importing Chat Spaces is blocked." },
+      { "id": "google_chat_memberships", "label": "Access Chat memberships", "description": "Membership and identity access is blocked in V1." },
+      { "id": "google_chat_message_mutation", "label": "Modify or delete Chat messages", "description": "Existing-message update and deletion are blocked." },
+      { "id": "google_chat_private_rich_media", "label": "Use private or rich Chat content", "description": "Private messages, cards, widgets, annotations, attachments, and media are outside plain-text V1." },
+      { "id": "google_chat_reactions", "label": "Use Chat reactions", "description": "Reactions and custom emoji are blocked." },
+      { "id": "google_chat_app_bot_admin_import", "label": "Use app, bot, admin, or import access", "description": "Only narrowly scoped user authentication is permitted." },
+      { "id": "google_chat_raw_paginate_delegation", "label": "Use raw, paginated, or delegated Chat access", "description": "Raw endpoints, automatic pagination or retries, and delegation are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "google_chat_safe", "label": "Safe", "description": "Explicit-Space reads and local plain-text preparation run automatically; message creation requires matching approval.", "defaultSelected": true, "allowedActions": ["google_chat_space_get", "google_chat_messages_list", "google_chat_message_prepare"], "approvalRequiredActions": ["google_chat_message_create"], "blockedActions": ["google_chat_space_list_search", "google_chat_space_admin", "google_chat_memberships", "google_chat_message_mutation", "google_chat_private_rich_media", "google_chat_reactions", "google_chat_app_bot_admin_import", "google_chat_raw_paginate_delegation"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All four selected tools run without Relay per-action approval while exact user scopes, explicit Spaces, plain-text and thread bounds, idempotency, privacy redaction, audit, refresh, revocation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["google_chat_space_get", "google_chat_messages_list", "google_chat_message_prepare", "google_chat_message_create"], "approvalRequiredActions": [], "blockedActions": ["google_chat_space_list_search", "google_chat_space_admin", "google_chat_memberships", "google_chat_message_mutation", "google_chat_private_rich_media", "google_chat_reactions", "google_chat_app_bot_admin_import", "google_chat_raw_paginate_delegation"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [{ "format": "openclaw", "installSupport": "installable", "description": "Relay mounts four explicit-Space plain-text Google Chat wrappers and attaches encrypted user OAuth tokens server-side." }, { "format": "hermes", "installSupport": "installable", "description": "Relay mounts four explicit-Space plain-text Google Chat wrappers and attaches encrypted user OAuth tokens server-side." }],
+  "availability": "available",
+  "providerSetup": { "status": "provider_review_pending", "blocker": "Relay must configure its Google Cloud project and confidential web client, enable Google Chat API, configure the Chat app, publish its OAuth consent screen with verified relayconsole.work domains and policy links, complete Google's verification and any security assessment applicable to the restricted messages.readonly scope, configure Railway staging credentials, confirm Workspace entitlement and admin policy, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.", "nextAction": "In the provider-console task, configure the canonical Railway callback and exact user scopes, complete Google review, configure staging credentials, then verify all four tools, explicit-Space and 25-message bounds, identity and rich-content redaction, idempotency and fail-closed replies, Safe and Dangerous policy, refresh, rotation, revocation, disconnect, Workspace policy, quota/error mapping, and post-disconnect denial." },
+  "evidence": [
+    { "url": "https://developers.google.com/workspace/chat/authenticate-authorize", "checkedAt": "2026-07-17", "supports": "Google documents user versus app authentication and the exact Space read-only, Message read-only, and Message create scopes selected by Relay." },
+    { "url": "https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces/get", "checkedAt": "2026-07-17", "supports": "Spaces.get reads one explicit spaces/* resource with user authentication." },
+    { "url": "https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/list", "checkedAt": "2026-07-17", "supports": "Messages.list supports explicit Space scope, bounded page size, newest-first ordering, deleted filtering, and pagination; Relay reads one page only." },
+    { "url": "https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create", "checkedAt": "2026-07-17", "supports": "Messages.create supports user-auth plain text, unique request IDs, explicit thread names, and REPLY_MESSAGE_OR_FAIL behavior." },
+    { "url": "https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages", "checkedAt": "2026-07-17", "supports": "Message resources can include identities, annotations, cards, attachments, reactions, and other rich or private fields Relay excludes." }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "payoneer",
+  "name": "Payoneer",
+  "category": "commerce_payments",
+  "description": "Payoneer is a cross-border payments platform for businesses, marketplaces, and professionals. Its products include receiving accounts, mass payouts, business payments, withdrawals, checkout, and account-information services for approved partners and regulated providers.",
+  "agentUseSummary": "Payoneer is visible as a provider-review preview only. Relay will not collect a Payoneer password, access token, client secret, or certificate, and no agent action is callable until an authorized integration owner completes Payoneer's regulated onboarding and Relay implements an approved, read-only account-information contract.",
+  "provider": {
+    "websiteUrl": "https://www.payoneer.com/",
+    "docsUrl": "https://developer.sandbox.payoneer.com/psd2/get-started",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://developer.sandbox.payoneer.com/psd2/terms-and-conditions",
+    "privacyUrl": "https://www.payoneer.com/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "regulated_provider_approval_required",
+      "qwac_certificate_required",
+      "oauth2_oidc_planned"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_information_read",
+      "label": "Read account information",
+      "description": "After regulated approval, read bounded balances and transactions for the exact account authorized through Payoneer's approved PSD2 OAuth and OpenID Connect flow.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "payoneer_connect_before_regulated_approval",
+        "label": "Connect before regulated approval",
+        "description": "Relay has no approved Payoneer application, vetted API-plan subscription, regulated third-party-provider authorization, QWAC certificate, or production credentials."
+      },
+      {
+        "id": "payoneer_collect_credentials_before_approval",
+        "label": "Collect Payoneer credentials",
+        "description": "Relay will not ask a customer to paste a Payoneer password, bearer token, client secret, certificate, or other credential as a substitute for the provider-approved OAuth and certificate lifecycle."
+      },
+      {
+        "id": "payoneer_api_actions_before_approval",
+        "label": "Run Payoneer API actions",
+        "description": "No balance, transaction, payment, payout, withdrawal, transfer, receiving-account, checkout, billing, or other API action can run while provider review is pending."
+      },
+      {
+        "id": "payoneer_financial_actions_blocked",
+        "label": "Financial actions unavailable",
+        "description": "Payments, mass payouts, withdrawals, transfers, receiving-account creation, checkout, billing, tax, funding, and raw API delegation are outside Relay's planned read-only V1 even after account-information approval."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "payoneer_regulated_review",
+      "label": "Regulated provider review pending",
+      "description": "Agent actions remain unavailable until an authorized integration owner completes Payoneer's regulated onboarding and Relay implements and validates the approved read-only account-information contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "payoneer_connect_before_regulated_approval",
+        "payoneer_collect_credentials_before_approval",
+        "payoneer_api_actions_before_approval",
+        "payoneer_financial_actions_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No OpenClaw tools are callable until Payoneer approves Relay's regulated application and Relay implements the approved, fixed-origin, read-only Railway broker."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Hermes tools are callable until Payoneer approves Relay's regulated application and Relay implements the approved, fixed-origin, read-only Railway broker."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Payoneer's public PSD2 portal requires a registered application with a static redirect URI, client credentials, a QWAC certificate from a qualified trust provider, authorization as a relevant PSD2 third-party provider, and subscription to a vetted API plan. Relay has none of those legal, certificate, application, subscription, credential, or representative-account prerequisites, and Payoneer's platform payout APIs are offered through partnership onboarding rather than a public customer self-service credential.",
+    "nextAction": "An integration owner who is authorized to represent a regulated third-party provider must confirm the legal role and permitted geography, obtain and manage the QWAC certificate, register Relay's exact Railway callback with Payoneer, subscribe only to the approved Account Information balance and transaction APIs, receive sandbox credentials and a representative test user, and provide the resulting contract to engineering. Engineering can then implement a fixed psd2-api.payoneer.com Railway broker, bounded balance and transaction tools, certificate and OAuth lifecycle, revocation, redaction, rate-limit handling, and all-client Connect UI; the integration lane must deploy staging and validate consent, account binding, reads, disconnect, revocation, and post-disconnect denial before enabling installation. Payment and payout APIs remain excluded."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.sandbox.payoneer.com/psd2/get-started",
+      "checkedAt": "2026-07-17",
+      "supports": "Payoneer documents OAuth 2.0 and OpenID Connect, a registered application with client credentials and a static redirect URI, a QWAC certificate from a qualified trust provider, and subscription to a vetted API plan before PSD2 API access."
+    },
+    {
+      "url": "https://developer.sandbox.payoneer.com/psd2/apis",
+      "checkedAt": "2026-07-17",
+      "supports": "Payoneer's official PSD2 catalog lists account-balance and transaction APIs alongside separate payment APIs, supporting a deliberately read-only planned V1."
+    },
+    {
+      "url": "https://developer.sandbox.payoneer.com/psd2/terms-and-conditions",
+      "checkedAt": "2026-07-17",
+      "supports": "Payoneer's PSD2 terms define developers as registered and authorized under PSD2 with the relevant certificates."
+    },
+    {
+      "url": "https://www.payoneer.com/developers/",
+      "checkedAt": "2026-07-17",
+      "supports": "Payoneer describes Mass Payout and Mass Payout and Services APIs for approved business platforms, including payee registration, payouts, receiving accounts, payments, withdrawals, billing, tax, and checkout."
+    },
+    {
+      "url": "https://www.payoneer.com/integration-partnerships/",
+      "checkedAt": "2026-07-17",
+      "supports": "Payoneer offers API integration through partnership channels for platforms, banks, and marketplaces rather than documenting a general customer self-service API credential."
+    }
+  ]
+}

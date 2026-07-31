@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "stamped-io",
+  "name": "Stamped.io",
+  "category": "marketing",
+  "description": "Stamped.io is an ecommerce retention platform for product and company reviews, ratings, questions, surveys, visual content, loyalty, referrals, and review-request automation.",
+  "agentUseSummary": "Stamped.io cannot yet be connected through Relay. Its private REST API requires a Professional or Enterprise customer's Store Hash plus static public/private keys over HTTP Basic Auth, with no published granular permission or delegated OAuth contract; representative credential and entitlement acceptance is required first.",
+  "provider": {
+    "websiteUrl": "https://stamped.io/",
+    "docsUrl": "https://stampedsupport.stamped.io/hc/en-us/articles/10152777765659-Stamped-REST-API",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://stamped.io/terms-of-service",
+    "privacyUrl": "https://stamped.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_store_hash",
+      "customer_public_and_private_api_keys",
+      "http_basic_auth",
+      "professional_or_enterprise_plan",
+      "no_granular_key_scopes"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "STAMPED_STORE_HASH",
+        "label": "Stamped Store Hash",
+        "required": true,
+        "secret": false,
+        "helpText": "Customer store identifier from the Stamped API Keys page."
+      },
+      {
+        "name": "STAMPED_PUBLIC_API_KEY",
+        "label": "Stamped public API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Static Basic Auth username stored only in Railway's encrypted credential boundary."
+      },
+      {
+        "name": "STAMPED_PRIVATE_API_KEY",
+        "label": "Stamped private API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Static Basic Auth password stored only in Railway's encrypted credential boundary."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "stamped_credentials",
+        "label": "Collect Stamped credentials",
+        "description": "Relay does not collect static private keys before representative paid-account acceptance."
+      },
+      {
+        "id": "stamped_public_substitution",
+        "label": "Substitute public endpoints",
+        "description": "Storefront widgets and public-key reads do not establish private account ownership or lifecycle semantics."
+      },
+      {
+        "id": "stamped_data",
+        "label": "Access Stamped data",
+        "description": "Reviews, questions, surveys, products, customers, orders, loyalty, referrals, and account data remain unavailable."
+      },
+      {
+        "id": "stamped_mutations_raw",
+        "label": "Mutate or use raw Stamped APIs",
+        "description": "Review/invitation imports, moderation, replies, survey bulk operations, loyalty changes, arbitrary endpoints, and broad pagination are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "stamped_unavailable",
+      "label": "Unavailable",
+      "description": "No Stamped.io action is enabled before customer credential and entitlement acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "stamped_credentials",
+        "stamped_public_substitution",
+        "stamped_data",
+        "stamped_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Stamped.io wrappers are mounted until a representative paid-account key establishes the frozen contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Stamped.io wrappers are mounted until a representative paid-account key establishes the frozen contract."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Stamped API access requires a Professional or Enterprise customer to retrieve its Store Hash and static public/private API keys. Private endpoints use unscoped Basic Auth, while public documentation does not establish key rotation/revocation, exact plan entitlements, regional behavior, or a representative operation contract.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should obtain authorization from a representative paid customer, provision dedicated keys without exposing them in reports, record enabled products and rotation/revocation behavior, inspect exact schemas and quotas without external writes, and return the frozen authority contract before connector implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://stampedsupport.stamped.io/hc/en-us/articles/10152777765659-Stamped-REST-API",
+      "checkedAt": "2026-07-17",
+      "supports": "Stamped documents Professional/Enterprise API access, Store Hash routing, customer public/private keys, HTTP Basic Auth for private endpoints, and public endpoints requiring only Store Hash or public key."
+    },
+    {
+      "url": "https://stamped.io/api",
+      "checkedAt": "2026-07-17",
+      "supports": "Stamped publishes a broad v2 REST surface including private dashboard reviews and survey/review bulk operations under static account credentials."
+    },
+    {
+      "url": "https://stampedsupport.stamped.io/hc/en-us/articles/10152777765659-Stamped-REST-API",
+      "checkedAt": "2026-07-17",
+      "supports": "Stamped states API keys are managed in the account Control Panel rather than through delegated OAuth or granular per-install scopes."
+    }
+  ]
+}

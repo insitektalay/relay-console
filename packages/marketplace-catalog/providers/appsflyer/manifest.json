@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "appsflyer",
+  "name": "AppsFlyer",
+  "category": "analytics",
+  "description": "AppsFlyer is a mobile measurement and marketing analytics platform for attribution, deep linking, campaign performance, fraud protection, audiences, cost data, and data collaboration. Advertisers and ad networks use it to understand acquisition and engagement across mobile applications.",
+  "agentUseSummary": "Add one current customer-generated API V2 token; agents can list a redacted first page of app IDs and check count-only premium AppsFlyer Audiences partner-connection readiness through two fixed endpoints.",
+  "provider": {
+    "websiteUrl": "https://www.appsflyer.com/",
+    "docsUrl": "https://dev.appsflyer.com/hc/reference/overview-2",
+    "developerConsoleUrl": "https://hq1.appsflyer.com/",
+    "termsUrl": "https://www.appsflyer.com/legal/services-terms-conditions/",
+    "privacyUrl": "https://www.appsflyer.com/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_v2_token"],
+    "credentialRequirements": [
+      {
+        "name": "APPSFLYER_API_TOKEN",
+        "label": "AppsFlyer API V2 token",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a current dedicated API V2 token. Relay encrypts it and sends it only as a Bearer header to hq1.appsflyer.com; the same canonical connection serves AppsFlyer Audiences when entitled."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "app_reference_read",
+      "label": "Read app references",
+      "description": "Read page 1 of at most 25 app IDs with names, account identity, attribution, and pagination URLs excluded.",
+      "defaultSelected": true
+    },
+    {
+      "id": "audience_connection_summary_read",
+      "label": "Read Audiences connection summary",
+      "description": "Check whether premium AppsFlyer Audiences partner connections exist and return only their bounded count.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "appsflyer_app_reference_list",
+        "label": "List AppsFlyer app references",
+        "description": "Return at most 25 validated app IDs plus aggregate total and next-page presence."
+      },
+      {
+        "id": "appsflyer_audience_connection_summary_get",
+        "label": "Get AppsFlyer Audiences connection summary",
+        "description": "Return only whether partner connections exist and a count capped at 115, without partner or audience identity."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "appsflyer_identity_or_app_detail",
+        "label": "Access identity or app detail",
+        "description": "Account/user identity, app names, store URLs, settings, capabilities, integration parameters, and pagination URLs remain blocked."
+      },
+      {
+        "id": "appsflyer_audience_partner_member_or_upload_detail",
+        "label": "Access audience, partner, member, or upload detail",
+        "description": "Audience and partner names/IDs, connection fields, credentials, members, device/customer/advertising identifiers, rules, attributes, splits, destinations, upload history, files, and imports remain blocked."
+      },
+      {
+        "id": "appsflyer_attribution_raw_data_or_analytics",
+        "label": "Access attribution, raw data, or analytics",
+        "description": "Device IDs, advertising IDs, IPs, installs, events, campaigns, media sources, revenue, cost, fraud, cohorts, reports, and exports remain blocked."
+      },
+      {
+        "id": "appsflyer_write_or_administer",
+        "label": "Write or administer AppsFlyer",
+        "description": "App/integration/token/Push API changes, audience creation, connection/split changes, uploads, imports, links, deletions, and administration remain blocked."
+      },
+      {
+        "id": "appsflyer_raw_api_or_bulk",
+        "label": "Use raw API or bulk access",
+        "description": "Arbitrary origins, paths, methods, headers, queries, bodies, filters, dates, KPIs, audience IDs, connection IDs, pagination, retries, SDKs, browser sessions, bulk, and exports remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "appsflyer_safe",
+      "label": "Safe",
+      "description": "The bounded app and Audiences readiness reads require approval; identities, member data, attribution, raw data, uploads, writes, raw APIs, pagination, and bulk remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["appsflyer_app_reference_list", "appsflyer_audience_connection_summary_get"],
+      "blockedActions": ["appsflyer_identity_or_app_detail", "appsflyer_audience_partner_member_or_upload_detail", "appsflyer_attribution_raw_data_or_analytics", "appsflyer_write_or_administer", "appsflyer_raw_api_or_bulk"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same bounded reads run directly; token authority, fixed endpoints, redaction, caps, audits, and provider limits remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["appsflyer_app_reference_list", "appsflyer_audience_connection_summary_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["appsflyer_identity_or_app_detail", "appsflyer_audience_partner_member_or_upload_detail", "appsflyer_attribution_raw_data_or_analytics", "appsflyer_write_or_administer", "appsflyer_raw_api_or_bulk"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives fixed redacted AppsFlyer App List and count-only Audiences readiness wrappers."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same canonical fixed AppsFlyer wrappers."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "AppsFlyer API access requires an eligible customer account and current API V2 token; AppsFlyer Audiences is premium and additionally requires Audiences External API permission.",
+    "nextAction": "A customer admin generates a current dedicated API V2 token, confirms premium Audiences External API access, and completes live read-only acceptance for both fixed endpoints."
+  },
+  "evidence": [
+    {
+      "url": "https://dev.appsflyer.com/hc/reference/app-list-ad-nets-overview",
+      "checkedAt": "2026-07-18",
+      "supports": "AppsFlyer documents bearer-token App List access, advertiser/ad-network app IDs, always-on pagination, 1,000-record pages, 20 requests/minute and 100/day."
+    },
+    {
+      "url": "https://dev.appsflyer.com/hc/reference/app-list-ad-nets-api-get",
+      "checkedAt": "2026-07-18",
+      "supports": "AppsFlyer documents GET https://hq1.appsflyer.com/api/mng/apps with limit/offset, Bearer auth, and 400/401/404/429 responses."
+    },
+    {
+      "url": "https://dev.appsflyer.com/hc/reference/overview-2",
+      "checkedAt": "2026-07-18",
+      "supports": "AppsFlyer documents the Imported Audience Management API for creation, partner connections, split synchronization, and uploads; Relay mounts only one account-level read."
+    },
+    {
+      "url": "https://dev.appsflyer.com/hc/reference/get_connections",
+      "checkedAt": "2026-07-18",
+      "supports": "AppsFlyer documents Bearer/JWT GET https://hq1.appsflyer.com/api/audiences-external-api/connections for listing account partner connections."
+    },
+    {
+      "url": "https://support.appsflyer.com/hc/en-us/articles/115002689186-Audiences-guide",
+      "checkedAt": "2026-07-18",
+      "supports": "AppsFlyer documents Audiences as premium, partner connections, daily identifier uploads, splits, CSV/S3 exports, up to 115 connections, and sensitive audience/member workflows."
+    },
+    {
+      "url": "https://support.appsflyer.com/hc/en-us/articles/360004562377-Managing-AppsFlyer-tokens",
+      "checkedAt": "2026-07-18",
+      "supports": "AppsFlyer documents customer-admin API V2 JWT tokens, secret handling, rotation, and broad API authority including audience imports."
+    },
+    {
+      "url": "https://support.appsflyer.com/hc/en-us/articles/360013291857-Audiences-Import-audience-segments-from-internal-systems",
+      "checkedAt": "2026-07-18",
+      "supports": "AppsFlyer documents identifier-rich audience CSV/API imports, enrichment, consent fields, add/remove/overwrite operations, and partner upload behavior; Relay blocks all import surfaces."
+    }
+  ],
+  "securityNotes": [
+    "AppsFlyer Audiences is treated as a premium module alias of canonical AppsFlyer, so it reuses one encrypted API V2 token and never creates duplicate provider connection state.",
+    "Relay sends the API V2 token only as a Bearer header to https://hq1.appsflyer.com and allowlists only the fixed App List and account Audiences connections GET endpoints.",
+    "The Audiences wrapper returns only configured, connectionCount capped at 115, and defensive truncation; partner and audience identity, credentials, members, identifiers, rules, splits, destinations, and upload data are excluded.",
+    "Both endpoints reject redirects, wait 30 seconds, cap responses at 1 MB, never paginate or retry, and preserve provider error status.",
+    "Audience creation, partner assignment, split changes, manual uploads, Import Audience API, user attributes, identifiers, downloads, exports, writes, administration, arbitrary APIs, SDKs, and bulk remain blocked.",
+    "Provider setup, entitlement confirmation, token capture, permission assignment, and live acceptance remain customer/external steps."
+  ]
+}

@@ -1,0 +1,83 @@
+name: Apple Beta Readiness
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apple:
+    name: macOS and iOS headless release checks
+    runs-on: macos-15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+
+      - name: Enforce workflow security policy
+        run: node scripts/workflow-security-gate.mjs
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10.29.2
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20.20.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run iOS release and privacy contracts without an iOS runtime
+        run: |
+          pnpm run marketplace:catalog:check
+          pnpm run test:marketplace-semantic-parity
+          pnpm run marketplace:semantic-parity
+          pnpm run marketplace:icons:check
+          pnpm run test:ios-release-identity
+          pnpm run test:apple-distribution-evidence
+          pnpm run test:app-store-release-evidence
+          pnpm run test:macos-publication-evidence
+          pnpm run test:ios-marketplace-oauth-return
+          pnpm run test:ios-marketplace-oauth-return-host
+          pnpm run test:ios-telemetry-privacy
+          pnpm run test:ios-multipart-security
+          pnpm run test:ios-app-store-submission
+          pnpm run test:ios-account-export
+          pnpm run test:native-session-identity
+          pnpm run test:client-version-contract
+          pnpm run test:app-store-review-preflight
+
+      - name: Run macOS lifecycle and release contracts
+        working-directory: RelayConsoleSwift
+        run: |
+          swift run RelayConsoleDataLifecycleTests
+          swift run RelayConsoleMigrationTests
+          swift run RelayConsoleAppUpdateTests
+          swift run RelayConsoleLocalSecurityTests
+          swift run RelayConsoleHarnessLifecycleTests
+          swift run RelayConsoleReleaseBundleTests
+          swift run RelayConsoleServiceTests "Relay Cloud account export is authenticated unwrapped and owner only"
+          swift run RelayConsoleServiceTests "Relay Cloud account deletion requires password exact confirmation and bearer authentication"
+          swift run RelayConsoleServiceTests "Relay Cloud session security uses canonical authenticated logout and revocation routes"
+          swift run RelayConsoleReleaseAcceptancePreparationTests
+
+      - name: Compile the macOS package for production
+        working-directory: RelayConsoleSwift
+        run: swift build -c release
+
+      - name: Compile iPhone and iPad app and test targets without launching them
+        run: >-
+          xcodebuild
+          -project ios/ClawChat.xcodeproj
+          -scheme ClawChat
+          -configuration Debug
+          -destination 'generic/platform=iOS'
+          -derivedDataPath "$RUNNER_TEMP/RelayConsole-iOS-Build"
+          CODE_SIGNING_ALLOWED=NO
+          CODE_SIGNING_REQUIRED=NO
+          build-for-testing

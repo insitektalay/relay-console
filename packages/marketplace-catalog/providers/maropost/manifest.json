@@ -1,0 +1,189 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "maropost",
+  "name": "Maropost",
+  "category": "communication",
+  "description": "Maropost Marketing Cloud provides campaign, contact, content, list, journey, reporting, and multichannel messaging APIs.",
+  "agentUseSummary": "Connect the exact customer-owned account ID and least-privilege API key. Relay pins five REST operations: one bounded campaign listing runs directly, two exact campaign/contact reads and two one-contact list writes require approval, and writes additionally require recorded contact authorization.",
+  "provider": {
+    "websiteUrl": "https://www.maropost.com/",
+    "docsUrl": "https://api.maropost.com/api/",
+    "developerConsoleUrl": "https://app.maropost.com/",
+    "termsUrl": "https://www.maropost.com/legal/terms-conditions/",
+    "privacyUrl": "https://www.maropost.com/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_account_id",
+      "customer_owned_api_key",
+      "authorization_header_injection",
+      "account_derived_regional_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MAROPOST_ACCOUNT_ID",
+        "label": "Maropost account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact customer-owned Marketing Cloud account ID; Relay derives the documented regional API origin from it."
+      },
+      {
+        "name": "MAROPOST_API_KEY",
+        "label": "Maropost API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated least-privilege customer-owned key, optionally restricted to Railway staging egress IPs."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "List campaigns",
+      "description": "Use one bounded page of campaign metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read campaign or contact",
+      "description": "Use one exact campaign read and one email contact lookup with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage list contacts",
+      "description": "Use two single-contact list writes with approval and contact authorization attestation.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "maropost_structural_read",
+        "label": "List Maropost campaigns",
+        "description": "List one bounded page of campaign metadata from the account's documented regional API origin."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "maropost_sensitive_read",
+        "label": "Read Maropost campaign or contact",
+        "description": "Read one exact campaign or one exact contact lookup."
+      },
+      {
+        "id": "maropost_manage",
+        "label": "Manage Maropost list contacts",
+        "description": "Upsert or update one authorized email contact in one exact list with explicit subscription state."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "maropost_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Account IDs, API keys, authorization headers, and credential-bearing response fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "maropost_bulk_streaming",
+        "label": "Run bulk or streaming APIs",
+        "description": "GraphQL, streaming, Data Journeys, imports, exports, relational tables, recipient-event reports, and unbounded pagination are excluded."
+      },
+      {
+        "id": "maropost_campaign_admin",
+        "label": "Send or administer campaigns",
+        "description": "Campaign/content/list creation, sending, deletion, journey control, SMS/push, suppression removal, account/key administration, and remote content URLs remain provider-side."
+      },
+      {
+        "id": "maropost_unbounded_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only five pinned REST routes run on account-derived documented regional origins; arbitrary URLs, methods, headers, query fields, bodies, and oversized results are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "maropost_safe",
+      "label": "Safe",
+      "description": "One bounded campaign listing runs directly; exact campaign/contact reads and both single-contact writes require approval, and writes also require explicit recorded contact authorization.",
+      "defaultSelected": true,
+      "allowedActions": ["maropost_structural_read"],
+      "approvalRequiredActions": ["maropost_sensitive_read", "maropost_manage"],
+      "blockedActions": [
+        "maropost_secret_exposure",
+        "maropost_bulk_streaming",
+        "maropost_campaign_admin",
+        "maropost_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All five selected operations run without Relay per-action approval; contact authorization, regional routing, allowlists, bounds, audits, and bulk/send/admin blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "maropost_structural_read",
+        "maropost_sensitive_read",
+        "maropost_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "maropost_secret_exposure",
+        "maropost_bulk_streaming",
+        "maropost_campaign_admin",
+        "maropost_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts five pinned Maropost operations and injects encrypted account credentials only into account-derived regional REST requests."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts five pinned Maropost operations and injects encrypted account credentials only into account-derived regional REST requests."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Maropost requires a customer-owned Marketing Cloud account, least-privilege API key, correct regional account routing, and permission-based list/contact configuration. No console, account, key, IP allowlist, contact, consent, campaign, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Configure a dedicated staging account ID/key in Railway staging, optionally restrict the key to staging egress IPs, and verify regional routing, campaign/contact reads, approval and contact-authorization denial/allow, explicit subscribe/unsubscribe behavior, pagination and response bounds, concurrency/rate behavior, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.maropost.com/api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Maropost's April 2026 OpenAPI guide documents production regional origins, ApiKey Authorization headers, JSON, 10-call account concurrency, pagination, and the exact campaign/contact routes selected by Relay."
+    },
+    {
+      "url": "https://galaxy.maropost.com/kb/articles/648-api-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Maropost documents Marketing Cloud REST and GraphQL APIs, API-key authentication, and the account Connections reference surface."
+    },
+    {
+      "url": "https://galaxy.maropost.com/kb/articles/825-rest-apis",
+      "checkedAt": "2026-07-17",
+      "supports": "Maropost documents REST campaign, contact, list, report, journey, SMS, transactional, and push categories and recommends non-REST facilities for bulk transfer."
+    },
+    {
+      "url": "https://galaxy.maropost.com/kb/articles/28-api-keys",
+      "checkedAt": "2026-07-17",
+      "supports": "Maropost documents dedicated API keys, one-time secret retrieval, privileges, optional IP whitelisting, and key lifecycle management."
+    }
+  ]
+}

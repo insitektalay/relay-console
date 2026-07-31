@@ -1,0 +1,166 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "smartsheet",
+  "name": "Smartsheet",
+  "category": "work_management",
+  "description": "Smartsheet is a collaborative work-management platform built around sheets, rows, dashboards, reports, forms, files, workflows, resource planning, and portfolio reporting. Teams use it to plan projects, coordinate operational work, automate processes, collect updates, and track delivery across the organization.",
+  "agentUseSummary": "Connect one Smartsheet account through OAuth, then let agents read bounded sheets and rows or use the complete account-authorized Smartsheet API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.smartsheet.com/",
+    "docsUrl": "https://developers.smartsheet.com/api/smartsheet/introduction",
+    "developerConsoleUrl": "https://app.smartsheet.com/b/home",
+    "termsUrl": "https://www.smartsheet.com/legal/agreements",
+    "privacyUrl": "https://www.smartsheet.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "ADMIN_SHEETS",
+      "ADMIN_SIGHTS",
+      "ADMIN_USERS",
+      "ADMIN_WEBHOOKS",
+      "ADMIN_WORKSPACES",
+      "CREATE_SHEETS",
+      "CREATE_SIGHTS",
+      "DELETE_SHEETS",
+      "DELETE_SIGHTS",
+      "READ_CONTACTS",
+      "READ_EVENTS",
+      "READ_SHEETS",
+      "READ_SIGHTS",
+      "READ_USERS",
+      "SHARE_SHEETS",
+      "SHARE_SIGHTS",
+      "WRITE_SHEETS"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.smartsheet.com/b/authorize",
+    "tokenUrl": "https://api.smartsheet.com/2.0/token",
+    "revocationUrl": "https://api.smartsheet.com/2.0/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_app_oauth",
+      "exact_account_and_user_binding",
+      "seven_day_access_token",
+      "refresh_token_pair",
+      "fixed_smartsheet_api_origin"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/smartsheet/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sheet_read",
+      "label": "Read sheets",
+      "description": "Read bounded sheet and row data from the connected Smartsheet account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Smartsheet API",
+      "description": "Use the complete documented Smartsheet API surface allowed by the connected user and account.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "smartsheet_sheet_list",
+        "label": "List sheets",
+        "description": "List at most twenty-five sheet summaries."
+      },
+      {
+        "id": "smartsheet_sheet_get",
+        "label": "Read a sheet",
+        "description": "Read one sheet with at most twenty-five rows."
+      },
+      {
+        "id": "smartsheet_row_get",
+        "label": "Read a row",
+        "description": "Read one row by exact sheet and row IDs."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "smartsheet_full_api",
+        "label": "Use full Smartsheet API",
+        "description": "Use any documented Smartsheet API 2.0 operation authorized by the connection; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "smartsheet_safe",
+      "label": "Safe",
+      "description": "Bounded sheet and row reads run directly; every other Smartsheet API operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "smartsheet_sheet_list",
+        "smartsheet_sheet_get",
+        "smartsheet_row_get"
+      ],
+      "approvalRequiredActions": ["smartsheet_full_api"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Smartsheet operation runs without Relay per-action approval; account binding, secret isolation, request bounds, audits, Smartsheet permissions, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "smartsheet_sheet_list",
+        "smartsheet_sheet_get",
+        "smartsheet_row_get",
+        "smartsheet_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Smartsheet wrappers and attaches encrypted OAuth tokens only to the exact bound Smartsheet API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Smartsheet wrappers and attaches encrypted OAuth tokens only to the exact bound Smartsheet API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A Relay-owned Smartsheet OAuth app and staging credentials still require provider-console registration and live consent validation; regional and Gov tenants require their corresponding provider environment and tokens.",
+    "nextAction": "In the provider-console task, register Relay's exact callback and required scopes, add staging credentials, then verify authorization, seven-day token refresh, account binding, Safe approval, Dangerous mutation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.smartsheet.com/api/smartsheet/guides/advanced-topics/oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Smartsheet documents authorization-code OAuth, the complete scope list, approximately ten-minute authorization codes, seven-day access tokens, and refresh-token renewal."
+    },
+    {
+      "url": "https://developers.smartsheet.com/api/smartsheet/guides/basics/base-url",
+      "checkedAt": "2026-07-17",
+      "supports": "Smartsheet documents the fixed API 2.0 origins for its global, Europe, Australia, and Gov products."
+    },
+    {
+      "url": "https://developers.smartsheet.com/api/smartsheet/openapi/users/get-current-user",
+      "checkedAt": "2026-07-17",
+      "supports": "Smartsheet documents the current-user endpoint used to bind and validate the connection."
+    },
+    {
+      "url": "https://developers.smartsheet.com/api/smartsheet/openapi/sheets",
+      "checkedAt": "2026-07-17",
+      "supports": "Smartsheet documents sheet, row, column, sharing, update-request, and other API 2.0 operations used by the bounded wrappers and full API action."
+    }
+  ]
+}

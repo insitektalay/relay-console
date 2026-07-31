@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "apple-fitness",
+  "name": "Apple Fitness",
+  "category": "knowledge_documents",
+  "description": "Apple Fitness is the iPhone fitness hub for Activity rings, movement goals, trends, awards, workout history and activity sharing, with additional metrics from Apple Watch and compatible sensors. Apple Fitness+ adds a subscription library of guided workouts and meditations, personalized recommendations, training plans and live workout metrics.",
+  "agentUseSummary": "Apple Fitness cannot be connected as a separate Relay account provider because Apple publishes no delegated Fitness or Fitness+ account API. Supported developer access to workout data uses HealthKit, and third-party workout scheduling uses WorkoutKit inside a native authorized app; those surfaces belong to the unresolved Apple Health device-local consent contract rather than a duplicate Apple Fitness connection.",
+  "provider": {
+    "websiteUrl": "https://www.apple.com/apple-fitness-plus/",
+    "docsUrl": "https://support.apple.com/guide/iphone/get-started-with-fitness-ipha5dddb411/ios",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.apple.com/legal/internet-services/itunes/",
+    "privacyUrl": "https://www.apple.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "no_general_apple_fitness_account_api",
+      "fitness_plus_subscription_not_developer_authority",
+      "healthkit_required_for_workout_data",
+      "workoutkit_native_permission_for_third_party_schedules",
+      "canonical_apple_health_device_local_contract_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "apple_fitness_connect",
+        "label": "Connect Apple Fitness",
+        "description": "Apple publishes no OAuth, API-key, account API or remote MCP contract for a third party to connect the Fitness or Fitness+ account and library."
+      },
+      {
+        "id": "apple_fitness_activity_data",
+        "label": "Read fitness activity",
+        "description": "Activity rings, steps, distance, trends, awards, workouts, effort, heart rate, calories and shared activity are unavailable through a separate Fitness provider; supported workout-data access requires the Apple Health HealthKit contract."
+      },
+      {
+        "id": "apple_fitness_manage",
+        "label": "Change goals or workouts",
+        "description": "Agents cannot change Activity goals, log or delete completed workouts, manage sharing, schedule workouts or write fitness data without an approved native HealthKit and WorkoutKit implementation."
+      },
+      {
+        "id": "apple_fitness_plus",
+        "label": "Control Apple Fitness+",
+        "description": "Fitness+ subscriptions, recommendations, plans, trainer content, workout and meditation playback, awards and account history are not exposed through a supported third-party API."
+      },
+      {
+        "id": "apple_fitness_private_or_credential_access",
+        "label": "Use private or credential-based access",
+        "description": "Apple Account credentials, Fitness app automation, web scraping, private frameworks, database extraction and reverse-engineered service calls are never accepted."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "apple_fitness_unavailable",
+      "label": "Unavailable",
+      "description": "No separate Apple Fitness action is enabled; supported native workout data and scheduling must use one approved Apple Health device-local connection instead.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "apple_fitness_connect",
+        "apple_fitness_activity_data",
+        "apple_fitness_manage",
+        "apple_fitness_plus",
+        "apple_fitness_private_or_credential_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No separate Apple Fitness tools are mounted because Apple exposes no Fitness account API and the supported HealthKit and WorkoutKit authority requires an approved native Apple Health bridge."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No separate Apple Fitness tools are mounted because Apple exposes no Fitness account API and the supported HealthKit and WorkoutKit authority requires an approved native Apple Health bridge."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Apple Fitness and Fitness+ are interactive Apple apps and subscription services, not a delegated account platform. Apple exposes workout samples and health metrics through permissioned HealthKit, while WorkoutKit lets a third-party native iOS or watchOS app create, preview and schedule its own workout compositions with user authorization. Neither framework grants access to Fitness+ content, recommendations, subscriptions or an umbrella Fitness account. Relay's Apple Health iteration already records the unresolved native target, health-purpose, per-agent consent, third-party disclosure and data-governance decisions for this device-local authority.",
+    "nextAction": "Do not request Apple Account credentials, show a separate Connect action or publish a duplicate Apple Fitness card. Keep Apple Fitness unavailable as a direct provider. If the Apple Health native contract is approved, include bounded workout reads and explicitly authorized WorkoutKit scheduling in that single device-local connection, with separate capabilities and permissions; only reconsider Fitness+ if Apple publishes a supported distributable account or content API."
+  },
+  "evidence": [
+    {
+      "url": "https://support.apple.com/guide/iphone/get-started-with-fitness-ipha5dddb411/ios",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple describes the Fitness app as the interactive place to review Activity rings, steps, distance, trends and workouts, change goals and share activity with friends."
+    },
+    {
+      "url": "https://www.apple.com/apple-fitness-plus/",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple describes Fitness+ as a paid workout and meditation content service with personalized recommendations, plans and device-provided real-time metrics inside the Fitness app."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/workoutkit",
+      "checkedAt": "2026-07-17",
+      "supports": "WorkoutKit lets native iOS and watchOS apps create and preview their own workout compositions and, with permission, schedule them in the Workout app and Fitness app; it directs health-data access to HealthKit."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/healthkit/hkworkout",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple models completed workouts as permission-protected HealthKit samples with activity, energy and distance data rather than a Fitness account API."
+    },
+    {
+      "url": "https://developer.apple.com/health-fitness/",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple's public health and fitness developer surfaces are HealthKit, Core Motion and WorkoutKit for native app experiences; Apple does not publish an umbrella Fitness or Fitness+ account API."
+    },
+    {
+      "url": "https://developer.apple.com/app-store/review/guidelines/",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple restricts health and fitness data use, disclosure, data mining, inaccurate writes and storage, so the native Apple Health consent and governance boundary cannot be bypassed through a second provider identity."
+    }
+  ]
+}

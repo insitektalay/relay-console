@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "re-amaze",
+  "name": "Re:amaze",
+  "category": "crm_support",
+  "description": "Re:amaze is a customer-service platform for shared inboxes, email, chat, social messaging, SMS, voice, customer conversations, automation, FAQs, and ecommerce support.",
+  "agentUseSummary": "Enter one Re:amaze brand, dedicated user login email, and individual API token, then let selected agents use content-free conversation operations or approved documented API v1 requests under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.reamaze.com/",
+    "docsUrl": "https://support.reamaze.com/api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.reamaze.com/terms",
+    "privacyUrl": "https://www.reamaze.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "REAMAZE_BRAND",
+        "label": "Re:amaze brand",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the brand hostname label before .reamaze.io."
+      },
+      {
+        "name": "REAMAZE_LOGIN_EMAIL",
+        "label": "Re:amaze login email",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the email of a dedicated least-privilege Re:amaze user."
+      },
+      {
+        "name": "REAMAZE_API_TOKEN",
+        "label": "Re:amaze API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate the dedicated user's individual API token in Re:amaze settings."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "conversation_metadata_read",
+      "label": "Read conversation operations",
+      "description": "List and inspect bounded conversation operational metadata without subjects, message bodies, authors, emails, assignees, followers, tags, channel names/addresses, custom data, or raw records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Re:amaze API v1",
+      "description": "Use documented brand-bound API v1 paths and methods allowed by the connected user's API token.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "reamaze_conversation_list",
+        "label": "List conversation metadata",
+        "description": "List one fixed first page of content-free Re:amaze conversation summaries."
+      },
+      {
+        "id": "reamaze_conversation_get",
+        "label": "Read conversation metadata",
+        "description": "Read one exact Re:amaze conversation through Relay's content-free projection."
+      },
+      {
+        "id": "reamaze_full_api",
+        "label": "Use Re:amaze API v1",
+        "description": "Use a documented Re:amaze API v1 operation authorized by the user's API token; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "reamaze_safe",
+      "label": "Safe",
+      "description": "Content-free conversation reads and every broader API operation require approval; brand/version binding, Basic-auth secret isolation, user context, bounds, and limits remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "reamaze_conversation_list",
+        "reamaze_conversation_get",
+        "reamaze_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected user-authorized operations run without Relay per-action approval; brand/version binding, Basic-auth secret isolation, bounds, audits, and Re:amaze limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "reamaze_conversation_list",
+        "reamaze_conversation_get",
+        "reamaze_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted login email/API token only to the brand-bound Re:amaze API v1 origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted login email/API token only to the brand-bound Re:amaze API v1 origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer Re:amaze brand plus dedicated user's login email and individual API token are required for live acceptance.",
+    "nextAction": "Create a dedicated least-privilege Re:amaze user and individual API token, enter the brand/email/token in Relay, and verify bounded reads, Safe approval, Dangerous broader operations, rate limits, token regeneration, user removal, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.reamaze.com/api",
+      "checkedAt": "2026-07-18",
+      "supports": "Re:amaze's official API introduction defines brand-scoped reamaze.io HTTPS origins, per-user API tokens, HTTP Basic authentication using login email plus token, JSON API v1 resources, and HTTP 429 rate limiting."
+    },
+    {
+      "url": "https://www.reamaze.com/api/get_conversations",
+      "checkedAt": "2026-07-18",
+      "supports": "Re:amaze's official conversation reference defines the /api/v1/conversations list endpoint, page metadata, filters, status codes, channel codes, unique conversation slugs, and response shape."
+    },
+    {
+      "url": "https://www.reamaze.com/api/get_conversation",
+      "checkedAt": "2026-07-18",
+      "supports": "Re:amaze documents exact conversation retrieval by slug at /api/v1/conversations/{slug}."
+    }
+  ]
+}

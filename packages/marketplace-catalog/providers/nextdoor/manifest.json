@@ -1,0 +1,209 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "nextdoor",
+  "name": "Nextdoor",
+  "category": "content_creative",
+  "description": "Nextdoor is a neighborhood network that connects verified residents, local businesses, and public agencies with nearby communities. People use it to share local updates, find services and recommendations, and participate in neighborhood conversations.",
+  "agentUseSummary": "Connect one provider-approved US profile, then let agents inspect that exact server-bound profile, list up to ten own posts, draft locally, and publish one approval-controlled plain-text post without exposing OAuth secrets or raw Publish API access.",
+  "provider": {
+    "websiteUrl": "https://nextdoor.com/",
+    "docsUrl": "https://developer.nextdoor.com/reference/sharing-introduction",
+    "developerConsoleUrl": "https://developer.nextdoor.com/reference/sharing-get-authorization-code",
+    "termsUrl": "https://nextdoor.com/member_agreement",
+    "privacyUrl": "https://nextdoor.com/privacy_policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "profile:read", "post:read", "post:write"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.nextdoor.com/v3/authorize/",
+    "tokenUrl": "https://auth.nextdoor.com/v2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_client",
+      "authorization_code_refresh",
+      "provider_approved_publish_api_partner",
+      "exact_server_bound_us_profile",
+      "encrypted_state_token_and_client_secret"
+    ],
+    "credentialRequirements": ["NEXTDOOR_CLIENT_ID", "NEXTDOOR_CLIENT_SECRET"],
+    "callbackPath": "/api/v1/marketplace/oauth/nextdoor/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "profile_read",
+      "label": "Read selected profile",
+      "description": "Inspect public fields for the exact server-bound verified neighbor or entity profile.",
+      "defaultSelected": true
+    },
+    {
+      "id": "own_posts_read",
+      "label": "Read own posts",
+      "description": "List at most ten posts owned by the exact selected profile without pagination.",
+      "defaultSelected": true
+    },
+    {
+      "id": "text_post_draft",
+      "label": "Draft plain text",
+      "description": "Normalize and validate one plain-text post locally with no provider side effect.",
+      "defaultSelected": true
+    },
+    {
+      "id": "text_post_publish",
+      "label": "Publish plain text",
+      "description": "Publish one exact approval-controlled plain-text post for the selected profile.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "nextdoor_profile_get",
+        "label": "Read selected profile",
+        "description": "Read provider-correct public fields without exposing the secure profile identifier."
+      },
+      {
+        "id": "nextdoor_own_posts_list",
+        "label": "List own posts",
+        "description": "List at most ten own posts for the server-bound profile without pagination."
+      },
+      {
+        "id": "nextdoor_text_post_draft",
+        "label": "Draft text post",
+        "description": "Prepare one normalized post of at most 8192 UTF-8 bytes locally."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "nextdoor_text_post_publish",
+        "label": "Publish text post",
+        "description": "Atomically consume approval for one exact text payload and publish without automatic retry."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "nextdoor_other_products",
+        "label": "Block other Nextdoor products",
+        "description": "Display Content, Ads/CAPI, Share Plugin, agency, comment, and other separately approved products are not exposed."
+      },
+      {
+        "id": "nextdoor_broader_social_actions",
+        "label": "Block broader social actions",
+        "description": "Community search, other profiles, comments, replies, events, marketplace listings, media, hashtags, smart links, geotags, scheduling, bulk work, edits, deletion, pagination, export, and raw APIs are unavailable."
+      },
+      {
+        "id": "nextdoor_unbound_or_non_us_access",
+        "label": "Block unbound and non-US access",
+        "description": "Alternate profile identifiers, raw secure IDs, regional API switching, redirects, arbitrary endpoints, token exposure, oversized responses, and automatic write retry are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "nextdoor_safe",
+      "label": "Safe",
+      "description": "Selected-profile reads, bounded own-post reads, and local drafts run automatically; exact text publishing requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "nextdoor_profile_get",
+        "nextdoor_own_posts_list",
+        "nextdoor_text_post_draft"
+      ],
+      "approvalRequiredActions": ["nextdoor_text_post_publish"],
+      "blockedActions": [
+        "nextdoor_other_products",
+        "nextdoor_broader_social_actions",
+        "nextdoor_unbound_or_non_us_access"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected Nextdoor actions run without Relay per-action approval; exact profile binding, scopes, bounds, audits, secret isolation, and no-retry behavior still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "nextdoor_profile_get",
+        "nextdoor_own_posts_list",
+        "nextdoor_text_post_draft",
+        "nextdoor_text_post_publish"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "nextdoor_other_products",
+        "nextdoor_broader_social_actions",
+        "nextdoor_unbound_or_non_us_access"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed wrappers and attaches the encrypted OAuth token and secure profile identifier only inside Railway's fixed US adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed wrappers and attaches the encrypted OAuth token and secure profile identifier only inside Railway's fixed US adapter."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "Nextdoor Publish API is closed beta and requires partner approval, provider-issued confidential credentials, an exact Railway callback, live consent acceptance, and a separately approved official brand asset before one may be bundled.",
+    "nextAction": "After batch integration, the provider-console task must obtain Publish API partner approval and written brand-use permission, register the exact Railway callback, store the client credentials in Railway staging, confirm US-region eligibility, then validate state, consent, refresh rotation, exact profile binding, bounded reads, Safe approval, dangerous-mode publishing, ambiguous-write no-retry behavior, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.nextdoor.com/reference/sharing-introduction",
+      "checkedAt": "2026-07-17",
+      "supports": "Nextdoor documents its closed-beta Publish API, approved partner onboarding, user and entity profiles, and the separate authorization, token, profile, read-post, and create-post operations."
+    },
+    {
+      "url": "https://developer.nextdoor.com/reference/sharing-get-authorization-code",
+      "checkedAt": "2026-07-17",
+      "supports": "The authorization documentation defines the confidential-client authorization-code flow, registered redirect, and openid, profile:read, post:read, and post:write scopes used by Relay."
+    },
+    {
+      "url": "https://developer.nextdoor.com/reference/sharing-get-access-token",
+      "checkedAt": "2026-07-17",
+      "supports": "Nextdoor documents Basic-authenticated access-token exchange at the global authorization service."
+    },
+    {
+      "url": "https://developer.nextdoor.com/reference/sharing-refresh-access-token",
+      "checkedAt": "2026-07-17",
+      "supports": "Nextdoor documents confidential-client refresh-token exchange."
+    },
+    {
+      "url": "https://developer.nextdoor.com/reference/get-your-profiles",
+      "checkedAt": "2026-07-17",
+      "supports": "The profile endpoint documents authorized account profiles, secure profile identifiers, entity-profile flags, and entity-page metadata."
+    },
+    {
+      "url": "https://developer.nextdoor.com/reference/get-your-posts",
+      "checkedAt": "2026-07-17",
+      "supports": "The own-post endpoint requires a secure_profile_id and documents post GUID output."
+    },
+    {
+      "url": "https://developer.nextdoor.com/reference/create-post",
+      "checkedAt": "2026-07-17",
+      "supports": "The create-post endpoint documents body_text, an 8192-character maximum, optional secure_profile_id selection, and share_link output."
+    },
+    {
+      "url": "https://developer.nextdoor.com/reference/sharing-availability",
+      "checkedAt": "2026-07-17",
+      "supports": "Nextdoor documents distinct regional API servers; Relay V1 deliberately fixes the existing connector to the US origin until region binding is implemented and accepted."
+    },
+    {
+      "url": "https://about.nextdoor.com/nextdoor-brand-use-guidelines/",
+      "checkedAt": "2026-07-17",
+      "supports": "Nextdoor's brand-use guidance requires permission for third-party logo use, so Relay does not bundle an official logo in this code-only provider slice."
+    }
+  ]
+}

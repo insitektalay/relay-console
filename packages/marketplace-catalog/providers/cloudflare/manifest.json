@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "cloudflare",
+  "name": "Cloudflare",
+  "category": "developer",
+  "description": "Cloudflare is a connectivity, security, and application platform that operates a global edge network for websites, APIs, and private infrastructure. Teams use it to manage domains and traffic, protect applications, accelerate delivery, run edge compute, and observe service behavior.",
+  "agentUseSummary": "Connect one Cloudflare account through Relay-owned OAuth and bind one selected zone, then let agents list a bounded first page of account zones, inspect that exact zone, and read one fixed aggregate traffic overview for at most twenty-four hours. Relay V1 excludes DNS and configuration reads or writes, cache purge, Workers and Access, raw logs or request dimensions, arbitrary REST or GraphQL, pagination, token administration, billing, and broad export.",
+  "provider": {
+    "websiteUrl": "https://www.cloudflare.com/",
+    "docsUrl": "https://developers.cloudflare.com/fundamentals/oauth/",
+    "developerConsoleUrl": "https://dash.cloudflare.com/",
+    "termsUrl": "https://www.cloudflare.com/terms/",
+    "privacyUrl": "https://www.cloudflare.com/privacypolicy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["zone.read", "analytics.read", "offline_access"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://dash.cloudflare.com/oauth2/auth",
+    "tokenUrl": "https://dash.cloudflare.com/oauth2/token",
+    "revocationUrl": "https://dash.cloudflare.com/oauth2/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_public_oauth", "confidential_authorization_code", "exact_account_binding", "exact_selected_zone", "expiring_access_token", "refresh_token", "provider_revocation"],
+    "credentialRequirements": [
+      { "name": "CLOUDFLARE_ACCOUNT_ID", "label": "Cloudflare account ID", "required": true, "secret": false, "helpText": "Bind the connection to one exact 32-character Cloudflare account ID." },
+      { "name": "CLOUDFLARE_ZONE_ID", "label": "Cloudflare zone ID", "required": true, "secret": false, "helpText": "Bind the connection to one exact 32-character zone ID in that account." }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/cloudflare/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "zone_read", "label": "Read zones", "description": "List bounded zones in one exact account and inspect one selected zone.", "defaultSelected": true },
+    { "id": "zone_analytics", "label": "Read zone analytics", "description": "Read one fixed aggregate traffic overview for the selected zone.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "cloudflare_zone_list", "label": "List zones", "description": "List at most twenty-five zones from the first page of one exact account." },
+      { "id": "cloudflare_zone_get", "label": "Read selected zone", "description": "Read one exact selected zone after account-membership verification." },
+      { "id": "cloudflare_zone_traffic_overview", "label": "Read zone traffic", "description": "Read one fixed aggregate traffic overview for the selected zone over at most twenty-four hours." }
+    ],
+    "blocked": [
+      { "id": "cloudflare_zone_write", "label": "Change zones", "description": "Zone creation, deletion, activation, pausing, plan, and configuration changes are outside V1." },
+      { "id": "cloudflare_dns_write", "label": "Change DNS", "description": "DNS record reads and writes are outside V1." },
+      { "id": "cloudflare_configuration_write", "label": "Change Cloudflare configuration", "description": "Rules, settings, cache purge, certificates, Workers, Access, security, and other changes are outside V1." },
+      { "id": "cloudflare_private_telemetry", "label": "Read private telemetry", "description": "Logs, raw events, request-level dimensions, firewall events, and broad analytics exports are outside V1." },
+      { "id": "cloudflare_admin", "label": "Administer Cloudflare", "description": "Tokens, OAuth clients, members, roles, billing, subscriptions, and administration are outside V1." },
+      { "id": "cloudflare_raw_api", "label": "Use raw Cloudflare API", "description": "Arbitrary REST or GraphQL, hosts, paths, queries, pagination, introspection, and raw responses are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "cloudflare_safe", "label": "Safe", "description": "All three bounded Cloudflare reads require matching approval.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["cloudflare_zone_list", "cloudflare_zone_get", "cloudflare_zone_traffic_overview"], "blockedActions": ["cloudflare_zone_write", "cloudflare_dns_write", "cloudflare_configuration_write", "cloudflare_private_telemetry", "cloudflare_admin", "cloudflare_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while exact account/zone binding, OAuth authority, fixed requests, limits, redaction, audit, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["cloudflare_zone_list", "cloudflare_zone_get", "cloudflare_zone_traffic_overview"], "approvalRequiredActions": [], "blockedActions": ["cloudflare_zone_write", "cloudflare_dns_write", "cloudflare_configuration_write", "cloudflare_private_telemetry", "cloudflare_admin", "cloudflare_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three fixed Cloudflare read wrappers and attaches encrypted OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three fixed Cloudflare read wrappers and attaches encrypted OAuth tokens server-side." }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Relay needs a Cloudflare account-owned confidential OAuth client, the exact Railway callback, zone.read, analytics.read, and offline_access, publisher-domain verification, public visibility, and Railway staging client credentials. Those provider-console and environment actions are outside this worker task.",
+    "nextAction": "In the provider-console task, create the client with authorization_code and refresh_token grants plus client_secret_basic, configure the exact callback and three scopes, verify relayconsole.work, promote it public, store credentials in Railway staging, then verify consent, exact account/zone binding, all three reads, refresh, revocation, permission/rate failures, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developers.cloudflare.com/fundamentals/oauth/create-an-oauth-client/", "checkedAt": "2026-07-17", "supports": "Cloudflare supports third-party authorization-code OAuth clients, confidential backend clients, provider scopes, public visibility, publisher-domain verification, and client-secret rotation." },
+    { "url": "https://developers.cloudflare.com/fundamentals/oauth/integrate-with-cloudflare/", "checkedAt": "2026-07-17", "supports": "Cloudflare publishes exact authorization, token, revocation, user-info, and OpenID endpoints for OAuth client integration." },
+    { "url": "https://developers.cloudflare.com/api/resources/zones/methods/list/", "checkedAt": "2026-07-17", "supports": "Zone Read authorizes account-filtered bounded zone listing and returns zone lifecycle, account, status, type, and name-server fields with explicit pagination metadata." },
+    { "url": "https://developers.cloudflare.com/analytics/graphql-api/migration-guides/graphql-api-analytics/", "checkedAt": "2026-07-17", "supports": "The aggregate httpRequestsAdaptiveGroups dataset exposes request count, response bytes, and visits; Relay pins one exact-zone query and excludes dimensions and raw events." }
+  ]
+}

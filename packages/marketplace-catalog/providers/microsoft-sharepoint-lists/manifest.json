@@ -1,0 +1,166 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-sharepoint-lists",
+  "name": "Microsoft SharePoint Lists",
+  "category": "work_management",
+  "description": "Microsoft SharePoint Lists stores structured collaboration data in sites through lists, columns, content types, views, items, fields, attachments, versions, approvals, permissions, analytics, and document-library relationships exposed by Microsoft Graph.",
+  "agentUseSummary": "SharePoint Lists cannot yet be connected through Relay. Common Graph list methods require site-wide read or read-write permissions, while Sites.Selected requires explicit SharePoint grants and still combines application scope with the user's effective access. Relay exposes no list data until one tenant, site, list, column allowlist, permission model, and representative Entra OAuth flow pass acceptance.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-365/microsoft-lists",
+    "docsUrl": "https://learn.microsoft.com/graph/sharepoint-concept-overview",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/licensing/terms/productoffering/Microsoft365/all",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "offline_access",
+      "User.Read",
+      "Sites.Selected",
+      "Sites.Read.All",
+      "Sites.ReadWrite.All"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+    "revocationUrl": "https://myapps.microsoft.com/"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_microsoft_entra_oauth_app",
+      "microsoft_identity_platform_delegated_work_or_school_user",
+      "microsoft_graph_sharepoint_api_v1",
+      "exact_tenant_site_and_list_binding",
+      "sites_selected_preferred_with_explicit_sharepoint_grant",
+      "effective_user_site_list_and_item_permissions",
+      "column_content_type_view_and_item_field_allowlists",
+      "provider_and_representative_site_acceptance_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-sharepoint-lists/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "lists_schema_and_items_read",
+      "label": "Read selected lists and items",
+      "description": "After acceptance, read only allowlisted list metadata, columns, content types, views, items, and selected field values in one exact site and list.",
+      "defaultSelected": true
+    },
+    {
+      "id": "list_items_manage",
+      "label": "Manage selected list items",
+      "description": "After write acceptance, create, update, or delete one exact item and allowlisted fields with eTag, content-type, validation, approval, and before-state controls.",
+      "defaultSelected": false
+    },
+    {
+      "id": "lists_schema_manage",
+      "label": "Manage list structure",
+      "description": "After separate administrative acceptance, create or change selected lists, columns, content types, and views without altering site-wide settings or permissions.",
+      "defaultSelected": false
+    },
+    {
+      "id": "list_attachments_and_versions",
+      "label": "Manage attachments and versions",
+      "description": "After file and retention acceptance, read or change explicitly selected attachments and inspect or restore one item version without broad document-library access.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "sharepoint_lists_connect_before_review",
+        "label": "Connect before Entra and site review",
+        "description": "Relay has no accepted OAuth app, exact tenant, site and list, Sites.Selected grant, effective user boundary, representative schema, or tested column allowlist."
+      },
+      {
+        "id": "sharepoint_lists_reads_before_acceptance",
+        "label": "Read SharePoint lists",
+        "description": "Sites, lists, columns, content types, views, items, fields, attachments, versions, analytics, activities, approvals, permissions, system lists, and document-library data remain unavailable."
+      },
+      {
+        "id": "sharepoint_lists_item_mutations",
+        "label": "Change list items",
+        "description": "Creating, updating, publishing, approving, rejecting, deleting, restoring, copying, moving, bulk-changing, importing, exporting, or attaching content to items is blocked."
+      },
+      {
+        "id": "sharepoint_lists_schema_and_permission_mutations",
+        "label": "Change lists, schema, or access",
+        "description": "Creating or deleting lists, columns, content types and views, changing validation or formatting, permissions, sharing, site grants, retention, labels, workflows, or system settings is blocked."
+      },
+      {
+        "id": "sharepoint_lists_scope_raw_and_tenant_bypass",
+        "label": "Bypass site or data controls",
+        "description": "Site discovery, cross-site or cross-tenant access, broad Sites.Read.All or Sites.ReadWrite.All use outside the selected site, arbitrary OData, hidden or system lists, raw attachment exports, app-only expansion, tokens, private endpoints, and provider-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sharepoint_lists_provider_review",
+      "label": "Provider, site, and list review pending",
+      "description": "No list action is enabled until Relay's Entra app, selected-site grant, tenant, user, site and list binding, schema and field allowlists, item, attachment, approval, permission, retention, revocation, and disconnect contracts pass representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sharepoint_lists_connect_before_review",
+        "sharepoint_lists_reads_before_acceptance",
+        "sharepoint_lists_item_mutations",
+        "sharepoint_lists_schema_and_permission_mutations",
+        "sharepoint_lists_scope_raw_and_tenant_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount site-, list-, and field-bounded SharePoint tools after Entra and representative acceptance; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount site-, list-, and field-bounded SharePoint tools after Entra and representative acceptance; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Microsoft Graph exposes SharePoint sites, lists, columns, content types, views, items, field-value dictionaries, versions, attachments, analytics, and document-library relationships. Standard list and item reference methods document Sites.Read.All and Sites.ReadWrite.All, whose delegated forms span all site collections the user can access. Sites.Selected can restrict the application to configured site collections but requires an explicit SharePoint permission grant and still operates with the signed-in user's effective permissions. Site search does not support Sites.Selected. Some content-approval scenarios require broader Sites.Manage.All application authority. This worker cannot alter Relay's Entra app, grant consent or selected-site access, capture credentials, run OAuth, obtain a representative site and list, inspect fields, or mutate items.",
+    "nextAction": "The exclusive provider-console and acceptance task should add https://api.relayconsole.work/api/v1/marketplace/oauth/microsoft-sharepoint-lists/callback to Relay's reviewed tenant-specific Entra app, request delegated offline_access, User.Read, and Sites.Selected, and grant read only to one dedicated non-production site. Bind the site ID and one exact list ID out of band rather than using site search. Acceptance must compute effective user and app access, freeze site, list, column, content-type and view allowlists, exclude hidden and system lists, redact person, lookup, location, taxonomy, image, hyperlink and free-text fields, bound OData and pagination, validate eTags and field types, handle versions, moderation and content approval, attachments and document libraries, throttling, delta and subscriptions, Power Automate side effects, retention and labels, delete and restore, token revocation, disconnect, and cross-site denial. Write authority requires a separate selected-site grant and scope upgrade."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/graph/sharepoint-concept-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph exposes SharePoint sites and content, with lists as the foundation for structured SharePoint data and document libraries available as lists or drives."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/resources/listitem",
+      "checkedAt": "2026-07-17",
+      "supports": "A listItem represents a SharePoint list row with field values and supports item, field, analytics, version, and related operations."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/list-list",
+      "checkedAt": "2026-07-17",
+      "supports": "Listing a site's lists uses an exact site path, hides system lists by default, and documents Sites.Read.All or Sites.ReadWrite.All permissions."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/listitem-get",
+      "checkedAt": "2026-07-17",
+      "supports": "List-item reads can expand selected field values and document site-wide permissions, OData behavior, and additional content-approval authority for some application scenarios."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/permissions-reference",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft defines Sites.Selected to restrict an application to explicitly configured site collections, while Sites.Read.All and Sites.ReadWrite.All span all accessible site collections."
+    }
+  ]
+}

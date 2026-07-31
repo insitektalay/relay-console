@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "uber",
+  "name": "Uber",
+  "category": "commerce",
+  "description": "Uber's Riders API provides user-authorized rider profile and trip access, estimates, saved places, and privileged ride-request operations.",
+  "agentUseSummary": "Uber cannot yet be connected through Relay. A Relay-owned Uber application, documented OAuth scopes, and Uber Full Access review are required before broader rider use; ride requests, receipts, and all-future-trip access are privileged. Relay exposes no account, trip, place, estimate, or ride authority until provider review and representative acceptance are complete.",
+  "provider": {
+    "websiteUrl": "https://www.uber.com/",
+    "docsUrl": "https://developer.uber.com/docs/riders/introduction",
+    "developerConsoleUrl": "https://developer.uber.com/dashboard/",
+    "termsUrl": "https://developer.uber.com/docs/riders/terms-of-use",
+    "privacyUrl": "https://www.uber.com/legal/en/document/?name=privacy-notice&country=united-states&lang=en"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "profile",
+      "history_lite",
+      "offline_access",
+      "places",
+      "request",
+      "request_receipt",
+      "all_trips"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.uber.com/oauth/v2/authorize",
+    "tokenUrl": "https://auth.uber.com/oauth/v2/token",
+    "revocationUrl": "https://auth.uber.com/oauth/v2/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_uber_app",
+      "oauth2_authorization_code",
+      "user_selected_scopes",
+      "offline_refresh_token",
+      "limited_developer_access",
+      "full_access_review_required_for_privileged_scopes",
+      "ride_request_sandbox"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/uber/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "rider_profile_and_history_read",
+      "label": "Read rider profile and trip history",
+      "description": "After provider acceptance, read only the identity and bounded trip-history fields granted by the rider.",
+      "defaultSelected": true
+    },
+    {
+      "id": "ride_estimates_and_places",
+      "label": "Use estimates and saved places",
+      "description": "After provider acceptance, retrieve eligible products and estimates and read or update saved places under the exact approved scopes.",
+      "defaultSelected": false
+    },
+    {
+      "id": "ride_request_manage",
+      "label": "Request and manage rides",
+      "description": "After Uber grants Full Access and representative acceptance passes, estimate, request, monitor, change, or cancel a ride with explicit rider confirmation.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "uber_connect_before_review",
+        "label": "Connect before Uber review",
+        "description": "Relay has no approved Uber production application, scopes, redirect, privacy-policy acceptance, or representative OAuth evidence."
+      },
+      {
+        "id": "uber_rider_data_before_review",
+        "label": "Read rider data",
+        "description": "Profiles, trip history, saved places, future trips, receipts, tokens, and precise location data remain unavailable before approval."
+      },
+      {
+        "id": "uber_estimates_before_review",
+        "label": "Retrieve products or estimates",
+        "description": "Product availability, pickup and destination validation, fare estimates, ETAs, and estimate tokens remain unavailable before provider acceptance."
+      },
+      {
+        "id": "uber_rides_before_full_access",
+        "label": "Request or manage rides",
+        "description": "Ride estimation, request, driver dispatch, charge, status, modification, cancellation, and receipt access are blocked before privileged Full Access and explicit rider confirmation."
+      },
+      {
+        "id": "uber_raw_or_real_world_bypass",
+        "label": "Use raw or bypassed Uber operations",
+        "description": "Arbitrary endpoints, private APIs, scraping, session or credential capture, developer-account limits used as production, sandbox events presented as real, and ride requests without confirmation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "uber_provider_review",
+      "label": "Provider review pending",
+      "description": "No Uber action is enabled until Uber approves Relay's application and requested scopes and the complete OAuth, privacy, rider-data, estimate, ride-confirmation, lifecycle, cancellation, and revocation contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "uber_connect_before_review",
+        "uber_rider_data_before_review",
+        "uber_estimates_before_review",
+        "uber_rides_before_full_access",
+        "uber_raw_or_real_world_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount approved bounded Uber tools after provider review; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount approved bounded Uber tools after provider review; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Uber documents OAuth authorization-code access for rider data, with offline_access needed for refresh tokens. General scopes include profile, history or history_lite and places, while request, request_receipt and all_trips are privileged. Development access is limited to the application team; broader production use of privileged scopes requires a completed integration, Full Access submission, supporting walkthrough material, and a public privacy policy. Ride-request endpoints affect drivers and charge riders. This worker cannot create an Uber app, capture secrets, authorize test riders, request Full Access, use the sandbox, or make a real-world ride request.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should first confirm Uber still accepts Relay's exact rider-assistant use case, create one Relay-owned application, register https://api.relayconsole.work/api/v1/marketplace/oauth/uber/callback, publish the required privacy policy, and request only the minimum selected general scopes. If ride requests remain in scope, complete the sandbox integration and separately request Full Access for each privileged scope. Acceptance must verify state and redirect binding, partial and denied consent, code exchange, refresh and revocation, least-privilege field projection, history and receipt restrictions, place changes, estimates, explicit fare and ride confirmation, idempotent request lifecycle, cancellation, no accidental dispatch, disconnect, and post-revocation denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.uber.com/docs/riders/guides/scopes",
+      "checkedAt": "2026-07-17",
+      "supports": "Uber classifies profile, history, history_lite, offline_access and places as general scopes and request, request_receipt and all_trips as privileged; production privileged use requires Full Access review, a completed integration, supporting material, and a public privacy policy."
+    },
+    {
+      "url": "https://developer.uber.com/docs/riders/guides/authentication/user-access-token",
+      "checkedAt": "2026-07-17",
+      "supports": "Uber documents the authorization-code exchange, Bearer use, offline_access refresh tokens, one-year refresh-token lifetime, token refresh, and revocation at auth.uber.com."
+    },
+    {
+      "url": "https://developer.uber.com/docs/riders/references/api/v1.2/requests-post",
+      "checkedAt": "2026-07-17",
+      "supports": "Uber's ride-request endpoint requires the privileged request scope; development use is limited to the app owner and registered developers, while broad rider use requires Full Access."
+    },
+    {
+      "url": "https://developer.uber.com/docs/riders/ride-requests/tutorials/api/curl",
+      "checkedAt": "2026-07-17",
+      "supports": "Uber warns that ride-request endpoints affect active drivers and charge riders and documents sandbox development before real-world ride requests."
+    }
+  ]
+}

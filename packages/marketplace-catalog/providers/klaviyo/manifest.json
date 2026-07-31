@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "klaviyo",
+  "name": "Klaviyo",
+  "category": "communication",
+  "description": "Klaviyo is a marketing automation and customer data platform for email, SMS, mobile messaging, audiences, campaigns, flows, and commerce-connected customer journeys.",
+  "agentUseSummary": "Connect one Klaviyo Account through Relay-owned confidential OAuth with mandatory PKCE and only accounts:read, lists:read, and campaigns:read. Relay rotates the expiring provider token pair and exposes only exact Account metadata, ten recently updated sparse List summaries, and twenty-five recent email Campaign lifecycle summaries at a pinned API revision; profiles, behavior, content, audiences, raw queries, pagination, exports, broader APIs, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.klaviyo.com/",
+    "docsUrl": "https://developers.klaviyo.com/en/reference/api_overview",
+    "developerConsoleUrl": "https://www.klaviyo.com/manage-apps",
+    "termsUrl": "https://www.klaviyo.com/legal/terms-of-service",
+    "privacyUrl": "https://www.klaviyo.com/legal/privacy/privacy-notice"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["accounts:read", "lists:read", "campaigns:read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.klaviyo.com/oauth/authorize",
+    "tokenUrl": "https://a.klaviyo.com/oauth/token",
+    "revocationUrl": "https://a.klaviyo.com/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "mandatory_pkce_s256",
+      "exact_account_binding",
+      "least_scope_binding",
+      "expiring_access_token",
+      "rotating_complete_token_pair",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/klaviyo/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_metadata",
+      "label": "Account metadata",
+      "description": "Read the exact Klaviyo Account summary.",
+      "defaultSelected": true
+    },
+    {
+      "id": "list_metadata",
+      "label": "List metadata",
+      "description": "List bounded recently updated List lifecycle summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "campaign_metadata",
+      "label": "Email Campaign metadata",
+      "description": "List bounded recent email Campaign lifecycle summaries.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "klaviyo_account_get",
+        "label": "Read account metadata",
+        "description": "Read the exact account ID, name, timezone, and currency."
+      },
+      {
+        "id": "klaviyo_list_list_recent",
+        "label": "List recent lists",
+        "description": "Read one fixed page of ten recently updated List lifecycle summaries."
+      },
+      {
+        "id": "klaviyo_campaign_list_recent_email",
+        "label": "List recent email campaigns",
+        "description": "Read one fixed page of twenty-five email Campaign lifecycle summaries."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "klaviyo_profile_private",
+        "label": "Access profiles or behavior",
+        "description": "Profiles, contact identity, consent, events, metrics, and behavioral data are outside V1."
+      },
+      {
+        "id": "klaviyo_campaign_content",
+        "label": "Access campaign content or audiences",
+        "description": "Campaign names, messages, content, audiences, recipients, reports, tags, and tracking are outside V1."
+      },
+      {
+        "id": "klaviyo_marketing_mutation",
+        "label": "Change or send Klaviyo data",
+        "description": "Creating, updating, ingesting, sending, archiving, or deleting Klaviyo resources is outside V1."
+      },
+      {
+        "id": "klaviyo_broader_api",
+        "label": "Access broader Klaviyo APIs",
+        "description": "Flows, templates, catalogs, commerce, forms, images, coupons, webhooks, and administration are outside V1."
+      },
+      {
+        "id": "klaviyo_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary paths, filters, includes, additional fields, revisions, cursors, pagination, crawling, synchronization, exports, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "klaviyo_safe",
+      "label": "Safe",
+      "description": "Three bounded metadata-only reads run automatically; profiles, behavior, campaign content, broader APIs, raw requests, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "klaviyo_account_get",
+        "klaviyo_list_list_recent",
+        "klaviyo_campaign_list_recent_email"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "klaviyo_profile_private",
+        "klaviyo_campaign_content",
+        "klaviyo_marketing_mutation",
+        "klaviyo_broader_api",
+        "klaviyo_raw_query"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact-account and scope binding, the pinned revision, sparse fields, page limits, audit, redaction, token rotation, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "klaviyo_account_get",
+        "klaviyo_list_list_recent",
+        "klaviyo_campaign_list_recent_email"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "klaviyo_profile_private",
+        "klaviyo_campaign_content",
+        "klaviyo_marketing_mutation",
+        "klaviyo_broader_api",
+        "klaviyo_raw_query"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Klaviyo metadata wrappers and attaches the encrypted, account-bound rotating OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Klaviyo metadata wrappers and attaches the encrypted, account-bound rotating OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Klaviyo requires Relay to create a confidential OAuth app with the exact Railway callback, least scopes, and secure client credentials. Railway staging credentials and an authorized acceptance Account are not configured in this code-only task.",
+    "nextAction": "In the provider-console task, create Relay's Klaviyo OAuth app with https://api.relayconsole.work/api/v1/marketplace/oauth/klaviyo/callback and only accounts:read lists:read campaigns:read, configure Railway staging client credentials, then verify PKCE, exact Account binding, all three sparse reads at revision 2026-04-15, serialized refresh and complete-pair replacement, 10-per-minute refresh limiting, revoke/uninstall, 90-day inactivity behavior, app warnings or review requirements, endpoint rate limits, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.klaviyo.com/en/docs/set_up_oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Klaviyo documents confidential authorization-code OAuth with mandatory PKCE S256, Basic-auth form token and refresh requests at a.klaviyo.com, account-bound one-hour access tokens, refresh tokens revoked after 90 idle days, a 10-refresh-per-minute ceiling, and Basic-auth revocation."
+    },
+    {
+      "url": "https://developers.klaviyo.com/en/reference/get_accounts",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /api/accounts requires accounts:read, returns exactly one Account, supports sparse account fields, and publishes XS limits of 1 request per second and 15 per minute."
+    },
+    {
+      "url": "https://developers.klaviyo.com/en/reference/get_lists",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /api/lists requires lists:read and supports a maximum page size of 10, updated sorting, and sparse name/created/updated/opt-in fields without profiles or profile counts."
+    },
+    {
+      "url": "https://developers.klaviyo.com/en/reference/get_campaigns",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /api/campaigns requires campaigns:read and, at the pinned 2026-04-15 revision, requires a channel filter while supporting bounded page size, updated sorting, and sparse lifecycle fields."
+    }
+  ]
+}

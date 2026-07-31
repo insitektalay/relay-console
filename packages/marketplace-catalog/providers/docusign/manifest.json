@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "docusign",
+  "name": "Docusign",
+  "category": "knowledge_documents",
+  "description": "Docusign is an electronic-signature and agreement-management platform for preparing, routing, signing, tracking, and retaining business documents. Organizations use it to coordinate agreement workflows and monitor the status of envelopes across people, teams, and systems.",
+  "agentUseSummary": "Connect one Docusign user through Relay-owned OAuth and select one exact account, then let agents read approval-gated, bounded Envelope subject, status, and lifecycle timestamps without exposing participant identity or document content.",
+  "provider": {
+    "websiteUrl": "https://www.docusign.com/",
+    "docsUrl": "https://developers.docusign.com/platform/auth/authcode/authcode-get-token/",
+    "developerConsoleUrl": "https://apps-d.docusign.com/admin/apps-and-keys",
+    "termsUrl": "https://www.docusign.com/legal/terms-and-conditions",
+    "privacyUrl": "https://www.docusign.com/company/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["signature", "extended"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://account.docusign.com/oauth/auth",
+    "tokenUrl": "https://account.docusign.com/oauth/token",
+    "revocationUrl": "https://account.docusign.com/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_oauth_app",
+      "authorization_code_with_pkce_s256",
+      "exact_user_and_selected_account_binding",
+      "provider_returned_regional_base_uri",
+      "extended_refresh_token",
+      "upstream_revoke_on_disconnect"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/docusign/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "envelope_read",
+      "label": "Read envelope status",
+      "description": "Read bounded Envelope subject, status and lifecycle timestamps in one explicitly selected Docusign account.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "docusign_envelope_list_recent",
+        "label": "List recent envelopes",
+        "description": "List at most twenty-five Docusign Envelope summaries changed during the previous fourteen days."
+      },
+      {
+        "id": "docusign_envelope_list_action_required",
+        "label": "List envelopes awaiting my signature",
+        "description": "List at most twenty-five Envelope summaries in the connected user's awaiting-signature folder."
+      },
+      {
+        "id": "docusign_envelope_get",
+        "label": "Read an envelope",
+        "description": "Read one exact Docusign Envelope summary subject to the provider's fifteen-minute polling rule."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "docusign_safe",
+      "label": "Safe",
+      "description": "Every bounded Docusign Envelope read requires approval; participant identity, document content, signing, downloads, templates, administration and writes are outside Relay's V1 surface.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "docusign_envelope_list_recent",
+        "docusign_envelope_list_action_required",
+        "docusign_envelope_get"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three selected bounded Docusign reads run without Relay per-action approval; selected-account binding, redaction, bounds, audits, provider scopes and polling limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "docusign_envelope_list_recent",
+        "docusign_envelope_list_action_required",
+        "docusign_envelope_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed Docusign Envelope read wrappers and attaches the encrypted OAuth token only to UserInfo and the validated selected-account regional API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed Docusign Envelope read wrappers and attaches the encrypted OAuth token only to UserInfo and the validated selected-account regional API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A Relay-owned Docusign integration key, Go-Live review, staging credentials, and live consent validation still require the separate provider-console task.",
+    "nextAction": "In the provider-console task, create the Docusign integration key with Relay's exact HTTPS callback, request Go-Live approval, store staging client credentials, then verify PKCE S256, signature extended consent, UserInfo user/account/base-URI binding, serialized refresh replacement, upstream token revocation, all three bounded reads, the fifteen-minute exact-resource guard, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.docusign.com/platform/auth/authcode/authcode-get-token/",
+      "checkedAt": "2026-07-17",
+      "supports": "Docusign documents Authorization Code Grant, its account authorization and token endpoints, the exact redirect URI, PKCE, access-token exchange and refresh flow."
+    },
+    {
+      "url": "https://developers.docusign.com/platform/auth/reference/scopes/",
+      "checkedAt": "2026-07-17",
+      "supports": "Docusign documents the signature and extended scopes used by Relay's bounded Envelope-read surface and refresh lifecycle."
+    },
+    {
+      "url": "https://developers.docusign.com/platform/auth/reference/user-info/",
+      "checkedAt": "2026-07-17",
+      "supports": "Docusign documents resolving the authenticated user, account memberships, default account, account identifiers and regional base URI through OAuth UserInfo."
+    },
+    {
+      "url": "https://developers.docusign.com/docs/esign-rest-api/reference/envelopes/envelopes/liststatuschanges/",
+      "checkedAt": "2026-07-17",
+      "supports": "Docusign documents account-scoped Envelope status listing, date, count, order and folder filters used by the fixed bounded list wrappers."
+    },
+    {
+      "url": "https://developers.docusign.com/docs/esign-rest-api/reference/envelopes/envelopes/get/",
+      "checkedAt": "2026-07-17",
+      "supports": "Docusign documents reading one exact account-scoped Envelope; Relay exposes only redacted subject, status and lifecycle timestamps and enforces the provider polling guidance."
+    }
+  ]
+}

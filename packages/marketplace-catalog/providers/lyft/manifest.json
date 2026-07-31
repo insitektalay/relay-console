@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "lyft",
+  "name": "Lyft",
+  "category": "commerce",
+  "description": "Lyft provides consumer rides in its own applications and an organization-funded Concierge product whose API can request, schedule, monitor, and cancel rides for other people.",
+  "agentUseSummary": "Lyft cannot yet be connected through Relay. Lyft's current official integration material describes the enterprise Concierge API, which requires a Lyft Business program connected to a developer API client; it does not establish a supported personal-rider account API for the generic Marketplace entry. Product and commercial owners must decide whether this provider means an organization-funded Concierge integration or a consumer deep link before any authority is built.",
+  "provider": {
+    "websiteUrl": "https://www.lyft.com/",
+    "docsUrl": "https://help.lyft.com/business/hc/en-us/articles/360001599667-Concierge-API-overview",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.lyft.com/terms",
+    "privacyUrl": "https://www.lyft.com/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "consumer_deep_link_candidate",
+      "lyft_business_concierge_candidate",
+      "organization_program_required_for_concierge",
+      "developer_api_client_program_connection",
+      "organization_funded_third_party_rides",
+      "no_current_personal_rider_api_contract",
+      "product_and_commercial_decision_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "lyft_connect_before_product_decision",
+        "label": "Connect Lyft",
+        "description": "Connect remains unavailable until Relay selects a supported consumer or enterprise product and Lyft accepts the corresponding authority contract."
+      },
+      {
+        "id": "lyft_account_or_program_data",
+        "label": "Read Lyft data",
+        "description": "Consumer accounts, business programs, rider identity, phone numbers, locations, rides, driver details, prices, status, reports, and billing remain unavailable."
+      },
+      {
+        "id": "lyft_concierge_rides",
+        "label": "Request or manage Concierge rides",
+        "description": "Creating, scheduling, editing, dispatching, tracking, tipping, retrying, or cancelling a ride for another person is blocked before an accepted Lyft Business program and explicit coordinator confirmation."
+      },
+      {
+        "id": "lyft_consumer_automation",
+        "label": "Automate a consumer ride",
+        "description": "Consumer ride requests, estimates, charges, trip changes, cancellations, or account changes are unavailable without a current published personal-rider API contract."
+      },
+      {
+        "id": "lyft_private_or_raw_interfaces",
+        "label": "Use private or raw Lyft interfaces",
+        "description": "Private or retired APIs, scraping, browser or device automation, session or credential capture, arbitrary calls, and consumer endpoints inferred from the Lyft app are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "lyft_unavailable",
+      "label": "Unavailable",
+      "description": "No Lyft action is enabled until Relay freezes the supported product boundary, obtains the required commercial and provider acceptance, and passes representative safety acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "lyft_connect_before_product_decision",
+        "lyft_account_or_program_data",
+        "lyft_concierge_rides",
+        "lyft_consumer_automation",
+        "lyft_private_or_raw_interfaces"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Lyft wrapper is mounted before the consumer-versus-Concierge product and commercial boundary is frozen."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Lyft wrapper is mounted before the consumer-versus-Concierge product and commercial boundary is frozen."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Lyft's current official integration material documents Concierge as a Lyft Business service for organizations to arrange rides for staff or customers who need not have a Lyft account. API access requires an organization program in the Lyft Business Portal, a client created by a developer, a program-to-client connection, and developer approval of that connection. Concierge can expose prices, routes, precise location, real-time status and ride controls and can dispatch drivers and incur charges or cancellation fees. The current public Lyft material found for this review does not document a generic personal-rider account API or delegated consumer OAuth contract. These are different users, payers, consent models, data controllers and products.",
+    "nextAction": "Product, commercial and security owners should decide whether Lyft means a non-API consumer handoff or an organization-funded Lyft Business Concierge product. If Concierge is selected, first obtain written commercial acceptance, create and fund the appropriate Relay organization and program through the exclusive provider-console lane, connect one developer API client, and freeze the credential, API, webhook, billing and rider-notice contract. Representative acceptance must verify authorized coordinator roles, rider consent and SMS notice, phone and location minimization, fare and charge confirmation, immediate versus scheduled versus flexible rides, tips, idempotency, dispatch status, driver PII, cancellation fees, support, program separation, audit, and credential revocation before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://help.lyft.com/business/hc/en-us/articles/360001599667-Concierge-API-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Lyft describes Concierge API as an organization product for embedding rides for staff and customers, including people who do not log in to or sign up for Lyft, with price, route, real-time status and control."
+    },
+    {
+      "url": "https://help.lyft.com/business/hc/en-us/articles/8587470351891",
+      "checkedAt": "2026-07-17",
+      "supports": "Lyft requires a Business Portal program connected to an API client created in the Developer Portal, with the program connection approved by the developer before API access works."
+    },
+    {
+      "url": "https://help.lyft.com/business/hc/en-us/articles/360018624554",
+      "checkedAt": "2026-07-17",
+      "supports": "Lyft documents that Concierge collects rider name, phone, pickup and destination and can request, schedule, monitor, cancel and support real rides."
+    },
+    {
+      "url": "https://help.lyft.com/business/hc/en-us/articles/360001582968",
+      "checkedAt": "2026-07-17",
+      "supports": "Lyft states that an on-demand Concierge request begins driver matching immediately, exposes driver and vehicle details, tracks the trip, and may incur a cancellation fee."
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "asana",
+  "name": "Asana",
+  "category": "work_management",
+  "description": "Asana is a work management platform for organizing projects, tasks, goals, and cross-functional processes. Teams use it to plan work, assign ownership, track dates and completion, and coordinate the operational details behind projects.",
+  "agentUseSummary": "Connect an Asana account once, then select which agents may find and read tasks and projects, prepare task changes, and create or update tasks under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://asana.com/",
+    "docsUrl": "https://developers.asana.com/docs",
+    "developerConsoleUrl": "https://app.asana.com/0/my-apps",
+    "termsUrl": "https://asana.com/terms",
+    "privacyUrl": "https://asana.com/terms/privacy-statement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["users:read", "workspaces:read", "projects:read", "tasks:read", "tasks:write"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.asana.com/-/oauth_authorize",
+    "tokenUrl": "https://app.asana.com/-/oauth_token",
+    "revocationUrl": "https://app.asana.com/-/oauth_revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "asana_user_account"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/asana/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "task_read", "label": "Find and read tasks", "description": "Find bounded tasks in one workspace and read one explicit task.", "defaultSelected": true },
+    { "id": "project_read", "label": "View projects", "description": "List bounded projects in one explicit workspace.", "defaultSelected": true },
+    { "id": "task_draft", "label": "Prepare task changes", "description": "Prepare an exact task create or update locally without changing Asana.", "defaultSelected": true },
+    { "id": "task_write", "label": "Create and update tasks", "description": "Create one task or update bounded fields on one explicit task.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "asana_task_search", "label": "Find tasks", "description": "Find a bounded set of tasks in one explicit workspace." },
+      { "id": "asana_project_list", "label": "List projects", "description": "List bounded projects in one explicit workspace." },
+      { "id": "asana_task_get", "label": "Read a task", "description": "Read one explicit task by GID." },
+      { "id": "asana_task_prepare", "label": "Prepare a task change", "description": "Prepare and hash one task create or update locally." }
+    ],
+    "approvalRequired": [
+      { "id": "asana_task_create", "label": "Create a task", "description": "Create one task in an explicit workspace or project; Safe mode requires matching approval." },
+      { "id": "asana_task_update", "label": "Update a task", "description": "Update bounded fields on one explicit task; Safe mode requires matching approval." }
+    ],
+    "blocked": [
+      { "id": "asana_admin", "label": "Administer Asana", "description": "Workspace, organization, user, team, OAuth-app, webhook, and billing administration are outside V1." },
+      { "id": "asana_destructive", "label": "Delete or bulk-change work", "description": "Task deletion, project mutation, broad exports, and bulk changes are outside V1." },
+      { "id": "asana_raw_api", "label": "Call arbitrary Asana endpoints", "description": "Raw paths, unbounded pagination, and arbitrary REST requests are never exposed to agents." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "asana_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local drafts run directly; each Asana task write requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["asana_task_search", "asana_project_list", "asana_task_get", "asana_task_prepare"],
+      "approvalRequiredActions": ["asana_task_create", "asana_task_update"],
+      "blockedActions": ["asana_admin", "asana_destructive", "asana_raw_api"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Asana operation supported by this connector runs without Relay per-action approval; connection ownership, Asana-granted access, request bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["asana_task_search", "asana_project_list", "asana_task_get", "asana_task_prepare", "asana_task_create", "asana_task_update"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["asana_admin", "asana_destructive", "asana_raw_api"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts six typed Asana tools and attaches the authorized user token server-side without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts six typed Asana tools and attaches the authorized user token server-side without exposing it to the agent." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay Console's public Asana OAuth application, production callback, five least-privilege scopes, distribution settings, client credentials, and a fresh production authorization have not been configured and verified.",
+    "nextAction": "Create an Asana OAuth application, register https://api.relayconsole.work/api/v1/marketplace/oauth/asana/callback, configure users:read workspaces:read projects:read tasks:read tasks:write, enable distribution, add ASANA_CLIENT_ID and ASANA_CLIENT_SECRET to Railway, then verify state, PKCE, user and workspace binding, refresh, bounded reads, Safe writes, Dangerous writes, revocation, disconnect, and denial."
+  },
+  "evidence": [
+    { "url": "https://developers.asana.com/docs/oauth", "checkedAt": "2026-07-16", "supports": "Asana documents authorization-code OAuth, HTTPS redirects, state, PKCE S256, one-hour access tokens, long-lived refresh tokens, confidential token exchange, distribution requirements, token introspection, and refresh-token revocation." },
+    { "url": "https://developers.asana.com/docs/oauth-scopes", "checkedAt": "2026-07-16", "supports": "Asana documents resource-specific scopes and separately lists users, workspaces, projects, task reads, and task writes without write-implies-read inheritance." },
+    { "url": "https://developers.asana.com/reference/searchtasksforworkspace", "checkedAt": "2026-07-16", "supports": "Asana documents bounded workspace task search with tasks:read and states that this search endpoint requires an eligible premium user or workspace." },
+    { "url": "https://developers.asana.com/reference/projects", "checkedAt": "2026-07-16", "supports": "Asana documents projects as workspace-scoped task lists or boards and provides bounded project retrieval." },
+    { "url": "https://developers.asana.com/docs/rate-limits", "checkedAt": "2026-07-16", "supports": "Asana documents per-token request, concurrency, cost, and search limits plus Retry-After behavior for HTTP 429 responses." }
+  ]
+}

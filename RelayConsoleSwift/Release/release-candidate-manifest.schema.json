@@ -1,0 +1,481 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "release-candidate-manifest.schema.json",
+  "title": "Relay Console release candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "status", "releaseId", "createdAt", "source",
+    "components", "contracts", "database", "catalog", "bridge",
+    "deployments", "artifacts", "evidence"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.release-candidate.v1" },
+    "status": { "enum": ["draft", "candidate", "final"] },
+    "releaseId": { "type": "string", "minLength": 1 },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "source": { "$ref": "#/$defs/gitSource" },
+    "components": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backend", "web", "website", "macOS", "iOS"],
+      "properties": {
+        "backend": { "$ref": "#/$defs/versionComponent" },
+        "web": { "$ref": "#/$defs/versionComponent" },
+        "website": { "$ref": "#/$defs/versionComponent" },
+        "macOS": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "build", "bundleIdentifier", "minimumOS", "architectures"],
+          "properties": {
+            "version": { "type": "string", "minLength": 1 },
+            "build": { "type": "string", "minLength": 1 },
+            "bundleIdentifier": { "const": "com.relayconsole.app" },
+            "minimumOS": { "type": "string", "minLength": 1 },
+            "architectures": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "enum": ["arm64", "x86_64"] }
+            }
+          }
+        },
+        "iOS": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "build", "bundleIdentifier", "minimumOS"],
+          "properties": {
+            "version": { "type": "string", "minLength": 1 },
+            "build": { "type": "string", "minLength": 1 },
+            "bundleIdentifier": { "const": "com.relayconsole.app" },
+            "minimumOS": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["api", "runtime", "marketplace", "deploymentManifest", "releaseManifest"],
+      "properties": {
+        "api": { "const": "v1" },
+        "runtime": { "const": "bridge.v1" },
+        "marketplace": { "const": "swift-marketplace.v1" },
+        "deploymentManifest": { "const": "relay.deployment-manifest.v1" },
+        "releaseManifest": { "const": "relay.release-manifest.v1" }
+      }
+    },
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["firstMigration", "lastMigration", "migrationCount", "migrationSourceSHA256"],
+      "properties": {
+        "firstMigration": { "type": "string", "pattern": "^\\d{3,}$" },
+        "lastMigration": { "type": "string", "pattern": "^\\d{3,}$" },
+        "migrationCount": { "type": "integer", "minimum": 1 },
+        "migrationSourceSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "releaseManifestSchemaVersion", "releaseManifestVersion", "releaseChannel",
+        "freezeStatus", "frozenAt", "sourceRevision", "freezeSourceAudit",
+        "freezeSourceAuditSHA256", "releaseManifestParity",
+        "reviewedProviderCount", "connectEligibleSlugs", "providerManifestCount",
+        "providerAcceptanceCount", "providerAcceptanceSHA256",
+        "swiftSlugCount", "backendSlugCount", "connectorCount", "sourceSHA256"
+      ],
+      "properties": {
+        "releaseManifestSchemaVersion": { "const": "relay.marketplace-release.v1" },
+        "releaseManifestVersion": { "type": "string", "minLength": 1 },
+        "releaseChannel": { "type": "string", "minLength": 1 },
+        "freezeStatus": { "enum": ["open", "frozen"] },
+        "frozenAt": { "type": ["string", "null"], "format": "date-time" },
+        "sourceRevision": { "type": ["string", "null"], "pattern": "^[a-f0-9]{40}$" },
+        "freezeSourceAudit": {
+          "anyOf": [
+            { "$ref": "marketplace-freeze-source-audit.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "freezeSourceAuditSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "releaseManifestParity": { "type": "boolean" },
+        "reviewedProviderCount": { "type": "integer", "minimum": 0 },
+        "connectEligibleSlugs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+        },
+        "providerManifestCount": { "type": "integer", "minimum": 0 },
+        "providerAcceptanceCount": { "type": "integer", "minimum": 0 },
+        "providerAcceptanceSHA256": { "$ref": "#/$defs/sha256" },
+        "swiftSlugCount": { "type": "integer", "minimum": 0 },
+        "backendSlugCount": { "type": "integer", "minimum": 0 },
+        "connectorCount": { "type": "integer", "minimum": 0 },
+        "sourceSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "bridge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "branch", "commit", "clean", "release", "releaseStatus", "releaseTag",
+        "releaseTagAtHead", "releaseTagAnnotated", "stableGatePassed", "supportedBackend",
+        "plugins", "acceptance",
+        "compatibilityManifestSHA256", "backendCompatibilityManifestSHA256",
+        "compatibilityParity"
+      ],
+      "properties": {
+        "branch": { "type": "string", "minLength": 1 },
+        "commit": { "$ref": "#/$defs/commit" },
+        "clean": { "type": "boolean" },
+        "release": { "type": "string", "pattern": "^v\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$" },
+        "releaseStatus": { "enum": ["preview", "stable"] },
+        "releaseTag": { "type": ["string", "null"], "minLength": 1 },
+        "releaseTagAtHead": { "type": "boolean" },
+        "releaseTagAnnotated": { "type": "boolean" },
+        "stableGatePassed": { "type": "boolean" },
+        "supportedBackend": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "commit", "origin"],
+          "properties": {
+            "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$" },
+            "commit": { "type": ["string", "null"], "pattern": "^[a-f0-9]{40}$" },
+            "origin": { "const": "https://api.relayconsole.work" }
+          }
+        },
+        "plugins": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/bridgePlugin" }
+        },
+        "acceptance": { "$ref": "#/$defs/bridgeAcceptance" },
+        "compatibilityManifestSHA256": { "$ref": "#/$defs/sha256" },
+        "backendCompatibilityManifestSHA256": { "$ref": "#/$defs/sha256" },
+        "compatibilityParity": { "type": "boolean" }
+      }
+    },
+    "deployments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "railwayDeploymentId", "vercelDeploymentId", "railwayTopology",
+        "railwayTopologySHA256", "railwayConfiguration",
+        "railwayConfigurationSHA256"
+      ],
+      "properties": {
+        "railwayDeploymentId": { "type": ["string", "null"] },
+        "vercelDeploymentId": { "type": ["string", "null"] },
+        "railwayTopology": {
+          "anyOf": [
+            { "$ref": "railway-release-topology.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "railwayTopologySHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "railwayConfiguration": {
+          "anyOf": [
+            { "$ref": "railway-release-configuration.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "railwayConfigurationSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "macOSDistribution", "macOSDistributionSHA256",
+        "iOSDistribution", "iOSDistributionSHA256"
+      ],
+      "properties": {
+        "macOSDistribution": {
+          "anyOf": [
+            { "$ref": "macos-distribution-evidence.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "macOSDistributionSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "iOSDistribution": {
+          "anyOf": [
+            { "$ref": "ios-distribution-evidence.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "iOSDistributionSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "remote", "remoteSHA256", "publicSurfaces", "publicSurfacesSHA256",
+        "macOSPublication", "macOSPublicationSHA256",
+        "productionSmoke", "productionSmokeSHA256",
+        "failureRecovery", "failureRecoverySHA256",
+        "billingRelease", "billingReleaseSHA256",
+        "launchGovernance", "launchGovernanceSHA256",
+        "appStoreRelease", "appStoreReleaseSHA256",
+        "launchJourneys", "launchJourneysSHA256",
+        "productionChecklist", "productionChecklistSHA256",
+        "goNoGoOwner", "finalAcceptance", "finalAcceptanceSHA256"
+      ],
+      "properties": {
+        "remote": {
+          "anyOf": [
+            { "$ref": "release-remote-evidence.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "remoteSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "publicSurfaces": {
+          "anyOf": [
+            { "$ref": "public-launch-surfaces.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "publicSurfacesSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "macOSPublication": {
+          "anyOf": [
+            { "$ref": "macos-publication-evidence.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "macOSPublicationSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "productionSmoke": {
+          "anyOf": [
+            { "$ref": "production-smoke-evidence.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "productionSmokeSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "failureRecovery": {
+          "anyOf": [
+            { "$ref": "failure-recovery-evidence.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "failureRecoverySHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "billingRelease": {
+          "anyOf": [
+            { "$ref": "billing-release-evidence.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "billingReleaseSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "launchGovernance": {
+          "anyOf": [
+            { "$ref": "launch-governance-evidence.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "launchGovernanceSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "appStoreRelease": {
+          "anyOf": [
+            { "$ref": "app-store-release-evidence.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "appStoreReleaseSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "launchJourneys": {
+          "anyOf": [
+            { "$ref": "launch-journey-evidence.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "launchJourneysSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "productionChecklist": {
+          "anyOf": [
+            { "$ref": "production-launch-checklist-evidence.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "productionChecklistSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "goNoGoOwner": { "type": ["string", "null"] },
+        "finalAcceptance": {
+          "anyOf": [
+            { "$ref": "final-release-acceptance.schema.json" },
+            { "type": "null" }
+          ]
+        },
+        "finalAcceptanceSHA256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "versionComponent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version"],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "bridgeHarness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "commit"],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "commit": { "$ref": "#/$defs/commit" }
+      }
+    },
+    "bridgePlugin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "supportedHarness", "candidateHostOS"],
+      "properties": {
+        "id": { "enum": ["hermes-agent-bridge", "openclaw-bridge"] },
+        "version": { "type": "string", "minLength": 1 },
+        "supportedHarness": { "$ref": "#/$defs/bridgeHarness" },
+        "candidateHostOS": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "enum": ["macos-launchd", "linux-systemd"] }
+        }
+      }
+    },
+    "bridgeClients": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["macos", "web", "iphone", "ipad"],
+      "properties": {
+        "macos": { "type": "string", "minLength": 1 },
+        "web": { "type": "string", "minLength": 1 },
+        "iphone": { "type": "string", "minLength": 1 },
+        "ipad": { "type": "string", "minLength": 1 }
+      }
+    },
+    "bridgeAcceptanceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recordId", "release", "pluginId", "pluginVersion", "harness", "scope",
+        "executedAt", "operator", "reviewedBy", "independentReview",
+        "backendDeploymentId", "runtimeInstalledBeforeBridge", "relayInstalledRuntime",
+        "cleanHost", "clients", "journeyCount", "allJourneysPassed",
+        "evidenceArtifactCount", "evidenceArtifactsSHA256", "recordSHA256", "noSecrets"
+      ],
+      "properties": {
+        "recordId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$" },
+        "release": { "type": "string", "minLength": 1 },
+        "pluginId": { "enum": ["hermes-agent-bridge", "openclaw-bridge"] },
+        "pluginVersion": { "type": "string", "minLength": 1 },
+        "harness": { "$ref": "#/$defs/bridgeHarness" },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "hostOS", "runtimeLocation"],
+          "properties": {
+            "kind": { "enum": ["clean-host", "cross-client"] },
+            "hostOS": { "enum": ["macos-launchd", "linux-systemd", null] },
+            "runtimeLocation": { "enum": ["same-mac", "second-computer", "linux-vps"] }
+          }
+        },
+        "executedAt": { "type": "string", "format": "date-time" },
+        "operator": { "type": "string", "minLength": 1 },
+        "reviewedBy": { "type": "string", "minLength": 1 },
+        "independentReview": { "const": true },
+        "backendDeploymentId": { "type": "string", "minLength": 1 },
+        "runtimeInstalledBeforeBridge": { "const": true },
+        "relayInstalledRuntime": { "const": false },
+        "cleanHost": { "type": ["boolean", "null"] },
+        "clients": {
+          "anyOf": [
+            { "$ref": "#/$defs/bridgeClients" },
+            { "type": "null" }
+          ]
+        },
+        "journeyCount": { "type": "integer", "minimum": 1 },
+        "allJourneysPassed": { "const": true },
+        "evidenceArtifactCount": { "type": "integer", "minimum": 1 },
+        "evidenceArtifactsSHA256": { "$ref": "#/$defs/sha256" },
+        "recordSHA256": { "$ref": "#/$defs/sha256" },
+        "noSecrets": { "const": true }
+      }
+    },
+    "bridgeAcceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recordCount", "matrixSHA256", "backendDeploymentId", "latestExecutedAt", "records"],
+      "properties": {
+        "recordCount": { "type": "integer", "minimum": 0, "maximum": 6 },
+        "matrixSHA256": { "$ref": "#/$defs/sha256" },
+        "backendDeploymentId": { "type": ["string", "null"] },
+        "latestExecutedAt": { "type": ["string", "null"], "format": "date-time" },
+        "records": {
+          "type": "array",
+          "maxItems": 6,
+          "items": { "$ref": "#/$defs/bridgeAcceptanceRecord" }
+        }
+      }
+    },
+    "gitSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch", "commit", "clean"],
+      "properties": {
+        "branch": { "type": "string", "minLength": 1 },
+        "commit": { "$ref": "#/$defs/commit" },
+        "clean": { "type": "boolean" }
+      }
+    }
+  }
+}

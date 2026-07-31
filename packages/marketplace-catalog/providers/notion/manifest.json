@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "notion",
+  "name": "Notion",
+  "category": "knowledge_documents",
+  "description": "Notion is a connected workspace for documents, wikis, projects, and structured databases. Teams use it to write knowledge, organize operating information, track work, and collaborate on shared pages.",
+  "agentUseSummary": "Connect Notion once, choose the pages to share, then select which agents may find and read content, prepare updates, create pages, or append blocks under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.notion.so/",
+    "docsUrl": "https://developers.notion.com/",
+    "developerConsoleUrl": "https://www.notion.so/profile/integrations",
+    "termsUrl": "https://www.notion.so/terms",
+    "privacyUrl": "https://www.notion.so/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.notion.com/v1/oauth/authorize",
+    "tokenUrl": "https://api.notion.com/v1/oauth/token",
+    "revocationUrl": "https://api.notion.com/v1/oauth/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "notion_public_connection"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/notion/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "content_search", "label": "Find content", "description": "Search a bounded set of pages and data sources shared with the Notion connection.", "defaultSelected": true },
+    { "id": "page_read", "label": "Read pages", "description": "Read one explicit Notion page and its shaped properties.", "defaultSelected": true },
+    { "id": "block_read", "label": "Read page content", "description": "Read one bounded page or block child list without automatic recursion.", "defaultSelected": true },
+    { "id": "content_draft", "label": "Prepare updates", "description": "Prepare an exact page or block payload locally without changing Notion.", "defaultSelected": true },
+    { "id": "page_write", "label": "Create pages", "description": "Create one page under an explicit shared page or data source; data-source writes identify its title property.", "defaultSelected": true },
+    { "id": "block_write", "label": "Append content", "description": "Append a bounded block list to one explicit shared page or block.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "notion_content_search", "label": "Search content", "description": "Search a bounded set of accessible Notion pages and data sources." },
+      { "id": "notion_page_read", "label": "Read a page", "description": "Read one explicit accessible Notion page." },
+      { "id": "notion_block_children_read", "label": "Read page content", "description": "Read one bounded list of child blocks without automatic recursion." },
+      { "id": "notion_content_update_prepare", "label": "Prepare an update", "description": "Prepare an exact page or block payload locally without changing Notion." }
+    ],
+    "approvalRequired": [
+      { "id": "notion_page_create", "label": "Create a page", "description": "Create one exact page under an explicit shared parent; Safe mode requires matching approval." },
+      { "id": "notion_block_children_append", "label": "Append content", "description": "Append an exact bounded block list to one explicit parent; Safe mode requires matching approval." }
+    ],
+    "blocked": [
+      { "id": "notion_share_admin", "label": "Change sharing", "description": "Workspace membership, page sharing, public publishing, and connection capability administration are outside V1." },
+      { "id": "notion_schema_admin", "label": "Change schemas", "description": "Database and data-source schema changes are outside V1." },
+      { "id": "notion_destructive_write", "label": "Delete or archive content", "description": "Deleting, archiving, restoring, moving, or bulk-changing content is outside V1." },
+      { "id": "notion_raw_api", "label": "Use arbitrary Notion API calls", "description": "Raw URLs, arbitrary operations, credentials, unbounded traversal, and hidden-content inference are never exposed to agents." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "notion_safe",
+      "label": "Safe",
+      "description": "Bounded searches, reads, and local drafts run directly; each Notion write requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["notion_content_search", "notion_page_read", "notion_block_children_read", "notion_content_update_prepare"],
+      "approvalRequiredActions": ["notion_page_create", "notion_block_children_append"],
+      "blockedActions": ["notion_share_admin", "notion_schema_admin", "notion_destructive_write", "notion_raw_api"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Notion operation supported by this connector runs without Relay per-action approval; connection ownership, Notion-granted access, request bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["notion_content_search", "notion_page_read", "notion_block_children_read", "notion_content_update_prepare", "notion_page_create", "notion_block_children_append"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["notion_share_admin", "notion_schema_admin", "notion_destructive_write", "notion_raw_api"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts six typed Notion tools and attaches the authorized workspace token server-side without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts six typed Notion tools and attaches the authorized workspace token server-side without exposing it to the agent." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay Console's public Notion connection, production callback, capabilities, client credentials, and a fresh production authorization have not been configured and verified.",
+    "nextAction": "Create a public Notion connection for any workspace, register https://api.relayconsole.work/api/v1/marketplace/oauth/notion/callback, enable read content, insert content, and update content capabilities, configure NOTION_CLIENT_ID and NOTION_CLIENT_SECRET on Railway, then verify state, workspace binding, refresh, bounded reads, Safe write approval, Dangerous writes, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developers.notion.com/guides/get-started/authorization", "checkedAt": "2026-07-16", "supports": "Notion documents internal static-token connections and public OAuth connections, exact redirect URIs, authorization-code exchange, workspace page selection, access and refresh tokens, and token refresh." },
+    { "url": "https://developers.notion.com/reference/post-search", "checkedAt": "2026-07-16", "supports": "Notion documents bounded search over pages and data sources shared with a connection and requires bearer authentication plus a pinned Notion-Version header." },
+    { "url": "https://developers.notion.com/reference/page", "checkedAt": "2026-07-16", "supports": "Notion documents page retrieval and page creation, with content represented by blocks and access constrained by connection capabilities and sharing." },
+    { "url": "https://developers.notion.com/reference/query-a-data-source", "checkedAt": "2026-07-16", "supports": "Notion documents the current data-source model and explicit parent sharing boundary introduced after the database/data-source split." },
+    { "url": "https://developers.notion.com/reference/search-optimizations-and-limitations", "checkedAt": "2026-07-16", "supports": "Notion warns that search is not exhaustive or immediate; Relay therefore returns bounded results and never treats absence as proof that hidden content does not exist." }
+  ]
+}

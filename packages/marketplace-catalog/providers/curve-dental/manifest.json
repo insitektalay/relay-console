@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "curve-dental",
+  "name": "Curve Dental",
+  "category": "crm_support",
+  "description": "Curve Dental is cloud dental practice-management software for patient records, scheduling, charting, treatment planning, billing, insurance, reporting, communications, and multi-location operations.",
+  "agentUseSummary": "Curve Dental is visible as a preview-only Marketplace entry. Curve publishes a version 3 API reference for bearer-authorized appointments, patients, transactions, sites, and providers, but its first-party materials do not publish a self-service developer enrollment or credential lifecycle for third-party customers. The API can expose protected health information, and Curve requires the dental office to allow access, so Relay cannot safely mount tools until Curve approves the integration and the customer supplies the required healthcare authorization and security contract.",
+  "provider": {
+    "websiteUrl": "https://www.curvedental.com/",
+    "docsUrl": "https://api-docs.curvehero.com/v3/site/index.html",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.curvedental.com/terms",
+    "privacyUrl": "https://www.curvedental.com/data-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["provider_partnership_and_healthcare_contract_required"],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "dental_practice_management_preview",
+      "label": "Coordinate dental practice operations",
+      "description": "After Curve approves Relay and the practice supplies the required authorization and healthcare security contract, evaluate a least-privilege surface for dental practice operations without assuming access to patient or clinical data.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "curve_dental_connect_without_approval",
+        "label": "Connect without Curve and practice approval",
+        "description": "Curve API access is bearer-authorized and office-controlled. Relay will not accept or mint credentials until Curve approves the integration and the exact dental practice authorizes access."
+      },
+      {
+        "id": "curve_dental_phi_or_patient_access",
+        "label": "Access PHI or patient data",
+        "description": "Patients, photos, appointments, transactions, providers, sites, clinical records, treatment, insurance, billing, communications, identifiers, and all other protected health information remain unavailable."
+      },
+      {
+        "id": "curve_dental_write_or_administer",
+        "label": "Write or administer Curve Dental",
+        "description": "Appointment confirmation, patient or clinical changes, scheduling, charting, treatment, billing, insurance, payments, messaging, exports, users, permissions, configuration, and administration remain blocked."
+      },
+      {
+        "id": "curve_dental_private_api_or_session",
+        "label": "Use private APIs or browser sessions",
+        "description": "Passwords, cookies, browser sessions, traffic capture, undocumented endpoints, arbitrary API access, scraping, reverse engineering, and interface bypass are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "curve_dental_provider_review_required",
+      "label": "Provider and healthcare review required",
+      "description": "No agent action is callable until Curve approves Relay, the exact practice authorizes access, and the healthcare privacy and security contract is accepted.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "curve_dental_connect_without_approval",
+        "curve_dental_phi_or_patient_access",
+        "curve_dental_write_or_administer",
+        "curve_dental_private_api_or_session"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "Curve Dental remains visible for discovery, but no OpenClaw tools are callable before provider, practice, privacy, and security approval."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "Curve Dental remains visible for discovery, but no Hermes tools are callable before provider, practice, privacy, and security approval."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Curve publishes a version 3 bearer-token API reference, but the first-party materials reviewed do not expose a self-service developer application, credential issuance and revocation lifecycle, scopes, test tenant, rate limits, or third-party production acceptance process. Documented resources include patients, patient photos, appointments, transactions, locations, and providers; Curve's data policy identifies private patient data and PHI as regulated under HIPAA, and documented API errors state that an office must allow access.",
+    "nextAction": "Ask Curve Dental to approve Relay as an integration partner and provide the current production API, enrollment, authentication, authorization, credential lifecycle, tenant and office binding, rate-limit, audit, test, and acceptance contracts. Before implementation, complete the required BAA or equivalent healthcare agreement, obtain explicit authorization from the exact dental practice, and approve a least-privilege data classification that excludes PHI unless a separately reviewed use case requires it."
+  },
+  "evidence": [
+    {
+      "url": "https://api-docs.curvehero.com/v3/site/index.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Curve's public version 3 reference documents bearer-token authorization and API groups for appointments, patients, transactions, site locations, and provider information; errors include missing or expired tokens and office access not allowed."
+    },
+    {
+      "url": "https://www.curvedental.com/data-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "Curve identifies private patient data and PHI as subject to HIPAA safeguards and describes encryption, isolated practice databases, access controls, auditing, backups, and customer data export."
+    },
+    {
+      "url": "https://www.curvedental.com/partner-list",
+      "checkedAt": "2026-07-18",
+      "supports": "Curve presents integrations as a curated partner ecosystem with complete, seamless data synchronization rather than a public self-service developer marketplace."
+    },
+    {
+      "url": "https://www.curvedental.com/terms",
+      "checkedAt": "2026-07-18",
+      "supports": "Curve publishes jurisdiction-specific application terms and links its Data Policy, reinforcing that production access depends on the customer's contractual and regulatory context."
+    }
+  ],
+  "securityNotes": [
+    "No Curve credential, office grant, patient identifier, tenant identifier, or protected health information was collected or tested.",
+    "The existence of public endpoint documentation does not establish that Relay is an approved integration partner or that any dental practice has authorized access.",
+    "All patient, appointment, transaction, provider, location, clinical, treatment, insurance, billing, communication, document, image, and export operations remain unavailable.",
+    "The Marketplace entry is preview-only until provider partnership, exact-practice authorization, healthcare privacy and security agreements, least-privilege design review, and live acceptance are complete."
+  ]
+}

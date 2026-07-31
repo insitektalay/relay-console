@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "vercel",
+  "name": "Vercel",
+  "category": "developer",
+  "description": "Vercel is a cloud platform for frontend applications, deployments, and web infrastructure. Teams use Projects to group deployment history, framework settings, domains, and production or preview delivery.",
+  "agentUseSummary": "Install Relay's connectable Vercel integration on one Team or Personal Account and bind one selected Project, then let agents list a bounded first page of Projects, inspect that exact Project, and list bounded deployment lifecycle summaries. Relay V1 excludes logs, events, files, source and Git metadata, environment values, domains, certificates, writes, members, billing, arbitrary REST, and pagination.",
+  "provider": {
+    "websiteUrl": "https://vercel.com/",
+    "docsUrl": "https://vercel.com/docs/integrations/create-integration/vercel-api-integrations",
+    "developerConsoleUrl": "https://vercel.com/dashboard/integrations/console",
+    "termsUrl": "https://vercel.com/legal/terms",
+    "privacyUrl": "https://vercel.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["project:read", "deployment:read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://vercel.com/integrations/relay/new",
+    "tokenUrl": "https://api.vercel.com/v2/oauth/access_token"
+  },
+  "connection": {
+    "types": ["relay_owned_connectable_integration", "confidential_one_time_code_exchange", "team_or_personal_installation", "exact_installation_scope", "exact_selected_project", "long_lived_non_refreshable_access_token", "reinstall_after_removal"],
+    "credentialRequirements": [
+      { "name": "VERCEL_PROJECT_ID", "label": "Vercel project ID", "required": true, "secret": false, "helpText": "Bind the connection to one exact selected Vercel project ID before installation." }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/vercel/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "project_read", "label": "Read projects", "description": "List bounded projects and inspect one exact selected project.", "defaultSelected": true },
+    { "id": "deployment_read", "label": "Read deployments", "description": "List bounded deployment lifecycle summaries for the selected project.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "vercel_project_list", "label": "List projects", "description": "List at most twenty-five projects from the first page of one installation scope." },
+      { "id": "vercel_project_get", "label": "Read selected project", "description": "Read one exact selected project after identifier verification." },
+      { "id": "vercel_deployment_list", "label": "List project deployments", "description": "List at most twenty-five deployments from the first page of the selected project." }
+    ],
+    "blocked": [
+      { "id": "vercel_deployment_write", "label": "Change deployments", "description": "Deployment creation, promotion, cancellation, deletion, checks, aliases, and rollback are outside V1." },
+      { "id": "vercel_project_write", "label": "Change projects", "description": "Project creation, configuration, transfer, deletion, and other changes are outside V1." },
+      { "id": "vercel_private_content", "label": "Read private deployment content", "description": "Environment values, logs, events, files, source and Git metadata are outside V1." },
+      { "id": "vercel_domain_write", "label": "Manage domains", "description": "Domain, DNS, alias, certificate, and verification reads or writes are outside V1." },
+      { "id": "vercel_admin", "label": "Administer Vercel", "description": "Members, access roles, billing, tokens, integrations, webhooks, and installation management are outside V1." },
+      { "id": "vercel_raw_api", "label": "Use raw Vercel API", "description": "Arbitrary REST, hosts, paths, queries, cursors, pagination, and raw responses are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "vercel_safe", "label": "Safe", "description": "All three bounded Vercel reads require matching approval.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["vercel_project_list", "vercel_project_get", "vercel_deployment_list"], "blockedActions": ["vercel_deployment_write", "vercel_project_write", "vercel_private_content", "vercel_domain_write", "vercel_admin", "vercel_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while exact installation/project binding, fixed requests, limits, redaction, audit, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["vercel_project_list", "vercel_project_get", "vercel_deployment_list"], "approvalRequiredActions": [], "blockedActions": ["vercel_deployment_write", "vercel_project_write", "vercel_private_content", "vercel_domain_write", "vercel_admin", "vercel_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three fixed Vercel read wrappers and attaches the encrypted installation token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three fixed Vercel read wrappers and attaches the encrypted installation token server-side." }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Relay needs a Vercel Community connectable integration with the final relay slug, exact Railway callback, Project Read and Deployment Read permissions, approved branding and terms, and Railway staging client credentials. Those provider-console and environment actions are outside this worker task.",
+    "nextAction": "In the provider-console task, create or finalize the integration, confirm its install URL and exact callback, restrict it to Project Read and Deployment Read, store the client credentials in Railway staging, then verify Team and Personal installation, state return, one-time exchange, installation/team/project binding, all three reads, disabled configuration handling, uninstall, local disconnect, and post-removal denial."
+  },
+  "evidence": [
+    { "url": "https://vercel.com/docs/integrations/create-integration", "checkedAt": "2026-07-17", "supports": "Vercel connectable account integrations define a client ID, client secret, redirect URL, and API scopes and may be installed on Personal Accounts or Teams." },
+    { "url": "https://vercel.com/docs/integrations/create-integration/vercel-api-integrations", "checkedAt": "2026-07-17", "supports": "Vercel documents the one-time 30-minute code exchange, long-lived access token, team_id binding, teamId request parameter, disabled-configuration errors, Project and Deployment read scopes, and exact REST endpoints." },
+    { "url": "https://vercel.com/docs/integrations/create-integration/submit-integration", "checkedAt": "2026-07-17", "supports": "Vercel documents the integration install URL and callback parameters including code, configurationId, teamId, state, next, and source." },
+    { "url": "https://vercel.com/docs/rest-api", "checkedAt": "2026-07-17", "supports": "Vercel documents bearer authentication at api.vercel.com and account-scoped requests using teamId." }
+  ]
+}

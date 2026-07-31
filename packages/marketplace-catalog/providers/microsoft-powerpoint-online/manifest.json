@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-powerpoint-online",
+  "name": "Microsoft PowerPoint Online",
+  "category": "content_creative",
+  "description": "Microsoft PowerPoint Online edits presentations in Microsoft 365, while developer access is split between in-client Office Add-ins and generic Microsoft Graph drive-item file operations.",
+  "agentUseSummary": "PowerPoint Online cannot yet be connected through Relay because Microsoft does not expose a server-side Microsoft Graph presentation object model. PowerPoint JavaScript APIs run inside an Office Add-in, while Graph can only download or replace the underlying file. Relay exposes neither path until product owners choose an in-client add-in or whole-file presentation workflow.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft365.com/launch/powerpoint",
+    "docsUrl": "https://learn.microsoft.com/office/dev/add-ins/powerpoint/",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/licensing/terms/productoffering/Microsoft365/all",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "product_boundary_unresolved",
+      "powerpoint_office_addin_in_client_runtime_candidate",
+      "powerpoint_javascript_api_presentation_context_candidate",
+      "microsoft_graph_drive_item_download_upload_candidate",
+      "no_server_side_graph_powerpoint_object_model",
+      "semantic_editing_versus_whole_file_replacement_decision",
+      "addin_deployment_and_file_oauth_are_distinct_contracts"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "powerpoint_addin_candidate",
+      "label": "In-presentation add-in candidate",
+      "description": "If product selects an Office Add-in, interact with the currently open presentation through user-visible PowerPoint JavaScript APIs and an accepted add-in runtime."
+    },
+    {
+      "id": "powerpoint_file_read_candidate",
+      "label": "Whole-file read candidate",
+      "description": "If product selects a Graph file workflow, download one explicitly selected presentation for separate bounded processing without claiming server-side semantic API support."
+    },
+    {
+      "id": "powerpoint_file_replace_candidate",
+      "label": "Whole-file replacement candidate",
+      "description": "If separately approved, upload a fully regenerated presentation as one destructive replacement with eTag, backup, sharing, label, media, and format-preservation controls."
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "powerpoint_online_connect_before_product_decision",
+        "label": "Connect before the product boundary is selected",
+        "description": "Relay has no decision between an in-client PowerPoint add-in and a generic Microsoft Graph whole-file workflow, so no valid auth or runtime contract exists."
+      },
+      {
+        "id": "powerpoint_online_presentation_reads",
+        "label": "Read presentation content",
+        "description": "Slides, masters, layouts, shapes, text, notes, comments, media, charts, tables, animations, transitions, metadata, files, versions, and sharing remain unavailable."
+      },
+      {
+        "id": "powerpoint_online_semantic_mutations",
+        "label": "Change presentation content",
+        "description": "Adding, deleting, reordering, or editing slides, shapes, text, images, media, charts, tables, notes, links, animations, transitions, masters, or layouts is blocked."
+      },
+      {
+        "id": "powerpoint_online_file_and_sharing_mutations",
+        "label": "Replace files or change sharing",
+        "description": "Uploading, overwriting, moving, copying, renaming, deleting, converting, sharing, inviting, linking, presenting, or changing permissions and versions is blocked."
+      },
+      {
+        "id": "powerpoint_online_raw_addin_and_console_bypass",
+        "label": "Bypass client or file controls",
+        "description": "Hidden add-ins, unattended Office client automation, raw package or file exports, arbitrary drive paths, cross-tenant access, macros, external media capture, tokens, private endpoints, and provider-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "powerpoint_online_unavailable",
+      "label": "Product decision required",
+      "description": "No PowerPoint Online action is enabled until product owners choose an in-client add-in or whole-file workflow and its complete runtime, identity, file, content, media, mutation, sharing, revocation, and disconnect contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "powerpoint_online_connect_before_product_decision",
+        "powerpoint_online_presentation_reads",
+        "powerpoint_online_semantic_mutations",
+        "powerpoint_online_file_and_sharing_mutations",
+        "powerpoint_online_raw_addin_and_console_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No PowerPoint Online wrapper is mounted before the add-in-versus-whole-file boundary and user-visible execution model are selected."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No PowerPoint Online wrapper is mounted before the add-in-versus-whole-file boundary and user-visible execution model are selected."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Microsoft documents semantic PowerPoint access through Office Add-ins and PowerPoint JavaScript APIs, which run inside an open presentation and depend on client document context, add-in deployment, requirement sets, and user-visible UI. The object model can read and mutate slides, shapes, text, pictures, tables, charts, links, and related presentation state. Microsoft Graph instead exposes presentation files as generic drive items that can be downloaded with Files.Read or replaced with Files.ReadWrite, without a server-side presentation object model. Whole-file replacement can lose coauthor edits, notes, comments, layout, masters, animations, media, links, labels, macros, signatures, versions, or sharing expectations.",
+    "nextAction": "Product, security, and UX owners must choose one path. For semantic editing, define a user-installed or centrally deployed PowerPoint Office Add-in with visible activation, supported requirement sets, exact open-presentation context, and no unattended client automation. For background presentation processing, rename the capability as a Microsoft 365 file workflow, bind one selected drive item, use Graph Files.Read first, and treat upload as full-file destructive replacement with eTag, backup, version, sensitivity-label, macro, signature, embedded-media, sharing, and concurrent-edit safeguards. Acceptance must cover slide and shape selection, notes and comments, masters and layouts, links and media, animations and transitions, fonts, accessibility, versions, coauthoring, rollback, revocation, disconnect, and cross-item denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/office/dev/add-ins/overview/office-add-ins",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents PowerPoint content interaction through Office Add-ins loaded inside Office clients with manifests, hosted web apps, and Office.js."
+    },
+    {
+      "url": "https://learn.microsoft.com/office/dev/add-ins/reference/javascript-api-for-office",
+      "checkedAt": "2026-07-17",
+      "supports": "PowerPoint exposes application-specific and common Office JavaScript APIs to an add-in running in a client application."
+    },
+    {
+      "url": "https://learn.microsoft.com/office/dev/add-ins/powerpoint/shapes",
+      "checkedAt": "2026-07-17",
+      "supports": "The in-client PowerPoint JavaScript API can create, format, move, group, and delete slide shapes, establishing a semantic mutation surface tied to presentation context."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/driveitem-get-content",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph can download a selected presentation drive item's entire primary stream using delegated Files.Read or broader permissions."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/driveitem-put-content",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph can create or replace whole drive-item content with Files.ReadWrite, which is a file-level operation rather than semantic PowerPoint editing."
+    }
+  ]
+}

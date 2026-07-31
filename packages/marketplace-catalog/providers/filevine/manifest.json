@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "filevine",
+  "name": "Filevine",
+  "category": "crm_support",
+  "description": "Filevine is cloud legal practice-management software for cases, projects, documents, tasks, deadlines, notes, communications, workflows, reporting, and legal operations.",
+  "agentUseSummary": "Connect one US Filevine tenant through a Filevine-provisioned OAuth 2.0 / OpenID Connect confidential client. Relay requests only the gateway access scopes required for API calls and exposes one approval-gated authority check that calls GET /v2/projects?limit=1, validates response shape transiently, discards the complete response, and returns no user, firm, project, matter, document, communication, financial, or legal-practice data.",
+  "provider": {
+    "websiteUrl": "https://www.filevine.com/",
+    "docsUrl": "https://support.filevine.com/hc/en-us/articles/49926044572059-Headed-3rd-Party-App-Integrations",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.filevine.com/terms/",
+    "privacyUrl": "https://www.filevine.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "offline_access", "fv.api.gateway.access"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://identity.filevine.com/connect/authorize",
+    "tokenUrl": "https://identity.filevine.com/connect/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "filevine_provisioned_confidential_oidc_client",
+      "authorization_code",
+      "provider_registered_https_redirect",
+      "us_region_bound",
+      "gateway_access_scope",
+      "refresh_token"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/filevine/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "connection_authority_read",
+      "label": "Verify connection authority",
+      "description": "Verify that the Filevine OAuth/OIDC grant can call one fixed US API gateway endpoint while returning no user, firm, project, matter, document, communication, financial, or legal-practice data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "filevine_connection_authority_get",
+        "label": "Verify Filevine connection authority",
+        "description": "Call only GET https://api.filevine.io/v2/projects?limit=1, validate response shape in memory, discard the complete response, and return authorization, US region, API version, and redaction status."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "filevine_user_firm_project_or_matter_data",
+        "label": "Access user, firm, project, or matter data",
+        "description": "User identity, tenant identity, orgs, firms, teams, permissions, projects, matters, contacts, clients, customs, sections, fields, tags, and related legal-practice records are blocked."
+      },
+      {
+        "id": "filevine_document_task_note_calendar_or_communication_data",
+        "label": "Access documents, tasks, notes, calendars, or communications",
+        "description": "Documents, folders, tasks, deadlines, notes, comments, emails, texts, client portal content, automations, workflows, and communications remain blocked."
+      },
+      {
+        "id": "filevine_financial_write_webhook_or_administer",
+        "label": "Access financial data, write, webhook, or administer Filevine",
+        "description": "Billing, payments, settlement, accounting, reports, creates, updates, deletes, uploads, webhooks, service accounts, access tokens, users, settings, templates, and administration remain blocked."
+      },
+      {
+        "id": "filevine_raw_api_other_region_pagination_or_bulk",
+        "label": "Use raw APIs, another region, pagination, or bulk access",
+        "description": "Arbitrary endpoints, methods, identifiers, headers, queries, bodies, Canada or non-production origins, provider consoles, browser sessions, SDKs, automatic pagination, polling, retries, raw responses, bulk operations, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "filevine_safe",
+      "label": "Safe",
+      "description": "The identity-free authority check requires approval; user identity, legal-practice records, financial data, writes, administration, other regions, pagination, and bulk remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["filevine_connection_authority_get"],
+      "blockedActions": [
+        "filevine_user_firm_project_or_matter_data",
+        "filevine_document_task_note_calendar_or_communication_data",
+        "filevine_financial_write_webhook_or_administer",
+        "filevine_raw_api_other_region_pagination_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same authority check runs directly; connection ownership, provider authorization, US-region binding, credential secrecy, fixed endpoint, redaction, auditing, response bounds, and provider limits remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["filevine_connection_authority_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "filevine_user_firm_project_or_matter_data",
+        "filevine_document_task_note_calendar_or_communication_data",
+        "filevine_financial_write_webhook_or_administer",
+        "filevine_raw_api_other_region_pagination_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one fixed identity-free Filevine US authority wrapper and injects OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the same fixed identity-free Filevine US authority wrapper."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Filevine must provision a confidential OAuth/OIDC client for Relay, register exact HTTPS callback and logout URLs, approve the target environment and least-privilege API scopes, and complete customer authorization, security/privacy review, and live acceptance.",
+    "nextAction": "Use the separate provider-console task to request a Filevine OAuth/OIDC client, register Relay's exact HTTPS callback/logout URLs, request only openid, offline_access, and fv.api.gateway.access plus any provider-required tenant binding, store client ID/secret, complete consent, and validate token exchange, refresh, redaction, rate handling, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.filevine.com/hc/en-us/articles/49926044572059-Headed-3rd-Party-App-Integrations",
+      "checkedAt": "2026-07-18",
+      "supports": "Filevine documents OAuth 2.0 / OIDC authorization-code flow for third-party apps, provider-provisioned client ID/secret, exact redirect and logout URI registration, US/Canada/non-prod authorities, openid/offline_access/fv.api.gateway.access scopes, bearer API calls, refresh tokens, and sample GET https://api.filevine.io/v2/projects."
+    },
+    {
+      "url": "https://support.filevine.com/hc/en-us/articles/29937964706203-API-Authentication-Q-A",
+      "checkedAt": "2026-07-18",
+      "supports": "Filevine's API authentication guidance documents personal access token/service-account practices, US and Canada identity endpoints, gateway access scope examples, client-secret sensitivity, and account/credential hygiene."
+    },
+    {
+      "url": "https://support.filevine.com/hc/en-us/articles/29939443116827-API-Errors-Q-A",
+      "checkedAt": "2026-07-18",
+      "supports": "Filevine documents API error handling, credential validity, correct base URL requirements, permission failures, required User-Agent header, firewall restrictions, and rate-limit errors."
+    },
+    {
+      "url": "https://support.filevine.com/hc/en-us/articles/29259311975707-API-General-Q-A",
+      "checkedAt": "2026-07-18",
+      "supports": "Filevine's API Q&A points to the v2 API reference, describes safe testing practices with project type sections and project collection item endpoints, and states that texting is not directly exposed through Filevine's API."
+    }
+  ],
+  "securityNotes": [
+    "Relay requests only Filevine gateway authority scopes for V1 and does not request profile or email unless Filevine makes those mandatory during provider approval.",
+    "The sole request is GET https://api.filevine.io/v2/projects?limit=1 with the bearer token. Response shape is validated only in memory and the complete project response is discarded.",
+    "Requests reject redirects, time out after 20 seconds, cap responses at 64 KB, accept no runtime input, do not paginate or retry automatically, and preserve 401, 403, 404, 429, and provider-unavailable outcomes.",
+    "User, tenant, firm, team, project, matter, client, contact, document, task, note, communication, financial, report, write, webhook, administration, raw API, pagination, bulk, and export surfaces are unavailable.",
+    "Access tokens, refresh tokens, client secrets, and PKCE-equivalent state material remain encrypted server-side; disconnect deletes Relay's grant unless Filevine supplies an approved token revocation contract."
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "asset-bank",
+  "name": "Asset Bank",
+  "category": "content_creative",
+  "description": "Asset Bank is a digital asset management platform for storing, organizing, finding, and sharing brand files. Marketing and creative teams use it to manage metadata, permissions, approvals, versions, collections, downloads, and distribution from one searchable library.",
+  "agentUseSummary": "Connect a customer-owned Asset Bank OAuth app, then let agents use the documented REST asset, metadata, taxonomy, publishing, user, approval, and lightbox surface under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "asset-bank",
+    "sourceUrl": "https://www.assetbank.co.uk/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://www.assetbank.co.uk/",
+    "docsUrl": "https://documenter.getpostman.com/view/10518051/TVK8Zyxr",
+    "developerConsoleUrl": "https://support.assetbank.co.uk/hc/en-gb/articles/360015325197-Asset-Bank-API-OAuth2",
+    "termsUrl": "https://www.assetbank.co.uk/terms-conditions/",
+    "privacyUrl": "https://www.assetbank.co.uk/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "{site}/oauth/authorize",
+    "tokenUrl": "{site}/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_oauth"],
+    "credentialRequirements": [
+      {
+        "name": "ASSET_BANK_BASE_URL",
+        "label": "Asset Bank site URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Your complete Asset Bank site URL, including its context path."
+      },
+      {
+        "name": "ASSET_BANK_CLIENT_ID",
+        "label": "Client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Create OAuth credentials in Asset Bank and copy the generated client ID."
+      },
+      {
+        "name": "ASSET_BANK_CLIENT_SECRET",
+        "label": "Client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the client secret from the same Asset Bank OAuth credentials."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/asset-bank/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "dam_read",
+      "label": "Browse digital assets",
+      "description": "Search and read authorized assets, files, metadata, taxonomies, users, approvals, publishing history, and lightboxes."
+    },
+    {
+      "id": "dam_manage",
+      "label": "Manage digital assets",
+      "description": "Create and change authorized assets, files, metadata, categories, access levels, users, approvals, publishing actions, and lightboxes."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "asset_bank_dam_read",
+        "label": "Read Asset Bank data",
+        "description": "Run one bounded GET operation inside the connected Asset Bank site's documented REST API surface."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "asset_bank_dam_manage",
+        "label": "Change Asset Bank data",
+        "description": "Run one documented Asset Bank mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "asset_bank_secret_exposure",
+        "label": "Expose credentials or signed URLs",
+        "description": "OAuth secrets, tokens, authorization headers, cookies, and signed URLs never enter agent-visible results."
+      },
+      {
+        "id": "asset_bank_untrusted_origin",
+        "label": "Call another origin",
+        "description": "Requests remain pinned to the HTTPS Asset Bank site saved with the connection."
+      },
+      {
+        "id": "asset_bank_unbounded_transfer",
+        "label": "Transfer unbounded data",
+        "description": "Relay bounds request, upload, and response bodies and does not follow redirects."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "asset_bank_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["asset_bank_dam_read"],
+      "approvalRequiredActions": ["asset_bank_dam_manage"],
+      "blockedActions": [
+        "asset_bank_secret_exposure",
+        "asset_bank_untrusted_origin",
+        "asset_bank_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected site-authorized Asset Bank API operation runs without Relay per-action approval; ownership, provider permissions, fixed origin, bounds, redaction, audits, rate limits, and provider enforcement still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["asset_bank_dam_read", "asset_bank_dam_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "asset_bank_secret_exposure",
+        "asset_bank_untrusted_origin",
+        "asset_bank_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded Asset Bank REST wrappers against the connection's fixed customer site."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded Asset Bank REST wrappers against the connection's fixed customer site."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer Professional or Enterprise Asset Bank site with API access enabled, administrator-created OAuth credentials, and representative content is not available for production acceptance.",
+    "nextAction": "An Asset Bank administrator asks support to enable API access, creates OAuth credentials with https://api.relayconsole.work/api/v1/marketplace/oauth/asset-bank/callback, enters the site URL and client credentials in Relay Console, and completes authorization and live validation."
+  },
+  "evidence": [
+    {
+      "url": "https://support.assetbank.co.uk/hc/en-gb/articles/360015325197-Asset-Bank-API-OAuth2",
+      "checkedAt": "2026-07-14",
+      "supports": "Asset Bank documents customer-admin OAuth credential creation, authorization-code and refresh-token flows, exact redirect URI matching, bearer authentication, and site-relative authorization and token endpoints."
+    },
+    {
+      "url": "https://support.assetbank.co.uk/hc/en-gb/articles/5192032555165-Asset-Bank-API-with-Postman",
+      "checkedAt": "2026-07-14",
+      "supports": "Asset Bank documents its REST API, Postman collection, customer site context paths, OAuth setup, and Professional or Enterprise API licensing and enablement."
+    },
+    {
+      "url": "https://documenter.getpostman.com/view/10518051/TVK8Zyxr",
+      "checkedAt": "2026-07-14",
+      "supports": "Asset Bank publishes the current REST route and method surface for assets, metadata, categories, users, approvals, publishing actions, lightboxes, and uploads."
+    },
+    {
+      "url": "https://support.assetbank.co.uk/hc/en-gb/articles/360004734038-Rate-Limiting",
+      "checkedAt": "2026-07-14",
+      "supports": "Asset Bank documents shared-hosting and dedicated-hosting request limits and HTTP 429 enforcement."
+    },
+    {
+      "url": "https://www.assetbank.co.uk/product/",
+      "checkedAt": "2026-07-14",
+      "supports": "Asset Bank describes its digital asset management product for storing, organizing, finding, governing, approving, sharing, and distributing brand files."
+    }
+  ]
+}

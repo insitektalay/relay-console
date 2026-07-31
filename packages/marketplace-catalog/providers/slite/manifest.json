@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "slite",
+  "name": "Slite",
+  "category": "knowledge_documents",
+  "description": "Workspace docs, channels, users, groups, comments, verification, collections, and structured document editing through Slite's hosted MCP.",
+  "agentUseSummary": "Connect once through Slite OAuth, then let agents use every documented read or write MCP tool under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://slite.com/",
+    "docsUrl": "https://slite.com/help/77mvFqJWG1tduF/Slite-MCP",
+    "developerConsoleUrl": "https://slite.com/",
+    "termsUrl": "https://slite.com/legal/terms-of-service",
+    "privacyUrl": "https://slite.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "email", "mcp:read", "mcp:write", "offline_access"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://slite.com/api/mcp/oauth/auth",
+    "tokenUrl": "https://slite.com/api/mcp/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/slite/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "knowledge_read",
+      "label": "Read workspace knowledge",
+      "description": "Ask, search, retrieve docs, inspect channels, users, groups, comments, recent activity, and knowledge-management queues.",
+      "defaultSelected": true
+    },
+    {
+      "id": "knowledge_write",
+      "label": "Create and maintain knowledge",
+      "description": "Create, update, move, archive, restore, verify, comment on, and structurally edit permitted Slite content.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "slite_mcp_read",
+        "label": "Use read tools",
+        "description": "Use one exact documented Slite MCP read tool with bounded arguments and live schema validation."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "slite_mcp_write",
+        "label": "Use write tools",
+        "description": "Use one exact documented Slite MCP mutation tool; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "slite_safe",
+      "label": "Safe",
+      "description": "Documented reads run directly; every create, update, move, archive, restore, verification, comment, and structural mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["slite_mcp_read"],
+      "approvalRequiredActions": ["slite_mcp_write"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized Slite MCP operation runs without Relay per-action approval; ownership, OAuth scope, exact tool allowlists, bounds, audits, schema validation, and Slite permissions still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["slite_mcp_read", "slite_mcp_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts exact read/write wrappers and proxies Slite OAuth to its hosted MCP."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts exact read/write wrappers and proxies Slite OAuth to its hosted MCP."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay's public PKCE client is dynamically registered and its client ID is configured on Railway, but no signed-in Slite user session was available for production OAuth and action acceptance.",
+    "nextAction": "A Slite user clicks Connect, approves read/write MCP access, then Relay runs OAuth callback, refresh, MCP health, a bounded search, and an approved or Dangerous-mode mutation."
+  },
+  "evidence": [
+    {
+      "url": "https://slite.com/help/77mvFqJWG1tduF/Slite-MCP",
+      "checkedAt": "2026-07-13",
+      "supports": "Slite documents its only supported remote MCP at https://api.slite.com/mcp, OAuth sign-in, and the complete current read/write tool list."
+    },
+    {
+      "url": "https://api.slite.com/.well-known/oauth-protected-resource",
+      "checkedAt": "2026-07-13",
+      "supports": "Slite publishes MCP resource metadata with its authorization server and openid, email, mcp:read, mcp:write, and offline_access scopes."
+    },
+    {
+      "url": "https://api.slite.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-13",
+      "supports": "Slite publishes authorization, token, JWKS, and dynamic registration endpoints with authorization-code, refresh-token, S256 PKCE, and public-client support."
+    },
+    {
+      "url": "https://slite.com/changelog/slite-mcp-server",
+      "checkedAt": "2026-07-13",
+      "supports": "Slite states that the hosted MCP uses OAuth, preserves existing permissions, and supports search, retrieval, creation, updates, recent docs, directory discovery, and block editing."
+    },
+    {
+      "url": "https://slite.com/help/OBsom1-PF7S6Tb/Slite-API",
+      "checkedAt": "2026-07-13",
+      "supports": "Slite's separate REST v1 API uses customer-owned personal API keys; Relay prefers the official one-click hosted MCP OAuth path and does not misrepresent personal keys as OAuth."
+    }
+  ]
+}

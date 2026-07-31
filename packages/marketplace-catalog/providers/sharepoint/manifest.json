@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sharepoint",
+  "name": "SharePoint",
+  "category": "knowledge_documents",
+  "description": "SharePoint is Microsoft's collaborative content management and intranet platform for organizations. Teams use it to organize sites, lists, document libraries, internal resources, and shared information across Microsoft 365.",
+  "agentUseSummary": "Connect one administrator-granted SharePoint site through Relay-owned Microsoft OAuth with delegated Sites.Selected, then let agents inspect bounded site, list, document-library, and default-root metadata through four fixed Graph wrappers. Relay excludes tenant discovery, list items and fields, file content, people and permissions, writes, other sites, broad or application scopes, exports, pagination, and raw Graph access.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-365/sharepoint/collaboration",
+    "docsUrl": "https://learn.microsoft.com/graph/api/resources/sharepoint",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "profile", "offline_access", "Sites.Selected"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "microsoft_delegated_work_user",
+      "administrator_granted_selected_site",
+      "encrypted_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/sharepoint/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "site_read",
+      "label": "Read selected site",
+      "description": "Read bounded metadata for one administrator-granted SharePoint site.",
+      "defaultSelected": true
+    },
+    {
+      "id": "site_structure_read",
+      "label": "Read site structure metadata",
+      "description": "List bounded list, document-library, and default-root item metadata without content.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "sharepoint_site_get",
+        "label": "Read selected site",
+        "description": "Read bounded metadata for the connection-bound administrator-granted SharePoint site."
+      },
+      {
+        "id": "sharepoint_lists_list",
+        "label": "List site lists",
+        "description": "List at most twenty-five list metadata records without list items, fields, or columns."
+      },
+      {
+        "id": "sharepoint_drives_list",
+        "label": "List document libraries",
+        "description": "List at most twenty-five document-library metadata records for the selected site."
+      },
+      {
+        "id": "sharepoint_default_library_root_list",
+        "label": "List default library root",
+        "description": "List at most twenty-five metadata-only root files and folders from the selected site's default library."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "sharepoint_tenant_discovery",
+        "label": "Discover tenant sites",
+        "description": "Tenant site enumeration, search, subsites, home-site discovery, groups, and other sites are outside V1."
+      },
+      {
+        "id": "sharepoint_content_people_permissions",
+        "label": "Read sensitive site content",
+        "description": "List items and fields, pages, file bytes, downloads, previews, people, identities, permissions, sharing, and analytics are outside V1."
+      },
+      {
+        "id": "sharepoint_mutation_admin",
+        "label": "Change or administer SharePoint",
+        "description": "Create, update, delete, upload, move, copy, share, publish, grant, subscribe, and administrative operations are outside V1."
+      },
+      {
+        "id": "sharepoint_broad_application_raw",
+        "label": "Use broad or raw access",
+        "description": "Broad Sites scopes, application permissions, exports, automatic pagination, and raw Microsoft Graph access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sharepoint_safe",
+      "label": "Safe",
+      "description": "Four bounded selected-site metadata reads run automatically; tenant discovery, content, people, permissions, writes, admin, broad scopes, pagination, and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "sharepoint_site_get",
+        "sharepoint_lists_list",
+        "sharepoint_drives_list",
+        "sharepoint_default_library_root_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sharepoint_tenant_discovery",
+        "sharepoint_content_people_permissions",
+        "sharepoint_mutation_admin",
+        "sharepoint_broad_application_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four selected-site reads run without Relay per-action approval; the administrator grant, exact site binding, limits, audit, redaction, and Microsoft controls still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "sharepoint_site_get",
+        "sharepoint_lists_list",
+        "sharepoint_drives_list",
+        "sharepoint_default_library_root_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sharepoint_tenant_discovery",
+        "sharepoint_content_people_permissions",
+        "sharepoint_mutation_admin",
+        "sharepoint_broad_application_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four selected-site SharePoint metadata wrappers and attaches encrypted Microsoft tokens only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four selected-site SharePoint metadata wrappers and attaches encrypted Microsoft tokens only on Railway."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_setup_pending",
+    "blocker": "Relay still needs its Entra application registration, delegated Sites.Selected configuration, administrator consent and explicit read grant for a staging SharePoint site, exact Railway callback, staging credentials, and Microsoft acceptance. Those provider-console, grant, and live-consent actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the Relay-owned Entra application and exact callback, store its credentials on Railway staging, grant the app read access to one staging site, then verify work-account consent, exact scope, PKCE/state, refresh rotation, site binding, all four reads, denial for other sites, throttling, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/graph/auth-v2-user",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph delegated authorization uses the v2 authorization-code flow, supports PKCE, and uses offline_access when a refresh token is required."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/permissions-reference#sitesselected",
+      "checkedAt": "2026-07-17",
+      "supports": "Delegated Sites.Selected lets an application access only specifically configured SharePoint sites on behalf of a signed-in user."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/permissions-selected-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Selected permissions require both consented scope and an explicit resource permission grant; the resulting authority is the intersection with the signed-in user's access."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/site-get",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides exact site-by-ID and site-by-server-relative-path metadata reads."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/list-list",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides a fixed lists collection endpoint for one site with selection and result bounds."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/drive-list",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides a fixed drives collection endpoint for one site."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/driveitem-list-children",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides a fixed selected-site default-drive root children endpoint with $select and $top controls."
+    }
+  ]
+}

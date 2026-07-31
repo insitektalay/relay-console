@@ -1,0 +1,212 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "segment",
+  "name": "Segment",
+  "category": "developer",
+  "description": "Segment is a customer data platform for collecting, governing, routing, and activating event data across Sources, Destinations, Warehouses, Tracking Plans, audiences, and analytics tools.",
+  "agentUseSummary": "Enter one Workspace-scoped Segment Public API token, exact Workspace ID, and allowlisted US or EU Public API origin. Relay validates that binding and exposes only the binding summary plus one fixed page of twenty-five redacted Source and Destination structural summaries; customer data, Source write keys, Destination settings and secrets, Warehouse credentials, Functions, broader APIs, arbitrary queries, pagination, downloads, exports, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://segment.com/",
+    "docsUrl": "https://docs.segmentapis.com/",
+    "developerConsoleUrl": "https://app.segment.com/",
+    "termsUrl": "https://www.twilio.com/en-us/legal/tos",
+    "privacyUrl": "https://www.twilio.com/en-us/legal/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_workspace_public_api_token",
+      "customer_supplied_region",
+      "exact_workspace_id_validation",
+      "role_permission_inheritance",
+      "provider_managed_token_revocation"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SEGMENT_PUBLIC_API_ORIGIN",
+        "label": "Segment Public API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter https://api.segmentapis.com for a US Workspace or https://eu1.api.segmentapis.com for an EU Workspace. Relay rejects every other origin."
+      },
+      {
+        "name": "SEGMENT_WORKSPACE_ID",
+        "label": "Segment Workspace ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact Workspace ID associated with the dedicated Public API token so Relay can validate token binding before use."
+      },
+      {
+        "name": "SEGMENT_PUBLIC_API_TOKEN",
+        "label": "Segment Public API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated Public API token—not a write key, Config API token, Profile API token, or Destination OAuth credential—with only the roles needed to get the Workspace and list Sources and Destinations."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workspace_binding",
+      "label": "Workspace binding",
+      "description": "Validate one exact Workspace-scoped Public API token and regional origin.",
+      "defaultSelected": true
+    },
+    {
+      "id": "source_metadata",
+      "label": "Source metadata",
+      "description": "List bounded Source structural summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "destination_metadata",
+      "label": "Destination metadata",
+      "description": "List bounded Destination structural summaries.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "segment_workspace_binding_get",
+        "label": "Read Workspace binding",
+        "description": "Validate the exact regional Public API origin, token, and Workspace ID without returning the Workspace name or slug."
+      },
+      {
+        "id": "segment_source_list",
+        "label": "List Sources",
+        "description": "Read one fixed page of twenty-five Source structural summaries without names, write keys, settings, labels, or catalog descriptions."
+      },
+      {
+        "id": "segment_destination_list",
+        "label": "List Destinations",
+        "description": "Read one fixed page of twenty-five Destination structural summaries without names, settings, secrets, actions, or catalog descriptions."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "segment_customer_data",
+        "label": "Access customer data",
+        "description": "Events, users, profiles, traits, identities, audiences, samples, delivery payloads, and customer insights are outside V1."
+      },
+      {
+        "id": "segment_secret_configuration",
+        "label": "Access secret configuration",
+        "description": "Source write keys, Destination settings and secrets, Warehouse credentials, Function code, filters, subscriptions, and private configuration are outside V1."
+      },
+      {
+        "id": "segment_mutation",
+        "label": "Change Segment configuration",
+        "description": "Creating, enabling, disabling, updating, deleting, connecting, syncing, or otherwise mutating Segment resources is outside V1."
+      },
+      {
+        "id": "segment_broader_api",
+        "label": "Access broader Segment APIs",
+        "description": "Warehouses, Tracking Plans, catalogs, Functions, transformations, labels, roles, tokens, audit, usage, monitoring, and Config/Profile APIs are outside V1."
+      },
+      {
+        "id": "segment_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary origins, paths, IDs, cursors, page sizes, filters, pagination, crawling, synchronization, downloads, exports, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "segment_safe",
+      "label": "Safe",
+      "description": "Three bounded configuration-metadata reads run automatically; customer data, write keys, settings, secrets, broader APIs, arbitrary requests, downloads, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "segment_workspace_binding_get",
+        "segment_source_list",
+        "segment_destination_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "segment_customer_data",
+        "segment_secret_configuration",
+        "segment_mutation",
+        "segment_broader_api",
+        "segment_raw_query"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact regional-origin and Workspace binding, fixed pages, audit, secret stripping, redaction, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "segment_workspace_binding_get",
+        "segment_source_list",
+        "segment_destination_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "segment_customer_data",
+        "segment_secret_configuration",
+        "segment_mutation",
+        "segment_broader_api",
+        "segment_raw_query"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Segment configuration-metadata wrappers and attaches the encrypted Public API token, exact Workspace ID, and validated official regional origin server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Segment configuration-metadata wrappers and attaches the encrypted Public API token, exact Workspace ID, and validated official regional origin server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer creates a dedicated Public API token in the exact Workspace with only roles needed for Workspace, Source-list, and Destination-list reads, then supplies the Workspace ID and correct US/EU origin. Revoke the token in Segment Workspace settings to disconnect provider-side."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.segmentapis.com/tag/Authentication/",
+      "checkedAt": "2026-07-17",
+      "supports": "Segment documents Workspace-scoped Public API bearer tokens with associated identity and permissions, separately created and revocable in each Workspace."
+    },
+    {
+      "url": "https://docs.segmentapis.com/tag/Getting-Started/",
+      "checkedAt": "2026-07-17",
+      "supports": "Segment documents Public API token creation and exact US and EU origins and distinguishes Public API tokens from other credential types."
+    },
+    {
+      "url": "https://docs.segmentapis.com/tag/Workspaces/",
+      "checkedAt": "2026-07-17",
+      "supports": "GET / returns the exact token-associated Workspace ID, name, and slug; Relay retains only the ID and verifies the configured binding."
+    },
+    {
+      "url": "https://docs.segmentapis.com/tag/Sources/",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /sources is paginated and can return sensitive writeKeys, settings, labels, and catalog metadata; Relay fixes count 25 and strips those fields."
+    },
+    {
+      "url": "https://docs.segmentapis.com/tag/Destinations/",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /destinations requires pagination and can return names, settings, secret configuration, catalog descriptions, and actions; Relay fixes count 25 and strips those fields."
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "robinhood",
+  "name": "Robinhood",
+  "category": "commerce_payments",
+  "description": "Robinhood offers separate self-directed brokerage, Robinhood Crypto, wallet, and related financial products. Its documented customer trading API currently covers U.S. Robinhood Crypto accounts, market data, holdings, order history, and programmatic crypto order placement and cancellation—not the broader Robinhood brokerage account.",
+  "agentUseSummary": "Robinhood cannot yet be connected through Relay. Selecting the public Crypto Trading API would make this provider a U.S.-only algorithmic crypto-trading connector with account, holdings, and order authority while leaving securities and other Robinhood products unsupported. Relay has no approved decision to scope the generic Robinhood listing to crypto or to expose regulated, volatile, 24/7 order execution under the Marketplace dangerous-permissions contract.",
+  "provider": {
+    "websiteUrl": "https://robinhood.com/",
+    "docsUrl": "https://docs.robinhood.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://robinhood.com/us/en/about/legal/",
+    "privacyUrl": "https://robinhood.com/us/en/about/legal/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "active_us_robinhood_crypto_account_required",
+      "customer_generated_action_scoped_api_key_required",
+      "customer_held_signing_private_key_required",
+      "crypto_only_public_api_not_brokerage",
+      "regulated_algorithmic_trading_product_decision_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "robinhood_connect",
+        "label": "Connect Robinhood",
+        "description": "The public API is limited to eligible U.S. Robinhood Crypto customers and requires customer-generated action-scoped credentials and a signing key."
+      },
+      {
+        "id": "robinhood_crypto_reads",
+        "label": "Read Robinhood Crypto data",
+        "description": "Crypto accounts, holdings, orders, products, quotes, fee tiers, and other private portfolio data remain unavailable."
+      },
+      {
+        "id": "robinhood_crypto_trading",
+        "label": "Trade Robinhood Crypto",
+        "description": "Buying, selling, placing market, limit, stop-loss, or stop-limit orders, and canceling orders are blocked."
+      },
+      {
+        "id": "robinhood_brokerage_or_wallet",
+        "label": "Access brokerage or wallet products",
+        "description": "Stocks, ETFs, options, futures, retirement, margin, cash, banking, transfers, statements, tax documents, wallet, staking, and Robinhood Connect are unavailable."
+      },
+      {
+        "id": "robinhood_private_or_credential_access",
+        "label": "Use private or credential-based access",
+        "description": "Browser or app automation, password or session capture, private-key exposure, undocumented APIs, and privilege probing are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "robinhood_unavailable",
+      "label": "Unavailable",
+      "description": "No Robinhood action is enabled until the product owner decides whether this generic provider may become a U.S.-only regulated crypto-trading connector and approves its execution controls.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "robinhood_connect",
+        "robinhood_crypto_reads",
+        "robinhood_crypto_trading",
+        "robinhood_brokerage_or_wallet",
+        "robinhood_private_or_credential_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Robinhood tools are mounted before product scope, jurisdiction, regulated trading, credential custody, monetary, market-risk, and human-oversight controls are approved."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Robinhood tools are mounted before product scope, jurisdiction, regulated trading, credential custody, monetary, market-risk, and human-oversight controls are approved."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Robinhood's official customer API is the U.S.-only Crypto Trading API. It can read accounts, holdings, orders, products and quotes and can place and cancel market, limit, stop-loss and stop-limit crypto orders around the clock. Credentials are created inside a customer's active Robinhood Crypto account, action-scoped, and authenticated with an API key plus signatures from the customer's private key. Robinhood separately distinguishes Robinhood Financial brokerage accounts from Robinhood Crypto accounts; no equivalent public brokerage trading API is documented. Under Relay's acceptance contract, an implemented provider must expose its complete chosen surface and the dangerous profile removes Relay per-action approvals. Choosing this surface would therefore commit the generic Robinhood listing to unattended regulated crypto trading while omitting the brokerage product users reasonably expect. That cannot be resolved as an ordinary implementation detail without a product and legal commitment.",
+    "nextAction": "The product owner, legal, compliance, security, financial-risk, consumer-protection, support, audit, and launch owners must decide whether to rename and scope this provider to Robinhood Crypto Trading API and permit programmatic order execution in supported U.S. jurisdictions. If approved, freeze read and trade actions, credential and signing-key custody, account binding, symbols, order types, notional and asset limits, slippage, price and balance checks, fee tiers, market-hours assumptions, safe approvals, dangerous-profile disclosure, cancellation behavior, duplicate prevention, reconciliation, tax records, audit, alerts, kill switches, and incident duties. Only then may Relay implement signed typed API wrappers and customer-owned credentials."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.robinhood.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "The public Crypto Trading API reads accounts, holdings, orders, products and quotes and places or cancels multiple crypto order types using signed API-key requests."
+    },
+    {
+      "url": "https://robinhood.com/us/en/support/articles/crypto-api/",
+      "checkedAt": "2026-07-17",
+      "supports": "The API is available to U.S. Robinhood Crypto customers, and customers create credentials with selected API actions in their crypto account settings."
+    },
+    {
+      "url": "https://robinhood.com/us/en/newsroom/robinhood-crypto-trading-api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Robinhood presents the API as an automation and algorithmic-trading product for active Crypto accounts, including round-the-clock order execution."
+    },
+    {
+      "url": "https://robinhood.com/us/en/support/articles/cryptocurrency-investing/",
+      "checkedAt": "2026-07-17",
+      "supports": "Robinhood Financial brokerage and Robinhood Crypto are separate accounts and legal entities with different products and protections."
+    },
+    {
+      "url": "https://robinhood.com/us/en/support/articles/crypto/",
+      "checkedAt": "2026-07-17",
+      "supports": "Robinhood discloses volatility, loss, liquidity, cybersecurity, regulatory, FDIC, and SIPC risks specific to crypto trading."
+    }
+  ]
+}

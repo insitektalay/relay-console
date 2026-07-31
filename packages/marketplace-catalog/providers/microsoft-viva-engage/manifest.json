@@ -1,0 +1,213 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-viva-engage",
+  "name": "Microsoft Viva Engage",
+  "category": "communication",
+  "description": "Microsoft Viva Engage is Microsoft's employee-community and enterprise social networking product within Microsoft 365. Organizations use it for communities, conversations, announcements, knowledge sharing, events, campaigns, and employee engagement across the workplace.",
+  "agentUseSummary": "Connect one verified Viva Engage community through Relay-owned delegated work-account OAuth, then let agents inspect the network, signed-in user, joined communities, and bounded selected-community messages through four fixed GET-only wrappers. Relay excludes broad and private feeds, contact and profile data, identities and members, attachments, search, exports, writes, administration, pagination, unsupported APIs, and raw provider access.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-viva/engage",
+    "docsUrl": "https://learn.microsoft.com/en-us/rest/api/yammer/yammer-core-apis",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "offline_access",
+      "access_as_user"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "microsoft_delegated_work_user",
+      "selected_viva_engage_community",
+      "encrypted_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-viva-engage/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "network_current_user",
+      "label": "Read network and current user",
+      "description": "Identify the connected network and signed-in user without exposing contact or profile data.",
+      "defaultSelected": true
+    },
+    {
+      "id": "communities",
+      "label": "Read joined communities",
+      "description": "Review bounded safe summaries for communities joined by the signed-in user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "selected_community_messages",
+      "label": "Read selected-community messages",
+      "description": "Review bounded privacy-scrubbed messages in one verified selected community.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "microsoft_viva_engage_network_get",
+        "label": "Get Viva Engage network",
+        "description": "Read fixed safe metadata for the connected Viva Engage network."
+      },
+      {
+        "id": "microsoft_viva_engage_current_user_get",
+        "label": "Get current Viva Engage user",
+        "description": "Read the signed-in user's ID and display name without contact or profile details."
+      },
+      {
+        "id": "microsoft_viva_engage_my_communities_list",
+        "label": "List my Viva Engage communities",
+        "description": "Read at most twenty-five safe summaries for communities joined by the signed-in user."
+      },
+      {
+        "id": "microsoft_viva_engage_selected_community_messages_list",
+        "label": "List selected-community messages",
+        "description": "Read at most twenty-five privacy-scrubbed messages from one verified selected community."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "microsoft_viva_engage_private_global_feeds",
+        "label": "Read private or broad feeds",
+        "description": "Private messages, inboxes, direct messages, following feeds, global feeds, and algorithmic feeds are outside V1."
+      },
+      {
+        "id": "microsoft_viva_engage_identities_members",
+        "label": "Read people or membership directories",
+        "description": "Emails, contact details, profile fields, senders, mentions, reactions, members, users, and membership directories are outside V1."
+      },
+      {
+        "id": "microsoft_viva_engage_attachments_files",
+        "label": "Read attachments or files",
+        "description": "Attachments, files, previews, media, and download URLs are outside V1."
+      },
+      {
+        "id": "microsoft_viva_engage_search_topics_export",
+        "label": "Search or export Viva Engage content",
+        "description": "Search, topics, analytics, bulk export, data export, and discovery beyond joined communities are outside V1."
+      },
+      {
+        "id": "microsoft_viva_engage_posts_likes_deletes",
+        "label": "Change Viva Engage content",
+        "description": "Posts, replies, likes, reactions, deletes, announcements, and every other mutation are outside V1."
+      },
+      {
+        "id": "microsoft_viva_engage_memberships_admin",
+        "label": "Change memberships or administration",
+        "description": "Joining, leaving, inviting, moderating, network administration, and compliance operations are outside V1."
+      },
+      {
+        "id": "microsoft_viva_engage_pagination_raw",
+        "label": "Use broad or raw access",
+        "description": "Automatic pagination, retries, polling, undocumented endpoints, unsupported APIs, and raw provider requests are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_viva_engage_safe",
+      "label": "Safe",
+      "description": "Four fixed selected-community GET reads run automatically; broad feeds, identities, memberships, files, search, exports, writes, administration, pagination, and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "microsoft_viva_engage_network_get",
+        "microsoft_viva_engage_current_user_get",
+        "microsoft_viva_engage_my_communities_list",
+        "microsoft_viva_engage_selected_community_messages_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_viva_engage_private_global_feeds",
+        "microsoft_viva_engage_identities_members",
+        "microsoft_viva_engage_attachments_files",
+        "microsoft_viva_engage_search_topics_export",
+        "microsoft_viva_engage_posts_likes_deletes",
+        "microsoft_viva_engage_memberships_admin",
+        "microsoft_viva_engage_pagination_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four reads run without Relay per-action approval; exact scope, selected-community binding, privacy projections, limits, audit, and Core API controls still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "microsoft_viva_engage_network_get",
+        "microsoft_viva_engage_current_user_get",
+        "microsoft_viva_engage_my_communities_list",
+        "microsoft_viva_engage_selected_community_messages_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_viva_engage_private_global_feeds",
+        "microsoft_viva_engage_identities_members",
+        "microsoft_viva_engage_attachments_files",
+        "microsoft_viva_engage_search_topics_export",
+        "microsoft_viva_engage_posts_likes_deletes",
+        "microsoft_viva_engage_memberships_admin",
+        "microsoft_viva_engage_pagination_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four selected-community Viva Engage GET wrappers and attaches encrypted Microsoft tokens only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four selected-community Viva Engage GET wrappers and attaches encrypted Microsoft tokens only on Railway."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_setup_pending",
+    "blocker": "Relay still needs its Entra application registration, delegated Viva Engage access_as_user configuration, exact Railway callback, staging credentials, a work test account, a staging network with one joined selected community, and Microsoft acceptance. Those provider-console and live-consent actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the Relay-owned Entra application and exact callback, store its credentials on Railway staging, then verify work-account consent through the Yammer resource .default scope, PKCE/state, refresh rotation, selected-network and joined-community binding, all four GET reads, privacy exclusions, throttling, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/yammer/yammer-core-apis",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents the supported legacy Viva Engage Core REST endpoints used by Relay and states that unlisted APIs are unsupported and the Core API is not for bulk export."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/yammer/app-registration",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft requires Entra applications for current legacy Viva Engage APIs, supports delegated access only, and documents the access_as_user delegated permission."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/yammer/authentication-1",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft recommends Entra authorization-code authentication and the https://www.yammer.com/.default resource scope for Viva Engage tokens."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/yammer/userscurrentjson",
+      "checkedAt": "2026-07-17",
+      "supports": "The current-user response contains identifiers, display details, email, and other profile fields; Relay retains only ID and display name."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/yammer/rest-api-rate-limits",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents delegated API access and throttling behavior; Relay maps HTTP 429 without automatic retries."
+    }
+  ]
+}

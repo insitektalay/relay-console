@@ -1,0 +1,166 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "lawpay",
+  "name": "LawPay",
+  "category": "commerce_payments",
+  "description": "LawPay is an online payment platform for law firms, legal invoices, trust and operating account separation, payment pages, card and eCheck processing, receipts, reporting, and payment integrations. It is operated by 8am and is built around legal payment compliance, PCI controls, and attorney trust-account workflows.",
+  "agentUseSummary": "Connect one LawPay merchant through an 8am-approved Relay-owned partner OAuth application using authorization code and the `payments` scope. Relay exposes one approval-gated authority check that calls only GET https://api.8am.com/gateway-credentials, validates the response shape transiently, discards the complete response including merchant identity and account keys, and returns no payment, trust-account, card, eCheck, client, matter, or legal-practice data.",
+  "provider": {
+    "websiteUrl": "https://www.lawpay.com/",
+    "docsUrl": "https://developers.8am.com/connect/connect-partner-affinipay.html",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.lawpay.com/terms/",
+    "privacyUrl": "https://www.lawpay.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["payments"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://secure.lawpay.com/oauth/authorize",
+    "tokenUrl": "https://api.8am.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_partner_oauth_app",
+      "authorization_code",
+      "lawpay_brand_authorization_origin",
+      "payments_scope",
+      "gateway_credentials_authority_probe",
+      "8am_demo_approval_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/lawpay/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "connection_authority_read",
+      "label": "Verify connection authority",
+      "description": "Verify that the LawPay OAuth grant can call the fixed gateway-credentials endpoint while returning no merchant identity, user identity, account keys, trust-account, payment, client, matter, or legal-practice data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "lawpay_connection_authority_get",
+        "label": "Verify LawPay connection authority",
+        "description": "Call only GET https://api.8am.com/gateway-credentials, validate the response shape in memory, discard the full response, and return authorization, platform, API version, and redaction status."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "lawpay_merchant_user_or_account_data",
+        "label": "Access merchant, user, or account data",
+        "description": "Application names, user names, emails, abilities, merchant names, addresses, phone numbers, support contacts, account IDs, public keys, secret keys, live/test account lists, trust-account flags, and related account details are blocked."
+      },
+      {
+        "id": "lawpay_payment_or_saved_method_data",
+        "label": "Access payments or saved methods",
+        "description": "Charges, invoices, payment pages, hosted fields, one-time tokens, saved payment methods, cards, eCheck data, routing/account details, receipts, refunds, voids, disputes, reconciliation, transaction search, reports, and webhooks are blocked."
+      },
+      {
+        "id": "lawpay_process_refund_write_or_administer",
+        "label": "Process, refund, write, or administer LawPay",
+        "description": "Payment creation, tokenization, charging, recurring billing, surcharges, refunds, voids, payment-page creation, webhook changes, account selection, application settings, credentials, IP allowlists, users, and administration are blocked."
+      },
+      {
+        "id": "lawpay_raw_gateway_api_pagination_or_bulk",
+        "label": "Use raw APIs, pagination, or bulk access",
+        "description": "Arbitrary 8am, Payment Gateway, Payment Portal, Hosted Fields, or Authentication API endpoints, methods, identifiers, headers, queries, bodies, browser sessions, SDKs, redirects, pagination, polling, retries, bulk operations, exports, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "lawpay_safe",
+      "label": "Safe",
+      "description": "The identity-free authority check requires approval; merchant identity, account keys, trust-account data, payment data, saved methods, writes, webhooks, administration, raw APIs, pagination, and bulk remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["lawpay_connection_authority_get"],
+      "blockedActions": [
+        "lawpay_merchant_user_or_account_data",
+        "lawpay_payment_or_saved_method_data",
+        "lawpay_process_refund_write_or_administer",
+        "lawpay_raw_gateway_api_pagination_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same authority check runs directly; connection ownership, provider authorization, credential secrecy, fixed endpoint, redaction, auditing, response bounds, PCI/trust-account boundaries, and provider limits remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["lawpay_connection_authority_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "lawpay_merchant_user_or_account_data",
+        "lawpay_payment_or_saved_method_data",
+        "lawpay_process_refund_write_or_administer",
+        "lawpay_raw_gateway_api_pagination_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one fixed identity-free LawPay authority wrapper and injects the OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the same fixed identity-free LawPay authority wrapper."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "8am requires partner OAuth application setup, customer authorization, disconnect support, required LawPay branding, integration/demo review, and live approval before production payment integrations. Relay still needs an approved LawPay partner OAuth application, exact HTTPS callback registration, confidential client credentials, customer consent, security/privacy review, and live acceptance.",
+    "nextAction": "Use the separate provider-console task to work with 8am/LawPay on partner approval, configure the LawPay Connect button and exact Railway callback, store the issued OAuth client ID/secret, complete customer consent with only the payments scope, validate the gateway-credentials authority check, redaction, safe errors, disconnect and post-disconnect denial, then complete 8am demo/live approval before enabling payment operations."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.8am.com/connect/connect-partner-affinipay.html",
+      "checkedAt": "2026-07-18",
+      "supports": "8am documents the LawPay authorization-code flow for existing merchants: LawPay uses https://secure.lawpay.com/oauth/authorize, access tokens are created at https://api.8am.com/oauth/token, and the required scope is payments."
+    },
+    {
+      "url": "https://developers.8am.com/connect/connect-partner-affinipay.html",
+      "checkedAt": "2026-07-18",
+      "supports": "8am documents GET https://api.8am.com/gateway-credentials as the follow-up authority endpoint; its example response includes application, user, merchant, test account, live account, public key, secret key, and trust-account fields that Relay validates transiently and discards."
+    },
+    {
+      "url": "https://developers.8am.com/resources/integration-requirements",
+      "checkedAt": "2026-07-18",
+      "supports": "8am partner requirements list OAuth 2.0, tokenization, disconnect support, refunds/voids, reconciliation, account support, saved methods, transaction search, and a demo checklist; Relay V1 mounts only the authority check before provider approval."
+    },
+    {
+      "url": "https://developers.8am.com/resources/bestpractices",
+      "checkedAt": "2026-07-18",
+      "supports": "8am states partners use a DEV partner OAuth application for testing and can go live only after the integration demo has been approved."
+    },
+    {
+      "url": "https://help.lawpay.com/en/articles/10671852-integrations-settings-overview",
+      "checkedAt": "2026-07-18",
+      "supports": "LawPay's help center documents authorized applications, integration credentials, IP allowlists, and webhooks, and warns that secret keys are sensitive."
+    },
+    {
+      "url": "https://www.lawpay.com/llm-info/",
+      "checkedAt": "2026-07-18",
+      "supports": "LawPay describes its payment, legal trust-account, PCI DSS, SOC 2, API, webhook, and legal-industry compliance positioning."
+    }
+  ],
+  "securityNotes": [
+    "Relay requests only the documented payments scope because LawPay/8am documents that as the OAuth scope for partner merchant connections.",
+    "The sole request is GET https://api.8am.com/gateway-credentials with the bearer token. Relay validates only the top-level response shape in memory, discards the complete response, and returns no merchant identity, account identifiers, public keys, secret keys, trust-account flags, user abilities, or live/test account details.",
+    "Requests reject redirects, time out after 20 seconds, cap responses at 64 KB, accept no runtime input, do not paginate or retry automatically, and preserve 401, 403, 404, 429, and provider-unavailable outcomes.",
+    "Payment creation, hosted fields, tokenization, saved payment methods, card/eCheck handling, refunds, voids, recurring billing, transaction search, reconciliation, webhooks, account selection, credentials, IP allowlists, users, raw APIs, browser sessions, bulk operations, and exports are unavailable.",
+    "Access tokens and client secrets remain encrypted server-side; disconnect deletes Relay's grant and credentials because the reviewed public materials document merchant unlinking but do not provide a public token revocation endpoint for this V1."
+  ]
+}

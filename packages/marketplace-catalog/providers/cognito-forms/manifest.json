@@ -1,0 +1,143 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "cognito-forms",
+  "name": "Cognito Forms",
+  "category": "work_management",
+  "description": "Cognito Forms is an online form and workflow platform for surveys, registrations, applications, approvals, e-signatures, payments, and client portals. Organizations use it to collect structured information, route submissions through business processes, generate documents, manage entries and files, and automate work around form responses.",
+  "agentUseSummary": "Connect an eligible Cognito Forms organization once, then let agents read entries, documents, and files or generate forms, manage entries, and change form availability through Cognito Forms' hosted OAuth MCP under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.cognitoforms.com/",
+    "docsUrl": "https://www.cognitoforms.com/support/1038/data-integration/mcp-connector",
+    "developerConsoleUrl": "https://www.cognitoforms.com/.well-known/oauth-authorization-server",
+    "termsUrl": "https://www.cognitoforms.com/terms",
+    "privacyUrl": "https://www.cognitoforms.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "form_create",
+      "form_read",
+      "form_update",
+      "entry_create",
+      "entry_read",
+      "entry_update",
+      "entry_delete",
+      "file_read",
+      "entryview_read"
+    ],
+    "pkce": true,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.cognitoforms.com/api-connection",
+    "tokenUrl": "https://www.cognitoforms.com/svc/integration/oauth/access-token"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp", "customer_paid_plan"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/cognito-forms/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "forms_and_entries",
+      "label": "Read forms and entries",
+      "description": "Read individual entries, query form entries, and retrieve generated documents or uploaded files.",
+      "defaultSelected": true
+    },
+    {
+      "id": "form_creation",
+      "label": "Create forms",
+      "description": "Generate new Cognito Forms forms through the connected organization.",
+      "defaultSelected": true
+    },
+    {
+      "id": "entry_management",
+      "label": "Manage entries and availability",
+      "description": "Create, update, and delete entries and open or close forms to new submissions.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "cognito_forms_mcp_read",
+        "label": "Read forms, entries, documents, and files",
+        "description": "Use one documented Cognito Forms entry, entry-list, generated-document, or uploaded-file read tool."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "cognito_forms_mcp_write",
+        "label": "Create or change forms and entries",
+        "description": "Generate forms, create, update, or delete entries, or change form availability; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "cognito_forms_safe",
+      "label": "Safe",
+      "description": "Entry, document, and file reads run directly; form and entry changes require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["cognito_forms_mcp_read"],
+      "approvalRequiredActions": ["cognito_forms_mcp_write"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized Cognito Forms MCP operation runs without Relay per-action approval; ownership, provider permissions, exact tool allowlists, live schemas, bounds, audits, and redaction still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["cognito_forms_mcp_read", "cognito_forms_mcp_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts exact Cognito Forms read and write wrappers and proxies the user's OAuth connection to Cognito Forms' hosted MCP."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts exact Cognito Forms read and write wrappers and proxies the user's OAuth connection to Cognito Forms' hosted MCP."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Cognito Forms publishes a shared public PKCE client ID and accepted Relay's exact callback through the provider login page, but no eligible signed-in organization admin was available to finish organization authorization, token exchange, or live nine-tool schema verification.",
+    "nextAction": "An administrator of a Cognito Forms Pro, Team, or Enterprise organization clicks Connect, chooses the organization, and authorizes Relay; then Relay verifies token exchange, the exact nine-tool schema, bounded reads, Safe write denial, an approved or Dangerous entry lifecycle, provider-side disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.cognitoforms.com/support/1038/data-integration/mcp-connector",
+      "checkedAt": "2026-07-16",
+      "supports": "Cognito Forms documents its hosted MCP URL, publishes public OAuth client ID 366c9904-def2-451a-af2f-8e08d751088c for custom connectors, and lists nine current MCP actions."
+    },
+    {
+      "url": "https://www.cognitoforms.com/support/475/data-integration/cognito-forms-api",
+      "checkedAt": "2026-07-16",
+      "supports": "Cognito Forms documents organization-admin access, eligible paid plans, customer organization usage, existing form validation and user permissions, and audit behavior for API and MCP operations."
+    },
+    {
+      "url": "https://mcp.cognitoforms.com/.well-known/oauth-protected-resource",
+      "checkedAt": "2026-07-16",
+      "supports": "Cognito Forms publishes its protected MCP resource, Cognito Forms authorization server, and granular form, entry, file, and entry-view scopes."
+    },
+    {
+      "url": "https://www.cognitoforms.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-16",
+      "supports": "Cognito Forms publishes its authorization and token endpoints, authorization-code flow, and S256 PKCE support."
+    },
+    {
+      "url": "https://www.cognitoforms.com/",
+      "checkedAt": "2026-07-16",
+      "supports": "Cognito Forms describes its product as an online form and workflow platform for data collection, approvals, e-signatures, payments, document generation, portals, and automation."
+    }
+  ]
+}

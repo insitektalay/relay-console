@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "capital-one",
+  "name": "Capital One",
+  "category": "commerce_payments",
+  "description": "Capital One is a U.S. financial institution offering credit cards, checking and savings accounts, auto lending, business banking, and digital money-management tools. Customers use its web and mobile banking products to review balances and activity, manage cards and accounts, move money, pay bills, and receive alerts.",
+  "agentUseSummary": "Capital One is visible as a Consumer Data production-review preview only. Relay will not collect a Capital One username, password, one-time code, browser session, account number, card detail, or developer credential, and no agent action is callable until Capital One approves a production application and exact customer-authorized read contract.",
+  "provider": {
+    "websiteUrl": "https://www.capitalone.com/",
+    "docsUrl": "https://developer.capitalone.com/documentation/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.capitalone.com/digital/datasharing-terms-conditions/",
+    "privacyUrl": "https://www.capitalone.com/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "consumer_data_api_application_approval_required",
+      "capital_one_partner_and_production_onboarding_required",
+      "customer_authorization_and_read_scope_approval_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "approved_consumer_data_read",
+      "label": "Read approved consumer data",
+      "description": "After Capital One approves Relay's production Consumer Data application, expose only bounded non-mutating summaries for the connected customer's authorized account types, balances, and recent transaction lifecycle.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "capital_one_connect_before_production_approval",
+        "label": "Connect before production approval",
+        "description": "Capital One DevExchange requires an application and production approval. Relay has no approved Consumer Data application, customer-authorization contract, scopes, credentials, security profile, test acceptance, or production access."
+      },
+      {
+        "id": "capital_one_collect_customer_credentials",
+        "label": "Collect customer credentials",
+        "description": "Relay will not ask customers for a Capital One username, password, one-time code, browser session, bearer token, account or routing number, card detail, PIN, security answer, Social Security number, identity document, developer credential, or other secret as a substitute for Capital One-approved authorization."
+      },
+      {
+        "id": "capital_one_api_actions_before_approval",
+        "label": "Run Capital One API actions",
+        "description": "No customer, account, balance, transaction, payment-history, card, reward, offer, payment, transfer, identity, consent, webhook, or other Capital One API action can run while application and production review is pending."
+      },
+      {
+        "id": "capital_one_money_movement_blocked",
+        "label": "Money movement unavailable",
+        "description": "Payments, transfers, bill pay, card controls, account maintenance, disputes, rewards redemption, offers, lending, and every other financial or account mutation remain outside Relay's planned read-only V1 even after approval."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "capital_one_consumer_data_review",
+      "label": "Consumer Data production review pending",
+      "description": "Agent actions remain unavailable until Capital One approves Relay's Consumer Data application and engineering implements and validates the exact bounded customer-authorized read contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "capital_one_connect_before_production_approval",
+        "capital_one_collect_customer_credentials",
+        "capital_one_api_actions_before_approval",
+        "capital_one_money_movement_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No OpenClaw tools are callable until Capital One approves Relay and Relay implements the approved read-only Railway broker."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Hermes tools are callable until Capital One approves Relay and Relay implements the approved read-only Railway broker."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Capital One DevExchange lists Consumer Data among its API products and advertises sandbox testing followed by a production-access request. Capital One's customer data-sharing materials describe protected sign-in, customer control over individual-account access, credential-less API sharing, tokenization, and one-time or continuous authorization. Relay has no registered or approved application, exact product contract, scopes, authorization and token endpoints, credentials, security profile, sandbox acceptance, schema and rate-limit contract, privacy allocation, or production authority, so no connection can be offered safely.",
+    "nextAction": "An authorized Relay business, legal, compliance, privacy, and security owner must apply through Capital One DevExchange and obtain written production approval for the Consumer Data use case. The owner must document eligible products and customers, exact read permissions and minimized response fields, customer authorization copy and duration, authorization and token contracts, credentials and security controls, sandbox and production onboarding, schemas and rate limits, data retention, revocation and disconnect, audits, incident duties, and production approval. Engineering can then implement a fixed-origin Railway authorization broker and the smallest bounded read-only account-type, balance, and recent transaction-lifecycle V1. Money movement and every mutation remain excluded."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.capitalone.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Capital One DevExchange says developers register an application, test with supplied sandbox data, and request production access before going live."
+    },
+    {
+      "url": "https://developer.capitalone.com/documentation/",
+      "checkedAt": "2026-07-18",
+      "supports": "The official DevExchange documentation catalog lists Consumer Data as an API product, but public discovery does not itself establish Relay application approval or an exact production contract."
+    },
+    {
+      "url": "https://www.capitalone.com/about/newsroom/data-sharing-agreement/",
+      "checkedAt": "2026-07-18",
+      "supports": "Capital One describes its Customer Transactions API as credential-less, privacy-protecting sharing with protected sign-in, customer control over account access, tokenized information, and authorized third parties."
+    },
+    {
+      "url": "https://www.capitalone.com/digital/datasharing-terms-conditions/",
+      "checkedAt": "2026-07-18",
+      "supports": "Capital One's data-sharing terms require customer request and authorization, allow one-time or continuous sharing, support revocation, and identify account type, balance, transaction history, and payment history as data that may be shared."
+    }
+  ]
+}

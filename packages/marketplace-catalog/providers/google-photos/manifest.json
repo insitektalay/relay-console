@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-photos",
+  "name": "Google Photos",
+  "category": "content_creative",
+  "description": "Google Photos is Google's cloud photo and video service for organizing personal media. Individuals use it to preserve, find, and explicitly select memories across their devices.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth, then let agents use four bounded Google Photos Picker wrappers to create a user-controlled selection session, inspect one explicit session once, read the first metadata-only page for at most twenty-five selected items, and clean up the session. Relay V1 excludes removed broad Library scopes, whole-library access, uploads, edits, albums, sharing, raw media, base URLs, camera or EXIF data, faces, unrelated ML, advertising, automatic polling, pagination, delegation, and raw tools.",
+  "provider": { "websiteUrl": "https://photos.google.com/", "docsUrl": "https://developers.google.com/photos/picker", "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials", "termsUrl": "https://developers.google.com/photos/support/api-policy", "privacyUrl": "https://policies.google.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["openid", "email", "https://www.googleapis.com/auth/photospicker.mediaitems.readonly"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth", "tokenUrl": "https://oauth2.googleapis.com/token" },
+  "connection": { "types": ["relay_owned_global_oauth", "exact_google_account_binding", "expiring_access_token", "offline_refresh_token", "provider_revocation"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/google-photos/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "picker_session_read", "label": "Check Picker sessions", "description": "Inspect one explicit Picker session once without automatic polling.", "defaultSelected": true },
+    { "id": "picked_media_read", "label": "Read selected metadata", "description": "Read one first page of bounded metadata for user-selected media.", "defaultSelected": true },
+    { "id": "picker_session_write", "label": "Manage Picker sessions", "description": "Create and clean up bounded user-controlled selection sessions.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_photos_picker_session_get", "label": "Get photo selection session", "description": "Check one explicit Picker session once without automatic polling." },
+      { "id": "google_photos_picked_media_list", "label": "List selected photo metadata", "description": "Return the first twenty-five metadata summaries explicitly selected by the user." }
+    ],
+    "approvalRequired": [
+      { "id": "google_photos_picker_session_create", "label": "Create photo selection session", "description": "Create one user-controlled Picker session for at most twenty-five items." },
+      { "id": "google_photos_picker_session_delete", "label": "Clean up photo selection session", "description": "Delete one Picker session without deleting user media." }
+    ],
+    "blocked": [
+      { "id": "google_photos_removed_library_scopes", "label": "Use removed Photos Library scopes", "description": "Removed whole-library, sharing, and broad Library scopes are forbidden." },
+      { "id": "google_photos_library_upload_edit", "label": "Upload or edit Library content", "description": "Library API uploads, imports, albums, and app-created-data management are outside V1." },
+      { "id": "google_photos_raw_media", "label": "Access raw selected media", "description": "Raw bytes, thumbnails, transient base URLs, and camera or EXIF metadata are withheld." },
+      { "id": "google_photos_library_search_sharing", "label": "Search or share Photos Library", "description": "Whole-library access, albums, search, and sharing are outside Picker-only V1." },
+      { "id": "google_photos_face_ml_ads", "label": "Analyze faces or repurpose Photos data", "description": "Face analysis, unrelated ML training, advertising, brokerage, and competing galleries are blocked." },
+      { "id": "google_photos_auto_poll_paginate", "label": "Automatically poll or paginate", "description": "Automatic polling and page-token following are blocked in V1." },
+      { "id": "google_photos_raw_delegation", "label": "Run raw or delegated Photos access", "description": "Raw endpoints, service accounts, and domain-wide delegation are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "google_photos_safe", "label": "Safe", "description": "Explicit session checks and first-page metadata reads run automatically; session creation and cleanup require matching approval.", "defaultSelected": true, "allowedActions": ["google_photos_picker_session_get", "google_photos_picked_media_list"], "approvalRequiredActions": ["google_photos_picker_session_create", "google_photos_picker_session_delete"], "blockedActions": ["google_photos_removed_library_scopes", "google_photos_library_upload_edit", "google_photos_raw_media", "google_photos_library_search_sharing", "google_photos_face_ml_ads", "google_photos_auto_poll_paginate", "google_photos_raw_delegation"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All four selected tools run without Relay per-action approval while exact Picker scope, user selection, item and page limits, metadata redaction, no-polling, audit, refresh, revocation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["google_photos_picker_session_get", "google_photos_picked_media_list", "google_photos_picker_session_create", "google_photos_picker_session_delete"], "approvalRequiredActions": [], "blockedActions": ["google_photos_removed_library_scopes", "google_photos_library_upload_edit", "google_photos_raw_media", "google_photos_library_search_sharing", "google_photos_face_ml_ads", "google_photos_auto_poll_paginate", "google_photos_raw_delegation"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [{ "format": "openclaw", "installSupport": "installable", "description": "Relay mounts four privacy-bounded Google Photos Picker wrappers and attaches encrypted OAuth tokens server-side." }, { "format": "hermes", "installSupport": "installable", "description": "Relay mounts four privacy-bounded Google Photos Picker wrappers and attaches encrypted OAuth tokens server-side." }],
+  "availability": "available",
+  "providerSetup": { "status": "provider_review_pending", "blocker": "Relay must configure its Google Cloud project and confidential web client, enable Photos Picker API, publish its OAuth consent screen with verified relayconsole.work domains, Limited Use disclosure, policy links, and affirmative selection consent, complete Google's applicable verification for the Picker scope, configure Railway staging credentials, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.", "nextAction": "In the provider-console task, configure the canonical Railway callback and exact Picker scope, complete Google review, configure staging credentials, then verify all four tools, user-controlled selection, 25-item and one-page bounds, metadata redaction, Safe and Dangerous policy, refresh, rotation, revocation, disconnect, cleanup, quota/error mapping, and post-disconnect denial." },
+  "evidence": [
+    { "url": "https://developers.google.com/photos/picker/reference/rest/v1/sessions", "checkedAt": "2026-07-17", "supports": "Google documents PickingSession creation, explicit retrieval, deletion, picker URI, readiness, expiry, bounded configuration, and polling guidance." },
+    { "url": "https://developers.google.com/photos/picker/reference/rest/v1/mediaItems/list", "checkedAt": "2026-07-17", "supports": "Picked media listing requires the exact Picker scope, an explicit session, a bounded page size, and optional pagination; Relay reads one page only." },
+    { "url": "https://developers.google.com/photos/picker/reference/rest/v1/mediaItems", "checkedAt": "2026-07-17", "supports": "PickedMediaItem includes media metadata and a raw-content base URL; Relay returns only bounded metadata and strips base URLs and camera details." },
+    { "url": "https://developers.google.com/photos/support/updates", "checkedAt": "2026-07-17", "supports": "Google removed broad Library read and sharing scopes after March 31, 2025 and directs whole-library selection to Picker API." },
+    { "url": "https://developers.google.com/photos/support/api-policy", "checkedAt": "2026-07-17", "supports": "Google requires minimum contextual permissions, transparent disclosure, affirmative consent, Limited Use compliance, and prohibits advertising, brokerage, competing galleries, faces, and unrelated ML uses." }
+  ]
+}

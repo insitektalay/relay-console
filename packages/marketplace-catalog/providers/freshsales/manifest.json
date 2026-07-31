@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "freshsales",
+  "name": "Freshsales",
+  "category": "developer",
+  "description": "Freshsales is a CRM for contacts, accounts, deals, products, activities, tasks, appointments, email, phone, workflows, and reporting.",
+  "agentUseSummary": "Connect one exact Freshworks CRM account with a customer-owned API key, then let agents list only bounded projected contact-filter IDs and names under approval. Relay excludes filter logic, CRM records, writes, administration, exports, bulk operations, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.freshworks.com/crm/sales/",
+    "docsUrl": "https://developers.freshworks.com/crm/api/",
+    "developerConsoleUrl": "https://developers.freshworks.com/crm/api/",
+    "termsUrl": "https://www.freshworks.com/terms/",
+    "privacyUrl": "https://www.freshworks.com/privacy/"
+  },
+  "authentication": {
+    "model": "customer_owned_api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_user_api_key",
+      "exact_account_scope",
+      "freshworks_crm_base_binding",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "FRESHSALES_API_KEY",
+        "label": "Freshsales API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated least-privilege user API key and store it only through Relay's encrypted flow."
+      },
+      {
+        "name": "FRESHSALES_API_BASE_URL",
+        "label": "Freshsales API base URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact HTTPS Freshworks CRM account URL ending in /crm/sales."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "contact_filter_metadata",
+      "label": "List contact-filter metadata",
+      "description": "List at most 100 contact-filter IDs and names without criteria, queries, ownership, sharing, counts, or CRM records.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "freshsales_contact_filters_list",
+        "label": "List contact-filter metadata",
+        "description": "List bounded projected contact-filter IDs and names for one exact Freshsales account."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "freshsales_crm_records",
+        "label": "Access CRM records",
+        "description": "Contacts, accounts, deals, products, activities, tasks, appointments, notes, conversations, files, and record fields are blocked."
+      },
+      {
+        "id": "freshsales_private_filter_logic",
+        "label": "Access private filter logic",
+        "description": "Filter criteria, queries, ownership, sharing, counts, and filtered record results are blocked."
+      },
+      {
+        "id": "freshsales_mutation_administration",
+        "label": "Mutate or administer Freshsales",
+        "description": "Creates, updates, deletes, upserts, team changes, imports, exports, workflows, users, roles, and settings changes are blocked."
+      },
+      {
+        "id": "freshsales_raw_bulk",
+        "label": "Use raw or bulk API access",
+        "description": "Arbitrary paths, embeds, selectors, views, search, raw responses, bulk access, pagination, redirects, and retries are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "freshsales_contact_filter_metadata_safe",
+      "label": "Safe",
+      "description": "The bounded filter-metadata read requires approval; CRM records, private filter logic, writes, administration, bulk, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["freshsales_contact_filters_list"],
+      "blockedActions": [
+        "freshsales_crm_records",
+        "freshsales_private_filter_logic",
+        "freshsales_mutation_administration",
+        "freshsales_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded metadata read runs without Relay per-action approval; exact account/path binding, projection, caps, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["freshsales_contact_filters_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "freshsales_crm_records",
+        "freshsales_private_filter_logic",
+        "freshsales_mutation_administration",
+        "freshsales_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned API key to one exact Freshworks CRM account and a projected contact-filter metadata wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned API key to one exact Freshworks CRM account and a projected contact-filter metadata wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Freshsales administrator must provision a dedicated least-privilege user, obtain its API key and exact CRM base URL, and store both through Relay. No account, user, key, credential capture, live request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized administrator provisions the least-privilege user and key, stores the key and exact account base through Relay, then verifies health, one approved metadata list, throttling, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.freshworks.com/crm/api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Freshworks documents exact CRM account URL construction, per-user API-key authentication using the Token token Authorization scheme, access controlled by user rights, a 1000-request hourly account limit, and GET /api/contacts/filters returning filter IDs and names. Relay selects only that metadata read."
+    },
+    {
+      "url": "https://developers.freshworks.com/docs/app-sdk/v3.0/deal/rest-apis/",
+      "checkedAt": "2026-07-17",
+      "supports": "Freshworks documents broader CRM filter, view, and record APIs. Relay blocks view results, CRM records, arbitrary paths, embeds, pagination, mutations, and raw responses."
+    }
+  ]
+}

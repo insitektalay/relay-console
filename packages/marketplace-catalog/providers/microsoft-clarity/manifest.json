@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-clarity",
+  "name": "Microsoft Clarity",
+  "category": "developer",
+  "description": "Microsoft Clarity is a behavioral analytics service for understanding website traffic, engagement, and user-experience friction.",
+  "agentUseSummary": "Connect one user-owned project Data Export API token. Relay exposes one bounded read-only wrapper for the previous one to three days of project-live-insight metrics with at most three supported dimensions; session recordings, heatmaps, instrumentation, custom identifiers and events, project administration, and raw provider access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://clarity.microsoft.com/",
+    "docsUrl": "https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-data-export-api",
+    "developerConsoleUrl": "https://clarity.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/en-us/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/en-us/privacystatement"
+  },
+  "authentication": {
+    "model": "personal_access_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "user_owned_microsoft_clarity_data_export_api_token",
+      "project_bound_bearer_token",
+      "manual_provider_token_replacement"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "microsoft_clarity_api_token",
+        "label": "Data Export API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a dedicated token under the Clarity project's Settings → Data Export page. Relay stores only a secret-store reference."
+      },
+      {
+        "name": "microsoft_clarity_project_label",
+        "label": "Project or site label",
+        "required": false,
+        "secret": false,
+        "helpText": "Optional non-secret label for the connected Clarity project."
+      },
+      {
+        "name": "microsoft_clarity_project_url",
+        "label": "Project or site URL",
+        "required": false,
+        "secret": false,
+        "helpText": "Optional non-secret site URL that identifies the connected project."
+      },
+      {
+        "name": "microsoft_clarity_project_id",
+        "label": "Project ID",
+        "required": false,
+        "secret": false,
+        "helpText": "Optional non-secret Clarity project identifier."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "clarity_data_export_api",
+      "label": "Clarity Data Export API",
+      "description": "Use the fixed project-live-insights Data Export endpoint.",
+      "defaultSelected": true
+    },
+    {
+      "id": "project_live_insights_read",
+      "label": "Project live insights",
+      "description": "Read bounded recent project metrics for one to three days and up to three supported dimensions.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "microsoft_clarity_get_project_live_insights",
+        "label": "Get project live insights",
+        "description": "Read the previous one to three days of Clarity project-live-insight metrics with up to three supported dimensions."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "microsoft_clarity_raw_session_recording_export",
+        "label": "Export raw session recordings",
+        "description": "Raw session recordings are not exposed by the read-only V1 wrapper."
+      },
+      {
+        "id": "microsoft_clarity_heatmap_export",
+        "label": "Export heatmaps",
+        "description": "Heatmap assets and broad exports are not exposed by the V1 wrapper."
+      },
+      {
+        "id": "microsoft_clarity_client_instrumentation_update",
+        "label": "Change instrumentation",
+        "description": "Tracking scripts, masking, tags, custom events, and custom identifiers cannot be changed."
+      },
+      {
+        "id": "microsoft_clarity_project_admin",
+        "label": "Administer project",
+        "description": "Project, user, settings, and API-token administration is blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_clarity_read_only",
+      "label": "Read only",
+      "description": "One bounded recent-insights read runs automatically while exports, instrumentation, and administration remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "microsoft_clarity_get_project_live_insights"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_clarity_raw_session_recording_export",
+        "microsoft_clarity_heatmap_export",
+        "microsoft_clarity_client_instrumentation_update",
+        "microsoft_clarity_project_admin"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same read-only wrapper runs while endpoint, date-window, dimension, row, redaction, quota, and audit guards remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "microsoft_clarity_get_project_live_insights"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_clarity_raw_session_recording_export",
+        "microsoft_clarity_heatmap_export",
+        "microsoft_clarity_client_instrumentation_update",
+        "microsoft_clarity_project_admin"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts one bounded Clarity Data Export wrapper and injects the project token from encrypted storage."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts one bounded Clarity Data Export wrapper and injects the project token from encrypted storage."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "A project admin generates a dedicated Data Export API token, stores it in Relay, and replaces it in Clarity when rotation or revocation is required."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-data-export-api",
+      "checkedAt": "2026-07-26",
+      "supports": "Microsoft documents project-admin token generation, Bearer authentication, the fixed project-live-insights endpoint, one-to-three-day windows, up to three dimensions, a 1,000-row non-paginated response, and ten requests per project per day."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-api",
+      "checkedAt": "2026-07-26",
+      "supports": "Microsoft documents the separate client instrumentation surface for identifiers, tags, events, masking, and recording behavior; Relay intentionally does not expose that surface."
+    }
+  ]
+}

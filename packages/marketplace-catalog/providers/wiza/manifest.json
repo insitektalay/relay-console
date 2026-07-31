@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "wiza",
+  "name": "Wiza",
+  "category": "crm_support",
+  "description": "Wiza is a B2B sales and recruiting intelligence platform for finding and enriching professional contact and company data, including verified emails, phones and LinkedIn profile details.",
+  "agentUseSummary": "Connect a dedicated customer-owned Wiza API key. Agents can read only email, phone, export and API credit balances; professional and company data, reveals, prospecting, enrichment, bulk, lists, webhooks, exports, purchases and raw API access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://wiza.co/",
+    "docsUrl": "https://docs.wiza.co/api-reference/credits/get-credits",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://wiza.co/tos",
+    "privacyUrl": "https://wiza.co/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_bearer_api_key",
+      "server_side_fixed_credit_balances_read",
+      "manual_provider_rotation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "WIZA_API_KEY",
+        "label": "Wiza API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated customer-owned key from Wiza API settings. Relay encrypts it and permits only the fixed credit-balances read."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_usage_read",
+      "label": "Read credit balances",
+      "description": "Read a reduced snapshot of email, phone, export and API credit balances without accessing professional or company data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "wiza_credit_balances_get",
+        "label": "Read credit balances",
+        "description": "Read only the connected Wiza account's email, phone, export and API credit balances without accessing professional or company data."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "wiza_people_company_and_contact_data",
+        "label": "Block people, company, and contact data",
+        "description": "Individual reveals, emails, phones, LinkedIn profiles, employment, education, location, social data, prospect search and company enrichment are unavailable."
+      },
+      {
+        "id": "wiza_bulk_lists_webhooks_and_exports",
+        "label": "Block bulk, lists, webhooks, and exports",
+        "description": "Bulk enrichment, list creation and retrieval, prospect lists, continued search, webhook delivery, CSV/JSON exports, CRM workflows, integrations, batching and pagination are unavailable."
+      },
+      {
+        "id": "wiza_admin_financial_and_raw_access",
+        "label": "Block administration, financial actions, and raw access",
+        "description": "API-key management, assigned-user changes, credit purchases or allocation, arbitrary endpoints, raw REST, retries, browser sessions, platform credentials and unrestricted tools are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "wiza_safe",
+      "label": "Safe",
+      "description": "The reduced credit-balances read runs automatically. People, company and contact data, bulk, lists, webhooks, exports, financial actions, administration and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["wiza_credit_balances_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "wiza_people_company_and_contact_data",
+        "wiza_bulk_lists_webhooks_and_exports",
+        "wiza_admin_financial_and_raw_access"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same single bounded governance read runs without approval; the full-account API key never expands Relay's fixed credits request.",
+      "defaultSelected": false,
+      "allowedActions": ["wiza_credit_balances_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "wiza_people_company_and_contact_data",
+        "wiza_bulk_lists_webhooks_and_exports",
+        "wiza_admin_financial_and_raw_access"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly one parameterless credit-balances read while Railway alone holds the customer API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly one parameterless credit-balances read while Railway alone holds the customer API key."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An active customer Wiza account with API access, an authorized assigned API user, a dedicated API key, current terms/privacy review, Railway staging entry, live credits-schema validation, disconnect rotation and post-rotation denial remain for a separate authorized provider task.",
+    "nextAction": "An authorized provider task must confirm API access and the governance-only purpose, review current terms and privacy policy, generate a dedicated key for an authorized Wiza API user, store it in Railway staging, and validate only GET https://wiza.co/api/meta/credits. Confirm Bearer authentication, exact numeric-or-unlimited balances, 64 KiB cap, one-request/no-retry behavior, no credit deduction, no professional/company data, encrypted-copy deletion, provider-side rotation and post-rotation denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.wiza.co/api-reference/credits/get-credits",
+      "checkedAt": "2026-07-18",
+      "supports": "Wiza documents GET https://wiza.co/api/meta/credits with Bearer API-key authentication and a response containing email, phone, export and API balances, where a balance may use the exact unlimited sentinel."
+    },
+    {
+      "url": "https://docs.wiza.co/using-the-api/authorization",
+      "checkedAt": "2026-07-18",
+      "supports": "Wiza requires the customer API key as a Bearer token on every API request and documents 401 handling for missing, invalid, expired or disabled keys."
+    },
+    {
+      "url": "https://docs.wiza.co/using-the-api/credit-deduction-behavior",
+      "checkedAt": "2026-07-18",
+      "supports": "Wiza documents prepaid API credits deducted for successfully returned LinkedIn profile, email and phone enrichment data. Relay exposes only the balance endpoint and no enrichment action."
+    },
+    {
+      "url": "https://docs.wiza.co/",
+      "checkedAt": "2026-07-18",
+      "supports": "Wiza documents individual reveals, prospect search, company enrichment, bulk enrichment, webhooks and legacy list endpoints. Relay blocks every adjacent professional-data operation."
+    },
+    {
+      "url": "https://wiza.co/tos",
+      "checkedAt": "2026-07-18",
+      "supports": "Wiza's current terms govern its APIs, require lawful and privacy-compliant use, prohibit unauthorized scraping and harvesting, and impose payment terms for enrichment, scans and exports."
+    },
+    {
+      "url": "https://wiza.co/privacy",
+      "checkedAt": "2026-07-18",
+      "supports": "Wiza's current privacy policy describes its B2B professional contact-enrichment service, personal-information processing, security, retention and data-subject rights. Relay's V1 returns no professional profile data."
+    }
+  ]
+}

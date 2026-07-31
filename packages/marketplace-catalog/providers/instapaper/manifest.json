@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "instapaper",
+  "name": "Instapaper",
+  "category": "knowledge_documents",
+  "description": "Saved bookmarks, folders, reading progress, stars, archive state, tags, and highlights through Instapaper's published Full API.",
+  "agentUseSummary": "Enter Instapaper credentials once for the provider-required xAuth exchange; Railway immediately discards the password and retains only the OAuth token bundle for selected Safe or Dangerous agent tools.",
+  "provider": {
+    "websiteUrl": "https://www.instapaper.com/",
+    "docsUrl": "https://www.instapaper.com/developers/v1/full-api",
+    "developerConsoleUrl": "https://www.instapaper.com/developers/apps",
+    "termsUrl": "https://www.instapaper.com/developers/overview/api-terms",
+    "privacyUrl": "https://www.instapaper.com/about-legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth1",
+    "relayOwned": true,
+    "scopes": ["full_access"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://www.instapaper.com/api/1/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth1_xauth"],
+    "credentialRequirements": [
+      { "name": "INSTAPAPER_USERNAME", "label": "Instapaper email or username", "required": true, "secret": false, "transient": true },
+      { "name": "INSTAPAPER_PASSWORD", "label": "Password, if the account has one", "required": false, "secret": true, "transient": true },
+      { "name": "INSTAPARSER_API_KEY", "label": "Optional customer-owned Instaparser API key", "required": false, "secret": true, "transient": false }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "library_read", "label": "Library reads", "description": "Read the connected account, folders, bounded bookmarks, and highlights.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full Instapaper API", "description": "Add, update, move, archive, star, delete, organize, and highlight through every published Full API operation.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "instapaper_verify_account", "label": "Verify account", "description": "Read the connected Instapaper account." },
+      { "id": "instapaper_list_bookmarks", "label": "List bookmarks", "description": "List a bounded page of saved bookmarks." },
+      { "id": "instapaper_list_folders", "label": "List folders", "description": "List the account's folders." },
+      { "id": "instapaper_list_highlights", "label": "List highlights", "description": "List highlights for one bookmark." }
+    ],
+    "approvalRequired": [
+      { "id": "instapaper_full_api", "label": "Use full Instapaper API", "description": "Use any published Full API operation; Safe mode requires approval." }
+    ],
+    "blocked": [
+      { "id": "instapaper_password_persistence", "label": "Persist password", "description": "Instapaper passwords are used only for xAuth and must be discarded immediately." },
+      { "id": "instapaper_unrequested_bulk_add", "label": "Unrequested automated additions", "description": "Provider terms require each saved item to originate from an explicit user selection." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "instapaper_safe", "label": "Safe", "description": "Bounded reads run directly; mutations and raw Full API operations require approval.", "defaultSelected": true, "allowedActions": ["instapaper_verify_account", "instapaper_list_bookmarks", "instapaper_list_folders", "instapaper_list_highlights"], "approvalRequiredActions": ["instapaper_full_api"], "blockedActions": ["instapaper_password_persistence", "instapaper_unrequested_bulk_add"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected OAuth-authorized operation runs without Relay per-action approval; ownership, fixed origin, provider terms, bounds, and audits still apply.", "defaultSelected": false, "allowedActions": ["instapaper_verify_account", "instapaper_list_bookmarks", "instapaper_list_folders", "instapaper_list_highlights", "instapaper_full_api"], "approvalRequiredActions": [], "blockedActions": ["instapaper_password_persistence", "instapaper_unrequested_bulk_add"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected tools and signs OAuth 1.0a requests server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected tools and signs OAuth 1.0a requests server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay must sign into Instapaper, register and submit the application for human approval, then configure the consumer key and secret on Railway.",
+    "nextAction": "Create the Relay Console app in Instapaper Applications, request activation, configure INSTAPAPER_CONSUMER_KEY and INSTAPAPER_CONSUMER_SECRET on Railway, then run xAuth, health, a bounded read, and an approved or Dangerous-mode mutation. No callback URL is used by xAuth."
+  },
+  "evidence": [
+    { "url": "https://www.instapaper.com/developers/v1/full-api/authentication", "checkedAt": "2026-07-13", "supports": "Instapaper requires OAuth 1.0a HMAC-SHA1 and xAuth, starts new applications in Owner Only mode, and requires human approval before activation." },
+    { "url": "https://www.instapaper.com/developers/v1/full-api/bookmark-api", "checkedAt": "2026-07-13", "supports": "The Full API lists, adds, updates, moves, archives, stars, deletes, and fetches saved bookmarks with bounded list limits." },
+    { "url": "https://www.instapaper.com/developers/v1/full-api/folder-api", "checkedAt": "2026-07-13", "supports": "The Full API lists, creates, deletes, and reorders folders." },
+    { "url": "https://www.instapaper.com/developers/v1/full-api/highlight-api", "checkedAt": "2026-07-13", "supports": "The Full API lists, creates, and deletes highlights; non-subscribers have a monthly highlight limit." },
+    { "url": "https://www.instapaper.com/developers/overview/api-terms", "checkedAt": "2026-07-13", "supports": "Passwords may only be collected for xAuth and must be discarded immediately; destructive changes require explicit user action and published API methods must be used." }
+  ]
+}

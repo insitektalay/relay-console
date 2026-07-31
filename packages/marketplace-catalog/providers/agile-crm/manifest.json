@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "agile-crm",
+  "name": "Agile CRM",
+  "category": "crm_support",
+  "description": "Agile CRM combines customer relationship management, deal pipelines, contact and company records, tasks, campaigns, marketing automation, telephony, help desk, and reporting. Teams use it to organize customer work and move sales opportunities through tracks and milestones.",
+  "agentUseSummary": "Connect one customer-owned Agile CRM tenant with a dedicated account email and REST API key, then let agents use two approval-gated bounded reads for Deal summaries. Relay pins the tenant host, uses fixed first-page endpoints, and excludes contacts, owners, emails, phone numbers, addresses, descriptions, notes, custom data, relationships, writes, arbitrary REST calls, pagination, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.agilecrm.com/",
+    "docsUrl": "https://github.com/agilecrm/rest-api",
+    "developerConsoleUrl": "https://www.agilecrm.com/api",
+    "termsUrl": "https://www.agilecrm.com/terms",
+    "privacyUrl": "https://www.agilecrm.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_rest_api_key",
+      "http_basic_authentication",
+      "exact_tenant_domain_binding",
+      "exact_account_email_binding",
+      "authorizing_user_permission_inheritance"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "AGILE_CRM_DOMAIN",
+        "label": "Agile CRM domain",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter only the tenant prefix from {domain}.agilecrm.com. Relay validates the prefix and constructs the fixed HTTPS API host."
+      },
+      {
+        "key": "AGILE_CRM_EMAIL",
+        "label": "Agile CRM account email",
+        "secret": false,
+        "required": true,
+        "helpText": "Use the email address for a dedicated least-privilege Agile CRM user."
+      },
+      {
+        "key": "AGILE_CRM_API_KEY",
+        "label": "Agile CRM REST API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use the first REST client API key from Admin Settings > API & Analytics > API Key. Relay stores it encrypted and never returns it to agents."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "deal_read",
+      "label": "Read deals",
+      "description": "List bounded Deal summaries or inspect one exact Deal without contacts, owners, descriptions, custom data, notes, or relationships.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "agile_crm_deal_list",
+        "label": "List deals",
+        "description": "List at most twenty-five bounded Deal summaries from the first fixed page."
+      },
+      {
+        "id": "agile_crm_deal_get",
+        "label": "Read deal",
+        "description": "Read one exact bounded Deal by positive numeric ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "agile_crm_record_mutation",
+        "label": "Change CRM records",
+        "description": "Creating, updating, relating, moving, archiving, bulk-changing, or deleting Agile CRM records is outside V1."
+      },
+      {
+        "id": "agile_crm_private_data",
+        "label": "Read private CRM data",
+        "description": "Contacts, companies, owners, users, email addresses, phone numbers, addresses, descriptions, notes, custom fields, tags, files, and relationships are outside V1."
+      },
+      {
+        "id": "agile_crm_broader_product",
+        "label": "Access broader Agile CRM data",
+        "description": "Tasks, events, campaigns, documents, tickets, messages, tracks, milestones, telephony, marketing, service, administration, and webhooks are outside V1."
+      },
+      {
+        "id": "agile_crm_raw_rest",
+        "label": "Call arbitrary REST endpoints",
+        "description": "Arbitrary hosts, paths, methods, queries, cursors, filters, bodies, and raw REST access are outside V1."
+      },
+      {
+        "id": "agile_crm_bulk_export",
+        "label": "Export Agile CRM data",
+        "description": "Automatic pagination, crawling, synchronization, bulk APIs, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "agile_crm_safe",
+      "label": "Safe",
+      "description": "Both bounded private CRM reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["agile_crm_deal_list", "agile_crm_deal_get"],
+      "blockedActions": [
+        "agile_crm_record_mutation",
+        "agile_crm_private_data",
+        "agile_crm_broader_product",
+        "agile_crm_raw_rest",
+        "agile_crm_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both selected read-only tools run without Relay per-action approval while exact tenant and user binding, fixed paths and fields, provider authority, limits, audits, redaction, and API-key isolation remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["agile_crm_deal_list", "agile_crm_deal_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "agile_crm_record_mutation",
+        "agile_crm_private_data",
+        "agile_crm_broader_product",
+        "agile_crm_raw_rest",
+        "agile_crm_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded approval-gated Agile CRM Deal reads and attaches the encrypted account credentials only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded approval-gated Agile CRM Deal reads and attaches the encrypted account credentials only on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Agile CRM tenant, dedicated account email, or REST API key is available in this workspace.",
+    "nextAction": "In the provider-console task, an Agile CRM administrator provisions a dedicated least-privilege user, captures the tenant prefix and first REST client API key, stores all three values through Relay, then validates tenant and user binding, bounded Deal reads, approval enforcement, permission denial, API-key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.agilecrm.com/api",
+      "checkedAt": "2026-07-18",
+      "supports": "Agile CRM's official developer page identifies its REST API as the integration surface for Contacts, Campaigns, Deals, Tasks, and other CRM objects and links to the provider-owned REST documentation."
+    },
+    {
+      "url": "https://github.com/agilecrm/rest-api",
+      "checkedAt": "2026-07-18",
+      "supports": "The provider-owned REST documentation requires HTTPS Basic authentication with account email and REST API key, locates the key under Admin Settings > API & Analytics, fixes requests to https://{domain}.agilecrm.com/dev/, and documents bounded Deal list and exact-ID reads."
+    },
+    {
+      "url": "https://www.agilecrm.com/pricing",
+      "checkedAt": "2026-07-18",
+      "supports": "Agile CRM publishes plan-specific daily API call limits and describes Contacts and Companies, Deals, Tasks, Documents, campaign workflows, service functions, and access controls."
+    },
+    {
+      "url": "https://www.agilecrm.com/sales-enablement/setting-up-deals",
+      "checkedAt": "2026-07-18",
+      "supports": "Agile CRM documents Deals as customizable sales opportunities with owners, values, probabilities, tracks, milestones, related contacts, tasks, events, notes, and documents; Relay returns only a bounded non-contact summary subset."
+    },
+    {
+      "url": "https://github.com/agilecrm/webhooks",
+      "checkedAt": "2026-07-18",
+      "supports": "The provider-owned webhook guide documents Contact and Deal webhooks configured in Admin Settings; Relay V1 does not request or expose webhook capability."
+    },
+    {
+      "url": "https://www.agilecrm.com/terms",
+      "checkedAt": "2026-07-18",
+      "supports": "Agile CRM publishes its service terms; Relay uses only customer-authorized documented REST access and does not create accounts or credentials."
+    }
+  ]
+}

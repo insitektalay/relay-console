@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "action-network",
+  "name": "Action Network",
+  "category": "crm_support",
+  "description": "Action Network is a progressive organizing platform for activists, petitions, events, forms, fundraising, advocacy, surveys, targeting, email and supporter data.",
+  "agentUseSummary": "Add a partner-enabled API key for one exact personal or group list, then let selected agents use all 104 pinned current v2 operations. API metadata reads run directly; all account-data reads and every mutation require approval in Safe mode.",
+  "provider": {
+    "websiteUrl": "https://actionnetwork.org/",
+    "docsUrl": "https://actionnetwork.org/docs/v2/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://actionnetwork.org/terms/",
+    "privacyUrl": "https://actionnetwork.org/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "partner_feature_access", "exact_personal_or_group_list_binding", "fixed_actionnetwork_api_v2_origin", "osdi_api_token_header"],
+    "credentialRequirements": [{
+      "name": "ACTION_NETWORK_API_KEY",
+      "label": "Action Network API key",
+      "required": true,
+      "secret": true,
+      "helpText": "Generate a dedicated key for the exact personal or group list after Action Network enables the partner API feature. Relay encrypts it and sends it only to actionnetwork.org as OSDI-API-Token."
+    }],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "action_network_system_read", "label": "Read API metadata", "description": "Read the API entry point, provider metadata and custom-field definitions.", "defaultSelected": true },
+    { "id": "action_network_sensitive_read", "label": "Read organizing and activist data", "description": "Use 61 campaign, activist, action, targeting, donation and message reads under Safe approval.", "defaultSelected": true },
+    { "id": "action_network_manage", "label": "Manage organizing and mass email", "description": "Use all 40 documented v2 mutations, including real message schedule/send controls, under Safe approval.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "action_network_system_read", "label": "Read Action Network API metadata", "description": "Read three bounded API discovery resources without activist records." }],
+    "approvalRequired": [
+      { "id": "action_network_sensitive_read", "label": "Read Action Network organizing data", "description": "Read campaigns, activists, actions, targeting, donations or message data." },
+      { "id": "action_network_manage", "label": "Manage Action Network", "description": "Create or update organizing records, targeting and messages, or schedule/send mass email." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "action_network_safe",
+      "label": "Safe",
+      "description": "API metadata reads run directly. All account-data reads and every mutation require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["action_network_system_read"],
+      "approvalRequiredActions": ["action_network_sensitive_read", "action_network_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 104 pinned operations run without Relay per-action approval; account-key scope, fixed routes, activist privacy, payload bounds, audits and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["action_network_system_read", "action_network_sensitive_read", "action_network_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three approval-aware tools over 104 pinned v2 operations with fixed routes and encrypted customer credentials." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three approval-aware tools over 104 pinned v2 operations with fixed routes and encrypted customer credentials." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Action Network must enable partner API access and an authorized administrator must generate a dedicated key for the exact personal or group list. Live acceptance needs representative activist/action data and explicit authorization to test sensitive political records and mass-email controls in Railway staging.",
+    "nextAction": "An authorized administrator obtains partner access, generates a least-privilege list-specific key, stores it through Relay Console, then validates health, account binding, one approved read per resource family, each mutation family, four-call-per-second behavior, message schedule/send/stop safeguards, rotation, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    { "url": "https://actionnetwork.org/docs/v2/", "checkedAt": "2026-07-18", "supports": "The current official v2 HAL+JSON API documents partner API keys, the fixed API entry point, OSDI-API-Token authentication, exact resource/helper surface, paging/filtering, and the prohibition on building a replacement user interface." },
+    { "url": "https://actionnetwork.org/docs/", "checkedAt": "2026-07-18", "supports": "The official getting-started guide records July 2026 v2 updates and limits clients to four calls per second." },
+    { "url": "https://actionnetwork.org/docs/v2/send_helper/", "checkedAt": "2026-07-18", "supports": "The send helper can send a targeted mass email immediately and stop it mid-send, requiring critical risk and Safe approval." },
+    { "url": "https://actionnetwork.org/privacy/", "checkedAt": "2026-07-18", "supports": "The current privacy notice covers names, addresses, email addresses, telephone numbers and other identifiable supporter information." },
+    { "url": "https://actionnetwork.org/terms/", "checkedAt": "2026-07-18", "supports": "The terms govern progressive organizing, email and mobile messaging services, data security, acceptable use and customer responsibility." }
+  ]
+}

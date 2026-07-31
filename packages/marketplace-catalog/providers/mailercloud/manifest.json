@@ -1,0 +1,178 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mailercloud",
+  "name": "Mailercloud",
+  "category": "marketing_analytics",
+  "description": "Mailercloud is an email marketing platform for contacts, lists, campaigns, templates, automation, sending, and reporting.",
+  "agentUseSummary": "Connect one Mailercloud account with an encrypted dedicated customer API key. Relay fixes the v1 origin, binds one non-email contact ID and campaign ID, exposes only IDs, timestamps, and campaign lifecycle status, and blocks identity, contact fields, message content, audiences, reports, broader access, exports, and mutations.",
+  "provider": {
+    "websiteUrl": "https://www.mailercloud.com/",
+    "docsUrl": "https://apidoc.mailercloud.com/",
+    "developerConsoleUrl": "https://app.mailercloud.com/account/api-integrations",
+    "termsUrl": "https://www.mailercloud.com/terms-and-conditions",
+    "privacyUrl": "https://www.mailercloud.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["account_api_key"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_dedicated_api_key",
+      "fixed_v1_origin",
+      "selected_non_email_contact_id",
+      "selected_campaign"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MAILERCLOUD_API_KEY",
+        "label": "Mailercloud API key",
+        "required": true,
+        "secret": true,
+        "helpText": "A dedicated customer-generated API key; Relay encrypts it and sends it only in the Authorization header to cloudapi.mailercloud.com."
+      },
+      {
+        "name": "MAILERCLOUD_CONTACT_ID",
+        "label": "Selected non-email contact ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact contact ID whose ID and timestamps Relay may read; email selectors are rejected."
+      },
+      {
+        "name": "MAILERCLOUD_CAMPAIGN_ID",
+        "label": "Selected campaign ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact campaign whose bounded lifecycle metadata Relay may read."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "mailercloud_contact_summary_get",
+      "label": "Read selected contact summary",
+      "description": "Read only the ID and timestamps for one selected contact without identity, email, phone, status, consent, fields, tags, lists, or activity.",
+      "defaultSelected": true
+    },
+    {
+      "id": "mailercloud_campaign_summary_get",
+      "label": "Read selected campaign summary",
+      "description": "Read bounded lifecycle metadata for one selected campaign without name, subject, content, sender, audience, reports, or links.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "mailercloud_contact_summary_get",
+        "label": "Read selected contact summary",
+        "description": "Read the selected contact's ID and timestamps while discarding all personal, preference, list, and engagement fields."
+      },
+      {
+        "id": "mailercloud_campaign_summary_get",
+        "label": "Read selected campaign summary",
+        "description": "Read the selected campaign's ID, status, and timestamps while discarding content, audience, sender, and report details."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "mailercloud_private_data",
+        "label": "Expose private marketing data",
+        "description": "Contact identity, email, phone, status, consent, fields, tags, lists, and activity plus campaign name, subject, content, sender, audience, reports, and links are excluded."
+      },
+      {
+        "id": "mailercloud_mutation",
+        "label": "Mutate Mailercloud state",
+        "description": "Contacts, lists, tags, campaigns, sends, templates, automation, and every other mutation are blocked."
+      },
+      {
+        "id": "mailercloud_broad_access",
+        "label": "Use broad Mailercloud access",
+        "description": "Other contacts, campaigns, lists, tags, reports, arbitrary paths, queries, redirects, downloads, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "mailercloud_read_only",
+      "label": "Read Only",
+      "description": "Read one selected contact and campaign through an encrypted dedicated API key; private data, broader access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "mailercloud_contact_summary_get",
+        "mailercloud_campaign_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mailercloud_private_data",
+        "mailercloud_mutation",
+        "mailercloud_broad_access"
+      ]
+    },
+    {
+      "id": "mailercloud_no_access",
+      "label": "No Access",
+      "description": "Expose no Mailercloud actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mailercloud_contact_summary_get",
+        "mailercloud_campaign_summary_get",
+        "mailercloud_private_data",
+        "mailercloud_mutation",
+        "mailercloud_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted dedicated API key server-side and mounts exactly two fixed-v1 projected reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted dedicated API key server-side and mounts exactly two fixed-v1 projected reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A Mailercloud staging account, dedicated API key, exact contact ID, and campaign ID are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "The provider-console lane must generate a dedicated staging API key, capture it directly in Railway, bind exact non-email contact and campaign IDs, then validate both redacted reads, header/origin containment, email-selector denial, authorization and rate errors, key deletion/replacement, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://apidoc.mailercloud.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mailercloud documents up to ten deletable account API keys, the plain Authorization header, server-only handling without CORS, the fixed cloudapi.mailercloud.com/v1 origin, JSON responses, and request limits."
+    },
+    {
+      "url": "https://help.mailercloud.com/en/articles/135-how-to-generate-an-api-key-in-mailercloud",
+      "checkedAt": "2026-07-17",
+      "supports": "Mailercloud documents named integration keys, secure handling, and edit/delete lifecycle used for dedicated-key replacement and revocation."
+    },
+    {
+      "url": "https://apidoc.mailercloud.com/docs/mailercloud-api/a3yyhppf2gtir-get-contact-details",
+      "checkedAt": "2026-07-17",
+      "supports": "Mailercloud documents the v1 selected contact details read by contact ID or email; Relay fixes the ID path and rejects email selectors."
+    },
+    {
+      "url": "https://apidoc.mailercloud.com/docs/mailercloud-api/b3A6MTA4NjcwNDM-get-single-campaign-details",
+      "checkedAt": "2026-07-17",
+      "supports": "Mailercloud documents the v1 selected single-campaign details read authenticated with the account API key."
+    }
+  ]
+}

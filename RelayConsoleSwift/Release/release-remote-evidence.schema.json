@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "release-remote-evidence.schema.json",
+  "title": "Relay Console release remote evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "capturedAt", "repository", "sourceCommit", "sourceBranch", "ciRuns", "vercel"],
+  "properties": {
+    "schemaVersion": { "const": "relay.release-remote-evidence.v1" },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "repository": { "const": "insitektalay/relay-console" },
+    "sourceCommit": { "$ref": "#/$defs/commit" },
+    "sourceBranch": { "type": "string", "pattern": "^release/.+" },
+    "ciRuns": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backend", "web", "apple"],
+      "properties": {
+        "backend": { "$ref": "#/$defs/nullableRun" },
+        "web": { "$ref": "#/$defs/nullableRun" },
+        "apple": { "$ref": "#/$defs/nullableRun" }
+      }
+    },
+    "vercel": {
+      "anyOf": [
+        { "$ref": "#/$defs/vercelDeployment" },
+        { "type": "null" }
+      ]
+    }
+  },
+  "$defs": {
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "httpsURL": { "type": "string", "pattern": "^https://" },
+    "nullableRun": {
+      "anyOf": [
+        { "$ref": "#/$defs/ciRun" },
+        { "type": "null" }
+      ]
+    },
+    "ciRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runId", "workflowName", "url", "status", "conclusion", "headSha", "headBranch", "event", "createdAt", "updatedAt"],
+      "properties": {
+        "runId": { "type": "integer", "minimum": 1 },
+        "workflowName": { "enum": ["Backend Beta Readiness", "Web Beta Readiness", "Apple Beta Readiness"] },
+        "url": { "$ref": "#/$defs/httpsURL" },
+        "status": { "const": "completed" },
+        "conclusion": { "const": "success" },
+        "headSha": { "$ref": "#/$defs/commit" },
+        "headBranch": { "type": "string", "pattern": "^release/.+" },
+        "event": { "enum": ["push", "workflow_dispatch"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "vercelDeployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["githubDeploymentId", "sourceCommit", "sourceRef", "environment", "deploymentCreator", "state", "statusCreator", "deploymentURL", "createdAt", "statusUpdatedAt"],
+      "properties": {
+        "githubDeploymentId": { "type": "integer", "minimum": 1 },
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "sourceRef": { "type": "string", "minLength": 1 },
+        "environment": { "const": "Production" },
+        "deploymentCreator": { "const": "vercel[bot]" },
+        "state": { "const": "success" },
+        "statusCreator": { "const": "vercel[bot]" },
+        "deploymentURL": { "$ref": "#/$defs/httpsURL" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "statusUpdatedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

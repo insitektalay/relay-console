@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "toggl-track",
+  "name": "Toggl Track",
+  "category": "work_management",
+  "description": "Toggl Track is time-tracking and timesheet software for individuals and teams. People use it to run timers, record work, organize projects and clients, understand billable time, review team activity, and report on where working time goes.",
+  "agentUseSummary": "Add the user's personal Toggl Track API token once, then choose which agents can read bounded profile, workspace, project and time-entry data or use the broader documented API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://toggl.com/track/",
+    "docsUrl": "https://engineering.toggl.com/docs/track/",
+    "developerConsoleUrl": "https://track.toggl.com/profile",
+    "termsUrl": "https://toggl.com/legal/terms/",
+    "privacyUrl": "https://toggl.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_personal_api_token",
+      "http_basic_token_api_token",
+      "exact_token_user_authority",
+      "fixed_toggl_track_api_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "TOGGL_TRACK_API_TOKEN",
+        "label": "Toggl Track API token",
+        "secret": true,
+        "required": true,
+        "helpText": "Copy the personal API token from the Toggl Track profile page. Relay encrypts it and sends it only to api.track.toggl.com using Toggl's documented token:api_token Basic authentication."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "time_tracking_read",
+      "label": "Read time-tracking data",
+      "description": "Read bounded profile, workspace, project and time-entry data from the connected Toggl Track account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Toggl Track API",
+      "description": "Use the documented Track API v9 surface allowed by the connected user's personal token.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "toggl_track_profile_get",
+        "label": "Read profile",
+        "description": "Read the connected Toggl Track user ID, name, timezone and workspace memberships."
+      },
+      {
+        "id": "toggl_track_workspace_list",
+        "label": "List workspaces",
+        "description": "List at most twenty-five Toggl Track workspaces available to the connected user."
+      },
+      {
+        "id": "toggl_track_project_list",
+        "label": "List projects",
+        "description": "List at most twenty-five projects in one exact Toggl Track workspace."
+      },
+      {
+        "id": "toggl_track_time_entry_list",
+        "label": "List time entries",
+        "description": "List at most twenty-five time entries from an explicit window no longer than ninety days."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "toggl_track_full_api",
+        "label": "Use full Toggl Track API",
+        "description": "Use a documented Track API v9 operation authorized by the personal API token; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "toggl_track_safe",
+      "label": "Safe",
+      "description": "Bounded profile, workspace, project and time-entry reads run directly; every other Track API operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "toggl_track_profile_get",
+        "toggl_track_workspace_list",
+        "toggl_track_project_list",
+        "toggl_track_time_entry_list"
+      ],
+      "approvalRequiredActions": ["toggl_track_full_api"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected token-authorized Track API operation runs without Relay per-action approval; secret isolation, fixed routing, bounds, audits, provider permissions and Toggl limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "toggl_track_profile_get",
+        "toggl_track_workspace_list",
+        "toggl_track_project_list",
+        "toggl_track_time_entry_list",
+        "toggl_track_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts bounded Toggl Track reads and a fixed-origin API v9 wrapper while keeping the personal token encrypted on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts bounded Toggl Track reads and a fixed-origin API v9 wrapper while keeping the personal token encrypted on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Toggl Track account, personal API token or representative workspace is available to this code-only worker.",
+    "nextAction": "A Toggl Track user copies the personal API token from the profile page, saves it through Relay Console, and verifies profile binding, bounded reads, Safe approval, one permitted Dangerous mutation, credential replacement, disconnect, token reset and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://engineering.toggl.com/docs/track/authentication/",
+      "checkedAt": "2026-07-17",
+      "supports": "Toggl documents personal API-token HTTP Basic authentication by using the token as the username and the literal api_token as the password. The current public Track documentation does not publish an external OAuth application flow."
+    },
+    {
+      "url": "https://engineering.toggl.com/docs/track/openapi/",
+      "checkedAt": "2026-07-17",
+      "supports": "Toggl publishes downloadable Swagger 2.0 contracts for the Track API, reports and webhooks. The API contract inspected for this iteration had SHA-256 8e83c11b5739fb5f23c8381bd21df5feed2f8e1dfb58c1031480ea807760ccfd and 282 HTTP operations before Relay excludes credential-lifecycle routes."
+    },
+    {
+      "url": "https://engineering.toggl.com/docs/track/tracking/",
+      "checkedAt": "2026-07-17",
+      "supports": "Toggl documents current and historical time-entry APIs, a maximum of 1,000 returned entries, and explicit RFC3339 start_date and end_date filtering; Relay narrows the direct read to 25 entries and a 90-day window."
+    },
+    {
+      "url": "https://toggl.com/track/features/",
+      "checkedAt": "2026-07-17",
+      "supports": "Toggl presents Track as time-tracking and timesheet software for timers, project and client work, billing, team activity and reporting."
+    }
+  ]
+}

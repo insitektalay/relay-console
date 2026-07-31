@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "getresponse",
+  "name": "GetResponse",
+  "category": "marketing_analytics",
+  "description": "GetResponse is an email marketing platform for contacts, lists, newsletters, autoresponders, automation, landing pages, forms, webinars, and reporting.",
+  "agentUseSummary": "Connect a retail GetResponse account through Relay's server-side OAuth app with renewable tokens. Because GetResponse documents scope as null, Relay contains the broad grant with fixed API v3 paths for one selected contact and newsletter, exposes only IDs and lifecycle timestamps/status, and blocks personal data, content, statistics, MAX tenant origins, broad access, exports, and mutations.",
+  "provider": {
+    "websiteUrl": "https://www.getresponse.com/",
+    "docsUrl": "https://apidocs.getresponse.com/v3",
+    "developerConsoleUrl": "https://app.getresponse.com/authorizations",
+    "termsUrl": "https://www.getresponse.com/legal/terms-of-service",
+    "privacyUrl": "https://www.getresponse.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.getresponse.com/oauth2_authorize.html",
+    "tokenUrl": "https://api.getresponse.com/v3/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_server_oauth_app",
+      "refresh_token",
+      "retail_v3_origin",
+      "selected_contact",
+      "selected_newsletter"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "GETRESPONSE_CLIENT_ID",
+        "label": "Relay GetResponse OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held Relay server application client ID configured with the exact callback."
+      },
+      {
+        "name": "GETRESPONSE_CLIENT_SECRET",
+        "label": "Relay GetResponse OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-held GetResponse client secret; never sent to clients or agents."
+      },
+      {
+        "name": "GETRESPONSE_CONTACT_ID",
+        "label": "Selected contact ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact opaque contact ID whose ID and timestamps Relay may read."
+      },
+      {
+        "name": "GETRESPONSE_NEWSLETTER_ID",
+        "label": "Selected newsletter ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact newsletter whose bounded lifecycle metadata Relay may read."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/getresponse/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "getresponse_contact_summary_get",
+      "label": "Read selected contact summary",
+      "description": "Read only the ID and timestamps for one selected contact without identity, email, consent, IP, origin, geolocation, custom fields, tags, scoring, or activity.",
+      "defaultSelected": true
+    },
+    {
+      "id": "getresponse_newsletter_summary_get",
+      "label": "Read selected newsletter summary",
+      "description": "Read bounded lifecycle metadata for one selected newsletter.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "getresponse_contact_summary_get",
+        "label": "Read selected contact summary",
+        "description": "Read the selected contact's ID and timestamps while discarding all personal, preference, and engagement fields."
+      },
+      {
+        "id": "getresponse_newsletter_summary_get",
+        "label": "Read selected newsletter summary",
+        "description": "Read the selected newsletter's ID, type, status, and timestamps while discarding subject, content, sender, recipients, links, and statistics."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "getresponse_private_data",
+        "label": "Expose private marketing data",
+        "description": "Contact identity, email, consent, IP, origin, geolocation, custom fields, tags, scoring, and activity plus newsletter subject, content, sender, recipients, links, and statistics are excluded."
+      },
+      {
+        "id": "getresponse_mutation",
+        "label": "Mutate GetResponse state",
+        "description": "Contacts, lists, newsletters, autoresponders, automation, sends, callbacks, webhooks, and every other mutation are blocked."
+      },
+      {
+        "id": "getresponse_broad_access",
+        "label": "Use broad GetResponse access",
+        "description": "Other contacts, newsletters, lists, campaigns, searches, reports, MAX tenant origins, arbitrary paths, redirects, downloads, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "getresponse_read_only",
+      "label": "Read Only",
+      "description": "Read one selected contact and newsletter through a resource-bound Relay OAuth grant; private data, broader access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "getresponse_contact_summary_get",
+        "getresponse_newsletter_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "getresponse_private_data",
+        "getresponse_mutation",
+        "getresponse_broad_access"
+      ]
+    },
+    {
+      "id": "getresponse_no_access",
+      "label": "No Access",
+      "description": "Expose no GetResponse actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "getresponse_contact_summary_get",
+        "getresponse_newsletter_summary_get",
+        "getresponse_private_data",
+        "getresponse_mutation",
+        "getresponse_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the renewable Relay-owned GetResponse OAuth grant server-side and mounts exactly two fixed retail-v3 projected reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the renewable Relay-owned GetResponse OAuth grant server-side and mounts exactly two fixed retail-v3 projected reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A GetResponse server application, exact Railway callback, provider-issued client credentials, authorized retail staging account, exact contact and newsletter IDs, and live grant are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "The provider-console lane must register Relay's server-side GetResponse OAuth app with the exact Railway callback, capture its credentials in Railway, authorize a retail staging account, bind one contact and newsletter ID, then validate both redacted reads, retail-origin pinning, broad-grant containment, rate and authorization errors, refresh rotation, app revocation, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://apidocs.getresponse.com/v3/authentication/oauth2",
+      "checkedAt": "2026-07-17",
+      "supports": "GetResponse documents server-side authorization-code OAuth, app registration with redirect URL and confidential credentials, one-hour access tokens, renewable access/refresh pairs, and null scope."
+    },
+    {
+      "url": "https://apidocs.getresponse.com/v3",
+      "checkedAt": "2026-07-17",
+      "supports": "GetResponse documents the fixed retail https://api.getresponse.com/v3 origin, direct selected-resource GET conventions, contact and newsletter identifiers, and distinct MAX tenant origins excluded by Relay V1."
+    },
+    {
+      "url": "https://apidocs.getresponse.com/v3/case-study/search-contacts-guide",
+      "checkedAt": "2026-07-17",
+      "supports": "GetResponse documents direct /v3/contacts/{contactId} resources and the contact identity, email, origin, campaign, and other private fields excluded by Relay."
+    },
+    {
+      "url": "https://apidocs.getresponse.com/v3/errors",
+      "checkedAt": "2026-07-17",
+      "supports": "GetResponse documents authentication, validation, permission, temporary/permanent block, throttling, not-found, and service-unavailable errors used by Relay's bounded mapping."
+    }
+  ]
+}

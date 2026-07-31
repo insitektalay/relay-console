@@ -1,0 +1,218 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "gmail",
+  "name": "Gmail",
+  "category": "communication",
+  "description": "Gmail is Google's email service for messages, threads, labels, drafts, attachments, and mailbox settings.",
+  "agentUseSummary": "Connect one exact Gmail account through Relay's verified confidential Google OAuth client with only gmail.readonly and gmail.compose, then let agents search/read bounded mail, list labels, create drafts, and send exact reviewed messages. Relay excludes attachments, mailbox mutation, settings, deletion, bulk export, raw APIs, broader scopes, and model training.",
+  "provider": {
+    "websiteUrl": "https://mail.google.com/",
+    "docsUrl": "https://developers.google.com/workspace/gmail/api/reference/rest",
+    "developerConsoleUrl": "https://console.cloud.google.com/auth/clients",
+    "termsUrl": "https://developers.google.com/terms",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.compose"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token",
+    "revocationUrl": "https://oauth2.googleapis.com/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_verified_confidential_google_oauth",
+      "exact_restricted_readonly_compose_scopes",
+      "offline_refresh_token",
+      "exact_account",
+      "provider_revocable",
+      "limited_use"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "GMAIL_CLIENT_ID",
+        "label": "Gmail Google OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Relay-owned verified confidential Google OAuth client ID configured only on Railway."
+      },
+      {
+        "name": "GMAIL_CLIENT_SECRET",
+        "label": "Gmail Google OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay-owned confidential Google OAuth secret configured only on Railway."
+      },
+      {
+        "name": "GMAIL_ACCOUNT_EMAIL",
+        "label": "Authorized Gmail account",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind one exact Gmail account before authorization."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/gmail/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "email_read",
+      "label": "Read email",
+      "description": "Search and inspect bounded Gmail message content and labels.",
+      "defaultSelected": true
+    },
+    {
+      "id": "email_draft",
+      "label": "Create drafts",
+      "description": "Prepare bounded drafts without sending.",
+      "defaultSelected": true
+    },
+    {
+      "id": "email_send",
+      "label": "Send email",
+      "description": "Send exact reviewed messages under approval policy.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "gmail_message_search",
+        "label": "Search messages",
+        "description": "Search at most twenty-five messages and return bounded headers/snippets."
+      },
+      {
+        "id": "gmail_message_read",
+        "label": "Read message",
+        "description": "Read one exact message with a bounded plain-text excerpt and no attachments."
+      },
+      {
+        "id": "gmail_label_list",
+        "label": "List labels",
+        "description": "List bounded label identity metadata."
+      },
+      {
+        "id": "gmail_draft_create",
+        "label": "Create draft",
+        "description": "Create one bounded plain-text draft for explicit recipients without sending."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "gmail_message_send",
+        "label": "Send message",
+        "description": "Send one exact reviewed bounded plain-text message to explicit recipients."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "gmail_mailbox_modify",
+        "label": "Modify mailbox",
+        "description": "Label mutation, archive, trash, delete, import, insert, batch mutation, history, forwarding, filters, delegates, settings, and administration are outside V1."
+      },
+      {
+        "id": "gmail_bulk_export",
+        "label": "Export mail",
+        "description": "Bulk export, automatic pagination, attachment retrieval, long-term caching, scraping, and model training are blocked."
+      },
+      {
+        "id": "gmail_raw_api",
+        "label": "Use raw Gmail API",
+        "description": "Arbitrary methods, paths, queries, MIME, raw provider/MCP tools, broader scopes, and credentials are outside V1."
+      },
+      {
+        "id": "gmail_unsolicited_send",
+        "label": "Send unsolicited mail",
+        "description": "Spam, bulk commercial mail, credential/token transmission, and bypass of Gmail abuse or safety controls are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "gmail_safe",
+      "label": "Safe",
+      "description": "Bounded reads and draft creation are direct; exact sends require approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "gmail_message_search",
+        "gmail_message_read",
+        "gmail_label_list",
+        "gmail_draft_create"
+      ],
+      "approvalRequiredActions": ["gmail_message_send"],
+      "blockedActions": [
+        "gmail_mailbox_modify",
+        "gmail_bulk_export",
+        "gmail_raw_api",
+        "gmail_unsolicited_send"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All five selected tools run without per-action approval while exact scopes/account, bounds, recipient checks, audit, and provider controls remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "gmail_message_search",
+        "gmail_message_read",
+        "gmail_label_list",
+        "gmail_draft_create",
+        "gmail_message_send"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "gmail_mailbox_modify",
+        "gmail_bulk_export",
+        "gmail_raw_api",
+        "gmail_unsolicited_send"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts five fixed Gmail wrappers and attaches refreshed OAuth access tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts five fixed Gmail wrappers and attaches refreshed OAuth access tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay's production Google Cloud project, confidential web client, verified brand/domains, restricted-scope review, applicable CASA assessment, exact Railway callback, credentials, privacy/Limited Use disclosures, and authorized staging accounts are required.",
+    "nextAction": "Complete Google restricted-scope verification and applicable security assessment for exactly gmail.readonly and gmail.compose, configure Railway OAuth, then validate account binding, refresh/revoke, denial, quota, read/draft/send semantics, and data deletion handling."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/workspace/gmail/api/auth/scopes",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents Gmail OAuth scopes, restricted-scope verification, and security-assessment requirements when restricted data is transmitted or stored server-side."
+    },
+    {
+      "url": "https://developers.google.com/workspace/gmail/api/reference/rest",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents messages, labels, drafts, and send REST methods used by Relay's fixed wrappers."
+    },
+    {
+      "url": "https://developers.google.com/workspace/workspace-api-user-data-developer-policy",
+      "checkedAt": "2026-07-17",
+      "supports": "Google explicitly permits productivity features including user-facing generative summaries while imposing minimum-scope, prominent disclosure, Limited Use, security, deletion, no-training, and anti-spam requirements."
+    },
+    {
+      "url": "https://support.google.com/cloud/answer/13465431",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents annual CASA-based security assessment requirements for applications using restricted scopes."
+    }
+  ]
+}

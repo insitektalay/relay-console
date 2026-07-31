@@ -1,0 +1,169 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "khoros",
+  "name": "Khoros",
+  "category": "communication",
+  "description": "Khoros provides social marketing, digital customer care, online community, messaging, and conversational automation products. Its Marketing platform helps brands coordinate governed social activity, conversations, publishing, and customer engagement across teams.",
+  "agentUseSummary": "Add a customer-generated Khoros Marketing API access token and bind it to one exact company, then let agents verify redacted company authority through the fixed Me endpoint.",
+  "provider": {
+    "websiteUrl": "https://khoros.com/",
+    "docsUrl": "https://developer.khoros.com/khorosmarketingdevdocs/docs/getting-started-with-the-conversations-api",
+    "developerConsoleUrl": "https://developer.khoros.com/",
+    "termsUrl": "https://khoros.com/terms",
+    "privacyUrl": "https://khoros.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_marketing_access_token", "exact_company_binding"],
+    "credentialRequirements": [
+      {
+        "name": "KHOROS_MARKETING_ACCESS_TOKEN",
+        "label": "Khoros Marketing access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a dedicated API Access Token in the customer's Khoros Marketing Profile Settings. Relay encrypts it and sends it only as a Bearer header to https://api.spredfast.com."
+      },
+      {
+        "name": "KHOROS_MARKETING_COMPANY_ID",
+        "label": "Khoros Marketing company ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Paste one exact positive-decimal company ID returned by Khoros Marketing's Me endpoint."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "marketing_company_authority_read",
+      "label": "Read Marketing company authority",
+      "description": "Verify that the customer token can access one exact Khoros Marketing company and return only its bound ID and safe environment value.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "khoros_marketing_company_authority_get",
+        "label": "Get Khoros Marketing company authority",
+        "description": "Verify the exact company binding and return only the bound company ID and safe environment, excluding email, company names, user identity, and broader platform data."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "khoros_identity_or_company_detail",
+        "label": "Access identity or company detail",
+        "description": "Emails, user IDs, company names, other company IDs, memberships, roles, permissions, teams, credentials, and account configuration are blocked."
+      },
+      {
+        "id": "khoros_content_care_community_or_analytics",
+        "label": "Access content, Care, Community, or analytics",
+        "description": "Posts, messages, conversations, authors, profiles, cases, queues, tags, assets, listening, analytics, reports, communities, Flow, bots, GDPR data, URLs, media, and customer content remain blocked."
+      },
+      {
+        "id": "khoros_publish_write_or_administer",
+        "label": "Publish, write, or administer Khoros",
+        "description": "Drafting, scheduling, publishing, messaging, engagement, moderation, case changes, imports, exports, webhooks, token changes, user management, and administration remain blocked."
+      },
+      {
+        "id": "khoros_raw_api_or_bulk",
+        "label": "Use raw API or bulk access",
+        "description": "Arbitrary products, origins, paths, methods, queries, bodies, company overrides, pagination, polling, raw responses, bulk operations, browser sessions, and undocumented endpoints remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "khoros_safe",
+      "label": "Safe",
+      "description": "The bounded company-authority read requires approval; identity, content, Care, Community, Flow, analytics, publishing, writes, administration, raw APIs, pagination, bulk, and export remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["khoros_marketing_company_authority_get"],
+      "blockedActions": [
+        "khoros_identity_or_company_detail",
+        "khoros_content_care_community_or_analytics",
+        "khoros_publish_write_or_administer",
+        "khoros_raw_api_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same bounded read runs directly; exact company binding, fixed origin/endpoint, redaction, response caps, audits, and provider authorization remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["khoros_marketing_company_authority_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "khoros_identity_or_company_detail",
+        "khoros_content_care_community_or_analytics",
+        "khoros_publish_write_or_administer",
+        "khoros_raw_api_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives one fixed Khoros Marketing company-authority wrapper with exact company binding and identity redaction."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same fixed Khoros Marketing company-authority wrapper with exact company binding and identity redaction."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Khoros Marketing API access requires an eligible customer account and a customer-generated user API access token. The token has broad user authority and must be restricted by Relay's fixed wrapper.",
+    "nextAction": "An eligible customer generates a dedicated Khoros Marketing API Access Token, supplies one exact company ID, and completes a live read-only connection check."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.khoros.com/khorosmarketingdevdocs/docs/getting-started-with-the-conversations-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Khoros documents customer-generated bearer API access tokens, the fixed https://api.spredfast.com/v2/me endpoint, the identity-rich Me response, two-year token lifetime, and user revocation."
+    },
+    {
+      "url": "https://developer.khoros.com/khorosmarketingdevdocs/docs/developing-and-integrating-with-khoros-marketing",
+      "checkedAt": "2026-07-18",
+      "supports": "Official Marketing documentation describes the platform's governed social marketing/care use cases and directs integrations to the Conversations API access-token flow."
+    },
+    {
+      "url": "https://developer.khoros.com/khoroscaredevdocs/reference/care-apis",
+      "checkedAt": "2026-07-18",
+      "supports": "Khoros Care uses separate instance-specific Basic/JWT authentication and API gateways; those incompatible products and credentials are not mounted by this Marketing connector."
+    },
+    {
+      "url": "https://developer.khoros.com/khoroscaredevdocs/docs/http-authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Khoros recommends distinct, permission-limited Care API service accounts and Support enablement, reinforcing separation from the selected Marketing token contract."
+    },
+    {
+      "url": "https://khoros.com/terms",
+      "checkedAt": "2026-07-18",
+      "supports": "Khoros terms govern developer and API use; Relay exposes a typed, redacted wrapper rather than redistributing a raw provider API."
+    }
+  ],
+  "securityNotes": [
+    "The customer-generated Marketing access token and exact company ID are encrypted as secret references; the token is sent only as a Bearer header to https://api.spredfast.com.",
+    "Relay allowlists only GET /v2/me, verifies that the exact positive-decimal company appears in the returned companies list, rejects redirects, caps responses at 1 MB, and returns no user email or company name.",
+    "Only the bound company ID and a safe environment enum are returned; other companies, user identity, content, authors, profiles, analytics, publishing, writes, administration, pagination, bulk, and export are excluded.",
+    "Khoros Care, Community, Flow, Bot, GDPR, Analytics Reports, Basic-auth, JWT, and instance-specific APIs remain separate and unavailable through this connector.",
+    "Provider 401/403/429 and server errors are surfaced safely; token creation, capture, revocation acceptance, and provider-console work remain customer/external acceptance steps."
+  ]
+}

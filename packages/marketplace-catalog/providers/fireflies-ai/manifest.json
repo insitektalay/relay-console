@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "fireflies-ai",
+  "name": "Fireflies.ai",
+  "category": "communication",
+  "description": "Fireflies.ai is an AI meeting assistant for recording, transcribing, summarizing, and organizing conversations. Teams use it to search meeting knowledge, review transcripts and action items, manage channels and soundbites, and share insights from calls.",
+  "agentUseSummary": "Connect a Fireflies.ai account once, then let agents use every documented meeting, transcript, summary, analytics, channel, soundbite, user, and management tool through Fireflies' hosted OAuth MCP under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://fireflies.ai/",
+    "docsUrl": "https://docs.fireflies.ai/getting-started/mcp-configuration",
+    "developerConsoleUrl": "https://api.fireflies.ai/.well-known/oauth-authorization-server",
+    "termsUrl": "https://fireflies.ai/terms-of-service",
+    "privacyUrl": "https://fireflies.ai/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["profile", "email"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.fireflies.ai/authorize",
+    "tokenUrl": "https://api.fireflies.ai/token",
+    "revocationUrl": "https://api.fireflies.ai/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/fireflies-ai/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "meeting_knowledge",
+      "label": "Read meeting knowledge",
+      "description": "Search meetings and read transcripts, summaries, active meetings, analytics, channels, soundbites, users, contacts, and automation logs.",
+      "defaultSelected": true
+    },
+    {
+      "id": "meeting_management",
+      "label": "Manage meetings and soundbites",
+      "description": "Share or revoke meeting access, rename or move meetings, and create soundbites.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "fireflies_mcp_read",
+        "label": "Use read tools",
+        "description": "Use one exact documented Fireflies MCP read tool with bounded arguments and live schema validation."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "fireflies_mcp_write",
+        "label": "Use action tools",
+        "description": "Use one exact documented Fireflies meeting-management or soundbite action; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "fireflies_ai_safe",
+      "label": "Safe",
+      "description": "Meeting, transcript, summary, analytics, channel, soundbite, user, and automation reads run directly; sharing, revoking access, renaming, moving, and soundbite creation require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["fireflies_mcp_read"],
+      "approvalRequiredActions": ["fireflies_mcp_write"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized Fireflies MCP operation runs without Relay per-action approval; ownership, provider permissions, exact tool allowlists, live schemas, bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["fireflies_mcp_read", "fireflies_mcp_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts exact read/action wrappers and proxies refreshed Fireflies OAuth to its hosted MCP."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts exact read/action wrappers and proxies refreshed Fireflies OAuth to its hosted MCP."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay's dynamically registered public PKCE client, exact Railway callback, and non-secret Railway client ID are configured, but no signed-in Fireflies user was available to complete production OAuth and MCP acceptance.",
+    "nextAction": "A Fireflies user clicks Connect, approves profile and email access, then Relay verifies refresh, MCP health, bounded reads, Safe approval denial, an approved or Dangerous-mode action, disconnect, upstream revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.fireflies.ai/getting-started/mcp-configuration",
+      "checkedAt": "2026-07-14",
+      "supports": "Fireflies documents its hosted MCP at https://api.fireflies.ai/mcp and a one-click OAuth flow, with customer API key authentication available as an alternative."
+    },
+    {
+      "url": "https://docs.fireflies.ai/mcp-tools/overview",
+      "checkedAt": "2026-07-14",
+      "supports": "Fireflies documents the complete current MCP surface for meeting search, transcripts, summaries, active meetings, analytics, channels, soundbites, users, contacts, automation logs, sharing, revocation, renaming, moving, and soundbite creation."
+    },
+    {
+      "url": "https://api.fireflies.ai/.well-known/oauth-protected-resource/mcp",
+      "checkedAt": "2026-07-14",
+      "supports": "Fireflies publishes the exact hosted MCP resource, authorization server, Bearer transport, and profile plus email scopes."
+    },
+    {
+      "url": "https://api.fireflies.ai/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-14",
+      "supports": "Fireflies publishes authorization, token, refresh, revocation, and dynamic-registration endpoints with authorization-code, S256 PKCE, and public-client support."
+    },
+    {
+      "url": "https://docs.fireflies.ai/fundamentals/authorization",
+      "checkedAt": "2026-07-14",
+      "supports": "Fireflies' separate GraphQL API supports customer-owned Bearer API keys; Relay selects the supported hosted-MCP OAuth route so ordinary users do not need to paste a token."
+    }
+  ]
+}

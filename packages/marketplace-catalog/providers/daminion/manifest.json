@@ -1,0 +1,183 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "daminion",
+  "name": "Daminion",
+  "category": "content_creative",
+  "description": "Daminion is a digital asset management platform for organizing, finding, protecting, and sharing images, video, documents, and other business media. Marketing, design, sales, manufacturing, and public-sector teams use it to centralize asset libraries, manage metadata and versions, control permissions, collaborate on content, and distribute approved files from cloud or on-premises storage.",
+  "agentUseSummary": "Connect a dedicated user on your Daminion cloud tenant, then let agents use the published asset, metadata, collection, collaboration, versioning, download, branding, user, permission, map, and AI operations under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "daminion",
+    "sourceUrl": "https://daminion.net/wp-content/uploads/2021/06/cropped-Group-108-150x150.png"
+  },
+  "provider": {
+    "websiteUrl": "https://daminion.net/",
+    "docsUrl": "https://daminion.net/daminion-api/",
+    "developerConsoleUrl": "https://marketing.daminion.net/apihelp",
+    "termsUrl": "https://daminion.net/terms-of-usage/",
+    "privacyUrl": "https://daminion.net/privacy-notice/"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_cloud_server_login", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "DAMINION_TENANT",
+        "label": "Daminion cloud tenant",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the first part of the customer's Daminion cloud address, such as example from example.daminion.net."
+      },
+      {
+        "name": "DAMINION_USERNAME",
+        "label": "Daminion username or email",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated Daminion user whose role grants only the content and administration this connection needs."
+      },
+      {
+        "name": "DAMINION_PASSWORD",
+        "label": "Daminion password",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway encrypts this password and exchanges it for a Daminion server session when a tool runs."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "dam_read",
+      "label": "Browse Daminion",
+      "description": "Search and read authorized assets, previews, thumbnails, tags, collections, comments, versions, downloads, users, permissions, catalog settings, maps, and AI status."
+    },
+    {
+      "id": "dam_manage",
+      "label": "Manage Daminion",
+      "description": "Upload, import, tag, approve, version, organize, share, brand, comment on, download, and delete authorized Daminion content through its published API."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "daminion_read",
+        "label": "Read Daminion data",
+        "description": "Run one bounded GET operation from Daminion's published API help surface."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "daminion_manage",
+        "label": "Change Daminion data",
+        "description": "Run one documented create, update, upload, import, tag, version, collection, collaboration, download, branding, user, permission, map, or delete operation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "daminion_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Login credentials, session cookies, API keys, authorization material, and server paths cannot enter agent-visible results."
+      },
+      {
+        "id": "daminion_untrusted_route",
+        "label": "Call an undocumented route",
+        "description": "Relay pins requests to the validated customer tenant and the 331 method-route signatures in Daminion's published API help."
+      },
+      {
+        "id": "daminion_host_control",
+        "label": "Control the Daminion host",
+        "description": "Relay blocks local application launch, directory access, server-path import, client-assistant settings, and credential administration."
+      },
+      {
+        "id": "daminion_unbounded_transfer",
+        "label": "Transfer unbounded data",
+        "description": "Relay bounds request bodies to five megabytes, responses to ten megabytes, and refuses redirects."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "daminion_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; each provider mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["daminion_read"],
+      "approvalRequiredActions": ["daminion_manage"],
+      "blockedActions": [
+        "daminion_secret_exposure",
+        "daminion_untrusted_route",
+        "daminion_host_control",
+        "daminion_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected user-authorized Daminion operations run without Relay per-action approval; ownership, provider roles, tenant binding, route bounds, redaction, audits, and fixed credential and host-control guards still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["daminion_read", "daminion_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "daminion_secret_exposure",
+        "daminion_untrusted_route",
+        "daminion_host_control",
+        "daminion_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded wrappers for Daminion's published API against the validated customer cloud tenant."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded wrappers for Daminion's published API against the validated customer cloud tenant."
+    }
+  ],
+  "availability": "beta_available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No customer Daminion cloud tenant, dedicated user credentials, representative asset library, or live provider session is available for production acceptance.",
+    "nextAction": "A customer administrator creates a dedicated Daminion user with the intended role, enters the tenant and credentials in Relay Console, and verifies reads, Safe denial plus approval, Dangerous mutations, upload, download, redaction, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://daminion.net/daminion-api/",
+      "checkedAt": "2026-07-15",
+      "supports": "Daminion documents server-scoped API endpoints for authentication, assets, files, tags, import, export, search, download, and deletion."
+    },
+    {
+      "url": "https://marketing.daminion.net/files/a6fv/a6fvi7a6fvi8/daminion_api_extended_-_2026.pdf",
+      "checkedAt": "2026-07-15",
+      "supports": "Daminion's 2026 first-steps guide uses POST /account/login with the customer's username and password and returns an ASP.NET application cookie for authorized API calls."
+    },
+    {
+      "url": "https://marketing.daminion.net/apihelp",
+      "checkedAt": "2026-07-15",
+      "supports": "Daminion's live API help publishes 331 GET and POST operation signatures across assets, metadata, users, settings, collections, collaboration, imports, downloads, version control, maps, AI, and branding."
+    },
+    {
+      "url": "https://daminion.net/feature-tour/daminion-server/instant-access-to-any-assets/",
+      "checkedAt": "2026-07-15",
+      "supports": "Daminion describes cloud and on-premises DAM, role-based permissions, search, uploads, downloads, metadata changes, collaboration, and file distribution."
+    },
+    {
+      "url": "https://daminion.net/docs/data-security/user-management/",
+      "checkedAt": "2026-07-15",
+      "supports": "Daminion assigns users roles and permissions and supports Daminion, Active Directory user, and Active Directory group authentication modes."
+    }
+  ]
+}

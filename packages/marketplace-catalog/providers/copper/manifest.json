@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "copper",
+  "name": "Copper",
+  "category": "crm_support",
+  "description": "Copper is a customer relationship management platform designed to work closely with Google Workspace and help teams manage companies, people, opportunities, projects, tasks, and sales activity. Businesses use it to organize relationships, follow deals through pipelines, coordinate customer work, and keep CRM context alongside Gmail and Calendar.",
+  "agentUseSummary": "Connect one Copper account through Relay Console OAuth, then let agents use three bounded read-only tools for Account and Opportunity summaries. Copper currently grants one broad read-and-modify scope, but Relay V1 excludes people and leads, personal details, activities, descriptions, custom fields, files, projects and tasks, writes, webhooks, arbitrary searches, pagination, bulk APIs, exports, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.copper.com/",
+    "docsUrl": "https://developer.copper.com/introduction/oauth/index.html",
+    "developerConsoleUrl": "https://developer.copper.com/introduction/oauth/index.html",
+    "termsUrl": "https://www.copper.com/terms-of-service",
+    "privacyUrl": "https://www.copper.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["developer/v1/all"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://app.copper.com/oauth/authorize",
+    "tokenUrl": "https://app.copper.com/oauth/token"
+  },
+  "connection": {
+    "types": ["relay_owned_partner_oauth", "https_form_post_callback", "exact_account_binding", "exact_authorizing_user_binding", "authorizing_user_permission_inheritance", "non_expiring_provider_token"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/copper/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "account_read", "label": "Read account", "description": "Read bounded metadata for the exact connected Copper account.", "defaultSelected": true },
+    { "id": "opportunity_read", "label": "Read opportunities", "description": "List bounded Opportunity summaries or inspect one exact Opportunity.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "copper_account_get", "label": "Read account", "description": "Read bounded metadata for the exact token-bound Copper account." },
+      { "id": "copper_opportunity_list", "label": "List opportunities", "description": "List at most twenty-five bounded Opportunity summaries." },
+      { "id": "copper_opportunity_get", "label": "Read opportunity", "description": "Read one exact Opportunity by positive numeric ID." }
+    ],
+    "blocked": [
+      { "id": "copper_record_mutation", "label": "Change CRM records", "description": "Creating, updating, converting, relating, bulk-changing, or deleting Copper records is outside V1." },
+      { "id": "copper_private_crm", "label": "Read personal CRM data", "description": "People, Leads, Users other than the authorizing user, contact data, activities, descriptions, custom fields, tags, files, and relationships are outside V1." },
+      { "id": "copper_broader_crm", "label": "Access broader CRM data", "description": "Projects, Tasks, pipelines, sources, loss reasons, field layouts, webhooks, and administration are outside V1." },
+      { "id": "copper_raw_search", "label": "Run arbitrary searches", "description": "Arbitrary paths, bodies, filters, sort fields, pages, API-key headers, and raw API access are outside V1." },
+      { "id": "copper_bulk_export", "label": "Export Copper data", "description": "Automatic pagination, crawling, synchronization, bulk APIs, and broad exports are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "copper_safe", "label": "Safe", "description": "All three bounded reads require matching approval.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["copper_account_get", "copper_opportunity_list", "copper_opportunity_get"], "blockedActions": ["copper_record_mutation", "copper_private_crm", "copper_broader_crm", "copper_raw_search", "copper_bulk_export"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while exact-account binding, Copper-granted authority, static requests, limits, audit, redaction, token validation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["copper_account_get", "copper_opportunity_list", "copper_opportunity_get"], "approvalRequiredActions": [], "blockedActions": ["copper_record_mutation", "copper_private_crm", "copper_broader_crm", "copper_raw_search", "copper_bulk_export"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three bounded Copper read wrappers and attaches the encrypted account token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three bounded Copper read wrappers and attaches the encrypted account token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Copper requires Relay to contact the provider to register the partner application, HTTPS POST callback, and client credentials. Railway staging credentials and an authorized representative Copper account are not configured in this code-only task.",
+    "nextAction": "In the provider-console task, contact Copper to register Relay Console with https://api.relayconsole.work/api/v1/marketplace/oauth/copper/callback, request only developer/v1/all, configure Railway staging credentials, then verify the POST callback, exact account and user binding, all three reads, user/admin token revocation, permission denial, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developer.copper.com/introduction/oauth/index.html", "checkedAt": "2026-07-17", "supports": "Copper prefers OAuth 2.0 for partner integrations, requires provider-assisted app registration, uses a confidential authorization-code client, and currently exposes only the broad developer/v1/all scope." },
+    { "url": "https://developer.copper.com/introduction/oauth/flow.html", "checkedAt": "2026-07-17", "supports": "Copper authorizes at app.copper.com, POSTs the result to the registered HTTPS callback, exchanges the code with form-encoded client credentials, issues non-expiring bearer tokens without refresh, and accepts bearer authorization at api.copper.com." },
+    { "url": "https://developer.copper.com/account-and-users/fetch-account-details.html", "checkedAt": "2026-07-17", "supports": "GET /developer_api/v1/account returns the exact Copper account ID, name, and primary timezone used for connection binding." },
+    { "url": "https://developer.copper.com/account-and-users/fetch-api-user.html", "checkedAt": "2026-07-17", "supports": "GET /developer_api/v1/users/me returns the exact user who owns the OAuth access token for authorizing-user binding." },
+    { "url": "https://developer.copper.com/opportunities/list-opportunities-search.html", "checkedAt": "2026-07-17", "supports": "Copper supports bounded Opportunity search with explicit page size and sorting; Relay fixes the body, caps results at twenty-five, and does not paginate." },
+    { "url": "https://developer.copper.com/opportunities/fetch-an-opportunity-by-id.html", "checkedAt": "2026-07-17", "supports": "Copper supports exact Opportunity retrieval; Relay fixes the path and returns only allowlisted non-personal pipeline and value summary fields." },
+    { "url": "https://developer.copper.com/introduction/requests.html", "checkedAt": "2026-07-17", "supports": "Copper requires TLS 1.2 or higher and documents a rolling limit of 180 API calls per minute; Relay uses HTTPS, fixed requests, bounded responses, and safe rate-limit errors." }
+  ]
+}

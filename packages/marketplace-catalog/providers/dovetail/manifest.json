@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "dovetail",
+  "name": "Dovetail",
+  "category": "work_management",
+  "description": "Dovetail is a customer-insights and user-research repository for projects, data, docs, highlights, tags, themes, transcripts, contacts, channels, and research synthesis.",
+  "agentUseSummary": "Add a least-privilege 30-day API token, then let selected agents verify token identity and read bounded, minimized project metadata. Relay does not expose research contents, people, authors, URLs, search, the evolving read-write MCP, or mutations.",
+  "provider": {
+    "websiteUrl": "https://dovetail.com/",
+    "docsUrl": "https://developers.dovetail.com/docs/introduction",
+    "developerConsoleUrl": "https://developers.dovetail.com/docs/authorization",
+    "termsUrl": "https://dovetail.com/terms/",
+    "privacyUrl": "https://dovetail.com/privacy/"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_personal_api_token", "public_rest_api"],
+    "credentialRequirements": [
+      { "key": "DOVETAIL_API_TOKEN", "label": "Dovetail API token", "secret": true, "required": true, "helpText": "Use a least-privilege personal API token; Dovetail tokens expire after 30 days." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "dovetail_read", "label": "Read workspace metadata", "description": "Use three pinned GETs for token identity and bounded, minimized project metadata.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "dovetail_read", "label": "Read Dovetail metadata", "description": "Verify token identity and read bounded, minimized project metadata without research contents or people." }],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "dovetail_manage", "label": "Change Dovetail", "description": "Projects, folders, docs, data, highlights, tags, themes, people, comments, channels, dashboards, agents, and every mutation remain blocked." },
+      { "id": "dovetail_research_content", "label": "Read research content", "description": "Search, raw data, docs, insights, highlights, transcripts, comments, contacts, authors, URLs, channels, themes, dashboards, and AI context are blocked." },
+      { "id": "dovetail_arbitrary_api", "label": "Call arbitrary APIs", "description": "Hosted MCP, arbitrary tools, paths, filters, cursors, methods, request bodies, content exports, and unbounded reads are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "dovetail_safe", "label": "Safe", "description": "Token identity and bounded minimized project metadata run directly. Research contents, people, hosted MCP, search, arbitrary APIs, and every mutation remain blocked.", "defaultSelected": true, "allowedActions": ["dovetail_read"], "approvalRequiredActions": [], "blockedActions": ["dovetail_manage", "dovetail_research_content", "dovetail_arbitrary_api"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts one read tool with three pinned REST metadata operations through the encrypted personal API token." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts one read tool with three pinned REST metadata operations through the encrypted personal API token." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Dovetail workspace, least-privilege 30-day API token, representative project, or safe fixture is available in this workspace.",
+    "nextAction": "An authorized workspace member creates a least-privilege personal API token and stores it through Relay Console, then verifies token identity, the two minimized project reads, assignment, scheduled 30-day replacement, disconnect, provider-side revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developers.dovetail.com/docs/authorization", "checkedAt": "2026-07-17", "supports": "Dovetail documents Bearer API tokens, one-time display, manual revocation, and a 30-day token lifetime." },
+    { "url": "https://developers.dovetail.com/docs/introduction", "checkedAt": "2026-07-17", "supports": "Dovetail documents its Public API base route, API-token authentication, 22-character resource identifiers, and broad read-write research operations." },
+    { "url": "https://developers.dovetail.com/reference/get_v1-projects", "checkedAt": "2026-07-17", "supports": "The project-list schema documents cursor pagination and project IDs, titles, authors, URLs, dates, deletion state, and folder references, supporting Relay's cap and minimization boundary." },
+    { "url": "https://developers.dovetail.com/docs/mcp", "checkedAt": "2026-07-17", "supports": "Dovetail documents a hosted MCP supporting API-token or OAuth authentication and workspace research tools; the current read-write MCP surface is excluded from Relay's fixed REST contract." }
+  ]
+}

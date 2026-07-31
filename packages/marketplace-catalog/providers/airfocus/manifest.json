@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "airfocus",
+  "name": "Airfocus",
+  "category": "project_management",
+  "description": "Airfocus is Lucid's product-intelligence platform for connecting customer signals, strategy, OKRs, prioritization, roadmaps and delivery context. Product organizations use flexible workspaces and items to make traceable decisions and coordinate portfolios across teams.",
+  "agentUseSummary": "Connect a customer-owned Airfocus Enterprise personal access token and fixed EU or US region. Selected agents can use seven bounded workspace and item actions under Safe or Dangerously skip permissions; administration, advanced fields, collaboration, raw API access and exports remain unavailable.",
+  "icon": { "assetName": "marketplace-logo-airfocus.png", "sourceUrl": "https://airfocus.com/favicon.ico" },
+  "provider": {
+    "websiteUrl": "https://airfocus.com/",
+    "docsUrl": "https://developer.airfocus.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://airfocus.com/terms/",
+    "privacyUrl": "https://airfocus.com/security/"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": ["workspace:read", "workspace"], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_personal_access_token", "airfocus_enterprise", "fixed_regional_origin"],
+    "credentialRequirements": [
+      { "name": "AIRFOCUS_API_TOKEN", "label": "Airfocus personal access token", "required": true, "secret": true, "helpText": "A dedicated Airfocus personal access token with workspace read/write scope, created by the intended least-authority user." },
+      { "name": "AIRFOCUS_REGION", "label": "Airfocus data region", "required": true, "secret": false, "helpText": "The fixed Airfocus API region: eu or us." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "workspace_read", "label": "Read workspaces", "description": "List bounded visible workspaces and inspect one exact workspace.", "defaultSelected": true },
+    { "id": "item_read", "label": "Read workspace items", "description": "List and inspect metadata-only items inside one exact workspace.", "defaultSelected": true },
+    { "id": "item_write", "label": "Manage workspace items", "description": "Create minimal items, collision-safely rename/archive them and name-confirm deletion.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "airfocus_workspaces_list", "label": "List workspaces", "description": "List at most twenty bounded workspace summaries visible to the token user." },
+      { "id": "airfocus_workspace_get", "label": "Read workspace", "description": "Read bounded metadata for one exact Airfocus workspace UUID." },
+      { "id": "airfocus_items_list", "label": "List workspace items", "description": "List at most twenty metadata-only items from one exact workspace." },
+      { "id": "airfocus_item_get", "label": "Read item", "description": "Read bounded metadata for one exact item in one exact workspace." },
+      { "id": "airfocus_item_create", "label": "Create item", "description": "Create one minimal unarchived item with a bounded name." },
+      { "id": "airfocus_item_update", "label": "Update item", "description": "Change only an exact item's bounded name or archived state after its current name matches." },
+      { "id": "airfocus_item_delete", "label": "Delete item", "description": "Permanently delete one exact item only after its current name matches the supplied confirmation." }
+    ],
+    "blocked": [
+      { "id": "airfocus_workspace_admin", "label": "Administer workspaces", "description": "Workspace creation, settings, statuses, permissions, duplication, deletion and administrator elevation are unavailable." },
+      { "id": "airfocus_item_advanced", "label": "Change advanced item data", "description": "Descriptions, custom fields, status, assignees, colors, ordering, integrations and arbitrary JSON Patch paths are unavailable." },
+      { "id": "airfocus_collaboration", "label": "Change collaboration data", "description": "Comments, watchers, attachments, links, hierarchy relations and link types are unavailable." },
+      { "id": "airfocus_team_profile", "label": "Manage team or profile", "description": "Members, groups, roles, profile, notification settings, AI actors and templates are unavailable." },
+      { "id": "airfocus_raw_api", "label": "Run arbitrary Airfocus calls", "description": "Agents cannot choose API origins, paths, filters, request bodies, media types or raw REST operations." },
+      { "id": "airfocus_bulk_global", "label": "Run bulk or global operations", "description": "Bulk, cross-workspace, alias, analytics, copy, move and global-search operations are unavailable." },
+      { "id": "airfocus_unbounded", "label": "Export Airfocus data", "description": "Twenty-row lists, one exact resource and 256 KiB responses are the maximum supported surface." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "airfocus_safe", "label": "Safe", "description": "Private reads and every item mutation require approval. Fixed region, inherited user authority, exact UUIDs, bounds, confirmation and audits always apply.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["airfocus_workspaces_list", "airfocus_workspace_get", "airfocus_items_list", "airfocus_item_get", "airfocus_item_create", "airfocus_item_update", "airfocus_item_delete"], "blockedActions": ["airfocus_workspace_admin", "airfocus_item_advanced", "airfocus_collaboration", "airfocus_team_profile", "airfocus_raw_api", "airfocus_bulk_global", "airfocus_unbounded"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All seven selected Airfocus actions run without Relay per-action approval; fixed region, token authority, bounds, field allowlists, confirmation, redaction and audits still apply.", "defaultSelected": false, "allowedActions": ["airfocus_workspaces_list", "airfocus_workspace_get", "airfocus_items_list", "airfocus_item_get", "airfocus_item_create", "airfocus_item_update", "airfocus_item_delete"], "approvalRequiredActions": [], "blockedActions": ["airfocus_workspace_admin", "airfocus_item_advanced", "airfocus_collaboration", "airfocus_team_profile", "airfocus_raw_api", "airfocus_bulk_global", "airfocus_unbounded"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway executes seven fixed Airfocus REST actions at the selected documented EU or US origin with exact UUIDs, minimal mutations, confirmation, bounds and redaction." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway executes seven fixed Airfocus REST actions at the selected documented EU or US origin with exact UUIDs, minimal mutations, confirmation, bounds and redaction." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "blocked", "blocker": "Airfocus public REST API access requires an Enterprise subscription and a personal access token created by a user with the required workspace scopes and workspace permissions in the separate provider-console acceptance task.", "nextAction": "In the provider-console acceptance task, use a synthetic Enterprise account, create a dedicated least-authority user and separate scoped token, enter the token and fixed region in Relay, verify the seven bounded tools, then revoke the token." },
+  "evidence": [
+    { "url": "https://help.lucid.co/hc/en-us/articles/43062348823572-Use-an-API-with-airfocus", "checkedAt": "2026-07-18", "supports": "Lucid documents Enterprise-only Airfocus API access and personal API-key creation from member settings." },
+    { "url": "https://developer.airfocus.com/", "checkedAt": "2026-07-18", "supports": "The official OpenAPI documentation confirms Bearer personal-access-token authentication, EU and US origins, workspace scopes, fixed workspace/item endpoints, pagination and rate limits." },
+    { "url": "https://airfocus.com/pricing/", "checkedAt": "2026-07-18", "supports": "Airfocus lists open API access with its Enterprise offering." },
+    { "url": "https://airfocus.com/", "checkedAt": "2026-07-18", "supports": "Airfocus describes its product-intelligence workflow across feedback, strategy, OKRs, roadmaps and delivery." }
+  ]
+}

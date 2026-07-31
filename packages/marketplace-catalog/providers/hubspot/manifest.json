@@ -1,0 +1,183 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "hubspot",
+  "name": "HubSpot",
+  "category": "crm_support",
+  "description": "HubSpot is a customer platform that brings marketing, sales, customer service, content, operations, and commerce tools together around a shared CRM. Businesses use it to organize company and deal records, manage pipelines, automate work, and understand customer relationships.",
+  "agentUseSummary": "Connect one HubSpot account through Relay Console OAuth, then let agents use three bounded read-only tools for Company and Deal summaries. V1 excludes contacts, owners, engagements, custom objects, writes, associations, arbitrary searches or properties, pagination, exports, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.hubspot.com/",
+    "docsUrl": "https://developers.hubspot.com/docs/apps/developer-platform/build-apps/authentication/oauth/working-with-oauth",
+    "developerConsoleUrl": "https://app.hubspot.com/",
+    "termsUrl": "https://legal.hubspot.com/legal-stuff",
+    "privacyUrl": "https://legal.hubspot.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["oauth", "crm.objects.companies.read", "crm.objects.deals.read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.hubspot.com/oauth/authorize",
+    "tokenUrl": "https://api.hubapi.com/oauth/2026-03/token",
+    "revocationUrl": "https://api.hubapi.com/oauth/2026-03/token/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_app_oauth",
+      "exact_hub_binding",
+      "exact_authorizing_user_binding",
+      "authorizing_user_permission_inheritance"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/hubspot/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "company_read",
+      "label": "Read companies",
+      "description": "List bounded Company summaries from the exact connected HubSpot account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "deal_read",
+      "label": "Read deals",
+      "description": "List bounded Deal summaries or inspect one exact Deal.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "hubspot_company_list",
+        "label": "List companies",
+        "description": "List at most twenty-five bounded Company summaries."
+      },
+      {
+        "id": "hubspot_deal_list",
+        "label": "List deals",
+        "description": "List at most twenty-five bounded Deal summaries."
+      },
+      {
+        "id": "hubspot_deal_get",
+        "label": "Read deal",
+        "description": "Read one exact Deal by HubSpot record ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "hubspot_record_mutation",
+        "label": "Change CRM records",
+        "description": "Creating, updating, associating, archiving, restoring, or deleting HubSpot records is outside V1."
+      },
+      {
+        "id": "hubspot_private_crm",
+        "label": "Read personal CRM data",
+        "description": "Contacts, owners, users, emails, calls, meetings, notes, tickets, and payments are outside V1."
+      },
+      {
+        "id": "hubspot_broader_crm",
+        "label": "Access broader HubSpot data",
+        "description": "Custom objects or properties, associations, history, products, quotes, line items, webhooks, and extensions are outside V1."
+      },
+      {
+        "id": "hubspot_raw_search",
+        "label": "Run arbitrary searches",
+        "description": "Arbitrary objects, filters, queries, properties, associations, cursors, archive flags, and paths are outside V1."
+      },
+      {
+        "id": "hubspot_bulk_export",
+        "label": "Export HubSpot data",
+        "description": "Automatic pagination, crawling, synchronization, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "hubspot_safe",
+      "label": "Safe",
+      "description": "All three bounded reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "hubspot_company_list",
+        "hubspot_deal_list",
+        "hubspot_deal_get"
+      ],
+      "blockedActions": [
+        "hubspot_record_mutation",
+        "hubspot_private_crm",
+        "hubspot_broader_crm",
+        "hubspot_raw_search",
+        "hubspot_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only tools run without Relay per-action approval while exact-account binding, HubSpot-granted permissions, static requests, limits, audit, redaction, refresh, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "hubspot_company_list",
+        "hubspot_deal_list",
+        "hubspot_deal_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "hubspot_record_mutation",
+        "hubspot_private_crm",
+        "hubspot_broader_crm",
+        "hubspot_raw_search",
+        "hubspot_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded HubSpot read wrappers and attaches the encrypted account token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded HubSpot read wrappers and attaches the encrypted account token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "HubSpot requires a public OAuth app, exact scopes and callback, public support/setup/legal assets, at least three active unaffiliated installs, and Marketplace review before Relay-owned consent can be publicly distributed. This staging/code worker does not open provider consoles or capture credentials.",
+    "nextAction": "In the provider-console task, create the Relay Console HubSpot app, register https://api.relayconsole.work/api/v1/marketplace/oauth/hubspot/callback, request only oauth plus Company and Deal read scopes, publish the required setup/support/privacy/terms assets, obtain three qualifying installs, submit the listing, store environment-specific client credentials, and verify install, exact Hub/user binding, all three reads, refresh, revocation, permission denial, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.hubspot.com/docs/apps/developer-platform/build-apps/authentication/oauth/working-with-oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Apps installed by multiple HubSpot accounts must use OAuth; the authorization flow uses an exact HTTPS redirect, client credentials, scopes, authorization code, access token, and refresh token."
+    },
+    {
+      "url": "https://developers.hubspot.com/docs/api-reference/latest/authentication/manage-oauth-tokens",
+      "checkedAt": "2026-07-17",
+      "supports": "The current 2026-03 API supports form-encoded code exchange, refresh, client-authenticated token introspection with Hub and user binding, and refresh-token revocation."
+    },
+    {
+      "url": "https://developers.hubspot.com/docs/apps/developer-platform/build-apps/authentication/scopes",
+      "checkedAt": "2026-07-17",
+      "supports": "HubSpot scopes constrain API access and apps should request only the required Company and Deal read permissions."
+    },
+    {
+      "url": "https://developers.hubspot.com/docs/api-reference/latest/crm/objects/deals/guide",
+      "checkedAt": "2026-07-17",
+      "supports": "The date-versioned CRM API supports bounded Deal reads with explicit properties and exact Deal IDs."
+    },
+    {
+      "url": "https://developers.hubspot.com/docs/apps/developer-platform/list-apps/listing-your-app/app-marketplace-listing-requirements",
+      "checkedAt": "2026-07-17",
+      "supports": "Marketplace listing requires a single public OAuth app, least-privilege scopes, three active unaffiliated installs, public setup/support/legal assets, accurate shared-data disclosure, and manual review."
+    }
+  ]
+}

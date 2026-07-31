@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "macos-publication-evidence.schema.json",
+  "title": "Relay Console release-bound macOS publication evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "releaseId",
+    "capturedAt",
+    "candidate",
+    "releaseBinding",
+    "pages",
+    "updateManifest",
+    "download",
+    "checksum",
+    "previousDownload",
+    "previousChecksum",
+    "previousDistribution",
+    "results",
+    "privacy"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.macos-publication-evidence.v1" },
+    "releaseId": { "type": "string", "minLength": 1 },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCommit", "manifestSHA256"],
+      "properties": {
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "manifestSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "releaseBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceBranch",
+        "vercelDeploymentId",
+        "macOSDistributionSHA256",
+        "publicSurfacesSHA256"
+      ],
+      "properties": {
+        "sourceBranch": { "type": "string", "pattern": "^release/.+" },
+        "vercelDeploymentId": { "type": "string", "minLength": 1 },
+        "macOSDistributionSHA256": { "$ref": "#/$defs/sha256" },
+        "publicSurfacesSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "pages": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "bodySHA256"],
+        "properties": {
+          "path": { "enum": ["/download", "/release-notes", "/support", "/updates"] },
+          "bodySHA256": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
+    "updateManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "finalURL", "status", "contentType", "bodySHA256", "document"],
+      "properties": {
+        "url": { "const": "https://relayconsole.work/updates/public-beta.json" },
+        "finalURL": { "const": "https://relayconsole.work/updates/public-beta.json" },
+        "status": { "const": 200 },
+        "contentType": { "type": "string", "pattern": "^application/json(?:;|$)" },
+        "bodySHA256": { "$ref": "#/$defs/sha256" },
+        "document": { "$ref": "macos-update-manifest.schema.json" }
+      }
+    },
+    "download": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "finalURL", "status", "contentType", "sha256", "sizeBytes"],
+      "properties": {
+        "url": { "$ref": "#/$defs/publicURL" },
+        "finalURL": { "$ref": "#/$defs/publicURL" },
+        "status": { "const": 200 },
+        "contentType": { "type": "string", "pattern": "^(?:application/x-apple-diskimage|application/octet-stream)(?:;|$)" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "sizeBytes": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "checksum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "finalURL",
+        "status",
+        "contentType",
+        "bodySHA256",
+        "advertisedSHA256",
+        "advertisedFileName"
+      ],
+      "properties": {
+        "url": { "$ref": "#/$defs/publicURL" },
+        "finalURL": { "$ref": "#/$defs/publicURL" },
+        "status": { "const": 200 },
+        "contentType": { "type": "string", "pattern": "^(?:text/plain|application/octet-stream)(?:;|$)" },
+        "bodySHA256": { "$ref": "#/$defs/sha256" },
+        "advertisedSHA256": { "$ref": "#/$defs/sha256" },
+        "advertisedFileName": { "type": "string", "pattern": "^[^/]+\\.dmg$" }
+      }
+    },
+    "previousDownload": {
+      "anyOf": [
+        { "$ref": "#/$defs/downloadRecord" },
+        { "type": "null" }
+      ]
+    },
+    "previousChecksum": {
+      "anyOf": [
+        { "$ref": "#/$defs/checksumRecord" },
+        { "type": "null" }
+      ]
+    },
+    "previousDistribution": {
+      "anyOf": [
+        { "$ref": "macos-distribution-evidence.schema.json" },
+        { "type": "null" }
+      ]
+    },
+    "results": { "$ref": "macos-publication-results.schema.json" },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "credentialsIncluded",
+        "secretValuesIncluded",
+        "customerContentIncluded",
+        "customerIdentifiersIncluded",
+        "rawScreenshotsIncluded",
+        "rawMachineInventoryIncluded",
+        "artifactBytesIncluded",
+        "rawPageBodiesIncluded"
+      ],
+      "properties": {
+        "credentialsIncluded": { "const": false },
+        "secretValuesIncluded": { "const": false },
+        "customerContentIncluded": { "const": false },
+        "customerIdentifiersIncluded": { "const": false },
+        "rawScreenshotsIncluded": { "const": false },
+        "rawMachineInventoryIncluded": { "const": false },
+        "artifactBytesIncluded": { "const": false },
+        "rawPageBodiesIncluded": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "publicURL": {
+      "type": "string",
+      "pattern": "^https://relayconsole\\.work/[^?#]+$"
+    },
+    "downloadRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "finalURL", "status", "contentType", "sha256", "sizeBytes"],
+      "properties": {
+        "url": { "$ref": "#/$defs/publicURL" },
+        "finalURL": { "$ref": "#/$defs/publicURL" },
+        "status": { "const": 200 },
+        "contentType": { "type": "string", "pattern": "^(?:application/x-apple-diskimage|application/octet-stream)(?:;|$)" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "sizeBytes": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "checksumRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "finalURL",
+        "status",
+        "contentType",
+        "bodySHA256",
+        "advertisedSHA256",
+        "advertisedFileName"
+      ],
+      "properties": {
+        "url": { "$ref": "#/$defs/publicURL" },
+        "finalURL": { "$ref": "#/$defs/publicURL" },
+        "status": { "const": 200 },
+        "contentType": { "type": "string", "pattern": "^(?:text/plain|application/octet-stream)(?:;|$)" },
+        "bodySHA256": { "$ref": "#/$defs/sha256" },
+        "advertisedSHA256": { "$ref": "#/$defs/sha256" },
+        "advertisedFileName": { "type": "string", "pattern": "^[^/]+\\.dmg$" }
+      }
+    }
+  }
+}

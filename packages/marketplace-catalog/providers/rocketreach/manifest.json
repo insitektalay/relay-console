@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "rocketreach",
+  "name": "RocketReach",
+  "category": "crm_support",
+  "description": "RocketReach is a sales intelligence platform for searching and enriching professional and company data, including business contact details, employment history and firmographics.",
+  "agentUseSummary": "Connect a dedicated customer-owned RocketReach API key. Agents can read only a reduced account-governance snapshot covering plan, Universal Credit usage and rate limits; people and company data, lookup, enrichment, bulk, exports, webhooks, provider-hosted MCP and raw API access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://rocketreach.co/",
+    "docsUrl": "https://docs.rocketreach.co/reference/get_universal_account",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://rocketreach.co/terms",
+    "privacyUrl": "https://rocketreach.co/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "server_side_fixed_universal_account_read",
+      "manual_provider_rotation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ROCKETREACH_API_KEY",
+        "label": "RocketReach API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated customer-owned key from RocketReach's API account page. Relay encrypts it and permits only the fixed Universal account-governance read."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_usage_read",
+      "label": "Read account usage",
+      "description": "Read a reduced snapshot of plan, Universal Credit usage and rate limits without accessing people or company data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "rocketreach_account_usage_get",
+        "label": "Read account usage",
+        "description": "Read the connected RocketReach account's plan, Universal Credit usage and rate-limit governance without searching for or revealing people or company data."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "rocketreach_people_company_data",
+        "label": "Block people and company data",
+        "description": "People and company search, lookup, enrichment, personal and professional contact details, employment, education, location, firmographics, healthcare and social-profile data are unavailable."
+      },
+      {
+        "id": "rocketreach_bulk_exports_webhooks_and_community",
+        "label": "Block bulk, exports, webhooks, and community data",
+        "description": "Bulk jobs, exports, webhook administration, browser extensions, CRM workflows, the Community Program, outreach, batching and pagination are unavailable."
+      },
+      {
+        "id": "rocketreach_mcp_admin_and_raw_access",
+        "label": "Block MCP, administration, and raw access",
+        "description": "Provider-hosted MCP, OAuth and dynamic client registration, API-key management, arbitrary endpoints, raw REST, retries, browser sessions, platform credentials and unrestricted tools are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "rocketreach_safe",
+      "label": "Safe",
+      "description": "The reduced account-governance read runs automatically. People and company data, bulk, exports, webhooks, community data, MCP, administration and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["rocketreach_account_usage_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "rocketreach_people_company_data",
+        "rocketreach_bulk_exports_webhooks_and_community",
+        "rocketreach_mcp_admin_and_raw_access"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same single bounded governance read runs without approval; the full-account API key never expands Relay's fixed Universal account request.",
+      "defaultSelected": false,
+      "allowedActions": ["rocketreach_account_usage_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "rocketreach_people_company_data",
+        "rocketreach_bulk_exports_webhooks_and_community",
+        "rocketreach_mcp_admin_and_raw_access"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly one parameterless account-governance read while Railway alone holds the customer API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly one parameterless account-governance read while Railway alone holds the customer API key."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An active customer RocketReach account with API entitlement, an authorized user, a dedicated API key, current terms/privacy review, Railway staging entry, live Universal account-schema validation, disconnect rotation and post-rotation denial remain for a separate authorized provider task.",
+    "nextAction": "An authorized provider task must confirm API entitlement and the governance-only purpose, review current terms and privacy policy, create a dedicated key on the RocketReach API account page, store it in Railway staging, and validate only GET https://api.rocketreach.co/api/v2/universal/account/. Confirm the exact reduced schema, Api-Key authentication, 128 KiB cap, one-request/no-retry behavior, no credit use, stripping of identity/email/api_key and unexpected fields, no people/company data, encrypted-copy deletion, provider-side rotation and post-rotation denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.rocketreach.co/reference/rocketreach-api",
+      "checkedAt": "2026-07-18",
+      "supports": "RocketReach documents a REST API for people and company search and lookup, account usage and optional webhooks, authenticated with customer API keys. Relay blocks every search, lookup, enrichment and webhook operation."
+    },
+    {
+      "url": "https://docs.rocketreach.co/reference/get_universal_account",
+      "checkedAt": "2026-07-18",
+      "supports": "RocketReach's OpenAPI definition documents GET /universal/account/ at https://api.rocketreach.co/api/v2, the Api-Key header and account, plan, Universal Credit and rate-limit fields. Relay reduces this response and strips identity, email and the echoed API key."
+    },
+    {
+      "url": "https://docs.rocketreach.co/reference/universal-credits-overview",
+      "checkedAt": "2026-07-18",
+      "supports": "RocketReach documents Universal Credit costs for search, lookup and enrichment and identifies the Account endpoint as the place to track usage. Relay exposes only that governance endpoint and none of the credit-consuming data operations."
+    },
+    {
+      "url": "https://docs.rocketreach.co/reference/rate-limits",
+      "checkedAt": "2026-07-18",
+      "supports": "RocketReach documents endpoint and global limits, 429 responses and Retry-After. Relay surfaces reduced rate-limit governance but never automatically retries or paginates."
+    },
+    {
+      "url": "https://docs.rocketreach.co/reference/mcp-auth",
+      "checkedAt": "2026-07-18",
+      "supports": "RocketReach documents a provider-hosted OAuth 2.1 MCP using PKCE, dynamic client registration and a broad rocketreach:read scope covering search, lookup and account tools. Relay blocks the entire MCP surface."
+    },
+    {
+      "url": "https://rocketreach.co/terms",
+      "checkedAt": "2026-07-18",
+      "supports": "RocketReach's current terms apply to API users and their end users, require account security and responsible professional use, limit Lookup Information to permitted business purposes, and incorporate privacy and legal obligations."
+    },
+    {
+      "url": "https://rocketreach.co/privacy",
+      "checkedAt": "2026-07-18",
+      "supports": "RocketReach's current privacy policy describes professional names, emails, phones, work history, education, location, social profiles, inferred data, third-party sources and individual rights. Relay's V1 returns none of that profile data."
+    }
+  ]
+}

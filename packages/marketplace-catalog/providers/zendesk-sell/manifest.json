@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zendesk-sell",
+  "name": "Zendesk Sell",
+  "category": "crm_support",
+  "description": "Zendesk Sell is Zendesk's sales CRM for managing leads, contacts, deals, activities, sequences, pipelines, forecasting, and customer context. Zendesk has announced that Sell and the Sell mobile app will retire on 2027-08-31, so Relay treats this connector as an existing-customer bridge for bounded data access and migration support.",
+  "agentUseSummary": "Connect Zendesk Sell through OAuth, then choose which agents can read Sales CRM records or manage selected Core API resources under Safe or Dangerous policy. Relay excludes Search API, Sync API, Firehose event streams, Sell Apps, arbitrary URLs, raw endpoints, automatic pagination, provider-console setup, and any Support-ticket operations owned by the separate Zendesk provider.",
+  "provider": {
+    "websiteUrl": "https://www.zendesk.com/sell/",
+    "docsUrl": "https://developer.zendesk.com/api-reference/sales-crm/",
+    "developerConsoleUrl": "https://app.futuresimple.com/settings/oauth/clients",
+    "termsUrl": "https://www.zendesk.com/company/agreements-and-terms/",
+    "privacyUrl": "https://www.zendesk.com/company/agreements-and-terms/privacy-notice/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": ["read", "write", "profile"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.getbase.com/oauth2/authorize",
+    "tokenUrl": "https://api.getbase.com/oauth2/token",
+    "revocationUrl": "https://api.getbase.com/oauth2/revoke"
+  },
+  "connection": {
+    "types": [
+      "customer_registered_sell_oauth_app",
+      "sales_crm_oauth2_authorization_code",
+      "expiring_access_token",
+      "refresh_token",
+      "token_revocation",
+      "fixed_getbase_api_origin",
+      "retiring_2027_08_31"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/zendesk-sell/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sales_crm_read",
+      "label": "Read sales CRM",
+      "description": "Read documented Zendesk Sell Core API resources for leads, contacts, deals, tasks, notes, calls, visits, products, pipelines, stages, users, account, and selected configuration records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sales_crm_manage",
+      "label": "Manage sales CRM",
+      "description": "Use documented Core API mutations for selected leads, contacts, deals, tasks, notes, calls, visits, products, sequence enrollments, tags, and associations.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "zendesk_sell_api_read",
+        "label": "Read Zendesk Sell",
+        "description": "Read one exact documented Core API endpoint with bounded query parameters."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "zendesk_sell_api_manage",
+        "label": "Manage Zendesk Sell",
+        "description": "Run one exact documented Core API mutation for a sales record, activity, sequence, association, tag, or deletion."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "zendesk_sell_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth client secrets, access tokens, refresh tokens, and credential-shaped provider fields never enter agent-visible requests or results."
+      },
+      {
+        "id": "zendesk_sell_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every request stays on Zendesk Sell's documented https://api.getbase.com origin."
+      },
+      {
+        "id": "zendesk_sell_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only pinned Sales CRM Core API v2 routes and blocks Search, Sync, Firehose, Apps, raw URLs, and arbitrary endpoints."
+      },
+      {
+        "id": "zendesk_sell_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds list pages, page sizes, query fields, arrays, bodies, responses, redirects, nesting, and execution time and never follows pagination automatically."
+      },
+      {
+        "id": "zendesk_sell_support_ticket_access",
+        "label": "Use Zendesk Support through Sell",
+        "description": "Zendesk Support tickets, users, organizations, groups, macros, triggers, Help Center, and support administration remain owned by the separate Zendesk provider and are outside this Sell connector."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zendesk_sell_safe",
+      "label": "Safe",
+      "description": "Documented bounded reads run directly. Every sales-record, activity, sequence, association, tag, and deletion mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["zendesk_sell_api_read"],
+      "approvalRequiredActions": ["zendesk_sell_api_manage"],
+      "blockedActions": [
+        "zendesk_sell_secret_exposure",
+        "zendesk_sell_unofficial_origin",
+        "zendesk_sell_unsupported_endpoint",
+        "zendesk_sell_unbounded_transfer",
+        "zendesk_sell_support_ticket_access"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every pinned Core API operation authorized by the connected Sell user runs without Relay per-action approval. Connection ownership, OAuth scopes, provider roles, exact routes, bounds, retirement status, redaction, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["zendesk_sell_api_read", "zendesk_sell_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zendesk_sell_secret_exposure",
+        "zendesk_sell_unofficial_origin",
+        "zendesk_sell_unsupported_endpoint",
+        "zendesk_sell_unbounded_transfer",
+        "zendesk_sell_support_ticket_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the bounded Zendesk Sell Core API read and management wrappers with encrypted OAuth credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the bounded Zendesk Sell Core API read and management wrappers with encrypted OAuth credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay has not registered a Zendesk Sell OAuth application, configured the exact Relay callback, stored the Sell client credentials on Railway staging, authorized a representative Sell account, or completed live acceptance. Zendesk has also announced Sell retirement for 2027-08-31, so ongoing production use must be positioned as existing-customer access and migration support.",
+    "nextAction": "In the provider-console task, have an authorized Zendesk Sell administrator register the OAuth app with https://api.relayconsole.work/api/v1/marketplace/oauth/zendesk-sell/callback and scopes read, write, and profile; configure staging client credentials; authorize a representative Sell account; then verify token refresh and revocation, account binding, representative Core API reads, Safe approvals, Dangerous mutations, page and per_page bounds, Search/Sync/Firehose denial, Support separation, 429 handling, audit redaction, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.zendesk.com/sell/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zendesk presents Sell as its sales CRM for leads, contacts, deals, productivity, forecasting, and customer context."
+    },
+    {
+      "url": "https://developer.zendesk.com/documentation/sales-crm/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zendesk documents Sell as a Sales CRM developer surface with Core, Sync, Firehose, and Search API groups; Relay V1 selects bounded Core API routes only."
+    },
+    {
+      "url": "https://developer.zendesk.com/api-reference/sales-crm/authentication/introduction/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zendesk Sell API uses OAuth 2.0, supports multi-user authorization-code access, expiring access tokens, refresh tokens, revocation, and read, write, and profile scopes."
+    },
+    {
+      "url": "https://developer.zendesk.com/api-reference/sales-crm/resources/deals/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zendesk's Core Deals API documents list, retrieve, create, update, delete, and upsert operations with per_page capped at 100 and bearer-token requests to api.getbase.com."
+    },
+    {
+      "url": "https://developer.zendesk.com/api-reference/sales-crm/resources/leads/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zendesk's Core Leads API documents read and mutation operations for individual and organization leads."
+    },
+    {
+      "url": "https://support.zendesk.com/hc/en-us/articles/9591462550042-Announcing-the-retiring-of-Zendesk-Sell",
+      "checkedAt": "2026-07-18",
+      "supports": "Zendesk announced Sell retirement for 2027-08-31 while existing Sell customers retain product access until that date and are guided toward migration options."
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "public-launch-surfaces.schema.json",
+  "title": "Relay Console public launch surfaces",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "capturedAt", "baseURL", "releaseBinding",
+    "releaseIdentity", "routes", "advertisedAddresses", "mailDomains"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.public-launch-surfaces.v5" },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "baseURL": { "const": "https://relayconsole.work" },
+    "releaseBinding": { "$ref": "#/$defs/releaseBinding" },
+    "releaseIdentity": { "$ref": "#/$defs/releaseIdentityCapture" },
+    "routes": {
+      "type": "array",
+      "minItems": 14,
+      "maxItems": 14,
+      "items": { "$ref": "#/$defs/route" }
+    },
+    "advertisedAddresses": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "format": "email" }
+    },
+    "mailDomains": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/mailDomain" }
+    }
+  },
+  "$defs": {
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "httpsURL": { "type": "string", "pattern": "^https://" },
+    "releaseBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository", "sourceCommit", "sourceBranch",
+        "githubDeploymentId", "deploymentURL"
+      ],
+      "properties": {
+        "repository": { "const": "insitektalay/relay-console" },
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "sourceBranch": { "type": "string", "pattern": "^release/.+" },
+        "githubDeploymentId": { "type": "integer", "minimum": 1 },
+        "deploymentURL": { "$ref": "#/$defs/httpsURL" }
+      }
+    },
+    "webReleaseIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion", "repository", "sourceCommit", "sourceBranch",
+        "environment", "deploymentId", "deploymentURL"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "relay.web-release-identity.v1" },
+        "repository": { "const": "insitektalay/relay-console" },
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "sourceBranch": { "type": "string", "pattern": "^release/.+" },
+        "environment": { "const": "production" },
+        "deploymentId": { "type": "string", "pattern": "^dpl_[A-Za-z0-9]+$" },
+        "deploymentURL": { "type": "string", "pattern": "^https://[A-Za-z0-9.-]+\\.vercel\\.app$" }
+      }
+    },
+    "releaseIdentityCapture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "finalURL", "status", "contentType", "bodySha256", "document", "error"],
+      "properties": {
+        "path": { "const": "/release-identity.json" },
+        "finalURL": { "const": "https://relayconsole.work/release-identity.json" },
+        "status": { "type": ["integer", "null"], "minimum": 100, "maximum": 599 },
+        "contentType": { "type": "string" },
+        "bodySha256": {
+          "anyOf": [
+            { "$ref": "#/$defs/sha256" },
+            { "type": "null" }
+          ]
+        },
+        "document": {
+          "anyOf": [
+            { "$ref": "#/$defs/webReleaseIdentity" },
+            { "type": "null" }
+          ]
+        },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path", "finalURL", "status", "contentType", "bodySha256", "placeholderHits",
+        "supportHoursPublished", "responseTargetPublished", "error"
+      ],
+      "properties": {
+        "path": {
+          "enum": [
+            "/", "/privacy", "/terms", "/acceptable-use", "/support", "/security",
+            "/subprocessors", "/data-deletion", "/third-party-notices", "/status",
+            "/known-issues", "/release-notes", "/download", "/updates"
+          ]
+        },
+        "finalURL": { "type": "string", "pattern": "^https://relayconsole\\.work/" },
+        "status": { "type": ["integer", "null"], "minimum": 100, "maximum": 599 },
+        "contentType": { "type": "string" },
+        "bodySha256": {
+          "anyOf": [
+            { "$ref": "#/$defs/sha256" },
+            { "type": "null" }
+          ]
+        },
+        "placeholderHits": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "supportHoursPublished": { "type": "boolean" },
+        "responseTargetPublished": { "type": "boolean" },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "mailDomain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain", "exchanges", "error"],
+      "properties": {
+        "domain": { "type": "string", "pattern": "^[A-Za-z0-9.-]+$" },
+        "exchanges": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Za-z0-9.-]+$" }
+        },
+        "error": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

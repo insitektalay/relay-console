@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "clearbit",
+  "name": "Clearbit",
+  "category": "crm_support",
+  "description": "Clearbit is a company and person enrichment platform, now part of HubSpot, with legacy APIs for company profiles, person enrichment, website visitor Reveal, discovery, and marketing-data workflows.",
+  "agentUseSummary": "Add the secret key from an eligible Clearbit account created in 2023 or earlier, then let selected agents retrieve one minimized company profile by exact domain. Relay pins the 2022-12-15 Company API version, never polls asynchronous refreshes, removes contact channels, locations and technologies, and blocks people, Reveal, visitor IPs, audiences, tracking, webhooks, arbitrary APIs, and mutations.",
+  "provider": {
+    "websiteUrl": "https://clearbit.com/",
+    "docsUrl": "https://help.clearbit.com/hc/en-us/categories/360000913214-APIs",
+    "developerConsoleUrl": "https://dashboard.clearbit.com/",
+    "termsUrl": "https://clearbit.com/legal",
+    "privacyUrl": "https://clearbit.com/legal"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "legacy_customer_owned_api_key",
+      "account_created_2023_or_earlier",
+      "metered_unique_domain_requests"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "CLEARBIT_API_KEY",
+        "label": "Legacy Clearbit secret API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use the secret key from an eligible Clearbit account created in 2023 or earlier; Relay encrypts it server-side."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "clearbit_read",
+      "label": "Look up companies",
+      "description": "Use one pinned, versioned legacy Company API domain lookup and return minimized company-only fields.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "clearbit_read",
+        "label": "Look up a Clearbit company",
+        "description": "Retrieve one minimized company profile by exact domain through the legacy Company API."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "clearbit_manage",
+        "label": "Change Clearbit",
+        "description": "Audiences, segments, tracking, integrations, webhooks, record creation, exports, and every mutation are outside Relay's V1 contract."
+      },
+      {
+        "id": "clearbit_people_or_visitor_data",
+        "label": "Read people or visitor data",
+        "description": "Person enrichment, emails, phone numbers, addresses, social profiles, Reveal, visitor IP identification, and precise location are blocked."
+      },
+      {
+        "id": "clearbit_arbitrary_api",
+        "label": "Use arbitrary Clearbit API access",
+        "description": "Discovery, Prospector, technologies, Logo API, arbitrary query parameters, webhooks, polling, custom versions, routes, and methods are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "clearbit_safe",
+      "label": "Safe",
+      "description": "One company-only domain lookup runs directly. Person data, contact channels, Reveal, visitor IPs, technologies, audiences, webhooks, arbitrary API access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["clearbit_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "clearbit_manage",
+        "clearbit_people_or_visitor_data",
+        "clearbit_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed legacy company-domain lookup through the encrypted customer-owned Clearbit API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed legacy company-domain lookup through the encrypted customer-owned Clearbit API key."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No eligible Clearbit account created in 2023 or earlier, active secret API key, Enrichment or Platform plan, remaining request allowance, representative company fixtures, or credential-rotation procedure is available in this workspace; newer accounts cannot obtain API keys.",
+    "nextAction": "An administrator for an eligible legacy Clearbit account confirms the plan and Company API entitlement, rotates or retrieves the secret key, saves it through Relay Console, then verifies found, missing and asynchronous-refresh results, minimization, request metering, rate handling, agent assignment, credential replacement, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.clearbit.com/hc/en-us/articles/6045527495191-How-Do-I-Access-My-Clearbit-API-Key",
+      "checkedAt": "2026-07-17",
+      "supports": "Clearbit states that API keys are available only to accounts created in 2023 or earlier, newer accounts cannot obtain free or paid API-key plans, only account administrators can view keys, and secret keys are managed in Keys & Settings."
+    },
+    {
+      "url": "https://help.clearbit.com/hc/en-us/articles/115015390748-What-Counts-as-an-API-Request",
+      "checkedAt": "2026-07-17",
+      "supports": "Clearbit documents that Company or Enrichment domain queries are metered API requests, successful, asynchronous and not-found responses count, and unique requests are counted once per billing period."
+    },
+    {
+      "url": "https://help.clearbit.com/hc/en-us/articles/4419649060119-What-Does-an-Enrichment-Payload-Look-Like",
+      "checkedAt": "2026-07-17",
+      "supports": "Clearbit's official payload reference documents company identity, domain, description, category and metrics fields alongside contact channels and other rich attributes that Relay deliberately excludes."
+    }
+  ]
+}

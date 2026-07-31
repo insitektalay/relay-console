@@ -1,0 +1,184 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "intercom",
+  "name": "Intercom",
+  "category": "crm_support",
+  "description": "Intercom is a customer-service platform combining a shared support inbox, business messaging, help-center content, automation, and AI-assisted service. Support teams use it to organize customer conversations, coordinate responses, route work, and understand service demand.",
+  "agentUseSummary": "Connect one Intercom workspace through Relay Console OAuth, then let agents use three bounded read-only tools for the conversation count and privacy-redacted conversation metadata. Relay V1 excludes message content, contacts, teammate identities, conversation parts, attachments, tags, custom attributes, writes, searches, pagination, exports, administration, and broader Intercom products.",
+  "provider": {
+    "websiteUrl": "https://www.intercom.com/",
+    "docsUrl": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io",
+    "developerConsoleUrl": "https://app.intercom.com/a/developer-signup",
+    "termsUrl": "https://www.intercom.com/legal/terms-and-policies",
+    "privacyUrl": "https://www.intercom.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["Read conversations", "Read admins"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://app.intercom.com/oauth",
+    "tokenUrl": "https://api.intercom.io/auth/eagle/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_app_oauth",
+      "exact_workspace_binding",
+      "exact_region_binding",
+      "exact_verified_authorizing_admin_binding",
+      "provider_uninstall_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/intercom/callback",
+    "webhookRequirements": [
+      "Optional uninstall notification; runtime health and local disconnect still fail closed without it."
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "conversation_read",
+      "label": "Read conversation metadata",
+      "description": "Read the total conversation count and bounded privacy-redacted conversation metadata in one exact Intercom workspace.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "intercom_conversation_count",
+        "label": "Read conversation count",
+        "description": "Read the provider-maintained total conversation count for one Intercom workspace."
+      },
+      {
+        "id": "intercom_conversation_list",
+        "label": "List conversations",
+        "description": "List at most twenty-five privacy-redacted conversation metadata summaries."
+      },
+      {
+        "id": "intercom_conversation_get",
+        "label": "Read conversation metadata",
+        "description": "Read one exact privacy-redacted conversation metadata summary by numeric ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "intercom_conversation_mutation",
+        "label": "Change conversations",
+        "description": "Replies, notes, assignments, priority changes, open, close, snooze, read-state changes, and deletion are outside V1."
+      },
+      {
+        "id": "intercom_private_content",
+        "label": "Read private support content",
+        "description": "Message bodies, subjects, conversation parts, contacts, teammate identities, attachments, tags, attributes, and translations are outside V1."
+      },
+      {
+        "id": "intercom_broader_workspace",
+        "label": "Access broader workspace data",
+        "description": "Contacts, companies, tickets, admins, teams, articles, webhooks, Fin, reports, settings, and other Intercom products are outside V1."
+      },
+      {
+        "id": "intercom_raw_search",
+        "label": "Run arbitrary searches",
+        "description": "Search queries, arbitrary paths, filters, page cursors, raw responses, and custom API requests are outside V1."
+      },
+      {
+        "id": "intercom_bulk_export",
+        "label": "Export Intercom data",
+        "description": "Automatic pagination, crawling, bulk operations, message delivery exports, and customer-data exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "intercom_safe",
+      "label": "Safe",
+      "description": "All three bounded conversation metadata reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "intercom_conversation_count",
+        "intercom_conversation_list",
+        "intercom_conversation_get"
+      ],
+      "blockedActions": [
+        "intercom_conversation_mutation",
+        "intercom_private_content",
+        "intercom_broader_workspace",
+        "intercom_raw_search",
+        "intercom_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only tools run without Relay per-action approval while exact workspace, region, and verified-admin binding, Intercom-granted permissions, fixed requests, limits, audit, redaction, provider revocation, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "intercom_conversation_count",
+        "intercom_conversation_list",
+        "intercom_conversation_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "intercom_conversation_mutation",
+        "intercom_private_content",
+        "intercom_broader_workspace",
+        "intercom_raw_search",
+        "intercom_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded Intercom conversation-metadata wrappers and attaches the encrypted OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded Intercom conversation-metadata wrappers and attaches the encrypted OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay's Intercom app package exists and has the required two permissions and callback, but public distribution remains private pending provider review and required listing/video materials. Staging credentials and an authorized representative workspace are also required for live acceptance outside this code task.",
+    "nextAction": "In the provider-console task, complete the icon, terms, pricing, screenshots, health-check URL, and end-to-end OAuth video, submit the existing app for public or unlisted review, add the approved staging credentials, then verify exact workspace/region/admin binding, all three reads, permission denial, provider uninstall, local disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.intercom.com/docs/build-an-integration/learn-more/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Public apps that access other customers' workspaces must use OAuth; requesting customer access tokens is prohibited."
+    },
+    {
+      "url": "https://developers.intercom.com/docs/build-an-integration/learn-more/authentication/setting-up-oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Intercom uses an HTTPS form-post callback, state-bound authorization, the Eagle token exchange, and selectable Read conversations and Read admins permissions."
+    },
+    {
+      "url": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io/admins/identifyadmin",
+      "checkedAt": "2026-07-17",
+      "supports": "The OAuth-only /me endpoint returns the exact authorizing admin, email-verification state, workspace id/name, and workspace region; unverified identities must be rejected."
+    },
+    {
+      "url": "https://developers.intercom.com/docs/build-an-integration/learn-more/rest-apis",
+      "checkedAt": "2026-07-17",
+      "supports": "Intercom provides fixed US, EU, and AU REST origins; Relay binds subsequent requests to the region returned by /me."
+    },
+    {
+      "url": "https://developers.intercom.com/docs/references/rest-api/api.intercom.io/conversations/listconversations",
+      "checkedAt": "2026-07-17",
+      "supports": "API 2.15 provides bounded conversation list/count metadata and exact conversation retrieval; Relay fixes page size, does not accept cursors, and redacts message/contact/part content."
+    },
+    {
+      "url": "https://developers.intercom.com/docs/build-an-integration/learn-more/authentication/installing-uninstalling-apps",
+      "checkedAt": "2026-07-17",
+      "supports": "Public third-party installation requires OAuth, and POST /auth/uninstall revokes an app token; uninstall notifications are optional."
+    }
+  ]
+}

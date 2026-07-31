@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "threads",
+  "name": "Threads",
+  "category": "content_creative",
+  "description": "Threads is Meta's text-based social network for public conversations, creator updates, and community participation. People and organizations use it to publish short posts, follow ongoing discussions, and maintain a public social presence.",
+  "agentUseSummary": "Connect one Threads profile through Relay-owned OAuth, then let agents read bounded own-profile activity, draft plain-text posts, and publish one exact approved update without exposing tokens or broad Graph access.",
+  "provider": {
+    "websiteUrl": "https://www.threads.net/",
+    "docsUrl": "https://developers.facebook.com/documentation/threads/",
+    "developerConsoleUrl": "https://developers.facebook.com/apps/",
+    "termsUrl": "https://help.instagram.com/769983657850450",
+    "privacyUrl": "https://privacycenter.instagram.com/policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["threads_basic", "threads_content_publish"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://threads.net/oauth/authorize",
+    "tokenUrl": "https://graph.threads.net/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_public_oauth_app", "confidential_authorization_code", "long_lived_user_token_refresh", "exact_app_scoped_profile_binding", "fixed_threads_graph_origin"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/threads/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "profile_read", "label": "Read profile", "description": "Read the exact connected Threads profile.", "defaultSelected": true },
+    { "id": "own_posts_read", "label": "Read own posts", "description": "List at most ten recent own posts and inspect one exact owned post.", "defaultSelected": true },
+    { "id": "text_post_draft", "label": "Draft text posts", "description": "Draft one plain-text post locally without a provider request.", "defaultSelected": true },
+    { "id": "text_post_publish", "label": "Publish text posts", "description": "Publish one approval-controlled plain-text post of at most 500 characters.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "threads_profile_get", "label": "Read connected profile", "description": "Read the exact OAuth-bound Threads profile." },
+      { "id": "threads_own_posts_list", "label": "List own posts", "description": "List at most ten recent posts owned by the connected profile." },
+      { "id": "threads_own_post_get", "label": "Read own post", "description": "Read one explicit post only after verifying it belongs to the connected profile." },
+      { "id": "threads_text_post_draft", "label": "Draft text post", "description": "Prepare one plain-text post locally without contacting Threads." }
+    ],
+    "approvalRequired": [
+      { "id": "threads_text_post_publish", "label": "Publish text post", "description": "Publish one exact approval-controlled plain-text post." }
+    ],
+    "blocked": [
+      { "id": "threads_broader_social_actions", "label": "Block broader social actions", "description": "Replies, discovery, insights, media, links, polls, tags, locations, quotes, reposts, deletion, bulk actions and arbitrary Graph access are not registered." },
+      { "id": "threads_secret_exposure", "label": "Block secret exposure", "description": "App secrets and user access tokens never leave Railway or appear in agent results." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "threads_safe",
+      "label": "Safe",
+      "description": "Profile reads, own-post reads and local drafts run; publishing requires exact-payload approval.",
+      "defaultSelected": true,
+      "allowedActions": ["threads_profile_get", "threads_own_posts_list", "threads_own_post_get", "threads_text_post_draft"],
+      "approvalRequiredActions": ["threads_text_post_publish"],
+      "blockedActions": ["threads_broader_social_actions", "threads_secret_exposure"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All five selected Threads actions run without Relay per-action approval; exact profile ownership, provider authority, bounds, audits and secret isolation still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["threads_profile_get", "threads_own_posts_list", "threads_own_post_get", "threads_text_post_draft", "threads_text_post_publish"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["threads_broader_social_actions", "threads_secret_exposure"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts five typed Threads wrappers and attaches the encrypted user token only at Railway's fixed Threads Graph adapter." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts five typed Threads wrappers and attaches the encrypted user token only at Railway's fixed Threads Graph adapter." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A business-verified Meta app with the Threads use case, exact permissions, production review/distribution, Railway credentials and live consent acceptance remains for the separate provider-console task.",
+    "nextAction": "In the provider-console task, configure the exact Railway HTTPS callback and public legal URLs, request threads_basic and threads_content_publish, store staging credentials, then validate consent, exact profile binding, long-lived exchange/refresh, bounded reads, exact approved publish, ambiguity handling, disconnect and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developers.facebook.com/documentation/threads/get-started/get-access-tokens-and-permissions", "checkedAt": "2026-07-17", "supports": "Meta documents the Threads authorization flow, Threads user access token lifecycle and the permissions used by the bounded Relay surface." },
+    { "url": "https://developers.facebook.com/documentation/threads/posts", "checkedAt": "2026-07-17", "supports": "Meta documents creating a Threads media container and publishing it through the Threads Graph endpoints." },
+    { "url": "https://developers.facebook.com/documentation/threads/retrieve-and-discover-posts", "checkedAt": "2026-07-17", "supports": "Meta documents profile and Threads media retrieval fields used by Relay's own-profile and own-post reads." }
+  ]
+}

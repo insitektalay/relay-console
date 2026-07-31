@@ -1,0 +1,191 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "attentive",
+  "name": "Attentive",
+  "category": "communication",
+  "description": "Attentive is a mobile-first customer engagement platform for SMS, email, subscriber growth, journeys, behavioral events, attributes, product catalogs, privacy requests, webhooks, and audience segments.",
+  "agentUseSummary": "Add a dedicated customer-owned private-app key with only the permissions agents need. Relay exposes all 32 currently published v1/v2 data operations: eight structural reads run directly, three subscriber/privacy reads and all 21 mutations require approval, and legacy direct-message APIs and bulk-result downloads remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.attentive.com/",
+    "docsUrl": "https://docs.attentive.com/docs/introduction",
+    "developerConsoleUrl": "https://ui.attentivemobile.com/integrations/setup",
+    "termsUrl": "https://www.attentive.com/legal/terms",
+    "privacyUrl": "https://www.attentive.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_private_custom_app",
+      "bearer_api_key",
+      "permission_selected_app",
+      "exact_company_binding",
+      "fixed_v1_v2_rest_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ATTENTIVE_API_KEY",
+        "label": "Attentive private-app API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated private custom app, grant only selected API permissions, and copy its one-time key directly into Relay's encrypted credential form."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read account structure",
+      "description": "Use eight bounded non-subscriber reads across company, webhook, catalog, segment, and redacted bulk-job metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read subscriber data",
+      "description": "Use three exact subscriber-attribute, subscription-eligibility, and privacy-request reads with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage messaging data",
+      "description": "Use 21 mutations for events, subscriptions, attributes, identity, catalogs, webhooks, privacy, bulk jobs, and segments with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "attentive_structural_read",
+        "label": "Read Attentive structure",
+        "description": "Read company binding, webhook structure, catalog ingestion, bounded segments, and redacted bulk-job status."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "attentive_sensitive_read",
+        "label": "Read subscriber or privacy data",
+        "description": "Read one user's attributes or subscription eligibility, or one privacy-delete request."
+      },
+      {
+        "id": "attentive_manage",
+        "label": "Manage Attentive",
+        "description": "Create events, subscriptions, attributes, identifiers, catalogs, webhooks, segments, bulk jobs, or privacy requests."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "attentive_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Private-app API keys and authorization headers never enter agent-visible inputs or results."
+      },
+      {
+        "id": "attentive_legacy_api",
+        "label": "Use legacy messaging APIs",
+        "description": "Legacy direct SMS/MMS and legacy subscriber endpoints use separate tokens and remain outside this connector."
+      },
+      {
+        "id": "attentive_bulk_download",
+        "label": "Download bulk results",
+        "description": "Bulk-job download URLs and result files can contain personal data and are redacted and blocked."
+      },
+      {
+        "id": "attentive_unbounded_api",
+        "label": "Use arbitrary or unbounded APIs",
+        "description": "Only 32 published v1/v2 operations run; arbitrary paths, headers, origins, pagination loops, and oversized transfers are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "attentive_safe",
+      "label": "Safe",
+      "description": "Eight structural reads run directly; all subscriber/privacy reads and mutations require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["attentive_structural_read"],
+      "approvalRequiredActions": [
+        "attentive_sensitive_read",
+        "attentive_manage"
+      ],
+      "blockedActions": [
+        "attentive_secret_exposure",
+        "attentive_legacy_api",
+        "attentive_bulk_download",
+        "attentive_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 32 selected and private-app-authorized operations run without Relay per-action approval; fixed routes, bounds, redaction, audits, provider permissions, and legacy/download blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "attentive_structural_read",
+        "attentive_sensitive_read",
+        "attentive_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "attentive_secret_exposure",
+        "attentive_legacy_api",
+        "attentive_bulk_download",
+        "attentive_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected pinned Attentive tools and attaches the encrypted private-app key server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected pinned Attentive tools and attaches the encrypted private-app key server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "A representative Attentive account owner must create a dedicated private custom app, select the intended permissions, copy its one-time API key, and configure staging. This worker may not open the provider console or capture credentials.",
+    "nextAction": "Create the dedicated private app under an authorized owner, grant only the selected APIs, store the one-time key in Railway staging, and verify exact company binding, structural reads, subscriber-read approvals, one reversible approved mutation, provider denials, key regeneration, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.attentive.com/docs/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Attentive documents customer-private apps using bearer API keys, public apps using authorization-code OAuth with non-expiring access tokens, the /me binding check, and currently published OAuth scopes."
+    },
+    {
+      "url": "https://docs.attentive.com/docs/create-and-manage-custom-apps",
+      "checkedAt": "2026-07-17",
+      "supports": "Private custom apps select API permissions, issue a one-time-visible API key, support independent key regeneration, and can be deleted to revoke the integration."
+    },
+    {
+      "url": "https://docs.attentive.com/openapi/attentive-api-bundled.yaml",
+      "checkedAt": "2026-07-17",
+      "supports": "The current v1 OpenAPI publishes 21 data operations after excluding authorization-code token exchange across binding, webhooks, events, coupons, attributes, subscriptions, catalogs, privacy, and identity."
+    },
+    {
+      "url": "https://docs.attentive.com/openapi/attentive-api-bundled-v2.yaml",
+      "checkedAt": "2026-07-17",
+      "supports": "The current v2 OpenAPI publishes 11 operations for company binding, user attributes, bulk jobs, bulk membership, and segment lifecycle."
+    },
+    {
+      "url": "https://docs.attentive.com/docs/api-rate-limits",
+      "checkedAt": "2026-07-17",
+      "supports": "Attentive documents endpoint-specific rate limits, 429 handling, and x-ratelimit response headers; Relay exposes those headers without automatic retry storms."
+    }
+  ]
+}

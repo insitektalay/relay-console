@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "quickbooks-time",
+  "name": "QuickBooks Time",
+  "category": "work_management",
+  "description": "QuickBooks Time is time-tracking and workforce-management software for businesses with mobile, field, remote, and office teams. Companies use it to record hours and location, schedule work, manage jobs and projects, review time off, approve timesheets, prepare payroll, and understand who is working and where.",
+  "agentUseSummary": "Add a QuickBooks Time access token, then choose which agents can read or manage the connected company's time, people, jobs, schedules, projects, locations, and reports under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://quickbooks.intuit.com/time-tracking/",
+    "docsUrl": "https://tsheetsteam.github.io/api_docs/",
+    "developerConsoleUrl": "https://app.tsheets.com/",
+    "termsUrl": "https://www.intuit.com/legal/terms/en-us/",
+    "privacyUrl": "https://www.intuit.com/privacy/statement/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_quickbooks_time_access_token", "user_permission_and_company_bound"],
+    "credentialRequirements": [
+      {
+        "key": "QUICKBOOKS_TIME_ACCESS_TOKEN",
+        "label": "QuickBooks Time access token",
+        "secret": true,
+        "required": true,
+        "helpText": "Create an access token in your QuickBooks Time API Add-On, then paste it here. Relay encrypts it and sends it only to rest.tsheets.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "quickbooks_time_read",
+      "label": "Read time and workforce data",
+      "description": "Use all 34 pinned official reads for people, jobs, assignments, timesheets, projects, schedules, time off, locations, settings, files, activity, and reports."
+    },
+    {
+      "id": "quickbooks_time_manage",
+      "label": "Manage time and workforce data",
+      "description": "Use all 52 pinned official mutations for people, jobs, assignments, timesheets, projects, schedules, time off, locations, files, notifications, reminders, invitations, and activity."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "quickbooks_time_read",
+        "label": "Read QuickBooks Time",
+        "description": "Run one exact selected QuickBooks Time GET operation from the pinned official v1 contract."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "quickbooks_time_manage",
+        "label": "Manage QuickBooks Time",
+        "description": "Run one exact selected QuickBooks Time mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "quickbooks_time_safe",
+      "label": "Safe",
+      "description": "All 34 bounded reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["quickbooks_time_read"],
+      "approvalRequiredActions": ["quickbooks_time_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 86 selected and token-authorized operations run without Relay per-action approval; ownership, user permissions, exact routes, bounds, audits, redaction, billing, rate limits, and QuickBooks Time authority still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["quickbooks_time_read", "quickbooks_time_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 86 pinned QuickBooks Time v1 API operations through the encrypted customer-token connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 86 pinned QuickBooks Time v1 API operations through the encrypted customer-token connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned QuickBooks Time account, API Add-On access token, or representative company is available in this workspace.",
+    "nextAction": "A QuickBooks Time administrator enables the API Add-On, creates an access token, saves only that token through Relay Console, then verifies current-user and company binding, user permissions, all tools, Safe approvals, Dangerous mutations, file bounds, rate limits, token replacement, agent assignment, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://tsheetsteam.github.io/api_docs/",
+      "checkedAt": "2026-07-15",
+      "supports": "The official QuickBooks Time API reference documents the fixed rest.tsheets.com v1 origin, customer-created access tokens, optional OAuth for registered apps, current-user permissions, 300 calls per five minutes, 200-result pages, batch limits, and the complete supported resource surface."
+    },
+    {
+      "url": "https://github.com/TSheetsTeam/api_docs/tree/3cc0b81b2c380b85571bc44f7f55e7a553c451c4",
+      "checkedAt": "2026-07-15",
+      "supports": "The provider-maintained reference source at commit 3cc0b81b2c380b85571bc44f7f55e7a553c451c4 defines the 86 pinned operations: 34 reads and 52 mutations."
+    },
+    {
+      "url": "https://quickbooks.intuit.com/time-tracking/",
+      "checkedAt": "2026-07-15",
+      "supports": "Intuit describes QuickBooks Time as employee time tracking and scheduling for mobile, field, remote, and office work, with timesheets, payroll, projects, location, and workforce visibility."
+    },
+    {
+      "url": "https://developer.intuit.com/app/developer/payroll-time/docs/get-started",
+      "checkedAt": "2026-07-15",
+      "supports": "Intuit's newer Workforce APIs require paid partner tiers or approved-partner access and production keys, so Relay does not substitute them for the customer-owned QuickBooks Time v1 token boundary."
+    }
+  ]
+}

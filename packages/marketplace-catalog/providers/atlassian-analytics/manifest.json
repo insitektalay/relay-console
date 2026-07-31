@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "atlassian-analytics",
+  "name": "Atlassian Analytics",
+  "category": "productivity",
+  "description": "Atlassian Analytics is Atlassian's enterprise reporting and data-exploration application for building charts and dashboards from the Atlassian Data Lake and supported external data sources. Organizations use its visual query builder, SQL mode, templates, controls, and shared dashboards to analyze work across Atlassian apps and third-party systems.",
+  "agentUseSummary": "Atlassian Analytics cannot currently be connected as a Relay agent provider because Atlassian publishes no dashboard, chart, query, or workspace API, while its only external extraction path is an organization-admin Data Share whose opaque Delta Sharing authority and dynamic download origins are not published for safe server-side allowlisting.",
+  "icon": {
+    "assetName": "atlassian-analytics",
+    "sourceUrl": "https://www.atlassian.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://www.atlassian.com/platform/analytics",
+    "docsUrl": "https://support.atlassian.com/analytics/resources/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "no_public_analytics_app_api",
+      "organization_admin_delta_share_only",
+      "opaque_delta_sharing_authority",
+      "dynamic_download_origins_not_allowlisted"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "atlassian_analytics_connect_workspace",
+        "label": "Connect an Analytics workspace",
+        "description": "Atlassian does not publish delegated OAuth or a supported public API for Analytics workspaces, dashboards, charts, visual queries, or SQL queries."
+      },
+      {
+        "id": "atlassian_analytics_collect_share_credentials",
+        "label": "Collect Data Share credentials",
+        "description": "Relay does not request the one-time bearer credential file while Atlassian leaves its Delta Sharing service authority and dynamic object-download origins opaque."
+      },
+      {
+        "id": "atlassian_analytics_forward_bearer_token",
+        "label": "Forward a bearer token to an arbitrary endpoint",
+        "description": "Relay never accepts an unverified endpoint from a credential file or forwards organization-wide Data Lake authority to agent-selected or dynamically returned origins."
+      },
+      {
+        "id": "atlassian_analytics_private_ui",
+        "label": "Automate the Analytics application",
+        "description": "Relay does not automate private browser interfaces, reuse sessions, scrape dashboards, or reverse engineer undocumented application traffic."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "atlassian_analytics_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled until Atlassian publishes a safely allowlistable, distributable API or Delta Sharing network contract for this product.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "atlassian_analytics_connect_workspace",
+        "atlassian_analytics_collect_share_credentials",
+        "atlassian_analytics_forward_bearer_token",
+        "atlassian_analytics_private_ui"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No safely allowlistable public Atlassian Analytics dashboard/query API or complete Data Share network contract is available to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No safely allowlistable public Atlassian Analytics dashboard/query API or complete Data Share network contract is available to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Atlassian documents Analytics as an interactive application and does not publish an API for its workspaces, dashboards, charts, queries, permissions, or subscriptions. Organization admins can separately create Data Shares for tools implementing Databricks Delta Sharing, but the downloaded credential contains an opaque endpoint and bearer token, query responses can direct clients to cloud object downloads, data is selectable only to app-instance granularity, and Analytics permissions do not preserve source-app row-level permissions. Atlassian does not publish the exact service and storage origin allowlist Relay needs to prevent SSRF and bearer forwarding.",
+    "nextAction": "Do not show Connect, request a Data Share credential file, or accept arbitrary Delta Sharing endpoints. Re-evaluate if Atlassian publishes a supported Analytics API or a stable Delta Sharing endpoint and object-storage origin contract that Relay can validate and bind to a least-privilege share without browser or administrator automation."
+  },
+  "evidence": [
+    {
+      "url": "https://www.atlassian.com/platform/analytics/what-is-atlassian-analytics",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian describes Analytics as a Cloud Enterprise application for dashboards, data exploration, connectors, shared insights, visual queries, SQL, and natural-language analysis rather than as a developer API."
+    },
+    {
+      "url": "https://support.atlassian.com/analytics/docs/connect-to-the-atlassian-data-lake/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents organization-admin creation of Data Lake connections, All or Limited data scopes, project selection, and the explicit warning that permissions from source apps do not carry over to Analytics."
+    },
+    {
+      "url": "https://support.atlassian.com/analytics/docs/create-a-data-share/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents organization-admin Data Shares for tools supporting Databricks Delta Sharing and states that app-instance level is the lowest available selection granularity."
+    },
+    {
+      "url": "https://support.atlassian.com/analytics/docs/create-and-manage-credentials-for-a-data-share/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents a one-time-download credential containing an endpoint URL and bearer token, administrator-only creation and revocation, per-tool credentials, and recommended rotation every 60 days."
+    },
+    {
+      "url": "https://support.atlassian.com/analytics/docs/connect-your-data-share-to-your-environments-and-tools/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian publishes only placeholder endpoint and bearer-token values for its Delta Sharing credential format and warns that anyone with access to a connected share can access all app data included in it."
+    },
+    {
+      "url": "https://support.atlassian.com/analytics/docs/what-is-the-atlassian-data-lake/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian states that Analytics and Data Share permissions differ from source-app permissions, lack row-level controls, and can expose user names and email addresses beyond their source visibility settings."
+    }
+  ]
+}

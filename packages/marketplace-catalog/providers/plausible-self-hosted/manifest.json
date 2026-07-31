@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "plausible-self-hosted",
+  "name": "Plausible Self-Hosted",
+  "category": "developer",
+  "description": "Plausible Self-Hosted is the Community Edition of Plausible's open-source, privacy-focused web analytics platform, operated on infrastructure the customer controls. Teams use it to understand aggregate visitors, traffic sources, content performance and geography without a surveillance-oriented analytics stack.",
+  "agentUseSummary": "Connect one current public HTTPS Plausible CE installation with a dedicated Stats API key and exact domain-style site ID. Selected agents can read four fixed bounded aggregate Stats API v2 reports under Safe or Dangerously skip permissions; Events, Sites, raw databases, visitor records, arbitrary filters and private-network endpoints remain unavailable.",
+  "icon": { "assetName": "marketplace-logo-plausible-self-hosted.png", "sourceUrl": "https://plausible.io/favicon.ico" },
+  "provider": {
+    "websiteUrl": "https://github.com/plausible/analytics",
+    "docsUrl": "https://plausible.io/docs/stats-api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://plausible.io/terms",
+    "privacyUrl": "https://plausible.io/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_stats_api_key", "public_https_self_hosted", "exact_site_id_binding", "fixed_stats_api_v2_queries", "server_side_encrypted_secret_injection"],
+    "credentialRequirements": [
+      { "name": "PLAUSIBLE_SELF_HOSTED_INSTALLATION_URL", "label": "Plausible installation URL", "required": true, "secret": false, "helpText": "The public HTTPS root of one current Plausible Community Edition installation. Private addresses, custom ports, redirects and embedded credentials are rejected." },
+      { "name": "PLAUSIBLE_SELF_HOSTED_API_KEY", "label": "Plausible Stats API key", "required": true, "secret": true, "helpText": "A dedicated Stats API key for the team that owns the intended site. Relay injects it only into the fixed Authorization header." },
+      { "name": "PLAUSIBLE_SELF_HOSTED_SITE_ID", "label": "Plausible site ID", "required": true, "secret": false, "helpText": "The exact domain-style site_id configured in Plausible." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "traffic_overview", "label": "Traffic overview", "description": "Read aggregate visitors, visits, pageviews and engagement metrics for one exact site.", "defaultSelected": true },
+    { "id": "content_sources", "label": "Content and acquisition", "description": "Read bounded page-path and traffic-source aggregate reports.", "defaultSelected": true },
+    { "id": "geography", "label": "Aggregate geography", "description": "Read bounded country-level aggregate traffic without visitor-level location records.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "plausible_self_hosted_overview", "label": "Read overview", "description": "Read fixed aggregate visitor, visit, pageview and engagement metrics." },
+      { "id": "plausible_self_hosted_top_pages", "label": "Read top pages", "description": "Read at most twenty page-path rows with bounded aggregate metrics and stripped query strings." },
+      { "id": "plausible_self_hosted_sources", "label": "Read sources", "description": "Read at most twenty aggregate traffic-source rows." },
+      { "id": "plausible_self_hosted_countries", "label": "Read countries", "description": "Read at most twenty country-level aggregate traffic rows." }
+    ],
+    "blocked": [
+      { "id": "plausible_self_hosted_events", "label": "Send events", "description": "Events API calls, pageviews, custom events, goals and historical event injection are unavailable." },
+      { "id": "plausible_self_hosted_sites", "label": "Manage sites", "description": "Site provisioning, settings, goals, shared links, users, teams and API keys are unavailable." },
+      { "id": "plausible_self_hosted_raw_data", "label": "Read raw data", "description": "ClickHouse, PostgreSQL, raw events, exports, User IDs, IP addresses and visitor-level records are unavailable." },
+      { "id": "plausible_self_hosted_raw_query", "label": "Run raw stats queries", "description": "Agents cannot choose dimensions, metrics, filters, segments, date ranges, offsets, site IDs, URLs or arbitrary request bodies." },
+      { "id": "plausible_self_hosted_private_network", "label": "Reach private infrastructure", "description": "Private, local, reserved, link-local, non-HTTPS and redirecting endpoints are unavailable; Relay opens no tunnel and keeps the web backend on Railway." },
+      { "id": "plausible_self_hosted_unbounded_export", "label": "Export unbounded analytics", "description": "Five fixed recent windows, twenty-row tables and 256 KiB responses are the maximum supported surface." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "plausible_self_hosted_safe",
+      "label": "Safe",
+      "description": "All private analytics reads require approval. Exact installation and site binding, fixed Stats API queries, bounds and audits always apply.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["plausible_self_hosted_overview", "plausible_self_hosted_top_pages", "plausible_self_hosted_sources", "plausible_self_hosted_countries"],
+      "blockedActions": ["plausible_self_hosted_events", "plausible_self_hosted_sites", "plausible_self_hosted_raw_data", "plausible_self_hosted_raw_query", "plausible_self_hosted_private_network", "plausible_self_hosted_unbounded_export"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four aggregate reads run without Relay per-action approval; exact authority, fixed queries, bounds, redaction and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["plausible_self_hosted_overview", "plausible_self_hosted_top_pages", "plausible_self_hosted_sources", "plausible_self_hosted_countries"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["plausible_self_hosted_events", "plausible_self_hosted_sites", "plausible_self_hosted_raw_data", "plausible_self_hosted_raw_query", "plausible_self_hosted_private_network", "plausible_self_hosted_unbounded_export"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway executes four fixed POST-only Stats API v2 queries against the exact public HTTPS Plausible CE installation and site, with SSRF protection, bounds and redaction." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway executes four fixed POST-only Stats API v2 queries against the exact public HTTPS Plausible CE installation and site, with SSRF protection, bounds and redaction." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer operates and secures a current Plausible Community Edition release at a public HTTPS URL, creates a dedicated team-scoped Stats API key, confirms the exact configured site domain, and enters those values in Relay. Keep CE patched, backed up and isolated; do not expose ClickHouse or PostgreSQL."
+  },
+  "evidence": [
+    { "url": "https://github.com/plausible/analytics", "checkedAt": "2026-07-18", "supports": "Plausible identifies Community Edition as its self-hosted open-source analytics distribution, documents customer responsibility for infrastructure and describes its aggregate privacy-focused analytics model." },
+    { "url": "https://github.com/plausible/analytics/releases", "checkedAt": "2026-07-18", "supports": "Current Community Edition release notes explicitly document Stats API v2 behavior, filters, metrics, date-range support and the /api/v2/query endpoint." },
+    { "url": "https://plausible.io/docs/stats-api", "checkedAt": "2026-07-18", "supports": "The official Stats API reference documents POST /api/v2/query, Bearer Stats API keys, exact site_id, metrics, date_range, dimensions, filters and pagination." },
+    { "url": "https://plausible.io/docs/stats-api-v1", "checkedAt": "2026-07-18", "supports": "The legacy reference characterizes the Stats API as read-only aggregate statistics, distinguishes it from Events and Sites APIs and documents the default 600-request-per-hour key limit." },
+    { "url": "https://github.com/plausible/community-edition/wiki/Configuration", "checkedAt": "2026-07-18", "supports": "The CE configuration guide requires a BASE_URL and documents PostgreSQL and ClickHouse as customer-managed internal databases; Relay uses only the public HTTPS Stats API and excludes both databases." }
+  ]
+}

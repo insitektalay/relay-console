@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "apollo-io",
+  "name": "Apollo.io",
+  "category": "crm_support",
+  "description": "Apollo.io is a sales intelligence and engagement platform with prospect data, enrichment, contact and account management, sequencing, email, task, conversation, and analytics workflows. Revenue teams use it to research buyers, maintain prospect records, coordinate outbound work, and measure engagement.",
+  "agentUseSummary": "Connect through Apollo's official OAuth server with the two search-only scopes, then let selected agents run bounded keyword searches across Apollo people data and saved workspace contacts. Relay caps results at 25 and removes email addresses, phone numbers, social profiles, avatars, enrichment data, and other contact channels; it does not expose credits, enrichment, mailboxes, sequences, messages, tasks, lists, arbitrary filters, or writes.",
+  "provider": {
+    "websiteUrl": "https://www.apollo.io/",
+    "docsUrl": "https://docs.apollo.io/docs/apollo-mcp",
+    "developerConsoleUrl": "https://mcp.apollo.io/.well-known/oauth-authorization-server",
+    "termsUrl": "https://www.apollo.io/terms",
+    "privacyUrl": "https://www.apollo.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["contacts_search", "mixed_people_api_search"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://mcp.apollo.io/mcp/oauth_metadata/redirect_to_authorize",
+    "tokenUrl": "https://mcp.apollo.io/api/v1/oauth/token",
+    "revocationUrl": "https://mcp.apollo.io/api/v1/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "provider_hosted_oauth",
+      "dynamic_public_client_pkce",
+      "workspace_user_authority"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "APOLLO_MCP_CLIENT_ID",
+        "label": "Apollo OAuth client ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Use Relay's dynamically registered public PKCE client ID from Apollo's official MCP OAuth server."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/apollo-io/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "apollo_io_read",
+      "label": "Search people and saved contacts",
+      "description": "Use two pinned no-credit API v1 searches with a required keyword, pages capped at 25, and contact channels removed.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "apollo_io_read",
+        "label": "Search Apollo",
+        "description": "Search bounded Apollo people and saved-contact results without enrichment, contact channels, or writes."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "apollo_io_manage",
+        "label": "Change or enrich Apollo data",
+        "description": "Enrichment, credit use, records, lists, sequences, messages, mailboxes, tasks, ownership, and every mutation are outside Relay's V1 contract."
+      },
+      {
+        "id": "apollo_io_contact_channels",
+        "label": "Read contact channels or enriched profiles",
+        "description": "Email addresses, phone numbers, social profiles, avatars, enriched personal data, bulk matching, and company enrichment are blocked."
+      },
+      {
+        "id": "apollo_io_arbitrary_search",
+        "label": "Use arbitrary search filters",
+        "description": "Relay accepts one bounded keyword, page, and result limit only; advanced targeting arrays, saved-record identifiers, and raw API or MCP calls are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "apollo_io_safe",
+      "label": "Safe",
+      "description": "Two bounded no-credit searches run directly. Enrichment, contact channels, mailboxes, messages, sequences, arbitrary filters, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["apollo_io_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "apollo_io_manage",
+        "apollo_io_contact_channels",
+        "apollo_io_arbitrary_search"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one search tool with two pinned no-credit API v1 operations through Apollo OAuth."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one search tool with two pinned no-credit API v1 operations through Apollo OAuth."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No dynamically registered Relay public OAuth client, non-production Apollo workspace, authorized user, representative people or saved-contact fixtures, or plan-permission matrix is available in this workspace.",
+    "nextAction": "The provider-setup owner dynamically registers Relay's public PKCE client, verifies the exact callback, authorizes a non-production Apollo workspace user with only contacts_search and mixed_people_api_search, then verifies token refresh and revocation, both bounded searches, result minimization, plan and permission errors, agent assignment, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.apollo.io/docs/apollo-mcp",
+      "checkedAt": "2026-07-17",
+      "supports": "Apollo documents a standalone Streamable HTTP MCP with OAuth, user-bound plan and workspace permissions, no additional connection charge, non-credit people and contact searches, credit-consuming enrichment, broad engagement mutations, and provider-side revocation."
+    },
+    {
+      "url": "https://mcp.apollo.io/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-17",
+      "supports": "Apollo's live OAuth metadata publishes authorization, token, revocation, and dynamic-registration endpoints; public-client authentication; authorization-code and refresh grants; S256 PKCE; and the exact contacts_search and mixed_people_api_search scopes."
+    },
+    {
+      "url": "https://docs.apollo.io/reference/people-api-search",
+      "checkedAt": "2026-07-17",
+      "supports": "The official people-search reference documents POST /api/v1/mixed_people/api_search, keyword and paging inputs, no credit cost, a maximum 100 rows per page and 500 pages, and exclusion of email addresses and phone numbers without enrichment."
+    },
+    {
+      "url": "https://docs.apollo.io/reference/search-for-contacts",
+      "checkedAt": "2026-07-17",
+      "supports": "The official saved-contact search reference documents POST /api/v1/contacts/search, keyword and paging inputs, no credit cost, a maximum 100 rows per page and 500 pages, and numerous advanced filters that Relay does not expose."
+    },
+    {
+      "url": "https://docs.apollo.io/docs/api-pricing",
+      "checkedAt": "2026-07-17",
+      "supports": "Apollo's official pricing reference classifies people search and saved-contact search as no-credit endpoints while enrichment consumes credits."
+    }
+  ]
+}

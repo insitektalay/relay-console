@@ -1,0 +1,245 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "hivebrite",
+  "name": "Hivebrite",
+  "category": "communication_collaboration",
+  "description": "Hivebrite is a hosted community-management platform for alumni, professional, nonprofit, education, and member networks. It combines member directories, groups, events, communications, content, engagement, and integration tools in one configurable platform.",
+  "agentUseSummary": "Connect a current customer-generated Admin API bearer token to one exact public HTTPS Hivebrite tenant and one exact administrator. Agents can inspect reduced administrator, Group, News Category, Event, and Company catalog metadata through five fixed read-only routes. Users, memberships, content, communications, financial data, mutation, administration, bulk access, and arbitrary APIs remain blocked.",
+  "provider": {
+    "websiteUrl": "https://hivebrite.io/",
+    "docsUrl": "https://docs.hivebrite.com/partner/admin",
+    "developerConsoleUrl": "https://docs.hivebrite.com/partner/admin",
+    "termsUrl": "https://hivebrite.com/static/legal/msa/Online_MSA_Hivebrite_2022_11_03.pdf",
+    "privacyUrl": "https://hivebrite.com/legal/dpa"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["admin"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_oauth_access_token", "tenant_bound_rest_api"],
+    "credentialRequirements": [
+      {
+        "name": "HIVEBRITE_BASE_URL",
+        "label": "Hivebrite tenant URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the public HTTPS origin of the exact Hivebrite tenant, without an API path."
+      },
+      {
+        "name": "HIVEBRITE_ADMIN_ID",
+        "label": "Hivebrite administrator ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact numeric administrator ID represented by the access token. Relay rejects a different administrator."
+      },
+      {
+        "name": "HIVEBRITE_ACCESS_TOKEN",
+        "label": "Hivebrite Admin API access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Provide a current customer-generated OAuth2 Admin API bearer token. Relay encrypts it and sends it only to the exact tenant."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "community_catalog_read",
+      "label": "Read community catalog",
+      "description": "Inspect the exact connected administrator plus reduced Group and News Category metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "event_catalog_read",
+      "label": "Read event catalog",
+      "description": "Inspect bounded reduced Event schedule and lifecycle metadata without content or participant data.",
+      "defaultSelected": true
+    },
+    {
+      "id": "company_catalog_read",
+      "label": "Read company catalog",
+      "description": "Inspect bounded company IDs and names without contact, address, financial, or profile data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "hivebrite_admin_get",
+        "label": "Read connected administrator",
+        "description": "Read reduced identity and authority metadata for the exactly configured Hivebrite administrator."
+      },
+      {
+        "id": "hivebrite_group_list",
+        "label": "List groups",
+        "description": "List one bounded page of reduced Group visibility and lifecycle metadata without descriptions, members, experts, partners, locations, images, or configuration."
+      },
+      {
+        "id": "hivebrite_news_category_list",
+        "label": "List news categories",
+        "description": "List up to twenty-five reduced News Category definitions without posts or content."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "hivebrite_event_list",
+        "label": "List events",
+        "description": "List one bounded page of reduced Event schedule, registration type, publication, and cancellation metadata without descriptions, locations, contacts, attendees, tickets, or URLs."
+      },
+      {
+        "id": "hivebrite_company_list",
+        "label": "List companies",
+        "description": "List one bounded page of company IDs and names without contact, address, financial, profile, identifier, or raw data."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "hivebrite_content",
+        "label": "Read or write content",
+        "description": "News, posts, comments, forum discussions, messages, descriptions, media, files, projects, opportunities, mentoring content, and arbitrary rich content are outside V1."
+      },
+      {
+        "id": "hivebrite_user_or_membership",
+        "label": "Read or manage users and memberships",
+        "description": "User directories, profiles, emails, addresses, devices, experiences, education, roles, approvals, group membership, followers, invitations, and user lifecycle actions are outside V1."
+      },
+      {
+        "id": "hivebrite_communication",
+        "label": "Communicate or notify",
+        "description": "Email campaigns, notifications, invitations, messages, posts, comments, and outbound webhooks are outside V1."
+      },
+      {
+        "id": "hivebrite_event_or_group_write",
+        "label": "Change events or groups",
+        "description": "Creating, updating, deleting, duplicating, cancelling, publishing, joining, leaving, or configuring Events, Groups, tickets, bookings, attendees, RSVPs, waitlists, or memberships is outside V1."
+      },
+      {
+        "id": "hivebrite_financial",
+        "label": "Use financial features",
+        "description": "Donations, funds, campaigns, gifts, receipts, payment accounts, bookings, tickets, prices, billing, and financial records are outside V1."
+      },
+      {
+        "id": "hivebrite_admin",
+        "label": "Administer the network",
+        "description": "Settings, attributes, roles, admins, categories, clusters, saved lists, audit logs, imports, exports, integrations, and network configuration are outside V1."
+      },
+      {
+        "id": "hivebrite_bulk_or_analytics",
+        "label": "Run bulk or analytics actions",
+        "description": "Automatic pagination, bulk loops, polling, sync, engagement scoring, analytics, reports, historical reloads, and sustained high-rate access are outside V1."
+      },
+      {
+        "id": "hivebrite_private_data",
+        "label": "Read broader private data",
+        "description": "Emails, phones, addresses, precise locations, custom fields, identifiers, admin comments, revenues, user membership, attendees, registrants, and raw records are outside V1."
+      },
+      {
+        "id": "hivebrite_raw_api",
+        "label": "Use arbitrary Hivebrite APIs",
+        "description": "Arbitrary endpoints, methods, parameters, bodies, headers, alternate origins, raw responses, password or refresh grants, credential exchange, Swagger execution, webhooks, MCP, CLI, and direct database access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "hivebrite_safe",
+      "label": "Safe",
+      "description": "Connected-administrator, Group, and News Category reads run directly. Event and Company catalog reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "hivebrite_admin_get",
+        "hivebrite_group_list",
+        "hivebrite_news_category_list"
+      ],
+      "approvalRequiredActions": [
+        "hivebrite_event_list",
+        "hivebrite_company_list"
+      ],
+      "blockedActions": [
+        "hivebrite_content",
+        "hivebrite_user_or_membership",
+        "hivebrite_communication",
+        "hivebrite_event_or_group_write",
+        "hivebrite_financial",
+        "hivebrite_admin",
+        "hivebrite_bulk_or_analytics",
+        "hivebrite_private_data",
+        "hivebrite_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All five selected bounded Hivebrite V1 reads run without Relay per-action approval; encrypted credentials, exact-tenant/admin binding, provider authority, fixed routes, bounds, audits, privacy reduction, and system blocks still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "hivebrite_admin_get",
+        "hivebrite_group_list",
+        "hivebrite_news_category_list",
+        "hivebrite_event_list",
+        "hivebrite_company_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "hivebrite_content",
+        "hivebrite_user_or_membership",
+        "hivebrite_communication",
+        "hivebrite_event_or_group_write",
+        "hivebrite_financial",
+        "hivebrite_admin",
+        "hivebrite_bulk_or_analytics",
+        "hivebrite_private_data",
+        "hivebrite_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts five fixed read-only Hivebrite Admin API wrappers and keeps the customer-owned bearer token encrypted outside agent context."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts five fixed read-only Hivebrite Admin API wrappers and keeps the customer-owned bearer token encrypted outside agent context."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No representative Hivebrite tenant, customer Admin API entitlement, dedicated administrator, current bearer token, or staging Group, Category, Event, and Company fixtures were available for live acceptance.",
+    "nextAction": "A Hivebrite customer confirms Admin API entitlement and Order Form call limits, obtains a current OAuth2 Admin API bearer token for a dedicated least-privilege administrator, and enters the exact tenant origin, administrator ID, and token in Relay. Staging acceptance verifies tenant and administrator binding, reduced projections, Safe approvals, Dangerous execution, token rotation, rate and permission errors, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.hivebrite.com/partner/admin",
+      "checkedAt": "2026-07-18",
+      "supports": "Hivebrite's official Admin API 3.0 reference documents OAuth2 bearer authentication, the admin identity route, fixed v1-v3 routes, recommended twenty-five-item pages, rate limits, and the Group, News Category, Event, and Company endpoints wrapped by Relay."
+    },
+    {
+      "url": "https://hivebrite.io/integrations/",
+      "checkedAt": "2026-07-18",
+      "supports": "Hivebrite advertises a REST API with OAuth2 authentication, sandbox and Swagger support, full CRUD across core platform objects, bidirectional sync, and modification audit trails."
+    },
+    {
+      "url": "https://hivebrite.com/static/legal/msa/Online_MSA_Hivebrite_2022_11_03.pdf",
+      "checkedAt": "2026-07-18",
+      "supports": "Hivebrite's official MSA states that API call limits and add-on availability may be set in the customer's Order Form and governs customer responsibility for user data and third-party integrations."
+    },
+    {
+      "url": "https://hivebrite.com/legal/dpa",
+      "checkedAt": "2026-07-18",
+      "supports": "Hivebrite publishes its customer data-processing terms from the official provider domain."
+    }
+  ]
+}

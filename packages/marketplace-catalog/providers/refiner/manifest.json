@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "refiner",
+  "name": "Refiner",
+  "category": "work_management",
+  "description": "Refiner is a customer-feedback platform for in-product surveys, NPS, CSAT, product-market-fit research, and reporting.",
+  "agentUseSummary": "Add a customer-owned Refiner personal API key, then let selected agents read bounded survey metadata, completed responses with minimized contact identity, aggregate reporting, segments, and account metadata. Relay does not mount contact directories, broad attributes or search, response writes, segment synchronization, survey changes, or deletes.",
+  "provider": {
+    "websiteUrl": "https://refiner.io/",
+    "docsUrl": "https://refiner.io/docs/api/",
+    "developerConsoleUrl": "https://refiner.io/docs/kb/integrations/api/",
+    "termsUrl": "https://refiner.io/terms/",
+    "privacyUrl": "https://refiner.io/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_personal_api_key", "bearer_header"],
+    "credentialRequirements": [
+      {
+        "key": "REFINER_API_KEY",
+        "label": "Refiner API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a customer-owned personal API key from Refiner's REST API integration; Relay sends it only in the Bearer Authorization header."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "refiner_read",
+      "label": "Read feedback",
+      "description": "Use five pinned REST API v1 reads with paging capped at 25 and minimized identities.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "refiner_read",
+        "label": "Read Refiner",
+        "description": "Read bounded, minimized surveys, responses, reporting, segments, and account metadata."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "refiner_manage",
+        "label": "Change Refiner",
+        "description": "Contacts, responses, segments, survey configuration, and every mutation are outside Relay's V1 contract."
+      },
+      {
+        "id": "refiner_broad_identity",
+        "label": "Read broad contact identity",
+        "description": "Contact lists, names, emails, remote IDs, attributes, account metadata, arbitrary search, and expanded response identity are blocked."
+      },
+      {
+        "id": "refiner_arbitrary_api",
+        "label": "Call arbitrary Refiner APIs",
+        "description": "User-supplied paths, query parameters, bodies, methods, and alternate API hosts are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "refiner_safe",
+      "label": "Safe",
+      "description": "Five bounded reads run directly. Contact directories, broad identity attributes, arbitrary filters, response writes, segment sync, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["refiner_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["refiner_manage", "refiner_broad_identity", "refiner_arbitrary_api"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with five pinned API v1 operations through the encrypted personal API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with five pinned API v1 operations through the encrypted personal API key."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Refiner workspace, personal API key, representative completed responses, or safe reporting fixture is available in this workspace.",
+    "nextAction": "A workspace administrator supplies a personal REST API key through Relay Console, then verifies authentication, the five bounded reads, response identity minimization, agent assignment, key replacement, disconnect, provider-side rotation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://refiner.io/docs/api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Refiner documents the JSON REST API v1 base URL, personal API-key authentication, recommended Bearer header, response codes, rate limits, and read and mutation endpoints."
+    },
+    {
+      "url": "https://refiner.io/docs/kb/integrations/api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Refiner documents locating a personal REST API key in the dashboard integration settings."
+    },
+    {
+      "url": "https://refiner.io/docs/kb/responses/survey-response-lists/",
+      "checkedAt": "2026-07-17",
+      "supports": "Refiner documents response lists and the feedback and contact context they can contain, supporting Relay's identity-minimization boundary."
+    }
+  ]
+}

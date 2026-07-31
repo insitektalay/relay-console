@@ -1,0 +1,214 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoho-mail",
+  "name": "Zoho Mail",
+  "category": "communication",
+  "description": "Zoho Mail is a hosted email service with personal and business mailboxes, folders, messages, threads, attachments, and organization administration.",
+  "agentUseSummary": "Connect one user through Relay's confidential multi-data-center Zoho OAuth client with exact account, folder, and message read scopes. Relay exposes four fixed bounded reads for accounts, folders, filtered message summaries, and one message's sanitized content and attachment metadata; sending, drafts, downloads, mutations, administration, raw endpoints, and broad export remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.zoho.com/mail/",
+    "docsUrl": "https://www.zoho.com/mail/help/api/",
+    "developerConsoleUrl": "https://api-console.zoho.com/",
+    "termsUrl": "https://www.zoho.com/terms.html",
+    "privacyUrl": "https://www.zoho.com/privacy.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "ZohoMail.accounts.READ",
+      "ZohoMail.folders.READ",
+      "ZohoMail.messages.READ"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.zoho.com/oauth/v2/auth",
+    "tokenUrl": "https://accounts.zoho.com/oauth/v2/token",
+    "revocationUrl": "https://accounts.zoho.com/oauth/v2/token/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth",
+      "comma_delimited_exact_read_scopes",
+      "offline_refresh_token",
+      "multi_data_center_authority_allowlist",
+      "regional_mail_api_binding"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ZOHO_MAIL_CLIENT_ID",
+        "label": "Zoho Mail client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held production multi-data-center Zoho server-client ID."
+      },
+      {
+        "name": "ZOHO_MAIL_CLIENT_SECRET",
+        "label": "Zoho Mail client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-encrypted confidential client secret; never returned to clients or agents."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/zoho-mail/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_read",
+      "label": "List mail accounts",
+      "description": "List at most twenty-five authenticated Zoho Mail accounts with useful identity and state.",
+      "defaultSelected": true
+    },
+    {
+      "id": "folder_read",
+      "label": "List folders",
+      "description": "List at most twenty-five named folders for one verified mail account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "message_list_read",
+      "label": "List filtered messages",
+      "description": "List at most twenty-five useful message summaries in one explicit folder without pagination.",
+      "defaultSelected": true
+    },
+    {
+      "id": "message_read",
+      "label": "Read one message",
+      "description": "Read one explicit message with bounded sanitized text and attachment metadata.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "zoho_mail_accounts_list",
+        "label": "List mail accounts",
+        "description": "Return the authenticated user's bounded Zoho Mail account list."
+      },
+      {
+        "id": "zoho_mail_folders_list",
+        "label": "List account folders",
+        "description": "Return bounded named folders for one connection-bound account."
+      },
+      {
+        "id": "zoho_mail_messages_list_filtered",
+        "label": "List filtered messages",
+        "description": "Return a bounded message-summary list for one explicit account and folder."
+      },
+      {
+        "id": "zoho_mail_message_get",
+        "label": "Read one message",
+        "description": "Return one message's useful metadata, bounded sanitized text, and attachment metadata."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "zoho_mail_writes",
+        "label": "Block mail writes",
+        "description": "Sending, replies, forwarding, drafts, moves, labels, flags, archive, spam, and deletion are not exposed."
+      },
+      {
+        "id": "zoho_mail_attachment_downloads",
+        "label": "Block attachment downloads",
+        "description": "Only bounded attachment metadata may be returned; binary, inline-image, original-message, and raw-HTML downloads are not exposed."
+      },
+      {
+        "id": "zoho_mail_administration",
+        "label": "Block administration",
+        "description": "Organization, domain, user, group, policy, forwarding, signature, task, note, bookmark, log, and anti-spam APIs are not exposed."
+      },
+      {
+        "id": "zoho_mail_broad_raw",
+        "label": "Block broad and raw access",
+        "description": "Bulk export, automatic pagination, arbitrary regional hosts, raw provider endpoints, and generic tool surfaces are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zoho_mail_read_only",
+      "label": "Read only",
+      "description": "Only four fixed bounded Zoho Mail reads are enabled.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "zoho_mail_accounts_list",
+        "zoho_mail_folders_list",
+        "zoho_mail_messages_list_filtered",
+        "zoho_mail_message_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zoho_mail_writes",
+        "zoho_mail_attachment_downloads",
+        "zoho_mail_administration",
+        "zoho_mail_broad_raw"
+      ]
+    },
+    {
+      "id": "zoho_mail_no_access",
+      "label": "No access",
+      "description": "Every Zoho Mail action is blocked.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zoho_mail_writes",
+        "zoho_mail_attachment_downloads",
+        "zoho_mail_administration",
+        "zoho_mail_broad_raw",
+        "zoho_mail_accounts_list",
+        "zoho_mail_folders_list",
+        "zoho_mail_messages_list_filtered",
+        "zoho_mail_message_get"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the same four regional, bounded Zoho Mail read wrappers for OpenClaw without exposing credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the same four regional, bounded Zoho Mail read wrappers for Hermes without exposing credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's production Zoho Mail server client, multi-data-center enablement, exact Railway callback registration, credentials, authorized backend deployment, and real regional connected-user lifecycle evidence are not available.",
+    "nextAction": "Create the production multi-data-center Zoho server client, register the exact Railway callback, configure ZOHO_MAIL_CLIENT_ID and ZOHO_MAIL_CLIENT_SECRET on Railway, then deploy and run consent, regional authority binding, refresh, four bounded reads, revoke, disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://www.zoho.com/mail/help/api/using-oauth-2.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho Mail documents confidential server-client registration, exact redirect URI, comma-separated scopes, offline refresh tokens, one-hour access tokens, state, and the Zoho-oauthtoken authorization scheme."
+    },
+    {
+      "url": "https://www.zoho.com/mail/help/api/get-emails-list.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents the regional account/folder message-list route, a distinct messages.READ scope, useful message and thread fields, filters, and provider bounds."
+    },
+    {
+      "url": "https://www.zoho.com/mail/help/api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho's API index separates account, folder, message, attachment, mutation, send, and administration operations and their operation-qualified scopes."
+    },
+    {
+      "url": "https://www.zoho.com/accounts/protocol/oauth/token-limits.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents two-minute authorization codes, ten active access tokens per refresh token, ten access-token requests per ten minutes, and twenty active refresh tokens per client/user."
+    },
+    {
+      "url": "https://www.zoho.com/accounts/protocol/oauth/revoke-refresh-token.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents regional programmatic token revocation and states that revoking a refresh token revokes its derived access tokens."
+    }
+  ]
+}

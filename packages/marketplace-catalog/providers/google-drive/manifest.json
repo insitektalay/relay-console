@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-drive",
+  "name": "Google Drive",
+  "category": "knowledge_documents",
+  "description": "Google Drive is Google's cloud file service for storing, organizing, sharing, and collaborating on files and Google Workspace documents. Individuals and teams use it to keep documents available across devices and coordinate work in shared folders.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth, explicitly select files for Relay, then let agents use six bounded tools for app-visible search, metadata, text reads, local preparation, creation, and copying. Relay V1 uses only drive.file and excludes whole-Drive discovery, restricted Drive scopes, permissions, sharing, comments, revisions, moves, overwrites, deletion, broad exports, automatic pagination, and raw API or MCP access.",
+  "provider": {
+    "websiteUrl": "https://drive.google.com/",
+    "docsUrl": "https://developers.google.com/workspace/drive/api/guides/api-specific-auth",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials",
+    "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "email", "https://www.googleapis.com/auth/drive.file"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token"
+  },
+  "connection": {
+    "types": ["relay_owned_global_oauth", "exact_google_account_binding", "app_visible_file_corpus", "expiring_access_token", "offline_refresh_token", "provider_revocation"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-drive/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "file_read", "label": "Find and read files", "description": "Find app-visible files and read bounded metadata or text content.", "defaultSelected": true },
+    { "id": "file_draft", "label": "Prepare files", "description": "Prepare and hash bounded text-file changes locally.", "defaultSelected": true },
+    { "id": "file_write", "label": "Create and copy files", "description": "Create bounded text files and copy app-visible files after policy checks.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_drive_file_search", "label": "Find app-visible files", "description": "Find at most twenty-five files created by Relay or explicitly shared with Relay." },
+      { "id": "google_drive_file_get", "label": "Read file metadata", "description": "Read bounded metadata for one app-visible file." },
+      { "id": "google_drive_file_content", "label": "Read file content", "description": "Read at most 256 KiB of text from one app-visible file." },
+      { "id": "google_drive_text_prepare", "label": "Prepare text file", "description": "Prepare and hash one bounded text file locally without changing Drive." }
+    ],
+    "approvalRequired": [
+      { "id": "google_drive_text_create", "label": "Create text file", "description": "Create one bounded UTF-8 text file in the app-visible Drive corpus." },
+      { "id": "google_drive_file_copy", "label": "Copy file", "description": "Copy one app-visible file into one app-visible folder." }
+    ],
+    "blocked": [
+      { "id": "google_drive_whole_drive", "label": "Access the whole Drive", "description": "Broad Drive discovery, restricted whole-Drive scopes, shared-drive crawling, and automatic pagination are outside V1." },
+      { "id": "google_drive_sharing_admin", "label": "Change sharing or administration", "description": "Permissions, ownership, public links, domain-wide delegation, labels, revisions, comments, and administration are outside V1." },
+      { "id": "google_drive_destructive", "label": "Delete or overwrite files", "description": "Delete, trash, overwrite, move, and other destructive file operations are outside V1." },
+      { "id": "google_drive_binary_raw", "label": "Run broad binary or raw operations", "description": "Arbitrary binary upload/download, broad export, raw API or MCP calls, and unbounded payloads are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "google_drive_safe", "label": "Safe", "description": "Bounded app-visible reads and local preparation run automatically; creates and copies require matching approval.", "defaultSelected": true, "allowedActions": ["google_drive_file_search", "google_drive_file_get", "google_drive_file_content", "google_drive_text_prepare"], "approvalRequiredActions": ["google_drive_text_create", "google_drive_file_copy"], "blockedActions": ["google_drive_whole_drive", "google_drive_sharing_admin", "google_drive_destructive", "google_drive_binary_raw"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All six selected tools run without Relay per-action approval while drive.file, app-visible corpus, account binding, payload limits, audit, redaction, refresh, revocation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["google_drive_file_search", "google_drive_file_get", "google_drive_file_content", "google_drive_text_prepare", "google_drive_text_create", "google_drive_file_copy"], "approvalRequiredActions": [], "blockedActions": ["google_drive_whole_drive", "google_drive_sharing_admin", "google_drive_destructive", "google_drive_binary_raw"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts six bounded Google Drive wrappers and attaches encrypted OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts six bounded Google Drive wrappers and attaches encrypted OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay must configure its Google Cloud project and confidential web client, enable Drive API and Google Picker, publish the OAuth consent screen with verified relayconsole.work domains and policy links, complete Google's verification required for the production app, configure Railway staging credentials, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the canonical Railway callback and exact scopes, complete Google's brand and verification workflow, configure staging credentials, then verify account binding, Picker/app-visible corpus enforcement, all six tools, Safe and Dangerous policy, token refresh and rotation, revocation, disconnect, quota/error mapping, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developers.google.com/workspace/drive/api/guides/api-specific-auth", "checkedAt": "2026-07-17", "supports": "Google documents drive.file as the recommended non-sensitive per-file scope, limited to files the app creates or the user opens or shares with the app, and recommends secure long-term refresh-token storage." },
+    { "url": "https://developers.google.com/identity/protocols/oauth2/web-server", "checkedAt": "2026-07-17", "supports": "Google documents the confidential web-server authorization-code flow, exact redirect URI handling, offline access, access-token refresh, and token revocation." },
+    { "url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/policy-compliance", "checkedAt": "2026-07-17", "supports": "Production Google OAuth apps must configure consent, verified domains, accurate branding and policy links, request minimum scopes, and complete applicable verification." },
+    { "url": "https://developers.google.com/workspace/drive/api/reference/rest/v3/files", "checkedAt": "2026-07-17", "supports": "Drive API v3 provides fixed files list, get, create, copy, download, and export operations that Relay wraps with explicit IDs, fields, result limits, and payload bounds." }
+  ]
+}

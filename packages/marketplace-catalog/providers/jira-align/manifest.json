@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "jira-align",
+  "name": "Jira Align",
+  "category": "project_management",
+  "description": "Jira Align is Atlassian's enterprise strategy and work-planning platform. Organizations use it to connect themes, portfolios, programs, teams, objectives, releases, and delivery work across people, work, and time hierarchies.",
+  "agentUseSummary": "Connect a Jira Align tenant with an expiring scoped Atlassian API token, then let agents read authorized planning data and approval-gate supported creates and updates through REST API 2.0.",
+  "icon": {
+    "assetName": "jira-align",
+    "sourceUrl": "https://www.atlassian.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://www.atlassian.com/software/jira/align",
+    "docsUrl": "https://help.jiraalign.com/hc/en-us/articles/360045371954-Getting-started-with-the-REST-API-2-0",
+    "developerConsoleUrl": "https://id.atlassian.com/manage-profile/security/api-tokens",
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["read", "write"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": "https://id.atlassian.com/manage-profile/security/api-tokens"
+  },
+  "connection": {
+    "types": ["customer_owned_scoped_api_token", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "JIRA_ALIGN_SITE_URL",
+        "label": "Jira Align site URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the HTTPS origin for your Jira Align tenant, such as https://example.jiraalign.com."
+      },
+      {
+        "name": "JIRA_ALIGN_EMAIL",
+        "label": "Atlassian account email",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the account email that owns the scoped Atlassian API token."
+      },
+      {
+        "name": "JIRA_ALIGN_API_TOKEN",
+        "label": "Scoped Atlassian API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create an expiring Atlassian API token with Jira Align read scope; add write scope only when enabling management."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "enterprise_planning_read",
+      "label": "Browse Jira Align",
+      "description": "Read authorized strategy, portfolio, program, team, work, time, customer, location, and idea resources."
+    },
+    {
+      "id": "enterprise_planning_manage",
+      "label": "Manage Jira Align",
+      "description": "Create or update resources supported by Jira Align REST API 2.0 and the connected user's role."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "jira_align_read",
+        "label": "Read Jira Align data",
+        "description": "Run one bounded GET request against a documented Jira Align REST API 2.0 resource."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "jira_align_manage",
+        "label": "Change Jira Align data",
+        "description": "Create or update one supported Jira Align resource; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "jira_align_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Atlassian API tokens and authorization headers never enter agent-visible results."
+      },
+      {
+        "id": "jira_align_untrusted_route",
+        "label": "Call an untrusted route",
+        "description": "Requests are pinned to the validated Jira Align tenant's HTTPS origin and Relay's allowlist of documented API 2.0 resources."
+      },
+      {
+        "id": "jira_align_unbounded_transfer",
+        "label": "Transfer unbounded data",
+        "description": "Relay bounds query fields, JSON request bodies to one megabyte, responses to ten megabytes, and refuses redirects."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "jira_align_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; every supported Jira Align create or update requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["jira_align_read"],
+      "approvalRequiredActions": ["jira_align_manage"],
+      "blockedActions": ["jira_align_secret_exposure", "jira_align_untrusted_route", "jira_align_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected token-authorized creates and updates run without Relay per-action approval; provider roles, tenant pinning, route bounds, redaction, audits, and limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["jira_align_read", "jira_align_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["jira_align_secret_exposure", "jira_align_untrusted_route", "jira_align_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded read and approval-gated management wrappers for documented Jira Align REST API 2.0 resources."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded read and approval-gated management wrappers for documented Jira Align REST API 2.0 resources."
+    }
+  ],
+  "availability": "beta_available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No customer Jira Align tenant, scoped Atlassian API token, representative planning data, or authorized live provider session is available for production acceptance.",
+    "nextAction": "A Jira Align customer creates an expiring Atlassian API token with read scope and least-privilege account role, connects the tenant in Relay Console, and verifies reads, Safe approval, optional write-scoped mutations, rate limits, redaction, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.jiraalign.com/hc/en-us/articles/360045371954-Getting-started-with-the-REST-API-2-0",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents Jira Align REST API 2.0, tenant-relative resource URLs, Basic authentication with Atlassian API tokens under Guard, independent read and write scopes, user-role authorization identical to the UI, the supported object families, and a 600-requests-per-60-seconds IP limit."
+    },
+    {
+      "url": "https://help.jiraalign.com/hc/en-us/articles/360060894632-API-2-0-query-syntax",
+      "checkedAt": "2026-07-18",
+      "supports": "Jira Align documents bounded API 2.0 query operators including $select, $top, $skip, $filter, ordering, and expansion."
+    },
+    {
+      "url": "https://help.jiraalign.com/hc/en-us/articles/360048085774-API-2-0-GET-usage-and-filters",
+      "checkedAt": "2026-07-18",
+      "supports": "Jira Align documents authenticated GET usage, API 2.0 resource paths, URL-encoded filters, and a maximum of 100 records per response."
+    },
+    {
+      "url": "https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents scoped API tokens for Jira Align, revocation, and mandatory expiration between one and 365 days."
+    },
+    {
+      "url": "https://www.atlassian.com/software/jira/align",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian describes Jira Align as enterprise strategy and work planning that connects business strategy to technical execution."
+    }
+  ]
+}

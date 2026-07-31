@@ -1,0 +1,185 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "instagram-business",
+  "name": "Instagram Business",
+  "category": "content_creative",
+  "description": "Instagram is a photo and video platform for sharing media and connecting with audiences. Relay connects one Business or Creator professional account through Instagram Login and lets agents inspect its bounded identity, ten recent owned-media summaries, and one ownership-checked media item.",
+  "agentUseSummary": "Connect one Business or Creator professional account with exactly instagram_business_basic through Relay-owned Instagram Login. Agents can read bounded account identity, list one page of at most ten owned-media summaries, and inspect one ownership-checked media item; publishing, engagement, messages, people data, insights, ads, tagging, discovery, shopping, media bytes, webhooks, moderation, deletion, pagination, export, and raw Graph access are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.instagram.com/",
+    "docsUrl": "https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/",
+    "developerConsoleUrl": "https://developers.facebook.com/apps/",
+    "termsUrl": "https://developers.facebook.com/terms/",
+    "privacyUrl": "https://privacycenter.instagram.com/policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["instagram_business_basic"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.instagram.com/oauth/authorize",
+    "tokenUrl": "https://api.instagram.com/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "oauth2",
+      "relay_owned_global_oauth",
+      "bound_professional_account"
+    ],
+    "credentialRequirements": [
+      "Relay-owned Meta app ID configured only on Railway",
+      "Relay-owned Meta app secret retained only by Railway",
+      "One encrypted Instagram User access-token reference"
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/instagram-business/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "read_bound_account",
+      "label": "Read bound professional account",
+      "description": "Read bounded identity and account metadata for the authenticated Business or Creator account.",
+      "readOnly": true
+    },
+    {
+      "id": "read_own_media",
+      "label": "Read owned media",
+      "description": "List at most ten recent owned-media summaries and inspect one ownership-checked item.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "instagram_business_account_get",
+        "label": "Read professional account",
+        "description": "Read fixed safe fields for the bound Business or Creator account through /me."
+      },
+      {
+        "id": "instagram_business_own_media_list",
+        "label": "List owned media",
+        "description": "Read one provider page containing at most ten recent owned-media summaries."
+      },
+      {
+        "id": "instagram_business_own_media_get",
+        "label": "Read owned media item",
+        "description": "Read one media item only after verifying it belongs to the bound account."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "instagram_business_publishing_engagement",
+        "label": "Publish or engage",
+        "description": "Publishing, media containers, comments, replies, likes, moderation, and deletion are blocked."
+      },
+      {
+        "id": "instagram_business_messages_people",
+        "label": "Use messages or people data",
+        "description": "Messages, followers, commenters, likers, mentions, tagging, hashtags, discovery, search, and other accounts are blocked."
+      },
+      {
+        "id": "instagram_business_insights_ads_media",
+        "label": "Use broader Instagram products",
+        "description": "Insights, ads, shopping, branded content, media upload/download, and webhooks are blocked."
+      },
+      {
+        "id": "instagram_business_broad_access",
+        "label": "Use broad or raw access",
+        "description": "Pagination, polling, retries, bulk export, raw Graph access, and browser automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "instagram_business_read_only",
+      "label": "Read Only",
+      "description": "Read only the bound professional account and its owned-media metadata.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "instagram_business_account_get",
+        "instagram_business_own_media_list",
+        "instagram_business_own_media_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "instagram_business_publishing_engagement",
+        "instagram_business_messages_people",
+        "instagram_business_insights_ads_media",
+        "instagram_business_broad_access"
+      ]
+    },
+    {
+      "id": "instagram_business_no_access",
+      "label": "No Access",
+      "description": "Expose no Instagram Business actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "instagram_business_account_get",
+        "instagram_business_own_media_list",
+        "instagram_business_own_media_get",
+        "instagram_business_publishing_engagement",
+        "instagram_business_messages_people",
+        "instagram_business_insights_ads_media",
+        "instagram_business_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_wrapper_tools",
+      "description": "Mounts exactly three bounded professional-account and owned-media read wrappers."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_wrapper_tools",
+      "description": "Mounts exactly three bounded professional-account and owned-media read wrappers."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A reviewed production Relay-owned Meta app with Instagram API with Instagram Login, an exact Railway callback, business verification and Advanced Access/App Review, privacy/terms/data-deletion configuration, production token lifecycle, and staging acceptance remain pending outside this worker lane.",
+    "nextAction": "Configure and verify the Relay-owned Meta app, exact callback, and instagram_business_basic access, then validate code exchange, long-lived token exchange and refresh, bound professional-account reads, owned-media bounds, rate behavior, revocation, and reconnect through Railway staging.",
+    "requiredProviderArtifacts": [
+      "production Meta app ID",
+      "production Meta app secret",
+      "Instagram API with Instagram Login product configuration",
+      "exact Railway callback allowlist",
+      "business verification",
+      "Advanced Access or App Review for instagram_business_basic",
+      "privacy policy URL",
+      "terms URL",
+      "data deletion instructions",
+      "one staging Business or Creator account"
+    ]
+  },
+  "evidence": [
+    {
+      "url": "https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/",
+      "checkedAt": "2026-07-17",
+      "supports": "Meta documents Instagram Login for Business and Creator professional accounts without requiring a linked Facebook Page."
+    },
+    {
+      "url": "https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/business-login",
+      "checkedAt": "2026-07-17",
+      "supports": "Meta documents the Instagram Login authorization flow and current instagram_business_* permission family."
+    },
+    {
+      "url": "https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/get-started",
+      "checkedAt": "2026-07-17",
+      "supports": "Meta documents professional-account identity and owned-media access through the Instagram API."
+    },
+    {
+      "url": "https://developers.facebook.com/docs/instagram-platform/reference/access_token",
+      "checkedAt": "2026-07-17",
+      "supports": "Meta documents Instagram User access-token exchange, refresh, and lifecycle requirements."
+    }
+  ]
+}

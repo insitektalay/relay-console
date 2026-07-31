@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "alchemer",
+  "name": "Alchemer",
+  "category": "work_management",
+  "description": "Alchemer is a survey and feedback platform for customer experience, market research, employee feedback, forms, panels, and workflow automation. Organizations use it to design surveys, collect responses, analyze results, and connect feedback with business systems.",
+  "agentUseSummary": "Register a customer-owned Alchemer OAuth 1.0 application, authorize a least-privilege API user, add the regional OAuth credential bundle once, then let selected agents read bounded surveys, metadata-only survey details, sanitized response summaries, and one exact response. Relay does not use Alchemer's API-key mode because it places both key and secret in URLs, and it does not mount arbitrary endpoints, files, broad filters, or writes.",
+  "provider": {
+    "websiteUrl": "https://www.alchemer.com/",
+    "docsUrl": "https://apihelp.alchemer.com/help",
+    "developerConsoleUrl": "https://apihelp.alchemer.com/help/authentication",
+    "termsUrl": "https://www.alchemer.com/terms-and-conditions/",
+    "privacyUrl": "https://www.alchemer.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth1",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://api.alchemer.com/head/oauth/authenticate",
+    "tokenUrl": "https://api.alchemer.com/head/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_oauth1",
+      "regional_api_host",
+      "api_user_role_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "ALCHEMER_REGION",
+        "label": "Alchemer data region",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter us, eu, ca, or au. Relay pins requests to the official API host for that region."
+      },
+      {
+        "key": "ALCHEMER_OAUTH_CONSUMER_KEY",
+        "label": "OAuth consumer key",
+        "secret": true,
+        "required": true,
+        "helpText": "Supply the customer-owned OAuth 1.0 application's consumer key."
+      },
+      {
+        "key": "ALCHEMER_OAUTH_CONSUMER_SECRET",
+        "label": "OAuth consumer secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Supply the matching consumer secret; Relay uses it only for server-side request signing."
+      },
+      {
+        "key": "ALCHEMER_OAUTH_ACCESS_TOKEN",
+        "label": "OAuth access token",
+        "secret": true,
+        "required": true,
+        "helpText": "Supply the authorized least-privilege API user's OAuth access token."
+      },
+      {
+        "key": "ALCHEMER_OAUTH_ACCESS_TOKEN_SECRET",
+        "label": "OAuth access token secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Supply the matching access-token secret; Relay never puts it in a URL."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "alchemer_read",
+      "label": "Read surveys and bounded responses",
+      "description": "Use four pinned API v5 reads for bounded surveys, metadata-only survey details, sanitized response summaries, and one exact response.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "alchemer_read",
+        "label": "Read Alchemer",
+        "description": "Read bounded surveys and responses through signed customer-owned OAuth 1.0 credentials."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "alchemer_manage",
+        "label": "Change Alchemer",
+        "description": "Survey, response, campaign, contact, report, account, and all other mutations are outside Relay's V1 contract."
+      },
+      {
+        "id": "alchemer_query_credentials",
+        "label": "Use API-key query authentication",
+        "description": "Relay never sends Alchemer API keys or secrets in URL query parameters."
+      },
+      {
+        "id": "alchemer_arbitrary_api",
+        "label": "Use another endpoint or broad filter",
+        "description": "Requests are pinned to four bounded REST API v5 reads; arbitrary paths, filters, and response files are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "alchemer_safe",
+      "label": "Safe",
+      "description": "Four bounded reads run directly. Query-string credentials and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["alchemer_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "alchemer_manage",
+        "alchemer_query_credentials",
+        "alchemer_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with four pinned API v5 operations and server-side OAuth 1.0 signing."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with four pinned API v5 operations and server-side OAuth 1.0 signing."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Alchemer Enterprise API account, regional OAuth 1.0 application, authorized least-privilege API user, access-token bundle, representative surveys, or safe test responses is available in this workspace.",
+    "nextAction": "The provider-setup owner registers a regional customer-owned OAuth 1.0 application, authorizes a least-privilege API user, saves the region and four OAuth credentials through Relay Console, then verifies signatures, regional routing, the four bounded reads, response-summary minimization, exact-response access, agent assignment, credential replacement, disconnect, provider-side revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://apihelp.alchemer.com/help/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Alchemer documents per-user API keys, query-parameter API key and secret transport, customer application registration, OAuth 1.0 request signing, and the request-token, authorization, and access-token flow."
+    },
+    {
+      "url": "https://apihelp.alchemer.com/help/api-base-domains",
+      "checkedAt": "2026-07-17",
+      "supports": "Alchemer documents distinct API hosts for US, EU, Canada, and Australia accounts."
+    },
+    {
+      "url": "https://apihelp.alchemer.com/help/survey-object-v5",
+      "checkedAt": "2026-07-17",
+      "supports": "The official API v5 survey reference documents survey list and exact-survey GET operations, paging, and metadata-only retrieval."
+    },
+    {
+      "url": "https://apihelp.alchemer.com/help/surveyresponse-sub-object-v5",
+      "checkedAt": "2026-07-17",
+      "supports": "The official response reference documents form-scoped list and exact-response GET operations, paging up to 500, filters, and response mutations; Relay caps lists at 25 and exposes no mutations or filters."
+    }
+  ]
+}

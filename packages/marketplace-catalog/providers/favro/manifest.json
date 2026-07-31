@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "favro",
+  "name": "Favro",
+  "category": "project_management",
+  "description": "Favro is a collaborative planning platform that combines collections, boards, backlogs and cards for product development and cross-functional work. Teams use shared views and flexible workflows to plan strategy, prioritize delivery and coordinate day-to-day execution.",
+  "agentUseSummary": "Connect a customer-owned Favro account email and separate API token. Selected agents can use ten bounded organization, collection, widget and card actions under Safe or Dangerously skip permissions; administration, advanced card data, files, webhooks, bulk operations and raw API access remain unavailable.",
+  "icon": { "assetName": "marketplace-logo-favro.png", "sourceUrl": "https://favro.com/favicon.ico" },
+  "provider": {
+    "websiteUrl": "https://favro.com/",
+    "docsUrl": "https://favro.com/developer/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://help.favro.com/en/articles/1024895-favro-s-terms-of-service",
+    "privacyUrl": "https://help.favro.com/en/articles/1019861-favro-s-privacy-policy"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_api_token", "http_basic_token_auth", "fixed_favro_api_v1_origin"],
+    "credentialRequirements": [
+      { "name": "FAVRO_ACCOUNT_EMAIL", "label": "Favro account email", "required": true, "secret": false, "helpText": "The email address of the dedicated least-authority Favro user that created the API token." },
+      { "name": "FAVRO_API_TOKEN", "label": "Favro API token", "required": true, "secret": true, "helpText": "A separate revocable Favro API token; choose read-only only when card mutations will remain unselected." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "organization_read", "label": "Read organizations", "description": "List bounded organization identities visible to the connected user.", "defaultSelected": true },
+    { "id": "workspace_read", "label": "Read collections and widgets", "description": "List and inspect bounded collections, boards and backlogs.", "defaultSelected": true },
+    { "id": "card_read", "label": "Read cards", "description": "List and inspect metadata-only cards without descriptions or custom fields.", "defaultSelected": true },
+    { "id": "card_write", "label": "Manage cards", "description": "Create minimal cards, collision-safely rename them and name-confirm instance deletion.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "favro_organizations_list", "label": "List organizations", "description": "List at most twenty organization names and IDs visible to the token user." },
+      { "id": "favro_collections_list", "label": "List collections", "description": "List at most twenty bounded active collections in one exact organization." },
+      { "id": "favro_collection_get", "label": "Read collection", "description": "Read bounded metadata for one exact collection in one exact organization." },
+      { "id": "favro_widgets_list", "label": "List widgets", "description": "List at most twenty bounded active boards or backlogs in one exact collection." },
+      { "id": "favro_widget_get", "label": "Read widget", "description": "Read bounded metadata for one exact board or backlog." },
+      { "id": "favro_cards_list", "label": "List cards", "description": "List at most twenty metadata-only cards from one exact collection or widget." },
+      { "id": "favro_card_get", "label": "Read card", "description": "Read bounded metadata for one exact card without descriptions or custom fields." },
+      { "id": "favro_card_create", "label": "Create card", "description": "Create one minimal card with a bounded name on one exact widget." },
+      { "id": "favro_card_update", "label": "Rename card", "description": "Rename one exact card only after its current name matches." },
+      { "id": "favro_card_delete", "label": "Delete card", "description": "Delete one exact card instance only after its current name matches." }
+    ],
+    "blocked": [
+      { "id": "favro_organization_admin", "label": "Administer organizations", "description": "Organization creation, settings, members, roles, groups, domains, SAML, SCIM and billing are unavailable." },
+      { "id": "favro_collection_widget_admin", "label": "Administer collections or widgets", "description": "Collection and widget creation, updates, sharing, permissions, columns, lanes, archival and deletion are unavailable." },
+      { "id": "favro_card_advanced", "label": "Change advanced card data", "description": "Descriptions, custom fields, assignees, dates, tags, task lists, comments, positions, lanes, columns, copies and dependencies are unavailable." },
+      { "id": "favro_attachments_webhooks", "label": "Manage attachments or webhooks", "description": "File upload, attachment mutation and outgoing webhook administration are unavailable." },
+      { "id": "favro_raw_api", "label": "Run arbitrary Favro calls", "description": "Agents cannot choose API origins, paths, routing headers, filters, request bodies or raw REST operations." },
+      { "id": "favro_bulk_everywhere", "label": "Run bulk or everywhere operations", "description": "Bulk mutation and deleting every copy of a card are unavailable; deletion is fixed to everywhere=false." },
+      { "id": "favro_unbounded", "label": "Export Favro data", "description": "First-page twenty-row lists, one exact resource and 256 KiB responses are the maximum supported surface." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "favro_safe", "label": "Safe", "description": "Private reads and every card mutation require approval. Fixed origin, inherited user authority, exact IDs, bounds, confirmation and audits always apply.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["favro_organizations_list", "favro_collections_list", "favro_collection_get", "favro_widgets_list", "favro_widget_get", "favro_cards_list", "favro_card_get", "favro_card_create", "favro_card_update", "favro_card_delete"], "blockedActions": ["favro_organization_admin", "favro_collection_widget_admin", "favro_card_advanced", "favro_attachments_webhooks", "favro_raw_api", "favro_bulk_everywhere", "favro_unbounded"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All ten selected Favro actions run without Relay per-action approval; token authority, exact IDs, bounds, field allowlists, confirmation, redaction and audits still apply.", "defaultSelected": false, "allowedActions": ["favro_organizations_list", "favro_collections_list", "favro_collection_get", "favro_widgets_list", "favro_widget_get", "favro_cards_list", "favro_card_get", "favro_card_create", "favro_card_update", "favro_card_delete"], "approvalRequiredActions": [], "blockedActions": ["favro_organization_admin", "favro_collection_widget_admin", "favro_card_advanced", "favro_attachments_webhooks", "favro_raw_api", "favro_bulk_everywhere", "favro_unbounded"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway executes ten fixed Favro REST API v1 actions at the documented origin with exact IDs, first-page bounds, minimal card mutations, confirmation and redaction." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway executes ten fixed Favro REST API v1 actions at the documented origin with exact IDs, first-page bounds, minimal card mutations, confirmation and redaction." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "blocked", "blocker": "Favro API access requires a user-created API token and the intended organization and collection permissions. A read-only token cannot execute selected card mutations.", "nextAction": "In the separate provider-console acceptance task, use a synthetic Favro workspace, create a dedicated least-authority user and separate API token, choose read-only or read/write authority to match selected capabilities, enter the email and token in Relay, verify the ten bounded tools, then revoke the token." },
+  "evidence": [
+    { "url": "https://favro.com/developer/", "checkedAt": "2026-07-18", "supports": "Favro's official API reference documents API-token HTTP Basic authentication, read-only token restriction, fixed API v1 endpoints, organization routing, pagination, rate limits, collections, widgets and card reads and mutations." },
+    { "url": "https://help.favro.com/en/articles/2483244-what-is-favro", "checkedAt": "2026-07-18", "supports": "Favro describes collections as workspaces for organizing projects and daily work with configurable sharing." },
+    { "url": "https://favro.com/security", "checkedAt": "2026-07-18", "supports": "Favro publishes its security and privacy program, including ISO/IEC 27001 and 27701 certification claims." },
+    { "url": "https://help.favro.com/en/articles/3650040-the-difference-between-favro-lite-standard-and-enterprise-plans", "checkedAt": "2026-07-18", "supports": "Favro documents plan differences and API-call availability and limits." }
+  ]
+}

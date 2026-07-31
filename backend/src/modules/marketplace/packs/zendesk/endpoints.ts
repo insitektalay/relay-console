@@ -1,0 +1,7 @@
+export const ZENDESK_ENDPOINT_FAMILIES = [
+  { id: "tickets_comments", label: "Tickets and Comments", docsUrl: "https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/", guidance: "Use /api/v2/tickets, ticket audits, comments, uploads, and side conversation endpoints with explicit public/private comment visibility." },
+  { id: "users_orgs_groups", label: "Users, Organizations, Groups, and Agents", docsUrl: "https://developer.zendesk.com/api-reference/ticketing/users/users/", guidance: "Use users, organizations, groups, agents, identities, and memberships endpoints to resolve requester, assignee, group, and customer context." },
+  { id: "search_incremental", label: "Search and Incremental Exports", docsUrl: "https://developer.zendesk.com/api-reference/ticketing/ticket-management/search/", guidance: "Use search and incremental export endpoints with narrow queries and cursor pagination; exports are approval-gated when customer data leaves Zendesk." },
+  { id: "automation", label: "Macros, Triggers, Automations, and Views", docsUrl: "https://developer.zendesk.com/api-reference/ticketing/business-rules/triggers/", guidance: "Inspect macros, triggers, automations, views, and routing rules; creation or modification requires approval." },
+  { id: "webhooks_rate_limits", label: "Webhooks and Rate Limits", docsUrl: "https://developer.zendesk.com/api-reference/webhooks/webhooks-api/webhooks/", guidance: "Use webhook endpoints only after approval and monitor account, endpoint, ticketing, and job rate-limit headers." },
+];

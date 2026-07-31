@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "prestashop-self-hosted",
+  "name": "PrestaShop Self-Hosted",
+  "category": "commerce",
+  "description": "PrestaShop is an open-source ecommerce platform for customer-operated shops with products, inventory, pricing, carts, checkout, orders, customers, content, modules, and administration.",
+  "agentUseSummary": "Connect one exact public HTTPS URL for a customer-owned PrestaShop installation, one dedicated 32-character Webservice key limited to View permission on products, and one selected positive numeric product ID. Relay sends exactly one fixed GET to the products resource with an exact id filter and a field projection limited to id, active, and available_for_order. It excludes product content, references, pricing, inventory quantities, suppliers, customers, carts, orders, configuration, other resources, broader filters, schemas, administration, and all mutations.",
+  "provider": {
+    "websiteUrl": "https://prestashop-project.org/",
+    "docsUrl": "https://devdocs.prestashop-project.org/9/webservice/getting-started/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://prestashop.com/legal-notice/",
+    "privacyUrl": "https://prestashop.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["products:GET"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_prestashop",
+      "public_https_webservice",
+      "dedicated_products_view_key",
+      "selected_product_id"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PRESTASHOP_SELF_HOSTED_BASE_URL",
+        "label": "PrestaShop HTTPS shop base URL",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact public HTTPS URL for one customer-owned PrestaShop installation, including its install path if present; Relay rejects embedded credentials, unsafe paths, private DNS, queries, and fragments."
+      },
+      {
+        "name": "PRESTASHOP_SELF_HOSTED_WEBSERVICE_KEY",
+        "label": "Dedicated products-view Webservice key",
+        "required": true,
+        "secret": true,
+        "helpText": "A dedicated 32-character PrestaShop Webservice key associated only with the required shop and granted View permission for products; no modify, add, delete, or other resource permissions."
+      },
+      {
+        "name": "PRESTASHOP_SELF_HOSTED_PRODUCT_ID",
+        "label": "Selected product ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact positive numeric ID of the single product Relay may query through a fixed id filter and field projection."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "prestashop_self_hosted_selected_product_availability_get",
+      "label": "Read selected product availability",
+      "description": "Read only one selected product ID plus its active and available-for-order flags without product content, pricing, inventory quantities, customer, cart, order, or private shop data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "prestashop_self_hosted_selected_product_availability_get",
+        "label": "Read selected product availability",
+        "description": "Read only one selected product ID plus its active and available-for-order flags."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "prestashop_self_hosted_private_content",
+        "label": "Expose private shop or product data",
+        "description": "Names, references, descriptions, prices, images, taxonomy, inventory quantities, suppliers, customer data, carts, orders, and private shop data are excluded."
+      },
+      {
+        "id": "prestashop_self_hosted_mutation",
+        "label": "Mutate PrestaShop",
+        "description": "Products, stock, carts, checkout, orders, customers, configuration, modules, content, users, files, and every other mutation are blocked."
+      },
+      {
+        "id": "prestashop_self_hosted_broad_access",
+        "label": "Use broad Webservice access",
+        "description": "Other products, unfiltered lists, arbitrary filters or fields, other resources, schemas, search, administration, redirects, and bulk access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "prestashop_self_hosted_selected_product_read",
+      "label": "Selected Product Read",
+      "description": "Read one selected product's availability flags; content, pricing, inventory quantities, customers, carts, orders, other resources, administration, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "prestashop_self_hosted_selected_product_availability_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "prestashop_self_hosted_private_content",
+        "prestashop_self_hosted_mutation",
+        "prestashop_self_hosted_broad_access"
+      ]
+    },
+    {
+      "id": "prestashop_self_hosted_no_access",
+      "label": "No Access",
+      "description": "Expose no PrestaShop Self-Hosted actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "prestashop_self_hosted_selected_product_availability_get",
+        "prestashop_self_hosted_private_content",
+        "prestashop_self_hosted_mutation",
+        "prestashop_self_hosted_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores one encrypted dedicated products-view Webservice key and two selected boundaries, then mounts exactly one fixed projected product GET."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores one encrypted dedicated products-view Webservice key and two selected boundaries, then mounts exactly one fixed projected product GET."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A customer-owned PrestaShop staging installation, enabled Webservice, dedicated products-View-only key, and one selected product ID are required. This worker lane has no authorized staging shop or credentials.",
+    "nextAction": "The external setup lane must enable Webservice on an authorized staging shop, create a dedicated key associated only with the required shop and only View permission for products, record the exact HTTPS base URL and selected product ID in Railway, then validate Basic-header authentication, fixed id/display/output_format enforcement, response redaction, permission denial for every other resource and method, key disablement, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://devdocs.prestashop-project.org/9/webservice/tutorials/creating-access/",
+      "checkedAt": "2026-07-18",
+      "supports": "PrestaShop documents that Webservice access is disabled by default, uses a 32-character key, and allows fine-grained per-resource and per-method permissions; Relay requires a dedicated products View-only key."
+    },
+    {
+      "url": "https://devdocs.prestashop-project.org/9/webservice/tutorials/testing-access/",
+      "checkedAt": "2026-07-18",
+      "supports": "PrestaShop documents /api at the installation root or subpath and recommends an Authorization Basic header computed from the Webservice key plus an empty password rather than exposing the key in the URL."
+    },
+    {
+      "url": "https://devdocs.prestashop-project.org/9/webservice/getting-started/",
+      "checkedAt": "2026-07-18",
+      "supports": "PrestaShop documents JSON responses and list query parameters display and filter, including a bracketed field projection; Relay fixes both to one product ID and three fields."
+    },
+    {
+      "url": "https://devdocs.prestashop-project.org/9/webservice/resources/products/",
+      "checkedAt": "2026-07-18",
+      "supports": "PrestaShop's product resource documents id, active, and available_for_order alongside extensive content, pricing, stock, identifiers, and associations; Relay retains only the selected ID and two booleans."
+    }
+  ]
+}

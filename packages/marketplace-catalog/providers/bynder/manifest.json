@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "bynder",
+  "name": "Bynder",
+  "category": "content_creative",
+  "description": "Bynder is a digital asset management platform for organizing, governing, and distributing brand content. Marketing and creative teams use it to manage media libraries, metadata, collections, workflows, approvals, transformations, and delivery across channels.",
+  "agentUseSummary": "Connect a customer-owned Bynder OAuth app for the organization's portal, then let agents use the portal's documented asset, collection, metadata, workflow, analytics, webhook, and administration APIs under Safe or Dangerous policy.",
+  "icon": { "assetName": "bynder", "sourceUrl": "https://www.bynder.com/favicon.ico" },
+  "provider": {
+    "websiteUrl": "https://www.bynder.com/",
+    "docsUrl": "https://api.bynder.com/docs/getting-started",
+    "developerConsoleUrl": "https://support.bynder.com/hc/en-us/articles/360013875180-How-To-Create-And-Manage-OAuth-2-0-Apps-to-Provide-Access-to-Bynder-API",
+    "termsUrl": "https://www.bynder.com/en/legal/terms-and-conditions/",
+    "privacyUrl": "https://www.bynder.com/en/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": ["offline", "current.profile:read", "current.user:read", "asset:read", "asset:write", "asset.usage:read", "asset.usage:write", "collection:read", "collection:write", "meta.assetbank:read", "meta.assetbank:write", "meta.workflow:read", "workflow.campaign:read", "workflow.campaign:write", "workflow.group:read", "workflow.group:write", "workflow.job:read", "workflow.job:write", "workflow.job:approve", "workflow.preset:read", "brandstore.order:read", "brandstore.order:write", "analytics.api:read", "antivirus.asset.audit:read", "antivirus.asset.audit:write", "webhooks.config:read", "webhooks.config:write", "admin.profile:read", "admin.user:read", "admin.user:write"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://{customer-portal}/v6/authentication/oauth2/auth",
+    "tokenUrl": "https://{customer-portal}/v6/authentication/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_oauth"],
+    "credentialRequirements": [
+      { "name": "BYNDER_PORTAL_DOMAIN", "label": "Bynder portal", "required": true, "secret": false, "helpText": "The organization's Bynder portal hostname, such as acme.bynder.com." },
+      { "name": "BYNDER_CLIENT_ID", "label": "OAuth client ID", "required": true, "secret": false, "helpText": "Create an OAuth app in the organization's Bynder portal and copy its client ID." },
+      { "name": "BYNDER_CLIENT_SECRET", "label": "OAuth client secret", "required": true, "secret": true, "helpText": "Copy the one-time client secret when the Bynder OAuth app is created." }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/bynder/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "dam_read", "label": "Browse digital assets", "description": "Read authorized assets, metadata, collections, users, workflows, orders, analytics, quarantine records, and webhook configuration." },
+    { "id": "dam_manage", "label": "Manage digital assets", "description": "Create and change assets, metadata, collections, workflows, orders, webhooks, users, and other portal-authorized resources." }
+  ],
+  "actions": {
+    "allowed": [{ "id": "bynder_read", "label": "Read Bynder data", "description": "Run one bounded GET operation inside the connected Bynder portal's documented API surface." }],
+    "approvalRequired": [{ "id": "bynder_manage", "label": "Change Bynder data", "description": "Run one documented Bynder mutation; Safe mode requires approval." }],
+    "blocked": [
+      { "id": "bynder_secret_exposure", "label": "Expose credentials", "description": "OAuth secrets, access tokens, refresh tokens, authorization headers, cookies, and signed delivery URLs never enter agent-visible results." },
+      { "id": "bynder_untrusted_origin", "label": "Call another origin", "description": "Requests remain pinned to the HTTPS Bynder portal saved with the connection." },
+      { "id": "bynder_unbounded_transfer", "label": "Transfer unbounded data", "description": "Relay bounds request and response bodies and does not follow redirects." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "bynder_safe", "label": "Safe", "description": "Bounded reads run directly; every mutation requires approval.", "defaultSelected": true, "allowedActions": ["bynder_read"], "approvalRequiredActions": ["bynder_manage"], "blockedActions": ["bynder_secret_exposure", "bynder_untrusted_origin", "bynder_unbounded_transfer"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected portal- and scope-authorized Bynder API operation runs without Relay per-action approval; ownership, provider permissions, fixed origin, bounds, redaction, audits, rate limits, and provider enforcement still apply.", "defaultSelected": false, "allowedActions": ["bynder_read", "bynder_manage"], "approvalRequiredActions": [], "blockedActions": ["bynder_secret_exposure", "bynder_untrusted_origin", "bynder_unbounded_transfer"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts bounded Bynder API wrappers against the connection's fixed customer portal." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts bounded Bynder API wrappers against the connection's fixed customer portal." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer Bynder portal, an administrator with OAuth Apps access, provider enablement where required, and a customer-owned client ID and one-time client secret are not available for production acceptance.",
+    "nextAction": "A Bynder administrator enables OAuth Apps if needed, registers https://api.relayconsole.work/api/v1/marketplace/oauth/bynder/callback with the required scopes, then enters the portal hostname, client ID, and client secret in Relay Console and completes connection verification."
+  },
+  "evidence": [
+    { "url": "https://api.bynder.com/docs/getting-started", "checkedAt": "2026-07-14", "supports": "Bynder documents OAuth 2 bearer authentication, its current scope set, portal APIs, rate limits, and identifier formats." },
+    { "url": "https://support.bynder.com/hc/en-us/articles/360013875180-How-To-Create-And-Manage-OAuth-2-0-Apps-to-Provide-Access-to-Bynder-API", "checkedAt": "2026-07-14", "supports": "Bynder documents portal-admin creation of customer-specific OAuth apps, callback registration, one-time client secrets, immutable scopes, refresh-token revocation, and support enablement where required." },
+    { "url": "https://api.bynder.com/llms.txt", "checkedAt": "2026-07-14", "supports": "Bynder publishes its current endpoint reference across assets, collections, metadata, workflows, automation, PIM, Brand Store, analytics, quarantine, webhooks, users, and profiles." },
+    { "url": "https://www.bynder.com/", "checkedAt": "2026-07-14", "supports": "Bynder describes a digital asset management platform for brand content, creative workflows, governance, and delivery." }
+  ]
+}

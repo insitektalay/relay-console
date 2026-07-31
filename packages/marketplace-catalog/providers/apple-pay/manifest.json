@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "apple-pay",
+  "name": "Apple Pay",
+  "category": "commerce_payments",
+  "description": "Apple Pay APIs let a merchant present a user-authorized payment sheet in an app or website and receive an encrypted payment token for a payment service provider. They are not a general Apple Wallet, card, balance, transaction-history, or money-movement account API.",
+  "agentUseSummary": "Apple Pay cannot yet be connected through Relay. Production use belongs inside an approved merchant app or HTTPS website and requires a developer team, merchant identifier, payment-processing certificate, web merchant-identity certificate and domain verification where applicable, payment provider, user-present authorization, and transaction verification. Relay has no approved merchant, processor, checkout, order, amount, refund, dispute, or payment-authority contract.",
+  "provider": {
+    "websiteUrl": "https://www.apple.com/apple-pay/",
+    "docsUrl": "https://developer.apple.com/apple-pay/implementation/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/",
+    "privacyUrl": "https://www.apple.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "approved_merchant_app_or_website_required",
+      "apple_developer_team_and_merchant_id_required",
+      "payment_and_web_identity_certificates_required",
+      "payment_service_provider_and_user_authorization_required",
+      "exact_order_amount_processor_and_payment_contract_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "apple_pay_connect",
+        "label": "Connect Apple Pay",
+        "description": "An approved merchant, developer team, app or verified domain, merchant ID, certificates, payment provider, and checkout implementation are required."
+      },
+      {
+        "id": "apple_pay_payment_sheet",
+        "label": "Present Apple Pay checkout",
+        "description": "Capability checks, merchant validation, payment sheets, contact and shipping collection, price updates, and payment authorization remain unavailable."
+      },
+      {
+        "id": "apple_pay_tokens_or_charges",
+        "label": "Handle payment tokens or charges",
+        "description": "Receiving, verifying, decrypting, storing, forwarding, charging, capturing, refunding, disputing, or otherwise handling payment tokens and transactions is blocked."
+      },
+      {
+        "id": "apple_pay_wallet_or_account_data",
+        "label": "Access Apple Pay or Wallet data",
+        "description": "Wallet contents, cards, balances, contacts, transaction history, statements, transfers, passes, and unrelated Apple Account data are unavailable."
+      },
+      {
+        "id": "apple_pay_private_or_credential_access",
+        "label": "Use private or credential-based access",
+        "description": "Browser or payment-sheet automation, Apple Account session capture, raw card data, private keys, unapproved merchant IDs, and private interfaces are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "apple_pay_unavailable",
+      "label": "Unavailable",
+      "description": "No Apple Pay action is enabled without one exact merchant, app or domain, processor, checkout, catalog, currency, amount, fulfillment, refund, dispute, and payment-control contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "apple_pay_connect",
+        "apple_pay_payment_sheet",
+        "apple_pay_tokens_or_charges",
+        "apple_pay_wallet_or_account_data",
+        "apple_pay_private_or_credential_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Apple Pay tools are mounted before merchant, app or domain, processor, user-presence, monetary, certificate, and compliance controls are approved."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Apple Pay tools are mounted before merchant, app or domain, processor, user-presence, monetary, certificate, and compliance controls are approved."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Apple Pay is a user-present merchant payment interface, not an agent-facing wallet or account API. Apps and websites create a payment request, the user authorizes it on supported hardware, and Apple returns a signed encrypted token whose payment data the merchant or processor must verify and process. Production requires a merchant ID, payment-processing certificate, payment provider, and app capability or verified HTTPS domain; the web flow also uses an expiring merchant-identity certificate and one-time merchant sessions. Certificates and verification require lifecycle management. A generic autonomous tool would bypass the intended sheet and combine pricing, order, identity, token, private-key, processor, fulfillment, refund, and dispute authority.",
+    "nextAction": "Product, commerce, payments, finance, legal, privacy, security, PCI, fraud, support, developer-program, and merchant owners must select one first-party checkout and freeze the merchant, app or domain, catalog, countries, currencies, pricing, taxes, shipping, processor, certificate custody and rotation, user-presence rule, amount and velocity limits, authorization and capture, fulfillment, refunds, disputes, reconciliation, retention, audit, and incident duties. The merchant must then complete Apple Developer and processor setup and review. Only after that may Relay support a customer-facing checkout with server-verified orders, amounts, merchant sessions, and tokens; no unattended agent payment action should be mounted."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.apple.com/apple-pay/implementation/",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple Pay implementation requires merchant identifiers and certificates, payment-provider requirements, testing, transaction verification, and platform guidelines."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/applepayontheweb/configuring-your-environment",
+      "checkedAt": "2026-07-17",
+      "supports": "Web merchants need an Apple Developer account, merchant ID, payment-processing and merchant-identity certificates, and verified domain."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/applepayontheweb/providing-merchant-validation",
+      "checkedAt": "2026-07-17",
+      "supports": "Each web payment sheet requires server-side validation and a single-use merchant session that expires after five minutes."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/PassKit/payment-token-format-reference",
+      "checkedAt": "2026-07-17",
+      "supports": "User authorization returns signed, encrypted payment data that the merchant or processor must decrypt, verify, and validate."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/ApplePayontheWeb/maintaining-your-environment",
+      "checkedAt": "2026-07-17",
+      "supports": "Payment and merchant-identity certificates expire, and domain verification must be maintained to prevent interruption."
+    }
+  ]
+}

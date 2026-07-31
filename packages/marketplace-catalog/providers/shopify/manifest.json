@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "shopify",
+  "name": "Shopify",
+  "category": "commerce",
+  "description": "Shopify is a commerce platform for running online and in-person stores. Businesses use it to manage products, sales channels, storefronts, orders, customers, payments, fulfilment, and related operations.",
+  "agentUseSummary": "Connect one Shopify shop, then let agents inspect bounded shop and product data, prepare product changes, create or update drafts, and separately activate or publish an explicitly reviewed product under Safe or Dangerous policy. Relay limits V1 to the product catalogue and explicit publications; orders, customers, payments, fulfilment, inventory and pricing writes, destructive lifecycle operations, themes, files, discounts, billing, administration, bulk operations, and arbitrary GraphQL remain unavailable.",
+  "provider": {
+    "websiteUrl": "https://www.shopify.com/",
+    "docsUrl": "https://shopify.dev/docs/api/admin-graphql/2026-07",
+    "developerConsoleUrl": "https://dev.shopify.com/dashboard",
+    "termsUrl": "https://www.shopify.com/legal/terms",
+    "privacyUrl": "https://www.shopify.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["write_products", "write_publications"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://{shop}.myshopify.com/admin/oauth/authorize",
+    "tokenUrl": "https://{shop}.myshopify.com/admin/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/shopify/callback",
+    "webhookRequirements": [
+      { "event": "customers/data_request", "purpose": "Shopify privacy compliance request" },
+      { "event": "customers/redact", "purpose": "Shopify customer erasure request" },
+      { "event": "shop/redact", "purpose": "Shop data erasure after uninstall" }
+    ]
+  },
+  "capabilities": [
+    { "id": "shop_read", "label": "Read shop", "description": "Read bounded identity, domain, currency, and plan details for the connected shop.", "defaultSelected": true },
+    { "id": "product_read", "label": "Read products", "description": "List and inspect bounded product, option, variant, status, and SEO details.", "defaultSelected": true },
+    { "id": "product_draft", "label": "Prepare and edit drafts", "description": "Prepare reviewed changes and create or update draft products.", "defaultSelected": true },
+    { "id": "product_publish", "label": "Activate and publish products", "description": "Activate a reviewed draft and publish an active product to one explicit publication.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "shopify_shop_get", "label": "Read shop", "description": "Read safe identity, domain, currency, and plan metadata for the connected shop." },
+      { "id": "shopify_product_list", "label": "List products", "description": "Read one bounded cursor page of useful product catalogue metadata." },
+      { "id": "shopify_product_get", "label": "Read product", "description": "Read one explicit product with status, SEO, options, and bounded variants." },
+      { "id": "shopify_publication_list", "label": "List publications", "description": "Read bounded publication identifiers for explicit product publication." },
+      { "id": "shopify_product_prepare", "label": "Prepare product change", "description": "Normalize and hash a draft, update, activation, or publication payload locally." }
+    ],
+    "approvalRequired": [
+      { "id": "shopify_product_create_draft", "label": "Create draft product", "description": "Create one reviewed product forced to draft status." },
+      { "id": "shopify_product_update_draft", "label": "Update draft product", "description": "Update reviewed fields after an exact draft-state preflight." },
+      { "id": "shopify_product_activate", "label": "Activate product", "description": "Activate one exact reviewed draft without publishing it to a channel." },
+      { "id": "shopify_product_publish", "label": "Publish product", "description": "Publish one exact reviewed active product to one explicit publication." }
+    ],
+    "blocked": [
+      { "id": "shopify_product_destructive", "label": "Delete, archive, or unpublish products", "description": "Destructive product lifecycle operations are outside V1." },
+      { "id": "shopify_commerce_admin", "label": "Administer commerce operations", "description": "Orders, customers, payments, fulfilment, inventory and pricing writes, variants, discounts, files, themes, billing, and administration are outside V1." },
+      { "id": "shopify_raw_graphql", "label": "Use arbitrary Shopify APIs", "description": "Arbitrary GraphQL, bulk operations, automatic pagination, and cross-shop access are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "shopify_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local preparation run directly; draft creation, draft updates, activation, and publication require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["shopify_shop_get", "shopify_product_list", "shopify_product_get", "shopify_publication_list", "shopify_product_prepare"],
+      "approvalRequiredActions": ["shopify_product_create_draft", "shopify_product_update_draft", "shopify_product_activate", "shopify_product_publish"],
+      "blockedActions": ["shopify_product_destructive", "shopify_commerce_admin", "shopify_raw_graphql"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Shopify V1 operation runs without Relay per-action approval; connection ownership, exact shop binding, granted scopes, bounds, state checks, audits, redaction, idempotency, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["shopify_shop_get", "shopify_product_list", "shopify_product_get", "shopify_publication_list", "shopify_product_prepare", "shopify_product_create_draft", "shopify_product_update_draft", "shopify_product_activate", "shopify_product_publish"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["shopify_product_destructive", "shopify_commerce_admin", "shopify_raw_graphql"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts nine exact Shopify wrappers and attaches the selected shop's encrypted access token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts nine exact Shopify wrappers and attaches the selected shop's encrypted access token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "relay_action_required",
+    "blocker": "The Relay Console public Shopify app, client credentials, compliance webhooks, distribution review, and a development-store authorization are not available in this worker's headless environment.",
+    "nextAction": "Create the public Shopify app, register the exact Relay callback and mandatory privacy webhooks, request only write_products and write_publications, store the client credentials in the staging secret variables, authorize a development shop, verify rotating expiring offline tokens and all nine V1 actions, then submit the app for Shopify review."
+  },
+  "evidence": [
+    { "url": "https://shopify.dev/docs/apps/launch/distribution", "checkedAt": "2026-07-16", "supports": "Public distribution is the Shopify model for an app that can authorize multiple stores and requires Shopify review before App Store distribution." },
+    { "url": "https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/authorization-code-grant", "checkedAt": "2026-07-16", "supports": "Non-embedded authorization code grants redirect through the shop admin, bind a state nonce and exact redirect URI, and exchange the returned code for an access token." },
+    { "url": "https://shopify.dev/docs/apps/build/authentication-authorization/access-tokens/offline-access-tokens", "checkedAt": "2026-07-16", "supports": "New public apps use expiring offline access tokens and rotating refresh tokens; access tokens last 60 minutes and refresh tokens rotate with a 90-day lifetime." },
+    { "url": "https://shopify.dev/docs/api/admin-graphql/latest/mutations/publishablePublish", "checkedAt": "2026-07-16", "supports": "Publishing a product to an explicit publication uses publishablePublish, requires write_publications, and the product must be active to be visible." },
+    { "url": "https://shopify.dev/docs/apps/build/compliance/privacy-law-compliance", "checkedAt": "2026-07-16", "supports": "Public apps must subscribe to Shopify's mandatory privacy compliance webhooks and validate their HMAC signatures." },
+    { "url": "https://shopify.dev/docs/apps/launch/app-store-review/submit-app-for-review", "checkedAt": "2026-07-16", "supports": "Shopify App Store distribution requires an app listing, review submission, automated checks, and manual review before approval." }
+  ]
+}

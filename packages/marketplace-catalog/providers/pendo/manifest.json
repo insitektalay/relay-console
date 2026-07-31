@@ -1,0 +1,207 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "pendo",
+  "name": "Pendo",
+  "category": "developer",
+  "description": "Pendo is a product-experience and digital-adoption platform for Pages, Features, Track Events, Guides, Product Areas, Visitors, Accounts, Session Replay, Feedback, and behavioral analytics.",
+  "agentUseSummary": "Enter a dedicated customer-owned Engage Integration Key created without write access, the exact US, EU, US1, Japan, or Australia API origin, and one numeric Application ID. Relay validates the subscription-wide key, pins every data request to that Application, and exposes only 25-item redacted Page/Feature/Guide inventories plus one fixed adoption percentage over at most 31 days; records, private content, detailed analytics, MCP, arbitrary aggregation, exports, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.pendo.io/",
+    "docsUrl": "https://engageapi.pendo.io/",
+    "developerConsoleUrl": "https://app.pendo.io/",
+    "termsUrl": "https://www.pendo.io/legal/terms-and-conditions/",
+    "privacyUrl": "https://www.pendo.io/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_subscription_wide_read_only_integration_key",
+      "customer_supplied_regional_origin",
+      "exact_application_id_request_boundary",
+      "provider_plan_and_admin_dependency",
+      "manual_provider_key_rotation_and_revocation"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PENDO_ENGAGE_API_ORIGIN",
+        "label": "Pendo Engage API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact Pendo UI/API origin for the subscription: US, EU, US1, Japan, or Australia. Relay rejects every other origin."
+      },
+      {
+        "name": "PENDO_APPLICATION_ID",
+        "label": "Pendo Application ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact numeric Application ID from Application settings. Relay applies it to every definition and adoption request even though the Integration Key is subscription-wide."
+      },
+      {
+        "name": "PENDO_INTEGRATION_KEY",
+        "label": "Pendo read-only Integration Key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated Engage Integration Key with Allow Write Access left off. The key is shown once, is not user-bound, and can access all Applications and environments in the subscription."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "application_binding",
+      "label": "Application boundary",
+      "description": "Validate one regional read-only Integration Key and configured Application ID.",
+      "defaultSelected": true
+    },
+    {
+      "id": "definitions",
+      "label": "Product definitions",
+      "description": "List bounded redacted Page, Feature, and Guide summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "adoption",
+      "label": "Adoption aggregate",
+      "description": "Read one bounded fixed Application-adoption percentage.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "pendo_application_binding_get",
+        "label": "Read Application boundary",
+        "description": "Validate the exact regional Engage API origin and subscription-wide read-only Integration Key, and report the configured Application ID."
+      },
+      {
+        "id": "pendo_definition_list",
+        "label": "List product definitions",
+        "description": "List at most 25 redacted Page, Feature, or Guide summaries for the configured Application."
+      },
+      {
+        "id": "pendo_adoption_get",
+        "label": "Read Application adoption",
+        "description": "Read one fixed Application-level adoption percentage over an explicit range of at most 31 days."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "pendo_identity_private",
+        "label": "Access Visitors or Accounts",
+        "description": "Visitor and Account records, IDs, metadata, histories, Segments and membership, classified data, and person-level activity are outside V1."
+      },
+      {
+        "id": "pendo_definition_private",
+        "label": "Access private definition content",
+        "description": "Page rules, Feature rules, Guide descriptions/content/steps/audiences/polls/localization, creator identities, URLs, and private metadata are outside V1."
+      },
+      {
+        "id": "pendo_analytics_private",
+        "label": "Access detailed analytics",
+        "description": "Raw Events, arbitrary aggregations, reports, Paths, Funnels, Workflows, Retention, Data Explorer, Session Replay, Feedback, NPS responses, logs, exports, and Data Sync are outside V1."
+      },
+      {
+        "id": "pendo_mutation",
+        "label": "Change Pendo data",
+        "description": "Creating, updating, publishing, resetting, importing, ingesting, deleting, or otherwise changing Pendo data is outside V1; the Integration Key must be created without Allow Write Access."
+      },
+      {
+        "id": "pendo_broader_transport",
+        "label": "Use broader Pendo transports",
+        "description": "Interactive MCP/OAuth, service-account Client Credentials, Feedback APIs, arbitrary origins/paths/pipelines/queries, pagination, crawling, synchronization, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "pendo_safe",
+      "label": "Safe",
+      "description": "Three bounded Application reads run automatically; records, private definition content, detailed analytics, broader transports, arbitrary access, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "pendo_application_binding_get",
+        "pendo_definition_list",
+        "pendo_adoption_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "pendo_identity_private",
+        "pendo_definition_private",
+        "pendo_analytics_private",
+        "pendo_mutation",
+        "pendo_broader_transport"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact region/Application binding, fixed requests, short ranges, audit, redaction, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "pendo_application_binding_get",
+        "pendo_definition_list",
+        "pendo_adoption_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "pendo_identity_private",
+        "pendo_definition_private",
+        "pendo_analytics_private",
+        "pendo_mutation",
+        "pendo_broader_transport"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Pendo Engage wrappers and attaches the encrypted read-only Integration Key, validated region, and configured Application ID server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Pendo Engage wrappers and attaches the encrypted read-only Integration Key, validated region, and configured Application ID server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "A customer Pendo admin confirms Engage API access, creates a dedicated Integration Key with Allow Write Access left off, records the one-time value, and supplies the exact subscription region plus numeric Application ID."
+  },
+  "evidence": [
+    {
+      "url": "https://engageapi.pendo.io/",
+      "checkedAt": "2026-07-17",
+      "supports": "Pendo documents the x-pendo-integration-key header, regional origins, token verification, Application filtering for Page/Feature/Guide reads, fixed adoption aggregation, status codes, and the broader sensitive API surface Relay blocks."
+    },
+    {
+      "url": "https://support.pendo.io/hc/en-us/articles/9491198203547-Pendo-integration-key",
+      "checkedAt": "2026-07-17",
+      "supports": "Pendo documents plan/admin dependencies, one-time Integration Key display, non-user-bound subscription-wide access across Applications and environments, and key creation/management."
+    },
+    {
+      "url": "https://support.pendo.io/hc/en-us/articles/12038203210523-API-only-returns-data-from-one-application",
+      "checkedAt": "2026-07-17",
+      "supports": "Pendo documents exact regional API origins and explicit appId filtering for multi-Application subscriptions."
+    },
+    {
+      "url": "https://support.pendo.io/hc/en-us/articles/41102236924955-Connect-to-the-Pendo-MCP-server",
+      "checkedAt": "2026-07-17",
+      "supports": "Pendo separately documents interactive regional MCP/OAuth access; Relay excludes this broader transport from the Integration-Key V1."
+    }
+  ]
+}

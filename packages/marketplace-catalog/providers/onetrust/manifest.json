@@ -1,0 +1,197 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "onetrust",
+  "name": "OneTrust",
+  "category": "work_management",
+  "description": "OneTrust is a trust, privacy, consent, data governance, risk, compliance, and third-party management platform. Organizations use it to manage privacy operations, website consent, governance, risk, and regulatory workflows.",
+  "agentUseSummary": "Connect one OneTrust tenant with customer-owned client credentials, one selected CMP domain, and one selected scan. Agents can confirm selected-domain branding-resource availability and inspect an aggregate scan summary; branding content, private trust data, detailed findings, lists, other resources, exports, and all mutations are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.onetrust.com/",
+    "docsUrl": "https://developer.onetrust.com/onetrust/reference/quick-start-guide",
+    "developerConsoleUrl": "https://developer.onetrust.com/",
+    "termsUrl": "https://www.onetrust.com/terms/",
+    "privacyUrl": "https://www.onetrust.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["COOKIE", "COOKIE_READ"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://{tenant}.onetrust.com/api/access/v1/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_credentials",
+      "bound_tenant",
+      "selected_domain",
+      "selected_scan"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ONETRUST_TENANT_HOST",
+        "label": "OneTrust tenant hostname",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact customer tenant hostname ending in onetrust.com, without scheme or path."
+      },
+      {
+        "name": "ONETRUST_CLIENT_ID",
+        "label": "OneTrust client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "A customer-owned OAuth client credential limited to the required Cookie Compliance read scopes."
+      },
+      {
+        "name": "ONETRUST_CLIENT_SECRET",
+        "label": "OneTrust client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay encrypts this customer secret and exchanges it server-side for short-lived access tokens."
+      },
+      {
+        "name": "ONETRUST_DOMAIN_ID",
+        "label": "Selected OneTrust domain ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one UUID-form CMP domain Relay may inspect."
+      },
+      {
+        "name": "ONETRUST_SCAN_ID",
+        "label": "Selected OneTrust scan ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one UUID-form domain scan whose aggregate summary Relay may inspect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "onetrust_domain_branding_summary_get",
+      "label": "Read domain branding availability",
+      "description": "Confirm branding attributes are available for one selected CMP domain without exposing their content.",
+      "defaultSelected": true
+    },
+    {
+      "id": "onetrust_scan_summary_get",
+      "label": "Read selected scan summary",
+      "description": "Read aggregate lifecycle and finding counts for one selected domain scan.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "onetrust_domain_branding_summary_get",
+        "label": "Read domain branding availability",
+        "description": "Confirm the branding-attributes resource is available for one selected OneTrust CMP domain without exposing its content."
+      },
+      {
+        "id": "onetrust_scan_summary_get",
+        "label": "Read selected scan summary",
+        "description": "Read aggregate finding counts and lifecycle metadata for one selected domain scan."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "onetrust_private_data",
+        "label": "Expose private trust data",
+        "description": "Client secrets, tokens, data subjects, identifiers, consent records, preferences, cookie details, scripts, HTML/CSS, vendors, forms, tags, credentials, and attachments are excluded."
+      },
+      {
+        "id": "onetrust_mutation",
+        "label": "Mutate OneTrust state",
+        "description": "Publishing, scanning, categorization, domains, banners, preferences, consent, organizations, users, risk, governance, exports, and administration are blocked."
+      },
+      {
+        "id": "onetrust_broad_access",
+        "label": "Use broad OneTrust access",
+        "description": "Other tenants, domains, scans, child organizations, list endpoints, paging, arbitrary queries, raw APIs, redirects, downloads, and bulk export are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "onetrust_read_only",
+      "label": "Read Only",
+      "description": "Read two selected-domain metadata summaries; private data and all mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "onetrust_domain_branding_summary_get",
+        "onetrust_scan_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "onetrust_private_data",
+        "onetrust_mutation",
+        "onetrust_broad_access"
+      ]
+    },
+    {
+      "id": "onetrust_no_access",
+      "label": "No Access",
+      "description": "Expose no OneTrust actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "onetrust_domain_branding_summary_get",
+        "onetrust_scan_summary_get",
+        "onetrust_private_data",
+        "onetrust_mutation",
+        "onetrust_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches encrypted customer credentials server-side and mounts exactly two selected-domain metadata reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches encrypted customer credentials server-side and mounts exactly two selected-domain metadata reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A OneTrust tenant, scope-limited client credential, staging CMP domain, and completed staging scan are required. No authorized tenant or credentials are available in this worker lane.",
+    "nextAction": "An authorized OneTrust administrator must create a least-privilege client credential, connect the exact tenant/domain/scan through Relay, and validate both projections, redaction, replacement, disconnect, post-disconnect denial, and scope failure in Fairfax before live use."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.onetrust.com/onetrust/reference/quick-start-guide",
+      "checkedAt": "2026-07-17",
+      "supports": "OneTrust documents tenant-hosted APIs, customer OAuth client credentials, short-lived bearer tokens, and endpoint-specific scopes."
+    },
+    {
+      "url": "https://developer.onetrust.com/onetrust/reference/getoauthtoken-1",
+      "checkedAt": "2026-07-17",
+      "supports": "OneTrust documents its client-credentials token endpoint and required client ID, client secret, and grant type."
+    },
+    {
+      "url": "https://developer.onetrust.com/onetrust/reference/getbrandingattributelist",
+      "checkedAt": "2026-07-17",
+      "supports": "OneTrust documents the UUID-bound domain branding-attributes endpoint used for the bounded branding status projection."
+    },
+    {
+      "url": "https://developer.onetrust.com/onetrust/reference/getscanresultsummary",
+      "checkedAt": "2026-07-17",
+      "supports": "OneTrust documents the exact domain-and-scan UUID summary endpoint and aggregate cookies, tags, forms, and other counts."
+    },
+    {
+      "url": "https://developer.onetrust.com/onetrust/reference/oauth-20-scopes",
+      "checkedAt": "2026-07-17",
+      "supports": "OneTrust documents endpoint-specific OAuth scopes and Cookie Compliance read authority."
+    }
+  ]
+}

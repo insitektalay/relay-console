@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "signal-desktop",
+  "name": "Signal Desktop",
+  "category": "communication",
+  "description": "Signal Desktop is Signal's official Windows, macOS and Linux client for end-to-end encrypted messages, files, group conversations and voice or video calls from a computer. It is a linked device of a person's existing Signal account, with its own encryption keys and locally stored conversation state rather than a separate desktop account or service.",
+  "agentUseSummary": "Signal Desktop is not a separate Relay provider and cannot be connected to agents. It is provisioned only by an interactive QR scan from the primary Signal phone and receives full linked-device cryptographic authority; Signal publishes no supported Desktop automation API, and the canonical Signal provider already blocks account linking, history extraction, messaging, calls, unofficial CLIs and private database access.",
+  "provider": {
+    "websiteUrl": "https://signal.org/download/",
+    "docsUrl": "https://support.signal.org/hc/en-us/articles/360008216551-Installing-Signal",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://signal.org/legal/#terms-of-service",
+    "privacyUrl": "https://signal.org/legal/#privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "canonical_signal_provider_only",
+      "official_linked_desktop_client",
+      "user_present_primary_phone_qr_approval",
+      "per_device_end_to_end_encryption_keys",
+      "device_local_conversation_storage",
+      "no_desktop_oauth_api_bot_platform_or_remote_mcp",
+      "no_supported_desktop_automation_interface"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "signal_desktop_separate_connect",
+        "label": "Connect Signal Desktop separately",
+        "description": "Signal Desktop is a linked client of the canonical Signal account, not a separate provider, credential, workspace or authority."
+      },
+      {
+        "id": "signal_desktop_link_device",
+        "label": "Link Relay as a desktop device",
+        "description": "Relay cannot display or capture a provisioning QR code, ask the primary phone to approve it, transfer history or acquire linked-device encryption keys."
+      },
+      {
+        "id": "signal_desktop_read_or_export",
+        "label": "Read or export desktop data",
+        "description": "Chats, attachments, contacts, groups, stories, calls, receipts, profiles, keys, backups and local databases cannot be read, searched, copied, migrated, exported or disclosed to agents."
+      },
+      {
+        "id": "signal_desktop_message_or_call",
+        "label": "Message or call from Desktop",
+        "description": "Agents cannot send, reply, react, edit, delete, manage groups, change settings, place calls, answer calls or control call media through Signal Desktop."
+      },
+      {
+        "id": "signal_desktop_automation_or_bulk",
+        "label": "Automate Signal Desktop",
+        "description": "UI scripting, keyboard automation, bulk messaging, auto-messaging, auto-dialing, unsolicited communication and unattended use are blocked."
+      },
+      {
+        "id": "signal_desktop_unofficial_or_private_access",
+        "label": "Use unofficial or private access",
+        "description": "signal-cli, Electron debugging, local SQLCipher extraction, decrypted backups, copied application data, reverse-engineered IPC or service calls and modified clients are never accepted."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "signal_desktop_unavailable",
+      "label": "Unavailable",
+      "description": "No Signal Desktop action is enabled; this desktop client must resolve to the canonical unavailable Signal provider without duplicate connection state.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "signal_desktop_separate_connect",
+        "signal_desktop_link_device",
+        "signal_desktop_read_or_export",
+        "signal_desktop_message_or_call",
+        "signal_desktop_automation_or_bulk",
+        "signal_desktop_unofficial_or_private_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Signal Desktop tools are mounted because Desktop is a full linked Signal client, not an API, and runtimes cannot inherit its device keys or private local conversation state."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Signal Desktop tools are mounted because Desktop is a full linked Signal client, not an API, and runtimes cannot inherit its device keys or private local conversation state."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Signal Desktop only operates as a secondary device linked to the canonical Signal account. The official app displays a QR code that the account holder scans from Signal on the primary Android phone or iPhone; the person may choose to synchronize chats and recent media, and the new device receives its own encryption keys. Signal stores readable content locally, does not support copying Desktop application data as a general migration mechanism and publishes no supported Desktop automation, bot or account API. Linking Relay would grant broad private communication authority without provider scopes, while local database extraction or unofficial clients would bypass Signal's device security and acceptable-use restrictions. A second Marketplace identity would also create contradictory install, revocation and consent state for the same Signal account.",
+    "nextAction": "Do not show a separate Connect action, request a linked-device QR scan, install or drive Signal Desktop, read its application-data directory, copy its database or wrap signal-cli. Keep Signal Desktop unavailable and canonicalize its name to the Signal provider for future discovery. If Signal later publishes a supported automation contract, implement it once under the canonical signal slug and treat Signal Desktop only as an alias or device requirement; use one connection, one unlink/revocation model and one policy surface across mobile and desktop clients."
+  },
+  "evidence": [
+    {
+      "url": "https://signal.org/download/",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal distributes one official Desktop client for Windows, macOS and Linux as part of the Signal product rather than as a separate developer service."
+    },
+    {
+      "url": "https://support.signal.org/hc/en-us/articles/360008216551-Installing-Signal",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal states that Desktop must be linked to a working Signal installation on Android or iPhone before it can be used."
+    },
+    {
+      "url": "https://support.signal.org/hc/en-us/articles/360007320551-Linked-Devices",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal requires the primary phone to scan the Desktop QR code and lets the person decide whether to synchronize chats and recent media to the linked device."
+    },
+    {
+      "url": "https://signal.org/blog/a-synchronized-start-for-linked-devices/",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal explains that linking proves account-holder permission, provisions a unique cryptographic device and transfers readable history only through an end-to-end encrypted device process."
+    },
+    {
+      "url": "https://support.signal.org/hc/en-us/articles/360007059752-Backup-and-Restore-Messages",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal states that messages are stored locally, Desktop history transfer is restricted, and manually copying Desktop application folders is unsupported because Signal uses a stateful protocol."
+    },
+    {
+      "url": "https://github.com/signalapp/Signal-Desktop",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal publishes the official Desktop client source for transparency, but the project is an end-user application and exposes no supported third-party account or bot API."
+    },
+    {
+      "url": "https://signal.org/legal/",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal's terms prohibit bulk messaging, auto-messaging, auto-dialing, automated account creation, unauthorized service access and unauthorized collection of user information."
+    }
+  ]
+}

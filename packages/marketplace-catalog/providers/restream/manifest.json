@@ -1,0 +1,252 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "restream",
+  "name": "Restream",
+  "category": "content_creative",
+  "description": "Restream is a live-streaming, multistream distribution, browser studio, recording, analytics, chat, and short-form clip platform. Creators and organizations use it to produce events, broadcast to multiple destinations, engage audiences, retain recordings, and repurpose streams.",
+  "agentUseSummary": "Connect a Restream account once through Relay-owned OAuth, then let agents use bounded profile, destination, event, chat, analytics, recording, storage, clip, and Studio operations under Safe or Dangerous policy. Streaming credentials and unbounded live WebSocket sessions remain unavailable.",
+  "provider": {
+    "websiteUrl": "https://restream.io/",
+    "docsUrl": "https://developers.restream.io/guide",
+    "developerConsoleUrl": "https://developers.restream.io/applications",
+    "termsUrl": "https://restream.io/terms-of-service",
+    "privacyUrl": "https://restream.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "profile.read",
+      "channels.read",
+      "channels.write",
+      "stream.read",
+      "stream.write",
+      "chat.read",
+      "storage.read",
+      "clips.read",
+      "clips.write",
+      "studio.read",
+      "studio.write"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.restream.io/login",
+    "tokenUrl": "https://api.restream.io/oauth/token",
+    "revocationUrl": "https://api.restream.io/oauth/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "oauth2_authorization_code"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/restream/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_channels",
+      "label": "Account and channels",
+      "description": "Verify the connected profile and inspect configured destinations without exposing destination credentials.",
+      "defaultSelected": true
+    },
+    {
+      "id": "events",
+      "label": "Streaming events",
+      "description": "Read, create, configure, and inspect events, destinations, recordings, transcriptions, and approved download links.",
+      "defaultSelected": true
+    },
+    {
+      "id": "chat_analytics",
+      "label": "Chat and analytics",
+      "description": "Read bounded cross-platform event chat history and viewer or engagement analytics.",
+      "defaultSelected": true
+    },
+    {
+      "id": "storage_clips",
+      "label": "Storage and clips",
+      "description": "Inspect recordings and video storage, resolve approved downloads, and create or inspect clip projects.",
+      "defaultSelected": true
+    },
+    {
+      "id": "studio",
+      "label": "Restream Studio",
+      "description": "Read and manage OAuth-authorized Studio brands, audio, captions, fonts, QR codes, and tickers.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "restream_profile_read",
+        "label": "Read connected profile",
+        "description": "Verify the connected Restream user and read their bounded profile."
+      },
+      {
+        "id": "restream_channel_read",
+        "label": "Read streaming channels",
+        "description": "List the connected user's configured destination channels without destination credentials."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "restream_event_read",
+        "label": "Read events",
+        "description": "List or inspect bounded upcoming, live, and historical streaming events."
+      },
+      {
+        "id": "restream_chat_read",
+        "label": "Read event chat",
+        "description": "Read one bounded page of cross-platform event chat history."
+      },
+      {
+        "id": "restream_analytics_read",
+        "label": "Read event analytics",
+        "description": "Read bounded viewer and chat-engagement analytics for one exact event."
+      },
+      {
+        "id": "restream_storage_read",
+        "label": "Read storage",
+        "description": "List bounded recording and video-storage metadata."
+      },
+      {
+        "id": "restream_clip_read",
+        "label": "Read clips",
+        "description": "List bounded clip projects or inspect one exact project and generated clips."
+      },
+      {
+        "id": "restream_studio_read",
+        "label": "Read Studio assets",
+        "description": "List bounded Studio brands, audio, captions, fonts, QR codes, and tickers."
+      },
+      {
+        "id": "restream_documented_api",
+        "label": "Use documented Restream HTTP API",
+        "description": "Call a fixed-origin documented v2 user HTTP endpoint for event, destination, recording, storage, clip, Studio, or channel lifecycle work; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "restream_secret_transport",
+        "label": "Block streaming credentials",
+        "description": "Stream-key, SRT-key, chat-URL, destination-password, credential-bearing channel creation, and equivalent secret routes never enter agent inputs or results."
+      },
+      {
+        "id": "restream_live_websocket",
+        "label": "Block live WebSocket sessions",
+        "description": "Unbounded streaming-status and live-chat WebSocket sessions, replies, and relays are not mounted in the turn-bounded connector."
+      },
+      {
+        "id": "restream_credential_exposure",
+        "label": "Block OAuth credential exposure",
+        "description": "OAuth client secrets, authorization codes, access tokens, and refresh tokens stay in Railway's encrypted connection lifecycle."
+      },
+      {
+        "id": "restream_raw_or_unbounded",
+        "label": "Block raw or unbounded access",
+        "description": "Caller-selected origins, OAuth endpoints, private interfaces, browser automation, automatic pagination, bulk loops, arbitrary binary proxying, and oversized payloads are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "restream_safe",
+      "label": "Safe",
+      "description": "Connected-profile and destination reads run directly; event, chat, analytics, storage, clip, Studio, download, mutation, deletion, and other documented API work requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["restream_profile_read", "restream_channel_read"],
+      "approvalRequiredActions": [
+        "restream_event_read",
+        "restream_chat_read",
+        "restream_analytics_read",
+        "restream_storage_read",
+        "restream_clip_read",
+        "restream_studio_read",
+        "restream_documented_api"
+      ],
+      "blockedActions": [
+        "restream_secret_transport",
+        "restream_live_websocket",
+        "restream_credential_exposure",
+        "restream_raw_or_unbounded"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected non-secret documented Restream HTTP action runs without Relay per-action approval while fixed origin, OAuth authority, bounds, audits, redaction, account and plan limits, and provider enforcement remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "restream_profile_read",
+        "restream_channel_read",
+        "restream_event_read",
+        "restream_chat_read",
+        "restream_analytics_read",
+        "restream_storage_read",
+        "restream_clip_read",
+        "restream_studio_read",
+        "restream_documented_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "restream_secret_transport",
+        "restream_live_websocket",
+        "restream_credential_exposure",
+        "restream_raw_or_unbounded"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected typed Restream tools through the encrypted OAuth connection and fixed api.restream.io origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected typed Restream tools through the encrypted OAuth connection and fixed api.restream.io origin."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Restream OAuth application has not been created, supplied with its production callback, configured with the selected read/write scopes, or installed in Railway, and no representative Restream account was available for live provider acceptance. Restream's API documentation requires an application client ID and secret, exact redirect URI, user consent, access and refresh token rotation, and revocation.",
+    "nextAction": "The provider-console owner creates the Relay Restream application, registers https://api.relayconsole.work/api/v1/marketplace/oauth/restream/callback, selects profile.read, channels.read, channels.write, stream.read, stream.write, chat.read, storage.read, clips.read, clips.write, studio.read, and studio.write, and stores RESTREAM_CLIENT_ID and RESTREAM_CLIENT_SECRET only in Railway. Then verify state, consent, token refresh rotation, revocation, disconnect, profile health, exact account binding, Safe approvals, Dangerous execution, page and payload bounds, secret-route denial, event and destination lifecycle, recordings and short-lived downloads, analytics and chat privacy, clip and Studio operations, provider plan limits, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.restream.io/guide/getting-started",
+      "checkedAt": "2026-07-18",
+      "supports": "Restream documents self-service application creation, client ID and secret issuance, exact redirect URI registration, least-privilege scope selection, and reauthorization when scopes change."
+    },
+    {
+      "url": "https://developers.restream.io/authentication/overview",
+      "checkedAt": "2026-07-18",
+      "supports": "Restream documents an OAuth 2.0 authorization-code flow with state checking, code exchange, refresh-token rotation, and token revocation."
+    },
+    {
+      "url": "https://developers.restream.io/guide",
+      "checkedAt": "2026-07-18",
+      "supports": "Restream's current API index documents profile, ingest, channel, event, analytics, storage, clip, Studio, chat, and public reference surfaces."
+    },
+    {
+      "url": "https://developers.restream.io/events",
+      "checkedAt": "2026-07-18",
+      "supports": "The Events API documents event creation and destinations, lifecycle reads, RTMP and SRT keys, recordings, short-lived downloads, transcriptions, and event-scoped resources."
+    },
+    {
+      "url": "https://developers.restream.io/channels/channel-add",
+      "checkedAt": "2026-07-18",
+      "supports": "Restream's channel-creation endpoint accepts third-party stream keys and optional RTMP credentials, supporting Relay's decision to block that secret-bearing operation from agent inputs."
+    },
+    {
+      "url": "https://restream.io/terms-of-service",
+      "checkedAt": "2026-07-18",
+      "supports": "Restream's terms govern API and developer-property use, customer applications, account and content authority, service limits, acceptable use, confidentiality, and termination."
+    },
+    {
+      "url": "https://restream.io/privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "Restream's privacy policy describes account, uploaded and downloaded content, connected-platform information, stream channel credentials, communications, usage data, and account deletion."
+    }
+  ]
+}

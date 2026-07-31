@@ -1,0 +1,228 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-calendar",
+  "name": "Google Calendar",
+  "category": "calendar_scheduling",
+  "description": "Google Calendar is Google's calendar and scheduling service for calendars, events, guests, and availability.",
+  "agentUseSummary": "Connect one exact primary Google account and default calendar through Relay's verified confidential Google OAuth client with exactly three Calendar scopes, then let agents list bounded calendars/events, query FreeBusy, and create or ETag-update reviewed events. Relay blocks deletion, admin/sharing, notifications, attachments, Meet creation, private properties, bulk export, and raw APIs.",
+  "provider": {
+    "websiteUrl": "https://calendar.google.com/",
+    "docsUrl": "https://developers.google.com/workspace/calendar/api/v3/reference",
+    "developerConsoleUrl": "https://console.cloud.google.com/auth/clients",
+    "termsUrl": "https://developers.google.com/terms",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+      "https://www.googleapis.com/auth/calendar.events.freebusy",
+      "https://www.googleapis.com/auth/calendar.events"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token",
+    "revocationUrl": "https://oauth2.googleapis.com/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_verified_confidential_google_oauth",
+      "exact_three_sensitive_scopes",
+      "offline_refresh_token",
+      "exact_primary_account",
+      "exact_default_calendar",
+      "provider_revocable"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "GOOGLE_CALENDAR_CLIENT_ID",
+        "label": "Google Calendar OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Relay-owned verified confidential Google OAuth client ID configured only on Railway."
+      },
+      {
+        "name": "GOOGLE_CALENDAR_CLIENT_SECRET",
+        "label": "Google Calendar OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay-owned confidential Google OAuth secret configured only on Railway."
+      },
+      {
+        "name": "GOOGLE_CALENDAR_ACCOUNT_EMAIL",
+        "label": "Authorized Google account",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind the exact primary Google Calendar account before consent."
+      },
+      {
+        "name": "GOOGLE_CALENDAR_DEFAULT_CALENDAR_ID",
+        "label": "Default calendar ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind one exact default calendar ID; use primary only when intended."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/google-calendar/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "calendar_read",
+      "label": "Read calendars and events",
+      "description": "List bounded calendars and event details in explicit time ranges.",
+      "defaultSelected": true
+    },
+    {
+      "id": "availability_read",
+      "label": "Read availability",
+      "description": "Query bounded free/busy intervals for explicit calendars.",
+      "defaultSelected": true
+    },
+    {
+      "id": "event_write",
+      "label": "Create and update events",
+      "description": "Create or update exact reviewed events without guest notifications.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "google_calendar_calendar_list",
+        "label": "List calendars",
+        "description": "List the first bounded page of safe calendar identity metadata."
+      },
+      {
+        "id": "google_calendar_event_list",
+        "label": "List events",
+        "description": "List at most twenty-five events in an explicit calendar and time range."
+      },
+      {
+        "id": "google_calendar_freebusy_query",
+        "label": "Query availability",
+        "description": "Return bounded busy intervals for at most ten explicit calendars."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "google_calendar_event_create",
+        "label": "Create event",
+        "description": "Create one exact reviewed event without sending guest notifications."
+      },
+      {
+        "id": "google_calendar_event_update",
+        "label": "Update event",
+        "description": "Patch one exact reviewed event using an ETag without sending guest notifications."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "google_calendar_event_delete",
+        "label": "Delete or move events",
+        "description": "Delete, move, import, quick-add, watch, batch mutation, and sync traversal are blocked."
+      },
+      {
+        "id": "google_calendar_admin",
+        "label": "Administer calendars",
+        "description": "Calendar, CalendarList, ACL, settings, sharing, notification, and ownership mutations are blocked."
+      },
+      {
+        "id": "google_calendar_risky_content",
+        "label": "Add risky event content",
+        "description": "Attachments, Meet/conference creation, private or extended properties, guest notification side effects, and arbitrary recurrence expansion are blocked."
+      },
+      {
+        "id": "google_calendar_raw_api",
+        "label": "Use raw Calendar APIs",
+        "description": "Arbitrary endpoints, raw Google/MCP tools, automatic pagination, broad export, credentials, and broader scopes are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "google_calendar_safe",
+      "label": "Safe",
+      "description": "Bounded calendar, event, and availability reads are direct; event creates and updates require approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "google_calendar_calendar_list",
+        "google_calendar_event_list",
+        "google_calendar_freebusy_query"
+      ],
+      "approvalRequiredActions": [
+        "google_calendar_event_create",
+        "google_calendar_event_update"
+      ],
+      "blockedActions": [
+        "google_calendar_event_delete",
+        "google_calendar_admin",
+        "google_calendar_risky_content",
+        "google_calendar_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All five selected wrappers run without per-action approval while exact scopes/account/calendar bounds, audit, and provider controls remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "google_calendar_calendar_list",
+        "google_calendar_event_list",
+        "google_calendar_freebusy_query",
+        "google_calendar_event_create",
+        "google_calendar_event_update"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_calendar_event_delete",
+        "google_calendar_admin",
+        "google_calendar_risky_content",
+        "google_calendar_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts five fixed Google Calendar wrappers and attaches refreshed OAuth access tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts five fixed Google Calendar wrappers and attaches refreshed OAuth access tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay's production Google Cloud project, confidential web client, enabled Calendar API, verified brand/domains, sensitive-scope review, exact Railway callback, credentials, privacy disclosures, and authorized staging accounts are required.",
+    "nextAction": "Complete Google OAuth verification for exactly the three Calendar scopes, configure Railway OAuth, then validate account/calendar binding, refresh/revoke, denial, quota, reads, FreeBusy, approval/direct writes, ETag conflicts, and deletion handling."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/workspace/calendar/api/auth",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents the exact CalendarList, event FreeBusy, and event read/write scopes and public-app verification requirements."
+    },
+    {
+      "url": "https://developers.google.com/workspace/calendar/api/v3/reference",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents the CalendarList, Events, and FreeBusy REST methods used by Relay's five fixed wrappers."
+    },
+    {
+      "url": "https://developers.google.com/workspace/calendar/api/guides/quota",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents the May 2026 quotas, per-project and per-user limits, operational write limits, and later-2026 billing plan."
+    },
+    {
+      "url": "https://developers.google.com/workspace/calendar/release-notes",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents current Calendar API changes, including June 2026 access-role behavior and the April 2026 MCP preview."
+    }
+  ]
+}

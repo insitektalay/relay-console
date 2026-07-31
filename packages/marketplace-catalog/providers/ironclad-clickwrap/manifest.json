@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ironclad-clickwrap",
+  "name": "Ironclad Clickwrap",
+  "category": "knowledge_documents",
+  "description": "Ironclad Clickwrap helps businesses publish click-to-accept agreements, track acceptance evidence, manage agreement templates and organize those experiences across Sites and Groups. Legal and product teams use it to embed enforceable online terms into signup, checkout and other digital workflows.",
+  "agentUseSummary": "Add one dedicated user-bound Clickwrap REST API token and exact Site ID, then let selected agents inspect bounded privacy-reduced Site, Contract and Group configuration without exposing signers, acceptance activity, agreement bodies, records, exports or mutation APIs.",
+  "provider": {
+    "websiteUrl": "https://ironcladapp.com/products/clickwrap/",
+    "docsUrl": "https://clickwrap-developer.ironcladapp.com/docs/getting-your-access-token",
+    "developerConsoleUrl": "https://app.pactsafe.com/",
+    "termsUrl": "https://legal.ironcladapp.com/terms-of-use",
+    "privacyUrl": "https://legal.ironcladapp.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_user_bound_access_token",
+      "bearer_authorization_header",
+      "exact_numeric_site_binding",
+      "fixed_pactsafe_api_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "IRONCLAD_CLICKWRAP_ACCESS_TOKEN",
+        "label": "Clickwrap access token",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated API application in the Ironclad Clickwrap user profile. Relay encrypts its user-bound bearer token and sends it only to api.pactsafe.com."
+      },
+      {
+        "key": "IRONCLAD_CLICKWRAP_SITE_ID",
+        "label": "Clickwrap Site ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter the positive numeric ID of the single Clickwrap Site this connection may inspect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "clickwrap_configuration_read",
+      "label": "Read Clickwrap configuration",
+      "description": "Read bounded Site, Contract and Group configuration summaries from one exact Ironclad Clickwrap Site.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "ironclad_clickwrap_site_get",
+        "label": "Read the connected site",
+        "description": "Read a privacy-reduced summary of the exact configured Ironclad Clickwrap Site."
+      },
+      {
+        "id": "ironclad_clickwrap_contract_list",
+        "label": "List contracts",
+        "description": "List at most twenty-five privacy-reduced Contract summaries from page one of the exact configured Site."
+      },
+      {
+        "id": "ironclad_clickwrap_group_list",
+        "label": "List groups",
+        "description": "List at most twenty-five privacy-reduced Clickwrap Group summaries from page one of the exact configured Site."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "ironclad_clickwrap_safe",
+      "label": "Safe",
+      "description": "Every Clickwrap configuration read requires approval because the customer-owned token inherits its creating user's Site permissions; signer activity, agreement content, records, exports and writes are outside Relay's V1 surface.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "ironclad_clickwrap_site_get",
+        "ironclad_clickwrap_contract_list",
+        "ironclad_clickwrap_group_list"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three selected bounded reads run without Relay per-action approval; exact Site binding, token secrecy, fixed routing, response reduction, audits, provider permissions and Ironclad limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "ironclad_clickwrap_site_get",
+        "ironclad_clickwrap_contract_list",
+        "ironclad_clickwrap_group_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed exact-Site Clickwrap read wrappers while keeping the user-bound bearer token encrypted on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed exact-Site Clickwrap read wrappers while keeping the user-bound bearer token encrypted on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer-owned Ironclad Clickwrap account, dedicated API application/access token and representative Site are required for live acceptance.",
+    "nextAction": "In the separate provider-console task, create a dedicated Clickwrap API application under a least-privileged persistent user, copy the one-time token securely, record one exact numeric Site ID, save both through Relay, and validate the three bounded reads, Safe approvals, Dangerous execution, token replacement, disconnect, token rotation and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://clickwrap-developer.ironcladapp.com/docs/getting-your-access-token",
+      "checkedAt": "2026-07-17",
+      "supports": "Ironclad documents profile-created API applications, one-time client-secret/access-token display, bearer authentication, user-permission inheritance, HTTPS-only use, server-side token secrecy and customer-managed rotation."
+    },
+    {
+      "url": "https://clickwrap-developer.ironcladapp.com/reference/get_sites-site-id-contract",
+      "checkedAt": "2026-07-17",
+      "supports": "The official v1.1 OpenAPI contract fixes the REST origin at api.pactsafe.com, uses bearer security, and documents paginated Site-scoped Contract listing."
+    },
+    {
+      "url": "https://clickwrap-developer.ironcladapp.com/reference/get_sites-site-id-groups",
+      "checkedAt": "2026-07-17",
+      "supports": "The official v1.1 OpenAPI contract documents paginated Group listing under one numeric Site ID."
+    },
+    {
+      "url": "https://support.ironcladapp.com/hc/en-us/categories/12246186981783-Ironclad-Clickwrap",
+      "checkedAt": "2026-07-17",
+      "supports": "Ironclad describes Clickwrap as embedded click-to-accept agreements with Sites, templates, Groups, Snapshots and Legal Centers."
+    }
+  ]
+}

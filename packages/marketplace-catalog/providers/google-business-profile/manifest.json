@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-business-profile",
+  "name": "Google Business Profile",
+  "category": "crm_support",
+  "description": "Google Business Profile lets merchants manage how verified locations appear across Google Search and Maps and review aggregate discovery and interaction performance.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth with the exact business.manage scope and bind one accounts/{id} and locations/{id} resource. Four semantic wrappers read safe account metadata, masked public-facing location metadata, a fixed seven-metric thirty-day summary, or the first twenty keywords over three complete months. Relay blocks every mutation, administration, review reply, local post, arbitrary metric, cross-account discovery, export, raw tool, service-account, delegation, and pagination surface even though the provider scope can write.",
+  "provider": { "websiteUrl": "https://business.google.com/", "docsUrl": "https://developers.google.com/my-business", "developerConsoleUrl": "https://console.cloud.google.com/apis/library", "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy", "privacyUrl": "https://policies.google.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["https://www.googleapis.com/auth/business.manage"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth", "tokenUrl": "https://oauth2.googleapis.com/token" },
+  "connection": { "types": ["relay_owned_global_oauth", "selected_account_and_location_binding", "expiring_access_token", "offline_refresh_token", "provider_revocation"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/google-business-profile/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "account_get", "label": "Read bound account", "description": "Read safe metadata for one OAuth-bound account.", "defaultSelected": true },
+    { "id": "location_get", "label": "Read bound location", "description": "Read bounded public-facing metadata for one bound location.", "defaultSelected": true },
+    { "id": "performance_summary", "label": "Read fixed performance summary", "description": "Read seven daily metrics for a fixed thirty-day range.", "defaultSelected": true },
+    { "id": "search_keywords_list", "label": "Read search keywords", "description": "Read the first twenty keywords for three complete months.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_business_profile_account_get", "label": "Get Business Profile account", "description": "Read safe metadata for the OAuth-bound Business Profile account." },
+      { "id": "google_business_profile_location_get", "label": "Get Business Profile location", "description": "Read bounded public-facing metadata for the OAuth-bound location." },
+      { "id": "google_business_profile_performance_summary", "label": "Get Business Profile performance", "description": "Read a fixed thirty-day daily performance summary for the bound location." },
+      { "id": "google_business_profile_search_keywords_list", "label": "List Business Profile search keywords", "description": "Read the first twenty search keywords for the previous three complete months." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "google_business_profile_account_location_admin", "label": "Administer accounts or locations", "description": "Account, user, invitation, location, verification, and transfer administration are blocked." },
+      { "id": "google_business_profile_location_mutation", "label": "Mutate location profile", "description": "Profile, hours, categories, attributes, services, media, and food-menu mutations are blocked." },
+      { "id": "google_business_profile_local_post_mutation", "label": "Manage local posts", "description": "Creating, updating, or deleting local posts is blocked." },
+      { "id": "google_business_profile_review_mutation", "label": "Manage reviews", "description": "Replies and other review mutations are blocked." },
+      { "id": "google_business_profile_broad_export", "label": "Export Business Profile data", "description": "Cross-account discovery, arbitrary metrics, broad exports, page tokens, and automatic pagination are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "google_business_profile_safe", "label": "Safe", "description": "Four exact-account/location read wrappers run automatically while all writes, administration, arbitrary queries, exports, and pagination remain blocked.", "defaultSelected": true, "allowedActions": ["google_business_profile_account_get", "google_business_profile_location_get", "google_business_profile_performance_summary", "google_business_profile_search_keywords_list"], "approvalRequiredActions": [], "blockedActions": ["google_business_profile_account_location_admin", "google_business_profile_location_mutation", "google_business_profile_local_post_mutation", "google_business_profile_review_mutation", "google_business_profile_broad_export"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The account/location binding, fixed reports, masks, caps, and no-write boundaries remain enforced.", "defaultSelected": false, "allowedActions": ["google_business_profile_account_get", "google_business_profile_location_get", "google_business_profile_performance_summary", "google_business_profile_search_keywords_list"], "approvalRequiredActions": [], "blockedActions": ["google_business_profile_account_location_admin", "google_business_profile_location_mutation", "google_business_profile_local_post_mutation", "google_business_profile_review_mutation", "google_business_profile_broad_export"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts four bound-location Business Profile read wrappers and attaches encrypted OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts four bound-location Business Profile read wrappers and attaches encrypted OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "provider_review_pending", "blocker": "Relay must receive Google Business Profile API access and quota, enable Account Management, Business Information, and Performance APIs, configure and verify business.manage consent, and configure Railway staging credentials. Those provider-console and environment actions are outside this worker task.", "nextAction": "In the provider-console task, configure the canonical Railway callback, exact scope, API access, and staging credentials, then verify bound account/location validation, four reads, field redaction, fixed windows, no pagination, refresh, rotation, revocation, disconnect, and quota/error mapping." },
+  "evidence": [
+    { "url": "https://developers.google.com/my-business/reference/accountmanagement/rest/v1/accounts/get", "checkedAt": "2026-07-17", "supports": "Google documents exact account resource reads and the required business.manage scope." },
+    { "url": "https://developers.google.com/my-business/content/location-data", "checkedAt": "2026-07-17", "supports": "Google documents Business Information v1 location reads with an explicit readMask." },
+    { "url": "https://developers.google.com/my-business/reference/performance/rest", "checkedAt": "2026-07-17", "supports": "Google documents daily performance time-series endpoints for one locations/{id} resource." },
+    { "url": "https://developers.google.com/my-business/reference/performance/rest/v1/locations.searchkeywords.impressions.monthly/list", "checkedAt": "2026-07-17", "supports": "Google documents monthly search-keyword impressions, page size, page tokens, and the business.manage scope; Relay reads only the first twenty rows." }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "meistertask",
+  "name": "MeisterTask",
+  "category": "work_management",
+  "description": "MeisterTask is a visual work-management platform for planning and coordinating tasks across teams. It organizes projects into customizable boards with tasks, checklists, comments, files, timelines, time tracking, automations, reports, roles, and shared notes.",
+  "agentUseSummary": "Connect a MeisterTask account once, then choose which agents can read or manage its authorized projects and work under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.meistertask.com/",
+    "docsUrl": "https://developers.meistertask.com/",
+    "developerConsoleUrl": "https://www.mindmeister.com/api",
+    "termsUrl": "https://www.meistertask.com/pages/terms-conditions",
+    "privacyUrl": "https://www.meistertask.com/pages/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["userinfo.profile", "userinfo.email", "meistertask"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.mindmeister.com/oauth2/authorize",
+    "tokenUrl": "https://www.mindmeister.com/oauth2/token"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/meistertask/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "work_management_read",
+      "label": "Read MeisterTask work",
+      "description": "Read authorized projects, sections, tasks, people, checklists, comments, attachments, labels, custom fields, memberships, settings, timelines, and time records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "work_management_manage",
+      "label": "Manage MeisterTask work",
+      "description": "Create, update, upload, organize, share, subscribe, track time, and delete authorized work through documented routes.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "meistertask_api_read",
+        "label": "Read MeisterTask",
+        "description": "Read bounded resources from the connected MeisterTask account."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "meistertask_api_manage",
+        "label": "Manage MeisterTask",
+        "description": "Create, update, upload, organize, share, subscribe, track time, or delete authorized work."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "meistertask_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth credentials never enter agent-visible requests or results."
+      },
+      {
+        "id": "meistertask_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every request stays on MeisterTask's documented HTTPS API origin."
+      },
+      {
+        "id": "meistertask_unsupported_api",
+        "label": "Call an unsupported API family",
+        "description": "Relay permits only documented MeisterTask resource families under /api."
+      },
+      {
+        "id": "meistertask_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds queries, files, request bodies, responses, redirects, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "meistertask_safe",
+      "label": "Safe",
+      "description": "Reads run directly. Every provider mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["meistertask_api_read"],
+      "approvalRequiredActions": ["meistertask_api_manage"],
+      "blockedActions": ["meistertask_secret_exposure", "meistertask_unofficial_origin", "meistertask_unsupported_api", "meistertask_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected action authorized by the connected MeisterTask account runs without Relay per-action approval. Provider authority, fixed origin, request bounds, credential protection, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["meistertask_api_read", "meistertask_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["meistertask_secret_exposure", "meistertask_unofficial_origin", "meistertask_unsupported_api", "meistertask_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts bounded MeisterTask API tools and attaches the OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts bounded MeisterTask API tools and attaches the OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A signed-in Meister account must register the Relay Console OAuth application and supply its production client ID and secret before one-click connection can be verified.",
+    "nextAction": "Register Relay Console at https://www.mindmeister.com/api with https://api.relayconsole.work/api/v1/marketplace/oauth/meistertask/callback and the userinfo.profile, userinfo.email, and meistertask scopes; store MEISTERTASK_CLIENT_ID and MEISTERTASK_CLIENT_SECRET in Railway, deploy, and verify connect, identity, reads, Safe approval, Dangerous mutation and upload, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.meistertask.com/reference/authentication",
+      "checkedAt": "2026-07-15",
+      "supports": "MeisterTask documents authorization-code OAuth through Meister's application system, bearer access tokens, personal tokens for one-off use, and the userinfo.profile, userinfo.email, and meistertask scopes."
+    },
+    {
+      "url": "https://developers.meistertask.com/llms.txt",
+      "checkedAt": "2026-07-15",
+      "supports": "The official documentation indexes projects, sections, tasks, people, checklists, comments, attachments, labels, custom fields, memberships, settings, timelines, work intervals, groups, and their documented read and mutation endpoints."
+    },
+    {
+      "url": "https://developers.mindmeister.com/docs/register-application",
+      "checkedAt": "2026-07-15",
+      "supports": "Meister's application system documents self-service OAuth client registration with one or more redirect URIs and issues a client ID and secret."
+    },
+    {
+      "url": "https://developers.mindmeister.com/docs/oauth-2",
+      "checkedAt": "2026-07-15",
+      "supports": "Meister documents the confidential authorization-code flow, exact authorization and token endpoints, ten-minute one-use codes, form-encoded exchange, and access tokens that may be non-expiring until manually revoked."
+    },
+    {
+      "url": "https://www.meistertask.com/pricing",
+      "checkedAt": "2026-07-15",
+      "supports": "MeisterTask describes its work-management product and currently lists full API use on Pro, Business, and Enterprise plans rather than Free."
+    }
+  ]
+}

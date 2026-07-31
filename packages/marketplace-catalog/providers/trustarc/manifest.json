@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "trustarc",
+  "name": "TrustArc",
+  "category": "developer",
+  "description": "TrustArc provides privacy governance, cookie consent management, consent and preference management, assessments, data mapping, and individual-rights workflows.",
+  "agentUseSummary": "TrustArc is unavailable as a Relay agent connection because the current Cookie Consent Manager External API exposes its sole inventory read only to ADMIN or SUPER_ADMIN roles whose same authority can add and remove websites and initiate scans. The API also uses an onboarding-specific tenant host and short-lived support-provisioned bearer tokens. Relay will not store an overprivileged privacy-administration credential or infer an undocumented read-only scope.",
+  "provider": {
+    "websiteUrl": "https://trustarc.com/",
+    "docsUrl": "https://trustarchelp.zendesk.com/hc/en-us/articles/53517557106963-API-Reference",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://trustarc.com/terms-of-use/",
+    "privacyUrl": "https://trustarc.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "tenant_host_from_onboarding_not_accepted",
+      "short_lived_support_provisioned_token_not_collected",
+      "admin_only_tracker_inventory",
+      "same_role_authorizes_ccm_mutations",
+      "no_documented_read_only_scope"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "trustarc_connection",
+        "label": "Connect TrustArc",
+        "description": "Relay exposes no TrustArc connection while the documented metadata read requires an account-wide administrative role with mutation authority."
+      },
+      {
+        "id": "trustarc_admin_credential",
+        "label": "Collect administrative credentials",
+        "description": "Support-issued API keys, session tokens, short-lived bearer tokens, client credentials, tenant hosts, account IDs, and Consent Manager IDs are not collected."
+      },
+      {
+        "id": "trustarc_privacy_data",
+        "label": "Read privacy or tracker data",
+        "description": "Tracker inventory, domains, seed URLs, identifiers, organizations, data collected, purposes, consent records, preferences, assessments, reports, exports, and individual-rights data remain unavailable."
+      },
+      {
+        "id": "trustarc_mutation",
+        "label": "Mutate TrustArc",
+        "description": "Adding or removing websites, initiating scans, changing trackers, consent or preference actions, assessments, reports, and every other mutation remain provider-side."
+      },
+      {
+        "id": "trustarc_arbitrary_api",
+        "label": "Use arbitrary interfaces",
+        "description": "Onboarding-specific hosts, alternate regional origins, internal Swagger, arbitrary queries, browser sessions, scraping, and undocumented requests are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "trustarc_unavailable",
+      "label": "Unavailable",
+      "description": "No TrustArc action or credential path is exposed until a stable provider-operated API offers a least-privilege read-only role or scope, fixed verifiable origin rules, and renewable service credentials separated from website and scan mutations.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "trustarc_connection",
+        "trustarc_admin_credential",
+        "trustarc_privacy_data",
+        "trustarc_mutation",
+        "trustarc_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No wrapper is mounted because the tracker inventory read requires an administrative role that also authorizes CCM mutations."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No wrapper is mounted because the tracker inventory read requires an administrative role that also authorizes CCM mutations."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": "TrustArc's current CCM External API documents one tracker-inventory GET requiring SUPER_ADMIN or ADMIN. Those roles also authorize website additions/removals and scan creation; the documentation does not define a read-only role or scope. The API origin is an onboarding-specific CCM host and bearer tokens are short-lived and issued through the portal, onboarding contact, or support.",
+    "nextAction": "Keep TrustArc unavailable and do not collect its administrative credentials or privacy data. Re-evaluate only if TrustArc publishes a least-privilege read-only role or scope, fixed tenant-origin verification rules, service-token renewal and revocation, stable response schemas, and an authority boundary that excludes website, scan, tracker, consent, assessment, report, and rights-request mutations."
+  },
+  "evidence": [
+    {
+      "url": "https://trustarchelp.zendesk.com/hc/en-us/articles/53517235461651-Getting-Started",
+      "checkedAt": "2026-07-18",
+      "supports": "TrustArc documents an onboarding-specific CCM host, support- or portal-issued short-lived bearer tokens, and SUPER_ADMIN, ADMIN, or DESIGNER roles for the External API."
+    },
+    {
+      "url": "https://trustarchelp.zendesk.com/hc/en-us/articles/53517557106963-API-Reference",
+      "checkedAt": "2026-07-18",
+      "supports": "The official v1 reference documents website add/remove and scan creation mutations; its tracker inventory GET requires SUPER_ADMIN or ADMIN and exposes tracker domains, identifiers, organizations, collected data, and purposes."
+    },
+    {
+      "url": "https://trustarchelp.zendesk.com/hc/en-us/articles/41665841044755-Token-Access",
+      "checkedAt": "2026-07-18",
+      "supports": "TrustArc's separate API token guide documents client-credentials bearer tokens whose response includes account and user identity fields, without establishing a CCM tracker-read-only scope."
+    }
+  ]
+}

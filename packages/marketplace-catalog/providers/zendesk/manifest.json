@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zendesk",
+  "name": "Zendesk",
+  "category": "crm_support",
+  "description": "Zendesk is a customer service platform for managing support requests across email, messaging, help centers, voice, and other channels. Support teams use it to organize tickets, coordinate responses, automate service workflows, and understand customer-service performance.",
+  "agentUseSummary": "Connect one Zendesk Support instance through Relay Console OAuth, then let agents use three bounded read-only tools for the ticket count and privacy-redacted ticket summaries. Relay V1 excludes identities, message content, comments, audits, attachments, custom fields, users, organizations, writes, searches, pagination, exports, administration, and other Zendesk products.",
+  "provider": {
+    "websiteUrl": "https://www.zendesk.com/",
+    "docsUrl": "https://developer.zendesk.com/api-reference/ticketing/introduction/",
+    "developerConsoleUrl": "https://www.zendesk.com/marketplace/developer-portal/",
+    "termsUrl": "https://www.zendesk.com/company/agreements-and-terms/",
+    "privacyUrl": "https://www.zendesk.com/company/agreements-and-terms/privacy-notice/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["tickets:read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://{subdomain}.zendesk.com/oauth/authorizations/new",
+    "tokenUrl": "https://{subdomain}.zendesk.com/oauth/tokens"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "exact_support_instance_binding",
+      "exact_authorizing_user_binding",
+      "expiring_access_token",
+      "refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [
+      {
+        "id": "zendeskSubdomain",
+        "label": "Zendesk subdomain",
+        "secret": false,
+        "required": true,
+        "description": "The account name from the Zendesk address, for example acme from acme.zendesk.com."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/zendesk/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ticket_read",
+      "label": "Read tickets",
+      "description": "Read the provider-maintained ticket count and bounded privacy-redacted ticket summaries in one exact Zendesk Support instance.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "zendesk_ticket_count",
+        "label": "Read ticket count",
+        "description": "Read Zendesk's provider-maintained approximate ticket count."
+      },
+      {
+        "id": "zendesk_ticket_list",
+        "label": "List tickets",
+        "description": "List at most twenty-five recently updated privacy-redacted ticket summaries."
+      },
+      {
+        "id": "zendesk_ticket_get",
+        "label": "Read ticket",
+        "description": "Read one exact privacy-redacted ticket summary by positive numeric ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "zendesk_ticket_mutation",
+        "label": "Change tickets",
+        "description": "Creating, updating, assigning, merging, commenting on, solving, closing, or deleting tickets is outside V1."
+      },
+      {
+        "id": "zendesk_private_ticket_data",
+        "label": "Read private support content",
+        "description": "Requester, submitter, assignee, identity, descriptions, comments, audits, attachments, collaborators, followers, tags, and custom fields are outside V1."
+      },
+      {
+        "id": "zendesk_broader_support",
+        "label": "Access broader Zendesk data",
+        "description": "Users, organizations, groups, macros, triggers, automations, views, help-center content, Chat, Sell, and administration are outside V1."
+      },
+      {
+        "id": "zendesk_raw_search",
+        "label": "Run arbitrary searches",
+        "description": "Arbitrary paths, queries, filters, side-loading, page cursors, raw responses, and Search API access are outside V1."
+      },
+      {
+        "id": "zendesk_bulk_export",
+        "label": "Export Zendesk data",
+        "description": "Incremental exports, automatic pagination, crawling, bulk endpoints, and data exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zendesk_safe",
+      "label": "Safe",
+      "description": "All three bounded ticket reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "zendesk_ticket_count",
+        "zendesk_ticket_list",
+        "zendesk_ticket_get"
+      ],
+      "blockedActions": [
+        "zendesk_ticket_mutation",
+        "zendesk_private_ticket_data",
+        "zendesk_broader_support",
+        "zendesk_raw_search",
+        "zendesk_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only tools run without Relay per-action approval while exact-instance and user binding, Zendesk-granted scope, fixed requests, limits, audit, redaction, refresh expiry, revocation, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "zendesk_ticket_count",
+        "zendesk_ticket_list",
+        "zendesk_ticket_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zendesk_ticket_mutation",
+        "zendesk_private_ticket_data",
+        "zendesk_broader_support",
+        "zendesk_raw_search",
+        "zendesk_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded Zendesk ticket-read wrappers and attaches encrypted OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded Zendesk ticket-read wrappers and attaches encrypted OAuth tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay needs a sponsored d3v- Zendesk Support account, a fully configured local zdg- OAuth client, Zendesk Marketplace Operations approval and conversion to a global OAuth client, staging credentials, and an authorized representative Support instance. Those provider-console actions are outside this code-only task.",
+    "nextAction": "In the provider-console task, create the complete local zdg- client in a sponsored d3v- account with the canonical callback, submit the Global OAuth request, claim and associate the approved global client with Relay's app listing, configure Railway staging credentials, then verify exact subdomain/user binding, token expiry and refresh, revocation, all three reads, permission denial, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.zendesk.com/documentation/marketplace/building-a-marketplace-app/set-up-a-global-oauth-client/",
+      "checkedAt": "2026-07-17",
+      "supports": "Public multi-customer integrations must use a Zendesk-approved global OAuth client; regular customer credentials cannot be shared, and the local zdg- client is converted through Marketplace Operations."
+    },
+    {
+      "url": "https://developer.zendesk.com/api-reference/introduction/security-and-auth/",
+      "checkedAt": "2026-07-17",
+      "supports": "An OAuth token is bound to one Zendesk instance, and public integrations available to multiple customers must use global OAuth access tokens."
+    },
+    {
+      "url": "https://developer.zendesk.com/api-reference/ticketing/oauth/grant_type_tokens/",
+      "checkedAt": "2026-07-17",
+      "supports": "Authorization-code and refresh-token exchanges use the exact customer /oauth/tokens endpoint and return expiring access-token and refresh-token metadata."
+    },
+    {
+      "url": "https://developer.zendesk.com/documentation/api-basics/authentication/refresh-token/",
+      "checkedAt": "2026-07-17",
+      "supports": "New global clients receive expiring tokens and refresh-token support; clients must track expiry, securely retain refresh tokens, and replace the refresh token if a new one is returned."
+    },
+    {
+      "url": "https://developer.zendesk.com/api-reference/ticketing/tickets/tickets/",
+      "checkedAt": "2026-07-17",
+      "supports": "The Support API provides ticket count, bounded list, and exact ticket endpoints with ticket-level permission filtering; Relay fixes sorting and limits, omits side-loading, and does not paginate."
+    }
+  ]
+}

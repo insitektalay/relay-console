@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "olark",
+  "name": "Olark",
+  "category": "communication",
+  "description": "Olark is a website live-chat platform for visitor conversations, operator workflows, chat transcripts, routing, automation, reporting, and CRM integrations.",
+  "agentUseSummary": "Configure Olark's completed-transcript webhook to a Relay-generated opaque callback, then let selected agents use privacy-redacted transcript operational metadata under Safe or Dangerously skip permissions.",
+  "provider": { "websiteUrl": "https://www.olark.com/", "docsUrl": "https://www.olark.com/help/webhooks", "developerConsoleUrl": null, "termsUrl": "https://www.olark.com/terms", "privacyUrl": "https://www.olark.com/privacy" },
+  "authentication": { "model": "webhook_secret", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["webhook_ingress"],
+    "credentialRequirements": [{ "name": "OLARK_RELAY_WEBHOOK_SECRET", "label": "Relay Olark webhook secret", "required": true, "secret": true, "helpText": "Use a Relay-generated opaque callback secret because Olark's documented transcript webhook does not describe request signing." }],
+    "callbackPath": null,
+    "webhookRequirements": [{ "event": "conversation_completed", "purpose": "Receive the documented completed transcript POST for privacy-redacted operational projection." }]
+  },
+  "capabilities": [{ "id": "transcript_metadata_read", "label": "Read transcript operations", "description": "Project completed transcript webhook payloads into IDs, counts, and timestamps without messages, visitor identities, contact details, page history, custom fields, tags, group/operator identities, or raw payloads.", "defaultSelected": true }],
+  "actions": { "allowed": [], "approvalRequired": [{ "id": "olark_transcript_project", "label": "Project transcript metadata", "description": "Project one completed Olark transcript webhook into content-free operational counts and timestamps." }], "blocked": [
+    { "id": "olark_rest_api", "label": "Use an Olark REST API", "description": "Olark's current official documentation does not publish an authenticated server REST API, so Relay does not invent one." },
+    { "id": "olark_browser_javascript", "label": "Execute browser JavaScript", "description": "Olark's JavaScript API controls a live visitor chatbox and is outside this Railway-backed webhook connector." },
+    { "id": "olark_transcript_content", "label": "Read transcript content", "description": "Messages, notes, visitor/contact data, navigation, custom fields, tags, identities, and raw payloads are outside V1." }
+  ] },
+  "approvalProfiles": [
+    { "id": "olark_safe", "label": "Safe", "description": "Every transcript projection requires approval; Relay ingress-secret isolation, payload bounds, content exclusion, and audits remain enforced.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["olark_transcript_project"], "blockedActions": ["olark_rest_api", "olark_browser_javascript", "olark_transcript_content"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Transcript projections run without Relay per-action approval; ingress-secret isolation, bounds, content exclusion, and audits still apply.", "defaultSelected": false, "allowedActions": ["olark_transcript_project"], "approvalRequiredActions": [], "blockedActions": ["olark_rest_api", "olark_browser_javascript", "olark_transcript_content"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway accepts bounded transcript webhook payloads through an opaque Relay-secret callback and mounts only the content-free projection." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway accepts bounded transcript webhook payloads through an opaque Relay-secret callback and mounts only the content-free projection." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "customer_action_required", "blocker": "A customer must configure Olark's completed-transcript webhook to the Relay-generated opaque callback; Olark does not document webhook request signing.", "nextAction": "Configure the opaque Relay callback in Olark, send a provider test transcript, verify content exclusion and Safe approval, rotate the Relay ingress secret, and verify old-callback and disconnect denial." },
+  "evidence": [
+    { "url": "https://www.olark.com/help/webhooks", "checkedAt": "2026-07-18", "supports": "Olark officially documents completed transcript HTTP POST webhooks with a JSON-encoded transcript and does not document a request signature in the guide." },
+    { "url": "https://www.olark.com/api", "checkedAt": "2026-07-18", "supports": "Olark's official API documentation covers browser JavaScript chatbox and visitor APIs rather than an authenticated server REST API." },
+    { "url": "https://www.olark.com/help/view-transcripts", "checkedAt": "2026-07-18", "supports": "Olark documents paid-plan transcript access and CSV exports through its dashboard, not a server transcript read API." }
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "emma",
+  "name": "Emma",
+  "category": "marketing_analytics",
+  "description": "Emma is an email marketing platform for audience members, groups, fields, searches, mailings, automation, subscriptions, and response reporting.",
+  "agentUseSummary": "Connect one Emma account with encrypted dedicated public and private API keys. Relay fixes api.e2ma.net and one numeric account ID, binds one numeric member ID and mailing ID, exposes only IDs, timestamps, mailing status, and type, and blocks member identity and status, mailing content, recipients, counts, links, reports, broader access, exports, and mutations.",
+  "provider": {
+    "websiteUrl": "https://myemma.com/",
+    "docsUrl": "https://api.myemma.com/",
+    "developerConsoleUrl": "https://app.e2ma.net/",
+    "termsUrl": "https://myemma.com/terms/",
+    "privacyUrl": "https://myemma.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["account_api_keys"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_dedicated_api_keys",
+      "fixed_api_origin",
+      "selected_numeric_account_id",
+      "selected_numeric_member_id",
+      "selected_numeric_mailing_id"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "EMMA_ACCOUNT_ID",
+        "label": "Emma account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact numeric Emma account or HQ subaccount ID fixed into every approved path."
+      },
+      {
+        "name": "EMMA_PUBLIC_API_KEY",
+        "label": "Emma public API key",
+        "required": true,
+        "secret": true,
+        "helpText": "A dedicated customer-generated public key; Relay encrypts it and uses it only as the Basic-auth username for api.e2ma.net."
+      },
+      {
+        "name": "EMMA_PRIVATE_API_KEY",
+        "label": "Emma private API key",
+        "required": true,
+        "secret": true,
+        "helpText": "The matching dedicated private key; Relay encrypts it and uses it only as the Basic-auth password for api.e2ma.net."
+      },
+      {
+        "name": "EMMA_MEMBER_ID",
+        "label": "Selected numeric member ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact numeric member whose IDs and timestamps Relay may read; email selectors are rejected."
+      },
+      {
+        "name": "EMMA_MAILING_ID",
+        "label": "Selected numeric mailing ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact numeric mailing whose bounded lifecycle metadata Relay may read."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "emma_member_summary_get",
+      "label": "Read selected member summary",
+      "description": "Read only the account/member IDs and timestamps for one selected member without email, SMS, fields, status, preferences, consent, groups, activity, or errors.",
+      "defaultSelected": true
+    },
+    {
+      "id": "emma_mailing_summary_get",
+      "label": "Read selected mailing summary",
+      "description": "Read bounded lifecycle metadata for one selected mailing without name, subject, content, sender, reply-to, recipients, counts, links, groups, searches, segments, or failure detail.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "emma_member_summary_get",
+        "label": "Read selected member summary",
+        "description": "Read the selected member's account/member IDs and timestamps while discarding all identity, status, preference, group, and activity fields."
+      },
+      {
+        "id": "emma_mailing_summary_get",
+        "label": "Read selected mailing summary",
+        "description": "Read the selected mailing's IDs, status, type, and timestamps while discarding content, recipients, counts, links, and targeting details."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "emma_private_data",
+        "label": "Expose private marketing data",
+        "description": "Member email, SMS, fields, status, preferences, consent, groups, activity, and errors plus mailing name, subject, content, sender, reply-to, recipients, counts, links, groups, searches, segments, and failure detail are excluded."
+      },
+      {
+        "id": "emma_mutation",
+        "label": "Mutate Emma state",
+        "description": "Members, groups, fields, searches, mailings, sends, automation, subscriptions, webhooks, and every other mutation are blocked."
+      },
+      {
+        "id": "emma_broad_access",
+        "label": "Use broad Emma access",
+        "description": "Other accounts, members, mailings, responses, exports, arbitrary paths, queries, redirects, downloads, and bulk access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "emma_read_only",
+      "label": "Read Only",
+      "description": "Read one selected member and mailing through encrypted dedicated API keys; private data, broader access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["emma_member_summary_get", "emma_mailing_summary_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "emma_private_data",
+        "emma_mutation",
+        "emma_broad_access"
+      ]
+    },
+    {
+      "id": "emma_no_access",
+      "label": "No Access",
+      "description": "Expose no Emma actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "emma_member_summary_get",
+        "emma_mailing_summary_get",
+        "emma_private_data",
+        "emma_mutation",
+        "emma_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted dedicated key pair and selected numeric IDs server-side and mounts exactly two fixed-origin projected reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted dedicated key pair and selected numeric IDs server-side and mounts exactly two fixed-origin projected reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "An Emma staging account or HQ subaccount, dedicated public/private API key pair, exact account ID, member ID, and mailing ID are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "The provider-console lane must generate a dedicated staging API key pair, capture it directly in Railway with exact numeric account/member/mailing IDs, then validate both redacted reads, Basic-auth and origin containment, email-selector denial, 401/403-rate behavior, key replacement/revocation, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://api.myemma.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Emma documents account, public-key, and private-key credentials, HTTP Basic authentication, the fixed https://api.e2ma.net origin, JSON responses, HQ subaccount binding, TLS requirements, and a 180-calls-per-minute limit returning 403 when exceeded."
+    },
+    {
+      "url": "https://api.myemma.com/api/external/members.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Emma documents GET /{account_id}/members/{member_id}, numeric IDs, and the member identity, status, SMS, field, preference, error, and timestamp response fields that Relay redacts."
+    },
+    {
+      "url": "https://api.myemma.com/api/external/mailings.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Emma documents GET /{account_id}/mailings/{mailing_id} and the mailing lifecycle, content, recipient, count, link, targeting, and sender fields; Relay retains only IDs, type, status, and timestamps."
+    }
+  ]
+}

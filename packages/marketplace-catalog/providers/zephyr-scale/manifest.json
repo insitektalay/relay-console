@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zephyr-scale",
+  "name": "Zephyr Scale",
+  "category": "work_management",
+  "description": "Zephyr Scale is Jira-native test-management software for organizing test cases, plans, cycles, executions, environments and automation results. Software teams use it to plan, run and report testing alongside delivery work in Jira.",
+  "agentUseSummary": "Add a Zephyr Scale API access token, select its SmartBear data region and bind one Jira project, then let agents read bounded test cases and cycles or use the broader documented Cloud API v2 under Safe or Dangerously skip permissions.",
+  "provider": { "websiteUrl": "https://smartbear.com/product/zephyr/", "docsUrl": "https://support.smartbear.com/zephyr-scale-cloud/api-docs/", "developerConsoleUrl": "https://support.smartbear.com/zephyr-scale-cloud/docs/rest-api/generating-api-access-tokens.html", "termsUrl": "https://smartbear.com/terms-of-use/", "privacyUrl": "https://smartbear.com/privacy/" },
+  "authentication": { "model": "api_token", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_jwt_access_key", "bearer_header", "exact_region_and_jira_project_binding", "fixed_smartbear_cloud_api_v2_origin"],
+    "credentialRequirements": [
+      { "key": "ZEPHYR_SCALE_API_TOKEN", "label": "Zephyr Scale API access token", "secret": true, "required": true, "helpText": "Generate an access key from Zephyr API keys. Relay encrypts it and sends it only to the selected SmartBear regional API origin." },
+      { "key": "ZEPHYR_SCALE_REGION", "label": "Zephyr Scale data region", "secret": false, "required": true, "helpText": "Enter US, EU, AU or DE to select the documented regional Cloud API origin." },
+      { "key": "ZEPHYR_SCALE_PROJECT_KEY", "label": "Jira project key", "secret": false, "required": true, "helpText": "Enter one exact Jira project key, such as RELAY, to bind bounded reads to one project." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "test_management_read", "label": "Read test management data", "description": "Read bounded test cases and test cycles from one exact Jira project.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full Zephyr Scale API", "description": "Use the documented Cloud API v2 surface allowed by the access key and Jira permissions.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "zephyr_scale_test_case_list", "label": "List test cases", "description": "List at most twenty-five Zephyr Scale test cases in the bound Jira project." },
+      { "id": "zephyr_scale_test_case_get", "label": "Read a test case", "description": "Read one exact Zephyr Scale test case in the bound Jira project." },
+      { "id": "zephyr_scale_test_cycle_list", "label": "List test cycles", "description": "List at most twenty-five Zephyr Scale test cycles in the bound Jira project." }
+    ],
+    "approvalRequired": [{ "id": "zephyr_scale_full_api", "label": "Use full Zephyr Scale API", "description": "Use a documented Zephyr Scale Cloud API v2 operation authorized by the access key; Safe mode requires approval." }],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "zephyr_scale_safe", "label": "Safe", "description": "Bounded test-case and test-cycle reads run directly; every other Zephyr Scale operation requires approval.", "defaultSelected": true, "allowedActions": ["zephyr_scale_test_case_list", "zephyr_scale_test_case_get", "zephyr_scale_test_cycle_list"], "approvalRequiredActions": ["zephyr_scale_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected access-key-authorized Zephyr Scale operation runs without Relay per-action approval; project and region binding, provider permissions, fixed routing, bounds, redaction and audits still apply.", "defaultSelected": false, "allowedActions": ["zephyr_scale_test_case_list", "zephyr_scale_test_case_get", "zephyr_scale_test_cycle_list", "zephyr_scale_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts typed Zephyr Scale wrappers and attaches the encrypted access key only to the selected fixed SmartBear regional API v2 origin." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts typed Zephyr Scale wrappers and attaches the encrypted access key only to the selected fixed SmartBear regional API v2 origin." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": { "status": "blocked", "blocker": "No customer-owned Zephyr Scale Cloud account, API access token or representative Jira project is available to this code-only worker.", "nextAction": "A Zephyr Scale user generates a dedicated access key, selects the exact US/EU/AU/DE region and Jira project in Relay Console, then verifies project binding, bounded reads, Safe approval, one permitted Dangerous mutation, credential replacement, disconnect, key deletion and post-disconnect denial in Railway staging." },
+  "evidence": [
+    { "url": "https://support.smartbear.com/zephyr-scale-cloud/api-docs/", "checkedAt": "2026-07-18", "supports": "SmartBear documents JWT access-key bearer authentication, fixed US/EU/AU/DE Cloud API v2 origins, a health endpoint, bounded test-case and test-cycle reads, and the wider create/update/delete test-management surface." },
+    { "url": "https://smartbear.com/product/zephyr/", "checkedAt": "2026-07-18", "supports": "SmartBear presents Zephyr as Jira-native test management for planning, automation, tracking and reporting across test delivery." }
+  ]
+}

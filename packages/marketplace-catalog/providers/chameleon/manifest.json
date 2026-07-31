@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "chameleon",
+  "name": "Chameleon",
+  "category": "developer",
+  "description": "Chameleon is a product-adoption platform for Tours, Tooltips, Embeddables, Microsurveys, Launchers, HelpBar, and interactive Demos. Product teams use it to build targeted in-product guidance and measure engagement.",
+  "agentUseSummary": "Connect one exact Chameleon account with a customer-owned account secret, then let agents list only bounded, strictly projected Tour inventory metadata under approval. Relay excludes segments, tags, dashboard URLs, content/audience summaries, stats, profiles, companies, interactions, responses, publishing, deliveries, imports, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.chameleon.io/",
+    "docsUrl": "https://developers.chameleon.io/apis/tours",
+    "developerConsoleUrl": "https://app.chameleon.io/settings/tokens",
+    "termsUrl": "https://www.chameleon.io/terms",
+    "privacyUrl": "https://www.chameleon.io/privacy"
+  },
+  "authentication": {
+    "model": "customer_owned_account_secret",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_account_secret",
+      "exact_account_scope",
+      "fixed_api_origin",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CHAMELEON_ACCOUNT_SECRET",
+        "label": "Chameleon account secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a dedicated account-specific secret and store the one-time value only through Relay's encrypted connection flow."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "tour_inventory",
+      "label": "List Tours",
+      "description": "List at most 50 Tour IDs, names, delivery styles, and lifecycle timestamps without content, targeting, stats, or user data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "chameleon_tours_list",
+        "label": "List Tours",
+        "description": "List bounded projected Tour inventory metadata from one exact Chameleon account."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "chameleon_private_tour_data",
+        "label": "Access private Tour data",
+        "description": "Segments, tags, dashboard URLs, content/audience summaries, steps, targeting, translations, and stats are blocked."
+      },
+      {
+        "id": "chameleon_profiles_companies_interactions",
+        "label": "Access profiles, companies, or interactions",
+        "description": "User profiles, companies, attributes, interactions, responses, identities, and event-level data are blocked."
+      },
+      {
+        "id": "chameleon_mutation_delivery_admin",
+        "label": "Mutate or administer Chameleon",
+        "description": "Publishing, Tour changes, deliveries, imports, webhooks, tags, domains, rate/alert groups, and administration are blocked."
+      },
+      {
+        "id": "chameleon_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, query secrets, pagination, polling, retries, batches, CSV, downloads, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "chameleon_tour_inventory_safe",
+      "label": "Safe",
+      "description": "The bounded Tour inventory requires approval; private content, profiles, interactions, writes, bulk data, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["chameleon_tours_list"],
+      "blockedActions": [
+        "chameleon_private_tour_data",
+        "chameleon_profiles_companies_interactions",
+        "chameleon_mutation_delivery_admin",
+        "chameleon_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded Tour inventory runs without Relay per-action approval; exact account/fixed-origin binding, strict projection, response cap, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["chameleon_tours_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "chameleon_private_tour_data",
+        "chameleon_profiles_companies_interactions",
+        "chameleon_mutation_delivery_admin",
+        "chameleon_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned account secret to the fixed Chameleon origin and a projected Tour-inventory wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned account secret to the fixed Chameleon origin and a projected Tour-inventory wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Chameleon administrator must generate a dedicated account-specific secret, capture its one-time value, and store it through Relay. No account, token creation, credential capture, live API request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized Chameleon administrator generates a dedicated account secret, stores it through Relay, then verifies health, one approved Tour list, throttling, token rotation/revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.chameleon.io/apis/tours",
+      "checkedAt": "2026-07-17",
+      "supports": "Chameleon documents GET /v3/edit/tours, a default list limit of 50 and maximum of 500, cursor pagination, and Tour fields including IDs, names, styles, timestamps, segments, tags, dashboard URLs, content/audience summaries, and stats. Relay requests at most 50 and projects only low-sensitivity inventory fields."
+    },
+    {
+      "url": "https://developers.chameleon.io/concepts/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Chameleon documents the fixed https://api.chameleon.io origin, v3 environment-prefixed routes, and account-specific one-time secrets sent in X-Account-Secret. Relay encrypts the secret and never places it in query parameters."
+    },
+    {
+      "url": "https://developers.chameleon.io/apis/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Chameleon documents profiles, companies, segments, Tours, interactions, survey responses, deliveries, imports, webhooks, and mutation endpoints. Relay selects one Tour list and blocks all other resources and writes."
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "chime-crm",
+  "name": "Chime CRM",
+  "category": "crm_support",
+  "description": "Chime CRM is now Lofty, a real-estate CRM and sales acceleration platform for agents, teams, and brokerages. Lofty combines lead management, team organization, communication history, dialer calls, texts, emails, tasks, appointments, calendar work, websites, advertising, AI-assisted follow-up, reporting, and mobile workflows for managing buyer and seller relationships.",
+  "agentUseSummary": "Add a Lofty Open API key from a dedicated least-privilege Chime/Lofty user, then choose which agents can read bounded CRM data or manage selected calendar entries and manual communication logs under Safe or Dangerous policy. Relay excludes org and user administration, outbound SMS or email sending, OAuth app administration, webhooks, websites, advertising, AI features, raw API access, legacy api.chime.me access, automatic pagination, browser automation, provider-console setup, and credential exposure.",
+  "provider": {
+    "websiteUrl": "https://lofty.com/",
+    "docsUrl": "https://api.lofty.com/docs/reference",
+    "developerConsoleUrl": "https://help.lofty.com/hc/en-us/articles/4405826620571-Chime-API-OAuth-2-0",
+    "termsUrl": "https://lofty.com/terms-of-service",
+    "privacyUrl": "https://lofty.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_open_api_key",
+      "fixed_lofty_open_api_origin",
+      "legacy_chime_api_origin_blocked",
+      "connected_user_role_authority",
+      "oauth2_available_after_developer_platform_review",
+      "openapi_v1_and_v2"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CHIME_CRM_API_KEY",
+        "label": "Lofty Open API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the API key from Chime/Lofty Settings > Integrations > API for a dedicated least-privilege user. Relay encrypts it and sends it only to api.lofty.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crm_read",
+      "label": "Read Lofty real-estate CRM data",
+      "description": "Read bounded team, user, lead, communication-history, call, calendar, task, appointment, manual-log, and organization data authorized by the connected Lofty API key.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crm_manage",
+      "label": "Manage calendar and activity logs",
+      "description": "Create, update, finish, unfinish, and delete selected calendar entries and create or delete manual communication logs through bounded documented routes.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "chime_crm_api_read",
+        "label": "Read Chime CRM",
+        "description": "Read one selected Lofty Open API CRM, team, communication-history, call, calendar, task, appointment, or manual-log route with bounded query parameters."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "chime_crm_api_manage",
+        "label": "Manage Chime CRM",
+        "description": "Create or update selected calendar entries and manual communication logs through one exact documented Open API operation."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "chime_crm_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer API key, OAuth client secrets, access tokens, refresh tokens, and credential-shaped provider fields never enter agent-visible requests or results."
+      },
+      {
+        "id": "chime_crm_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every request stays on Lofty's documented https://api.lofty.com Open API origin and never falls back to the legacy api.chime.me host."
+      },
+      {
+        "id": "chime_crm_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only selected Open API CRM, team, communication-history, call, calendar, task, appointment, and manual-log routes and blocks org/user administration, outbound SMS/email, OAuth app administration, webhooks, broad exports, websites, advertising, AI features, and arbitrary API access."
+      },
+      {
+        "id": "chime_crm_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds limits, offsets, query fields, arrays, bodies, responses, redirects, nesting, and execution time and never follows pagination automatically."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "chime_crm_safe",
+      "label": "Safe",
+      "description": "Selected bounded reads run directly. Every calendar entry change and manual communication log mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["chime_crm_api_read"],
+      "approvalRequiredActions": ["chime_crm_api_manage"],
+      "blockedActions": [
+        "chime_crm_secret_exposure",
+        "chime_crm_unofficial_origin",
+        "chime_crm_unsupported_endpoint",
+        "chime_crm_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected Lofty calendar and manual-log mutations authorized by the connected API key run without Relay per-action approval. Exact API-key user authority, fixed origin, exact routes, bounds, redaction, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["chime_crm_api_read", "chime_crm_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "chime_crm_secret_exposure",
+        "chime_crm_unofficial_origin",
+        "chime_crm_unsupported_endpoint",
+        "chime_crm_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected Lofty Open API read and calendar/manual-log management wrappers with encrypted customer API-key credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected Lofty Open API read and calendar/manual-log management wrappers with encrypted customer API-key credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No authorized Chime/Lofty account, API key, representative real-estate CRM data, or provider role matrix is available in this code-only worker for live acceptance. Lofty's Developer Platform OAuth path also requires a developer account, third-party risk assessment, app registration, application review, one callback URL per application, and client credentials, so OAuth is deferred until provider-console acceptance.",
+    "nextAction": "An authorized Lofty administrator should create a dedicated least-privilege user, obtain its Open API key from Settings > Integrations > API, connect it through Relay on Railway staging, and provide representative leads, communication history, calls, tasks, appointments, calendar entries, manual logs, org/team data, and permission examples. Live acceptance must verify /v1.0/me, bounded list and item reads, page-size bounds, Safe approvals, Dangerous calendar and manual-log mutations with cleanup, role denial, 10-call-per-minute API-key throttling, error mapping, credential redaction, API-key deletion/replacement, disconnect, and post-disconnect denial. A later OAuth migration requires an approved Lofty Developer Platform app using the Relay callback and acceptance-tested token refresh and revocation."
+  },
+  "evidence": [
+    {
+      "url": "https://help.lofty.com/hc/en-us/articles/4405826620571-Chime-API-OAuth-2-0",
+      "checkedAt": "2026-07-18",
+      "supports": "Lofty's help center documents the former Chime API as Lofty Open API, explains Basic API key access from Settings > Integrations > API, lists a 10-call-per-minute limit for API-key access, and documents Developer Platform OAuth with app review and refresh tokens."
+    },
+    {
+      "url": "https://api.lofty.com/docs/reference",
+      "checkedAt": "2026-07-18",
+      "supports": "Lofty's Open API reference documents the https://api.lofty.com server, v1.0 routes for organization, agents, leads, calls, communication history, manual logs, tasks and appointments, and authorization headers."
+    },
+    {
+      "url": "https://api.lofty.com/docs/reference-v2",
+      "checkedAt": "2026-07-18",
+      "supports": "Lofty's Open API v2.0 reference documents the Calendar API for creating, updating, deleting, finishing, unfinishing, querying, and finding meeting availability for lead tasks and appointments."
+    },
+    {
+      "url": "https://lofty.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Lofty's product site identifies the platform as real-estate CRM and sales acceleration software with AI, lead generation, marketing, mobile, and team workflow surfaces."
+    }
+  ]
+}

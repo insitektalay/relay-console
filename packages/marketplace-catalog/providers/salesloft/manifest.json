@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "salesloft",
+  "name": "Salesloft",
+  "category": "crm_support",
+  "description": "Salesloft is a revenue orchestration platform for account engagement, cadences, calling, meetings, opportunity workflows, and sales analytics. Revenue teams use it to organize target accounts, coordinate repeatable outreach, and prioritize buyer-facing work.",
+  "agentUseSummary": "Connect through Relay's Salesloft authorization-code OAuth application with only accounts:read and cadences:read, then let selected agents read the first 25 minimized account or cadence summaries. Relay does not expose people, contact channels, email or activity content, cadence steps, filters, pagination, privileged scopes, arbitrary API access, or writes.",
+  "provider": {
+    "websiteUrl": "https://www.salesloft.com/",
+    "docsUrl": "https://developers.salesloft.com/docs/platform/api-basics/oauth-authentication/",
+    "developerConsoleUrl": "https://accounts.salesloft.com/",
+    "termsUrl": "https://www.salesloft.com/legal",
+    "privacyUrl": "https://www.salesloft.com/legal/privacy-notice"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["accounts:read", "cadences:read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.salesloft.com/oauth/authorize",
+    "tokenUrl": "https://accounts.salesloft.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth",
+      "provider_partner_application",
+      "workspace_user_authority"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "SALESLOFT_OAUTH_CLIENT_ID",
+        "label": "Salesloft OAuth client ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Use Relay's approved Salesloft authorization-code OAuth application identifier."
+      },
+      {
+        "key": "SALESLOFT_OAUTH_CLIENT_SECRET",
+        "label": "Salesloft OAuth client secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Use Relay's approved Salesloft OAuth client secret; Relay encrypts it server-side."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/salesloft/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "salesloft_read",
+      "label": "Read accounts and cadence summaries",
+      "description": "Use two pinned API v2 collection reads for at most 25 minimized accounts or cadence summaries without filters or pagination.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "salesloft_read",
+        "label": "Read Salesloft summaries",
+        "description": "Read the first 25 minimized account or cadence summaries through exact read-only OAuth scopes."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "salesloft_manage",
+        "label": "Change Salesloft",
+        "description": "Accounts, people, cadences, activities, calls, meetings, opportunities, tasks, users, and every mutation are outside Relay's V1 contract."
+      },
+      {
+        "id": "salesloft_sensitive_data",
+        "label": "Read people or engagement content",
+        "description": "People, contact channels, email or activity content, cadence steps and memberships, calls, transcriptions, and privileged scopes are blocked."
+      },
+      {
+        "id": "salesloft_arbitrary_api",
+        "label": "Use arbitrary API requests",
+        "description": "Filters, pagination beyond the first page, custom routes, user-supplied URLs, and raw API access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "salesloft_safe",
+      "label": "Safe",
+      "description": "Two bounded summary reads run directly. People, contact channels, engagement content, filters, pagination, privileged scopes, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["salesloft_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "salesloft_manage",
+        "salesloft_sensitive_data",
+        "salesloft_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed read tool with two pinned bounded API v2 operations through Salesloft OAuth."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed read tool with two pinned bounded API v2 operations through Salesloft OAuth."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No Relay Salesloft partner OAuth application, client credentials, allowlist or publication status, non-production team, authorized user, representative fixtures, or plan-and-permission matrix is available in this workspace.",
+    "nextAction": "The provider-setup owner creates Relay's authorization-code OAuth application, configures the exact callback and only accounts:read plus cadences:read, obtains any required partner approval or allowlisting, then validates authorization, rotating refresh tokens, both bounded reads, scope and user-permission errors, rate limiting, minimization, agent assignment, disconnect, and post-disconnect denial in a non-production team."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.salesloft.com/docs/platform/api-basics/oauth-authentication/",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesloft documents partner authorization-code OAuth applications, public and private application types, scope selection, allowlist status, the authorization and token endpoints, two-hour access tokens, rotating refresh tokens, and bearer authorization."
+    },
+    {
+      "url": "https://developers.salesloft.com/docs/platform/api-basics/scopes/",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesloft documents granular least-privilege scopes including accounts:read and cadences:read, separately identifies sensitive privileged scopes, and directs integrations to request only endpoint-specific permissions."
+    },
+    {
+      "url": "https://developers.salesloft.com/docs/api/accounts-index/",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesloft documents GET /v2/accounts, the accounts:read scope, first-page paging controls, optional count suppression, filters, and sorting; Relay fixes one 25-record page and exposes none of the filters."
+    },
+    {
+      "url": "https://developers.salesloft.com/docs/api/cadences-index/",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesloft documents GET /v2/cadences, the cadences:read scope, first-page paging controls, optional count suppression, filters, and sorting; Relay returns only minimized cadence metadata."
+    },
+    {
+      "url": "https://developers.salesloft.com/docs/platform/api-basics/rate-limits/",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesloft documents team-wide cost-based rate limiting and higher costs for deep pages, supporting Relay's single first-page contract and safe 429 mapping."
+    }
+  ]
+}

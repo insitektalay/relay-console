@@ -1,0 +1,202 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "less-annoying-crm",
+  "name": "Less Annoying CRM",
+  "category": "crm_support",
+  "description": "Less Annoying CRM is a customer relationship management platform for small businesses, combining contacts and companies, pipelines, tasks, calendars, email logging, files, groups, teams, custom fields, and reporting. Teams use it to organize customer records and keep sales and follow-up work in one shared system.",
+  "agentUseSummary": "Connect one customer-owned read-only API key, then let agents use three approval-gated bounded reads for the key-bound user and explicitly searched or exact Contact and Company summaries. Relay pins the v2 API origin and function names, requires non-empty search terms, fixes searches to page one and twenty-five results, and excludes emails, phones, addresses, websites, background information, birthdays, custom fields, notes, files, relationships, history, writes, arbitrary API calls, pagination, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.lessannoyingcrm.com/",
+    "docsUrl": "https://account.lessannoyingcrm.com/api_docs/v2/Getting_Started/Introduction",
+    "developerConsoleUrl": "https://account.lessannoyingcrm.com/api_docs/v2/Getting_Started/Connect",
+    "termsUrl": "https://www.lessannoyingcrm.com/terms",
+    "privacyUrl": "https://www.lessannoyingcrm.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "authorization_header_authentication",
+      "exact_api_key_user_binding",
+      "provider_configured_read_permission",
+      "authorizing_user_permission_inheritance"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "LESS_ANNOYING_CRM_API_KEY",
+        "label": "Less Annoying CRM API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated key with read permission only on the Programmer API settings page. Relay stores it encrypted and never returns it to agents."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "user_read",
+      "label": "Read current user",
+      "description": "Read bounded identity metadata for the exact API-key-bound user without returning the account email.",
+      "defaultSelected": true
+    },
+    {
+      "id": "contact_read",
+      "label": "Read contacts",
+      "description": "Search with required terms or inspect one exact Contact or Company summary without communication, background, custom-field, relationship, file, note, or history data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "less_annoying_crm_user_get",
+        "label": "Read current user",
+        "description": "Read bounded identity metadata for the exact API-key-bound user."
+      },
+      {
+        "id": "less_annoying_crm_contact_search",
+        "label": "Search contacts",
+        "description": "Search non-empty terms and return at most twenty-five bounded Contact or Company summaries from fixed page one."
+      },
+      {
+        "id": "less_annoying_crm_contact_get",
+        "label": "Read contact",
+        "description": "Read one exact bounded Contact or Company summary by ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "less_annoying_crm_record_mutation",
+        "label": "Change CRM records",
+        "description": "Creating, updating, assigning, relating, moving, completing, bulk-changing, or deleting Less Annoying CRM records is outside V1."
+      },
+      {
+        "id": "less_annoying_crm_private_data",
+        "label": "Read private CRM details",
+        "description": "Email addresses, phone numbers, postal addresses, websites, background information, birthdays, custom fields, notes, files, relationships, and contact history are outside V1."
+      },
+      {
+        "id": "less_annoying_crm_broader_product",
+        "label": "Access broader CRM data",
+        "description": "Tasks, events, calendars, pipelines, pipeline items, statuses, groups, teams, users, emails, automations, settings, and webhooks are outside V1."
+      },
+      {
+        "id": "less_annoying_crm_raw_api",
+        "label": "Call arbitrary API functions",
+        "description": "Arbitrary origins, functions, parameters, filters, pages, payloads, file transfers, and raw API access are outside V1."
+      },
+      {
+        "id": "less_annoying_crm_bulk_export",
+        "label": "Export CRM data",
+        "description": "Empty-term enumeration, automatic pagination, crawling, synchronization, batch APIs, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "less_annoying_crm_safe",
+      "label": "Safe",
+      "description": "All three bounded private CRM reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "less_annoying_crm_user_get",
+        "less_annoying_crm_contact_search",
+        "less_annoying_crm_contact_get"
+      ],
+      "blockedActions": [
+        "less_annoying_crm_record_mutation",
+        "less_annoying_crm_private_data",
+        "less_annoying_crm_broader_product",
+        "less_annoying_crm_raw_api",
+        "less_annoying_crm_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only tools run without Relay per-action approval while exact user and resource binding, fixed origin and functions, provider key permissions, limits, audits, redaction, and API-key isolation remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "less_annoying_crm_user_get",
+        "less_annoying_crm_contact_search",
+        "less_annoying_crm_contact_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "less_annoying_crm_record_mutation",
+        "less_annoying_crm_private_data",
+        "less_annoying_crm_broader_product",
+        "less_annoying_crm_raw_api",
+        "less_annoying_crm_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded approval-gated Less Annoying CRM reads and attaches the encrypted API key only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded approval-gated Less Annoying CRM reads and attaches the encrypted API key only on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Less Annoying CRM account or dedicated read-only API key is available in this workspace.",
+    "nextAction": "In the provider-console task, an account administrator creates a dedicated API key with read permission only on the Programmer API settings page, stores it through Relay, then validates exact user binding, bounded search and exact Contact reads, approval enforcement, permission denial, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://account.lessannoyingcrm.com/api_docs/v2/Getting_Started/Connect",
+      "checkedAt": "2026-07-18",
+      "supports": "The official connection guide documents customer-created API keys with independently configurable read, create, edit, and delete permissions; a fixed POST endpoint at https://api.lessannoyingcrm.com/v2/; an Authorization header containing only the key; and JSON Function and Parameters fields. OAuth requires registration as an integration partner, so Relay V1 uses a customer-owned read-only key."
+    },
+    {
+      "url": "https://account.lessannoyingcrm.com/api_docs/v2/Settings_Functions/Users",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Users reference documents GetUser as a parameterless function returning the current API-key-bound user's ID and identity metadata."
+    },
+    {
+      "url": "https://account.lessannoyingcrm.com/api_docs/v2/Core_Functions/Contacts",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Contacts and Companies reference documents GetContact and GetContacts, identifies Contacts as the central record type, explains that Companies share the same API type, and shows the private and custom fields Relay deliberately excludes."
+    },
+    {
+      "url": "https://account.lessannoyingcrm.com/api_docs/v2/Core_Functions/Search",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Search reference documents GetContacts search terms, pagination, and configurable result counts; Relay requires non-empty terms, fixes Page to 1, and caps MaxNumberOfResults at 25."
+    },
+    {
+      "url": "https://www.lessannoyingcrm.com/help/pricing",
+      "checkedAt": "2026-07-18",
+      "supports": "The official pricing page describes Less Annoying CRM as a small-business CRM with contact management, pipelines, calendars, email syncing, and a paid per-user account model."
+    },
+    {
+      "url": "https://www.lessannoyingcrm.com/terms",
+      "checkedAt": "2026-07-18",
+      "supports": "The official terms include API-specific conditions, allow provider throttling or suspension for excessive or abusive access, and retain customer ownership of account content; Relay uses only documented, bounded, customer-authorized calls."
+    },
+    {
+      "url": "https://www.lessannoyingcrm.com/privacy",
+      "checkedAt": "2026-07-18",
+      "supports": "The official privacy policy describes CRM data as customer-owned and private; Relay returns only a small bounded summary and excludes communication, address, background, custom-field, note, file, relationship, and history data."
+    }
+  ]
+}

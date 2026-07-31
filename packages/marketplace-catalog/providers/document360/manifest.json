@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "document360",
+  "name": "Document360",
+  "category": "knowledge_documents",
+  "description": "Knowledge workspaces, articles, categories, API references, Drive assets, readers, teams, translations, workflows, languages, and project settings through Customer API v2.",
+  "agentUseSummary": "Enter a customer-owned project API token once, then let agents use the complete token-authorized Customer API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://document360.com/",
+    "docsUrl": "https://apidocs.document360.com/apidocs/endpoints-introduction",
+    "developerConsoleUrl": "https://app.document360.com/",
+    "termsUrl": "https://document360.com/terms-of-use/",
+    "privacyUrl": "https://document360.com/privacy-policy/"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      { "name": "DOCUMENT360_API_TOKEN", "label": "Document360 API token", "required": true, "secret": true, "helpText": "Create a dedicated project token and select the intended GET, POST, PUT, and DELETE methods." },
+      { "name": "DOCUMENT360_API_ORIGIN", "label": "Document360 API origin", "required": false, "secret": false, "helpText": "Optional official US or private-hosting API Hub origin; defaults to https://apihub.document360.io." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "knowledge_read", "label": "Read knowledge", "description": "Discover workspaces and read bounded article metadata and content.", "defaultSelected": true },
+    { "id": "knowledge_write", "label": "Create and maintain knowledge", "description": "Create, update, publish, translate, import, export, organize, and delete token-authorized knowledge.", "defaultSelected": true },
+    { "id": "administration", "label": "Manage project resources", "description": "Manage API references, Drive, readers, teams, groups, roles, workflows, languages, and custom fields permitted by the token.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "document360_list_workspaces", "label": "List workspaces", "description": "List the connected project's workspaces." },
+      { "id": "document360_list_articles", "label": "List articles", "description": "List one bounded page of workspace articles." },
+      { "id": "document360_get_article", "label": "Read article", "description": "Read one article translation without SAS-token expansion." }
+    ],
+    "approvalRequired": [{ "id": "document360_full_api", "label": "Use full Customer API", "description": "Use any documented Customer API v2 operation; Safe mode requires approval." }],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "document360_safe", "label": "Safe", "description": "Bounded workspace and article reads run directly; every other Customer API call requires approval.", "defaultSelected": true, "allowedActions": ["document360_list_workspaces", "document360_list_articles", "document360_get_article"], "approvalRequiredActions": ["document360_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected token-authorized Document360 operation runs without Relay per-action approval; ownership, official origin, token method permissions, bounds, audits, redaction, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["document360_list_workspaces", "document360_list_articles", "document360_get_article", "document360_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts typed and full-surface wrappers and injects the encrypted customer token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts typed and full-surface wrappers and injects the encrypted customer token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "customer_action_required", "blocker": "No customer Document360 project API token or signed-in portal session was available.", "nextAction": "A customer creates a dedicated token with intended HTTP methods, enters it and the official API Hub origin, then Relay runs health, bounded reads, Safe denial plus approval, and Dangerous-mode mutation." },
+  "evidence": [
+    { "url": "https://apidocs.document360.com/apidocs/endpoints-introduction", "checkedAt": "2026-07-13", "supports": "Document360 Customer API 2.0.0 is project-scoped, token-authenticated, revocable, and manages knowledge, permissions, users, and settings." },
+    { "url": "https://apidocs.document360.com/apidocs/api-token", "checkedAt": "2026-07-13", "supports": "Customers create API tokens and explicitly select allowed GET, POST, PUT, and DELETE methods; tokens are secrets and all traffic is HTTPS." },
+    { "url": "https://apihub.document360.io/swagger/v2/swagger.json", "checkedAt": "2026-07-13", "supports": "The official OpenAPI 2.0.0 specification currently publishes 88 v2 paths across articles, categories, API references, Drive, project import/export, workspaces, readers, teams, translations, languages, and fields, plus global, US, and private-hosting API Hub origins." },
+    { "url": "https://apidocs.document360.com/apidocs/get-project-versions", "checkedAt": "2026-07-13", "supports": "GET /v2/ProjectVersions is the primary idempotent discovery endpoint and returns workspace IDs used by other endpoints." },
+    { "url": "https://apidocs.document360.com/apidocs/publish-an-article", "checkedAt": "2026-07-13", "supports": "Document360 publishes rate-limit response and Retry-After semantics for Customer API operations." }
+  ]
+}

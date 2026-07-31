@@ -1,0 +1,171 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "rightsignature",
+  "name": "RightSignature",
+  "category": "knowledge_documents",
+  "description": "RightSignature is ShareFile's electronic-signature service.",
+  "agentUseSummary": "Connect one RightSignature user through Relay-owned authorization-code OAuth with exactly the read scope. Relay exposes two fixed privacy-redacted document lifecycle reads and blocks filenames, PDFs, signed files, certificates, participants, form fields, signing, templates, sends, writes, broader authority, raw access, pagination, polling, retries, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.sharefile.com/features/electronic-signatures",
+    "docsUrl": "https://api.rightsignature.com/documentation/authentication",
+    "developerConsoleUrl": "https://rightsignature.com/account/api",
+    "termsUrl": "https://www.sharefile.com/terms",
+    "privacyUrl": "https://www.cloud.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.rightsignature.com/oauth/authorize",
+    "tokenUrl": "https://api.rightsignature.com/oauth/token",
+    "revocationUrl": "https://api.rightsignature.com/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth",
+      "confidential_authorization_code",
+      "exact_read_scope",
+      "refresh_token",
+      "upstream_revocation",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/rightsignature/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "document_list",
+      "label": "List documents",
+      "description": "Read a bounded first page of privacy-redacted document lifecycle metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "document_get",
+      "label": "Inspect document metadata",
+      "description": "Read privacy-redacted lifecycle metadata for one explicit document.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "rightsignature_document_list",
+        "label": "List documents",
+        "description": "List up to 25 first-page document lifecycle summaries for one explicit state."
+      },
+      {
+        "id": "rightsignature_document_get",
+        "label": "Inspect a document",
+        "description": "Inspect lifecycle metadata for one explicit document UUID."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "rightsignature_private_content",
+        "label": "Access private document content",
+        "description": "Filenames, PDFs, original or signed files, certificates, thumbnails, participants, signers, shared users, messages, fields, tags, identity data, and URLs are blocked."
+      },
+      {
+        "id": "rightsignature_mutation",
+        "label": "Mutate or send documents",
+        "description": "Preparing, uploading, sending, embedding, sharing, signing, reminding, voiding, updating, deleting, and administering are blocked."
+      },
+      {
+        "id": "rightsignature_broader_authority",
+        "label": "Use broader authority",
+        "description": "The write scope, private API tokens, templates, sending requests, signer operations, users, callbacks, and webhooks are blocked."
+      },
+      {
+        "id": "rightsignature_raw_bulk",
+        "label": "Use raw or bulk APIs",
+        "description": "Raw paths, search, template filters, arbitrary queries, pagination, polling, automatic retries, batch access, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "rightsignature_read_only",
+      "label": "Read-only document lifecycle",
+      "description": "Two fixed privacy-redacted document metadata reads run automatically with exactly RightSignature's read scope.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "rightsignature_document_list",
+        "rightsignature_document_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "rightsignature_private_content",
+        "rightsignature_mutation",
+        "rightsignature_broader_authority",
+        "rightsignature_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Exact read scope, fixed paths, strict projection, result cap, and read-only boundary remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "rightsignature_document_list",
+        "rightsignature_document_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "rightsignature_private_content",
+        "rightsignature_mutation",
+        "rightsignature_broader_authority",
+        "rightsignature_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway brokers exact-read OAuth and mounts two fixed privacy-redacted document lifecycle reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway brokers exact-read OAuth and mounts two fixed privacy-redacted document lifecycle reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "RightSignature API access requires ShareFile Premium or Industry Advantage, or an API specialist trial, plus an approved API key and Relay-owned client credentials. No provider-console, API-key request, credential, consent, Railway, or live acceptance work is authorized in this worker task.",
+    "nextAction": "An authorized owner obtains an approved RightSignature API key, registers the exact Railway callback with only read scope, stores the client ID/secret through Railway's secret process, deploys separately, and runs live connect, list/get redaction, refresh, revoke/disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://api.rightsignature.com/documentation/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "RightSignature documents third-party authorization-code OAuth, two-hour access tokens, refresh tokens, and approved API credentials."
+    },
+    {
+      "url": "https://api.rightsignature.com/documentation/resources/v1/oauth_authorizations.en.html",
+      "checkedAt": "2026-07-17",
+      "supports": "RightSignature documents GET /oauth/authorize and the exact read, write, or read write scope choices; Relay requests only read."
+    },
+    {
+      "url": "https://api.rightsignature.com/documentation/resources/v2/oauth_tokens.en.html",
+      "checkedAt": "2026-07-17",
+      "supports": "RightSignature documents token exchange, refresh, Bearer authentication, and POST /oauth/revoke with client authentication."
+    },
+    {
+      "url": "https://api.rightsignature.com/documentation/resources/v2/documents.en.html",
+      "checkedAt": "2026-07-17",
+      "supports": "RightSignature documents GET /public/v2/documents with state/per_page/page and GET /public/v2/documents/{id}."
+    },
+    {
+      "url": "https://api.rightsignature.com/documentation/getting_started",
+      "checkedAt": "2026-07-17",
+      "supports": "RightSignature documents the paid-plan/API-specialist and approved API-key prerequisites."
+    }
+  ]
+}

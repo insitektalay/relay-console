@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "vitally",
+  "name": "Vitally",
+  "category": "developer",
+  "description": "Vitally is a customer-success platform for customer data, health scoring, lifecycle management, projects, tasks, notes, conversations, NPS, and team workflows. Customer-success teams use it to coordinate retention and growth work.",
+  "agentUseSummary": "Connect one exact Vitally REST environment with a customer-owned API key and its US-subdomain or EU origin, then let agents list only bounded, strictly projected custom-trait schemas for an approved model under approval. Relay excludes configured options, trait values, all customer/activity records, analytics ingestion, writes, deletes, bulk operations, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.vitally.io/",
+    "docsUrl": "https://docs.vitally.io/en/articles/9880864-rest-api-custom-traits",
+    "developerConsoleUrl": "https://app.vitally.io/",
+    "termsUrl": "https://www.vitally.io/terms",
+    "privacyUrl": "https://www.vitally.io/privacy"
+  },
+  "authentication": {
+    "model": "customer_owned_rest_api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_rest_key",
+      "exact_environment_scope",
+      "us_subdomain_or_eu_origin_binding",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "VITALLY_REST_API_KEY",
+        "label": "Vitally REST API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated REST API key and store it only through Relay's encrypted connection flow."
+      },
+      {
+        "name": "VITALLY_REST_API_ORIGIN",
+        "label": "Vitally REST API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact https://{subdomain}.rest.vitally.io US origin or https://rest.vitally-eu.io EU origin."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "custom_trait_schema",
+      "label": "List custom trait schemas",
+      "description": "List at most 100 custom-trait IDs, labels, paths, types, and creation timestamps without configured options, values, or customer records.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "vitally_custom_traits_list",
+        "label": "List custom trait schemas",
+        "description": "List bounded projected custom-trait schemas for one approved model in one exact Vitally environment."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "vitally_customer_records",
+        "label": "Access customer records",
+        "description": "Organizations, accounts, users, admins, identities, revenue, health, lifecycle, NPS, and trait values are blocked."
+      },
+      {
+        "id": "vitally_activity_content",
+        "label": "Access activity or content",
+        "description": "Meetings, conversations, messages, notes, projects, tasks, surveys, responses, attachments, and recordings are blocked."
+      },
+      {
+        "id": "vitally_mutation_delete",
+        "label": "Mutate or delete Vitally data",
+        "description": "Creates, updates, analytics ingestion, imports, bulk requests, unlinking, deletes, and administration are blocked."
+      },
+      {
+        "id": "vitally_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Custom-object schemas, configured options, raw paths, arbitrary origins, pagination, retries, batches, exports, and response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "vitally_custom_trait_schema_safe",
+      "label": "Safe",
+      "description": "The bounded trait-schema read requires approval; customer records, activities, values, writes, deletes, bulk data, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["vitally_custom_traits_list"],
+      "blockedActions": [
+        "vitally_customer_records",
+        "vitally_activity_content",
+        "vitally_mutation_delete",
+        "vitally_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded trait-schema read runs without Relay per-action approval; exact origin/model binding, strict projection, response cap, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["vitally_custom_traits_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "vitally_customer_records",
+        "vitally_activity_content",
+        "vitally_mutation_delete",
+        "vitally_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned REST key to one exact Vitally origin and a projected custom-trait-schema wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned REST key to one exact Vitally origin and a projected custom-trait-schema wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Vitally administrator must enable the REST API, create a dedicated key, record the exact US-subdomain or EU origin, and store both through Relay. No account, key creation, credential capture, live API request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized Vitally administrator enables REST API access, creates a dedicated key, stores it with the exact environment origin through Relay, then verifies health, one approved trait-schema list, throttling, key rotation/revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.vitally.io/en/articles/9880864-rest-api-custom-traits",
+      "checkedAt": "2026-07-17",
+      "supports": "Vitally documents GET /resources/customFields with a required model, US-subdomain and EU origins, and trait IDs, labels, paths, types, timestamps, and configured options. Relay permits only named non-custom-object models and excludes configured options and values."
+    },
+    {
+      "url": "https://docs.vitally.io/en/articles/9880649-rest-api-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Vitally documents customer-created/revocable REST API keys, Basic authentication with the key as username, cursor pagination, rate limits, and read/write access to customer-success records. Relay encrypts the key and exposes one non-paginated schema read."
+    },
+    {
+      "url": "https://docs.vitally.io/en/collections/10410457-rest-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Vitally documents organizations, accounts, users, admins, meetings, conversations, messages, notes, projects, tasks, NPS responses, surveys, custom objects, bulk writes, and bulk deletes. Relay blocks all record, content, mutation, and bulk surfaces."
+    }
+  ]
+}

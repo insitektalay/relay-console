@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "synology-dsm",
+  "name": "Synology DSM",
+  "category": "developer",
+  "description": "Synology DiskStation Manager is the web-based operating system for Synology NAS devices, providing storage, file sharing, backup, package, monitoring, and administration services.",
+  "agentUseSummary": "Connect one exact public HTTPS origin for a customer-owned Synology DSM server and select one exact SYNO API name. Relay uses only the unauthenticated SYNO.API.Info query for that selected name and exposes its name, minimum and maximum supported versions, and JSON request-format flag while blocking login, sessions, accounts, API paths, hostnames, serials, devices, packages, volumes, shares, files, permissions, logs, metrics, surveillance, backups, power, administration, arbitrary discovery, and all mutations.",
+  "provider": {
+    "websiteUrl": "https://www.synology.com/dsm",
+    "docsUrl": "https://kb.synology.com/en-us/DG/DSM_Login_Web_API_Guide/2",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.synology.com/company/legal/terms_EULA",
+    "privacyUrl": "https://www.synology.com/company/legal/privacy"
+  },
+  "authentication": {
+    "model": "none",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_synology_dsm",
+      "public_https_dsm_origin",
+      "unauthenticated_api_info",
+      "selected_syno_api_name"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SYNOLOGY_DSM_SERVER_ORIGIN",
+        "label": "Synology DSM HTTPS origin",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact public HTTPS origin for one customer-owned DSM server; Relay rejects paths, embedded credentials, private DNS, queries, and fragments."
+      },
+      {
+        "name": "SYNOLOGY_DSM_API_NAME",
+        "label": "Selected SYNO API name",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact SYNO API name whose public compatibility metadata Relay may inspect; query=all and broad discovery are blocked."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "synology_dsm_selected_api_compatibility_get",
+      "label": "Read selected API compatibility",
+      "description": "Read only one selected SYNO API name, its minimum and maximum supported versions, and whether it uses JSON request formatting; provider paths and private system or storage data are excluded.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "synology_dsm_selected_api_compatibility_get",
+        "label": "Read selected API compatibility",
+        "description": "Read only one selected SYNO API name's supported version range and request format."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "synology_dsm_private_system_storage_data",
+        "label": "Expose private system or storage data",
+        "description": "Accounts, sessions, tokens, hostnames, serials, device details, packages, volumes, shares, files, paths, permissions, logs, metrics, and provider API paths are excluded."
+      },
+      {
+        "id": "synology_dsm_authentication_mutation",
+        "label": "Authenticate or mutate DSM",
+        "description": "Login, logout, session creation, files, shares, packages, storage, backups, downloads, uploads, surveillance, configuration, power, process control, and every other mutation are blocked."
+      },
+      {
+        "id": "synology_dsm_broad_access",
+        "label": "Use broad DSM access",
+        "description": "All-API discovery, other API names, arbitrary paths or queries, redirects, bulk enumeration, accounts, storage, and package APIs are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "synology_dsm_public_compatibility_read",
+      "label": "Public Compatibility Read",
+      "description": "Read one selected API's unauthenticated compatibility summary; login, sessions, system or storage data, administration, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["synology_dsm_selected_api_compatibility_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "synology_dsm_private_system_storage_data",
+        "synology_dsm_authentication_mutation",
+        "synology_dsm_broad_access"
+      ]
+    },
+    {
+      "id": "synology_dsm_no_access",
+      "label": "No Access",
+      "description": "Expose no Synology DSM actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "synology_dsm_selected_api_compatibility_get",
+        "synology_dsm_private_system_storage_data",
+        "synology_dsm_authentication_mutation",
+        "synology_dsm_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores two nonsecret selected boundaries and mounts exactly one unauthenticated fixed API-info query."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores two nonsecret selected boundaries and mounts exactly one unauthenticated fixed API-info query."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A customer-owned Synology DSM staging server reachable at an exact public HTTPS origin and one selected SYNO API name are required. No authorized staging server is available in this worker lane.",
+    "nextAction": "The external setup lane must nominate a staging DSM server and exact selected API name, record only those nonsecret boundaries in Railway, then validate the projected API-info read, public-DNS/fixed-path/fixed-query enforcement, path and private-data redaction, unavailable-API behavior, disconnect, and post-disconnect denial in Fairfax. No DSM account, password, login, session, provider console, or consent is required."
+  },
+  "evidence": [
+    {
+      "url": "https://kb.synology.com/en-us/DG/DSM_Login_Web_API_Guide/2",
+      "checkedAt": "2026-07-18",
+      "supports": "Synology documents the pre-login SYNO.API.Info workflow, fixed /webapi/entry.cgi request shape, API-name query parameter, and responses containing API path, minimum and maximum versions, and request format. Relay returns only the selected name, version range, and JSON-format flag."
+    },
+    {
+      "url": "https://global.download.synology.com/download/Document/Software/DeveloperGuide/Package/FileStation/All/enu/Synology_File_Station_API_Guide.pdf",
+      "checkedAt": "2026-07-18",
+      "supports": "Synology's official File Station API guide confirms SYNO.API.Info is available without a DSM session and that query accepts selected API names or the broad value all; Relay rejects broad discovery and all File Station operations."
+    },
+    {
+      "url": "https://www.synology.com/en-global/support/developer",
+      "checkedAt": "2026-07-18",
+      "supports": "Synology's official developer portal publishes the DSM Login and package API guides used to classify this bounded compatibility-read integration."
+    }
+  ]
+}

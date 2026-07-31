@@ -1,0 +1,174 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "twilio",
+  "name": "Twilio",
+  "category": "communication",
+  "description": "Twilio is a communications platform for messaging, voice, verification, phone numbers, and customer engagement workflows.",
+  "agentUseSummary": "Add a dedicated customer-owned Twilio Restricted API key with only GET access to the account Messages collection, then let agents inspect at most ten privacy-masked delivery summaries through one fixed read without exposing message bodies, media, SIDs, account identity, full addresses, prices, errors, sends, administration, writes, pagination, or raw APIs.",
+  "provider": {
+    "websiteUrl": "https://www.twilio.com/",
+    "docsUrl": "https://www.twilio.com/docs/messaging/api/message-resource",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.twilio.com/en-us/legal/tos",
+    "privacyUrl": "https://www.twilio.com/en-us/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_restricted_api_key",
+      "messages_collection_get_only",
+      "http_basic_api_key_sid_and_secret",
+      "account_sid_fixed_path_binding",
+      "canonical_api_twilio_com_origin",
+      "manual_provider_revocation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "TWILIO_ACCOUNT_SID",
+        "label": "Twilio Account SID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact AC-prefixed account identifier. Relay validates its shape and binds it into the fixed Messages path."
+      },
+      {
+        "name": "TWILIO_API_KEY_SID",
+        "label": "Restricted API Key SID",
+        "required": true,
+        "secret": false,
+        "helpText": "Create a dedicated SK-prefixed Restricted API key with only GET access to this account's Messages collection."
+      },
+      {
+        "name": "TWILIO_API_KEY_SECRET",
+        "label": "Restricted API Key secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay encrypts this secret and uses it only as the HTTP Basic password for the fixed Twilio read. Delete the key in Twilio Console to revoke provider access."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "message_status_read",
+      "label": "List masked message statuses",
+      "description": "Inspect at most ten recent privacy-masked message delivery summaries from one Twilio account.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "twilio_messages_list",
+        "label": "List recent message statuses",
+        "description": "Read at most ten masked Twilio message-status summaries without bodies, media, provider identifiers, prices, or error details."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "twilio_communication_content_identity",
+        "label": "Block content, identity, and identifiers",
+        "description": "Message bodies, media, recordings, transcripts, participants, raw phone numbers, SIDs, account identity, error details, prices, and URIs are unavailable."
+      },
+      {
+        "id": "twilio_live_communications",
+        "label": "Block live communications",
+        "description": "SMS, MMS, WhatsApp, voice calls, Verify, Conversations, notifications, bulk work, and all paid or recipient-facing sends are unavailable."
+      },
+      {
+        "id": "twilio_admin_writes_raw",
+        "label": "Block administration, writes, and raw access",
+        "description": "Phone-number, Messaging Service, Studio, webhook, compliance, IAM, credential, account, subaccount, billing, arbitrary filter, pagination, write, delete, and raw API access are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "twilio_safe",
+      "label": "Safe",
+      "description": "The one fixed masked status read runs automatically; content, identifiers, sends, administration, writes, pagination, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["twilio_messages_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "twilio_communication_content_identity",
+        "twilio_live_communications",
+        "twilio_admin_writes_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same fixed read runs without Relay per-action approval; exact Restricted-key authority, route, masking, bounds, audits, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["twilio_messages_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "twilio_communication_content_identity",
+        "twilio_live_communications",
+        "twilio_admin_writes_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts one typed masked-status read while Railway alone holds the customer-owned Restricted API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts one typed masked-status read while Railway alone holds the customer-owned Restricted API key."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A representative Twilio account, dedicated Restricted API key, exact Messages GET permission validation, current legal/AUP/Messaging/privacy review, staging credential entry, and live validation remain for separate authorized tasks.",
+    "nextAction": "After batch integration, an authorized Twilio administrator must create a dedicated Restricted API key and validate HTTP Basic auth, the fixed global Messages route, ten-record and 512 KiB bounds, masking and sensitive-field exclusion, no retry or pagination, encrypted-copy deletion, manual provider key deletion, and post-revocation denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.twilio.com/docs/iam/api-keys/restricted-api-keys",
+      "checkedAt": "2026-07-18",
+      "supports": "Twilio documents Restricted API keys with endpoint-and-method permissions, API Key SID/secret authentication, and Messaging support."
+    },
+    {
+      "url": "https://www.twilio.com/docs/iam/api-keys",
+      "checkedAt": "2026-07-18",
+      "supports": "Twilio recommends API keys over Account SID/Auth Token credentials and documents Main, Standard, and Restricted key types plus region-specific credentials."
+    },
+    {
+      "url": "https://www.twilio.com/docs/usage/requests-to-twilio",
+      "checkedAt": "2026-07-18",
+      "supports": "Twilio documents HTTPS requests authenticated with HTTP Basic auth and recommends API Key SID/secret credentials for production applications."
+    },
+    {
+      "url": "https://www.twilio.com/docs/messaging/api/message-resource",
+      "checkedAt": "2026-07-18",
+      "supports": "Twilio documents GET /2010-04-01/Accounts/{AccountSid}/Messages.json, PageSize bounds, pagination, and sensitive message fields that Relay minimizes or excludes."
+    },
+    {
+      "url": "https://www.twilio.com/en-us/legal/tos",
+      "checkedAt": "2026-07-18",
+      "supports": "Twilio's current terms require compliance with the Acceptable Use Policy, applicable laws, and service-specific rules and permit suspension for fraud or abuse."
+    },
+    {
+      "url": "https://www.twilio.com/en-us/legal/aup",
+      "checkedAt": "2026-07-18",
+      "supports": "Twilio's Acceptable Use Policy and service/country requirements keep any live communications capability outside this read-only V1."
+    }
+  ]
+}

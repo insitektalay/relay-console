@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "folk-crm",
+  "name": "folk CRM",
+  "category": "crm_support",
+  "description": "folk is a collaborative CRM for organizing people, companies, deals, relationship context, notes, reminders, and team pipelines. Sales, recruiting, agency, startup, and partnership teams use it to keep shared contact data current and turn relationship history into coordinated follow-up.",
+  "agentUseSummary": "Add a dedicated folk API key once, then choose which agents can read CRM data or manage records, notes, reminders, interactions, deals, and webhooks under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.folk.app/",
+    "docsUrl": "https://developer.folk.app/api-reference/overview",
+    "developerConsoleUrl": "https://developer.folk.app/guides/quick-start",
+    "termsUrl": "https://www.folk.app/terms-of-use",
+    "privacyUrl": "https://www.folk.app/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "premium_plan_api_access",
+      "connected_user_role_authority",
+      "fixed_folk_api_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "FOLK_CRM_API_KEY",
+        "label": "folk API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated key in folk workspace Settings → API. Relay encrypts it and sends it only to api.folk.app."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crm_read",
+      "label": "Read CRM and configuration",
+      "description": "Read documented folk resources for people, companies, deals, groups, custom fields, users, notes, reminders, and webhook configuration.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crm_manage",
+      "label": "Manage CRM and automations",
+      "description": "Use documented mutations for people, companies, deals, notes, reminders, manually logged interactions, and webhooks.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "folk_crm_api_read",
+        "label": "Read folk CRM",
+        "description": "Run one exact documented non-mutating folk V1 operation with bounded query parameters."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "folk_crm_api_manage",
+        "label": "Manage folk CRM",
+        "description": "Run one exact documented record, note, reminder, interaction, deal, webhook, or deletion mutation."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "folk_crm_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer API key and webhook signing secrets never enter agent-visible requests or results."
+      },
+      {
+        "id": "folk_crm_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every request stays on folk's documented https://api.folk.app origin."
+      },
+      {
+        "id": "folk_crm_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only methods and routes pinned from folk's current official V1 contract."
+      },
+      {
+        "id": "folk_crm_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay performs one request at a time and bounds cursor pagination, list limits, filters, arrays, bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "folk_crm_safe",
+      "label": "Safe",
+      "description": "Documented bounded reads run directly. Every record, note, reminder, interaction, deal, webhook, and deletion mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["folk_crm_api_read"],
+      "approvalRequiredActions": ["folk_crm_api_manage"],
+      "blockedActions": [
+        "folk_crm_secret_exposure",
+        "folk_crm_unofficial_origin",
+        "folk_crm_unsupported_endpoint",
+        "folk_crm_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every documented operation authorized by the connected folk user runs without Relay per-action approval. Connection ownership, provider roles, exact routes, fixed origin, API-version pinning, bounds, redaction, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["folk_crm_api_read", "folk_crm_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "folk_crm_secret_exposure",
+        "folk_crm_unofficial_origin",
+        "folk_crm_unsupported_endpoint",
+        "folk_crm_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the documented folk V1 read and manage surfaces through fixed-origin bounded tools and encrypted customer credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the documented folk V1 read and manage surfaces through fixed-origin bounded tools and encrypted customer credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No authorized Premium folk workspace, dedicated API key, representative CRM records, or webhook receiver is available in this code-only worker for live acceptance. folk documents API access on Premium and Enterprise plans, and keys inherit the generating user's workspace role and permissions.",
+    "nextAction": "An authorized folk owner should create a dedicated least-privilege Premium workspace user and API key under Settings → API, connect it through Relay, then verify current-user binding, representative reads, 100-item and 128-character cursor bounds, Safe approvals, Dangerous mutations, deletion effects, webhook target and signing-secret redaction, role denial, 429 handling, API-version behavior, audit redaction, key replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.folk.app/llms.txt",
+      "checkedAt": "2026-07-18",
+      "supports": "folk publishes the complete current API index for people, companies, deals, groups, users, notes, reminders, interactions, and webhooks, including each documented create, read, update, and delete operation."
+    },
+    {
+      "url": "https://developer.folk.app/api-reference/overview",
+      "checkedAt": "2026-07-18",
+      "supports": "folk fixes the JSON REST API at https://api.folk.app, requires HTTPS, documents bearer API-key authentication, and provides a current versioned V1 contract."
+    },
+    {
+      "url": "https://developer.folk.app/api-reference/versioning",
+      "checkedAt": "2026-07-18",
+      "supports": "folk recommends pinning X-API-Version and documents the 2025-05-26 version example, backward compatibility, deprecation notice, and minimum endpoint availability."
+    },
+    {
+      "url": "https://developer.folk.app/mcp/overview",
+      "checkedAt": "2026-07-18",
+      "supports": "folk also documents a beta hosted OAuth MCP. Relay selects the stable versioned REST API contract for V1 because its exact routes, customer-owned key lifecycle, bounds, and error semantics are publicly specified without mounting a raw beta MCP surface."
+    },
+    {
+      "url": "https://www.folk.app/pricing",
+      "checkedAt": "2026-07-18",
+      "supports": "folk documents people, companies, groups, pipelines, messaging, enrichment, roles, permissions, and REST API access on Premium and Enterprise plans."
+    },
+    {
+      "url": "https://www.folk.app/terms-of-use",
+      "checkedAt": "2026-07-18",
+      "supports": "folk's terms govern customer accounts, authorized users, contacts and personal data, workspaces, integrations, credential security, acceptable use, third-party rights, and subscription access."
+    }
+  ]
+}

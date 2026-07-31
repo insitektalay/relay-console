@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "youcanbookme",
+  "name": "YouCanBookMe",
+  "category": "work_management",
+  "description": "YouCanBookMe is an online scheduling platform for creating branded booking pages that show real calendar availability. Individuals and teams use it to offer appointment types, coordinate team calendars, collect booking details, and automate confirmations and follow-up.",
+  "agentUseSummary": "Add your YouCanBookMe account ID and API key once, then select which agents can read scheduling data or manage booking pages, bookings, team members, and appointment types under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://youcanbook.me/",
+    "docsUrl": "https://ycbm.stoplight.io/",
+    "developerConsoleUrl": "https://app.youcanbook.me/#/account/security",
+    "termsUrl": "https://youcanbook.me/terms",
+    "privacyUrl": "https://youcanbook.me/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "YOUCANBOOKME_ACCOUNT_ID",
+        "label": "YouCanBookMe account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Copy the account ID shown under My Account > Security > Authentication and API."
+      },
+      {
+        "name": "YOUCANBOOKME_API_KEY",
+        "label": "YouCanBookMe API key",
+        "required": true,
+        "secret": true,
+        "helpText": "The account owner creates this key under My Account > Security > Authentication and API. API keys start with ak_."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "schedule_read",
+      "label": "Read scheduling data",
+      "description": "Read booking pages and bounded booking records available to the connected account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "schedule_manage",
+      "label": "Manage scheduling",
+      "description": "Create and update booking pages and bookings, and add, update, or remove team members and appointment types.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "youcanbookme_api_read",
+        "label": "Read YouCanBookMe",
+        "description": "Read bounded authorized booking pages and bookings."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "youcanbookme_api_manage",
+        "label": "Manage YouCanBookMe",
+        "description": "Create or update booking pages and bookings, and manage team members and appointment types."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "youcanbookme_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The API key remains encrypted, and neither credential enters agent-visible requests or results."
+      },
+      {
+        "id": "youcanbookme_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every request stays on YouCanBookMe's documented API origin."
+      },
+      {
+        "id": "youcanbookme_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only YouCanBookMe's documented profiles, bookings, team-member, and appointment-type routes."
+      },
+      {
+        "id": "youcanbookme_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds queries, request bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "youcanbookme_safe",
+      "label": "Safe",
+      "description": "Reads run directly. Every booking, booking-page, team-member, or appointment-type change requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["youcanbookme_api_read"],
+      "approvalRequiredActions": ["youcanbookme_api_manage"],
+      "blockedActions": ["youcanbookme_secret_exposure", "youcanbookme_unofficial_origin", "youcanbookme_unsupported_endpoint", "youcanbookme_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected operation authorized by the connected YouCanBookMe key runs without Relay per-action approval. Account authority, exact routes, bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["youcanbookme_api_read", "youcanbookme_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["youcanbookme_secret_exposure", "youcanbookme_unofficial_origin", "youcanbookme_unsupported_endpoint", "youcanbookme_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts exact-route read and manage tools and injects HTTP Basic credentials only at YouCanBookMe's fixed API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts exact-route read and manage tools and injects HTTP Basic credentials only at YouCanBookMe's fixed API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer-owned YouCanBookMe Team-plan account ID and API key are required for live verification; YouCanBookMe does not document a third-party OAuth application flow for this API.",
+    "nextAction": "Have the YouCanBookMe account owner create an API key under My Account > Security > Authentication and API, connect the account ID and key in Relay Console, then verify reads, Safe mutation approval, Dangerous scheduling management, redaction, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://youcanbook.me/",
+      "checkedAt": "2026-07-15",
+      "supports": "YouCanBookMe describes customizable scheduling pages, calendar availability, team scheduling, appointment types, payments, and booking workflows."
+    },
+    {
+      "url": "https://support.youcanbook.me/hc/en-us/articles/17321549364375-Accessing-your-account-API-key",
+      "checkedAt": "2026-07-15",
+      "supports": "YouCanBookMe documents Team-plan API access, account-owner key creation, account IDs, ak_-prefixed API keys, and HTTP Basic authentication."
+    },
+    {
+      "url": "https://ycbm.stoplight.io/",
+      "checkedAt": "2026-07-15",
+      "supports": "YouCanBookMe's current official OpenAPI project documents its fixed API origin and 14 profile, booking, team-member, and appointment-type operations."
+    },
+    {
+      "url": "https://support.youcanbook.me/hc/en-us/articles/25027583833111-How-to-integrate-your-YCBM-account-with-Make",
+      "checkedAt": "2026-07-15",
+      "supports": "YouCanBookMe documents customer-key automation for retrieving, creating, updating, and deleting profiles and bookings through Make."
+    }
+  ]
+}

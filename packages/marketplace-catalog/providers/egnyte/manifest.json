@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "egnyte",
+  "name": "Egnyte",
+  "category": "knowledge_documents",
+  "description": "Egnyte is a cloud content security and collaboration platform for organizations. Teams use it to store and share files, manage access and governance, automate document workflows, search business content, and protect regulated information.",
+  "agentUseSummary": "Connect an Egnyte domain once, then let agents use every selected active operation in Egnyte's official Public API under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.egnyte.com/",
+    "docsUrl": "https://developers.egnyte.com/integration/cfs/api-docs/overview",
+    "developerConsoleUrl": "https://developers.egnyte.com/",
+    "termsUrl": "https://developers.egnyte.com/integration/terms",
+    "privacyUrl": "https://www.egnyte.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://{customer-domain}.egnyte.com/puboauth/token",
+    "tokenUrl": "https://{customer-domain}.egnyte.com/puboauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["oauth_connector"],
+    "credentialRequirements": [
+      {
+        "name": "domain",
+        "label": "Your Egnyte domain",
+        "required": true,
+        "secret": false,
+        "helpText": "For example, acme or acme.egnyte.com."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/egnyte/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "egnyte_read",
+      "label": "Read Egnyte",
+      "description": "Use all 71 active documented retrieval operations for content, search, permissions, sharing, workflows, reporting, users, AI, and governance metadata."
+    },
+    {
+      "id": "egnyte_content_write",
+      "label": "Manage content and workflows",
+      "description": "Use all 46 selected active non-admin content, sharing, signing, AI, workflow, and collaboration mutations."
+    },
+    {
+      "id": "egnyte_admin",
+      "label": "Administer Egnyte",
+      "description": "Use all 51 selected active user, group, permission, metadata, reporting, integration, and webhook mutations when the connected account permits it."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "egnyte_read",
+        "label": "Read Egnyte",
+        "description": "Run one exact active documented Egnyte GET operation from the pinned official specification."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "egnyte_content_write",
+        "label": "Manage Egnyte content",
+        "description": "Run one exact active documented content or collaboration mutation; Safe mode requires approval."
+      },
+      {
+        "id": "egnyte_admin",
+        "label": "Administer Egnyte",
+        "description": "Run one exact active documented administrative mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "egnyte_safe",
+      "label": "Safe",
+      "description": "All 71 bounded Egnyte reads run directly; every content, sharing, workflow, destructive, or administrative mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["egnyte_read"],
+      "approvalRequiredActions": ["egnyte_content_write", "egnyte_admin"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 168 selected and Egnyte-authorized operations run without Relay per-action approval; connection ownership, the fixed customer domain, exact routes, bounds, audits, redaction, provider limits, and account authority still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["egnyte_read", "egnyte_content_write", "egnyte_admin"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected pinned Egnyte operations through the authenticated server-side connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected pinned Egnyte operations through the authenticated server-side connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's public Egnyte API key, production approval, exact callback, and live customer-domain authorization are not configured on Railway.",
+    "nextAction": "Register Relay Console as a public Egnyte integration, configure https://api.relayconsole.work/api/v1/marketplace/oauth/egnyte/callback, complete Egnyte's production review, store EGNYTE_CLIENT_ID on Railway, then verify public OAuth, domain binding, identity, reads, Safe approval, Dangerous mutations, local disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.egnyte.com/integration/api/openapi/json",
+      "checkedAt": "2026-07-14",
+      "supports": "Egnyte's official OpenAPI 3.0.3 specification identifies 168 active operations after excluding four explicitly deprecated operations: 71 GET retrievals and 97 mutations across content, collaboration, AI, reporting, governance, integrations, and administration."
+    },
+    {
+      "url": "https://developers.egnyte.com/frequently-asked-questions",
+      "checkedAt": "2026-07-14",
+      "supports": "Egnyte documents public OAuth for broadly distributed integrations, a test-account restriction before production approval, API access without an additional fee, and per-token and OAuth rate limits."
+    },
+    {
+      "url": "https://github.com/egnyte/egnyte-js-sdk",
+      "checkedAt": "2026-07-14",
+      "supports": "Egnyte's official SDK documents the customer-domain /puboauth/token authorization endpoint, bearer tokens returned to the registered redirect URI, and /pubapi/v1/userinfo identity validation."
+    },
+    {
+      "url": "https://developers.egnyte.com/integration/terms",
+      "checkedAt": "2026-07-14",
+      "supports": "Egnyte's developer terms require API application approval and permit distribution of approved integrations subject to provider restrictions and rate limits."
+    }
+  ]
+}

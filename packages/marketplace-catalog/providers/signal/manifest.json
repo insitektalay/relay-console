@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "signal",
+  "name": "Signal",
+  "category": "communication",
+  "description": "Signal is a private messenger for end-to-end encrypted text, voice messages, photos, files, stories, group conversations and voice or video calls across mobile and linked desktop devices. It minimizes service metadata, stores readable conversation history on a person's devices and gives each linked device its own encryption keys.",
+  "agentUseSummary": "Signal cannot be connected to Relay agents because Signal publishes no supported OAuth, account API, bot platform or remote MCP service. Official Desktop and iPad linking is an interactive QR-provisioning flow that creates a full trusted device with conversation keys, while Signal's terms prohibit auto-messaging, bulk messaging, automated accounts and unauthorized collection; protocol libraries and unofficial CLIs are not acceptable personal-account authority.",
+  "provider": {
+    "websiteUrl": "https://signal.org/",
+    "docsUrl": "https://support.signal.org/hc/en-us/articles/360007320551-Linked-Devices",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://signal.org/legal/#terms-of-service",
+    "privacyUrl": "https://signal.org/legal/#privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "phone_number_primary_device_registration",
+      "user_present_qr_linked_device_provisioning",
+      "per_device_end_to_end_encryption_keys",
+      "no_oauth_account_api_bot_platform_or_remote_mcp",
+      "libsignal_is_protocol_library_not_service_authority",
+      "no_supported_third_party_automation_client",
+      "no_relay_signal_client_or_linking_flow"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "signal_connect_or_register",
+        "label": "Connect or register Signal",
+        "description": "Relay cannot register a phone number, receive a verification code, scan a linked-device QR code or provision itself as a trusted Signal device."
+      },
+      {
+        "id": "signal_read_or_export",
+        "label": "Read or export conversations",
+        "description": "Messages, attachments, contacts, groups, stories, call history, receipts, profiles, usernames, keys and backups cannot be read, searched, synchronized, exported or disclosed to agents."
+      },
+      {
+        "id": "signal_message_or_manage",
+        "label": "Send or manage messages",
+        "description": "Agents cannot send, reply, react, edit, delete, forward, schedule, mark read, manage disappearing messages, administer groups or change account and privacy settings."
+      },
+      {
+        "id": "signal_call",
+        "label": "Make or manage calls",
+        "description": "Voice and video calling, group calls, ringing, answering, call links, media, screen sharing and call controls are unavailable."
+      },
+      {
+        "id": "signal_automation_or_bulk",
+        "label": "Automate or bulk message",
+        "description": "Automated accounts, auto-messaging, auto-dialing, bulk messaging, unsolicited communication, scraping and unauthorized collection are blocked by Relay and Signal's acceptable-use terms."
+      },
+      {
+        "id": "signal_unofficial_or_private_access",
+        "label": "Use unofficial or private access",
+        "description": "Unofficial CLIs, reverse-engineered service endpoints, repurposed Signal Desktop databases, decrypted backups, UI scripting, verification-code capture and raw libsignal or Signal-Server calls are never accepted."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "signal_unavailable",
+      "label": "Unavailable",
+      "description": "No Signal action is enabled because Signal provides no supported third-party account or bot API and Relay will not become an automated linked client.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "signal_connect_or_register",
+        "signal_read_or_export",
+        "signal_message_or_manage",
+        "signal_call",
+        "signal_automation_or_bulk",
+        "signal_unofficial_or_private_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Signal tools are mounted because Signal exposes no supported automation API and a runtime cannot inherit a person's device registration, linked-device keys or encrypted conversation authority."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Signal tools are mounted because Signal exposes no supported automation API and a runtime cannot inherit a person's device registration, linked-device keys or encrypted conversation authority."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Signal accounts require a primary Android, iPhone or separately registered iPad associated with a phone number. Official linked devices are Signal Desktop or linked iPad clients that a person provisions by scanning a QR code from the primary phone; each obtains its own keys and access to private communications, and may receive synchronized chat history and recent media. Signal publishes open-source clients, server code and libsignal cryptographic libraries for transparency and its own implementations, but no supported third-party personal-account, bot or automation contract. Its terms prohibit bulk messaging, auto-messaging, auto-dialing, automated account creation, unauthorized service access and unauthorized user-data collection. Relay has no lawful bounded scope, supported credential boundary or safe way to turn a full linked device into per-agent capabilities.",
+    "nextAction": "Do not ask for a phone number, verification code, PIN, recovery key, linked-device QR scan, backup key or Signal Desktop data. Do not install or wrap signal-cli, link Relay as a device, automate the official clients or call private service endpoints. Keep Signal unavailable unless Signal publishes a supported distributable developer or bot API with bounded scopes and terms permitting agent automation, or grants Relay written authorization for an exact reviewed client contract; then design read and communication capabilities separately, require approval for external communication in Safe mode, preserve disappearing-message semantics and verify revocation and device unlinking."
+  },
+  "evidence": [
+    {
+      "url": "https://support.signal.org/hc/en-us/articles/360008216551-Installing-Signal",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal describes private encrypted messaging and calling on registered mobile clients and states that Signal Desktop must be linked to Signal on Android or iPhone."
+    },
+    {
+      "url": "https://support.signal.org/hc/en-us/articles/360007318691-Register-a-phone-number",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal requires a mobile app, an existing phone number and an SMS or voice verification code for primary registration and warns users not to share that code."
+    },
+    {
+      "url": "https://support.signal.org/hc/en-us/articles/360007320551-Linked-Devices",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal supports user-present QR linking only for Signal Desktop or iPad, limits linked devices and lets the person choose whether to synchronize chats and recent media."
+    },
+    {
+      "url": "https://signal.org/blog/a-synchronized-start-for-linked-devices/",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal explains that each linked device receives unique encryption keys through primary-device-approved provisioning and that readable history exists on personal devices rather than Signal's service."
+    },
+    {
+      "url": "https://github.com/signalapp/libsignal",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal describes libsignal as protocol and cryptographic primitives used by its official clients and servers and says published packages are for Signal's own use, not a hosted account API."
+    },
+    {
+      "url": "https://github.com/signalapp",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal publishes official client, server, calling and protocol source code for transparency, but the organization exposes no supported third-party bot or personal-account SDK."
+    },
+    {
+      "url": "https://signal.org/legal/",
+      "checkedAt": "2026-07-18",
+      "supports": "Signal's terms prohibit bulk messaging, auto-messaging, auto-dialing, automated account creation, unauthorized access and unauthorized collection of information about users."
+    }
+  ]
+}

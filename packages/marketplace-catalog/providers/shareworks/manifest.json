@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "shareworks",
+  "name": "Shareworks",
+  "category": "developer",
+  "description": "Shareworks by Morgan Stanley at Work is an equity compensation and capitalization management platform for private and public companies, plan administrators, and participants.",
+  "agentUseSummary": "Add a customer-owned, Shareworks-approved read-only API administrator account, account number, API key pair, and RSA private key. Selected agents can list only bounded company IDs and names; Relay blocks stakeholders, holdings, grants, securities, plans, vesting, boards, capitalization, personal data, exports, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://www.morganstanley.com/atwork/shareworks",
+    "docsUrl": "https://downloads.shareworks.com/api/index.html",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://downloads.shareworks.com/toc/sw-terms-and-conditions-english-080922.pdf",
+    "privacyUrl": "https://www.morganstanley.com/content/dam/msdotcom/en/disclaimers/Shareworks_and_Stockplan_Connect_Privacy_Policy_2023.pdf"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["read_only_api_account"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://shareworks-api.solium.com/rest/admin/v1/auth/tokens",
+    "revocationUrl": "https://shareworks-api.solium.com/rest/admin/v1/terminate/tokens"
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_credentials",
+      "provider_approval_required",
+      "ip_allowlist_required",
+      "signed_jwt_client_credentials",
+      "fixed_origin",
+      "ephemeral_ninety_minute_access_token"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SHAREWORKS_ACCOUNT_NUMBER",
+        "label": "Shareworks API account number",
+        "required": true,
+        "secret": true,
+        "helpText": "Account number used as the subject of Shareworks' signed verification JWT."
+      },
+      {
+        "name": "SHAREWORKS_CLIENT_ID",
+        "label": "Shareworks API client ID",
+        "required": true,
+        "secret": true,
+        "helpText": "Client ID for a customer-owned, Shareworks-approved read-only API administrator account."
+      },
+      {
+        "name": "SHAREWORKS_CLIENT_SECRET",
+        "label": "Shareworks API secret key",
+        "required": true,
+        "secret": true,
+        "helpText": "API secret key stored encrypted and used only inside the signed verification JWT."
+      },
+      {
+        "name": "SHAREWORKS_PRIVATE_KEY",
+        "label": "Shareworks RSA private key",
+        "required": true,
+        "secret": true,
+        "helpText": "Customer-owned RSA private key whose public half is registered with Shareworks; it never leaves Railway."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "company_identity_read",
+      "label": "Read company identity",
+      "description": "List a bounded, minimized directory containing only company IDs and names.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "shareworks_read",
+        "label": "List Shareworks companies",
+        "description": "List up to 20 minimized company identity records visible to the customer-owned Shareworks API account."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "shareworks_manage",
+        "label": "Access equity records or change Shareworks",
+        "description": "Stakeholders, holdings, grants, certificates, plans, vesting, boards, capitalization, integration data, personal data, exports, and every mutation are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "shareworks_safe",
+      "label": "Safe",
+      "description": "One bounded company-identity read runs directly; equity, ownership, stakeholder, personal, export, and mutation surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["shareworks_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["shareworks_manage"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway signs short-lived verification JWTs and exposes only a bounded company-identity directory through Shareworks' fixed production origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway signs short-lived verification JWTs and exposes only a bounded company-identity directory through Shareworks' fixed production origin."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Shareworks requires the customer to request API environment access, supply every Relay Railway egress IP for allowlisting, receive an API administrator account, register an RSA public key, and create an API key. No customer has supplied a Shareworks-approved read-only account or credentials, and the allowlist, signed-token lifecycle, permission denial, and non-production acceptance have not been validated in this workspace.",
+    "nextAction": "A Shareworks plan administrator requests read-only Public API access, has Shareworks allowlist the exact Railway egress IPs, registers the public half of a customer-owned RSA key, creates a read-only API key, stores the account number, client ID, secret, and private key through Relay's encrypted credential flow, then validates token renewal, bounded company reads, denial paths, pagination, rate limiting, key rotation, token termination, API-key disablement, disconnect, and post-disconnect denial in Shareworks' development environment before production use."
+  },
+  "evidence": [
+    {
+      "url": "https://downloads.shareworks.com/api/index.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Shareworks documents fixed development and production API environments, customer-requested access, IP allowlisting, API administrator accounts, RSA public-key registration, API key creation, RS256 verification JWT claims, the token endpoint, 90-minute bearer tokens, read-only versus read-write account roles, response limits, and rate limits."
+    },
+    {
+      "url": "https://shareworks.solium.com/rest/admin/openapi/openapi.json",
+      "checkedAt": "2026-07-18",
+      "supports": "Shareworks' first-party OpenAPI 3.0.1 contract pins the /rest/admin server prefix, POST /v1/auth/tokens, and read-access GET /v1/company with pageSize, pageNumber, and CompanyDetails containing companyId and companyName. Relay caps pages at 20 and discards every other field."
+    },
+    {
+      "url": "https://www.morganstanley.com/atwork/shareworks",
+      "checkedAt": "2026-07-18",
+      "supports": "Morgan Stanley identifies Shareworks as its current integrated equity compensation platform for private and public companies and describes API-based data sharing."
+    },
+    {
+      "url": "https://www.morganstanley.com/content/dam/msdotcom/en/disclaimers/Shareworks_and_Stockplan_Connect_Privacy_Policy_2023.pdf",
+      "checkedAt": "2026-07-18",
+      "supports": "Morgan Stanley's Shareworks privacy notice covers sensitive participant, employment, financial, government-identifier, and equity-plan data, supporting critical-risk classification and strict field minimization."
+    }
+  ]
+}

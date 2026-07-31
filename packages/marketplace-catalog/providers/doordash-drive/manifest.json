@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "doordash-drive",
+  "name": "DoorDash Drive",
+  "category": "commerce",
+  "description": "DoorDash Drive is DoorDash's white-label, on-demand local-delivery service for businesses to quote, create, track, update, and cancel deliveries fulfilled by Dashers.",
+  "agentUseSummary": "DoorDash Drive cannot yet be used through Relay. DoorDash currently restricts production access, gives no certification timeline, and explicitly recommends pausing development before a production request. Relay exposes no quote or delivery authority until DoorDash accepts its business, finished integration, live demonstration, payment setup, compliance controls, and production credentials.",
+  "provider": {
+    "websiteUrl": "https://developer.doordash.com/en-US/docs/drive/overview/about_drive/",
+    "docsUrl": "https://developer.doordash.com/en-US/docs/drive/overview/about_drive/",
+    "developerConsoleUrl": "https://developer.doordash.com/portal/",
+    "termsUrl": "https://help.doordash.com/legal/document?type=dx-drive-api-terms&region=US&locale=en-US",
+    "privacyUrl": "https://privacy.doordash.com/en-US/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_drive_project",
+      "developer_id_key_id_signing_secret",
+      "short_lived_hs256_jwt",
+      "sandbox_delivery_simulator",
+      "restricted_production_review",
+      "payment_method_and_live_demo_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "delivery_quote",
+      "label": "Quote a delivery",
+      "description": "After DoorDash production approval, request a bounded fee, timing, pickup and drop-off quote for an eligible merchant delivery.",
+      "defaultSelected": true
+    },
+    {
+      "id": "delivery_read",
+      "label": "Read delivery status",
+      "description": "After DoorDash production approval, retrieve the state, timing, fee, pickup, drop-off, Dasher, proof and support metadata for a Relay-created delivery.",
+      "defaultSelected": true
+    },
+    {
+      "id": "delivery_manage",
+      "label": "Manage deliveries",
+      "description": "After DoorDash production approval, create, update, cancel, or otherwise manage an eligible delivery under explicit merchant confirmation and item restrictions.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "doordash_drive_connect_before_approval",
+        "label": "Use Drive before production approval",
+        "description": "Relay has no approved Drive business, payment method, certified integration, live-demo acceptance, production project, or production credentials."
+      },
+      {
+        "id": "doordash_drive_quote_before_approval",
+        "label": "Quote deliveries",
+        "description": "Delivery feasibility, estimates, fees, time windows, addresses, item details, and quote responses remain unavailable before production approval."
+      },
+      {
+        "id": "doordash_drive_read_before_approval",
+        "label": "Read deliveries",
+        "description": "Delivery state, pickup and drop-off data, customer and merchant PII, Dasher data, proof, support IDs, tracking, and errors remain unavailable."
+      },
+      {
+        "id": "doordash_drive_mutations_before_approval",
+        "label": "Create or change deliveries",
+        "description": "Creating, updating, cancelling, dispatching, tipping, charging, or otherwise changing a delivery remains unavailable before production approval and explicit confirmation."
+      },
+      {
+        "id": "doordash_drive_raw_restricted",
+        "label": "Use raw or restricted Drive operations",
+        "description": "Arbitrary endpoints, raw responses, classic API fallback, unsupported items, credential sharing, sandbox simulation presented as real, and production calls with sandbox keys are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "doordash_drive_provider_review",
+      "label": "Provider review pending",
+      "description": "No DoorDash Drive action is enabled until DoorDash grants production access and the complete merchant, item, quote, confirmation, payment, delivery, support, and credential contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "doordash_drive_connect_before_approval",
+        "doordash_drive_quote_before_approval",
+        "doordash_drive_read_before_approval",
+        "doordash_drive_mutations_before_approval",
+        "doordash_drive_raw_restricted"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded Drive tools after DoorDash production approval; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded Drive tools after DoorDash production approval; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "DoorDash currently labels Drive production access restricted, provides no certification timeline, and recommends pausing development if an integration has not already been completed and submitted. Sandbox access keys contain developer_id, key_id and signing_secret used to mint five-minute HS256 JWTs and operate the Delivery Simulator, but production requires a portal request, business and payment setup, accepted terms, a live end-to-end demonstration of UI, API logs and compliance, DoorDash approval, and separately generated production credentials. This worker cannot create a project or credentials, run the simulator, accept terms, add payment, build against restricted production, or perform the demo.",
+    "nextAction": "Do not begin implementation while DoorDash's published pause guidance remains in effect. The exclusive provider-console lane should record Relay's interest and await an invitation or viable certification path. When DoorDash permits progress, obtain written confirmation of the use case and item classes, then build the required finished integration against the simulator, submit production access, demonstrate merchant and guest UI plus API logs and compliance, and after approval store production access-key material only in Railway. Acceptance must verify short-lived JWT construction, key rotation, quote and delivery idempotency, address and phone redaction, restricted-item denial, merchant confirmation, fees and payment, status and support IDs, cancellation, errors, credential separation, and no real dispatch from sandbox."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.doordash.com/en-US/docs/drive/how_to/get_production_access/",
+      "checkedAt": "2026-07-17",
+      "supports": "DoorDash states production access is restricted with no certification timeline and recommends pausing development; production requires a portal request, business and payment details, terms, a live end-to-end demo, approval, and new production credentials."
+    },
+    {
+      "url": "https://developer.doordash.com/en-US/docs/drive/overview/about_drive/",
+      "checkedAt": "2026-07-17",
+      "supports": "DoorDash documents Drive as white-label delivery, sandbox access and a delivery simulator, followed by production review, demonstration, approval and production-key issuance."
+    },
+    {
+      "url": "https://developer.doordash.com/en-US/docs/drive/how_to/JWTs/",
+      "checkedAt": "2026-07-17",
+      "supports": "DoorDash access keys contain developer_id, key_id and signing_secret and are used to mint short-lived HS256 DoorDash JWTs with a dd-ver header."
+    },
+    {
+      "url": "https://developer.doordash.com/en-US/docs/drive/overview/integration_requirements/",
+      "checkedAt": "2026-07-17",
+      "supports": "DoorDash reviews every production integration against technical and legal requirements and requires a finished product before production approval."
+    },
+    {
+      "url": "https://developer.doordash.com/en-US/docs/drive/how_to/use_delivery_simulator/",
+      "checkedAt": "2026-07-17",
+      "supports": "DoorDash's simulator uses sandbox keys, creates no real Dasher dispatch, supports a bounded test state machine, and automatically cancels test deliveries after one hour."
+    }
+  ]
+}

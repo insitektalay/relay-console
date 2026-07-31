@@ -1,0 +1,218 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "eventbrite",
+  "name": "Eventbrite",
+  "category": "communication",
+  "description": "Eventbrite is an event management and ticketing platform for creating, promoting, and discovering live and online experiences. Organizers use it to publish event pages, manage registrations and ticket sales, and reach attendees, while consumers use it to find and join events.",
+  "agentUseSummary": "Connect one OAuth-bound Eventbrite user, then let agents verify that exact connection, list up to ten member Organizations, list up to ten Events for one verified Organization, and inspect one explicit Event with bounded Venue fields without exposing tokens, the secure user ID, attendee commerce data, writes, pagination, Manage ESR, or raw APIs.",
+  "provider": {
+    "websiteUrl": "https://www.eventbrite.com/",
+    "docsUrl": "https://www.eventbrite.com/platform/docs/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.eventbrite.com/corporate/legal/legalterms/",
+    "privacyUrl": null
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.eventbrite.com/oauth/authorize",
+    "tokenUrl": "https://www.eventbrite.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "server_authorization_code_no_refresh",
+      "exact_server_bound_user",
+      "encrypted_state_token_and_client_secret"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "EVENTBRITE_API_KEY",
+        "label": "Eventbrite app key",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held key for the approved Relay Eventbrite application."
+      },
+      {
+        "name": "EVENTBRITE_CLIENT_SECRET",
+        "label": "Eventbrite client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-held confidential secret; never entered in Relay Console clients."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/eventbrite/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "user_read",
+      "label": "Verify connected user",
+      "description": "Verify the exact OAuth-bound user and return only a bounded display name and binding status.",
+      "defaultSelected": true
+    },
+    {
+      "id": "organization_read",
+      "label": "List member Organizations",
+      "description": "List at most ten first-page Organizations returned for the connected user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "organization_event_read",
+      "label": "List Organization Events",
+      "description": "List at most ten first-page Events after verifying the supplied Organization against connected-user membership.",
+      "defaultSelected": true
+    },
+    {
+      "id": "event_read",
+      "label": "Read one Event",
+      "description": "Inspect one explicitly supplied numeric Event ID with fixed useful fields and the venue-only expansion.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "eventbrite_user_get",
+        "label": "Verify connected user",
+        "description": "Verify the server-bound user without exposing the provider user ID."
+      },
+      {
+        "id": "eventbrite_organizations_list",
+        "label": "List member Organizations",
+        "description": "List at most ten member Organizations without following pagination."
+      },
+      {
+        "id": "eventbrite_organization_events_list",
+        "label": "List Organization Events",
+        "description": "Verify one numeric Organization ID against membership, then list at most ten first-page Events."
+      },
+      {
+        "id": "eventbrite_event_get",
+        "label": "Read one Event",
+        "description": "Read one exact numeric Event ID with bounded schedule, status, capacity, currency, listing URL, and Venue fields."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "eventbrite_mutations",
+        "label": "Block mutations",
+        "description": "Event, ticket, checkout, order, attendee, refund, check-in, webhook, marketing, and administration writes are not exposed."
+      },
+      {
+        "id": "eventbrite_sensitive_reads",
+        "label": "Block sensitive reads",
+        "description": "Attendees, orders, tickets, payments, contacts, members, roles, exports, analytics, and registration data are unavailable."
+      },
+      {
+        "id": "eventbrite_broad_raw",
+        "label": "Block broad and raw access",
+        "description": "Discovery, arbitrary expansions or fields, cursors, pagination, bulk work, Manage iframe ESR tokens, and raw API access are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "eventbrite_safe",
+      "label": "Safe",
+      "description": "The four selected fixed reads run automatically; sensitive, write, broad, paginated, and raw surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "eventbrite_user_get",
+        "eventbrite_organizations_list",
+        "eventbrite_organization_events_list",
+        "eventbrite_event_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "eventbrite_mutations",
+        "eventbrite_sensitive_reads",
+        "eventbrite_broad_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four reads run without Relay per-action approval; exact connection and Organization authority, fixed endpoints, bounds, audits, and secret isolation still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "eventbrite_user_get",
+        "eventbrite_organizations_list",
+        "eventbrite_organization_events_list",
+        "eventbrite_event_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "eventbrite_mutations",
+        "eventbrite_sensitive_reads",
+        "eventbrite_broad_raw"
+      ]
+    }
+  ],
+  "riskLevel": "medium",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Eventbrite wrappers and attaches the encrypted user token and secure user binding only inside Railway's fixed v3 REST adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Eventbrite wrappers and attaches the encrypted user token and secure user binding only inside Railway's fixed v3 REST adapter."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An approved Eventbrite API application, exact Railway callback, confidential app key and secret, live consent, API/legal/trademark acceptance, and staging evidence remain for the separate provider-console and integration tasks.",
+    "nextAction": "After batch integration, the provider-console task must request and obtain the application key, register the exact Railway callback, store credentials in staging, and validate state, consent, no-refresh reauthorization, exact user binding, member Organizations, bounded Event reads, quota behavior, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.eventbrite.com/platform/docs/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Eventbrite documents OAuth 2 bearer authentication, the recommended server authorization-code exchange, app key and client secret custody, and the requirement to keep private tokens out of client code."
+    },
+    {
+      "url": "https://www.eventbrite.com/platform/docs/app-oauth-flow",
+      "checkedAt": "2026-07-18",
+      "supports": "Eventbrite documents the authorization and token URLs, registered redirect, server-side code flow, no scope or PKCE parameter, and reauthorization when a user's token expires."
+    },
+    {
+      "url": "https://www.eventbrite.com/platform/docs/api-basics",
+      "checkedAt": "2026-07-18",
+      "supports": "Eventbrite documents the fixed https://www.eventbriteapi.com/v3 REST origin, JSON responses, Organizations, Events, expansions, and first-page pagination semantics."
+    },
+    {
+      "url": "https://www.eventbrite.com/platform/docs/organizations",
+      "checkedAt": "2026-07-18",
+      "supports": "Eventbrite documents Organizations as the Event ownership and permission boundary and the connected user's Organization-membership endpoint."
+    },
+    {
+      "url": "https://www.eventbrite.com/platform/docs/events",
+      "checkedAt": "2026-07-18",
+      "supports": "Eventbrite documents Organization Event listing, numeric Event IDs, explicit Event reads, and the venue-only expansion used by Relay."
+    },
+    {
+      "url": "https://www.eventbrite.com/platform/docs/rate-limits",
+      "checkedAt": "2026-07-18",
+      "supports": "Eventbrite documents default integrated-application limits of 2,000 calls per hour and 48,000 calls per day."
+    },
+    {
+      "url": "https://www.eventbrite.com/help/en-us/articles/849962/generate-an-api-key/",
+      "checkedAt": "2026-07-18",
+      "supports": "Eventbrite documents API-key application fields, optional OAuth redirect entry, organization permission requirements, and approval email."
+    },
+    {
+      "url": "https://www.eventbrite.com/corporate/legal/legalterms/",
+      "checkedAt": "2026-07-18",
+      "supports": "Eventbrite's legal index identifies API terms, privacy terms, and trademark policy that require separate acceptance before live use or bundled provider branding."
+    }
+  ]
+}

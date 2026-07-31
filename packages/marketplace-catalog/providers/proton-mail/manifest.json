@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "proton-mail",
+  "name": "Proton Mail",
+  "category": "communication",
+  "description": "Proton Mail is an encrypted email service with messages, conversations, folders, labels, contacts, desktop Bridge interoperability, and custom-domain SMTP submission.",
+  "agentUseSummary": "Proton Mail cannot currently be connected because mailbox interoperability requires a paid, continuously running same-device Bridge that decrypts mail locally and exposes local IMAP/SMTP credentials. Proton's other supported automation credential is a send-only custom-domain SMTP token; neither is Relay-owned delegated OAuth or compatible with Railway execution without a new product/runtime decision.",
+  "provider": {
+    "websiteUrl": "https://proton.me/mail",
+    "docsUrl": "https://proton.me/support/why-you-need-bridge",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://proton.me/legal/terms",
+    "privacyUrl": "https://proton.me/legal/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "paid_same_device_bridge_required",
+      "bridge_exposes_local_imap_and_smtp",
+      "bridge_credentials_are_rotating_session_secrets",
+      "smtp_submission_is_send_only_custom_domain",
+      "public_delegated_mail_oauth_not_documented"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "proton_mail_delegated_oauth",
+        "label": "Connect through delegated OAuth",
+        "description": "Proton does not publish a stable third-party Mail API with developer registration, delegated scopes, callback, refresh, and revocation lifecycle."
+      },
+      {
+        "id": "proton_mail_bridge",
+        "label": "Use Proton Mail Bridge",
+        "description": "Bridge is a paid local process that authenticates to Proton, decrypts mail on the same device, and exposes session-specific local IMAP/SMTP credentials; it cannot serve Railway-hosted tools."
+      },
+      {
+        "id": "proton_mail_smtp_submission",
+        "label": "Use an SMTP submission token",
+        "description": "A manually generated token is bound to one paid custom-domain address and permits only sending, requiring a separate high-risk write product."
+      },
+      {
+        "id": "proton_mail_private_api",
+        "label": "Use Proton's private client API",
+        "description": "Open-source first-party Bridge/API libraries and their SRP, token, key, and private endpoint machinery are not a supported third-party provider contract."
+      },
+      {
+        "id": "proton_mail_data_and_mutations",
+        "label": "Access Proton Mail data",
+        "description": "Addresses, messages, conversations, drafts, attachments, folders, labels, contacts, searches, moves, deletes, sends, exports, raw protocols, and every read or write remain unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "proton_mail_unavailable",
+      "label": "Unavailable",
+      "description": "No agent action can be enabled until Relay approves a local-only Bridge or send-only SMTP product, or Proton publishes delegated Mail OAuth.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "proton_mail_delegated_oauth",
+        "proton_mail_bridge",
+        "proton_mail_smtp_submission",
+        "proton_mail_private_api",
+        "proton_mail_data_and_mutations"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "A same-device Bridge cannot be mounted through Railway as OpenClaw tools, and the SMTP-only product is not approved."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "A same-device Bridge cannot be mounted through Railway as Hermes tools, and the SMTP-only product is not approved."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Proton mailbox reads require a paid same-device Bridge and local decrypted-mail boundary, while SMTP submission is a user-owned send-only token; no public delegated Mail OAuth/API contract exists.",
+    "nextAction": "Do not request Proton Account, Bridge, or SMTP credentials and do not show Connect. Reconsider after an explicit local-runtime or send-only product decision, or after Proton supplies a public partner Mail API with delegated authorization and encryption responsibilities."
+  },
+  "evidence": [
+    {
+      "url": "https://proton.me/support/why-you-need-bridge",
+      "checkedAt": "2026-07-17",
+      "supports": "Proton documents Bridge as the required local component that decrypts encrypted mail and exposes IMAP/SMTP to same-device desktop clients."
+    },
+    {
+      "url": "https://proton.me/support/imap-smtp-and-pop3-setup",
+      "checkedAt": "2026-07-17",
+      "supports": "Proton does not provide ordinary remote IMAP/POP mailbox access; Bridge supplies separate local credentials rather than the Proton Account password."
+    },
+    {
+      "url": "https://proton.me/support/smtp-submission",
+      "checkedAt": "2026-07-17",
+      "supports": "Proton SMTP submission uses manually created, address-bound, revocable tokens for sending from paid custom-domain addresses and provides no mailbox reads."
+    },
+    {
+      "url": "https://github.com/ProtonMail/go-proton-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Proton's open-source API library is used by its own Go clients and tools; source availability does not establish a stable supported third-party Mail API contract."
+    }
+  ]
+}

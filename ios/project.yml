@@ -1,0 +1,143 @@
+name: ClawChat
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_PREVIEWS: YES
+    SWIFT_STRICT_CONCURRENCY: complete
+    SENTRY_DSN: ""
+    SENTRY_ENVIRONMENT: development
+    SENTRY_RELEASE: ""
+    POSTHOG_PROJECT_TOKEN: ""
+    POSTHOG_HOST: "https://eu.i.posthog.com"
+    RELAY_CONSOLE_API_BASE_URL: "https://your-backend.up.railway.app/api/v1"
+    RELAY_CONSOLE_AVATAR_ASSET_BASE_URL: ""
+    RELAY_CONSOLE_WEB_ASSET_BASE_URL: "https://your-web-app.example.com"
+    RELAY_CONSOLE_WEBSOCKET_BASE_URL: "wss://your-backend.up.railway.app"
+packages:
+  Sentry:
+    url: https://github.com/getsentry/sentry-cocoa.git
+    from: 8.0.0
+  PostHog:
+    url: https://github.com/PostHog/posthog-ios.git
+    from: 3.67.1
+schemes:
+  ClawChat:
+    build:
+      targets:
+        ClawChat: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - name: ClawChatTests
+          parallelizable: false
+        - name: ClawChatUITests
+          parallelizable: false
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
+targets:
+  ClawChat:
+    type: application
+    platform: iOS
+    configFiles:
+      Debug: Config/RelayConsoleConfiguration.xcconfig
+      Release: Config/RelayConsoleConfiguration.xcconfig
+    productName: Relay Console
+    sources:
+      - ClawChat
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.relayconsole
+        PRODUCT_NAME: "Relay Console"
+        PRODUCT_MODULE_NAME: ClawChat
+        INFOPLIST_FILE: ClawChat/App/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_VERSION: 6.0
+    info:
+      path: ClawChat/App/Info.plist
+      properties:
+        CFBundleDisplayName: Relay Console
+        CFBundleIconName: AppIcon
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: $(PRODUCT_BUNDLE_IDENTIFIER).marketplace-oauth
+            CFBundleURLSchemes:
+              - relayconsole
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
+        UILaunchStoryboardName: ""
+        UILaunchScreen:
+          UIColorName: AccentColor
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
+        NSCameraUsageDescription: Used for agent avatar uploads
+        NSMicrophoneUsageDescription: Used to record voice input for chat messages
+        RelayConsoleAPIBaseURL: $(RELAY_CONSOLE_API_BASE_URL)
+        RelayConsoleWebAssetBaseURL: $(RELAY_CONSOLE_WEB_ASSET_BASE_URL)
+        RelayConsoleWebSocketBaseURL: $(RELAY_CONSOLE_WEBSOCKET_BASE_URL)
+        RelayCloudProductID: com.relayconsole.cloud.monthly
+        SentryDSN: $(SENTRY_DSN)
+        SentryEnvironment: $(SENTRY_ENVIRONMENT)
+        SentryRelease: $(SENTRY_RELEASE)
+        RelayPostHogProjectToken: $(POSTHOG_PROJECT_TOKEN)
+        RelayPostHogHost: $(POSTHOG_HOST)
+        NSPhotoLibraryUsageDescription: Used for message attachments
+        NSSpeechRecognitionUsageDescription: Used to transcribe voice input into editable chat text
+        UIUserInterfaceStyle: Dark
+    dependencies:
+      - sdk: Charts.framework
+      - package: Sentry
+        product: Sentry
+      - package: PostHog
+        product: PostHog
+  ClawChatTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - ClawChatTests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Relay Console.app/Relay Console"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+    dependencies:
+      - target: ClawChat
+  ClawChatUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - ClawChatUITests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: ClawChat
+    dependencies:
+      - target: ClawChat

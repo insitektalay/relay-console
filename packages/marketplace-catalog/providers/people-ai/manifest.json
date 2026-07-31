@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "people-ai",
+  "name": "People.ai",
+  "category": "crm_support",
+  "description": "People.ai, now Backstory, is a revenue intelligence platform that combines CRM records, account and opportunity context, engagement activity, and AI-assisted sales insights. Revenue teams use it to understand account status, deal activity, relationships, and execution risk.",
+  "agentUseSummary": "Add the customer workspace's Backstory MCP-specific client ID and secret, then let selected agents search for an account through the single documented find_account tool. Relay verifies the live one-string tool schema before every call, redacts people and communication fields, bounds results, and blocks opportunity analysis, activities, contacts, news, SalesAI, forecasting, raw MCP or REST access, and mutations.",
+  "provider": {
+    "websiteUrl": "https://www.people.ai/",
+    "docsUrl": "https://help.people.ai/en/articles/15138623-backstory-mcp",
+    "developerConsoleUrl": "https://app.people.ai/",
+    "termsUrl": "https://www.people.ai/terms-of-service",
+    "privacyUrl": "https://www.people.ai/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_mcp_credentials",
+      "provider_issued_client_pair",
+      "workspace_permission_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "PEOPLE_AI_MCP_CLIENT_ID",
+        "label": "People.ai MCP client ID",
+        "secret": true,
+        "required": true,
+        "helpText": "Use the MCP-specific client ID issued by a Backstory administrator or CSM; Relay encrypts it server-side."
+      },
+      {
+        "key": "PEOPLE_AI_MCP_CLIENT_SECRET",
+        "label": "People.ai MCP client secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Use the matching MCP-specific client secret; Relay encrypts it server-side."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "people_ai_read",
+      "label": "Find accounts",
+      "description": "Use only Backstory MCP's documented find_account tool after live schema verification and redact people and communication data from results.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "people_ai_read",
+        "label": "Find People.ai accounts",
+        "description": "Search for an account by a validated 2–160 character name through the pinned Backstory MCP find_account tool."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "people_ai_manage",
+        "label": "Change People.ai",
+        "description": "CRM updates, scorecard changes, configuration, imports, exports, and every mutation are outside Relay's V1 contract."
+      },
+      {
+        "id": "people_ai_sensitive_data",
+        "label": "Read people or communication data",
+        "description": "Contacts, engaged people, emails, meetings, messages, notes, transcripts, detailed activities, and signed content URLs are blocked."
+      },
+      {
+        "id": "people_ai_arbitrary_api",
+        "label": "Use arbitrary MCP or REST access",
+        "description": "Opportunity analysis, account status, news, SalesAI, situation search, forecasting, raw CRM records, arbitrary tools and arguments, and REST extraction are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "people_ai_safe",
+      "label": "Safe",
+      "description": "Schema-verified account search runs directly. Opportunity analysis, communications, people, news, forecasts, arbitrary MCP or REST tools, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["people_ai_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "people_ai_manage",
+        "people_ai_sensitive_data",
+        "people_ai_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed account-search tool through the encrypted customer-owned Backstory MCP credential pair after live schema verification."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed account-search tool through the encrypted customer-owned Backstory MCP credential pair after live schema verification."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer Backstory account, enabled MCP access, MCP-specific client ID-secret pair, representative account fixtures, permission matrix, or credential-rotation procedure is available in this workspace.",
+    "nextAction": "A Backstory administrator or CSM enables MCP, issues or rotates the MCP-specific credential pair, saves it through Relay Console, then verifies initialization, the exact find_account schema and bounded search, permissions, redaction, agent assignment, credential replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.people.ai/en/articles/15138623-backstory-mcp",
+      "checkedAt": "2026-07-17",
+      "supports": "Backstory documents its official remote MCP endpoint, OAuth-capable clients, workspace permission enforcement, and a broad tool set spanning account and opportunity status, scorecards, activity, people, news, SalesAI, and situation search."
+    },
+    {
+      "url": "https://help.people.ai/en/articles/13780674-connect-n8n-to-backstory",
+      "checkedAt": "2026-07-17",
+      "supports": "Backstory's n8n guide documents https://mcp.people.ai/mcp, the case-sensitive PAI-Client-Id and PAI-Client-Secret headers, MCP-specific credentials issued by an administrator or CSM, rotation guidance, and the find_account tool."
+    },
+    {
+      "url": "https://help.people.ai/en/articles/13780031-connect-gemini-cli-to-backstory",
+      "checkedAt": "2026-07-17",
+      "supports": "Backstory's official Gemini CLI guide confirms the hosted MCP integration, OAuth connection path, account search, recent activity and SalesAI examples, and permission-bound access that Relay narrows to account search only."
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "xbox",
+  "name": "Xbox",
+  "category": "communication",
+  "description": "Xbox is Microsoft's gaming platform spanning consoles, PC, cloud gaming, player identities, achievements, social features, multiplayer, and digital commerce. Its supported developer services are scoped to registered game titles and publishers through Partner Center, GDK/XSAPI, sandboxes, and XSTS rather than a general consumer account API.",
+  "agentUseSummary": "Xbox cannot be connected as a general consumer account provider because Microsoft's supported Xbox services require a registered title or publisher, Partner Center configuration, title-specific access policies, sandboxes, and XSTS authentication. Generic Microsoft OAuth, unofficial XSTS exchange, private consumer endpoints, scraping, and relabeling a title-development integration as consumer Xbox are not supported substitutes.",
+  "provider": {
+    "websiteUrl": "https://www.xbox.com/",
+    "docsUrl": "https://learn.microsoft.com/en-us/gaming/gdk/docs/services/fundamentals/s2s-auth-calls/custom-service-config/access-policies/live-access-policies-overview",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.microsoft.com/en-us/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/en-us/privacystatement"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["title_publisher_scoped_no_general_consumer_api"],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "xbox_connect_consumer_account",
+        "label": "Connect a consumer Xbox account",
+        "description": "Microsoft does not publish a general third-party Xbox consumer account OAuth or API contract for Relay to distribute."
+      },
+      {
+        "id": "xbox_profile_social_achievements_api",
+        "label": "Access Xbox profile, social, or gameplay data",
+        "description": "Supported profile, social, achievement, stat, leaderboard, multiplayer, entitlement, and commerce services are tied to registered titles and publishers."
+      },
+      {
+        "id": "xbox_title_publisher_service_substitution",
+        "label": "Substitute a title-development integration",
+        "description": "Partner Center, GDK/XSAPI, title sandboxes, title access policies, and publisher services cannot be represented as a generic consumer Xbox connector."
+      },
+      {
+        "id": "xbox_private_xsts_or_scraping",
+        "label": "Use private XSTS flows or scraping",
+        "description": "Unofficial token exchange, private consumer endpoints, reverse engineering, scraping, and browser automation are not supported distributable Xbox APIs."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "xbox_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled without a separately approved registered-title or publisher integration and its supported Xbox services contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "xbox_connect_consumer_account",
+        "xbox_profile_social_achievements_api",
+        "xbox_title_publisher_service_substitution",
+        "xbox_private_xsts_or_scraping"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No supported general consumer Xbox API or remote MCP service is available to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No supported general consumer Xbox API or remote MCP service is available to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Microsoft documents Xbox services for registered titles and publishers configured in Partner Center. Access is title-specific, sandboxed, governed by access policies, and authenticated with XSTS or title/store service mechanisms; Microsoft does not publish a general consumer Xbox account API contract for this provider.",
+    "nextAction": "Do not show Connect, request Microsoft credentials, implement unofficial XSTS exchange, scrape consumer Xbox experiences, or relabel a title-development integration as a consumer connector. Reconsider only as a separately approved title/publisher integration with documented rights, Partner Center configuration, and a narrowly defined Xbox services contract.",
+    "requiredProviderArtifacts": [
+      "registered Xbox title or publisher product decision",
+      "Partner Center title and access-policy configuration",
+      "approved title-specific Xbox services surface",
+      "documented XSTS or Microsoft Store service authentication contract"
+    ]
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/gaming/gdk/docs/services/fundamentals/s2s-auth-calls/custom-service-config/access-policies/live-access-policies-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft states that Xbox access policies allow apps, games, and services to access a title's Xbox services settings and that only the title can access them by default."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/gaming/gdk/docs/services/fundamentals/portal-config/live-setup-partner-center-partners",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft requires managed partners to define an app or game in Partner Center and have Xbox services enabled for that title before publishing its gameplay settings."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/gaming/gdk/docs/services/fundamentals/s2s-auth-calls/service-authentication/security-tokens/live-security-tokens",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents XSTS tokens as relying-party-specific security tokens, with title and publisher configurations managed in Partner Center."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/xbox/gdk/docs/services/fundamentals/sandboxes/live-setup-sandbox",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft requires a title's Xbox services configuration to be published through Partner Center into isolated development sandboxes before use."
+    }
+  ]
+}

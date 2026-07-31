@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "optimizely-rollouts",
+  "name": "Optimizely Rollouts",
+  "category": "developer",
+  "description": "Optimizely Rollouts is the free Optimizely Feature Experimentation plan for feature flags, targeted deliveries, gradual rollouts, and limited experimentation.",
+  "agentUseSummary": "Connect a personal access token owned by a dedicated Viewer collaborator and bind it to one non-production Feature Experimentation project. Relay approval-gates first-page active flag and exact flag metadata reads while rollout rules, environments, variables, identities, roles, evaluation, legacy APIs, and mutations remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.optimizely.com/",
+    "docsUrl": "https://docs.developers.optimizely.com/feature-experimentation/docs/manage-flags",
+    "developerConsoleUrl": "https://app.optimizely.com/",
+    "termsUrl": "https://www.optimizely.com/legal/terms-of-service/",
+    "privacyUrl": "https://www.optimizely.com/legal/privacy-notice/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["viewer_project", "viewer_environment", "viewer_flag"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_personal_access_token",
+      "dedicated_viewer_collaborator",
+      "exact_project_binding",
+      "fixed_feature_experimentation_flags_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "OPTIMIZELY_ROLLOUTS_VIEWER_PERSONAL_ACCESS_TOKEN",
+        "label": "Optimizely Rollouts Viewer personal access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated collaborator with Viewer project, environment, and flag roles."
+      },
+      {
+        "name": "OPTIMIZELY_ROLLOUTS_PROJECT_ID",
+        "label": "Optimizely Rollouts project ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one non-production Feature Experimentation project."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read flag metadata",
+      "description": "Read bounded project flag metadata with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "optimizely_rollouts_sensitive_read",
+        "label": "Read Optimizely Rollouts flags",
+        "description": "Read bounded project flag metadata."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "optimizely_rollouts_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Personal access tokens and authorization headers never enter agent-visible inputs or results."
+      },
+      {
+        "id": "optimizely_rollouts_private_data",
+        "label": "Read rollout configuration or people",
+        "description": "Environment states, rules, audiences, experiments, variables and defaults, variations, metrics, user identities, account IDs, roles, URNs, and mutation links are excluded."
+      },
+      {
+        "id": "optimizely_rollouts_mutation",
+        "label": "Mutate Optimizely",
+        "description": "Flag, rule, rollout, experiment, environment, audience, variable, token, project, and every other mutation remain provider-side."
+      },
+      {
+        "id": "optimizely_rollouts_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only current Feature Experimentation /flags/v1 first-page active flag list and exact GETs run on api.optimizely.com with stored project binding; legacy /v2/features, arbitrary paths, queries, pagination, evaluation, and datafile access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "optimizely_rollouts_safe",
+      "label": "Safe",
+      "description": "Both metadata reads require approval; Viewer authority, fixed current API/project routes, bounds, redaction, audits, and rollout/evaluation/mutation blocks remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["optimizely_rollouts_sensitive_read"],
+      "blockedActions": [
+        "optimizely_rollouts_secret_exposure",
+        "optimizely_rollouts_private_data",
+        "optimizely_rollouts_mutation",
+        "optimizely_rollouts_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected metadata read runs without Relay approval; Viewer authority, fixed current API/project routes, bounds, redaction, audits, and rollout/evaluation/mutation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["optimizely_rollouts_sensitive_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "optimizely_rollouts_secret_exposure",
+        "optimizely_rollouts_private_data",
+        "optimizely_rollouts_mutation",
+        "optimizely_rollouts_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted Viewer token server-side and mounts two approval-gated metadata reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted Viewer token server-side and mounts two approval-gated metadata reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Optimizely Rollouts requires a customer account, dedicated Viewer collaborator/personal access token, and one Feature Experimentation project. This worker may not create or configure them.",
+    "nextAction": "Create the restricted staging collaborator/token outside this worker, configure token and project ID in Railway staging, then verify binding, reads, redaction, approvals, bounds, revocation, disconnect, and denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.developers.optimizely.com/feature-experimentation/docs/introduction",
+      "checkedAt": "2026-07-18",
+      "supports": "Optimizely documents Rollouts as the free Feature Experimentation plan and distinguishes the current product from sunset Full Stack legacy projects."
+    },
+    {
+      "url": "https://docs.developers.optimizely.com/feature-experimentation/docs/manage-flags",
+      "checkedAt": "2026-07-18",
+      "supports": "Optimizely's official guide pins /flags/v1 list/exact GETs, Bearer authentication, rich response fields, and separate mutation endpoints."
+    },
+    {
+      "url": "https://docs.developers.optimizely.com/feature-experimentation/reference/list_flags",
+      "checkedAt": "2026-07-18",
+      "supports": "The current official API reference defines project binding, first-page controls, active/archive filters, pagination metadata, and authorization errors."
+    },
+    {
+      "url": "https://docs.developers.optimizely.com/feature-experimentation/docs/granular-roles-and-permissions",
+      "checkedAt": "2026-07-18",
+      "supports": "Optimizely documents Viewer project, environment, and flag roles as view-only without edit or publish permissions."
+    }
+  ]
+}

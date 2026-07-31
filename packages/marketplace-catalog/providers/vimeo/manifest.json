@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "vimeo",
+  "name": "Vimeo",
+  "category": "content_creative",
+  "description": "Vimeo is a video hosting and collaboration platform for uploading, organizing, sharing, reviewing, and streaming video. Creators and teams use it to manage video libraries, privacy, embeds, captions, comments, folders, analytics, live events, and distribution.",
+  "agentUseSummary": "Connect a Vimeo account once through Relay-owned OAuth, then let agents use the complete account-, plan-, app-review-, and scope-authorized API under Safe or Dangerous policy.",
+  "provider": { "websiteUrl": "https://vimeo.com/", "docsUrl": "https://developer.vimeo.com/api/reference", "developerConsoleUrl": "https://developer.vimeo.com/apps", "termsUrl": "https://vimeo.com/terms", "privacyUrl": "https://vimeo.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["public", "private", "create", "edit", "delete", "interact", "stats", "upload", "video_files", "purchased", "promo_codes"], "pkce": false, "refreshTokens": false, "authorizationUrl": "https://api.vimeo.com/oauth/authorize", "tokenUrl": "https://api.vimeo.com/oauth/access_token", "revocationUrl": "https://api.vimeo.com/tokens" },
+  "connection": { "types": ["relay_owned_oauth"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/vimeo/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "video_read", "label": "Read video library", "description": "Read the connected account, videos, folders, captions, comments, showcases, channels, groups, and related metadata." },
+    { "id": "video_write", "label": "Manage video content", "description": "Upload, edit, organize, publish, interact with, and delete OAuth-authorized Vimeo resources." },
+    { "id": "analytics", "label": "Use statistics", "description": "Read OAuth-authorized video statistics and related reporting resources." },
+    { "id": "administration", "label": "Use the complete Vimeo API", "description": "Use every current documented API operation permitted by the connected account, plan, app approval, and granted scopes." }
+  ],
+  "actions": { "allowed": [
+    { "id": "vimeo_get_me", "label": "Read account", "description": "Read the connected Vimeo account." },
+    { "id": "vimeo_list_videos", "label": "List videos", "description": "List a bounded page of videos owned by the connected account." },
+    { "id": "vimeo_get_video", "label": "Read video", "description": "Read one exact video by ID." },
+    { "id": "vimeo_list_folders", "label": "List folders", "description": "List a bounded page of project folders." },
+    { "id": "vimeo_get_folder", "label": "Read folder", "description": "Read one exact project folder by ID." }
+  ], "approvalRequired": [{ "id": "vimeo_full_api", "label": "Use full Vimeo API", "description": "Use any current documented Vimeo API operation; Safe mode requires approval." }], "blocked": [] },
+  "approvalProfiles": [
+    { "id": "vimeo_safe", "label": "Safe", "description": "Bounded account, video, and folder reads run directly; every other Vimeo API operation requires approval.", "defaultSelected": true, "allowedActions": ["vimeo_get_me", "vimeo_list_videos", "vimeo_get_video", "vimeo_list_folders", "vimeo_get_folder"], "approvalRequiredActions": ["vimeo_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected OAuth-authorized Vimeo API operation runs without Relay per-action approval; fixed origin, request bounds, audits, redaction, account ownership, provider scopes, plan limits, app review, and Vimeo enforcement still apply.", "defaultSelected": false, "allowedActions": ["vimeo_get_me", "vimeo_list_videos", "vimeo_get_video", "vimeo_list_folders", "vimeo_get_folder", "vimeo_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Vimeo tools through the authenticated server-side connector." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Vimeo tools through the authenticated server-side connector." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": { "status": "blocked", "blocker": "Relay's Vimeo API app has not yet been created, reviewed for multi-account access, configured with the production Railway callback, and supplied to Railway.", "nextAction": "Create the Relay Console API app in Vimeo, allow other Vimeo accounts, register https://api.relayconsole.work/api/v1/marketplace/oauth/vimeo/callback, complete any upload-access review, and set VIMEO_CLIENT_ID and VIMEO_CLIENT_SECRET in Railway before live OAuth acceptance." },
+  "evidence": [
+    { "url": "https://developer.vimeo.com/api/authentication", "checkedAt": "2026-07-14", "supports": "Vimeo documents OAuth 2.0 authorization-code access, per-user tokens, the full current scope list, server-side token exchange, and access tokens without refresh-token support." },
+    { "url": "https://developer.vimeo.com/api/reference", "checkedAt": "2026-07-14", "supports": "The current v3.4 reference documents the complete Vimeo API resource and operation surface on api.vimeo.com." },
+    { "url": "https://help.vimeo.com/hc/en-us/articles/12427832381457-How-to-create-an-API-app", "checkedAt": "2026-07-14", "supports": "Every developer creates an API app and chooses whether Vimeo accounts besides the app owner can authorize it." },
+    { "url": "https://help.vimeo.com/hc/en-us/articles/12427803706001-How-to-request-API-upload-access", "checkedAt": "2026-07-14", "supports": "Upload access can require a separate provider request and approval depending on the app and account." }
+  ]
+}

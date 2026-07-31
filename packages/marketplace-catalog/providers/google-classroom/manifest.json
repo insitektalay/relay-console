@@ -1,0 +1,194 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-classroom",
+  "name": "Google Classroom",
+  "category": "knowledge_documents",
+  "description": "Google Classroom organizes permitted courses, coursework, due dates, and published learning materials for education users.",
+  "agentUseSummary": "Connect one requesting user through Relay-owned Google OAuth with the exact courses.readonly, coursework.me.readonly, and courseworkmaterials.readonly scopes. Four wrappers read the first twenty-five permitted courses, one explicit course, the first twenty-five newest coursework posts, or the first twenty-five newest learning-material posts. Relay blocks rosters, profiles, student work, grades, guardians, writes, delegation, previews, exports, pagination, raw tools, and other users.",
+  "provider": {
+    "websiteUrl": "https://classroom.google.com/",
+    "docsUrl": "https://developers.google.com/workspace/classroom",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/library/classroom.googleapis.com",
+    "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://www.googleapis.com/auth/classroom.courses.readonly",
+      "https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+      "https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "requesting_user_binding",
+      "expiring_access_token",
+      "offline_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-classroom/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "courses_list",
+      "label": "List permitted courses",
+      "description": "Read up to twenty-five courses visible to the requesting user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "course_get",
+      "label": "Read course",
+      "description": "Read one explicit prior-result course.",
+      "defaultSelected": true
+    },
+    {
+      "id": "coursework_list",
+      "label": "Review coursework",
+      "description": "Read up to twenty-five newest coursework posts and due dates.",
+      "defaultSelected": true
+    },
+    {
+      "id": "materials_list",
+      "label": "Review learning materials",
+      "description": "Read up to twenty-five newest material posts with safe attachment links.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "google_classroom_courses_list_mine",
+        "label": "List my Classroom courses",
+        "description": "Read up to twenty-five courses the requesting user may view."
+      },
+      {
+        "id": "google_classroom_course_get",
+        "label": "Get Classroom course",
+        "description": "Read one explicit permitted course."
+      },
+      {
+        "id": "google_classroom_coursework_list",
+        "label": "List Classroom coursework",
+        "description": "Read up to twenty-five newest coursework posts for an explicit course."
+      },
+      {
+        "id": "google_classroom_materials_list",
+        "label": "List Classroom materials",
+        "description": "Read up to twenty-five newest learning-material posts for an explicit course."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "google_classroom_people_guardians",
+        "label": "Access Classroom people",
+        "description": "Rosters, profiles, emails, photos, invitations, guardians, and individual student IDs are blocked."
+      },
+      {
+        "id": "google_classroom_submissions_grades",
+        "label": "Access student work or grades",
+        "description": "Student submissions, responses, attachments, histories, rubrics, gradebooks, and grades are blocked."
+      },
+      {
+        "id": "google_classroom_mutations_admin",
+        "label": "Mutate or administer Classroom",
+        "description": "Creates, updates, deletes, grading, turn-in, delegation, impersonation, and administration are blocked."
+      },
+      {
+        "id": "google_classroom_preview_raw_export",
+        "label": "Use preview or raw Classroom access",
+        "description": "Preview APIs, announcements, raw tools, exports, page tokens, automatic pagination, retries, and polling are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "google_classroom_read_only",
+      "label": "Read only",
+      "description": "Four requesting-user reads run automatically with a twenty-five item cap while people data, student work, grades, writes, preview APIs, raw access, and pagination remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "google_classroom_courses_list_mine",
+        "google_classroom_course_get",
+        "google_classroom_coursework_list",
+        "google_classroom_materials_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_classroom_people_guardians",
+        "google_classroom_submissions_grades",
+        "google_classroom_mutations_admin",
+        "google_classroom_preview_raw_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The exact scopes, requesting-user boundary, twenty-five item cap, privacy redaction, first-page-only, and no-write boundaries remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "google_classroom_courses_list_mine",
+        "google_classroom_course_get",
+        "google_classroom_coursework_list",
+        "google_classroom_materials_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_classroom_people_guardians",
+        "google_classroom_submissions_grades",
+        "google_classroom_mutations_admin",
+        "google_classroom_preview_raw_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four requesting-user Classroom reads and attaches encrypted OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four requesting-user Classroom reads and attaches encrypted OAuth tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay must enable Classroom API, configure and verify the exact three sensitive read-only scopes, satisfy Google and any Workspace for Education administrator requirements, configure Railway staging credentials, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the canonical Railway callback, exact scopes, consent verification, administrator access where required, and staging credentials, then verify requesting-user binding, privacy redaction, four wrappers, refresh, rotation, revocation, disconnect, and quota/error mapping."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/workspace/classroom/reference/rest/v1/courses/list",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents requesting-user permitted course listing, the courses.readonly scope, page size, and page tokens Relay does not follow."
+    },
+    {
+      "url": "https://developers.google.com/workspace/classroom/reference/rest/v1/courses/get",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents explicit permitted-course reads and the previewVersion parameter Relay blocks."
+    },
+    {
+      "url": "https://developers.google.com/workspace/classroom/reference/rest/v1/courses.courseWork/list",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents requester-visible coursework, newest-first ordering, page size, and the coursework.me.readonly scope."
+    },
+    {
+      "url": "https://developers.google.com/workspace/classroom/reference/rest/v1/courses.courseWorkMaterials/list",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents requester-visible material posts, newest-first ordering, page size, and the courseworkmaterials.readonly scope."
+    }
+  ]
+}

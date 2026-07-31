@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "epic-mychart",
+  "name": "Epic MyChart",
+  "category": "work_management",
+  "description": "MyChart is Epic's patient portal and mobile application for viewing health records, test results, medications, appointments, messages, billing and other services offered by a person's healthcare organizations.",
+  "agentUseSummary": "Epic MyChart is not a separate installable API authority. MyChart accounts and health data remain at each healthcare organization, while supported third-party access uses a separately registered Epic on FHIR application with SMART OAuth and organization-specific endpoints; Relay will implement that authority once under the canonical Epic App Orchard/Epic on FHIR provider rather than duplicate it or collect patient portal credentials.",
+  "provider": {
+    "websiteUrl": "https://www.mychart.org/",
+    "docsUrl": "https://www.mychart.org/l/en-us/help/app-data-security/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://open.epic.com/Home/TermsOfUse",
+    "privacyUrl": "https://www.epic.com/en-us/privacypolicies/?privacy-policy=mobile-policy-patient"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "patient_portal_not_api_authority",
+      "healthcare_organization_operated_accounts_and_data",
+      "canonical_integration_belongs_to_epic_on_fhir"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "epic_mychart_connect_portal",
+        "label": "Connect a MyChart portal account",
+        "description": "Relay does not collect MyChart usernames, passwords, passkeys, MFA codes, activation codes or session cookies."
+      },
+      {
+        "id": "epic_mychart_private_api",
+        "label": "Use private MyChart application endpoints",
+        "description": "Relay does not reverse engineer or automate organization-specific patient portal traffic that handles protected health information."
+      },
+      {
+        "id": "epic_mychart_duplicate_fhir_connection",
+        "label": "Mount Epic on FHIR under MyChart",
+        "description": "SMART-on-FHIR authority requires a registered developer application, exact client ID, scopes and organization endpoint and belongs to the canonical Epic App Orchard/Epic on FHIR provider."
+      },
+      {
+        "id": "epic_mychart_browser_automation",
+        "label": "Automate MyChart workflows",
+        "description": "Relay does not automate private patient-portal messaging, appointments, records, proxy access, billing or clinical workflows through a browser."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "epic_mychart_unavailable",
+      "label": "Unavailable",
+      "description": "No action is exposed under the MyChart product identity; supported developer integration belongs to one canonical Epic on FHIR connection.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "epic_mychart_connect_portal",
+        "epic_mychart_private_api",
+        "epic_mychart_duplicate_fhir_connection",
+        "epic_mychart_browser_automation"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "MyChart is not a standalone API authority, so Relay mounts no MyChart credential or browser tools in OpenClaw."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "MyChart is not a standalone API authority, so Relay mounts no MyChart credential or browser tools in Hermes."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Epic states that MyChart mobile and web clients connect to servers and systems operated by each healthcare organization and that Epic does not hold the organization's patient record. Supported third-party patient access is a separate Epic on FHIR developer workflow: the developer registers an application and production/non-production client IDs, requests exact FHIR APIs and redirect URIs, uses SMART OAuth against an organization-specific endpoint, and may depend on automatic or customer-approved client distribution. Treating a MyChart login as the connector would bypass that contract and duplicate Epic on FHIR connection state.",
+    "nextAction": "Do not request MyChart credentials or expose Connect under this identity. Implement and validate the registered SMART-on-FHIR patient application once under the canonical Epic App Orchard/Epic on FHIR provider, including exact endpoint discovery, organization binding, patient consent, minimum scopes, token lifecycle, health-data redaction, revocation and Railway-staging acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://www.epic.com/en-us/privacypolicies/?privacy-policy=mobile-policy-patient",
+      "checkedAt": "2026-07-18",
+      "supports": "Epic's current patient mobile policy says MyChart connects to servers and systems operated and maintained by healthcare organizations and that Epic does not receive or store copies of health data transmitted to those organizations."
+    },
+    {
+      "url": "https://www.mychart.org/l/en-us/help/data-security/",
+      "checkedAt": "2026-07-18",
+      "supports": "MyChart's official help says health information is stored with the healthcare organization, Epic cannot access the data or reset the password, and portal access uses personal credentials and two-step verification."
+    },
+    {
+      "url": "https://www.mychart.org/l/en-us/help/app-data-security/",
+      "checkedAt": "2026-07-18",
+      "supports": "MyChart documents third-party sharing through organization-hosted login and Linked Apps and Devices, where patients can revoke an app without giving the app their username or password."
+    },
+    {
+      "url": "https://fhir.epic.com/Documentation?docid=implementing&section=interfacesetupforapps",
+      "checkedAt": "2026-07-18",
+      "supports": "Epic's current implementation guide separates patient-facing apps from MyChart itself and requires app registration, production/non-production client IDs, selected APIs, redirect URIs, OAuth, endpoint-aware testing and either automatic or customer-assisted distribution."
+    },
+    {
+      "url": "https://open.epic.com/Tutorial/PatientAuthentication?whereFrom=MyChart",
+      "checkedAt": "2026-07-18",
+      "supports": "Epic's patient authentication tutorial says a third-party app asks the patient to select a healthcare provider and retrieves only authorized record data through the provider's MyChart authentication flow."
+    },
+    {
+      "url": "https://open.epic.com/Home/TermsOfUse",
+      "checkedAt": "2026-07-18",
+      "supports": "Epic's developer terms distinguish open.epic APIs and application obligations from the MyChart client product and place responsibility for patient harm, privacy, security and Epic Community Member integrations on the developer."
+    }
+  ]
+}

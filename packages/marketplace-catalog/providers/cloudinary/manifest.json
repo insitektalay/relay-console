@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "cloudinary",
+  "name": "Cloudinary",
+  "category": "knowledge_documents",
+  "description": "Cloudinary is a cloud platform for managing, transforming, optimizing, and delivering images, videos, and other digital media. Product and creative teams use it to organize media libraries, automate visual workflows, apply AI-assisted processing, and deliver responsive content globally.",
+  "agentUseSummary": "Connect a Cloudinary product environment through the provider's hosted Asset Management MCP OAuth, then let agents use every live-discovered asset read or write tool under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "cloudinary",
+    "sourceUrl": "https://cloudinary.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://cloudinary.com/",
+    "docsUrl": "https://cloudinary.com/documentation/cloudinary_llm_mcp",
+    "developerConsoleUrl": "https://asset-management.mcp.cloudinary.com/.well-known/oauth-authorization-server",
+    "termsUrl": "https://cloudinary.com/terms",
+    "privacyUrl": "https://cloudinary.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "profile", "email", "offline_access", "asset_management", "upload"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://asset-management.mcp.cloudinary.com/authorize",
+    "tokenUrl": "https://asset-management.mcp.cloudinary.com/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/cloudinary/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "asset_read", "label": "Find and inspect media", "description": "Search, list, and inspect authorized images, videos, raw files, folders, tags, metadata, transformations, and derived assets." },
+    { "id": "asset_write", "label": "Manage and transform media", "description": "Upload, rename, organize, tag, transform, generate derived assets, and perform every other write exposed by the connected Asset Management MCP." }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "cloudinary_mcp_read", "label": "Read Cloudinary assets", "description": "Use any live-discovered Asset Management MCP tool that Cloudinary marks or documents as non-mutating." }
+    ],
+    "approvalRequired": [
+      { "id": "cloudinary_mcp_write", "label": "Change Cloudinary assets", "description": "Use any other live-discovered Asset Management MCP tool; Safe mode requires approval." }
+    ],
+    "blocked": [
+      { "id": "cloudinary_credential_exposure", "label": "Expose OAuth credentials", "description": "OAuth tokens and authorization material never enter agent-visible tool arguments, results, or catalog data." },
+      { "id": "cloudinary_alternate_mcp_origin", "label": "Call an alternate MCP server", "description": "This connection is pinned to Cloudinary's official Asset Management MCP origin; its other independently authorized MCP servers require separate connections." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "cloudinary_safe",
+      "label": "Safe",
+      "description": "Verified non-mutating asset tools run directly; uploads, transformations, organization changes, deletion, and every unclassified tool require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["cloudinary_mcp_read"],
+      "approvalRequiredActions": ["cloudinary_mcp_write"],
+      "blockedActions": ["cloudinary_credential_exposure", "cloudinary_alternate_mcp_origin"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every live-discovered Asset Management MCP tool runs without Relay per-action approval; connection ownership, Cloudinary-granted authority, live schemas, fixed origin, bounds, audits, redaction, account plan, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["cloudinary_mcp_read", "cloudinary_mcp_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["cloudinary_credential_exposure", "cloudinary_alternate_mcp_origin"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts bounded live-schema wrappers for every tool authorized by Cloudinary's Asset Management MCP." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts bounded live-schema wrappers for every tool authorized by Cloudinary's Asset Management MCP." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay's public PKCE client is registered, but no authenticated Cloudinary product environment was available for production OAuth and MCP action acceptance.",
+    "nextAction": "A Cloudinary user clicks Connect, selects a product environment, then Relay verifies refresh, live tool discovery, bounded reads, Safe denial and approval, Dangerous writes, redaction, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://cloudinary.com/documentation/cloudinary_llm_mcp", "checkedAt": "2026-07-14", "supports": "Cloudinary documents its provider-hosted Asset Management MCP with OAuth by default, asset upload and management, advanced search, deletion, renaming, folders, tags, transformations, derived assets, and separate Environment Config, Structured Metadata, and Analysis MCP authorities." },
+    { "url": "https://asset-management.mcp.cloudinary.com/.well-known/oauth-protected-resource", "checkedAt": "2026-07-14", "supports": "Cloudinary publishes the Asset Management protected resource, its authorization server, Bearer authentication, and openid, profile, email, offline_access, asset_management, and upload scopes." },
+    { "url": "https://asset-management.mcp.cloudinary.com/.well-known/oauth-authorization-server", "checkedAt": "2026-07-14", "supports": "Cloudinary publishes authorization, token, user-info, and dynamic-registration endpoints with authorization-code, refresh-token, public-client authentication, and S256 PKCE support." },
+    { "url": "https://cloudinary.com/documentation/solution_overview", "checkedAt": "2026-07-14", "supports": "Cloudinary describes its image and video platform, digital asset management, transformations, optimization, delivery, and AI-assisted media workflows." }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sling",
+  "name": "Sling",
+  "category": "work_management",
+  "description": "Sling is workforce-management software for employee scheduling and hourly teams. Organizations use it to build and publish shifts, manage availability and time off, track work hours and labor costs, assign tasks, share workplace messages and news, and prepare timesheet and payroll reports.",
+  "agentUseSummary": "Sling publishes an API contract, but Relay cannot offer Connect until Sling confirms a supported multi-customer partner authorization flow and an approved production API surface. Relay will not ask users to copy a Sling client session token or provide their Sling password as a substitute for provider-approved authorization.",
+  "provider": {
+    "websiteUrl": "https://getsling.com/",
+    "docsUrl": "https://api.getsling.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://getsling.com/terms-of-use/",
+    "privacyUrl": "https://getsling.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["provider_partnership_required"],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workforce_read",
+      "label": "Read workforce operations",
+      "description": "After provider approval, read the approved production surface for organizations, locations, users, schedules, shifts, availability, time off, time clock records, tasks, messages, labor data, and reports.",
+      "defaultSelected": true
+    },
+    {
+      "id": "workforce_manage",
+      "label": "Manage workforce operations",
+      "description": "After provider approval, use the approved production mutation surface for schedules, shifts, staff, attendance, availability, time off, tasks, messages, and organization settings under the connected user's authority.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "sling_connect_before_approval",
+        "label": "Connect before provider approval",
+        "description": "Relay has not received written approval, a supported multi-customer authorization contract, or production integration credentials from Sling."
+      },
+      {
+        "id": "sling_collect_client_session_token",
+        "label": "Collect a Sling client session token",
+        "description": "Relay will not ask users to copy the Authorization header used by a Sling client because it is a client session credential, not a documented customer API key or distributable OAuth grant."
+      },
+      {
+        "id": "sling_collect_password",
+        "label": "Collect a Sling password",
+        "description": "Relay will not collect a user's Sling password or automate the client login endpoint to manufacture a session token for a third-party product."
+      },
+      {
+        "id": "sling_api_actions_before_approval",
+        "label": "Run Sling API actions",
+        "description": "No read or mutation can run until Sling approves Relay's integration, authorization lifecycle, organization binding, permitted production operations, and distribution terms."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sling_provider_review",
+      "label": "Provider review pending",
+      "description": "Agent actions remain unavailable until Sling approves Relay and confirms a supported production authorization and API contract for a multi-customer third-party integration.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sling_connect_before_approval",
+        "sling_collect_client_session_token",
+        "sling_collect_password",
+        "sling_api_actions_before_approval"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "The planned Railway connector can mount Sling's provider-approved production workforce API after partnership approval; no OpenClaw tools are callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "The planned Railway connector can mount Sling's provider-approved production workforce API after partnership approval; no Hermes tools are callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Sling publishes a large Swagger 2.0 contract protected by an Authorization header, but its own documentation tells developers to obtain the token from requests made by a Sling client. The public contract also includes session, password, subscription, billing, and account-administration operations. Relay has no written approval for multi-customer distribution, partner credential, scoped authorization flow, production operation allowlist, sandbox organization, or token lifecycle that is appropriate for a third-party product.",
+    "nextAction": "Contact Sling through its partner or enterprise channel and obtain written approval for a multi-customer technology integration, a supported end-user authorization and revocation lifecycle, the permitted production API subset, organization and role binding rules, rate limits, webhook terms, a sandbox organization, and distribution terms. Then implement the Railway broker, expose the approved Connect flow in all three clients, deploy from backend/, and verify organization selection, reads, Safe denial, approved or Dangerous mutations, redaction, rate limiting, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.getsling.com/",
+      "checkedAt": "2026-07-15",
+      "supports": "Sling's official Swagger UI says an authorization token is required and tells developers to find it in request headers sent by a Sling client; it does not document OAuth, customer API-key issuance, scopes, or a third-party partner credential flow."
+    },
+    {
+      "url": "https://api.getsling.com/v1/spec.json",
+      "checkedAt": "2026-07-15",
+      "supports": "The official Swagger 2.0 document, SHA-256 a2fddf46b2709932df85ce429226f3405327c40e567d5267da83ceebb5486ce9, currently defines 385 operations: 128 reads and 257 mutations. It uses an Authorization-header API-key security definition and includes sensitive client session, login, password, account, billing, and subscription operations."
+    },
+    {
+      "url": "https://getsling.com/enterprise/",
+      "checkedAt": "2026-07-15",
+      "supports": "Sling states that its open API can synchronize Sling data with payroll, HR, or point-of-sale platforms, but the public page does not provide a customer credential or third-party authorization onboarding flow."
+    },
+    {
+      "url": "https://getsling.com/integrations/",
+      "checkedAt": "2026-07-15",
+      "supports": "Sling describes native integrations that synchronize employee data, positions, locations, sales, timecards, and timesheets with selected point-of-sale systems."
+    },
+    {
+      "url": "https://getsling.com/",
+      "checkedAt": "2026-07-15",
+      "supports": "Sling describes employee scheduling, time tracking, team communication, task management, availability and time off, labor costs, reports, payroll export, documents, and compliance features."
+    }
+  ]
+}

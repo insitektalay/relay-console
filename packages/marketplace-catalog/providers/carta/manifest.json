@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "carta",
+  "name": "Carta",
+  "category": "developer",
+  "description": "Carta is an equity and fund management platform for cap tables, securities, stakeholders, valuations, portfolio holdings, investment firms, funds, partners, fund administration, compensation, and private-market workflows.",
+  "agentUseSummary": "Add customer-owned Carta client credentials from a Carta-approved Investor API application restricted to read_investor_firms. Selected agents can list only bounded firm IDs and names; Relay blocks funds, investments, cap tables, securities, stakeholders, valuations, partners, documents, CRM data, exports, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://carta.com/",
+    "docsUrl": "https://docs.carta.com/api-platform/reference/v1alpha1investorslistfirms",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://carta.com/terms-of-service/",
+    "privacyUrl": "https://carta.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["read_investor_firms"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://login.app.carta.com/o/access_token/",
+    "revocationUrl": "https://login.app.carta.com/o/revoke_token/"
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_credentials",
+      "oauth2_client_credentials",
+      "provider_approval_required",
+      "fixed_origin",
+      "ephemeral_one_hour_access_token"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CARTA_CLIENT_ID",
+        "label": "Carta API client ID",
+        "required": true,
+        "secret": true,
+        "helpText": "Client ID for a customer-owned, Carta-approved client-credentials application restricted to read_investor_firms."
+      },
+      {
+        "name": "CARTA_CLIENT_SECRET",
+        "label": "Carta API client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Client secret stored encrypted and submitted only to Carta's fixed production token endpoint."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "investment_firm_read",
+      "label": "Read investment firm identity",
+      "description": "List a bounded, minimized directory containing only firm IDs and names.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "carta_read",
+        "label": "List Carta investment firms",
+        "description": "List up to 20 minimized investment-firm identity records visible to the approved customer-owned Carta API application."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "carta_manage",
+        "label": "Access financial records or change Carta",
+        "description": "Funds, investments, cap tables, securities, stakeholders, valuations, partners, cash balances, documents, CRM data, exports, and every mutation are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "carta_safe",
+      "label": "Safe",
+      "description": "One bounded investment-firm identity read runs directly; financial, ownership, stakeholder, document, CRM, export, and mutation surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["carta_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["carta_manage"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mints one-hour read-only tokens against Carta's fixed production origins and exposes only a bounded investment-firm identity directory."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mints one-hour read-only tokens against Carta's fixed production origins and exposes only a bounded investment-firm identity directory."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Carta's API program is invite-only for third-party partners and requires provider approval for production applications. Carta customers may request access for their own data, but no customer has supplied a Carta-approved client-credentials application restricted to read_investor_firms, and its credential lifecycle and non-production acceptance have not been validated in this workspace.",
+    "nextAction": "A Carta investment-firm administrator obtains provider approval for a customer-owned client-credentials application with only read_investor_firms, enables that application for the exact firm, stores its client ID and secret through Relay's encrypted credential flow, then validates one-hour token renewal, bounded firm reads, permission denial, pagination, rate limiting, secret rotation, token revocation, application removal, disconnect, and post-disconnect denial in Carta's playground before production use."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.carta.com/api-platform/docs/introduction",
+      "checkedAt": "2026-07-18",
+      "supports": "Carta documents an invite-only partner API program, production approval, a mock service, playground, and continued own-data API access for Carta companies and investment firms."
+    },
+    {
+      "url": "https://docs.carta.com/api-platform/docs/client-credentials-flow",
+      "checkedAt": "2026-07-18",
+      "supports": "Carta documents fixed production token and API origins, HTTP Basic client authentication, the uppercase CLIENT_CREDENTIALS grant, explicit space-delimited scopes, one-hour bearer tokens, and token revocation."
+    },
+    {
+      "url": "https://docs.carta.com/api-platform/reference/v1alpha1investorslistfirms",
+      "checkedAt": "2026-07-18",
+      "supports": "Carta's current OpenAPI contract pins GET /v1alpha1/investors/firms to read_investor_firms, pageSize and pageToken pagination, a maximum provider page of 50, and firm records containing ID and name. Relay further caps pages at 20."
+    },
+    {
+      "url": "https://docs.carta.com/api-platform/docs/service-accounts",
+      "checkedAt": "2026-07-18",
+      "supports": "Carta requires production client-credentials applications to be approved and explicitly enabled by an investment-firm administrator, who can later remove the application."
+    },
+    {
+      "url": "https://docs.carta.com/api-platform/docs/scopes",
+      "checkedAt": "2026-07-18",
+      "supports": "Carta publishes granular read and read-write scopes across firms, funds, investments, cap tables, securities, stakeholders, valuations, partners, portfolios, documents, and user data; Relay requests only read_investor_firms."
+    }
+  ]
+}

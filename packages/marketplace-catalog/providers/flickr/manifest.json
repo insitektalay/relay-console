@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "flickr",
+  "name": "Flickr",
+  "category": "content_management",
+  "description": "Flickr is a photo and video hosting community for publishing, organizing, discovering, discussing, licensing, and sharing media through photostreams, albums, galleries, groups, collections, favorites, tags, and places.",
+  "agentUseSummary": "Connect Flickr with Relay-owned OAuth 1.0a delete permission, which includes write and read authority. Agents can reflect any published API method, run bounded read-style methods, approval-gate the complete reflected method surface, and upload or replace bounded media. Fixed official origins, reflection, argument limits, audits, response redaction, and provider rate limits remain enforced in every approval profile.",
+  "provider": {
+    "websiteUrl": "https://www.flickr.com/",
+    "docsUrl": "https://www.flickr.com/services/api/",
+    "developerConsoleUrl": "https://www.flickr.com/services/apps/create/",
+    "termsUrl": "https://www.flickr.com/help/terms/api",
+    "privacyUrl": "https://www.flickr.com/help/privacy"
+  },
+  "authentication": {
+    "model": "oauth1",
+    "relayOwned": true,
+    "scopes": ["read", "write", "delete"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.flickr.com/services/oauth/authorize",
+    "tokenUrl": "https://www.flickr.com/services/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth1", "delete_permission", "reflection_validated_api"],
+    "credentialRequirements": [
+      {
+        "name": "FLICKR_API_KEY",
+        "label": "Flickr API key",
+        "required": true,
+        "secret": false,
+        "helpText": "Relay-owned API key issued after the provider acceptance owner obtains required business permission and registers the application."
+      },
+      {
+        "name": "FLICKR_API_SECRET",
+        "label": "Flickr API secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay-owned API secret held only by Railway and used to sign OAuth 1.0a requests."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/flickr/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "flickr_describe", "label": "Discover API methods", "description": "Inspect arguments, errors, authentication, and permission requirements for any published Flickr method.", "defaultSelected": true, "platformCapability": "flickr_describe" },
+    { "id": "flickr_read", "label": "Read Flickr resources", "description": "Read photos, albums, galleries, groups, favorites, contacts, collections, tags, places, and other reflected resources.", "defaultSelected": true, "platformCapability": "flickr_read" },
+    { "id": "flickr_manage", "label": "Manage Flickr resources", "description": "Invoke the complete reflected API surface, including writes and deletes, through approval-gated POST requests.", "defaultSelected": true, "platformCapability": "flickr_manage" },
+    { "id": "flickr_upload", "label": "Upload and replace media", "description": "Upload one bounded photo or video, or replace the binary for one explicit photo.", "defaultSelected": true, "platformCapability": "flickr_upload" }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "flickr_describe", "label": "Describe Flickr methods", "description": "Inspect the official reflected contract for one published Flickr API method." },
+      { "id": "flickr_read", "label": "Read Flickr", "description": "Run one bounded reflected read-style Flickr API method." }
+    ],
+    "approvalRequired": [
+      { "id": "flickr_manage", "label": "Manage Flickr", "description": "Run one reflected Flickr API method through POST; Safe mode requires approval." },
+      { "id": "flickr_upload", "label": "Upload Flickr media", "description": "Upload or replace one bounded photo or video; Safe mode requires approval." }
+    ],
+    "blocked": [
+      { "id": "flickr_secret_exposure", "label": "Expose Flickr secrets", "description": "API secrets, OAuth token pairs, cookies, and signed authorization headers are never exposed." },
+      { "id": "flickr_unofficial_interface", "label": "Use unofficial Flickr interfaces", "description": "Scraping, browser automation, legacy authentication methods, arbitrary origins, and private application calls are blocked." },
+      { "id": "flickr_unbounded_transfer", "label": "Transfer unbounded content", "description": "Each action is one reflected method or one upload, with bounded arguments, responses, and media size." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "flickr_safe",
+      "label": "Safe",
+      "description": "Method descriptions and bounded reads run directly; every mutation, delete, upload, and replacement requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["flickr_describe", "flickr_read"],
+      "approvalRequiredActions": ["flickr_manage", "flickr_upload"],
+      "blockedActions": ["flickr_secret_exposure", "flickr_unofficial_interface", "flickr_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized method and bounded upload runs without Relay per-action approval; account authority, fixed origins, reflected validation, bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["flickr_describe", "flickr_read", "flickr_manage", "flickr_upload"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["flickr_secret_exposure", "flickr_unofficial_interface", "flickr_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "native", "description": "OpenClaw receives typed reflection, read, manage, upload, and replace wrappers; OAuth secrets remain attached only by Railway." },
+    { "format": "hermes", "installSupport": "native", "description": "Hermes receives the same bounded wrappers, selected capabilities, approval profile, and cloud-owned connection authority." }
+  ],
+  "availability": "provider_setup_required",
+  "providerSetup": {
+    "status": "external_setup_required",
+    "blocker": "Flickr API terms allow non-commercial use by default and require prior written arrangement for commercial use. Relay therefore needs business approval plus an application-specific key and secret. The provider console was not opened and no account, key, secret, permission, or consent was created or captured in this worker task.",
+    "nextAction": "The provider-console acceptance owner should obtain Flickr's written commercial API permission, register Relay with callback `https://api.relayconsole.work/api/v1/marketplace/oauth/flickr/callback`, store the issued key and secret as `FLICKR_API_KEY` and `FLICKR_API_SECRET` in the approved Railway environment, then run staging delete-permission consent, test.login, reflection, representative read/write/delete, upload, replace, and disconnect acceptance."
+  },
+  "evidence": [
+    { "url": "https://www.flickr.com/services/api/", "checkedAt": "2026-07-17", "supports": "Flickr publishes the current API method index, including reflection, photos, albums, collections, galleries, groups, favorites, people, places, tags, upload-related methods, and permissions." },
+    { "url": "https://www.flickr.com/services/api/auth.oauth.html", "checkedAt": "2026-07-17", "supports": "Flickr documents OAuth 1.0a with HMAC-SHA1, the request-token, authorization, and access-token endpoints, and read, write, and delete permission tiers." },
+    { "url": "https://www.flickr.com/services/developer/api/", "checkedAt": "2026-07-17", "supports": "Flickr documents application keys, aggregate hourly query limits, user-data security duties, caching rules, and the prohibition on scraping or circumventing the API." },
+    { "url": "https://www.flickr.com/services/api/response.json.html", "checkedAt": "2026-07-17", "supports": "Flickr documents JSON responses, `nojsoncallback=1`, and API-level failures represented by `stat=fail` with code and message fields." },
+    { "url": "https://www.flickr.com/help/terms/api", "checkedAt": "2026-07-17", "supports": "Flickr's API terms permit non-commercial use and require prior arrangement for commercial use, so Relay cannot become usable until the provider acceptance owner secures business permission." }
+  ]
+}

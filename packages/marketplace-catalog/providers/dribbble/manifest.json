@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "dribbble",
+  "name": "Dribbble",
+  "category": "content_management",
+  "description": "Dribbble is a design portfolio and publishing community for sharing shots, organizing projects, attaching source material, showcasing professional work, and connecting designers with opportunities.",
+  "agentUseSummary": "Connect Dribbble with Relay-owned OAuth 2.0 public/upload authority, then let agents run all 13 documented member publishing operations through a pinned registry: authenticated user, projects, shots, and attachments. Safe mode runs four reads directly and approval-gates nine mutations. Specific user intent, fixed origins, input and media bounds, audits, redaction, rate limits, and Dribbble's automation restrictions remain enforced in both profiles.",
+  "provider": { "websiteUrl": "https://dribbble.com/", "docsUrl": "https://developer.dribbble.com/v2/", "developerConsoleUrl": "https://dribbble.com/account/applications/new", "termsUrl": "https://developer.dribbble.com/terms/", "privacyUrl": "https://dribbble.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["public", "upload"], "pkce": false, "refreshTokens": false, "authorizationUrl": "https://dribbble.com/oauth/authorize", "tokenUrl": "https://dribbble.com/oauth/token", "revocationUrl": null },
+  "connection": {
+    "types": ["relay_owned_oauth2", "public_scope", "upload_scope", "pinned_operation_registry"],
+    "credentialRequirements": [
+      { "name": "DRIBBBLE_CLIENT_ID", "label": "Dribbble client ID", "required": true, "secret": false, "helpText": "Relay-owned OAuth client ID issued after application registration." },
+      { "name": "DRIBBBLE_CLIENT_SECRET", "label": "Dribbble client secret", "required": true, "secret": true, "helpText": "Relay-owned OAuth secret stored only in Railway." }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/dribbble/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "dribbble_read", "label": "Read member publishing resources", "description": "Read the authenticated user, projects, shots, and attachments through every documented OAuth-accessible GET operation.", "defaultSelected": true, "platformCapability": "dribbble_read" },
+    { "id": "dribbble_manage", "label": "Manage member publishing resources", "description": "Create, update, and delete projects and shots, and create or delete shot attachments.", "defaultSelected": true, "platformCapability": "dribbble_manage" }
+  ],
+  "actions": {
+    "allowed": [{ "id": "dribbble_read", "label": "Read Dribbble", "description": "Run one pinned read operation against the authenticated member's API-visible resources." }],
+    "approvalRequired": [{ "id": "dribbble_manage", "label": "Manage Dribbble", "description": "Create, update, or delete one shot, project, or attachment; Safe mode requires explicit approval." }],
+    "blocked": [
+      { "id": "dribbble_secret_exposure", "label": "Expose Dribbble secrets", "description": "OAuth client secrets, access tokens, cookies, and authorization headers are never exposed." },
+      { "id": "dribbble_unrequested_automation", "label": "Automate unrequested social actions", "description": "Relay exposes only the documented member publishing surface and every mutation must be specifically requested; automated likes, follows, comments, and similar engagement are blocked." },
+      { "id": "dribbble_unofficial_interface", "label": "Use unofficial Dribbble interfaces", "description": "Scraping, browser automation, arbitrary endpoints, private application calls, and partner-only job tokens are blocked." },
+      { "id": "dribbble_unbounded_transfer", "label": "Transfer unbounded content", "description": "Reads are bounded to one page, request bodies to 1 MB, responses to 5 MB, and uploads to 8 MB." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "dribbble_safe", "label": "Safe", "description": "Bounded reads run directly; every project, shot, and attachment mutation requires approval.", "defaultSelected": true, "allowedActions": ["dribbble_read"], "approvalRequiredActions": ["dribbble_manage"], "blockedActions": ["dribbble_secret_exposure", "dribbble_unrequested_automation", "dribbble_unofficial_interface", "dribbble_unbounded_transfer"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Selected OAuth-authorized publishing mutations run without Relay per-action approval; specific user intent, fixed origins, pinned operations, bounds, audits, redaction, and provider terms still apply.", "defaultSelected": false, "allowedActions": ["dribbble_read", "dribbble_manage"], "approvalRequiredActions": [], "blockedActions": ["dribbble_secret_exposure", "dribbble_unrequested_automation", "dribbble_unofficial_interface", "dribbble_unbounded_transfer"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "native", "description": "OpenClaw receives pinned read and manage wrappers for all 13 member publishing operations; OAuth secrets remain attached only by Railway." },
+    { "format": "hermes", "installSupport": "native", "description": "Hermes receives the same bounded wrappers, selected capabilities, approval profile, and cloud-owned OAuth authority." }
+  ],
+  "availability": "provider_setup_required",
+  "providerSetup": {
+    "status": "external_setup_required",
+    "blocker": "Dribbble requires an authenticated developer application registration and provider review may apply under its API terms. No provider console was opened and no account, application, client ID, client secret, or consent was created or captured in this worker task.",
+    "nextAction": "The provider-console acceptance owner should confirm Relay's exact use with Dribbble, register the application using callback `https://api.relayconsole.work/api/v1/marketplace/oauth/dribbble/callback`, store `DRIBBBLE_CLIENT_ID` and `DRIBBBLE_CLIENT_SECRET` in the approved Railway environment, then run staging public/upload consent, authenticated-user health, representative reads, project and shot CRUD, attachment upload/delete, rate-limit, and disconnect acceptance."
+  },
+  "evidence": [
+    { "url": "https://developer.dribbble.com/v2/", "checkedAt": "2026-07-17", "supports": "Dribbble documents its fixed HTTPS v2 JSON API, OAuth requirement, GET/POST/PUT/DELETE semantics, pagination up to 100, conditional requests, and limits of 60 requests per minute and 1,440 per day per user." },
+    { "url": "https://developer.dribbble.com/v2/oauth/", "checkedAt": "2026-07-17", "supports": "Dribbble documents the OAuth web flow, exact authorization and token endpoints, CSRF state, bearer tokens, and public plus upload scopes without refresh tokens." },
+    { "url": "https://developer.dribbble.com/v2/shots/", "checkedAt": "2026-07-17", "supports": "Dribbble documents authenticated shot list/get/create/update/delete operations, upload-scope and ownership requirements, asynchronous creation, 8 MB GIF/JPG/PNG constraints, metadata, scheduling, tags, and teams." },
+    { "url": "https://developer.dribbble.com/v2/projects/", "checkedAt": "2026-07-17", "supports": "Dribbble documents authenticated project list/create/update/delete operations and their fields." },
+    { "url": "https://developer.dribbble.com/terms/", "checkedAt": "2026-07-17", "supports": "Dribbble permits extending its service but prohibits competing replacements, scraping, storing unauthorized data, rate-limit circumvention, and automated user actions unless specifically requested; API access can be declined or terminated." }
+  ]
+}

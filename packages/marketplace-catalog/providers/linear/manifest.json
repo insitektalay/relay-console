@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "linear",
+  "name": "Linear",
+  "category": "work_management",
+  "description": "Linear is a product development system for planning, building, and tracking software. Product and engineering teams use it to manage issues, projects, roadmaps, cycles, and the day-to-day work behind releases.",
+  "agentUseSummary": "Connect a Linear workspace once, then select which agents may find and read work, prepare changes, create or update issues, and post comments under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://linear.app/",
+    "docsUrl": "https://linear.app/developers",
+    "developerConsoleUrl": "https://linear.app/settings/api/applications/new",
+    "termsUrl": "https://linear.app/terms",
+    "privacyUrl": "https://linear.app/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["read", "write"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://linear.app/oauth/authorize",
+    "tokenUrl": "https://api.linear.app/oauth/token",
+    "revocationUrl": "https://api.linear.app/oauth/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "linear_user_actor"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/linear/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "team_read", "label": "View teams", "description": "List a bounded set of teams visible to the connected user.", "defaultSelected": true },
+    { "id": "issue_read", "label": "Find and read issues", "description": "Find bounded issues and read one issue with bounded comments.", "defaultSelected": true },
+    { "id": "project_read", "label": "View projects", "description": "List bounded projects visible to the connected user.", "defaultSelected": true },
+    { "id": "issue_draft", "label": "Prepare changes", "description": "Prepare exact issue changes locally without changing Linear.", "defaultSelected": true },
+    { "id": "issue_write", "label": "Create and update issues", "description": "Create one issue or update bounded fields on one explicit issue.", "defaultSelected": true },
+    { "id": "comment_write", "label": "Post comments", "description": "Post one bounded comment on one explicit issue.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "linear_team_list", "label": "List teams", "description": "List bounded teams visible to the connection." },
+      { "id": "linear_issue_search", "label": "Find issues", "description": "Find bounded issues by title." },
+      { "id": "linear_issue_read", "label": "Read an issue", "description": "Read one issue and bounded comments." },
+      { "id": "linear_project_list", "label": "List projects", "description": "List bounded visible projects." },
+      { "id": "linear_issue_change_prepare", "label": "Prepare a change", "description": "Prepare and hash one issue create or update locally." }
+    ],
+    "approvalRequired": [
+      { "id": "linear_issue_create", "label": "Create an issue", "description": "Create one issue in an explicit team; Safe mode requires matching approval." },
+      { "id": "linear_issue_update", "label": "Update an issue", "description": "Update bounded fields on one explicit issue; Safe mode requires matching approval." },
+      { "id": "linear_comment_create", "label": "Post a comment", "description": "Post one bounded comment on one explicit issue; Safe mode requires matching approval." }
+    ],
+    "blocked": [
+      { "id": "linear_admin", "label": "Administer Linear", "description": "Workspace, member, team, OAuth-app, webhook, and billing administration are outside V1." },
+      { "id": "linear_destructive", "label": "Delete or archive work", "description": "Deleting, archiving, restoring, or bulk-changing Linear work is outside V1." },
+      { "id": "linear_raw_graphql", "label": "Run arbitrary GraphQL", "description": "Raw GraphQL documents, introspection, unbounded traversal, and arbitrary mutations are never exposed to agents." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "linear_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local drafts run directly; each Linear write requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["linear_team_list", "linear_issue_search", "linear_issue_read", "linear_project_list", "linear_issue_change_prepare"],
+      "approvalRequiredActions": ["linear_issue_create", "linear_issue_update", "linear_comment_create"],
+      "blockedActions": ["linear_admin", "linear_destructive", "linear_raw_graphql"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Linear operation supported by this connector runs without Relay per-action approval; connection ownership, Linear-granted access, request bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["linear_team_list", "linear_issue_search", "linear_issue_read", "linear_project_list", "linear_issue_change_prepare", "linear_issue_create", "linear_issue_update", "linear_comment_create"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["linear_admin", "linear_destructive", "linear_raw_graphql"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts eight typed Linear tools and attaches the authorized workspace token server-side without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts eight typed Linear tools and attaches the authorized workspace token server-side without exposing it to the agent." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay Console's public Linear OAuth application, production callback, read/write scopes, client credentials, and a fresh production authorization have not been configured and verified.",
+    "nextAction": "Create a public Linear OAuth application, register https://api.relayconsole.work/api/v1/marketplace/oauth/linear/callback, configure read and write scopes, add LINEAR_CLIENT_ID and LINEAR_CLIENT_SECRET to Railway, then verify state, PKCE, user and workspace binding, refresh rotation, bounded reads, Safe writes, Dangerous writes, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://linear.app/developers/oauth-2-0-authentication", "checkedAt": "2026-07-16", "supports": "Linear documents public OAuth, comma-separated read/write scopes, user actor authorization, PKCE S256, 24-hour access tokens, rotating refresh tokens with a retry grace period, bearer API requests, and token revocation." },
+    { "url": "https://linear.app/developers/graphql", "checkedAt": "2026-07-16", "supports": "Linear documents its GraphQL endpoint, OAuth bearer authentication, viewer and team queries, issue reads, issue creation, and issue updates, and requires callers to inspect GraphQL errors even on HTTP 200." },
+    { "url": "https://linear.app/developers/sdk-fetching-and-modifying-data", "checkedAt": "2026-07-16", "supports": "Linear documents typed model queries and mutations, projects, comments, explicit pagination, and bounded first-page fetching." },
+    { "url": "https://linear.app/developers/rate-limiting", "checkedAt": "2026-07-16", "supports": "Linear documents OAuth request and complexity limits, endpoint-specific limits, bounded pagination guidance, and RATELIMITED GraphQL errors." },
+    { "url": "https://linear.app/developers/oauth-app-manifests", "checkedAt": "2026-07-16", "supports": "Linear documents public OAuth application manifests, multiple HTTPS redirect URIs, authorization-code grants, and reproducible application configuration." }
+  ]
+}

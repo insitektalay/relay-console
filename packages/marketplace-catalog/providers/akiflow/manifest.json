@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "akiflow",
+  "name": "Akiflow",
+  "category": "work_management",
+  "description": "Akiflow is a daily planning and time-blocking app that brings tasks and calendars into one focused workspace. People use it to capture work in a universal inbox, organize projects and priorities, plan tasks onto a schedule, manage time slots and connected calendars, and turn meeting notes into action.",
+  "agentUseSummary": "Connect an Akiflow account once, then select which agents can read or manage its authorized tasks, schedule, calendars, time slots, and meeting material under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://akiflow.com/",
+    "docsUrl": "https://product.akiflow.com/en/help/articles/4302815-akiflow-mcp",
+    "developerConsoleUrl": "https://web.akiflow.com/.well-known/oauth-authorization-server",
+    "termsUrl": "https://akiflow.com/terms",
+    "privacyUrl": "https://akiflow.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["mcp:read", "mcp:write"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://web.akiflow.com/oauth/authorize",
+    "tokenUrl": "https://web.akiflow.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/akiflow/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "productivity_read",
+      "label": "Read tasks, schedules, calendars, and meetings",
+      "description": "Read authorized tasks, inbox and someday work, projects, tags, priorities, schedules, time slots, connected calendars, events, meeting briefs, recordings, summaries, action items, and transcripts.",
+      "defaultSelected": true
+    },
+    {
+      "id": "productivity_manage",
+      "label": "Manage tasks, plans, time slots, and events",
+      "description": "Create and update tasks, plan or unschedule work, mark tasks complete, create and edit time slots, and create, edit, or cancel authorized connected-calendar events.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "akiflow_mcp_read",
+        "label": "Read Akiflow",
+        "description": "Use one verified Akiflow MCP read tool with bounded arguments."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "akiflow_mcp_manage",
+        "label": "Manage Akiflow",
+        "description": "Use one verified task, planning, time-slot, or calendar mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "akiflow_raw_mcp",
+        "label": "Mount raw MCP",
+        "description": "Relay exposes typed read and manage wrappers rather than an ungoverned provider tool surface."
+      },
+      {
+        "id": "akiflow_untrusted_origin",
+        "label": "Use another MCP origin",
+        "description": "OAuth tokens are attached only to Akiflow's published hosted MCP resource."
+      },
+      {
+        "id": "akiflow_secret_exposure",
+        "label": "Expose OAuth credentials",
+        "description": "OAuth tokens stay encrypted and never enter agent-visible arguments or results."
+      },
+      {
+        "id": "akiflow_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds live schemas, arguments, result sizes, nesting, pagination, redirects, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "akiflow_safe",
+      "label": "Safe",
+      "description": "Verified reads run directly. Every task, planning, time-slot, calendar, guest-notification, or other provider mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["akiflow_mcp_read"],
+      "approvalRequiredActions": ["akiflow_mcp_manage"],
+      "blockedActions": [
+        "akiflow_raw_mcp",
+        "akiflow_untrusted_origin",
+        "akiflow_secret_exposure",
+        "akiflow_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized Akiflow operation runs without Relay per-action approval. Connection ownership, provider authority, live schema verification, fixed origin, bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["akiflow_mcp_read", "akiflow_mcp_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "akiflow_raw_mcp",
+        "akiflow_untrusted_origin",
+        "akiflow_secret_exposure",
+        "akiflow_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway verifies Akiflow's live MCP schemas and mounts bounded read and manage wrappers with refreshed OAuth attached only to the fixed hosted endpoint."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway verifies Akiflow's live MCP schemas and mounts bounded read and manage wrappers with refreshed OAuth attached only to the fixed hosted endpoint."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay Console's public S256 PKCE client is dynamically registered with Akiflow and its non-secret client ID is configured on Railway. A signed-in Akiflow subscriber with representative data is still required for production OAuth and MCP acceptance.",
+    "nextAction": "An Akiflow user clicks Connect, approves mcp:read and mcp:write, then Relay verifies callback, refresh, all 22 live tools, representative reads, Safe mutation denial and approval, Dangerous task and calendar management, redaction, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://product.akiflow.com/en/help/articles/4302815-akiflow-mcp",
+      "checkedAt": "2026-07-15",
+      "supports": "Akiflow documents its hosted MCP resource, sign-in connection, task and schedule reads, task planning and updates, time-slot management, connected-calendar event creation and editing, and Meeting Assistant transcript access."
+    },
+    {
+      "url": "https://mcp.akiflow.com/.well-known/oauth-protected-resource/mcp",
+      "checkedAt": "2026-07-15",
+      "supports": "Akiflow publishes the exact MCP resource, Bearer authentication, authorization server, and mcp:read plus mcp:write scopes."
+    },
+    {
+      "url": "https://web.akiflow.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-15",
+      "supports": "Akiflow publishes authorization, token, and dynamic-registration endpoints with authorization-code and refresh grants, public client authentication, and S256 PKCE."
+    },
+    {
+      "url": "https://akiflow.com/mcp",
+      "checkedAt": "2026-07-15",
+      "supports": "Akiflow's public product page confirms that the hosted MCP is live for tasks, calendars, meetings, priorities, and day planning."
+    }
+  ]
+}

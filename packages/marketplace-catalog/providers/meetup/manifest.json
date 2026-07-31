@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "meetup",
+  "name": "Meetup",
+  "category": "communication",
+  "description": "Meetup is a platform for organizing and discovering in-person and online events built around shared interests. People use it to create groups, find local communities, schedule activities, and bring members together around recurring or one-time events.",
+  "agentUseSummary": "Connect one OAuth-bound Meetup member, then let agents verify that exact connection and read fixed useful fields for one explicitly supplied event ID without exposing the secure member ID, tokens, raw GraphQL, lists, discovery, or mutations.",
+  "provider": {
+    "websiteUrl": "https://www.meetup.com/",
+    "docsUrl": "https://www.meetup.com/graphql/guide/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://help.meetup.com/hc/en-us/articles/360027447252-Terms-of-Service",
+    "privacyUrl": "https://www.meetup.com/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://secure.meetup.com/oauth2/authorize",
+    "tokenUrl": "https://secure.meetup.com/oauth2/access",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_consumer",
+      "authorization_code_single_use_refresh",
+      "exact_server_bound_member",
+      "encrypted_state_token_and_client_secret"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MEETUP_CLIENT_ID",
+        "label": "Meetup OAuth consumer key",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held key for the approved Relay Meetup OAuth consumer."
+      },
+      {
+        "name": "MEETUP_CLIENT_SECRET",
+        "label": "Meetup OAuth consumer secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-held confidential secret; never entered in Relay Console clients."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/meetup/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "self_read",
+      "label": "Verify connected member",
+      "description": "Verify the exact OAuth-bound member and return only a bounded display name and binding status.",
+      "defaultSelected": true
+    },
+    {
+      "id": "event_read",
+      "label": "Read one event",
+      "description": "Read fixed useful fields for one explicitly supplied Meetup event ID.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "meetup_self_get",
+        "label": "Verify connected member",
+        "description": "Verify the server-bound member without exposing the provider member ID."
+      },
+      {
+        "id": "meetup_event_get",
+        "label": "Read one event",
+        "description": "Read one exact event's bounded title, description, date/time, and canonical Meetup URL."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "meetup_mutations",
+        "label": "Block mutations",
+        "description": "Event, group, network, RSVP, attendance, announcement, message, payment, and ticket mutations are not exposed."
+      },
+      {
+        "id": "meetup_broad_reads",
+        "label": "Block broad reads",
+        "description": "Member lists, analytics, discovery, search, bulk, pagination, exports, photos, files, and webhooks are not exposed."
+      },
+      {
+        "id": "meetup_raw_graphql",
+        "label": "Block raw GraphQL",
+        "description": "Arbitrary queries, variables, fragments, aliases, schema introspection, and raw GraphQL are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "meetup_safe",
+      "label": "Safe",
+      "description": "The two selected fixed reads run automatically; broader, mutating, and raw GraphQL surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["meetup_self_get", "meetup_event_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "meetup_mutations",
+        "meetup_broad_reads",
+        "meetup_raw_graphql"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same two reads run without Relay per-action approval; exact member/event binding, fixed queries, response bounds, audits, and secret isolation still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["meetup_self_get", "meetup_event_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "meetup_mutations",
+        "meetup_broad_reads",
+        "meetup_raw_graphql"
+      ]
+    }
+  ],
+  "riskLevel": "medium",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two typed Meetup wrappers and attaches the encrypted OAuth token and secure member binding only inside Railway's fixed GraphQL adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two typed Meetup wrappers and attaches the encrypted OAuth token and secure member binding only inside Railway's fixed GraphQL adapter."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An active Meetup Pro owner, approved OAuth consumer, exact Railway callback, confidential credentials, policy-compliant public legal pages, live consent, and authenticated schema acceptance remain for the separate provider-console task.",
+    "nextAction": "After batch integration, the provider-console task must obtain OAuth approval, register the exact Railway callback, store credentials in staging, and validate state, consent, single-use refresh rotation, exact member binding, fixed self/event reads, canonical event URLs, quota behavior, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.meetup.com/graphql/authentication/",
+      "checkedAt": "2026-07-18",
+      "supports": "Meetup documents the confidential OAuth authorization-code flow, registered redirects, state echo, one-hour access tokens, and single-use refresh-token rotation without documented scopes, PKCE, or revocation endpoint."
+    },
+    {
+      "url": "https://www.meetup.com/graphql/guide/",
+      "checkedAt": "2026-07-18",
+      "supports": "Meetup documents its fixed GraphQL origin, self query, event-by-ID query and useful event fields, schema introspection, and RATE_LIMITED GraphQL error behavior."
+    },
+    {
+      "url": "https://help.meetup.com/hc/en-us/articles/41453576628749-How-can-I-get-access-to-Meetup-s-API",
+      "checkedAt": "2026-07-18",
+      "supports": "Meetup states that an active Meetup Pro subscription is required to request a new OAuth consumer and does not guarantee approval."
+    },
+    {
+      "url": "https://help.meetup.com/hc/en-us/articles/41467209211917-What-happens-to-my-API-access-when-my-Meetup-Pro-subscription-expires",
+      "checkedAt": "2026-07-18",
+      "supports": "Meetup states that OAuth clients and tokens stop working when the owning Pro subscription lapses and can be restored after renewal."
+    },
+    {
+      "url": "https://help.meetup.com/hc/en-us/articles/41467300722061-Are-there-rate-limits-when-using-Meetup-s-API",
+      "checkedAt": "2026-07-18",
+      "supports": "Current Meetup help says traffic is monitored and high-volume use must be disclosed even though strict automatic caps are not currently imposed."
+    },
+    {
+      "url": "https://help.meetup.com/hc/en-us/articles/360001655932-Meetup-Trademark-Guidelines",
+      "checkedAt": "2026-07-18",
+      "supports": "Meetup's trademark guidance prohibits branding that implies endorsement; Relay therefore bundles no official Meetup logo without separate approval."
+    }
+  ]
+}

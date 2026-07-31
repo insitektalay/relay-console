@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "wordpress-woocommerce-self-hosted",
+  "name": "WordPress WooCommerce Self-Hosted",
+  "category": "commerce",
+  "description": "WooCommerce is an open-source commerce platform for WordPress that supports products, storefronts, carts, checkout, payments, orders, customers, shipping, taxes, and extensions on customer-operated sites.",
+  "agentUseSummary": "Connect one exact public HTTPS URL for a customer-owned WordPress WooCommerce store and one selected published product ID. Relay uses only the unauthenticated Store API GET for that exact product and exposes its ID plus purchasable, in-stock, and on-sale flags while excluding names, descriptions, SKUs, prices, images, categories, attributes, ratings, links, carts, checkout, customers, orders, settings, WordPress administration, broader browsing, and all mutations.",
+  "provider": { "websiteUrl": "https://woocommerce.com/", "docsUrl": "https://developer.woocommerce.com/docs/apis/store-api/resources-endpoints/products/", "developerConsoleUrl": null, "termsUrl": "https://wordpress.com/tos/", "privacyUrl": "https://automattic.com/privacy/" },
+  "authentication": { "model": "none", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_wordpress_woocommerce", "public_https_store_api", "unauthenticated_store_api", "selected_product_id"],
+    "credentialRequirements": [
+      { "name": "WORDPRESS_WOOCOMMERCE_STORE_BASE_URL", "label": "WooCommerce HTTPS store base URL", "required": true, "secret": false, "helpText": "The exact public HTTPS URL for one customer-owned WordPress store, including its install path if present; Relay rejects embedded credentials, unsafe paths, private DNS, queries, and fragments." },
+      { "name": "WORDPRESS_WOOCOMMERCE_PRODUCT_ID", "label": "Selected public product ID", "required": true, "secret": false, "helpText": "The exact positive numeric ID of the single published product Relay may inspect through the public Store API." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [{ "id": "wordpress_woocommerce_self_hosted_selected_product_availability_get", "label": "Read selected product availability", "description": "Read only one selected public product's ID and purchasable, in-stock, and on-sale flags without product copy, pricing, imagery, taxonomy, links, cart data, or private store data.", "defaultSelected": true }],
+  "actions": {
+    "allowed": [{ "id": "wordpress_woocommerce_self_hosted_selected_product_availability_get", "label": "Read selected product availability", "description": "Read only one selected public product's ID and purchasable, in-stock, and on-sale flags." }],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "wordpress_woocommerce_self_hosted_private_content", "label": "Expose private store or product content", "description": "Names, slugs, SKUs, descriptions, prices, images, categories, attributes, ratings, links, cart details, customer data, orders, and private store data are excluded." },
+      { "id": "wordpress_woocommerce_self_hosted_mutation", "label": "Mutate WooCommerce or WordPress", "description": "Cart, checkout, orders, customers, products, coupons, settings, plugins, themes, content, users, files, and every other mutation are blocked." },
+      { "id": "wordpress_woocommerce_self_hosted_broad_access", "label": "Use broad store access", "description": "Other products, lists, search, filters, collections, categories, reviews, carts, checkout, orders, arbitrary paths or queries, redirects, and bulk access are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "wordpress_woocommerce_self_hosted_public_product_read", "label": "Public Product Read", "description": "Read one selected public product's availability flags; content, pricing, customers, orders, carts, broader access, administration, and mutations remain blocked.", "defaultSelected": true, "allowedActions": ["wordpress_woocommerce_self_hosted_selected_product_availability_get"], "approvalRequiredActions": [], "blockedActions": ["wordpress_woocommerce_self_hosted_private_content", "wordpress_woocommerce_self_hosted_mutation", "wordpress_woocommerce_self_hosted_broad_access"] },
+    { "id": "wordpress_woocommerce_self_hosted_no_access", "label": "No Access", "description": "Expose no WordPress WooCommerce Self-Hosted actions.", "defaultSelected": false, "allowedActions": [], "approvalRequiredActions": [], "blockedActions": ["wordpress_woocommerce_self_hosted_selected_product_availability_get", "wordpress_woocommerce_self_hosted_private_content", "wordpress_woocommerce_self_hosted_mutation", "wordpress_woocommerce_self_hosted_broad_access"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway stores two nonsecret selected boundaries and mounts exactly one unauthenticated fixed public product GET." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway stores two nonsecret selected boundaries and mounts exactly one unauthenticated fixed public product GET." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "review_pending", "blocker": "A customer-owned WooCommerce staging store reachable at an exact public HTTPS URL and one published product ID are required. No authorized staging store is available in this worker lane.", "nextAction": "The external setup lane must nominate a staging store and exact published product ID, record only those nonsecret boundaries in Railway, then validate the projected Store API read, public-DNS/base-path/fixed-product enforcement, content and pricing redaction, unavailable-product behavior, disconnect, and post-disconnect denial in Fairfax. No WooCommerce keys, WordPress account, provider console, or consent are required." },
+  "evidence": [
+    { "url": "https://developer.woocommerce.com/docs/apis/store-api/", "checkedAt": "2026-07-18", "supports": "WooCommerce documents the Store API as an unauthenticated public JSON API under /wp-json/wc/store/v1, distinct from the authenticated WC REST API and customer/order administration." },
+    { "url": "https://developer.woocommerce.com/docs/apis/store-api/resources-endpoints/products/", "checkedAt": "2026-07-18", "supports": "WooCommerce documents GET /products/:id for one published product and response fields including id, is_purchasable, is_in_stock, is_on_sale, product content, prices, images, and links; Relay retains only the bounded availability projection." },
+    { "url": "https://developer.wordpress.org/rest-api/extending-the-rest-api/routes-and-endpoints/", "checkedAt": "2026-07-18", "supports": "WordPress documents /wp-json as the normal REST base and namespaced resource paths; Relay appends only the fixed WooCommerce Store API namespace to the validated store base URL." }
+  ]
+}

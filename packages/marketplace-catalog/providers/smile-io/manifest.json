@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "smile-io",
+  "name": "Smile.io",
+  "category": "marketing",
+  "description": "Smile.io is an ecommerce loyalty platform for points, rewards, referrals, VIP programs, customer activity, redemptions, and loyalty storefront experiences.",
+  "agentUseSummary": "Smile.io cannot yet be connected through Relay. Smile publishes a granular confidential OAuth flow for installed partner apps with expiring bearer tokens and refresh tokens, but Relay's production Partner Portal app, exact callback, client credentials, approved scope bundle, review status, and representative merchant acceptance do not exist.",
+  "provider": {
+    "websiteUrl": "https://smile.io/",
+    "docsUrl": "https://dev.smile.io/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://smile.io/terms",
+    "privacyUrl": "https://smile.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["customer:read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://connect.smile.io/oauth2/authorize",
+    "tokenUrl": "https://connect.smile.io/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth",
+      "authorization_code",
+      "space_delimited_granular_scopes",
+      "one_hour_access_token",
+      "refresh_token",
+      "exact_smile_account_binding",
+      "partner_portal_app"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SMILE_CLIENT_ID",
+        "label": "Smile client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held production Smile Partner Portal app client ID."
+      },
+      {
+        "name": "SMILE_CLIENT_SECRET",
+        "label": "Smile client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-encrypted Smile app secret; never returned to clients or agents."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/smile-io/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "smile_oauth_connection",
+        "label": "Connect a Smile account",
+        "description": "Connect remains hidden until Relay's production partner app, exact callback, credentials, approved scope bundle, and representative consent acceptance exist."
+      },
+      {
+        "id": "smile_api_key_substitution",
+        "label": "Collect a merchant API key",
+        "description": "Relay does not substitute a merchant-generated server-side API key for an installed app's scoped delegated OAuth connection."
+      },
+      {
+        "id": "smile_loyalty_reads",
+        "label": "Read loyalty data",
+        "description": "Customers, identities, balances, points transactions, rewards, referrals, earning rules, VIP tiers, and account data remain unavailable."
+      },
+      {
+        "id": "smile_mutations_raw",
+        "label": "Mutate loyalty or use raw APIs",
+        "description": "Activities, customer changes, points adjustments, redemptions, referrals, rewards, webhook subscriptions, arbitrary endpoints, pagination, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "smile_unavailable",
+      "label": "Unavailable",
+      "description": "No Smile.io action is enabled before production partner-app setup and connector acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "smile_oauth_connection",
+        "smile_api_key_substitution",
+        "smile_loyalty_reads",
+        "smile_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Smile.io wrappers are mounted before production partner-app and representative OAuth acceptance."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Smile.io wrappers are mounted before production partner-app and representative OAuth acceptance."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "relay_action_required",
+    "blocker": "Smile requires Relay to create a Partner Portal app, register an HTTPS callback, configure granular resource scopes, receive a client ID and rotatable secret, complete any submission/review requirements, and run consent with a representative Plus or Enterprise merchant. This worker may not enter the portal, create the app, capture credentials, or run consent.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should create the Smile app with only customer:read for an initial bounded identity-and-balance discovery slice, register https://api.relayconsole.work/api/v1/marketplace/oauth/smile-io/callback, store production credentials in Railway, and return consent, one-hour token refresh, secret rotation, exact-account binding, reauthorization, disconnect, denial, schema, and quota evidence before implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://dev.smile.io/guides/apps/auth/oauth-flow",
+      "checkedAt": "2026-07-17",
+      "supports": "Smile documents HTTPS authorization-code OAuth for apps, whitelisted callbacks, state, ten-minute single-use codes, client Basic Auth at token exchange, one-hour bearer access tokens, refresh tokens, scope narrowing, and exact Smile account binding."
+    },
+    {
+      "url": "https://dev.smile.io/guides/apps/auth/access-scopes",
+      "checkedAt": "2026-07-17",
+      "supports": "Smile documents resource-level read and write scopes, with write including read, Partner Portal scope configuration, merchant reauthorization after scope expansion, and scope-bound webhook delivery."
+    },
+    {
+      "url": "https://dev.smile.io/api/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Smile distinguishes merchant API keys from app OAuth access tokens and requires HTTPS bearer authentication from secured backend code."
+    },
+    {
+      "url": "https://help.smile.io/en/articles/4036313-smile-api-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Smile states API access is limited to Plus and Enterprise merchants and currently requires Shopify or BigCommerce."
+    }
+  ]
+}

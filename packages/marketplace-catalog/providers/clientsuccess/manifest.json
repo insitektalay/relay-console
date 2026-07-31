@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "clientsuccess",
+  "name": "ClientSuccess",
+  "category": "developer",
+  "description": "ClientSuccess is a customer success platform for client management, health, revenue, engagement, lifecycle, projects, reporting, and integrations.",
+  "agentUseSummary": "Connect a customer-owned ClientSuccess API credential, then let agents list only bounded projected client custom-field metadata under approval. Relay excludes field values and private schema details, customer/contact records, health, revenue, engagement, writes, exports, bulk operations, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.clientsuccess.com/",
+    "docsUrl": "https://clientsuccess.readme.io/reference/getcustomfieldsbyresource",
+    "developerConsoleUrl": "https://api.clientsuccess.com/",
+    "termsUrl": "https://www.clientsuccess.com/terms-of-service",
+    "privacyUrl": "https://www.clientsuccess.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "customer_owned_api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_authorization",
+      "fixed_api_origin",
+      "fixed_client_resource_scope",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CLIENTSUCCESS_AUTHORIZATION",
+        "label": "ClientSuccess Authorization value",
+        "required": true,
+        "secret": true,
+        "helpText": "Store the complete value required by ClientSuccess in the Authorization header only through Relay's encrypted flow."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "client_custom_field_metadata",
+      "label": "List client custom-field metadata",
+      "description": "List at most 100 client field IDs, UUIDs, names, labels, types, resource types, and low-risk state flags without values, options, usage counts, placeholders, or customer records.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "clientsuccess_client_custom_fields_list",
+        "label": "List client custom-field metadata",
+        "description": "List bounded projected client custom-field metadata from ClientSuccess."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "clientsuccess_customer_contact_data",
+        "label": "Access customer or contact data",
+        "description": "Clients, contacts, account teams, external identifiers, custom-field values, and personal data are blocked."
+      },
+      {
+        "id": "clientsuccess_health_revenue_engagement",
+        "label": "Access health, revenue, or engagement data",
+        "description": "Pulse, contracts, products, subscriptions, usage, surveys, notes, tasks, projects, and engagement are blocked."
+      },
+      {
+        "id": "clientsuccess_mutation_administration",
+        "label": "Mutate or administer ClientSuccess",
+        "description": "Creates, updates, deletes, upserts, imports, exports, attachments, user administration, and integration changes are blocked."
+      },
+      {
+        "id": "clientsuccess_raw_bulk",
+        "label": "Use raw or bulk API access",
+        "description": "Arbitrary paths, resource types, query flags, raw responses, bulk operations, pagination, retries, and pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "clientsuccess_client_custom_field_metadata_safe",
+      "label": "Safe",
+      "description": "The bounded client field-metadata read requires approval; customer data, health, revenue, engagement, writes, administration, bulk, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["clientsuccess_client_custom_fields_list"],
+      "blockedActions": [
+        "clientsuccess_customer_contact_data",
+        "clientsuccess_health_revenue_engagement",
+        "clientsuccess_mutation_administration",
+        "clientsuccess_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded metadata read runs without Relay per-action approval; fixed origin/path/resource/query binding, projection, caps, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["clientsuccess_client_custom_fields_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "clientsuccess_customer_contact_data",
+        "clientsuccess_health_revenue_engagement",
+        "clientsuccess_mutation_administration",
+        "clientsuccess_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned Authorization credential to ClientSuccess's fixed API origin and projected client custom-field metadata wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned Authorization credential to ClientSuccess's fixed API origin and projected client custom-field metadata wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized ClientSuccess administrator must create or retrieve a dedicated least-privilege API credential and store its complete Authorization value through Relay. No account, API user, credential capture, live request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized administrator provisions the least-privilege credential, stores it through Relay, then verifies health, one approved metadata list, throttling, credential rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.clientsuccess.com/en/articles/12833817-clientsuccess-open-api-v2-0",
+      "checkedAt": "2026-07-17",
+      "supports": "ClientSuccess documents its v2 Open API for clients, contacts, and contracts, a consolidated developer portal, and a dedicated API user recommendation. Relay selects only a narrower metadata endpoint."
+    },
+    {
+      "url": "https://clientsuccess.readme.io/reference/getcustomfieldsbyresource",
+      "checkedAt": "2026-07-17",
+      "supports": "ClientSuccess documents GET /v2/customfield/all/{resourceType}, the CLIENT resource enum, and system, required, placeholder, and includeUsageCounts query flags. Relay fixes the resource to CLIENT and every flag to false."
+    },
+    {
+      "url": "https://help.clientsuccess.com/en/articles/14728612-exporting-and-reporting-on-customer-data",
+      "checkedAt": "2026-07-17",
+      "supports": "ClientSuccess documents long-lived API keys under administrator settings and broad programmatic access to customer, contact, pulse, and revenue data. Relay encrypts the credential and blocks those broad record and export surfaces."
+    }
+  ]
+}

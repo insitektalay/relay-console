@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "goldcast",
+  "name": "Goldcast",
+  "category": "communication",
+  "description": "Goldcast is a B2B event and webinar platform for creating, running and repurposing virtual, hybrid and field-event experiences. Marketing teams use it for registration, production, audience engagement, analytics, integrations and on-demand content.",
+  "agentUseSummary": "Connect a customer-owned Goldcast API token through Railway's encrypted credential boundary, then let selected agents list one bounded page of event summaries or inspect one exact event without people, engagement or registration data.",
+  "provider": {
+    "websiteUrl": "https://www.goldcast.io/",
+    "docsUrl": "https://help.goldcast.io/en_US/general-integrations/22931655725723-how-to-create-an-api-token-in-goldcast",
+    "developerConsoleUrl": "https://admin.goldcast.io/",
+    "termsUrl": "https://www.goldcast.io/terms-of-service",
+    "privacyUrl": "https://www.goldcast.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_personal_access_token", "encrypted_secret", "fixed_goldcast_api_origin", "local_disconnect"],
+    "credentialRequirements": [
+      { "name": "GOLDCAST_API_TOKEN", "label": "Goldcast API token", "required": true, "secret": true, "helpText": "An organization admin creates the token after API access is enabled for the customer's eligible Goldcast plan." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "event_read", "label": "Read event metadata", "description": "List bounded event summaries and inspect one exact event without people or engagement data.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "goldcast_events_list", "label": "List events", "description": "List at most twenty-five events from one provider page." },
+      { "id": "goldcast_event_get", "label": "Read an event", "description": "Read one exact event metadata summary." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "goldcast_people_data", "label": "Block people data", "description": "Registrants, attendees, speakers, engagement, leads, emails, magic links, analytics exports and registration fields are not exposed." },
+      { "id": "goldcast_mutations", "label": "Block mutations", "description": "Event, agenda, booth, broadcast, member, resource, registration and webhook writes are not exposed." },
+      { "id": "goldcast_raw_api", "label": "Block raw API", "description": "Arbitrary endpoints, automatic pagination, bulk operations and raw responses are not exposed." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "goldcast_safe", "label": "Safe", "description": "Two bounded event-metadata reads run directly; people data, writes, bulk and raw access stay blocked.", "defaultSelected": true, "allowedActions": ["goldcast_events_list", "goldcast_event_get"], "approvalRequiredActions": [], "blockedActions": ["goldcast_people_data", "goldcast_mutations", "goldcast_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The same selected read surface runs without Relay per-action approval; credential ownership, fixed origin, bounds, redaction and provider limits still apply.", "defaultSelected": false, "allowedActions": ["goldcast_events_list", "goldcast_event_get"], "approvalRequiredActions": [], "blockedActions": ["goldcast_people_data", "goldcast_mutations", "goldcast_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts two typed Goldcast event-metadata reads and attaches the encrypted token only to the fixed Goldcast API origin." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts two typed Goldcast event-metadata reads and attaches the encrypted token only to the fixed Goldcast API origin." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "Goldcast API tokens are disabled by default, require an eligible paid plan and may require Goldcast Support; an organization admin must create the customer-owned token.",
+    "nextAction": "In the separate provider-console task, confirm the customer's eligible plan, ask Goldcast Support to enable tokens if required, have an organization admin create a least-authority token, store it through Railway's encrypted connection flow, validate the two bounded reads, delete the token in Goldcast on revoke, and confirm post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://help.goldcast.io/en_US/general-integrations/22931655725723-how-to-create-an-api-token-in-goldcast", "checkedAt": "2026-07-17", "supports": "Goldcast documents personal API tokens for third-party API calls, one-time token display, organization-admin creation and irreversible provider-side token deletion; tokens are disabled by default and plan-gated." },
+    { "url": "https://help.goldcast.io/en_US/about-goldcast/24075104459419-goldcast-pricing-plans", "checkedAt": "2026-07-17", "supports": "Goldcast's current plan matrix lists API access outside Starter and directs customers to their CSM or Sales for plan changes." },
+    { "url": "https://help.goldcast.io/", "checkedAt": "2026-07-17", "supports": "Goldcast describes Studio as an event and webinar product covering registration, production, engagement, analytics, integrations and Content Lab workflows." }
+  ]
+}

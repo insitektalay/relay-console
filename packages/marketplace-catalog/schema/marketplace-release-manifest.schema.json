@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://relayconsole.work/schemas/marketplace-release-manifest.v1.json",
+  "title": "Relay Console Marketplace release manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "manifestVersion",
+    "releaseChannel",
+    "freeze",
+    "defaultProvider",
+    "providers"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.marketplace-release.v1" },
+    "manifestVersion": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}(?:-[a-z0-9]+(?:[.-][a-z0-9]+)*)?$"
+    },
+    "releaseChannel": { "type": "string", "minLength": 1 },
+    "freeze": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "frozenAt", "sourceRevision"],
+      "properties": {
+        "status": { "enum": ["open", "frozen"] },
+        "frozenAt": { "type": ["string", "null"], "format": "date-time" },
+        "sourceRevision": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{40}$"
+        }
+      }
+    },
+    "defaultProvider": { "$ref": "#/$defs/releaseDecision" },
+    "providers": {
+      "type": "array",
+      "items": {
+        "allOf": [
+          { "$ref": "#/$defs/releaseDecision" },
+          {
+            "type": "object",
+            "required": ["slug", "reviewedAt"],
+            "properties": {
+              "slug": {
+                "type": "string",
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "reviewedAt": { "type": "string", "format": "date" }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "releaseDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "label",
+        "connectEligible",
+        "liveVerified",
+        "reason"
+      ],
+      "properties": {
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "state": {
+          "enum": [
+            "available",
+            "preview",
+            "provider_setup_required",
+            "provider_review_pending",
+            "customer_credential_required",
+            "unsupported",
+            "coming_later"
+          ]
+        },
+        "label": { "type": "string", "minLength": 1 },
+        "connectEligible": { "type": "boolean" },
+        "liveVerified": { "type": "boolean" },
+        "reason": { "type": "string", "minLength": 1 },
+        "reviewedAt": { "type": "string", "format": "date" },
+        "acceptance": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["recordPath", "recordSHA256"],
+              "properties": {
+                "recordPath": {
+                  "type": "string",
+                  "pattern": "^packages/marketplace-catalog/release/acceptance/[a-z0-9]+(?:-[a-z0-9]+)*\\.json$"
+                },
+                "recordSHA256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              }
+            },
+            { "type": "null" }
+          ]
+        }
+      }
+    }
+  }
+}

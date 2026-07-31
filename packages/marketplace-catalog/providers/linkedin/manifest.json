@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "linkedin",
+  "name": "LinkedIn",
+  "category": "content_creative",
+  "description": "LinkedIn is a professional network for member profiles, workplace relationships, company pages, jobs, and professional publishing. Relay's LinkedIn V1 is limited to the connected member's bounded OpenID profile, local text-only drafts, and intentional public text-only member posts.",
+  "agentUseSummary": "Connect one LinkedIn member through Relay-owned OAuth with exact openid, profile, and w_member_social scopes so agents can read bounded profile fields, draft text locally, and publish one approved public text-only post. Email, profile pictures, social reads, comments, likes, media, organizations, messaging, enrichment, search, scraping, bulk automation, retries, pagination, and raw access are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.linkedin.com/",
+    "docsUrl": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management/shares/posts-api",
+    "developerConsoleUrl": "https://www.linkedin.com/developers/apps",
+    "termsUrl": "https://www.linkedin.com/legal/l/api-terms-of-use",
+    "privacyUrl": "https://www.linkedin.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "profile", "w_member_social"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.linkedin.com/oauth/v2/authorization",
+    "tokenUrl": "https://www.linkedin.com/oauth/v2/accessToken",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["oauth2", "relay_owned_global_oauth", "connected_member_text_only"],
+    "credentialRequirements": ["Relay-owned LinkedIn OAuth client ID configured only on Railway", "Relay-owned LinkedIn OAuth client secret retained only by Railway"],
+    "callbackPath": "/api/v1/marketplace/oauth/linkedin/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "identity", "label": "Read connected member", "description": "Read bounded OpenID profile fields for the connected member.", "readOnly": true },
+    { "id": "draft", "label": "Draft text post", "description": "Create a bounded text-only draft locally without a provider call.", "readOnly": true },
+    { "id": "publish", "label": "Publish text post", "description": "Publish one public text-only post as the connected member after approval.", "readOnly": false }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "linkedin_profile_get", "label": "Get LinkedIn member profile", "description": "Read bounded OpenID profile fields for the connected member; email and picture are excluded." },
+      { "id": "linkedin_post_draft", "label": "Draft LinkedIn text post", "description": "Create one local text-only draft of at most 3,000 characters without calling LinkedIn." }
+    ],
+    "approvalRequired": [
+      { "id": "linkedin_text_post_create", "label": "Publish LinkedIn text post", "description": "Publish one public text-only post as the connected member after explicit approval." }
+    ],
+    "blocked": [
+      { "id": "linkedin_email_enrichment_people", "label": "Access email or enriched identity", "description": "Email, picture, identity verification, profile enrichment, other members, connections, invitations, and people search are outside V1." },
+      { "id": "linkedin_social_reads_comments_likes", "label": "Read or engage with social content", "description": "Feed/post reads, member social reads, comments, likes, reactions, and other engagement are outside V1." },
+      { "id": "linkedin_media_organizations_ads", "label": "Use broader LinkedIn products", "description": "Media, assets, documents, articles, reshares, polls, celebrations, mentions, organizations, analytics, ads, leads, and Learning are outside V1." },
+      { "id": "linkedin_messaging_search_scraping", "label": "Message, search, or scrape", "description": "DMs, messaging, network search, scraping, browser automation, and unofficial endpoints are blocked." },
+      { "id": "linkedin_bulk_retry_pagination_raw", "label": "Use broad or raw access", "description": "Bulk or scheduled publishing, automatic retries or pagination, raw provider requests, RPC, GraphQL, and MCP surfaces are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "linkedin_safe", "label": "Safe", "description": "Bounded profile reads and local drafts run automatically; one connected-member public text post requires approval, while broader identity, social, media, organization, messaging, search, bulk, and raw surfaces remain blocked.", "defaultSelected": true, "allowedActions": ["linkedin_profile_get", "linkedin_post_draft"], "approvalRequiredActions": ["linkedin_text_post_create"], "blockedActions": ["linkedin_email_enrichment_people", "linkedin_social_reads_comments_likes", "linkedin_media_organizations_ads", "linkedin_messaging_search_scraping", "linkedin_bulk_retry_pagination_raw"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The same three actions run without per-action approval; exact scopes, connected-member authorship, text-only body, 3,000-character limit, audit, and API controls still apply.", "defaultSelected": false, "allowedActions": ["linkedin_profile_get", "linkedin_post_draft"], "approvalRequiredActions": ["linkedin_text_post_create"], "blockedActions": ["linkedin_email_enrichment_people", "linkedin_social_reads_comments_likes", "linkedin_media_organizations_ads", "linkedin_messaging_search_scraping", "linkedin_bulk_retry_pagination_raw"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "native_wrapper_tools", "description": "Mounts exactly three bounded LinkedIn member profile, local draft, and approval-gated text-post wrapper tools." },
+    { "format": "hermes", "installSupport": "native_wrapper_tools", "description": "Mounts exactly three bounded LinkedIn member profile, local draft, and approval-gated text-post wrapper tools." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A production Relay-owned LinkedIn application, exact Railway callback, OpenID Connect and Share on LinkedIn product access, exact scopes, one staging member, and provider acceptance remain pending outside this worker lane.",
+    "nextAction": "Configure and review a Relay-owned LinkedIn app with only OpenID Connect and w_member_social, then validate one staging member, finite access-token expiry/reauthorization, and the three fixed wrappers through Railway.",
+    "requiredProviderArtifacts": ["production LinkedIn client ID", "production LinkedIn client secret", "exact Railway callback allowlist", "OpenID Connect product", "Share on LinkedIn product", "exact openid profile w_member_social scopes", "one staging LinkedIn member"]
+  },
+  "evidence": [
+    { "url": "https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow", "checkedAt": "2026-07-17", "supports": "LinkedIn documents 3-legged authorization-code OAuth, least-scope consent, and approximately 60-day access-token lifetimes." },
+    { "url": "https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2", "checkedAt": "2026-07-17", "supports": "LinkedIn documents OpenID Connect scopes and the userinfo endpoint for bounded signed-in member fields." },
+    { "url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management/shares/posts-api", "checkedAt": "2026-07-17", "supports": "LinkedIn documents the versioned Posts API, required Rest.li headers, w_member_social, text-only post creation, and x-restli-id response header." },
+    { "url": "https://learn.microsoft.com/en-us/linkedin/shared/authentication/programmatic-refresh-tokens", "checkedAt": "2026-07-17", "supports": "LinkedIn documents programmatic refresh tokens as available to approved Marketing Developer Platform partners, so Relay self-serve V1 does not assume refresh support." }
+  ]
+}

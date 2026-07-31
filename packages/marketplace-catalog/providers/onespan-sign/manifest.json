@@ -1,0 +1,185 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "onespan-sign",
+  "name": "OneSpan Sign",
+  "category": "knowledge_documents",
+  "description": "OneSpan Sign manages electronic-signature transactions.",
+  "agentUseSummary": "Connect customer-owned OneSpan Sign OAuth client credentials for one documented environment. Relay exchanges five-minute access tokens server-side and exposes only two fixed privacy-redacted transaction lifecycle reads; broad unscoped provider authority, people, documents, signing, evidence, writes, raw access, pagination, polling, retries, and exports remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.onespan.com/products/onespan-sign",
+    "docsUrl": "https://docs.onespan.com/docs/oauth-20",
+    "developerConsoleUrl": "https://apps.esignlive.com/admin/api-access",
+    "termsUrl": "https://www.onespan.com/legal/terms-of-use",
+    "privacyUrl": "https://www.onespan.com/legal/privacy-notice"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://apps.esignlive.com/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_credentials",
+      "five_minute_access_token",
+      "fixed_official_environment"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ONESPAN_SIGN_CLIENT_ID",
+        "label": "OneSpan Sign OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Create a dedicated OAuth 2.0 client in the connected OneSpan Sign account."
+      },
+      {
+        "name": "ONESPAN_SIGN_CLIENT_SECRET",
+        "label": "OneSpan Sign OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the one-time client secret and store it encrypted in Relay."
+      },
+      {
+        "name": "ONESPAN_SIGN_ENVIRONMENT",
+        "label": "OneSpan Sign environment",
+        "required": true,
+        "secret": false,
+        "helpText": "Select the exact documented regional sandbox or production environment."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "transaction_list",
+      "label": "List transactions",
+      "description": "Read a bounded first page of privacy-redacted transaction lifecycle metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "transaction_get",
+      "label": "Inspect transaction metadata",
+      "description": "Read privacy-redacted lifecycle metadata for one explicit transaction.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "onespan_sign_transaction_list",
+        "label": "List transactions",
+        "description": "List up to 25 first-page transaction lifecycle summaries for one explicit status."
+      },
+      {
+        "id": "onespan_sign_transaction_get",
+        "label": "Inspect a transaction",
+        "description": "Inspect lifecycle metadata for one explicit transaction ID."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "onespan_sign_private_content",
+        "label": "Access private transaction content",
+        "description": "Documents, files, evidence, audit data, roles, recipients, signers, messages, fields, signing URLs, authentication data, and signatures are blocked."
+      },
+      {
+        "id": "onespan_sign_mutation",
+        "label": "Mutate or sign transactions",
+        "description": "Creating, sending, signing, reminding, archiving, deleting, uploading, updating, and administering are blocked."
+      },
+      {
+        "id": "onespan_sign_broad_credential_use",
+        "label": "Use broad account authority",
+        "description": "OneSpan does not yet provide OAuth scopes; Relay confines the customer-owned credential to two fixed metadata reads and never exposes it to agents."
+      },
+      {
+        "id": "onespan_sign_raw_bulk",
+        "label": "Use raw or bulk APIs",
+        "description": "Raw paths, arbitrary queries, pagination, polling, automatic retries, batch access, callbacks, webhooks, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "onespan_sign_read_only",
+      "label": "Read-only transaction lifecycle",
+      "description": "Two fixed privacy-redacted transaction metadata reads run automatically; OneSpan's currently unscoped account credential remains confined server-side.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "onespan_sign_transaction_list",
+        "onespan_sign_transaction_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "onespan_sign_private_content",
+        "onespan_sign_mutation",
+        "onespan_sign_broad_credential_use",
+        "onespan_sign_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Fixed environment, token exchange, paths, strict projection, result cap, and read-only boundary remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "onespan_sign_transaction_list",
+        "onespan_sign_transaction_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "onespan_sign_private_content",
+        "onespan_sign_mutation",
+        "onespan_sign_broad_credential_use",
+        "onespan_sign_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges customer-owned client credentials for short-lived access tokens and mounts two fixed redacted transaction reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges customer-owned client credentials for short-lived access tokens and mounts two fixed redacted transaction reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized account administrator must enable OAuth 2.0 Client Credentials, create a dedicated client, copy its one-time secret, and identify the exact OneSpan environment. OneSpan currently offers client credentials only, no scopes, no refresh token, and no delegated user-consent flow. No provider-console, credential, Railway, or live acceptance work is authorized in this worker task.",
+    "nextAction": "An authorized account owner enables client-credentials API access, creates a dedicated client, connects its ID, secret, and exact environment through Relay's encrypted credential flow, then separately verifies token renewal, list/get redaction, credential rotation/replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.onespan.com/docs/oauth-20",
+      "checkedAt": "2026-07-17",
+      "supports": "OneSpan documents client-credentials-only OAuth, Basic client authentication, POST /oauth2/token, five-minute Bearer access tokens, token reuse, and no refresh functionality."
+    },
+    {
+      "url": "https://docs.onespan.com/v1/docs/managing-api-access-and-authentication-settings",
+      "checkedAt": "2026-07-17",
+      "supports": "OneSpan documents customer-admin API access setup and states that OAuth scope capabilities are not yet available."
+    },
+    {
+      "url": "https://docs.onespan.com/docs/managing-transactions",
+      "checkedAt": "2026-07-17",
+      "supports": "OneSpan documents GET /api/packages with from, to, and query for bounded transaction lists and GET /api/packages/{packageId} for one transaction."
+    },
+    {
+      "url": "https://docs.onespan.com/docs/configuring-your-identity-provider",
+      "checkedAt": "2026-07-17",
+      "supports": "OneSpan documents the fixed US, Canada, Europe, and Australia sandbox/production environment hostnames used by the connector allowlist."
+    }
+  ]
+}

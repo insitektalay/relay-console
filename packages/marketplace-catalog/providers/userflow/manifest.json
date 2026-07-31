@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "userflow",
+  "name": "Userflow",
+  "category": "developer",
+  "description": "Userflow is a product-adoption platform for onboarding flows, checklists, launchers, banners, resource centers, surveys, and in-app guidance. Product teams use it to guide users and improve activation without rebuilding their application UI.",
+  "agentUseSummary": "Connect one exact Userflow environment with a customer-owned environment API key and its US or EU region, then let agents list only bounded, strictly projected content inventory metadata under approval. Relay excludes labels, detailed content, versions, questions, tasks, sessions, users, groups, events, webhooks, account administration, writes, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.userflow.com/",
+    "docsUrl": "https://docs.userflow.com/docs/api",
+    "developerConsoleUrl": "https://app.userflow.com/",
+    "termsUrl": "https://www.userflow.com/policies/terms",
+    "privacyUrl": "https://www.userflow.com/policies/privacy"
+  },
+  "authentication": {
+    "model": "customer_owned_environment_api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_environment_key",
+      "exact_environment_scope",
+      "us_or_eu_region_binding",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "USERFLOW_ENVIRONMENT_API_KEY",
+        "label": "Userflow environment API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated environment API key and store it only through Relay's encrypted connection flow."
+      },
+      {
+        "name": "USERFLOW_REGION",
+        "label": "Userflow region",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter us or eu to match the key's exact environment region."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "content_inventory",
+      "label": "List content",
+      "description": "List at most 50 content IDs, names, types, timestamps, and draft/published version IDs without labels, detailed content, or user data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "userflow_content_list",
+        "label": "List content",
+        "description": "List bounded projected content inventory metadata from one exact Userflow environment."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "userflow_private_content_data",
+        "label": "Access private content data",
+        "description": "Labels, content versions, questions, tasks, answers, sessions, targeting, and full content payloads are blocked."
+      },
+      {
+        "id": "userflow_users_groups_events",
+        "label": "Access users, groups, or events",
+        "description": "User profiles, attributes, groups, memberships, events, event definitions, and identity data are blocked."
+      },
+      {
+        "id": "userflow_mutation_admin",
+        "label": "Mutate or administer Userflow",
+        "description": "User/group/event writes, session changes, webhooks, accounts, environments, members, invites, permissions, and administration are blocked."
+      },
+      {
+        "id": "userflow_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, arbitrary origins, personal API keys, pagination, polling, retries, batches, exports, downloads, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "userflow_content_inventory_safe",
+      "label": "Safe",
+      "description": "The bounded content inventory requires approval; users, groups, events, sessions, writes, administration, bulk data, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["userflow_content_list"],
+      "blockedActions": [
+        "userflow_private_content_data",
+        "userflow_users_groups_events",
+        "userflow_mutation_admin",
+        "userflow_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded content inventory runs without Relay per-action approval; environment/region binding, strict projection, response cap, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["userflow_content_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "userflow_private_content_data",
+        "userflow_users_groups_events",
+        "userflow_mutation_admin",
+        "userflow_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned Bearer key to one exact environment/region and a projected content inventory wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned Bearer key to one exact environment/region and a projected content inventory wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Userflow administrator must create a dedicated environment API key for the exact environment, select its US/EU region, and store both through Relay. No account, key creation, credential capture, live API request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized Userflow administrator creates a dedicated environment key, stores it with the matching region through Relay, then verifies health, one approved content list, throttling, key rotation/revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.userflow.com/docs/api",
+      "checkedAt": "2026-07-17",
+      "supports": "Userflow documents environment-scoped Bearer API keys, US and EU Users API origins, the pinned 2020-01-03 API version, GET /content, and cursor pagination with limits from 1 to 100. Relay selects one page capped at 50 and does not follow cursors."
+    },
+    {
+      "url": "https://docs.userflow.com/docs/api#content",
+      "checkedAt": "2026-07-17",
+      "supports": "Userflow documents content objects with IDs, names, types, timestamps, labels, and draft/published versions. Relay projects only identifiers, names, types, timestamps, and version IDs while excluding labels and expanded version content."
+    },
+    {
+      "url": "https://docs.userflow.com/docs/api#users",
+      "checkedAt": "2026-07-17",
+      "supports": "Userflow documents users, attributes, groups, memberships, events, and destructive or mutating operations under the same environment API surface. Relay blocks all of these higher-risk resources and writes."
+    }
+  ]
+}

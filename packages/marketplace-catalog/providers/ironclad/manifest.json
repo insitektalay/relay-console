@@ -1,0 +1,173 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ironclad",
+  "name": "Ironclad",
+  "category": "knowledge_documents",
+  "description": "Ironclad is a digital contracting platform for contract workflows, repository records, approvals, signatures, and contract data.",
+  "agentUseSummary": "Bind a dedicated customer-owned Ironclad client-credentials application to one exact environment and one least-privilege as-user identity. Relay requests only public.workflows.readSchemas and lets agents list bounded workflow schema IDs and names. Schema fields, contracts, people, documents, approvals, signatures, writes, administration, raw access, and client material are excluded.",
+  "provider": {
+    "websiteUrl": "https://ironcladapp.com/",
+    "docsUrl": "https://developer.ironcladapp.com/",
+    "developerConsoleUrl": "https://developer.ironcladapp.com/reference/register-oauth-client",
+    "termsUrl": "https://legal.ironcladapp.com/api-terms-of-use",
+    "privacyUrl": "https://ironcladapp.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["public.workflows.readSchemas"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "{IRONCLAD_API_ORIGIN}/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_oauth_client_credentials",
+      "exact_resource_scope",
+      "exact_environment_binding",
+      "exact_as_user_binding",
+      "api_add_on",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "IRONCLAD_API_ORIGIN",
+        "label": "Ironclad environment origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact HTTPS origin shown by the customer Ironclad environment, such as https://na1.ironcladapp.com."
+      },
+      {
+        "name": "IRONCLAD_CLIENT_ID",
+        "label": "Ironclad OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use a dedicated customer-owned client-credentials app registered with only public.workflows.readSchemas."
+      },
+      {
+        "name": "IRONCLAD_CLIENT_SECRET",
+        "label": "Ironclad OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Store the one-time customer-owned client secret only through Relay's encrypted connection flow."
+      },
+      {
+        "name": "IRONCLAD_AS_USER_ID",
+        "label": "Ironclad as-user ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind all requests to one exact authorized Ironclad user or service-account ID whose permissions limit returned schemas."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workflow_schema_metadata_list",
+      "label": "List workflow schema metadata",
+      "description": "List bounded workflow schema IDs and names without launch-form fields or private contract configuration.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "ironclad_workflow_schemas_list",
+        "label": "List workflow schema metadata",
+        "description": "List at most 50 strictly projected workflow schema IDs and names with exact read-only authority."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "ironclad_private_schema_data",
+        "label": "Access private schema data",
+        "description": "Launch-form fields, attributes, formulas, entity mappings, values, questions, approval rules, signing configuration, and raw schema bodies are blocked."
+      },
+      {
+        "id": "ironclad_contract_data",
+        "label": "Access contract or workflow data",
+        "description": "Workflows, records, entities, obligations, contract metadata, documents, attachments, PDFs, DOCX files, people, approvals, signatures, and audit data are blocked."
+      },
+      {
+        "id": "ironclad_mutation_admin",
+        "label": "Mutate or administer Ironclad",
+        "description": "Workflow and record creation or changes, approvals, signatures, uploads, exports, webhooks, SCIM, users, groups, integrations, OAuth clients, credentials, and account administration are blocked."
+      },
+      {
+        "id": "ironclad_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, arbitrary queries, filters, search, pagination, polling, retries, batches, downloads, exports, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "ironclad_schema_read_only",
+      "label": "Read-only workflow schema metadata",
+      "description": "One fixed workflow-schema metadata read runs with exact public.workflows.readSchemas authority and one bound as-user identity.",
+      "defaultSelected": true,
+      "allowedActions": ["ironclad_workflow_schemas_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "ironclad_private_schema_data",
+        "ironclad_contract_data",
+        "ironclad_mutation_admin",
+        "ironclad_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Exact scope, environment and user binding, client secrecy, fixed routes, strict projection, bounds, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["ironclad_workflow_schemas_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "ironclad_private_schema_data",
+        "ironclad_contract_data",
+        "ironclad_mutation_admin",
+        "ironclad_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges six-hour exact-scope tokens and confines them to one fixed strictly projected workflow-schema read."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges six-hour exact-scope tokens and confines them to one fixed strictly projected workflow-schema read."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Ironclad API access requires the API add-on and a customer administrator to register a confidential client. The client secret is displayed once, environments vary by customer, and client-credential resource requests must name an authorized as-user identity. No account, add-on, OAuth client, secret, user binding, live provider session, Railway change, or production acceptance is available in this worker task.",
+    "nextAction": "An authorized Ironclad administrator enables the API add-on, registers a dedicated customer-owned client-credentials app with only public.workflows.readSchemas, captures its one-time secret, selects the exact production or purchased sandbox origin, and supplies one least-privilege as-user ID through Relay's encrypted connection flow. They then separately validate token health, exact-scope rejection, schema redaction, user-permission filtering, rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.ironcladapp.com/reference/client-credentials-grant",
+      "checkedAt": "2026-07-17",
+      "supports": "Ironclad documents customer client credentials, exact resource scopes, six-hour Bearer tokens without refresh tokens, environment-specific token origins, and mandatory x-as-user-id or x-as-user-email permission scoping."
+    },
+    {
+      "url": "https://developer.ironcladapp.com/reference/list-all-workflow-schemas",
+      "checkedAt": "2026-07-17",
+      "supports": "Ironclad documents GET /public/api/v1/workflow-schemas with required form=launch, public.workflows.readSchemas, and as-user permission context."
+    },
+    {
+      "url": "https://support.ironcladapp.com/hc/en-us/articles/12278082472855-Ironclad-s-Public-API-Overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Ironclad describes its workflow, record, and webhook API families, requires customer API enablement, and warns that tokens must be treated like passwords; Relay selects only redacted schema identifiers."
+    }
+  ]
+}

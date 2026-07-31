@@ -1,0 +1,164 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-ad-manager",
+  "name": "Google Ad Manager",
+  "category": "marketing",
+  "description": "Google Ad Manager is a publisher ad-serving platform for inventory, orders, line items, creatives, placements, programmatic demand, reports, users, teams, and revenue operations.",
+  "agentUseSummary": "Google Ad Manager cannot yet be connected through Relay. A network administrator must enable API access and accept its terms, and Relay's OAuth client must be authorized by an active Ad Manager user whose roles and teams bound every operation. Relay exposes no network, inventory, order, campaign, creative, reporting, revenue, live-stream, or access-management authority until representative acceptance passes.",
+  "provider": {
+    "websiteUrl": "https://admanager.google.com/",
+    "docsUrl": "https://developers.google.com/ad-manager/api/beta/reference/rest",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials",
+    "termsUrl": "https://developers.google.com/ad-manager/terms",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://www.googleapis.com/auth/admanager.readonly",
+      "https://www.googleapis.com/auth/admanager",
+      "https://www.googleapis.com/auth/dfp"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token",
+    "revocationUrl": "https://oauth2.googleapis.com/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_google_oauth_client",
+      "oauth2_web_application_user_flow",
+      "network_admin_api_enablement_and_terms",
+      "network_code_boundary",
+      "ad_manager_user_role_and_team_permissions",
+      "rest_v1_beta_read_and_selected_write_surface",
+      "versioned_soap_surface_for_remaining_operations",
+      "readonly_first_scope_upgrade_model"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-ad-manager/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "network_inventory_and_delivery_read",
+      "label": "Read network and delivery data",
+      "description": "After acceptance, read bounded network, inventory, placement, order, line-item, programmatic, user, team, delivery, revenue and related metadata visible to the authorized user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "reports_run",
+      "label": "Run Ad Manager reports",
+      "description": "After acceptance, create or run bounded reports and fetch rows with dimension, metric, date, privacy, aggregation and export controls.",
+      "defaultSelected": true
+    },
+    {
+      "id": "inventory_and_placements_manage",
+      "label": "Manage inventory and placements",
+      "description": "After write acceptance, create or change specifically selected ad units, placements, labels, targeting and inventory state under explicit confirmation.",
+      "defaultSelected": false
+    },
+    {
+      "id": "orders_line_items_and_creatives_manage",
+      "label": "Manage campaigns and creatives",
+      "description": "After financial and serving acceptance, create or change selected orders, line items, goals, rates, budgets, targeting, creatives and serving state under explicit confirmation.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "google_ad_manager_connect_before_acceptance",
+        "label": "Connect before network acceptance",
+        "description": "Relay has no enabled representative network, accepted API terms, verified OAuth client, network code, or tested user-role and team boundary."
+      },
+      {
+        "id": "google_ad_manager_reads_before_acceptance",
+        "label": "Read Ad Manager data",
+        "description": "Networks, inventory, audiences, orders, line items, creatives, users, reports, buyers, deals, revenue, devices and delivery data remain unavailable."
+      },
+      {
+        "id": "google_ad_manager_inventory_and_campaign_mutations",
+        "label": "Change inventory or campaigns",
+        "description": "Creating, updating, activating, archiving, approving, pausing, cancelling, deleting, targeting, trafficking, or serving inventory and campaigns is blocked."
+      },
+      {
+        "id": "google_ad_manager_financial_and_live_mutations",
+        "label": "Change financial or live delivery state",
+        "description": "Rates, budgets, goals, invoices, revenue, programmatic deals, live-stream ad breaks, linked devices, and buyer or seller state are blocked."
+      },
+      {
+        "id": "google_ad_manager_access_raw_and_version_bypass",
+        "label": "Bypass access or API lifecycle controls",
+        "description": "User, role or team administration, cross-network calls, raw report exports, unsupported SOAP versions, arbitrary endpoints, session capture, and private-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "google_ad_manager_provider_review",
+      "label": "Provider and network review pending",
+      "description": "No Ad Manager action is enabled until Relay's OAuth client, network enablement, roles, teams and scopes are accepted and the complete read, reporting, campaign, financial, serving, versioning and revocation contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_ad_manager_connect_before_acceptance",
+        "google_ad_manager_reads_before_acceptance",
+        "google_ad_manager_inventory_and_campaign_mutations",
+        "google_ad_manager_financial_and_live_mutations",
+        "google_ad_manager_access_raw_and_version_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded Ad Manager tools after network and OAuth acceptance; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded Ad Manager tools after network and OAuth acceptance; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "An Ad Manager network administrator must enable API access, accept the API terms and save the network setting before calls can work. Google supports OAuth web applications acting on behalf of users and service accounts for a network's own automation. Product roles and teams constrain access. The current REST v1 beta has separate admanager.readonly and admanager scopes and exposes networks, inventory, placements, orders, line items, reports, programmatic and other resources; operations not yet covered require the versioned SOAP API and its broad dfp scope. SOAP versions follow a short deprecation and sunset cadence. This worker cannot create the Google OAuth client, enable a network, accept terms, grant access, capture credentials, run consent, create a test network, or test live ad serving.",
+    "nextAction": "The exclusive provider-console and acceptance task should configure Relay's verified OAuth web client and register https://api.relayconsole.work/api/v1/marketplace/oauth/google-ad-manager/callback. A representative network administrator must enable API access and accept terms, then provide a dedicated user with a minimal role and team. Start only with REST admanager.readonly and one network; full REST or legacy dfp authority requires a separate upgrade. Acceptance must verify network selection, roles and teams, report privacy and row limits, user and advertiser PII redaction, revenue access, filter and pagination stability, batch idempotency, forecasts, order and line-item rate and budget confirmation, targeting, creative validation, serving-state transitions, live ad-break safeguards, SOAP version alarms, token revocation, disconnect and cross-network denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://support.google.com/admanager/answer/3088588",
+      "checkedAt": "2026-07-17",
+      "supports": "Google requires an Ad Manager network Administrator to enable API access, accept the API terms and save the network setting."
+    },
+    {
+      "url": "https://developers.google.com/ad-manager/api/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Google requires OAuth2, supports web applications for any consenting Ad Manager user and service accounts for a network's own data, and documents one broad dfp scope for SOAP."
+    },
+    {
+      "url": "https://developers.google.com/ad-manager/api/beta/reference/rest",
+      "checkedAt": "2026-07-17",
+      "supports": "Google's REST v1 beta exposes networks, inventory, placements, orders, line items, reports, users, teams, programmatic, revenue and live-stream resources with read and selected mutation methods."
+    },
+    {
+      "url": "https://developers.google.com/ad-manager/api/beta/reference/rest/v1/networks.lineItems/get",
+      "checkedAt": "2026-07-17",
+      "supports": "The REST API documents separate admanager.readonly and admanager scopes, enabling a readonly-first authority model unavailable in the legacy SOAP scope."
+    },
+    {
+      "url": "https://developers.google.com/ad-manager/api/deprecation",
+      "checkedAt": "2026-07-17",
+      "supports": "Google publishes scheduled deprecation and sunset dates for each SOAP version and advises networks to monitor deprecated-version calls and upgrade regularly."
+    }
+  ]
+}

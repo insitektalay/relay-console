@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "leadiq",
+  "name": "LeadIQ",
+  "category": "crm_support",
+  "description": "LeadIQ is a B2B prospecting platform for finding, capturing and enriching professional contacts and companies, tracking sales signals and managing prospect lists.",
+  "agentUseSummary": "Connect a dedicated customer-owned LeadIQ API key. Agents can read only a reduced no-credit account-governance snapshot covering subscribed plans and Universal Credit usage; people and company data, enrichment, prospecting, lists, exports, feedback, provider-hosted MCP and raw API access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://leadiq.com/",
+    "docsUrl": "https://leadiqhelp.zendesk.com/hc/en-us/articles/29375289152795-LeadIQ-Public-API-Guide",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://leadiq.com/legal/terms-of-use",
+    "privacyUrl": "https://leadiq.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_base64_api_key",
+      "server_side_fixed_graphql_account_query",
+      "manual_provider_rotation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "LEADIQ_API_KEY",
+        "label": "LeadIQ API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated customer-owned Base64 API key from LeadIQ Settings. Relay encrypts it and permits only the fixed no-credit account query."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_usage_read",
+      "label": "Read account usage",
+      "description": "Read a reduced snapshot of subscribed plan status and Universal Credit balance without accessing people or company data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "leadiq_account_usage_get",
+        "label": "Read account usage",
+        "description": "Read the connected LeadIQ account's subscribed plans and Universal Credit usage without searching for or revealing people or company data."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "leadiq_people_company_data",
+        "label": "Block people and company data",
+        "description": "People and company search, enrichment, personal and professional contact details, employment, education, location, firmographics, technographics and funding data are unavailable."
+      },
+      {
+        "id": "leadiq_prospecting_lists_exports_and_feedback",
+        "label": "Block prospecting, lists, exports, and feedback",
+        "description": "Advanced prospecting, filters, job-change signals, lists, prospect creation, CSV export, CRM workflows, data feedback, outreach, batching and pagination are unavailable."
+      },
+      {
+        "id": "leadiq_mcp_admin_and_raw_access",
+        "label": "Block MCP, administration, and raw access",
+        "description": "Provider-hosted MCP, API-key management, Workato tokens, arbitrary GraphQL, introspection, raw REST, retries, browser sessions, platform credentials and unrestricted tools are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "leadiq_safe",
+      "label": "Safe",
+      "description": "The reduced no-credit account read runs automatically. People and company data, prospecting, lists, exports, feedback, MCP, administration and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["leadiq_account_usage_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "leadiq_people_company_data",
+        "leadiq_prospecting_lists_exports_and_feedback",
+        "leadiq_mcp_admin_and_raw_access"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same single bounded governance read runs without approval; the full-account API key never expands Relay's fixed GraphQL query.",
+      "defaultSelected": false,
+      "allowedActions": ["leadiq_account_usage_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "leadiq_people_company_data",
+        "leadiq_prospecting_lists_exports_and_feedback",
+        "leadiq_mcp_admin_and_raw_access"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly one parameterless no-credit account-governance read while Railway alone holds the customer API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly one parameterless no-credit account-governance read while Railway alone holds the customer API key."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An active customer LeadIQ account with API access, an authorized user, a dedicated Base64 API key, current terms/privacy review, Railway staging entry, live account-query schema validation, disconnect rotation and post-rotation denial remain for a separate authorized provider task.",
+    "nextAction": "An authorized provider task must confirm API entitlement and the governance-only purpose, review current terms and privacy policy, create a dedicated key in LeadIQ Settings, store it in Railway staging, and validate only the fixed account query against https://api.leadiq.com/graphql, parameter rejection, GraphQL error handling, reduced output, zero credit use, no people/company/profile data, no retries/pagination/MCP, encrypted-copy deletion, provider-side key rotation and post-rotation denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.leadiq.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "LeadIQ publishes a GraphQL API reference for account, people and company search, advanced search, lists and feedback at the fixed api.leadiq.com/graphql endpoint, with typed plan and usage fields."
+    },
+    {
+      "url": "https://leadiqhelp.zendesk.com/hc/en-us/articles/29375289152795-LeadIQ-Public-API-Guide",
+      "checkedAt": "2026-07-18",
+      "supports": "LeadIQ documents Base64 API-key authentication in the Basic Authorization header, a parameterless account query that consumes no credits, Universal Credit pricing for data fields, GraphQL errors, HTTP errors and separate prospect-list REST APIs."
+    },
+    {
+      "url": "https://leadiqhelp.zendesk.com/hc/en-us/articles/46186818771611-Using-the-LeadIQ-MCP-Connector-AI-Powered-Prospecting-Enrichment",
+      "checkedAt": "2026-07-18",
+      "supports": "LeadIQ documents a provider-hosted OAuth MCP with fifteen tools for people and company enrichment, advanced prospecting, account and usage, plus batch/session limits and credit-consuming paid tools. Relay blocks raw MCP and every personal-data tool."
+    },
+    {
+      "url": "https://leadiq.com/legal/terms-of-use",
+      "checkedAt": "2026-07-18",
+      "supports": "LeadIQ's current terms limit the service and data to authorized users and internal B2B sales, marketing or CRM use, require legal and privacy compliance and data security, prohibit credential sharing and third-party distribution, and govern applicable Orders and subscriptions."
+    },
+    {
+      "url": "https://leadiq.com/privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "LeadIQ's current privacy policy describes API and service processing, its professional profile directory, names, emails, phones, locations, employment, education and social profiles, data sources, customer use, individual rights and security responsibilities. Relay's V1 returns none of that profile data."
+    },
+    {
+      "url": "https://leadiq.com/privacy-center",
+      "checkedAt": "2026-07-18",
+      "supports": "LeadIQ provides access, correction, removal and sharing opt-out controls for people represented in its professional profile database."
+    }
+  ]
+}

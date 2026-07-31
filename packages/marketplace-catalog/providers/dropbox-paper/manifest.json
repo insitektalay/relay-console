@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "dropbox-paper",
+  "name": "Dropbox Paper",
+  "category": "knowledge_documents",
+  "description": "Dropbox Paper is a collaborative workspace for writing documents, coordinating projects, and gathering media, comments, and tasks in one place. Teams use it to create shared notes, plans, meeting records, briefs, and other living documents alongside Dropbox files.",
+  "agentUseSummary": "Connect a Dropbox account once, then let agents read or manage both legacy Paper documents and current .paper files under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.dropbox.com/paper",
+    "docsUrl": "https://developers.dropbox.com/paper-migration-guide",
+    "developerConsoleUrl": "https://www.dropbox.com/developers/apps",
+    "termsUrl": "https://www.dropbox.com/terms",
+    "privacyUrl": "https://www.dropbox.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["account_info.read", "files.metadata.read", "files.content.read", "files.content.write", "files.permanent_delete", "sharing.read", "sharing.write"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.dropbox.com/oauth2/authorize",
+    "tokenUrl": "https://api.dropboxapi.com/oauth2/token",
+    "revocationUrl": "https://api.dropboxapi.com/2/auth/token/revoke"
+  },
+  "connection": {
+    "types": ["oauth_connector"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/dropbox-paper/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "paper_read", "label": "Read Paper", "description": "Read account identity, storage mode, documents, exports, folders, members, and sharing metadata across legacy Paper and .paper files." },
+    { "id": "paper_write", "label": "Manage Paper", "description": "Create, update, archive, delete, share, and manage members for legacy Paper documents and current .paper files." }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "dropbox_paper_read", "label": "Read Dropbox Paper", "description": "Call one exact documented read route for legacy Paper or current .paper files." }
+    ],
+    "approvalRequired": [
+      { "id": "dropbox_paper_write", "label": "Manage Dropbox Paper", "description": "Call one exact documented mutation route; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "dropbox_paper_safe",
+      "label": "Safe",
+      "description": "Bounded Paper, file, folder, member, and sharing reads run directly; every create, update, share, membership, archive, delete, or permanent-delete operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["dropbox_paper_read"],
+      "approvalRequiredActions": ["dropbox_paper_write"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Dropbox-authorized Paper operation runs without Relay per-action approval; connection ownership, scopes, fixed origins, exact routes, bounds, audits, redaction, account authority, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["dropbox_paper_read", "dropbox_paper_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Dropbox Paper operations through the authenticated server-side connector." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Dropbox Paper operations through the authenticated server-side connector." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's production Dropbox scoped app, exact callback, Full Dropbox access, required scopes, app key, app secret, and production approval are not configured on Railway.",
+    "nextAction": "Create the Relay Console app in Dropbox App Console, register https://api.relayconsole.work/api/v1/marketplace/oauth/dropbox-paper/callback, select Full Dropbox, grant the seven required scopes, configure DROPBOX_PAPER_CLIENT_ID and DROPBOX_PAPER_CLIENT_SECRET on Railway, then complete OAuth, refresh, dual-storage reads, approved or Dangerous mutations, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.dropbox.com/paper-migration-guide",
+      "checkedAt": "2026-07-14",
+      "supports": "Dropbox documents the ongoing migration from legacy Paper routes to .paper files and maps every Paper operation to Files and Sharing API equivalents while requiring both surfaces for complete account coverage."
+    },
+    {
+      "url": "https://developers.dropbox.com/oauth-guide",
+      "checkedAt": "2026-07-14",
+      "supports": "Dropbox documents Relay-owned OAuth code flow, exact redirect registration, scoped Full Dropbox access, offline refresh tokens, and one shared app that end users authorize."
+    },
+    {
+      "url": "https://dropbox.github.io/dropbox-sdk-js/Dropbox.html",
+      "checkedAt": "2026-07-14",
+      "supports": "Dropbox's official SDK reference documents the legacy Paper, Files Paper, file, sharing, account, and feature routes and their required scopes."
+    },
+    {
+      "url": "https://developers.dropbox.com/dbx-file-access-guide",
+      "checkedAt": "2026-07-14",
+      "supports": "Dropbox documents Paper as an online-only file that must be exported rather than downloaded through the current Files API."
+    }
+  ]
+}

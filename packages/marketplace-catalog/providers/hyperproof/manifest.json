@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "hyperproof",
+  "name": "Hyperproof",
+  "category": "developer",
+  "description": "Hyperproof is a governance, risk, and compliance operations platform for controls, proofs, programs, policies, risks, vendors, questionnaires, tasks, issues, audits, access reviews, and automated compliance workflows.",
+  "agentUseSummary": "Add a customer-owned service-account API client for a standard US Hyperproof organization with the User role and only control.read scope. Selected agents can read minimized status metadata for one exact control UUID; Relay blocks broad lists, proofs, people, non-US instances, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://hyperproof.io/",
+    "docsUrl": "https://developer.hyperproof.app/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://hyperproof.io/terms-of-service/",
+    "privacyUrl": "https://hyperproof.io/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["control.read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://accounts.hyperproof.app/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "oauth_client_credentials",
+      "customer_owned_service_account",
+      "fixed_us_origin",
+      "control_read_scope",
+      "single_resource_read"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "HYPERPROOF_CLIENT_ID",
+        "label": "Hyperproof service-account client ID",
+        "required": true,
+        "secret": true,
+        "helpText": "Customer-created service-account API client for a standard US organization, assigned the User role and only control.read scope."
+      },
+      {
+        "name": "HYPERPROOF_CLIENT_SECRET",
+        "label": "Hyperproof service-account client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Expiring client secret stored encrypted and submitted only to Hyperproof's fixed US token endpoint."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "compliance_control_read",
+      "label": "Read compliance controls",
+      "description": "Read minimized status metadata for one exact control from a standard US Hyperproof organization.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "hyperproof_read",
+        "label": "Read one compliance control",
+        "description": "Return minimized identifier, name, and status metadata for one exact Hyperproof control UUID."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "hyperproof_manage",
+        "label": "Access sensitive records or change Hyperproof",
+        "description": "Control descriptions, notes, owners, permissions, proofs and contents, people, programs, policies, risks, vendors, questionnaires, custom apps, broad lists, EU or Gov instances, and every mutation are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "hyperproof_safe",
+      "label": "Safe",
+      "description": "One exact control-status read runs directly; broad lists, sensitive fields, proofs, people, non-US instances, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["hyperproof_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["hyperproof_manage"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges the customer service credentials at fixed US endpoints and exposes one exact control-status read."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges the customer service credentials at fixed US endpoints and exposes one exact control-status read."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer has supplied a standard-US Hyperproof service-account client restricted to the User role and only control.read scope, an exact non-production control UUID, and representative response data for acceptance. Hyperproof documents separate EU and Gov API origins but does not publish their matching token endpoints on the reviewed public instance page.",
+    "nextAction": "A Hyperproof administrator for a standard US organization creates a dedicated service-account API client with the User role and only control.read, sets an expiration, stores the client ID and secret through Relay's encrypted credential flow, and validates token issuance, the one exact control read, minimization, denied list/write/proof/people access, secret rotation, deletion, disconnect, and post-disconnect denial in non-production. Keep EU and Gov instances blocked until both API and token origins are documented and tested."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.hyperproof.app/",
+      "checkedAt": "2026-07-18",
+      "supports": "Hyperproof's developer portal publishes its supported REST API families and explicitly rejects UI reverse engineering or browser automation as an integration method."
+    },
+    {
+      "url": "https://help.hyperproof.app/en/articles/14303855-hyperproof-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Hyperproof's current API inventory documents the fixed GET /v1/controls/{controlId} endpoint alongside broad read and mutating APIs that Relay excludes."
+    },
+    {
+      "url": "https://docs.hyperproof.io/admin/en/authentication-and-security/enabling-m2m-api-authentication.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Hyperproof documents administrator-created service-account API clients, selectable scopes, the least-privileged User role, expiring secrets, multiple secrets for rotation, and administrative deletion."
+    },
+    {
+      "url": "https://developer.hyperproof.app/hyperproof-api/api-002.1-oauth-auth-code-flow",
+      "checkedAt": "2026-07-18",
+      "supports": "Hyperproof documents the fixed US token endpoint, server-side form-encoded token exchange, Bearer API authentication, and the exact control.read scope."
+    },
+    {
+      "url": "https://help.hyperproof.app/en/articles/14303850-hyperproof-instances",
+      "checkedAt": "2026-07-18",
+      "supports": "Hyperproof documents separate US, EU, and Gov API origins; Relay pins only the reviewed standard-US API and token origins rather than accepting arbitrary hosts."
+    }
+  ]
+}

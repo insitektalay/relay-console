@@ -1,0 +1,1018 @@
+import AppKit
+import RelayConsoleCore
+import SwiftUI
+import UniformTypeIdentifiers
+
+struct SettingsScreen: View {
+  @EnvironmentObject var model: AppViewModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      ScrollView {
+        switch model.settingsPanel {
+        case .account:
+          AccountSettingsPanel()
+        case .cloud:
+          CloudRelaySettingsPanel()
+        case .appearance:
+          AppearanceSettingsPanel()
+        case .workspace:
+          WorkspaceSettingsPanel()
+        case .team:
+          TeamMembersSettingsPanel()
+        case .integrations:
+          IntegrationsSettingsPanel()
+        case .notifications:
+          NotificationsSettingsPanel()
+        case .security:
+          SecuritySettingsPanel()
+        case .harnesses:
+          HarnessesPanel()
+        case .runtime:
+          RuntimeExperienceSettingsPanel()
+        }
+      }
+      .frame(maxWidth: 760, alignment: .leading)
+      .padding(24)
+    }
+  }
+}
+
+struct AccountSettingsPanel: View {
+  @EnvironmentObject var model: AppViewModel
+  @State private var avatarCropSource: AvatarCropSource?
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      NativeGroupedSection(
+        title: "Profile", subtitle: "Shown in chats and reports.",
+        showsDivider: false
+      ) {
+        VStack(alignment: .leading, spacing: 18) {
+          VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .center, spacing: 12) {
+              AgentAvatarView(
+                name: model.profileName, avatarURL: model.userProfile.avatarUrl, size: 78)
+              VStack(alignment: .leading, spacing: 8) {
+                Button {
+                  model.uploadAvatar { avatarCropSource = AvatarCropSource(dataURL: $0) }
+                } label: {
+                  Image(systemName: "pencil")
+                }
+                .buttonStyle(IconLightButtonStyle())
+                .help("Upload avatar")
+                .accessibilityLabel("Upload avatar")
+
+                Button {
+                  model.userProfile.avatarUrl = nil
+                  model.scheduleAccountSettingsSave(immediately: true)
+                } label: {
+                  Image(systemName: "trash")
+                }
+                .buttonStyle(IconLightButtonStyle())
+                .disabled(model.userProfile.avatarUrl == nil)
+                .help("Remove avatar")
+                .accessibilityLabel("Remove avatar")
+              }
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+              TextField("Display name", text: $model.userProfile.displayName)
+                .textFieldStyle(.plain)
+                .rcTextFieldChrome(height: 38)
+                .onChange(of: model.userProfile.displayName) { _, _ in
+                  model.scheduleAccountSettingsSave()
+                }
+            }
+          }
+
+          VStack(alignment: .leading, spacing: 12) {
+            Text("Privacy and diagnostics")
+              .font(.system(size: 13, weight: .semibold))
+
+            NativeSettingsRow(
+              title: "Share product analytics",
+              subtitle:
+                "Share basic usage data to help improve Relay. Messages, files, credentials, and URLs are never included.",
+              value: model.productAnalyticsAvailable && model.userProfile.telemetryEnabled
+                ? "On" : "Off"
+            ) {
+              Toggle(
+                "Share product analytics",
+                isOn: Binding(
+                  get: {
+                    model.productAnalyticsAvailable && model.userProfile.telemetryEnabled
+                  },
+                  set: { model.setProductAnalyticsEnabled($0) }
+                )
+              )
+              .labelsHidden()
+              .toggleStyle(.switch)
+              .disabled(!model.productAnalyticsAvailable)
+            }
+            if !model.productAnalyticsAvailable {
+              Text("Unavailable in this build")
+                .font(.caption)
+                .foregroundStyle(RCTheme.muted)
+            }
+
+            NativeDivider()
+
+            NativeSettingsRow(
+              title: "Share crash and error reports",
+              subtitle:
+                "Share crash and error data to help improve stability. Screenshots, messages, files, and email are never included.",
+              value: model.crashReportingAvailable && model.userProfile.crashReportingEnabled
+                ? "On" : "Off"
+            ) {
+              Toggle(
+                "Share crash and error reports",
+                isOn: Binding(
+                  get: {
+                    model.crashReportingAvailable && model.userProfile.crashReportingEnabled
+                  },
+                  set: { model.setCrashReportingEnabled($0) }
+                )
+              )
+              .labelsHidden()
+              .toggleStyle(.switch)
+              .disabled(!model.crashReportingAvailable)
+            }
+            if !model.crashReportingAvailable {
+              Text("Unavailable in this build")
+                .font(.caption)
+                .foregroundStyle(RCTheme.muted)
+            }
+          }
+          VStack(alignment: .leading, spacing: 8) {
+            if model.settingsStatus == "Profile updated" {
+              Text("Profile updated")
+                .font(.caption)
+                .foregroundStyle(RCTheme.accentGreen)
+            }
+          }
+        }
+      }
+    }
+    .onAppear {
+      model.disableUnavailableTelemetryPreferences()
+    }
+    .sheet(item: $avatarCropSource) { source in
+      AvatarCropEditor(source: source) {
+        avatarCropSource = nil
+      } onApply: { dataURL in
+        model.userProfile.avatarUrl = dataURL
+        model.scheduleAccountSettingsSave(immediately: true)
+        avatarCropSource = nil
+      }
+    }
+  }
+}
+
+struct AppearanceSettingsPanel: View {
+  @EnvironmentObject var model: AppViewModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      NativeGroupedSection(title: "Appearance") {
+        Picker("Theme", selection: $model.userProfile.theme) {
+          Text("Classic").tag("classic")
+        }
+        .pickerStyle(.segmented)
+        .frame(maxWidth: 320)
+        NativeDivider()
+        NativeSettingsRow(title: "Current theme", value: model.userProfile.theme.capitalized)
+        NativeDivider()
+        NativeSettingsRow(title: "Theme storage", value: "Durable local profile")
+        Button(model.busy == "save-appearance-settings" ? "Saving..." : "Save appearance") {
+          model.saveAppearanceSettings()
+        }
+        .buttonStyle(PrimaryLightButtonStyle())
+        .disabled(!model.appearanceSettingsCanSave)
+        .help(model.appearanceSettingsCanSave ? "Save appearance" : "Save appearance unavailable")
+        .accessibilityLabel("Save appearance")
+      }
+    }
+  }
+}
+
+struct WorkspaceSettingsPanel: View {
+  @EnvironmentObject var model: AppViewModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      NativeGroupedSection(title: "Workspace profile") {
+        TextField("Workspace name", text: $model.workspaceSettingsDraft.name)
+          .textFieldStyle(.plain)
+          .rcTextFieldChrome(height: 38)
+        Picker("Workspace type", selection: $model.workspaceSettingsDraft.workspaceType) {
+          Text("Personal").tag("personal")
+          Text("Business").tag("business")
+        }
+        .pickerStyle(.segmented)
+        .frame(maxWidth: 320)
+        Text("Update the name your team sees across chats, reports, and shared workspace views.")
+          .font(.caption)
+          .foregroundStyle(RCTheme.muted)
+        Button(model.busy == "save-workspace-settings" ? "Saving..." : "Save workspace") {
+          model.saveWorkspaceSettings()
+        }
+        .buttonStyle(PrimaryLightButtonStyle())
+        .disabled(!model.workspaceSettingsCanSave)
+        .help(model.workspaceSettingsCanSave ? "Save workspace" : "Save workspace unavailable")
+        .accessibilityLabel("Save workspace")
+        if model.settingsStatus == "Workspace updated" {
+          Text("Workspace updated")
+            .font(.caption)
+            .foregroundStyle(RCTheme.accentGreen)
+        }
+        NativeDivider()
+        NativeSettingsRow(title: "Organizations", value: "\(model.orgCompanies.count)")
+        NativeDivider()
+        NativeSettingsRow(title: "Departments", value: "\(model.orgDepartments.count)")
+        NativeDivider()
+        NativeSettingsRow(title: "Teams", value: "\(model.orgTeams.count)")
+        NativeDivider()
+        NativeSettingsRow(title: "Agents", value: "\(model.agents.count)")
+        NativeDivider()
+        NativeSettingsRow(
+          title: "Workspace type", value: model.workspace?.workspaceType ?? "personal")
+        NativeDivider()
+        NativeSettingsRow(
+          title: "Current name", value: model.workspace?.name ?? "Choose a workspace")
+        StatusBadge(
+          title: "Read-only", tone: .amber, accessibilityLabelText: "Workspace settings read-only")
+      }
+    }
+  }
+}
+
+struct TeamMembersSettingsPanel: View {
+  @EnvironmentObject var model: AppViewModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      FormCard {
+        Text("Structure")
+          .font(.headline)
+        Text("Manage organizations, departments, teams, and agent assignments in Agents.")
+          .font(.callout)
+          .foregroundStyle(RCTheme.muted)
+        Button("Open structure") {
+          model.selectNav(.agents)
+          model.selectAgentSubview(.structure)
+        }
+        .buttonStyle(SecondaryLightButtonStyle())
+        .help("Open structure")
+        .accessibilityLabel("Open structure")
+      }
+      FormCard {
+        Text("People")
+          .font(.headline)
+        Text("Review the agents and members available to this workspace.")
+          .font(.callout)
+          .foregroundStyle(RCTheme.muted)
+        Button("Open agents") {
+          model.selectNav(.agents)
+          model.selectAgentSubview(.instructions)
+        }
+        .buttonStyle(SecondaryLightButtonStyle())
+        .help("Open agents")
+        .accessibilityLabel("Open agents")
+        Text(
+          "Team and member changes now live in Agents so settings stays focused on account and workspace preferences."
+        )
+        .font(.caption)
+        .foregroundStyle(RCTheme.muted)
+      }
+    }
+    .padding(24)
+  }
+}
+
+struct IntegrationsSettingsPanel: View {
+  @EnvironmentObject var model: AppViewModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      FormCard {
+        HStack(alignment: .top, spacing: 12) {
+          Image(systemName: "point.3.connected.trianglepath.dotted")
+            .frame(width: 34, height: 34)
+            .foregroundStyle(RCTheme.accentBlue)
+            .background(RCTheme.accentBlue.opacity(0.12))
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+          VStack(alignment: .leading, spacing: 10) {
+            HStack {
+              Text("Workspace integrations")
+                .font(.headline)
+              Spacer()
+              StatusBadge(
+                title: model.settingsIntegrationSummary?.readOnly == true
+                  ? "Read-only" : "Admin setup",
+                tone: model.settingsIntegrationSummary?.readOnly == true ? .amber : .green,
+                accessibilityLabelText: "Integration setup state"
+              )
+            }
+            IntegrationSummaryGrid(summary: model.settingsIntegrationSummary)
+            HStack {
+              Button(model.busy == "settings-integration-retry" ? "Checking..." : "Try again") {
+                model.retrySettingsIntegrationSummary()
+              }
+              .buttonStyle(SecondaryLightButtonStyle())
+              .disabled(model.busy == "settings-integration-retry")
+              .help("Try again")
+              .accessibilityLabel("Try again")
+              StatusBadge(
+                title: "Paperclip excluded", tone: .neutral,
+                accessibilityLabelText: "Paperclip excluded")
+            }
+          }
+        }
+      }
+      FormCard {
+        Text("Native harnesses")
+          .font(.headline)
+        if let summary = model.settingsIntegrationSummary {
+          ForEach(summary.harnesses, id: \.harnessKey) { harness in
+            SettingsHarnessSummaryRow(harness: harness)
+          }
+        } else {
+          Text("Harness state has not loaded yet.")
+            .font(.callout)
+            .foregroundStyle(RCTheme.muted)
+        }
+      }
+    }
+    .padding(24)
+  }
+}
+
+struct IntegrationSummaryGrid: View {
+  var summary: SettingsIntegrationSummary?
+
+  var body: some View {
+    LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: 10)], spacing: 10) {
+      SettingsStatTile(
+        title: "Providers",
+        value: "\(summary?.providerConnectionCount ?? 0)"
+      )
+      SettingsStatTile(
+        title: "Keychain refs",
+        value: "\(summary?.providerSecretReferenceCount ?? 0)"
+      )
+      SettingsStatTile(
+        title: "Installs",
+        value: "\(summary?.marketplaceInstallCount ?? 0)"
+      )
+      SettingsStatTile(
+        title: "Needed tools",
+        value: "\(summary?.neededToolsOpenCount ?? 0)"
+      )
+    }
+    SettingsInfoRow(
+      label: "Provider state", value: summary?.providerState.map(snapshotLabel) ?? "Not loaded")
+    SettingsInfoRow(
+      label: "Marketplace state",
+      value: summary?.marketplaceState.map(snapshotLabel) ?? "Not loaded")
+    SettingsInfoRow(label: "Secrets policy", value: "Secret references only")
+  }
+
+  private func snapshotLabel<T: RawRepresentable>(_ value: T) -> String where T.RawValue == String {
+    value.rawValue
+      .replacingOccurrences(of: "_", with: " ")
+      .capitalized
+  }
+}
+
+struct SettingsHarnessSummaryRow: View {
+  var harness: SettingsHarnessSummary
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(alignment: .top, spacing: 10) {
+        Image(systemName: harness.harnessKey == .openclaw ? "bolt.horizontal.circle" : "terminal")
+          .frame(width: 28, height: 28)
+          .foregroundStyle(RCTheme.accentBlue)
+          .background(RCTheme.accentBlue.opacity(0.10))
+          .clipShape(RoundedRectangle(cornerRadius: 4))
+        VStack(alignment: .leading, spacing: 4) {
+          Text(harness.displayName)
+            .font(.callout.weight(.semibold))
+          Text(harness.lastError ?? "No current error")
+            .font(.caption)
+            .foregroundStyle(RCTheme.muted)
+            .lineLimit(2)
+        }
+        Spacer()
+        StatusBadge(
+          title: harness.lifecycleState.rawValue.replacingOccurrences(of: "_", with: " "),
+          tone: harness.lifecycleState == .connected ? .green : .amber,
+          accessibilityLabelText: "\(harness.displayName) lifecycle"
+        )
+      }
+      HStack(spacing: 8) {
+        StatusBadge(
+          title: harness.modelAuthStatus.rawValue.replacingOccurrences(of: "_", with: " "),
+          tone: harness.modelAuthStatus == .connected ? .green : .amber,
+          accessibilityLabelText: "\(harness.displayName) auth"
+        )
+        StatusBadge(
+          title: harness.source.rawValue,
+          tone: harness.source == .missing ? .amber : .blue,
+          accessibilityLabelText: "\(harness.displayName) source"
+        )
+        if harness.secretReferencePresent {
+          StatusBadge(
+            title: "Secret ref", tone: .neutral,
+            accessibilityLabelText: "\(harness.displayName) secret reference")
+        }
+      }
+    }
+    .padding(.vertical, 8)
+    Divider()
+  }
+}
+
+struct NotificationsSettingsPanel: View {
+  @EnvironmentObject var model: AppViewModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      FormCard {
+        HStack {
+          Text("In-app alerts")
+            .font(.headline)
+          Spacer()
+          StatusBadge(
+            title: "\(model.settingsUnreadAlertCount) unread",
+            tone: model.settingsUnreadAlertCount > 0 ? .amber : .green,
+            accessibilityLabelText: "Unread alerts")
+        }
+        Toggle(
+          "Show in-app alerts",
+          isOn: Binding(
+            get: { model.settingsNotificationPreferences?.inAppAlertsEnabled ?? true },
+            set: { model.saveNotificationPreferences(inAppAlertsEnabled: $0) }
+          )
+        )
+        .toggleStyle(.checkbox)
+        Toggle(
+          "Unread badge",
+          isOn: Binding(
+            get: { model.settingsNotificationPreferences?.unreadBadgeEnabled ?? true },
+            set: { model.saveNotificationPreferences(unreadBadgeEnabled: $0) }
+          )
+        )
+        .toggleStyle(.checkbox)
+        SettingsInfoRow(label: "Email delivery", value: "Unavailable")
+        SettingsInfoRow(label: "Mobile delivery", value: "Unavailable")
+        if model.settingsStatus == "Notification preferences updated" {
+          Text("Notification preferences updated")
+            .font(.caption)
+            .foregroundStyle(RCTheme.accentGreen)
+        }
+      }
+      FormCard {
+        HStack {
+          Text("Alerts")
+            .font(.headline)
+          Spacer()
+          Toggle(
+            "Unread only",
+            isOn: Binding(
+              get: { model.settingsAlertsUnreadOnly },
+              set: { model.setSettingsAlertsUnreadOnly($0) }
+            )
+          )
+          .toggleStyle(.checkbox)
+          Button {
+            model.markAllSettingsAlertsRead()
+          } label: {
+            Image(systemName: "checkmark.circle")
+          }
+          .buttonStyle(IconLightButtonStyle())
+          .disabled(model.settingsUnreadAlertCount == 0 || model.busy == "settings-alert-read-all")
+          .help("Mark all read")
+          .accessibilityLabel("Mark all read")
+        }
+        if model.settingsAlerts.isEmpty {
+          Text(model.settingsAlertsUnreadOnly ? "No unread alerts." : "No active alerts.")
+            .font(.callout)
+            .foregroundStyle(RCTheme.muted)
+        } else {
+          ForEach(model.settingsAlerts) { alert in
+            SettingsAlertRow(alert: alert)
+          }
+        }
+      }
+    }
+    .padding(24)
+  }
+}
+
+struct SettingsAlertRow: View {
+  @EnvironmentObject var model: AppViewModel
+  var alert: SettingsAlertRecord
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(alignment: .top, spacing: 10) {
+        Image(systemName: iconName)
+          .frame(width: 28, height: 28)
+          .foregroundStyle(tone.color)
+          .background(tone.background)
+          .clipShape(RoundedRectangle(cornerRadius: 4))
+        VStack(alignment: .leading, spacing: 4) {
+          Text(alert.title)
+            .font(.callout.weight(.semibold))
+          Text(alert.message)
+            .font(.caption)
+            .foregroundStyle(RCTheme.muted)
+            .fixedSize(horizontal: false, vertical: true)
+          HStack(spacing: 8) {
+            StatusBadge(
+              title: alert.severity.rawValue, tone: tone,
+              accessibilityLabelText: alert.severity.rawValue)
+            StatusBadge(
+              title: alert.category, tone: .neutral, accessibilityLabelText: alert.category)
+            if alert.readAt != nil {
+              StatusBadge(title: "Read", tone: .green, accessibilityLabelText: "Alert read")
+            }
+          }
+        }
+        Spacer()
+        if alert.readAt == nil {
+          Button {
+            model.markSettingsAlertRead(alert)
+          } label: {
+            Image(systemName: "checkmark")
+          }
+          .buttonStyle(IconLightButtonStyle())
+          .disabled(model.busy == "settings-alert-read")
+          .help("Mark read")
+          .accessibilityLabel("Mark read")
+        }
+      }
+      Divider()
+    }
+    .padding(.vertical, 8)
+  }
+
+  private var tone: ComponentTone {
+    switch alert.severity {
+    case .info:
+      return .blue
+    case .success:
+      return .green
+    case .warning:
+      return .amber
+    case .critical:
+      return .red
+    }
+  }
+
+  private var iconName: String {
+    switch alert.severity {
+    case .info:
+      return "info.circle"
+    case .success:
+      return "checkmark.circle"
+    case .warning:
+      return "exclamationmark.triangle"
+    case .critical:
+      return "xmark.octagon"
+    }
+  }
+}
+
+struct SecuritySettingsPanel: View {
+  @EnvironmentObject var model: AppViewModel
+  @State private var pendingCleanup: LocalDataCleanupKind?
+  @State private var cleanupConfirmation = ""
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      FormCard {
+        HStack(alignment: .top, spacing: 12) {
+          Image(systemName: "lock.shield")
+            .frame(width: 34, height: 34)
+            .foregroundStyle(RCTheme.accentGreen)
+            .background(RCTheme.accentGreen.opacity(0.12))
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+          VStack(alignment: .leading, spacing: 6) {
+            Text("Your data and security")
+              .font(.headline)
+            Text(
+              "Relay stores data locally on this Mac. Connected workspaces can also sync to Relay. Credentials are stored in macOS Keychain."
+            )
+            .font(.callout)
+            .foregroundStyle(RCTheme.muted)
+            .fixedSize(horizontal: false, vertical: true)
+          }
+        }
+      }
+      FormCard {
+        Text("Local data")
+          .font(.headline)
+        Text(
+          "Export a redacted copy of your local Relay data. Passwords and keys are never included."
+        )
+        .font(.callout)
+        .foregroundStyle(RCTheme.muted)
+        .fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: 10) {
+          Button(
+            model.busy == "write-local-account-export" ? "Exporting..." : "Export data..."
+          ) {
+            model.prepareLocalAccountExport()
+          }
+          .buttonStyle(PrimaryLightButtonStyle())
+          .disabled(model.busy == "write-local-account-export")
+          .help("Save a redacted local data export")
+          .accessibilityLabel("Export data")
+
+          Button("Delete local data...", role: .destructive) {
+            pendingCleanup = .resetLocalData
+            cleanupConfirmation = ""
+          }
+          .buttonStyle(SecondaryLightButtonStyle())
+          .disabled(model.busy != nil)
+          .help("Delete Relay data stored on this Mac")
+          .accessibilityLabel("Delete local data")
+        }
+        if model.settingsStatus == "Local export saved" {
+          Text("Local export saved")
+            .font(.caption)
+            .foregroundStyle(RCTheme.accentGreen)
+        }
+        if let export = model.settingsSecuritySummary?.latestExport {
+          SettingsInfoRow(label: "Latest export", value: export.status)
+          SettingsInfoRow(label: "Records", value: "\(export.recordCount)")
+          SettingsInfoRow(label: "Includes secrets", value: export.includesSecrets ? "Yes" : "No")
+        }
+      }
+      FormCard {
+        Text("Privacy choices")
+          .font(.headline)
+        Text(
+          "Product analytics and crash reporting are optional and independently controlled. Both start off."
+        )
+        .font(.callout)
+        .foregroundStyle(RCTheme.muted)
+        .fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: 10) {
+          Button("Review privacy choices") {
+            model.selectSettingsPanel(.account)
+          }
+          .buttonStyle(SecondaryLightButtonStyle())
+          .help("Open privacy and diagnostics choices")
+          .accessibilityLabel("Review privacy choices")
+
+          Link(
+            "Read privacy policy",
+            destination: URL(string: "https://relayconsole.work/privacy")!
+          )
+          .help("Open Relay’s privacy policy in your browser")
+          .accessibilityLabel("Read privacy policy")
+        }
+      }
+    }
+    .padding(24)
+    .sheet(item: $pendingCleanup) { kind in
+      VStack(alignment: .leading, spacing: 16) {
+        Text("Remove local Relay data?").font(.headline)
+        Text(
+          "This deletes Relay’s local profile, conversations, exports, caches, and Keychain references from this Mac, then quits. Hermes Agent, OpenClaw, runtime configuration, and files outside Relay’s managed data folder are preserved."
+        )
+        .font(.callout)
+        .foregroundStyle(RCTheme.muted)
+        .fixedSize(horizontal: false, vertical: true)
+        Text("This action cannot be undone. Type \(kind.confirmationPhrase) to continue.")
+          .font(.callout)
+          .foregroundStyle(RCTheme.muted)
+        TextField(kind.confirmationPhrase, text: $cleanupConfirmation)
+          .textFieldStyle(.roundedBorder)
+        HStack {
+          Spacer()
+          Button("Cancel") {
+            pendingCleanup = nil
+            cleanupConfirmation = ""
+          }
+          Button("Remove Data and Quit", role: .destructive) {
+            let confirmation = cleanupConfirmation
+            pendingCleanup = nil
+            cleanupConfirmation = ""
+            model.executeLocalDataCleanup(kind, confirmation: confirmation)
+          }
+          .disabled(cleanupConfirmation != kind.confirmationPhrase || model.busy != nil)
+        }
+      }
+      .padding(24)
+      .frame(width: 520)
+    }
+  }
+}
+
+struct SettingsUnavailablePanel: View {
+  var title: String
+  var message: String
+  var badge: String
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      FormCard {
+        HStack(alignment: .top, spacing: 12) {
+          Image(systemName: "lock.shield")
+            .frame(width: 34, height: 34)
+            .foregroundStyle(RCTheme.accentAmber)
+            .background(RCTheme.accentAmber.opacity(0.12))
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+          VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+              .font(.headline)
+            Text(message)
+              .font(.callout)
+              .foregroundStyle(RCTheme.muted)
+              .fixedSize(horizontal: false, vertical: true)
+            StatusBadge(title: badge, tone: .amber, accessibilityLabelText: title)
+          }
+        }
+      }
+      .padding(24)
+    }
+  }
+}
+
+struct SettingsInfoRow: View {
+  var label: String
+  var value: String
+
+  var body: some View {
+    HStack {
+      Text(label)
+        .font(.caption)
+        .foregroundStyle(RCTheme.muted)
+      Spacer()
+      Text(value)
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(RCTheme.text)
+    }
+  }
+}
+
+struct SettingsStatTile: View {
+  var title: String
+  var value: String
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      Text(value)
+        .font(.headline)
+      Text(title)
+        .font(.caption)
+        .foregroundStyle(RCTheme.muted)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(10)
+    .background(RCTheme.sidebarSurface)
+    .clipShape(RoundedRectangle(cornerRadius: 4))
+    .overlay(RoundedRectangle(cornerRadius: 4).stroke(RCTheme.borderSoft))
+  }
+}
+
+struct HarnessesPanel: View {
+  @EnvironmentObject var model: AppViewModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      Text("Relay connects to runtimes that you install and manage.")
+        .font(.callout)
+        .foregroundStyle(RCTheme.muted)
+      ForEach(model.records) { record in
+        HarnessCard(record: record)
+      }
+    }
+    .padding(24)
+  }
+}
+
+struct RuntimeExperienceSettingsPanel: View {
+  @EnvironmentObject var model: AppViewModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      NativeGroupedSection(
+        title: "Runtime experience",
+        subtitle: "Choose how agents run and which actions require approval."
+      ) {
+        NativeSettingsRow(
+          title: "Conversation start",
+          subtitle: "Agents start when you send a message.",
+          value: "Automatic"
+        )
+        NativeDivider()
+        NativeSettingsRow(
+          title: "Action approvals",
+          subtitle: "Agents can use the internet and access files without asking.",
+          value: composerApprovalModeTitle(model.runtimeApprovalMode)
+        )
+        NativeDivider()
+        NativeSettingsRow(
+          title: "Technical activity",
+          subtitle: "Show technical activity in chat.",
+          value: model.runtimeActivityDetailEnabled ? "Detailed" : "Compact"
+        ) {
+          Toggle(
+            "Technical activity",
+            isOn: Binding(
+              get: { model.runtimeActivityDetailEnabled },
+              set: { model.setRuntimeActivityDetailEnabled($0) }
+            )
+          )
+          .labelsHidden()
+          .toggleStyle(.switch)
+        }
+        NativeDivider()
+        NativeSettingsRow(
+          title: "Storage",
+          subtitle: "Stored locally on this Mac"
+        ) {
+          Button("Manage data") {
+            model.selectSettingsPanel(.security)
+          }
+          .buttonStyle(SecondaryLightButtonStyle())
+        }
+        if model.settingsStatus == "Runtime preferences updated" {
+          Text("Runtime preferences updated")
+            .font(.caption)
+            .foregroundStyle(RCTheme.accentGreen)
+            .padding(.top, 8)
+        }
+      }
+    }
+  }
+}
+
+struct HarnessCard: View {
+  @EnvironmentObject var model: AppViewModel
+  let record: HarnessInstallRecord
+  @State private var showLegacyRemovalConfirmation = false
+
+  var body: some View {
+    FormCard {
+      HStack(spacing: 12) {
+        RuntimeBrandIconView(runtimeType: runtimeType, size: 44)
+          .help(record.displayName)
+          .accessibilityLabel(record.displayName)
+        VStack(alignment: .leading, spacing: 4) {
+          Text(record.displayName).font(.headline)
+          if let summary = runtimeSummary {
+            Text(summary).font(.caption).foregroundStyle(RCTheme.muted)
+          }
+        }
+        Spacer()
+        StatusBadge(
+          title: runtimeConnectionLabel(record),
+          tone: runtimeConnectionTone(record),
+          accessibilityLabelText:
+            "\(record.displayName) status \(runtimeConnectionLabel(record))"
+        )
+      }
+      if record.source != .missing {
+        HStack(spacing: 8) {
+          StatusBadge(
+            title: runtimeCompatibilityLabel(record),
+            tone: runtimeCompatibilityTone(record),
+            accessibilityLabelText:
+              "\(record.displayName) compatibility \(runtimeCompatibilityLabel(record))"
+          )
+          Text(runtimeVersionSummary(record))
+            .font(.caption)
+            .foregroundStyle(RCTheme.muted)
+        }
+        if let location = runtimeLocation {
+          Text(location)
+            .font(.caption2.monospaced())
+            .foregroundStyle(RCTheme.muted)
+            .lineLimit(2)
+            .textSelection(.enabled)
+        }
+      }
+      HStack {
+        if record.lifecycleState == .connected && record.modelAuthStatus == .connected {
+          if !hasUsableAgent {
+            Text(noAgentMessage)
+              .font(.caption)
+              .foregroundStyle(RCTheme.muted)
+            Button("Create Agent") {
+              model.beginCreateAgent(type: record.harnessKey)
+            }
+            .buttonStyle(SecondaryLightButtonStyle())
+            .help("Create Agent")
+            .accessibilityLabel("Create Agent")
+          }
+          Button("Change location…") {
+            model.connectExistingHarness(record)
+          }
+          .buttonStyle(SecondaryLightButtonStyle())
+          .disabled(model.busy != nil)
+        } else if record.source == .missing {
+          Button(record.harnessKey == .openclaw ? "Connect OpenClaw" : "Connect Hermes Agent") {
+            model.connectExistingHarness(record)
+          }
+          .buttonStyle(PrimaryLightButtonStyle())
+          .disabled(model.busy != nil)
+        } else {
+          Button(model.busy == "check-\(record.harnessKey.rawValue)" ? "Checking..." : "Re-check") {
+            model.recheckHarness(record)
+          }
+          .buttonStyle(PrimaryLightButtonStyle())
+          .disabled(model.busy != nil)
+          Button("Change location…") {
+            model.connectExistingHarness(record)
+          }
+          .buttonStyle(SecondaryLightButtonStyle())
+          .disabled(model.busy != nil)
+        }
+        Spacer()
+      }
+      Link(
+        "Official install guide",
+        destination: URL(
+          string: record.harnessKey == .hermes
+            ? "https://hermes-agent.nousresearch.com/docs/"
+            : "https://docs.openclaw.ai/install")!
+      )
+      .font(.caption)
+      Link(
+        "Bridge plugin guide · Preview",
+        destination: URL(
+          string:
+            "https://github.com/insitektalay/relay-console-bridge-plugins/blob/main/docs/INSTALL.md")!
+      )
+      .font(.caption)
+      if record.source == .managed {
+        VStack(alignment: .leading, spacing: 8) {
+          Text(
+            "Previous Relay-managed installation detected. Keep it temporarily, use Change location… to connect an installation you manage, or remove only the old runtime source below."
+          )
+          .font(.caption)
+          .foregroundStyle(RCTheme.accentAmber)
+          Button("Remove Old Relay-Managed Runtime…", role: .destructive) {
+            showLegacyRemovalConfirmation = true
+          }
+          .buttonStyle(SecondaryLightButtonStyle())
+          .disabled(model.busy != nil)
+        }
+        .padding(10)
+        .background(RCTheme.accentAmber.opacity(0.10))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .confirmationDialog(
+          "Remove the old Relay-managed \(record.displayName) source?",
+          isPresented: $showLegacyRemovalConfirmation,
+          titleVisibility: .visible
+        ) {
+          Button("Remove Old Runtime Source", role: .destructive) {
+            model.removeLegacyManagedHarness(record)
+          }
+          Button("Cancel", role: .cancel) {}
+        } message: {
+          Text(
+            "Relay Console removes only its old runtime source folder. Conversations, agents, workspaces, runtime-created state, and credentials are kept. Install \(record.displayName) yourself and use Connect Existing to continue."
+          )
+        }
+      }
+    }
+  }
+
+  private var hasUsableAgent: Bool {
+    model.usableAgents.contains { $0.harness.id == record.harnessId }
+  }
+
+  private var noAgentMessage: String {
+    record.harnessKey == .openclaw
+      ? "Create an OpenClaw agent to chat." : "Create a Hermes agent to chat."
+  }
+
+  private var runtimeType: RuntimeType {
+    record.harnessKey == .openclaw ? .openclaw : .hermes
+  }
+
+  private var runtimeSummary: String? {
+    if record.source == .missing {
+      return record.harnessKey == .openclaw
+        ? "Connect an existing OpenClaw installation."
+        : "Connect an existing Hermes Agent installation."
+    }
+    if record.lifecycleState == .connected, record.modelAuthStatus == .connected {
+      return nil
+    }
+    return statusMessage(record)
+  }
+
+  private var runtimeLocation: String? {
+    record.selectedLocalPath?.nilIfEmpty ?? record.installPath?.nilIfEmpty
+  }
+
+}

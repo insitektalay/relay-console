@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "atlassian-rovo",
+  "name": "Atlassian Rovo",
+  "category": "work_management",
+  "description": "Atlassian Rovo provides AI-powered search and work across Jira, Confluence, Compass, Jira Service Management, Bitbucket, Rovo, and the Teamwork Graph through Atlassian's hosted MCP server.",
+  "agentUseSummary": "Connect a scoped Atlassian service account API key, then let agents discover and use the exact Rovo MCP tools granted by the organization under Safe or Dangerously skip permissions policy.",
+  "provider": {
+    "websiteUrl": "https://www.atlassian.com/software/rovo",
+    "docsUrl": "https://developer.atlassian.com/cloud/rovo-mcp/",
+    "developerConsoleUrl": "https://admin.atlassian.com/",
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "remote_mcp_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["mcp"],
+    "credentialRequirements": [
+      {
+        "name": "ATLASSIAN_ROVO_SERVICE_ACCOUNT_API_KEY",
+        "label": "Atlassian service account API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a scoped Atlassian service account API key after an organization admin enables API-token authentication for Rovo MCP."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "discovery",
+      "label": "Tool discovery",
+      "description": "Discover tools granted by the Atlassian organization and service account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "read_tools",
+      "label": "Read tools",
+      "description": "Call discovered Atlassian Rovo tools classified as read-only.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_mcp",
+      "label": "Full MCP",
+      "description": "Call any provider-granted Atlassian Rovo tool under the selected Relay policy.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "atlassian_rovo_discover_tools",
+        "label": "Discover tools",
+        "description": "List bounded metadata for tools granted by Atlassian Rovo MCP."
+      },
+      {
+        "id": "atlassian_rovo_call_read_tool",
+        "label": "Use a read tool",
+        "description": "Call a discovered Atlassian Rovo tool classified as read-only."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "atlassian_rovo_call_tool",
+        "label": "Use any granted tool",
+        "description": "Call any provider-granted Atlassian Rovo tool; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "atlassian_rovo_safe",
+      "label": "Safe",
+      "description": "Discovery and read-only tools run directly; every other provider-granted tool requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "atlassian_rovo_discover_tools",
+        "atlassian_rovo_call_read_tool"
+      ],
+      "approvalRequiredActions": ["atlassian_rovo_call_tool"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected provider-granted tool runs without Relay per-action approval; Atlassian permissions, secret isolation, bounds, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "atlassian_rovo_discover_tools",
+        "atlassian_rovo_call_read_tool",
+        "atlassian_rovo_call_tool"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded wrappers and proxies the service-account key only to Atlassian's fixed MCP endpoint."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded wrappers and proxies the service-account key only to Atlassian's fixed MCP endpoint."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "An Atlassian organization admin enables API-token authentication for Rovo MCP, creates a least-privilege service account API key, and the customer enters it in Relay Console."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.atlassian.com/cloud/rovo-mcp/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents its hosted MCP at the fixed mcp.atlassian.com endpoint, with Jira, Confluence, Compass, Jira Service Management, Bitbucket, Rovo, and Teamwork Graph tools governed by existing permissions."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/rovo-mcp/guides/configuring-authentication-via-api-token",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents non-interactive service account API-key authentication with a Bearer header, subject to organization-admin enablement."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/rovo-mcp/guides/supported-tools/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents product-dependent authentication, organization-controlled permission groups, and the current supported tool families."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/rovo-mcp/guides/authentication-and-authorization/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian states that service-account and OAuth access honor configured scopes and the authenticated principal's existing product permissions."
+    }
+  ]
+}

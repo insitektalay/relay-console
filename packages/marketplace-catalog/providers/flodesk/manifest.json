@@ -1,0 +1,178 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "flodesk",
+  "name": "Flodesk",
+  "category": "marketing_analytics",
+  "description": "Flodesk is an email marketing platform for subscribers, segments, workflows, custom fields, webhooks, forms, email, and checkout.",
+  "agentUseSummary": "Connect one Flodesk account with an encrypted dedicated personal API key. Relay fixes the v1 origin, binds one non-email subscriber ID and segment ID, exposes only IDs and creation timestamps, and blocks subscriber identity, status, consent, custom data, segment names and counts, workflows, custom fields, webhooks, broader access, exports, and mutations.",
+  "provider": {
+    "websiteUrl": "https://flodesk.com/",
+    "docsUrl": "https://developers.flodesk.com/",
+    "developerConsoleUrl": "https://app.flodesk.com/account/integrations/api-keys",
+    "termsUrl": "https://flodesk.com/terms-of-service/",
+    "privacyUrl": "https://flodesk.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["full_account_api_key"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_dedicated_full_access_api_key",
+      "fixed_v1_origin",
+      "selected_non_email_subscriber_id",
+      "selected_segment"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "FLODESK_API_KEY",
+        "label": "Flodesk API key",
+        "required": true,
+        "secret": true,
+        "helpText": "A dedicated customer-generated full-access key; Relay encrypts it and uses it only as the Basic-auth username with an empty password for api.flodesk.com."
+      },
+      {
+        "name": "FLODESK_SUBSCRIBER_ID",
+        "label": "Selected non-email subscriber ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact subscriber ID whose ID and creation timestamp Relay may read; email selectors are rejected."
+      },
+      {
+        "name": "FLODESK_SEGMENT_ID",
+        "label": "Selected segment ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact segment whose ID and creation timestamp Relay may read."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "flodesk_subscriber_summary_get",
+      "label": "Read selected subscriber summary",
+      "description": "Read only the ID and creation timestamp for one selected subscriber without email, name, status, source, segments, custom fields, consent IP/timestamp, or activity.",
+      "defaultSelected": true
+    },
+    {
+      "id": "flodesk_segment_summary_get",
+      "label": "Read selected segment summary",
+      "description": "Read only the ID and creation timestamp for one selected segment without name, active subscriber count, or color.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "flodesk_subscriber_summary_get",
+        "label": "Read selected subscriber summary",
+        "description": "Read the selected subscriber's ID and creation timestamp while discarding all identity, status, consent, segmentation, and custom fields."
+      },
+      {
+        "id": "flodesk_segment_summary_get",
+        "label": "Read selected segment summary",
+        "description": "Read the selected segment's ID and creation timestamp while discarding name, subscriber count, and color."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "flodesk_private_data",
+        "label": "Expose private marketing data",
+        "description": "Subscriber email, name, status, source, segments, custom fields, consent IP/timestamp, and activity plus segment name, active count, and color are excluded."
+      },
+      {
+        "id": "flodesk_mutation",
+        "label": "Mutate Flodesk state",
+        "description": "Subscribers, segments, workflows, custom fields, webhooks, unsubscribes, and every other mutation are blocked."
+      },
+      {
+        "id": "flodesk_broad_access",
+        "label": "Use broad Flodesk access",
+        "description": "Other subscribers, segments, workflows, custom fields, webhooks, arbitrary paths, queries, redirects, downloads, and bulk access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "flodesk_read_only",
+      "label": "Read Only",
+      "description": "Read one selected subscriber and segment through an encrypted dedicated API key; private data, broader access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "flodesk_subscriber_summary_get",
+        "flodesk_segment_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "flodesk_private_data",
+        "flodesk_mutation",
+        "flodesk_broad_access"
+      ]
+    },
+    {
+      "id": "flodesk_no_access",
+      "label": "No Access",
+      "description": "Expose no Flodesk actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "flodesk_subscriber_summary_get",
+        "flodesk_segment_summary_get",
+        "flodesk_private_data",
+        "flodesk_mutation",
+        "flodesk_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted dedicated full-access key and selected IDs server-side and mounts exactly two fixed-v1 projected reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted dedicated full-access key and selected IDs server-side and mounts exactly two fixed-v1 projected reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A paid Flodesk staging account, dedicated full-access personal API key, exact non-email subscriber ID, and segment ID are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "The provider-console lane must generate a separately labeled staging API key, capture it directly in Railway with exact selected IDs, then validate both redacted reads, Basic-auth and origin containment, email-selector denial, authorization and rate errors, key revocation/replacement, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.flodesk.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Flodesk documents the fixed https://api.flodesk.com/v1 origin, JSON over HTTPS, personal API-key Basic authentication with the key as username and empty password, full access, a required User-Agent, 100 requests per minute, 429 responses, and rate headers."
+    },
+    {
+      "url": "https://developers.flodesk.com/#tag/Subscriber/operation/getSubscriber",
+      "checkedAt": "2026-07-18",
+      "supports": "Flodesk documents GET /v1/subscribers/{id_or_email} and the identity, status, source, segment, custom-field, consent, and creation fields; Relay accepts non-email IDs only and retains ID/creation time."
+    },
+    {
+      "url": "https://developers.flodesk.com/#tag/Segment/operation/getSegment",
+      "checkedAt": "2026-07-18",
+      "supports": "Flodesk documents GET /v1/segments/{id} and its ID, name, active-subscriber count, creation timestamp, and color; Relay retains only ID/creation time."
+    },
+    {
+      "url": "https://help.flodesk.com/en/articles/4477889",
+      "checkedAt": "2026-07-18",
+      "supports": "Flodesk documents paid-plan personal keys, separately labeled per-integration keys, one-time display, full-account access, secure handling, and irreversible immediate revocation."
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "contentful",
+  "name": "Contentful",
+  "category": "content_creative",
+  "description": "Contentful is a composable content platform for creating, organizing, and delivering structured content across websites, apps, and digital products. Teams use its spaces, environments, content models, localized entries, media library, and publishing workflows to manage content independently from presentation code.",
+  "agentUseSummary": "Connect Contentful once, then let agents inspect bounded spaces, environments, content models, and entries, prepare exact changes, create drafts, update current drafts, or publish a reviewed version under Safe or Dangerous policy. Relay never exposes the OAuth token, follows pagination automatically, or offers destructive, administrative, asset, upload, or arbitrary API operations.",
+  "provider": {
+    "websiteUrl": "https://www.contentful.com/",
+    "docsUrl": "https://www.contentful.com/developers/docs/references/content-management-api/",
+    "developerConsoleUrl": "https://app.contentful.com/deeplink?link=app-definition-list",
+    "termsUrl": "https://www.contentful.com/legal/terms-of-service/",
+    "privacyUrl": "https://www.contentful.com/legal/privacy-at-contentful/privacy-notice/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["content_management_manage"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://be.contentful.com/oauth/authorize",
+    "tokenUrl": "https://be.contentful.com/oauth/authorize"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/contentful/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "space_read", "label": "Read spaces", "description": "List and inspect bounded Contentful spaces and environments.", "defaultSelected": true },
+    { "id": "model_read", "label": "Read content models", "description": "Inspect bounded content types and their fields.", "defaultSelected": true },
+    { "id": "entry_read", "label": "Read entries", "description": "List and inspect bounded entries and current versions.", "defaultSelected": true },
+    { "id": "entry_draft", "label": "Prepare and create drafts", "description": "Prepare exact changes locally and create one draft.", "defaultSelected": true },
+    { "id": "entry_update", "label": "Update drafts", "description": "Update one draft after an exact version check.", "defaultSelected": true },
+    { "id": "entry_publish", "label": "Publish reviewed entries", "description": "Publish one reviewed entry after an exact version check.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "contentful_space_list", "label": "List spaces", "description": "List one bounded page of Contentful spaces." },
+      { "id": "contentful_space_get", "label": "Read space", "description": "Read one explicit Contentful space." },
+      { "id": "contentful_environment_list", "label": "List environments", "description": "List one bounded page of environments." },
+      { "id": "contentful_content_type_list", "label": "List content types", "description": "List one bounded page of content models." },
+      { "id": "contentful_content_type_get", "label": "Read content type", "description": "Read one explicit content model." },
+      { "id": "contentful_entry_list", "label": "List entries", "description": "List one bounded page of entries." },
+      { "id": "contentful_entry_get", "label": "Read entry", "description": "Read one explicit entry and its version." },
+      { "id": "contentful_entry_prepare", "label": "Prepare entry change", "description": "Normalize and hash one entry change locally." }
+    ],
+    "approvalRequired": [
+      { "id": "contentful_entry_create_draft", "label": "Create draft", "description": "Create one entry as a draft." },
+      { "id": "contentful_entry_update_draft", "label": "Update draft", "description": "Update one draft using its exact current version." },
+      { "id": "contentful_entry_publish", "label": "Publish entry", "description": "Publish one reviewed entry using its exact current version." }
+    ],
+    "blocked": [
+      { "id": "contentful_destructive", "label": "Delete or archive content", "description": "Deletion, archive, unarchive, and bulk mutation are outside V1." },
+      { "id": "contentful_admin", "label": "Administer Contentful", "description": "Spaces, environments, content models, users, tokens, webhooks, releases, workflows, assets, and uploads are outside V1." },
+      { "id": "contentful_raw", "label": "Use broad or raw API access", "description": "Automatic pagination and arbitrary Contentful API routes are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "contentful_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local preparation run directly; draft creation, draft updates, and publication require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["contentful_space_list", "contentful_space_get", "contentful_environment_list", "contentful_content_type_list", "contentful_content_type_get", "contentful_entry_list", "contentful_entry_get", "contentful_entry_prepare"],
+      "approvalRequiredActions": ["contentful_entry_create_draft", "contentful_entry_update_draft", "contentful_entry_publish"],
+      "blockedActions": ["contentful_destructive", "contentful_admin", "contentful_raw"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Contentful V1 operation runs without Relay per-action approval; connection ownership, fixed hosts and routes, bounds, version checks, audits, redaction, idempotency, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["contentful_space_list", "contentful_space_get", "contentful_environment_list", "contentful_content_type_list", "contentful_content_type_get", "contentful_entry_list", "contentful_entry_get", "contentful_entry_prepare", "contentful_entry_create_draft", "contentful_entry_update_draft", "contentful_entry_publish"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["contentful_destructive", "contentful_admin", "contentful_raw"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts eleven exact Contentful wrappers and attaches the user's OAuth token without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts eleven exact Contentful wrappers and attaches the user's OAuth token without exposing it to the agent." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's public Contentful OAuth Application and client ID have not been confirmed with the exact Railway callback and public distribution requirements.",
+    "nextAction": "Create Relay Console as a public Contentful OAuth Application, set the exact Railway callback, store CONTENTFUL_CLIENT_ID in Railway staging, then test fragment scrubbing, state validation, both CMA regions, bounded reads, Safe approval, Dangerous draft creation and update, explicit publication, reconnect, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://www.contentful.com/developers/docs/extensibility/oauth/", "checkedAt": "2026-07-16", "supports": "Contentful documents public OAuth applications, the content_management_manage scope, HTTPS redirect URIs, and an implicit bearer token returned in the URL fragment." },
+    { "url": "https://www.contentful.com/developers/docs/references/authentication/", "checkedAt": "2026-07-16", "supports": "Contentful recommends OAuth tokens for public integrations and reserves personal access tokens for a user's own account." },
+    { "url": "https://www.contentful.com/developers/docs/references/content-management-api/", "checkedAt": "2026-07-16", "supports": "The Content Management API documents global and EU hosts, bearer authentication, spaces, environments, content types, entries, bounded pagination, and provider errors." },
+    { "url": "https://www.contentful.com/developers/docs/references/content-management-api/entries/", "checkedAt": "2026-07-16", "supports": "Contentful documents draft creation, X-Contentful-Content-Type, exact X-Contentful-Version update preconditions, and separate publication routes." }
+  ]
+}

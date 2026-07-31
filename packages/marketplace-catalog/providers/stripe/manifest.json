@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "stripe",
+  "name": "Stripe",
+  "category": "commerce_payments",
+  "description": "Stripe is a financial infrastructure platform for accepting payments and running online businesses. Companies use it for payment processing, billing, subscriptions, invoicing, fraud prevention, payouts, financial reporting, and related commerce operations.",
+  "agentUseSummary": "Connect one Stripe account through the public Relay Console Stripe App, then let agents inspect available and pending balances and bounded, privacy-redacted PaymentIntent status through three read-only tools. V1 never creates or changes payments, refunds, payouts, transfers, disputes, customers, payment methods, billing objects, products, prices, Connect accounts, files, events, reports, settings, expansions, or arbitrary Stripe API calls.",
+  "provider": {
+    "websiteUrl": "https://stripe.com/",
+    "docsUrl": "https://docs.stripe.com/stripe-apps/api-authentication/oauth",
+    "developerConsoleUrl": "https://dashboard.stripe.com/apps",
+    "termsUrl": "https://stripe.com/legal/ssa",
+    "privacyUrl": "https://stripe.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["balance_read", "payment_intent_read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://marketplace.stripe.com/oauth/v2/authorize",
+    "tokenUrl": "https://api.stripe.com/v1/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/stripe/callback",
+    "webhookRequirements": [
+      { "event": "account.application.deauthorized", "purpose": "Remove the disconnected Stripe account authorization and deny subsequent agent use." }
+    ]
+  },
+  "capabilities": [
+    { "id": "balance_read", "label": "Read balances", "description": "Read available and pending integer minor-unit balances grouped by currency.", "defaultSelected": true },
+    { "id": "payment_intent_read", "label": "Read payment status", "description": "List bounded redacted PaymentIntent status or inspect one exact PaymentIntent.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "stripe_balance_get", "label": "Read balance", "description": "Read available and pending integer amount and currency buckets for the connected account." }
+    ],
+    "approvalRequired": [
+      { "id": "stripe_payment_intent_list", "label": "List payment status", "description": "Read up to twenty-five privacy-redacted PaymentIntent status summaries." },
+      { "id": "stripe_payment_intent_get", "label": "Read payment status", "description": "Read one exact privacy-redacted PaymentIntent status summary." }
+    ],
+    "blocked": [
+      { "id": "stripe_payment_mutation", "label": "Change financial state", "description": "Creating, confirming, capturing, cancelling, refunding, transferring, or paying out funds is outside V1." },
+      { "id": "stripe_private_financial_data", "label": "Read private financial data", "description": "Customers, payment methods, receipt and shipping details, files, dispute evidence, and raw provider errors are outside V1." },
+      { "id": "stripe_broader_admin", "label": "Administer Stripe", "description": "Billing, products, prices, subscriptions, Connect, events, reports, settings, expansions, and broader account administration are outside V1." },
+      { "id": "stripe_raw_api", "label": "Use arbitrary Stripe APIs", "description": "Arbitrary API paths, parameters, automatic pagination, and raw Stripe API or MCP access are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "stripe_safe",
+      "label": "Safe",
+      "description": "Balance reads run directly; privacy-sensitive PaymentIntent status reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["stripe_balance_get"],
+      "approvalRequiredActions": ["stripe_payment_intent_list", "stripe_payment_intent_get"],
+      "blockedActions": ["stripe_payment_mutation", "stripe_private_financial_data", "stripe_broader_admin", "stripe_raw_api"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only Stripe V1 tools run without Relay per-action approval; connection ownership, installed-app permissions, account and mode binding, bounds, audit, redaction, refresh rotation, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["stripe_balance_get", "stripe_payment_intent_list", "stripe_payment_intent_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["stripe_payment_mutation", "stripe_private_financial_data", "stripe_broader_admin", "stripe_raw_api"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three exact Stripe read wrappers and attaches the encrypted account token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three exact Stripe read wrappers and attaches the encrypted account token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "relay_action_required",
+    "blocker": "No published Relay Console public Stripe App, staging developer keys, signing secret, deauthorization webhook, or authorized sandbox account is available to this code-only worker.",
+    "nextAction": "Create and publish the public data-integration Stripe App with OAuth access, request only balance_read and payment_intent_read, register the exact Relay callback and account.application.deauthorized webhook, store the live/test developer keys and signing secret in Railway staging, authorize a Stripe sandbox, and verify token rotation, all three reads, revocation, disconnect, and denial."
+  },
+  "evidence": [
+    { "url": "https://docs.stripe.com/stripe-apps/api-authentication/oauth", "checkedAt": "2026-07-16", "supports": "Public Stripe Apps can use OAuth 2.0; the authorization code is one-time and valid for five minutes, access tokens last one hour, refresh tokens last one year and rotate on every exchange, and the public install link is fixed under marketplace.stripe.com." },
+    { "url": "https://docs.stripe.com/stripe-apps/reference/permissions", "checkedAt": "2026-07-16", "supports": "Stripe Apps permissions are declared in the app manifest and accepted by an account administrator; balance_read and payment_intent_read separately authorize the two V1 resource families." },
+    { "url": "https://docs.stripe.com/stripe-apps/publish-app", "checkedAt": "2026-07-16", "supports": "Public distribution requires an activated account, public app manifest, exact non-local redirect URIs, listing, testing guidance, Stripe review, and publication; Stripe directs new Apps to Stripe Apps OAuth rather than deprecated Connect authentication." },
+    { "url": "https://docs.stripe.com/stripe-apps/install-links", "checkedAt": "2026-07-16", "supports": "Install callbacks must bind state and account identity, signed install callbacks are available, and account.application.deauthorized signals revocation." },
+    { "url": "https://docs.stripe.com/api/payment_intents", "checkedAt": "2026-07-16", "supports": "PaymentIntents expose list and retrieve operations alongside financial mutations; Relay V1 deliberately implements only bounded redacted list and retrieve operations." }
+  ]
+}

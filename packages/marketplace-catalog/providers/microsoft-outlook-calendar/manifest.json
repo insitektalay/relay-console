@@ -1,0 +1,171 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-outlook-calendar",
+  "name": "Microsoft Outlook Calendar",
+  "category": "work_management",
+  "description": "Microsoft Outlook Calendar exposes calendars, groups, events, recurring instances, attendees, meeting responses, availability, suggested meeting times, categories, attachments, sharing, delegation, and online-meeting metadata through Microsoft Graph.",
+  "agentUseSummary": "Outlook Calendar cannot yet be connected through Relay. Microsoft Graph offers delegated basic-read, full-read, and read-write scopes, but shared calendars, delegates, private events, group calendars, meeting invitations, recurrence, and time-zone semantics require a separate accepted contract. Relay exposes no calendar data or mutations until its Entra OAuth app and a representative mailbox pass acceptance.",
+  "provider": {
+    "websiteUrl": "https://outlook.office.com/calendar/",
+    "docsUrl": "https://learn.microsoft.com/graph/api/resources/calendar-overview",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/licensing/terms/productoffering/Microsoft365/all",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "offline_access",
+      "User.Read",
+      "Calendars.ReadBasic",
+      "Calendars.Read",
+      "Calendars.ReadWrite"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    "revocationUrl": "https://myapps.microsoft.com/"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_microsoft_entra_oauth_app",
+      "microsoft_identity_platform_authorization_code_pkce",
+      "microsoft_graph_v1_delegated_user_access",
+      "tenant_and_subject_binding",
+      "basic_read_first_incremental_scope_upgrades",
+      "own_shared_delegated_and_group_calendar_boundaries",
+      "provider_and_representative_mailbox_acceptance_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-outlook-calendar/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "calendar_basic_read",
+      "label": "Read basic calendar details",
+      "description": "After acceptance with Calendars.ReadBasic only, read bounded calendar and event metadata without bodies, attachments, extensions, private details, or broad shared-mailbox access.",
+      "defaultSelected": true
+    },
+    {
+      "id": "calendar_full_read",
+      "label": "Read full event details",
+      "description": "After a scope upgrade, read selected event bodies, attendees, recurrence, categories, attachments, permissions, and shared-calendar details with redaction controls.",
+      "defaultSelected": false
+    },
+    {
+      "id": "availability_read",
+      "label": "Check availability",
+      "description": "After acceptance, query bounded free/busy ranges or meeting suggestions for explicitly named participants without exposing unrelated event details.",
+      "defaultSelected": false
+    },
+    {
+      "id": "events_manage",
+      "label": "Manage events and meetings",
+      "description": "After write acceptance, create, update, respond to, cancel, or delete one selected event or recurrence instance with explicit attendee, notification, time-zone, and meeting-link confirmation.",
+      "defaultSelected": false
+    },
+    {
+      "id": "calendar_sharing_manage",
+      "label": "Manage calendar sharing",
+      "description": "After separate administrative acceptance, change selected calendar sharing or delegate roles with private-event and internal-versus-external controls.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "outlook_calendar_connect_before_review",
+        "label": "Connect before Entra and mailbox review",
+        "description": "Relay has no accepted OAuth app, tenant and subject binding, representative mailbox, shared-calendar boundary, or tested delegated permission set."
+      },
+      {
+        "id": "outlook_calendar_reads_before_acceptance",
+        "label": "Read calendars and events",
+        "description": "Calendars, groups, events, attendees, bodies, attachments, recurrence, locations, availability, categories, permissions, private details, and online meetings remain unavailable."
+      },
+      {
+        "id": "outlook_calendar_event_mutations",
+        "label": "Change events or meetings",
+        "description": "Creating, updating, moving, responding, forwarding, cancelling, deleting, restoring, categorizing, attaching, inviting, or changing recurrence and online-meeting state is blocked."
+      },
+      {
+        "id": "outlook_calendar_sharing_and_delegate_mutations",
+        "label": "Change calendars or sharing",
+        "description": "Calendar creation or deletion, group changes, sharing, delegate roles, private-event access, cross-mailbox access, subscriptions, and application-wide permissions are blocked."
+      },
+      {
+        "id": "outlook_calendar_raw_bulk_and_tenant_bypass",
+        "label": "Bypass data or tenant controls",
+        "description": "Cross-tenant access, unbounded date ranges or participants, raw bodies or attachments, arbitrary OData, app-only all-mailbox access, tokens, private endpoints, and provider-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "outlook_calendar_provider_review",
+      "label": "Provider and mailbox review pending",
+      "description": "No calendar action is enabled until Relay's Entra app, delegated scopes, tenant, user and mailbox binding, shared and private-event behavior, meeting side effects, time zones, recurrence, notifications, revocation, and disconnect contracts pass representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "outlook_calendar_connect_before_review",
+        "outlook_calendar_reads_before_acceptance",
+        "outlook_calendar_event_mutations",
+        "outlook_calendar_sharing_and_delegate_mutations",
+        "outlook_calendar_raw_bulk_and_tenant_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount mailbox-bounded Outlook Calendar tools after Entra and calendar acceptance; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount mailbox-bounded Outlook Calendar tools after Entra and calendar acceptance; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Microsoft Graph provides Calendars.ReadBasic for delegated access that excludes bodies, attachments, and extensions, Calendars.Read for full reads, and Calendars.ReadWrite for event creation and mutation. Shared or delegated calendars inherit the signed-in user's mailbox permissions; private event access requires additional mailbox or delegate flags. Group calendars instead use broad Group permissions. Event writes can notify attendees, create online meetings, modify recurring series, change availability, and cancel or delete meetings. Relay's existing Outlook connector is mail-focused and does not implement or validate this distinct calendar contract. This worker cannot register or alter the Entra app, grant consent, capture credentials, run OAuth, obtain a representative mailbox, inspect events, or send meeting updates.",
+    "nextAction": "The exclusive provider-console and acceptance task should add https://api.relayconsole.work/api/v1/marketplace/oauth/microsoft-outlook-calendar/callback to Relay's reviewed Entra app and begin with a single tenant, one dedicated user, delegated offline_access, User.Read, and Calendars.ReadBasic only. Acceptance must verify tenant and subject binding, own versus shared and group calendars, private events and delegates, UTC and Windows time-zone conversion, calendarView recurrence expansion, series and occurrence identifiers, pagination and delta behavior, body and attachment redaction, free/busy participant limits, attendee resolution, invitation and update notifications, transactionId idempotency, online meeting links, cancellation and deletion, calendar permissions, throttling, consent withdrawal, refresh-token revocation, disconnect, and cross-mailbox denial. Full read and write scopes require separate upgrades before Connect or mutation tools are enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/graph/api/resources/calendar-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph calendar resources cover calendars, groups, events, meetings, attachments, availability, suggested times, categories, and calendar permissions."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/permissions-reference",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft defines delegated Calendars.ReadBasic, Calendars.Read, and Calendars.ReadWrite permissions with different data and mutation authority."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/calendar-list-events",
+      "checkedAt": "2026-07-17",
+      "supports": "Event listing supports user and group calendar paths, shared or delegated scenarios, private-event restrictions, OData queries, and explicit time-zone response handling."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/calendar-post-events",
+      "checkedAt": "2026-07-17",
+      "supports": "Creating events or meetings requires Calendars.ReadWrite for user calendars or Group.ReadWrite.All for group calendars and can enable online meetings."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/resources/calendarpermission",
+      "checkedAt": "2026-07-17",
+      "supports": "Calendar permission roles distinguish free-busy, limited read, full read, write, delegate, and private-event access, requiring explicit shared-calendar controls."
+    }
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "follow-up-boss",
+  "name": "Follow Up Boss",
+  "category": "crm_support",
+  "description": "Follow Up Boss is a real-estate customer relationship management platform for teams that manage leads, contacts, conversations, appointments, tasks, deals, action plans, automations, and agent collaboration. Brokerages and agents use it to capture new leads, assign follow-up, coordinate calls, texts, emails, appointments, and pipeline work, and keep customer history in one account.",
+  "agentUseSummary": "Add a Follow Up Boss API key from a dedicated least-privilege user and the registered Relay X-System credentials, then choose which agents can read bounded CRM data or manage selected people, lead events, notes, calls, appointments, tasks, and deals under Safe or Dangerous policy. Relay excludes user and webhook administration, raw OAuth app administration, Inbox App installation, email or SMS sending, calling, browser automation, private interfaces, arbitrary endpoints, allFields expansion, automatic pagination, and credential exposure.",
+  "provider": {
+    "websiteUrl": "https://www.followupboss.com/",
+    "docsUrl": "https://docs.followupboss.com/reference/getting-started",
+    "developerConsoleUrl": "https://docs.followupboss.com/reference/identification",
+    "termsUrl": "https://www.followupboss.com/legal-pages/terms-of-service",
+    "privacyUrl": "https://www.followupboss.com/legal-pages/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_user_api_key",
+      "http_basic_api_key_username",
+      "registered_x_system_headers",
+      "fixed_v1_api_origin",
+      "connected_user_role_authority",
+      "oauth_available_but_provider_registration_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "FOLLOW_UP_BOSS_API_KEY",
+        "label": "Follow Up Boss API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a least-privilege user's API key under Admin > API. Relay encrypts it and sends it only to api.followupboss.com using HTTPS Basic authentication."
+      },
+      {
+        "name": "FOLLOW_UP_BOSS_X_SYSTEM",
+        "label": "Registered system name",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the registered X-System name assigned to this Relay integration by Follow Up Boss."
+      },
+      {
+        "name": "FOLLOW_UP_BOSS_X_SYSTEM_KEY",
+        "label": "Registered system key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the X-System-Key assigned to this Relay integration. Relay encrypts it and never exposes it to agents."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crm_read",
+      "label": "Read real-estate CRM data",
+      "description": "Read bounded people, leads, events, notes, calls, appointments, tasks, deals, users, automations, and reference data authorized by the connected Follow Up Boss user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crm_manage",
+      "label": "Manage selected CRM records",
+      "description": "Create lead events and selected CRM records and update selected people, notes, calls, appointments, tasks, and deals through bounded documented V1 routes.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "follow_up_boss_api_read",
+        "label": "Read Follow Up Boss",
+        "description": "Read one selected Follow Up Boss V1 CRM, activity, user, automation, or reference route with bounded query parameters."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "follow_up_boss_api_manage",
+        "label": "Manage Follow Up Boss",
+        "description": "Create or update selected CRM records and lead events through one exact documented V1 operation."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "follow_up_boss_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer API key, registered system key, OAuth tokens, and credential-shaped provider fields never enter agent-visible requests or results."
+      },
+      {
+        "id": "follow_up_boss_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every request stays on Follow Up Boss's documented https://api.followupboss.com/v1 API origin."
+      },
+      {
+        "id": "follow_up_boss_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only selected V1 CRM, lead-event, activity, automation-read, user-read, and reference routes and blocks users, webhooks, Inbox Apps, email, texting, calling, raw OAuth app administration, and arbitrary API access."
+      },
+      {
+        "id": "follow_up_boss_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds limits, offsets, query fields, arrays, bodies, responses, redirects, nesting, and execution time and never follows pagination automatically."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "follow_up_boss_safe",
+      "label": "Safe",
+      "description": "Selected bounded reads run directly. Every lead event, record create, record update, and record deletion requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["follow_up_boss_api_read"],
+      "approvalRequiredActions": ["follow_up_boss_api_manage"],
+      "blockedActions": [
+        "follow_up_boss_secret_exposure",
+        "follow_up_boss_unofficial_origin",
+        "follow_up_boss_unsupported_endpoint",
+        "follow_up_boss_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected Follow Up Boss mutations authorized by the connected user run without Relay per-action approval. Exact API-key user authority, registered-system headers, fixed origin, exact routes, bounds, redaction, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["follow_up_boss_api_read", "follow_up_boss_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "follow_up_boss_secret_exposure",
+        "follow_up_boss_unofficial_origin",
+        "follow_up_boss_unsupported_endpoint",
+        "follow_up_boss_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected Follow Up Boss V1 read and CRM-management wrappers with encrypted customer API-key and registered-system credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected Follow Up Boss V1 read and CRM-management wrappers with encrypted customer API-key and registered-system credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Follow Up Boss requires services accessing the API for FUB customers to register a system and include X-System and X-System-Key on every API request. This code-only worker did not register Relay as a Follow Up Boss system, create an OAuth client application, obtain X-System credentials, create a least-privilege FUB user API key, or run live acceptance against representative real-estate CRM records.",
+    "nextAction": "In the provider-console task, register Relay with Follow Up Boss or confirm an authorized customer-owned registered system, store FOLLOW_UP_BOSS_X_SYSTEM and FOLLOW_UP_BOSS_X_SYSTEM_KEY plus a dedicated least-privilege user API key on Railway staging, then verify /identity, representative bounded reads, lead-event POST behavior, Safe approvals, Dangerous mutations and cleanup, provider role denial, account-expiry behavior, API-key deletion/replacement, rate limits, response redaction, disconnect, and post-disconnect denial. A later OAuth migration requires creating a Follow Up Boss OAuth Client App with https://api.relayconsole.work/api/v1/marketplace/oauth/follow-up-boss/callback and acceptance-testing token refresh and revokeAccess."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.followupboss.com/reference/getting-started",
+      "checkedAt": "2026-07-18",
+      "supports": "Follow Up Boss documents a simple HTTPS REST API at api.followupboss.com/v1 and says systems providing services to FUB customers must register their system."
+    },
+    {
+      "url": "https://docs.followupboss.com/reference/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Follow Up Boss documents OAuth and Basic Authentication via user API key, states API keys authenticate requests on the user's behalf, and says API keys carry the same access level as the user."
+    },
+    {
+      "url": "https://docs.followupboss.com/reference/identification",
+      "checkedAt": "2026-07-18",
+      "supports": "Follow Up Boss requires registered X-System and X-System-Key headers on every API request when providing services to a FUB customer."
+    },
+    {
+      "url": "https://docs.followupboss.com/docs/getting-started-with-oauth",
+      "checkedAt": "2026-07-18",
+      "supports": "Follow Up Boss documents OAuth Client App creation using a registered system, public redirect URIs, one-time client secret return, and no localhost redirects."
+    },
+    {
+      "url": "https://docs.followupboss.com/reference/people-get",
+      "checkedAt": "2026-07-18",
+      "supports": "Follow Up Boss documents people search filters, trash inclusion behavior, field selection guidance, and warns against broad allFields-style production payloads."
+    },
+    {
+      "url": "https://docs.followupboss.com/docs/lead-provider-integration-guide",
+      "checkedAt": "2026-07-18",
+      "supports": "Follow Up Boss tells lead providers to use POST /events rather than /people so lead automations, assignment, notifications, and action plans run correctly."
+    },
+    {
+      "url": "https://docs.followupboss.com/reference/fub-api-tou",
+      "checkedAt": "2026-07-18",
+      "supports": "Follow Up Boss publishes API Terms of Use governing API licensees, customer data, API versions, service instructions, and incorporated service, acceptable-use, and privacy terms."
+    }
+  ]
+}

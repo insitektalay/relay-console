@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "paymo",
+  "name": "Paymo",
+  "category": "work_management",
+  "description": "Paymo is a project-management and work-tracking platform for small and medium businesses. Teams use it to plan projects and tasks, schedule people, track time, collaborate, manage clients, create estimates and invoices, record expenses, and report on delivery and profitability.",
+  "agentUseSummary": "Add your Paymo API key once, then select which agents can read or manage the work and business data available to that Paymo account under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.paymoapp.com/",
+    "docsUrl": "https://github.com/paymoapp/api",
+    "developerConsoleUrl": "https://app.paymoapp.com/#Paymo.module.myaccount/",
+    "termsUrl": "https://www.paymoapp.com/terms/",
+    "privacyUrl": "https://www.paymoapp.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "PAYMO_API_KEY",
+        "label": "Paymo API key",
+        "required": true,
+        "secret": true,
+        "helpText": "In Paymo, open My Settings > API Keys and generate a dedicated key. API access requires an eligible Paymo plan."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "work_read",
+      "label": "Read work and business data",
+      "description": "Read authorized projects, tasks, bookings, time entries, clients, users, files, discussions, comments, milestones, workflows, expenses, reports, estimates, invoices, payments, and related Paymo data.",
+      "defaultSelected": true
+    },
+    {
+      "id": "work_manage",
+      "label": "Manage work and business data",
+      "description": "Create, update, upload, attach, and delete resources through Paymo's documented API, subject to the connected account's plan and authority.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "paymo_api_read",
+        "label": "Read Paymo",
+        "description": "Run one bounded GET request against Paymo's documented API."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "paymo_api_manage",
+        "label": "Manage Paymo",
+        "description": "Run one bounded POST, PUT, or DELETE request; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "paymo_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The API key never enters agent-visible requests, URLs, or results."
+      },
+      {
+        "id": "paymo_unofficial_origin",
+        "label": "Use another origin",
+        "description": "Every request is pinned to Paymo's official HTTPS API origin."
+      },
+      {
+        "id": "paymo_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds paths, query values, bodies, uploads, redirects, results, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "paymo_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly. Every write, upload, deletion, financial change, or administrative operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["paymo_api_read"],
+      "approvalRequiredActions": ["paymo_api_manage"],
+      "blockedActions": ["paymo_secret_exposure", "paymo_unofficial_origin", "paymo_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected key-authorized Paymo operation runs without Relay per-action approval. Connection ownership, provider authority, fixed origin, request bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["paymo_api_read", "paymo_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["paymo_secret_exposure", "paymo_unofficial_origin", "paymo_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded read and manage tools and attaches the encrypted API key only at Paymo's fixed API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded read and manage tools and attaches the encrypted API key only at Paymo's fixed API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A Paymo customer on an API-enabled plan must generate a dedicated API key. Paymo recommends customer-owned API keys for third-party software rather than a distributable Relay-owned OAuth application.",
+    "nextAction": "Generate a dedicated key in Paymo My Settings > API Keys, connect it in Relay Console, then run credential health, read, Safe manage approval, Dangerous manage, disconnect, and post-disconnect denial checks against representative Paymo data."
+  },
+  "evidence": [
+    {
+      "url": "https://github.com/paymoapp/api/blob/master/sections/authentication.md",
+      "checkedAt": "2026-07-15",
+      "supports": "Paymo documents API-key authentication for third-party software, with a user-generated key used as the HTTP Basic username and any non-secret text as the password."
+    },
+    {
+      "url": "https://github.com/paymoapp/api",
+      "checkedAt": "2026-07-15",
+      "supports": "Paymo's official API repository documents the fixed app.paymoapp.com API origin and REST coverage for projects, tasks, schedules, time, collaboration, clients, expenses, reports, estimates, invoices, files, webhooks, and related resources."
+    },
+    {
+      "url": "https://help.paymoapp.com/en/articles/11838-how-do-api-keys-work",
+      "checkedAt": "2026-07-15",
+      "supports": "Paymo's help center directs users to profile > My Settings > API Keys to generate and copy their own key."
+    },
+    {
+      "url": "https://www.paymoapp.com/pricing/",
+      "checkedAt": "2026-07-15",
+      "supports": "Paymo's current pricing page lists Integrations & API Access on eligible paid plans."
+    }
+  ]
+}

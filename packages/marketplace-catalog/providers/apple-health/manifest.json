@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "apple-health",
+  "name": "Apple Health",
+  "category": "knowledge_documents",
+  "description": "Apple Health brings health and fitness information from iPhone, iPad, Apple Watch, compatible apps and connected devices into one private library. People use it to review activity, mobility, sleep, medications, state of mind, hearing, cycle tracking, vital signs and supported clinical records while controlling each app's access.",
+  "agentUseSummary": "Apple Health cannot yet be connected to Relay agents. HealthKit requires an entitled native health or fitness app, precise read and write purpose strings, interactive per-type and history-window authorization, an approved health-purpose and privacy contract, and explicit consent before any health data is disclosed to a third-party agent or service; Relay currently has no native iOS, iPadOS or watchOS target or approved health-data processing boundary.",
+  "provider": {
+    "websiteUrl": "https://support.apple.com/104997",
+    "docsUrl": "https://developer.apple.com/documentation/healthkit",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://developer.apple.com/support/terms/apple-developer-program-license-agreement/",
+    "privacyUrl": "https://www.apple.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "native_healthkit_entitlement_required",
+      "device_local_health_store",
+      "interactive_per_type_authorization",
+      "limited_history_authorization_supported",
+      "health_purpose_and_explicit_third_party_consent_required",
+      "native_relay_health_runtime_not_implemented"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "apple_health_connect",
+        "label": "Connect Apple Health",
+        "description": "HealthKit access requires an entitled native app, device availability, complete purpose strings and user-present authorization for exact data types and history windows."
+      },
+      {
+        "id": "apple_health_read_or_disclose",
+        "label": "Read or disclose health data",
+        "description": "Health, fitness, medications, symptoms, reproductive data, mental-health data, clinical records and derived insights cannot be read, transmitted to Railway or disclosed to agents without a frozen health purpose, precise disclosure and prior express consent."
+      },
+      {
+        "id": "apple_health_write",
+        "label": "Write health data",
+        "description": "Agents cannot create or update HealthKit samples, workouts, medications, symptoms, state-of-mind entries or records without type-specific authority, provenance, accuracy, validation and a safe correction and deletion model."
+      },
+      {
+        "id": "apple_health_background_or_bulk",
+        "label": "Monitor or export health data",
+        "description": "Background delivery, continuous monitoring, bulk history export, cross-user access, secondary use, profiling, marketing, advertising and use-based data mining are unavailable."
+      },
+      {
+        "id": "apple_health_clinical_or_medical",
+        "label": "Use clinical records or make medical decisions",
+        "description": "Clinical-record access, diagnosis, treatment, emergency response, research and autonomous medical recommendations require separate legal, clinical, consent, review and safety contracts and remain blocked."
+      },
+      {
+        "id": "apple_health_private_or_credential_access",
+        "label": "Use private or credential-based access",
+        "description": "Apple Account credentials, Health app automation, backups, private frameworks, database extraction, scraping and reverse-engineered sync interfaces are never accepted."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "apple_health_unavailable",
+      "label": "Unavailable",
+      "description": "No Apple Health action is enabled until Relay has an approved native health runtime and a complete health-purpose, consent, data-governance and agent-safety contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "apple_health_connect",
+        "apple_health_read_or_disclose",
+        "apple_health_write",
+        "apple_health_background_or_bulk",
+        "apple_health_clinical_or_medical",
+        "apple_health_private_or_credential_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Apple Health tools are mounted because HealthKit authority is device-local and Relay has no approved native health bridge, per-agent consent boundary or health-data processing contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Apple Health tools are mounted because HealthKit authority is device-local and Relay has no approved native health bridge, per-agent consent boundary or health-data processing contract."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "HealthKit is a supported public framework, but using it for agents requires commitments that Relay has not made. Apple requires an entitled native health or fitness app, precise purpose disclosure, fine-grained user-present authorization, protection against inferring denial, support for limited history access and explicit consent before disclosure to third parties for a permitted health service. App Review restricts health-data advertising and data mining, inaccurate writes and iCloud storage of personal health information. Relay's current native package targets macOS only, while its web and cloud runtimes cannot inherit a person's device-local HealthKit permission or safely make a blanket grant to arbitrary agent code.",
+    "nextAction": "Product, health, clinical safety, privacy, legal, security, compliance and Apple Developer owners must select one narrow health-management purpose and freeze the native iOS or iPadOS app target, supported regions and ages, exact read-only data types and date bounds, whether data ever leaves the device, third-party agent and model disclosures, per-agent and per-instance consent, minimization, encryption, retention and deletion, revocation, incident response, prohibited medical uses and App Review submission. Only after approval should Relay add the HealthKit entitlement and purpose strings, implement user-present authorization and a device-local typed read-only bridge, and verify denial, limited history, revocation and no-cloud leakage before considering any write capability."
+  },
+  "evidence": [
+    {
+      "url": "https://support.apple.com/104997",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple describes Health as collecting health and fitness data from iPhone, iPad, Apple Watch and compatible apps and devices, with users controlling the categories each app may access."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/healthkit",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple defines HealthKit as the permission-protected central repository for health and fitness data on iPhone and Apple Watch and requires apps to safeguard its sensitive information."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/healthkit/authorizing-access-to-health-data",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple requires fine-grained read and write authorization, supports limited history windows and intentionally prevents apps from distinguishing denied read access from absent data."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/bundleresources/entitlements/com.apple.developer.healthkit",
+      "checkedAt": "2026-07-17",
+      "supports": "The HealthKit entitlement is required before an app may request access to health and activity data in the Health app."
+    },
+    {
+      "url": "https://developer.apple.com/app-store/review/guidelines/",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple requires explicit disclosure and permission for personal-data sharing and restricts HealthKit data mining, inaccurate writes and iCloud storage of personal health information; sensitive healthcare apps must be submitted by a legal entity."
+    },
+    {
+      "url": "https://developer.apple.com/support/terms/apple-developer-program-license-agreement/",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple limits HealthKit to health and fitness purposes and requires prior express consent before disclosing health information to a third party, then only so that party can provide a permitted health service."
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "qualtrics",
+  "name": "Qualtrics",
+  "category": "work_management",
+  "description": "Qualtrics is an experience-management platform for customer, employee, product, and brand research. Organizations use it to design surveys, collect feedback, manage distributions and directories, analyze responses, and automate experience workflows.",
+  "agentUseSummary": "Create a dedicated least-privilege Qualtrics user with Access API, add its data center ID and API token once, then let selected agents read account identity, bounded survey summaries, and one exact survey definition. Relay pins the account's qualtrics.com data-center host and does not mount response exports, raw MCP, arbitrary endpoints, distributions, directories, users, or writes.",
+  "provider": {
+    "websiteUrl": "https://www.qualtrics.com/",
+    "docsUrl": "https://www.qualtrics.com/support/integrations/api-integration/overview/",
+    "developerConsoleUrl": "https://www.qualtrics.com/support/integrations/api-integration/overview/#GeneratingAnAPIToken",
+    "termsUrl": "https://www.qualtrics.com/terms-of-service/",
+    "privacyUrl": "https://www.qualtrics.com/privacy-statement/"
+  },
+  "authentication": {
+    "model": "api_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_token",
+      "exact_qualtrics_data_center",
+      "api_user_permission_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "QUALTRICS_DATA_CENTER_ID",
+        "label": "Qualtrics data center ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter only the account data center ID, such as iad1 or fra1; Relay constructs and pins the official qualtrics.com API host."
+      },
+      {
+        "key": "QUALTRICS_API_TOKEN",
+        "label": "Qualtrics API token",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a dedicated least-privilege Qualtrics user token with Access API and only the survey-view permissions required."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "qualtrics_read",
+      "label": "Read identity and surveys",
+      "description": "Use three pinned API v3 reads for account identity, at most 25 survey summaries, and one exact survey definition.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "qualtrics_read",
+        "label": "Read Qualtrics",
+        "description": "Read account identity, bounded survey summaries, and one exact survey definition from the configured data center."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "qualtrics_manage",
+        "label": "Change Qualtrics",
+        "description": "Survey, response, distribution, contact, directory, user, event, and all other mutations are outside Relay's V1 contract."
+      },
+      {
+        "id": "qualtrics_response_export",
+        "label": "Export responses",
+        "description": "Relay does not start asynchronous response exports or retrieve generated response files in V1."
+      },
+      {
+        "id": "qualtrics_arbitrary_api",
+        "label": "Use raw MCP or another API path",
+        "description": "Requests are pinned to three JSON API v3 reads on the configured data-center host."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "qualtrics_safe",
+      "label": "Safe",
+      "description": "Three pinned reads run directly. Response exports, raw MCP, arbitrary API paths, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["qualtrics_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "qualtrics_manage",
+        "qualtrics_response_export",
+        "qualtrics_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with three pinned API v3 operations through the encrypted data-center-bound token."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with three pinned API v3 operations through the encrypted data-center-bound token."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Qualtrics license with API access, dedicated least-privilege API user, data center ID, API token, or representative safe surveys is available in this workspace.",
+    "nextAction": "A Qualtrics administrator enables Access API for a dedicated least-privilege user, records its data center ID, generates its API token, saves both through Relay Console, then verifies host binding, identity and survey reads, 25-item output bounds, agent assignment, token replacement, disconnect, provider-side regeneration, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.qualtrics.com/support/integrations/api-integration/overview/",
+      "checkedAt": "2026-07-17",
+      "supports": "Qualtrics documents paid API access, API v3, data-center-specific base URLs, per-user API tokens, the X-API-TOKEN HTTPS header, client-credentials OAuth, and JSON MCP coverage."
+    },
+    {
+      "url": "https://www.qualtrics.com/support/integrations/api-integration/using-qualtrics-api-documentation/",
+      "checkedAt": "2026-07-17",
+      "supports": "Qualtrics documents data center IDs, collection pagination, API authentication, request methods, response formats, and the surveys and response-export API groups."
+    },
+    {
+      "url": "https://www.postman.com/qualtrics-public-apis/qualtrics-public-workspace/request/q0qf5un/list-surveys",
+      "checkedAt": "2026-07-17",
+      "supports": "Qualtrics' official public API workspace documents GET /API/v3/surveys, offset pagination, X-API-TOKEN authentication, survey-summary fields, and next-page metadata."
+    }
+  ]
+}

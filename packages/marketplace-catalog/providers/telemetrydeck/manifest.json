@@ -1,0 +1,236 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "telemetrydeck",
+  "name": "TelemetryDeck",
+  "category": "developer",
+  "description": "TelemetryDeck is an app-analytics service for privacy-focused signal, usage, insight, and time-series analysis.",
+  "agentUseSummary": "Connect one user-owned Personal Access Token, organization namespace, and selected app ID. Relay exposes account-health, bounded TQL-query, and saved-insight wrappers; signal ingestion, raw scan export, app and organization administration, unbounded or cross-app queries, scheduled polling, and raw beta MCP access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://telemetrydeck.com/",
+    "docsUrl": "https://telemetrydeck.com/docs/",
+    "developerConsoleUrl": "https://dashboard.telemetrydeck.com/",
+    "termsUrl": "https://telemetrydeck.com/terms/",
+    "privacyUrl": "https://telemetrydeck.com/privacy/"
+  },
+  "authentication": {
+    "model": "personal_access_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "user_owned_telemetrydeck_pat",
+      "organization_namespace_binding",
+      "selected_app_binding",
+      "manual_provider_token_rotation_and_revocation"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "telemetrydeck_personal_access_token",
+        "label": "Personal Access Token",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a dedicated TelemetryDeck PAT with an appropriate expiry. Relay stores only a secret-store reference."
+      },
+      {
+        "name": "telemetrydeck_namespace",
+        "label": "Organization namespace",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the non-secret organization namespace/data source that scopes Relay reads."
+      },
+      {
+        "name": "telemetrydeck_app_id",
+        "label": "TelemetryDeck app ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact non-secret app ID used by every bounded Relay analytics wrapper."
+      },
+      {
+        "name": "telemetrydeck_app_display_name",
+        "label": "App display name",
+        "required": false,
+        "secret": false,
+        "helpText": "Optional non-secret display label for the selected app."
+      },
+      {
+        "name": "telemetrydeck_default_insight_id",
+        "label": "Default insight ID",
+        "required": false,
+        "secret": false,
+        "helpText": "Optional non-secret saved-insight ID used when an action does not provide one."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "telemetrydeck_user_info_read",
+      "label": "Account and organization health",
+      "description": "Read bounded user and organization identity for connection validation.",
+      "defaultSelected": true
+    },
+    {
+      "id": "telemetrydeck_tql_query_read",
+      "label": "Bounded TQL query",
+      "description": "Run an approval-gated read-only TQL query for the selected app within Relay's row and lookback limits.",
+      "defaultSelected": true
+    },
+    {
+      "id": "telemetrydeck_saved_insight_read",
+      "label": "Saved insight",
+      "description": "Read one saved insight and a bounded result preview for the selected app.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "telemetrydeck_user_info_read",
+        "label": "Read user info",
+        "description": "Read bounded user and organization identity for connection-health context."
+      },
+      {
+        "id": "telemetrydeck_saved_insight_read",
+        "label": "Read saved insight",
+        "description": "Retrieve and execute one saved insight for the selected app with bounded result rows."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "telemetrydeck_tql_query_read",
+        "label": "Run bounded TQL query",
+        "description": "Run a reviewed read-only TQL query for the selected app with at most 100 rows and 90 days of lookback."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "telemetrydeck_ingest_signal",
+        "label": "Ingest signal",
+        "description": "Sending, backfilling, or changing analytics signals is blocked."
+      },
+      {
+        "id": "telemetrydeck_raw_scan_export",
+        "label": "Export raw scan data",
+        "description": "Broad or raw scan export outside the current task context is blocked."
+      },
+      {
+        "id": "telemetrydeck_app_admin",
+        "label": "Administer app",
+        "description": "App creation, deletion, settings, and instrumentation changes are blocked."
+      },
+      {
+        "id": "telemetrydeck_org_admin",
+        "label": "Administer organization",
+        "description": "Organization, member, billing, access, and token administration is blocked."
+      },
+      {
+        "id": "telemetrydeck_unbounded_query",
+        "label": "Run unbounded query",
+        "description": "Unbounded, cross-app, raw SQL-like, and unconstrained TQL queries are blocked."
+      },
+      {
+        "id": "telemetrydeck_scheduled_polling",
+        "label": "Configure scheduled polling",
+        "description": "Scheduled polling and background synchronization are blocked."
+      },
+      {
+        "id": "telemetrydeck_mcp_beta",
+        "label": "Use beta MCP surface",
+        "description": "Raw provider and beta MCP tools are not exposed to agents."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "telemetrydeck_read_only",
+      "label": "Read only",
+      "description": "Account and saved-insight reads run automatically; bounded TQL requires approval and all mutation, export, admin, polling, and raw surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "telemetrydeck_user_info_read",
+        "telemetrydeck_saved_insight_read"
+      ],
+      "approvalRequiredActions": [
+        "telemetrydeck_tql_query_read"
+      ],
+      "blockedActions": [
+        "telemetrydeck_ingest_signal",
+        "telemetrydeck_raw_scan_export",
+        "telemetrydeck_app_admin",
+        "telemetrydeck_org_admin",
+        "telemetrydeck_unbounded_query",
+        "telemetrydeck_scheduled_polling",
+        "telemetrydeck_mcp_beta"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three read wrappers run without per-call approval while app binding, query shape, row, lookback, redaction, timeout, provider-authority, and audit guards remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "telemetrydeck_user_info_read",
+        "telemetrydeck_tql_query_read",
+        "telemetrydeck_saved_insight_read"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "telemetrydeck_ingest_signal",
+        "telemetrydeck_raw_scan_export",
+        "telemetrydeck_app_admin",
+        "telemetrydeck_org_admin",
+        "telemetrydeck_unbounded_query",
+        "telemetrydeck_scheduled_polling",
+        "telemetrydeck_mcp_beta"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded TelemetryDeck read wrappers and injects the PAT and app binding from encrypted connection storage."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded TelemetryDeck read wrappers and injects the PAT and app binding from encrypted connection storage."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer generates a dedicated PAT, records it once, selects the organization namespace and exact app ID, and revokes or replaces the PAT in TelemetryDeck when required."
+  },
+  "evidence": [
+    {
+      "url": "https://telemetrydeck.com/docs/api/api-token/",
+      "checkedAt": "2026-07-26",
+      "supports": "TelemetryDeck documents paid-plan PAT creation, one-time display, expiry, revocation, Bearer authentication, the user-info endpoint, and that a PAT inherits the user's organization access."
+    },
+    {
+      "url": "https://telemetrydeck.com/docs/api/api-run-query/",
+      "checkedAt": "2026-07-26",
+      "supports": "TelemetryDeck documents PAT-authenticated execution of JSON-based TQL against the query endpoint."
+    },
+    {
+      "url": "https://telemetrydeck.com/docs/api/api-query-from-insight/",
+      "checkedAt": "2026-07-26",
+      "supports": "TelemetryDeck documents retrieving the TQL query behind a saved insight and supplying an explicit relative interval before execution."
+    },
+    {
+      "url": "https://telemetrydeck.com/docs/tql/query/",
+      "checkedAt": "2026-07-26",
+      "supports": "TelemetryDeck documents TQL query types and required query structure; Relay accepts only a bounded read-only subset."
+    }
+  ]
+}

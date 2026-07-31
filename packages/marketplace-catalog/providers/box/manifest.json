@@ -1,0 +1,222 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "box",
+  "name": "Box",
+  "category": "knowledge_documents",
+  "description": "Box is a cloud content-management and collaboration platform for storing, organizing, securing, and sharing business files. Teams use it to keep documents in managed folders, collaborate across organizations, and apply enterprise governance to their content.",
+  "agentUseSummary": "Connect a Box account once, then choose which agents may list and inspect bounded content, prepare text uploads, and create folders, upload text, copy items, or move and rename items under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.box.com/",
+    "docsUrl": "https://developer.box.com/reference/",
+    "developerConsoleUrl": "https://app.box.com/developers/console",
+    "termsUrl": "https://www.box.com/legal/termsofservice",
+    "privacyUrl": "https://www.box.com/legal/privacypolicy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["root_readwrite"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://account.box.com/api/oauth2/authorize",
+    "tokenUrl": "https://api.box.com/oauth2/token",
+    "revocationUrl": "https://api.box.com/oauth2/revoke"
+  },
+  "connection": {
+    "types": ["oauth2", "relay_owned_oauth", "box_user_account"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/box/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "user_read",
+      "label": "View connected user",
+      "description": "Identify the connected Box user and enterprise context.",
+      "defaultSelected": true
+    },
+    {
+      "id": "content_read",
+      "label": "Find and inspect content",
+      "description": "List folders, inspect file or folder metadata, and search bounded content.",
+      "defaultSelected": true
+    },
+    {
+      "id": "content_draft",
+      "label": "Prepare uploads",
+      "description": "Prepare and hash exact bounded text uploads locally.",
+      "defaultSelected": true
+    },
+    {
+      "id": "content_write",
+      "label": "Organize content",
+      "description": "Create folders, upload bounded text, copy items, and move or rename items.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "box_user_get",
+        "label": "Read user",
+        "description": "Read the connected Box user and enterprise context."
+      },
+      {
+        "id": "box_folder_items",
+        "label": "List folder items",
+        "description": "List one bounded marker page from one explicit folder."
+      },
+      {
+        "id": "box_file_get",
+        "label": "Read file metadata",
+        "description": "Read useful metadata for one explicit file."
+      },
+      {
+        "id": "box_folder_get",
+        "label": "Read folder metadata",
+        "description": "Read useful metadata for one explicit folder."
+      },
+      {
+        "id": "box_content_search",
+        "label": "Search content",
+        "description": "Search one bounded marker page of Box content."
+      },
+      {
+        "id": "box_text_upload_prepare",
+        "label": "Prepare text upload",
+        "description": "Prepare and hash one bounded UTF-8 upload locally."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "box_folder_create",
+        "label": "Create folder",
+        "description": "Create one folder; Safe mode requires approval."
+      },
+      {
+        "id": "box_text_upload",
+        "label": "Upload text file",
+        "description": "Upload one bounded text file; Safe mode requires approval."
+      },
+      {
+        "id": "box_item_copy",
+        "label": "Copy item",
+        "description": "Copy one file or folder; Safe mode requires approval."
+      },
+      {
+        "id": "box_item_move",
+        "label": "Move or rename item",
+        "description": "Move or rename one file or folder; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "box_delete_trash",
+        "label": "Delete or restore content",
+        "description": "Delete, trash, purge, restore, and broad destructive operations are outside V1."
+      },
+      {
+        "id": "box_collaboration_admin",
+        "label": "Change sharing or administration",
+        "description": "Collaborations, shared links, comments, tasks, users, groups, enterprise settings, impersonation, Sign, AI, Relay, and admin operations are outside V1."
+      },
+      {
+        "id": "box_binary_broad",
+        "label": "Run broad or binary operations",
+        "description": "Downloads, previews, arbitrary binaries, versions, locks, metadata, classifications, events, webhooks, migrations, automatic pagination, and raw API calls are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "box_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local drafts run directly; every Box mutation requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "box_user_get",
+        "box_folder_items",
+        "box_file_get",
+        "box_folder_get",
+        "box_content_search",
+        "box_text_upload_prepare"
+      ],
+      "approvalRequiredActions": [
+        "box_folder_create",
+        "box_text_upload",
+        "box_item_copy",
+        "box_item_move"
+      ],
+      "blockedActions": [
+        "box_delete_trash",
+        "box_collaboration_admin",
+        "box_binary_broad"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Box operation supported by this connector runs without Relay per-action approval; connection ownership, OAuth grants, bounds, audits, redaction, idempotency, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "box_user_get",
+        "box_folder_items",
+        "box_file_get",
+        "box_folder_get",
+        "box_content_search",
+        "box_text_upload_prepare",
+        "box_folder_create",
+        "box_text_upload",
+        "box_item_copy",
+        "box_item_move"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "box_delete_trash",
+        "box_collaboration_admin",
+        "box_binary_broad"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts ten typed Box tools and attaches the user's encrypted OAuth token server-side without exposing it to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts ten typed Box tools and attaches the user's encrypted OAuth token server-side without exposing it to the agent."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "relay_action_required",
+    "blocker": "Relay's production Box User OAuth app, exact callback, root_readwrite scope, client ID, client secret, enterprise enablement where required, and fresh production consent are not configured and verified on Railway.",
+    "nextAction": "Create the Relay Console Box User OAuth app, register https://api.relayconsole.work/api/v1/marketplace/oauth/box/callback, enable root_readwrite, configure BOX_CLIENT_ID and BOX_CLIENT_SECRET on Railway, obtain any required enterprise approval, then test consent, rotating refresh, bounded reads, Safe and Dangerous writes, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.box.com/guides/authentication/oauth2/oauth2-setup/",
+      "checkedAt": "2026-07-16",
+      "supports": "Box documents a User OAuth app, exact HTTPS redirect matching, Developer Console configuration, server-side use without CORS configuration, and application scopes."
+    },
+    {
+      "url": "https://developer.box.com/guides/api-calls/permissions-and-errors/scopes",
+      "checkedAt": "2026-07-16",
+      "supports": "Box documents root_readwrite and states that both the app scope and authenticated user's item permissions bound every operation."
+    },
+    {
+      "url": "https://developer.box.com/reference/get-folders-id-items",
+      "checkedAt": "2026-07-16",
+      "supports": "Box documents folder ID 0, explicit fields, bounded limits, and marker pagination for folder items; the official reference also covers files, folders, search, multipart uploads, copies, moves, user identity, token exchange, and revocation."
+    },
+    {
+      "url": "https://developer.box.com/guides/tooling/postman/refresh",
+      "checkedAt": "2026-07-16",
+      "supports": "Box documents one-hour access tokens and single-use rotating refresh tokens whose inactivity window resets when a new token is issued."
+    }
+  ]
+}

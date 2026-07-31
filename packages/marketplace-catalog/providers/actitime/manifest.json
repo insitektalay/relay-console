@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "actitime",
+  "name": "ActiTIME",
+  "category": "work_management",
+  "description": "actiTIME is time-tracking and work-management software for teams that need accurate timesheets, project visibility, billing data, leave records, and workforce administration. Organizations use it to organize customers, projects, and tasks, record and approve working time, manage people and leave, calculate labor costs, and report on delivery performance.",
+  "agentUseSummary": "Add a dedicated actiTIME integration user's installation URL, username, and password, then choose which agents can read or manage the connected account's work, time, leave, people, rates, settings, and webhook subscriptions under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.actitime.com/",
+    "docsUrl": "https://www.actitime.com/api-documentation",
+    "developerConsoleUrl": "https://www.actitime.com/login",
+    "termsUrl": "https://www.actitime.com/legal/service-agreement",
+    "privacyUrl": "https://www.actitime.com/legal/privacy-policy-full"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_actitime_integration_user",
+      "installation_and_user_permission_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "ACTITIME_INSTALLATION_URL",
+        "label": "actiTIME installation URL",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter the HTTPS address you use to open actiTIME. Relay limits requests to that installation's /api/v1 route."
+      },
+      {
+        "key": "ACTITIME_USERNAME",
+        "label": "actiTIME username",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a dedicated actiTIME integration user with only the permissions your agents need."
+      },
+      {
+        "key": "ACTITIME_PASSWORD",
+        "label": "actiTIME password",
+        "secret": true,
+        "required": true,
+        "helpText": "Enter that integration user's password. Relay encrypts it and sends it only to the configured actiTIME installation."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "actitime_read",
+      "label": "Read time, work, people, and settings",
+      "description": "Use all 32 pinned reads for customers, projects, tasks, time, leave, users, departments, rates, settings, and webhook subscriptions."
+    },
+    {
+      "id": "actitime_manage",
+      "label": "Manage time, work, people, and settings",
+      "description": "Use all 26 pinned mutations to create, update, lock, unlock, invite, replace, subscribe, batch, or delete authorized actiTIME records."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "actitime_read",
+        "label": "Read actiTIME",
+        "description": "Run one exact selected read operation from the pinned public actiTIME REST API."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "actitime_manage",
+        "label": "Manage actiTIME",
+        "description": "Run one exact selected actiTIME mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "actitime_safe",
+      "label": "Safe",
+      "description": "All 32 bounded reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["actitime_read"],
+      "approvalRequiredActions": ["actitime_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 58 selected and user-authorized operations run without Relay per-action approval; installation ownership, actiTIME permissions, exact routes, bounds, audits, redaction, plan limits, and credential non-exposure still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["actitime_read", "actitime_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 58 pinned public actiTIME REST operations through the encrypted customer-credential connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 58 pinned public actiTIME REST operations through the encrypted customer-credential connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned paid actiTIME installation or dedicated integration-user credentials are available in this workspace.",
+    "nextAction": "An actiTIME administrator creates a dedicated least-privilege integration user, saves the installation URL, username, and password through Relay Console, then verifies identity binding, permissions, reads, Safe approvals, Dangerous mutations, batching, hooks, credential replacement, agent assignment, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.actitime.com/api-documentation",
+      "checkedAt": "2026-07-15",
+      "supports": "actiTIME's official API overview documents HTTPS Basic authentication with a customer's username and password, paid Online and Self-Hosted availability, v1 resources, permissions, errors, and rate limits."
+    },
+    {
+      "url": "https://www.actitime.com/api-documentation/api-usage",
+      "checkedAt": "2026-07-15",
+      "supports": "actiTIME's official usage guide confirms installation-relative /api/v1 routes and Basic authorization rather than a distributable OAuth application."
+    },
+    {
+      "url": "https://www.actitime.com/api-documentation/rest-hooks",
+      "checkedAt": "2026-07-15",
+      "supports": "actiTIME's official REST Hooks guide documents subscription list, create, unsubscribe, and delete operations and supported events."
+    },
+    {
+      "url": "https://www.actitime.com/actitime-api",
+      "checkedAt": "2026-07-15",
+      "supports": "actiTIME describes the product API as a way to automate time export, data import, reporting, and project synchronization for customer accounts."
+    }
+  ]
+}

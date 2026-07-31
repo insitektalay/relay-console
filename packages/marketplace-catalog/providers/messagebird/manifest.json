@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "messagebird",
+  "name": "Bird (formerly MessageBird)",
+  "category": "communication",
+  "description": "Bird, formerly MessageBird, is a communications platform for messaging, email, voice, customer engagement, and contact management.",
+  "agentUseSummary": "Add a dedicated customer-owned Bird AccessKey whose role grants View only on one selected workspace metadata route, then let agents inspect only that workspace's lifecycle status without exposing messages, contacts, campaigns, billing, workspace administration, credential administration, writes, or raw APIs.",
+  "provider": {
+    "websiteUrl": "https://bird.com/",
+    "docsUrl": "https://docs.bird.com/api/accounts-api/api-reference/organizations/workspaces",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://bird.com/legal/terms",
+    "privacyUrl": "https://bird.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_role_bound_access_key",
+      "selected_organization_and_workspace",
+      "workspace_metadata_read_only",
+      "access_key_authorization_header",
+      "manual_provider_revocation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MESSAGEBIRD_ORGANIZATION_ID",
+        "label": "Bird organization ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the organization UUID containing the selected workspace."
+      },
+      {
+        "name": "MESSAGEBIRD_WORKSPACE_ID",
+        "label": "Bird workspace ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact workspace UUID Relay is allowed to inspect."
+      },
+      {
+        "name": "MESSAGEBIRD_ACCESS_KEY",
+        "label": "Dedicated read-only Bird AccessKey",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated key whose attached role allows View only on /organizations/{organizationId}/workspaces/{workspaceId}. Relay encrypts it; delete it in Bird Security settings after disconnect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workspace_status_read",
+      "label": "Read workspace status",
+      "description": "Inspect only the selected Bird workspace's lifecycle status through one fixed read.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "messagebird_workspace_status_get",
+        "label": "Read workspace status",
+        "description": "Read only the selected Bird workspace's active, disabled, terminated, or deleted status."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "messagebird_communications_content_contacts",
+        "label": "Block communications, content, and contacts",
+        "description": "Messages, SMS, MMS, WhatsApp, email, voice, Verify, channels, conversations, contacts, lists, audiences, campaigns, templates, media, and customer content are unavailable."
+      },
+      {
+        "id": "messagebird_account_billing_workspace_writes",
+        "label": "Block account, billing, and workspace writes",
+        "description": "Organization and workspace changes, numbers, senders, subscriptions, billing, payments, top-ups, webhooks, roles, policies, and other administrative operations are unavailable."
+      },
+      {
+        "id": "messagebird_credentials_admin_raw",
+        "label": "Block credential administration and raw access",
+        "description": "Access-key listing, creation, inspection, update, deletion, arbitrary hosts, paths, queries, pagination, retries, writes, deletes, and raw APIs are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "messagebird_safe",
+      "label": "Safe",
+      "description": "The one fixed workspace-status read runs automatically; communications, content, contacts, billing, workspace writes, credential administration, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["messagebird_workspace_status_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "messagebird_communications_content_contacts",
+        "messagebird_account_billing_workspace_writes",
+        "messagebird_credentials_admin_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same fixed read runs without Relay per-action approval; the selected organization/workspace, exact route, response reduction, audits, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["messagebird_workspace_status_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "messagebird_communications_content_contacts",
+        "messagebird_account_billing_workspace_writes",
+        "messagebird_credentials_admin_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts one typed workspace-status read while Railway alone holds the customer-owned, role-bound Bird AccessKey."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts one typed workspace-status read while Railway alone holds the customer-owned, role-bound Bird AccessKey."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A representative Bird organization/workspace, least-privilege role and policy, dedicated AccessKey, current legal/AUP/privacy review, staging credential entry, and live validation remain for separate authorized tasks.",
+    "nextAction": "After batch integration, an authorized Bird administrator must create a dedicated role-bound AccessKey allowing View only on the selected workspace metadata route and validate AccessKey authentication, exact response reduction, 64 KiB limit, no retry, encrypted-copy deletion, provider-side key deletion, and post-deletion denial."
+  },
+  "evidence": [
+    {
+      "url": "https://bird.com/en-us/legal/change-notice",
+      "checkedAt": "2026-07-18",
+      "supports": "Bird's official notice documents the MessageBird-to-Bird company and brand change while confirming continuity of existing services and agreements."
+    },
+    {
+      "url": "https://docs.bird.com/api/api-access/common-api-usage",
+      "checkedAt": "2026-07-18",
+      "supports": "Bird documents https://api.bird.com as the API origin, Authorization: AccessKey authentication, role-based authorization, JSON responses, and standard HTTP errors."
+    },
+    {
+      "url": "https://docs.bird.com/api/api-access/access-policies",
+      "checkedAt": "2026-07-18",
+      "supports": "Bird documents deny-by-default fine-grained policies with a View action for GET/HEAD/OPTIONS and exact or wildcard resource paths."
+    },
+    {
+      "url": "https://docs.bird.com/api/accounts-api/api-reference/organizations/workspaces",
+      "checkedAt": "2026-07-18",
+      "supports": "Bird documents fixed GET /organizations/{organizationId}/workspaces/{workspaceId}, UUID identifiers, AccessKey authorization, and workspace lifecycle status values."
+    },
+    {
+      "url": "https://docs.bird.com/api/accounts-api/api-reference/organizations/access-keys",
+      "checkedAt": "2026-07-18",
+      "supports": "Bird documents role-bound organization access keys and provider-side key deletion, supporting dedicated least-privilege credentials and manual revocation after Relay disconnect."
+    }
+  ]
+}

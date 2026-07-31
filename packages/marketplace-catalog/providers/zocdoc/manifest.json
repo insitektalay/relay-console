@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zocdoc",
+  "name": "Zocdoc",
+  "category": "work_management",
+  "description": "Zocdoc is a healthcare marketplace where patients search for providers by specialty, insurance, location and availability and book in-person or virtual appointments. Practices use provider profiles, calendars, intake tools and integrations with electronic health record and practice-management systems to manage patient access.",
+  "agentUseSummary": "Zocdoc cannot yet be connected to Relay agents because its documented OAuth API requires a Zocdoc-issued developer account, Developer Licensing agreement, separately issued environment credentials and a provider directory jointly defined and onboarded with Zocdoc. Relay will not substitute patient or practice account credentials, browser automation or an unapproved partner use case for that contract.",
+  "provider": {
+    "websiteUrl": "https://www.zocdoc.com/",
+    "docsUrl": "https://api-docs.zocdoc.com/guides",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.zocdoc.com/about/terms",
+    "privacyUrl": "https://www.zocdoc.com/about/privacypolicy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "licensed_zocdoc_developer_partnership_required",
+      "jointly_onboarded_provider_directory_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "zocdoc_connect_unapproved_app",
+        "label": "Connect an unapproved Zocdoc application",
+        "description": "Relay does not request partner credentials, present patient or practice login as API authority, or start OAuth before Zocdoc approves Relay's exact application, redirect, scopes, directory and licensed use case."
+      },
+      {
+        "id": "zocdoc_search_and_availability",
+        "label": "Search providers and availability",
+        "description": "Relay does not query provider, location, specialty, visit-reason, insurance or availability data outside a Zocdoc-approved developer directory and authorized API product."
+      },
+      {
+        "id": "zocdoc_patient_appointments",
+        "label": "Manage patient appointments",
+        "description": "Relay does not book, view, confirm, cancel or reschedule appointments, upload attachments, send intake data or act for a patient without the approved user authorization and healthcare data contract."
+      },
+      {
+        "id": "zocdoc_practice_operations",
+        "label": "Manage practice scheduling",
+        "description": "Relay does not publish timeslots, modify provider availability or insurance mappings, receive appointment webhooks, rotate credentials or operate practice calendars before Zocdoc and the practice establish machine authority and event verification."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zocdoc_unavailable",
+      "label": "Unavailable",
+      "description": "No action is exposed until an authorized business owner completes Zocdoc's developer licensing and onboarding and Relay implements the approved patient or practice contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zocdoc_connect_unapproved_app",
+        "zocdoc_search_and_availability",
+        "zocdoc_patient_appointments",
+        "zocdoc_practice_operations"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "Relay mounts no Zocdoc partner credential, patient token, developer directory, provider data, appointment action or practice operation in OpenClaw."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "Relay mounts no Zocdoc partner credential, patient token, developer directory, provider data, appointment action or practice operation in Hermes."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Zocdoc publishes a current API for patient booking, provider calendar integration and selected insurance partners, with sandbox and production environments. Machine access uses separately issued client credentials; user appointment actions use Authorization Code with S256 PKCE, exact registered redirects and optional offline access. The authentication guide says credentials are governed by a Developer Licensing agreement, while scheduling guides require a developer account and a provider directory jointly defined and onboarded with Zocdoc. The directory bounds which providers can be searched and booked, and API products, scopes and actions differ between patient, provider and select-partner use cases. Choosing and licensing that product, defining the directory and commercial model, obtaining Zocdoc approval, establishing HIPAA and consumer-health-data roles, and accepting patient-booking liability are external business commitments Relay cannot make in this worker. No generic customer-owned key or ordinary Zocdoc account can establish the same authority.",
+    "nextAction": "Do not request patient or practice credentials, developer secrets, authorization codes, tokens, directory identifiers, NPIs, appointment data or health information; apply for partnership; accept licensing terms; configure OAuth; automate Zocdoc; or show Connect. An authorized Relay business owner must first choose the patient-booking and/or provider-calendar product, obtain legal and privacy approval, execute Zocdoc's Developer Licensing agreement, have Zocdoc approve the application, exact redirects, scopes, environments and provider directory, and receive sandbox credentials. Then implement the approved bounded action map with PKCE and state, encrypted token lifecycle, directory and user ownership checks, webhook signature validation, PHI and consumer-health-data controls, redaction, approvals, audit, rate handling, revocation and Railway-staging acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://api-docs.zocdoc.com/guides",
+      "checkedAt": "2026-07-18",
+      "supports": "Zocdoc documents distinct patient-booking, provider-calendar and insurance API products and says Insurance API access is limited to select partners."
+    },
+    {
+      "url": "https://api-docs.zocdoc.com/guides/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Zocdoc documents OAuth 2.0 client credentials and Authorization Code with S256 PKCE, separately issued sandbox and production credentials, exact scopes, refresh behavior and credential obligations under its Developer Licensing agreement."
+    },
+    {
+      "url": "https://api-docs.zocdoc.com/guides/scheduling/create-timeslots",
+      "checkedAt": "2026-07-18",
+      "supports": "Zocdoc requires a developer account and access token and defines each developer's bookable provider directory through Zocdoc onboarding."
+    },
+    {
+      "url": "https://api-docs.zocdoc.com/guides/scheduling/appointment-actions",
+      "checkedAt": "2026-07-18",
+      "supports": "Zocdoc documents appointment confirmation, cancellation and rescheduling and distinguishes user-owned appointment authority from machine-to-machine developer authority."
+    },
+    {
+      "url": "https://www.zocdoc.com/provider-help/en/articles/8880787-how-to-show-accurate-availability-with-a-calendar-integration",
+      "checkedAt": "2026-07-18",
+      "supports": "Zocdoc documents practice calendar integrations as eligibility- and scheduling-system-specific setup that may require credentials, forms and a call with its Integration Support team."
+    },
+    {
+      "url": "https://www.zocdoc.com/about/consumer-health-data-privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "Zocdoc identifies appointment, provider, insurance, condition, symptom and treatment information as consumer health data and distinguishes provider PHI governed by HIPAA."
+    }
+  ]
+}

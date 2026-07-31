@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoom",
+  "name": "Zoom",
+  "category": "communication",
+  "description": "Zoom is a communications platform for video meetings, webinars, team collaboration, rooms, phone, and events. Relay's Zoom V1 is limited to bounded safe metadata for the signed-in user's scheduled, live, upcoming, and explicitly selected meetings.",
+  "agentUseSummary": "Connect one Zoom user through Relay-owned user-managed OAuth so agents can review safe meeting schedule metadata through four fixed GET-only wrappers. Join, start, and registration credentials, people, recordings, transcripts, chat, summaries, assets, polls, other Zoom products, writes, administration, webhooks, pagination, and raw provider access are blocked.",
+  "provider": {
+    "websiteUrl": "https://zoom.us/",
+    "docsUrl": "https://developers.zoom.us/docs/api/meetings/",
+    "developerConsoleUrl": "https://marketplace.zoom.us/develop/create",
+    "termsUrl": "https://explore.zoom.us/en/terms/",
+    "privacyUrl": "https://explore.zoom.us/en/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "meeting:read:list_meetings",
+      "meeting:read:list_upcoming_meetings",
+      "meeting:read:meeting"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://zoom.us/oauth/authorize",
+    "tokenUrl": "https://zoom.us/oauth/token",
+    "revocationUrl": "https://zoom.us/oauth/revoke"
+  },
+  "connection": {
+    "types": ["oauth2", "relay_owned_global_oauth", "zoom_user_managed", "self_user_meeting_metadata"],
+    "credentialRequirements": [
+      "Relay-owned Zoom OAuth client ID configured only on Railway",
+      "Relay-owned Zoom OAuth client secret retained only by Railway"
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/zoom/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "scheduled_meetings",
+      "label": "Read scheduled meetings",
+      "description": "Review up to twenty-five safe scheduled or live meeting metadata records for the signed-in user.",
+      "readOnly": true
+    },
+    {
+      "id": "upcoming_meetings",
+      "label": "Read upcoming meetings",
+      "description": "Review up to twenty-five safe meeting metadata records in the signed-in user's next twenty-four hours.",
+      "readOnly": true
+    },
+    {
+      "id": "meeting_get",
+      "label": "Read one meeting",
+      "description": "Review safe metadata for one explicit numeric meeting ID from a previous result.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "zoom_scheduled_meetings_list", "label": "List scheduled Zoom meetings", "description": "Read up to twenty-five safe scheduled meeting metadata records for the signed-in user." },
+      { "id": "zoom_live_meetings_list", "label": "List live Zoom meetings", "description": "Read up to twenty-five safe live meeting metadata records for the signed-in user." },
+      { "id": "zoom_upcoming_meetings_list", "label": "List upcoming Zoom meetings", "description": "Read up to twenty-five safe next-24-hour meeting metadata records for the signed-in user." },
+      { "id": "zoom_meeting_get", "label": "Get Zoom meeting", "description": "Read safe metadata for one explicit numeric prior-result meeting ID." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "zoom_join_start_registration_credentials", "label": "Access meeting credentials", "description": "Start, join, and registration URLs, passwords, passcodes, tokens, invitations, and dial-in details are always excluded." },
+      { "id": "zoom_hosts_registrants_participants", "label": "Access people data", "description": "Host, alternative-host, invitee, registrant, participant, attendance, contact, and calendar data are outside V1." },
+      { "id": "zoom_recordings_transcripts_chat_summaries", "label": "Access meeting content", "description": "Recordings, transcripts, chat, AI summaries, notes, and other meeting content are outside V1." },
+      { "id": "zoom_assets_polls_media", "label": "Access assets or interactive content", "description": "Files, assets, polls, Q&A, audio, video, media, and streaming are outside V1." },
+      { "id": "zoom_webinars_rooms_phone_team_chat", "label": "Access other Zoom products", "description": "Webinars, Events, Rooms, Phone, Team Chat, Whiteboard, and other Zoom products are outside V1." },
+      { "id": "zoom_account_admin_writes", "label": "Change or administer Zoom", "description": "Account and admin access plus create, update, delete, end, and every other mutation are outside V1." },
+      { "id": "zoom_webhooks_pagination_raw", "label": "Use broad or raw access", "description": "Webhooks, automatic pagination, polling, retries, raw provider requests, GraphQL, and MCP surfaces are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zoom_safe",
+      "label": "Safe",
+      "description": "Four fixed self-user meeting metadata GET reads run automatically; credentials, people, content, other Zoom products, writes, administration, webhooks, pagination, and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["zoom_scheduled_meetings_list", "zoom_live_meetings_list", "zoom_upcoming_meetings_list", "zoom_meeting_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["zoom_join_start_registration_credentials", "zoom_hosts_registrants_participants", "zoom_recordings_transcripts_chat_summaries", "zoom_assets_polls_media", "zoom_webinars_rooms_phone_team_chat", "zoom_account_admin_writes", "zoom_webhooks_pagination_raw"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four reads run without per-action approval; exact scopes, self-user routing, safe projections, limits, audit, and API controls still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["zoom_scheduled_meetings_list", "zoom_live_meetings_list", "zoom_upcoming_meetings_list", "zoom_meeting_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["zoom_join_start_registration_credentials", "zoom_hosts_registrants_participants", "zoom_recordings_transcripts_chat_summaries", "zoom_assets_polls_media", "zoom_webinars_rooms_phone_team_chat", "zoom_account_admin_writes", "zoom_webhooks_pagination_raw"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "native_wrapper_tools", "description": "Mounts exactly four read-only Zoom meeting metadata wrapper tools." },
+    { "format": "hermes", "installSupport": "native_wrapper_tools", "description": "Mounts exactly four read-only Zoom meeting metadata wrapper tools." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A production user-managed Zoom OAuth app, exact granular scopes, strict Railway callback, and staging acceptance remain pending outside this worker lane.",
+    "nextAction": "Configure and review a Relay-owned user-managed Zoom OAuth app with only the three documented granular read scopes, then validate one staging user and the four fixed metadata-only wrappers through the Railway-hosted callback.",
+    "requiredProviderArtifacts": ["production Zoom OAuth client ID", "production Zoom OAuth client secret", "exact Railway callback allowlist", "three granular meeting-read scopes", "one staging Zoom user"]
+  },
+  "evidence": [
+    { "url": "https://developers.zoom.us/docs/integrations/", "checkedAt": "2026-07-17", "supports": "Zoom documents user-managed OAuth apps for API access on behalf of one authorized user." },
+    { "url": "https://developers.zoom.us/docs/integrations/create/", "checkedAt": "2026-07-17", "supports": "Zoom documents user-managed app scope boundaries, OAuth credentials, and exact redirect URL configuration." },
+    { "url": "https://developers.zoom.us/docs/api/meetings/", "checkedAt": "2026-07-17", "supports": "Zoom documents signed-in-user meeting list, upcoming-meeting, and get-meeting GET endpoints plus the sensitive fields Relay must strip." },
+    { "url": "https://developers.zoom.us/docs/integrations/oauth-scopes-granular/", "checkedAt": "2026-07-17", "supports": "Zoom publishes granular meeting read scopes for listing meetings, listing upcoming meetings, and reading one meeting." },
+    { "url": "https://developers.zoom.us/docs/api/authentication/", "checkedAt": "2026-07-17", "supports": "Zoom requires OAuth 2.0 bearer tokens for user-authorized Marketplace apps." }
+  ]
+}

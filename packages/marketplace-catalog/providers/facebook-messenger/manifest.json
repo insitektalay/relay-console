@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "facebook-messenger",
+  "name": "Facebook Messenger",
+  "category": "communication",
+  "description": "Facebook Messenger Platform lets a business's Facebook Page receive messages from people and respond through automation, live agents, or a coordinated handover between them.",
+  "agentUseSummary": "Facebook Messenger cannot yet be connected through Relay. Meta requires a Relay-owned app, Facebook Login for Business, explicit Page selection, five Page and business permissions, Business Verification, Advanced Access and App Review, Page-scoped tokens, subscribed webhooks, and representative acceptance. No Page conversations or messaging authority is exposed while that provider review remains incomplete.",
+  "provider": {
+    "websiteUrl": "https://www.messenger.com/",
+    "docsUrl": "https://developers.facebook.com/docs/messenger-platform/overview",
+    "developerConsoleUrl": "https://developers.facebook.com/apps/",
+    "termsUrl": "https://developers.facebook.com/terms/",
+    "privacyUrl": "https://www.facebook.com/privacy/policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "pages_show_list",
+      "pages_manage_metadata",
+      "pages_messaging",
+      "pages_read_engagement",
+      "business_management"
+    ],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.facebook.com/dialog/oauth",
+    "tokenUrl": "https://graph.facebook.com/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_meta_app",
+      "facebook_login_for_business",
+      "explicit_page_selection",
+      "page_access_token",
+      "page_scoped_user_ids",
+      "signed_page_webhooks",
+      "advanced_access_and_app_review_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/facebook-messenger/callback",
+    "webhookRequirements": [
+      "public_https_callback",
+      "verification_challenge",
+      "app_secret_signature_validation",
+      "page_subscription",
+      "messages_and_messaging_postbacks",
+      "idempotent_event_processing"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "page_message_events",
+      "label": "Receive Page message events",
+      "description": "After Meta acceptance, receive bounded messages, attachments, postbacks, deliveries, reads, and other selected events for an explicitly connected Facebook Page.",
+      "defaultSelected": true
+    },
+    {
+      "id": "page_conversations_read",
+      "label": "Read Page conversations",
+      "description": "After Meta acceptance, read bounded conversations and messages for people who initiated contact with the connected Page.",
+      "defaultSelected": true
+    },
+    {
+      "id": "page_messages_send",
+      "label": "Reply from the Page",
+      "description": "After Meta acceptance, send policy-compliant Page replies inside the standard messaging window and supported tagged human-agent responses.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "facebook_messenger_connect_before_review",
+        "label": "Connect before Meta review",
+        "description": "Relay has not completed Meta Business Verification, Advanced Access, App Review, Facebook Login for Business, explicit Page selection, or representative acceptance."
+      },
+      {
+        "id": "facebook_messenger_receive_before_review",
+        "label": "Receive Messenger events",
+        "description": "Page webhooks remain disabled until callback verification, signature validation, Page subscription, event selection, binding, idempotency, and redaction are accepted."
+      },
+      {
+        "id": "facebook_messenger_read_before_review",
+        "label": "Read Messenger conversations",
+        "description": "Conversations, messages, attachments, profile fields, Page-scoped identities, postbacks, delivery and read receipts, referrals, and metadata remain unavailable."
+      },
+      {
+        "id": "facebook_messenger_send_before_review",
+        "label": "Send Messenger messages",
+        "description": "Text, media, templates, reactions, sender actions, persistent menus, and every other Page reply remain unavailable before provider acceptance."
+      },
+      {
+        "id": "facebook_messenger_raw_or_personal",
+        "label": "Use raw APIs or personal Messenger",
+        "description": "Arbitrary Graph calls, raw webhook payloads, personal-account chats, browser or device automation, cookies, user tokens, copied Page tokens, and unofficial libraries are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "facebook_messenger_provider_review",
+      "label": "Provider review pending",
+      "description": "No Facebook Messenger action is enabled until Meta approves Relay's production app and the complete Page selection, token, webhook, policy, rate, handover, and revocation contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "facebook_messenger_connect_before_review",
+        "facebook_messenger_receive_before_review",
+        "facebook_messenger_read_before_review",
+        "facebook_messenger_send_before_review",
+        "facebook_messenger_raw_or_personal"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded Facebook Page Messenger tools after Meta review; no OpenClaw tool is callable while provider review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded Facebook Page Messenger tools after Meta review; no Hermes tool is callable while provider review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Meta requires a registered app, Facebook Login for Business, explicit Page administration and selection, a Page access token, pages_show_list, pages_manage_metadata, pages_messaging, pages_read_engagement and business_management, subscribed webhooks, and a Facebook Page. Because Relay serves businesses that do not hold app roles, it also requires Business Verification, Advanced Access and App Review. This worker cannot perform provider-console setup, consent, review submission, or representative Page validation.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should establish Relay's Meta app ownership, complete Business Verification, configure Facebook Login for Business and https://api.relayconsole.work/api/v1/marketplace/oauth/facebook-messenger/callback, register the Railway Page webhook, request the minimum Advanced Access permissions, and pass App Review. Representative acceptance must then verify Page and role selection, Page token lifecycle, Page-scoped identities, webhook challenge and signature, subscriptions, event idempotency, conversation bounds, 24-hour and human-agent policy gates, handover, rate limits, media redaction, disconnect, revocation, and post-disconnect denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.facebook.com/docs/messenger-platform/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Meta documents person-initiated Facebook Page conversations, webhook-triggered messages, 24-hour replies, Facebook Login, Page access tokens and Page-scoped IDs, Page-role requirements, five required permissions, Business Verification, Advanced Access and App Review for third-party business users, handover, rate limits, and real-time webhooks."
+    },
+    {
+      "url": "https://www.postman.com/meta/messenger-platform-api/documentation/iyp204x/messenger-platform-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Meta's official Messenger Platform collection requires a Facebook Page, pages_messaging, and a Page token requested by a person with the MESSAGING task; its Send API supports text, attachments, templates and sender actions only for a recipient inside the 24-hour window or with an applicable opt-in."
+    },
+    {
+      "url": "https://developers.facebook.com/docs/messenger-platform/webhooks",
+      "checkedAt": "2026-07-17",
+      "supports": "Meta's Messenger Platform identifies Page webhooks as the real-time delivery mechanism that an app must configure and subscribe before receiving Page messaging events."
+    },
+    {
+      "url": "https://developers.facebook.com/docs/messenger-platform/policy/policy-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Meta's Messenger Platform policy and usage guidance governs messaging windows, tags, automation, user expectations, data use, and continued platform access."
+    }
+  ]
+}

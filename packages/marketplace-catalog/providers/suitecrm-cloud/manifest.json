@@ -1,0 +1,190 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "suitecrm-cloud",
+  "name": "SuiteCRM Hosted",
+  "category": "crm_support",
+  "description": "SuiteCRM Hosted, formerly presented as SuiteCRM Cloud, is the fully managed edition of the open-source SuiteCRM customer relationship management platform. Teams use it to coordinate accounts, contacts, leads, opportunities, cases, activities, campaigns, projects, documents, products, quotes, invoices, contracts, and related customer history while SuiteCRM manages hosting, security, upgrades, backups, and monitoring.",
+  "agentUseSummary": "Add the official hosted tenant domain and a customer-owned client-credentials OAuth client associated with a dedicated least-privilege SuiteCRM user, then choose which agents can read or manage selected V8 CRM records under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://suitecrm.com/suitecrmhosted/",
+    "docsUrl": "https://docs.suitecrm.com/developer/api/developer-setup-guide/json-api/",
+    "developerConsoleUrl": "https://docs.suitecrm.com/developer/api/developer-setup-guide/configure-authentication/",
+    "termsUrl": "https://suitecrm.com/wp-content/uploads/2025/03/SuiteCRM_SAAS_Hosting_Agreement_2025.pdf",
+    "privacyUrl": "https://suitecrm.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_oauth_client_credentials",
+      "tenant_dynamic_token_endpoint",
+      "associated_user_acl_authority",
+      "official_hosted_domain_boundary",
+      "json_api_v8"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SUITECRM_CLOUD_HOST",
+        "label": "SuiteCRM Hosted domain",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter only the lowercase official hosted domain, such as acme.suiteondemand.com, without a scheme or path."
+      },
+      {
+        "name": "SUITECRM_CLOUD_CLIENT_ID",
+        "label": "OAuth client ID",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the ID of a customer-owned client-credentials grant associated with a dedicated least-privilege SuiteCRM user."
+      },
+      {
+        "name": "SUITECRM_CLOUD_CLIENT_SECRET",
+        "label": "OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the secret recorded when the customer-owned OAuth client was created. SuiteCRM does not display it again after hashing it."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/suitecrm-cloud/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crm_read",
+      "label": "Read CRM and module metadata",
+      "description": "Read available modules, selected module fields, bounded record collections, individual records, and relationships.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crm_manage",
+      "label": "Manage core CRM records",
+      "description": "Create, update, delete, link, and unlink records in the selected sales, service, activity, project, document, and inventory modules.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "suitecrm_cloud_api_read",
+        "label": "Read SuiteCRM Hosted",
+        "description": "Read bounded module metadata, selected CRM records, collections, and relationships through exact V8 JSON API operations."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "suitecrm_cloud_api_manage",
+        "label": "Manage SuiteCRM Hosted",
+        "description": "Create, update, delete, link, or unlink selected CRM records through exact V8 JSON API operations."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "suitecrm_cloud_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer OAuth client ID, client secret, and derived access tokens never enter agent-visible requests or results."
+      },
+      {
+        "id": "suitecrm_cloud_unofficial_origin",
+        "label": "Use another origin",
+        "description": "Every token and CRM request stays on the exact configured official SuiteCRM Hosted suitecrm.com or suiteondemand.com subdomain."
+      },
+      {
+        "id": "suitecrm_cloud_unsupported_operation",
+        "label": "Call another operation",
+        "description": "Relay blocks self-hosted and custom domains, arbitrary modules and paths, Swagger retrieval, logout, OAuth administration, user and ACL administration, imports, exports, files, email, workflows, webhooks, raw MCP, and undocumented operations."
+      },
+      {
+        "id": "suitecrm_cloud_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay performs one request at a time and bounds modules, fields, filters, pages, bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "suitecrm_cloud_safe",
+      "label": "Safe",
+      "description": "Selected bounded metadata and CRM reads run directly. Every create, update, delete, link, and unlink requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["suitecrm_cloud_api_read"],
+      "approvalRequiredActions": ["suitecrm_cloud_api_manage"],
+      "blockedActions": [
+        "suitecrm_cloud_secret_exposure",
+        "suitecrm_cloud_unofficial_origin",
+        "suitecrm_cloud_unsupported_operation",
+        "suitecrm_cloud_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected CRM mutations authorized by the associated SuiteCRM user run without Relay per-action approval. Exact tenant binding, provider ACLs, selected modules, typed routes, bounds, token protection, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "suitecrm_cloud_api_read",
+        "suitecrm_cloud_api_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "suitecrm_cloud_secret_exposure",
+        "suitecrm_cloud_unofficial_origin",
+        "suitecrm_cloud_unsupported_operation",
+        "suitecrm_cloud_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges encrypted customer-owned client credentials at the exact hosted tenant and mounts selected SuiteCRM V8 reads and mutations through bounded tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges encrypted customer-owned client credentials at the exact hosted tenant and mounts selected SuiteCRM V8 reads and mutations through bounded tools."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "Each SuiteCRM Hosted tenant must create its own OAuth2 client-credentials grant and associate it with a dedicated user. No authorized hosted tenant, client ID, client secret, representative records, ACL matrix, or tenant-specific customizations are available in this code-only worker for live acceptance.",
+    "nextAction": "An authorized SuiteCRM Hosted administrator should create a confidential client-credentials OAuth client associated with a dedicated least-privilege user, record its one-time secret, and connect the official tenant domain and client through Relay. Then verify token exchange, module metadata, bounded reads, Safe approvals, Dangerous record and relationship mutations with cleanup, ACL denial, pagination, custom-field behavior, audit redaction, client-secret replacement, token revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://suitecrm.com/suitecrmhosted/",
+      "checkedAt": "2026-07-18",
+      "supports": "SuiteCRM documents SuiteCRM Hosted as its current fully managed cloud service covering infrastructure, security, updates, backups, monitoring, regional hosting, migration, and support."
+    },
+    {
+      "url": "https://docs.suitecrm.com/developer/api/developer-setup-guide/configure-authentication/",
+      "checkedAt": "2026-07-18",
+      "supports": "SuiteCRM documents per-instance OAuth2 clients, client-credentials grants associated with a SuiteCRM user, the tenant-local /Api/access_token endpoint, bearer access tokens, password and refresh grants, and newer authorization-code support."
+    },
+    {
+      "url": "https://docs.suitecrm.com/developer/api/developer-setup-guide/json-api/",
+      "checkedAt": "2026-07-18",
+      "supports": "SuiteCRM documents the V8 JSON API media type, module and field metadata, record collection and item reads, fields, pagination, single-field sorting, filters, record create/update/delete, and relationship get/create/delete operations."
+    },
+    {
+      "url": "https://docs.suitecrm.com/developer/api/developer-setup-guide/getting-available-resources/",
+      "checkedAt": "2026-07-18",
+      "supports": "SuiteCRM documents the tenant Swagger resource and OAuth-protected route metadata; Relay freezes selected typed operations instead of mounting that dynamic contract."
+    },
+    {
+      "url": "https://suitecrm.com/pricing/",
+      "checkedAt": "2026-07-18",
+      "supports": "SuiteCRM documents its open-source CRM product, self-hosted and fully managed hosting models, support requirements, implementation services, and no per-user software license fees."
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "resend",
+  "name": "Resend",
+  "category": "communication",
+  "description": "Transactional and marketing email, domains, broadcasts, contacts, templates, and delivery data through Resend's REST API.",
+  "agentUseSummary": "Connect a customer-owned Sending access or Full access API key, select capabilities, and let agents read, send, batch, or use the full supported API under Safe or Dangerous policy.",
+  "provider": { "websiteUrl": "https://resend.com/", "docsUrl": "https://resend.com/docs/api-reference/introduction", "developerConsoleUrl": "https://resend.com/api-keys", "termsUrl": "https://resend.com/legal/terms-of-service", "privacyUrl": "https://resend.com/legal/privacy-policy" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["user_owned_api_key"],
+    "credentialRequirements": [
+      { "name": "RESEND_API_KEY", "label": "Resend API key", "required": true, "secret": true, "helpText": "A customer-owned Sending access or Full access key." },
+      { "name": "RESEND_KEY_PERMISSION", "label": "Key permission", "required": true, "secret": false, "helpText": "SENDING or FULL, matching the permission chosen in Resend." },
+      { "name": "RESEND_DOMAIN", "label": "Verified sender domain", "required": true, "secret": false, "helpText": "The exact verified domain agents may send from." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "emails", "label": "Sent emails", "description": "Read bounded sent-email metadata with a Full access key.", "defaultSelected": true },
+    { "id": "domains", "label": "Domains", "description": "Read bounded domain metadata with a Full access key.", "defaultSelected": true },
+    { "id": "send", "label": "Send email", "description": "Send through the configured verified domain.", "defaultSelected": true },
+    { "id": "batch_send", "label": "Batch send", "description": "Send up to 100 messages through the configured domain.", "defaultSelected": false },
+    { "id": "full_api", "label": "Full Resend API", "description": "Use all endpoints allowed by the customer-owned key.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "resend_read_emails", "label": "Read sent emails", "description": "List bounded sent-email metadata." },
+      { "id": "resend_read_domains", "label": "Read domains", "description": "List bounded domain metadata." }
+    ],
+    "approvalRequired": [
+      { "id": "resend_send_email", "label": "Send email", "description": "Sending email requires approval in Safe mode." },
+      { "id": "resend_send_batch", "label": "Send email batch", "description": "Sending a batch requires approval in Safe mode." },
+      { "id": "resend_full_api", "label": "Use full Resend API", "description": "All other API operations require approval in Safe mode." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "resend_safe", "label": "Safe", "description": "Bounded reads run directly; sends and all other API operations require approval.", "defaultSelected": true, "allowedActions": ["resend_read_emails", "resend_read_domains"], "approvalRequiredActions": ["resend_send_email", "resend_send_batch", "resend_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The agent may use every selected Resend capability without Relay per-action approvals; ownership, selected capabilities, provider key authority, domain binding, secret isolation, idempotency, provider limits, and audit evidence still apply.", "defaultSelected": false, "allowedActions": ["resend_read_emails", "resend_read_domains", "resend_send_email", "resend_send_batch", "resend_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Resend tools and proxies the API key server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Resend tools and proxies the API key server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "not_required", "blocker": null, "nextAction": "The customer creates a Sending access or Full access key in Resend and enters it with the matching permission and verified domain." },
+  "evidence": [
+    { "url": "https://resend.com/docs/api-reference/introduction", "checkedAt": "2026-07-13", "supports": "Resend uses one fixed HTTPS API origin, Bearer API keys, a required User-Agent header, and provider-safe response codes." },
+    { "url": "https://resend.com/docs/dashboard/api-keys/introduction", "checkedAt": "2026-07-13", "supports": "Customer-created keys are Full access or Sending access; a Sending key can be restricted to one domain." },
+    { "url": "https://resend.com/docs/api-reference/emails/send-email", "checkedAt": "2026-07-13", "supports": "Single sends allow at most 50 recipients, attachments up to 40 MB after encoding, and an idempotency key up to 256 characters." },
+    { "url": "https://resend.com/docs/api-reference/emails/send-batch-emails", "checkedAt": "2026-07-13", "supports": "Batch sends allow up to 100 emails and do not support attachments or scheduled_at." },
+    { "url": "https://resend.com/docs/api-reference/rate-limit", "checkedAt": "2026-07-13", "supports": "Resend exposes rate-limit and quota headers and defaults to five requests per second per team." }
+  ]
+}

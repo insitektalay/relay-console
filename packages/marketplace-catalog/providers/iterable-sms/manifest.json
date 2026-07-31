@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "iterable-sms",
+  "name": "Iterable SMS",
+  "category": "communication",
+  "description": "Iterable SMS supports consented text-message delivery, templates, subscription controls, double opt-in, phone verification, and SMS history within an Iterable project.",
+  "agentUseSummary": "Connect a dedicated SMS-enabled project key and exact US/EU data-center enum. Relay pins 13 SMS-specific operations: four readiness reads run directly, one history read and eight consent/send/verification mutations require approval, and all consent-sensitive starts also require explicit recorded attestation.",
+  "provider": {
+    "websiteUrl": "https://iterable.com/products/mobile/sms/",
+    "docsUrl": "https://support.iterable.com/hc/en-us/articles/17712346382100-Setting-up-SMS",
+    "developerConsoleUrl": "https://app.iterable.com/",
+    "termsUrl": "https://iterable.com/trust/terms/",
+    "privacyUrl": "https://iterable.com/trust/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_sms_server_api_key",
+      "api_key_header",
+      "exact_sms_project_binding",
+      "us_or_eu_data_center_enum",
+      "fixed_sms_rest_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ITERABLE_SMS_SERVER_API_KEY",
+        "label": "Iterable SMS server-side API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated server-side key for the exact SMS-enabled project."
+      },
+      {
+        "name": "ITERABLE_SMS_REGION",
+        "label": "Iterable SMS data center",
+        "required": true,
+        "secret": false,
+        "helpText": "Set to us for USDC or eu for EDC; Relay maps this enum to a fixed origin."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "readiness",
+      "label": "Read SMS readiness",
+      "description": "Use four bounded SMS channel, message-type, and template reads.",
+      "defaultSelected": true
+    },
+    {
+      "id": "history",
+      "label": "Read SMS history",
+      "description": "Use one bounded SMS-only sent-message read with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage SMS engagement",
+      "description": "Use eight consent, send/cancel, proof, and verification operations with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "iterable_sms_readiness",
+        "label": "Read Iterable SMS readiness",
+        "description": "Read channels, message types, and SMS templates from the exact project and data center."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "iterable_sms_history",
+        "label": "Read Iterable SMS history",
+        "description": "Read a bounded SMS-only sent-message history."
+      },
+      {
+        "id": "iterable_sms_manage",
+        "label": "Manage Iterable SMS",
+        "description": "Update a consented phone/subscription, trigger double opt-in, send or cancel SMS/proofs, and verify phone numbers."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "iterable_sms_secret_exposure",
+        "label": "Expose credentials",
+        "description": "API keys, JWTs, verification codes in results, authorization headers, and secrets never enter agent-visible credential fields or logs."
+      },
+      {
+        "id": "iterable_sms_unattested_consent",
+        "label": "Act without consent attestation",
+        "description": "Phone collection, subscription changes, double opt-in, SMS/proof sends, and verification starts require explicit recorded consent attestation."
+      },
+      {
+        "id": "iterable_sms_broader_api",
+        "label": "Use broader Iterable APIs",
+        "description": "Non-SMS templates/messages, campaigns, exports, bulk operations, arbitrary paths/origins/headers, and destructive administration are blocked."
+      },
+      {
+        "id": "iterable_sms_provider_setup",
+        "label": "Provision SMS infrastructure",
+        "description": "SMS providers, senders, channels, message types, verification profiles, carrier registration, and compliance settings require provider-side setup outside Relay."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "iterable_sms_safe",
+      "label": "Safe",
+      "description": "Four readiness reads run directly; SMS history and all eight consent/send/verification mutations require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["iterable_sms_readiness"],
+      "approvalRequiredActions": [
+        "iterable_sms_history",
+        "iterable_sms_manage"
+      ],
+      "blockedActions": [
+        "iterable_sms_secret_exposure",
+        "iterable_sms_unattested_consent",
+        "iterable_sms_broader_api",
+        "iterable_sms_provider_setup"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 13 selected operations run without Relay per-action approval; consent attestation, fixed SMS routes/filters, bounds, audits, and secret/provider-setup blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "iterable_sms_readiness",
+        "iterable_sms_history",
+        "iterable_sms_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "iterable_sms_secret_exposure",
+        "iterable_sms_unattested_consent",
+        "iterable_sms_broader_api",
+        "iterable_sms_provider_setup"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts SMS-only Iterable tools, injects the encrypted project key, and maps the stored region enum to a fixed origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts SMS-only Iterable tools, injects the encrypted project key, and maps the stored region enum to a fixed origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Iterable SMS requires provider-side service, sender, channel/message-type, carrier/compliance, and optional verification-profile setup plus a customer-owned key. No console, account, credential, consent, SMS, verification, or deployment is allowed in this worker.",
+    "nextAction": "Complete Iterable SMS and carrier setup outside this worker, configure a dedicated staging key plus us/eu region in Railway staging, and verify channel/template binding, approval and consent-attestation denial/allow, SMS/proof send and cancellation, double opt-in, phone verification, opt-out enforcement, bounds, rate limits, key revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.iterable.com/hc/en-us/articles/17712346382100-Setting-up-SMS",
+      "checkedAt": "2026-07-17",
+      "supports": "Iterable documents SMS provider/sender/channel/message-type setup, exact phoneNumber profile use, opt-out instructions, consent, and double-opt-in requirements."
+    },
+    {
+      "url": "https://support.iterable.com/hc/en-us/articles/11559421803796-SMS-Phone-Verification",
+      "checkedAt": "2026-07-17",
+      "supports": "Iterable documents server-only verification begin/check calls, add-on/provider setup, and the distinction between phone verification and SMS marketing consent."
+    },
+    {
+      "url": "https://api.iterable.com/api-docs",
+      "checkedAt": "2026-07-17",
+      "supports": "The live Swagger spec publishes the selected SMS target/cancel, SMS template/proof, user/subscription, double-opt-in, verification, channel, and message-type routes."
+    },
+    {
+      "url": "https://support.iterable.com/hc/en-us/articles/17685722100116-Best-Practices-for-SMS-Compliance",
+      "checkedAt": "2026-07-17",
+      "supports": "Iterable requires written express consent before mobile messaging and requires compliant opt-out handling."
+    }
+  ]
+}

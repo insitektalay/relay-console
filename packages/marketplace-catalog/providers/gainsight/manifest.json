@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "gainsight",
+  "name": "Gainsight",
+  "category": "developer",
+  "description": "Gainsight is a customer-success platform for lifecycle management, risk, value realization, expansion, advocacy, health scoring, relationships, and cross-functional collaboration. Customer-success teams use it to manage retention and growth.",
+  "agentUseSummary": "Connect one exact Gainsight NXT tenant with a customer-owned access key and its HTTPS gainsightcloud.com origin, then let agents list only bounded, strictly projected object metadata under approval. Relay excludes key prefixes, private field metadata, customer/person records, values, goals, health, activities, writes, deletes, events, bulk jobs, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.gainsight.com/",
+    "docsUrl": "https://support.gainsight.com/gainsight_nxt/API_and_Developer_Docs/Data_Management_APIs/Data_Management_APIs",
+    "developerConsoleUrl": "https://support.gainsight.com/gainsight_nxt/API_and_Developer_Docs/Generate_REST_API/Generate_REST_API_Key",
+    "termsUrl": "https://www.gainsight.com/terms/",
+    "privacyUrl": "https://www.gainsight.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "customer_owned_access_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_access_key",
+      "exact_tenant_scope",
+      "gainsightcloud_origin_binding",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "GAINSIGHT_ACCESS_KEY",
+        "label": "Gainsight access key",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate or reset the tenant access key and store it only through Relay's encrypted connection flow."
+      },
+      {
+        "name": "GAINSIGHT_TENANT_ORIGIN",
+        "label": "Gainsight tenant origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact HTTPS gainsightcloud.com tenant origin."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "object_metadata_inventory",
+      "label": "List object metadata",
+      "description": "List at most 100 object names, labels, types, and low-risk read/transaction/currency flags without key prefixes, fields, or record values.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "gainsight_objects_list",
+        "label": "List object metadata",
+        "description": "List bounded projected object metadata from one exact Gainsight tenant."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "gainsight_customer_person_data",
+        "label": "Access customer or person data",
+        "description": "Companies, relationships, people, users, goals, health, lifecycle, activities, and field values are blocked."
+      },
+      {
+        "id": "gainsight_private_schema_data",
+        "label": "Access private schema data",
+        "description": "Key prefixes, field names/descriptions, lookups, dropdown values, permissions, mappings, and write-capability flags are blocked."
+      },
+      {
+        "id": "gainsight_mutation_delete",
+        "label": "Mutate or delete Gainsight data",
+        "description": "Creates, updates, upserts, patches, deletes, events, user management, and administration are blocked."
+      },
+      {
+        "id": "gainsight_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, arbitrary tenants, bulk jobs, exports, chunks, polling, retries, batches, downloads, and response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "gainsight_object_metadata_safe",
+      "label": "Safe",
+      "description": "The bounded object-metadata read requires approval; customer/person data, private schema, writes, bulk data, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["gainsight_objects_list"],
+      "blockedActions": [
+        "gainsight_customer_person_data",
+        "gainsight_private_schema_data",
+        "gainsight_mutation_delete",
+        "gainsight_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded object-metadata read runs without Relay per-action approval; exact tenant/path binding, strict projection, response cap, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["gainsight_objects_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "gainsight_customer_person_data",
+        "gainsight_private_schema_data",
+        "gainsight_mutation_delete",
+        "gainsight_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned access key to one exact Gainsight tenant and a projected object-metadata wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned access key to one exact Gainsight tenant and a projected object-metadata wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Gainsight Super Admin must generate or reset the tenant access key, record the exact gainsightcloud.com origin, and store both through Relay. No account, key creation, credential capture, live API request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized Gainsight Super Admin generates or resets the access key, stores it with the exact tenant origin through Relay, then verifies health, one approved object list, throttling, key reset, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.gainsight.com/gainsight_nxt/API_and_Developer_Docs/Data_Management_APIs/Data_Management_APIs",
+      "checkedAt": "2026-07-17",
+      "supports": "Gainsight documents GET /v1/meta/services/objects/list?po=company&em=false returning object names, labels, types, key prefixes, and read/write/schema flags. Relay projects only names, labels, types, and low-risk read/transaction/currency flags."
+    },
+    {
+      "url": "https://support.gainsight.com/gainsight_nxt/API_and_Developer_Docs/Generate_REST_API/Generate_REST_API_Key",
+      "checkedAt": "2026-07-17",
+      "supports": "Gainsight documents Super Admin-generated/resettable access keys and M2M OAuth, with GET APIs available to non-super-admin connections. Relay uses the customer-owned access key and encrypts it."
+    },
+    {
+      "url": "https://support.gainsight.com/gainsight_nxt/API_and_Developer_Docs/About/API_Documentation_Overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Gainsight documents REST read/write/upsert/delete APIs, standard and custom objects, customer lifecycle data, and bulk loading. Relay blocks all record, mutation, event, delete, and bulk surfaces."
+    }
+  ]
+}

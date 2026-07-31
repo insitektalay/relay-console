@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "imessage",
+  "name": "iMessage",
+  "category": "communication",
+  "description": "iMessage is Apple's end-to-end encrypted messaging service for texts, photos, videos, links, locations and other attachments across iPhone, iPad, Mac, Apple Watch and Apple Vision Pro. It runs inside the Messages app alongside carrier-provided SMS, MMS and RCS, and synchronizes conversations across a person's enabled Apple devices.",
+  "agentUseSummary": "iMessage cannot be connected as a Relay account provider because Apple publishes no delegated personal messaging API, OAuth contract or supported conversation-history interface. Apple's public MessageUI and Messages frameworks are native, user-present composition or current-conversation extension surfaces; Relay has no qualifying iOS containing app or iMessage extension, so agents cannot read, search, send or manage personal iMessage conversations.",
+  "provider": {
+    "websiteUrl": "https://support.apple.com/guide/iphone/about-imessage-iph4e9799206/ios",
+    "docsUrl": "https://developer.apple.com/documentation/messages",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://developer.apple.com/support/terms/apple-developer-program-license-agreement/",
+    "privacyUrl": "https://www.apple.com/legal/privacy/data/en/messages/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "no_general_imessage_account_api",
+      "personal_device_bound_service",
+      "messageui_user_present_composition_only",
+      "messages_app_extension_current_conversation_context_only",
+      "identitylookup_explicitly_excludes_imessage",
+      "critical_messaging_is_sms_only",
+      "native_relay_ios_extension_not_implemented"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "imessage_connect",
+        "label": "Connect iMessage",
+        "description": "Apple publishes no OAuth, API-key, remote MCP or delegated account contract for third parties to connect a person's iMessage service."
+      },
+      {
+        "id": "imessage_read_history",
+        "label": "Read or search conversations",
+        "description": "The public Messages and MessageUI frameworks do not grant general access to inboxes, conversation history, contacts, attachments, delivery state or Messages in iCloud."
+      },
+      {
+        "id": "imessage_send_or_manage",
+        "label": "Send or manage messages",
+        "description": "Agents cannot silently send, reply, forward, edit, unsend, delete, mark read, react, manage groups or change messaging settings through a supported personal iMessage API."
+      },
+      {
+        "id": "imessage_native_extension",
+        "label": "Use native composition surfaces",
+        "description": "MessageUI composition and iMessage app-extension actions require an approved signed native target, current user-present Messages context and exact UI lifecycle that Relay has not implemented."
+      },
+      {
+        "id": "imessage_filter_or_critical_sms",
+        "label": "Use filtering or critical messaging as iMessage access",
+        "description": "IdentityLookup filtering explicitly excludes iMessage, while Critical Messaging is a separate entitlement-bound SMS API for narrowly authorized critical communications and cannot serve as personal iMessage authority."
+      },
+      {
+        "id": "imessage_private_or_credential_access",
+        "label": "Use private or credential-based access",
+        "description": "Apple Account credentials, Messages in iCloud scraping, chat database extraction, backups, UI scripting, private frameworks, reverse-engineered IDS calls and unattended device automation are never accepted."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "imessage_unavailable",
+      "label": "Unavailable",
+      "description": "No personal iMessage action is enabled because Apple exposes no delegated account API and Relay has no approved native user-present Messages extension.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "imessage_connect",
+        "imessage_read_history",
+        "imessage_send_or_manage",
+        "imessage_native_extension",
+        "imessage_filter_or_critical_sms",
+        "imessage_private_or_credential_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No iMessage tools are mounted because Apple exposes no personal messaging API and a cloud or source-host runtime cannot inherit a person's native Messages context or encryption authority."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No iMessage tools are mounted because Apple exposes no personal messaging API and a cloud or source-host runtime cannot inherit a person's native Messages context or encryption authority."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "iMessage is a device-bound encrypted personal communication service rather than a delegated developer platform. Apple registers a person's phone number or Apple Account on enabled devices and protects message content end to end. MessageUI can only present a standard composition interface that the person may edit, send or cancel. The Messages framework lets an iMessage app extension interact inside the currently selected conversation, but it does not provide a general account connection or conversation archive. IdentityLookup does not receive iMessages, and Critical Messaging sends SMS only for approved critical use. Relay currently has no signed iOS containing app, iMessage extension, recipient-bound consent model or local execution bridge for these user-present surfaces.",
+    "nextAction": "Do not request Apple Account credentials, ingest chat databases, automate the Messages app or publish a Connect action. If Relay ships a signed iOS containing app and iMessage extension, implement only an explicit user-invoked prepare-or-insert draft action in the current conversation, keep the recipient and final content visible and editable, require the system Messages UI for final transmission, retain no conversation content, and verify cancellation, wrong-recipient prevention and no history access. Do not add background sending unless Apple grants an entitlement for a separately approved critical-SMS use case; that would not be an iMessage provider."
+  },
+  "evidence": [
+    {
+      "url": "https://support.apple.com/guide/iphone/about-imessage-iph4e9799206/ios",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple describes iMessage as a secure Messages-app service on Apple devices, reached through phone numbers or email addresses configured on the person's devices."
+    },
+    {
+      "url": "https://www.apple.com/legal/privacy/data/en/messages/",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple states that iMessage uses a registered phone number or Apple Account, is end-to-end encrypted, is intended for family and friends rather than unwanted or commercial messaging, and may limit misuse."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/messageui/mfmessagecomposeviewcontroller",
+      "checkedAt": "2026-07-17",
+      "supports": "MessageUI presents a standard composition interface with initial recipients and content; the person can edit, send or cancel, and the Messages app remains responsible for transmission."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/messages",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple's Messages framework is for native sticker packs and iMessage app extensions that operate in the current Messages conversation, not a delegated personal-account or history API."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/identitylookup/sms-and-mms-message-filtering",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple explicitly limits IdentityLookup filtering to SMS and MMS from unknown senders and excludes iMessage from every sender."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/messages/critical-messaging-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Critical Messaging is an entitlement- and user-authorization-bound background SMS API for critical use cases, with recipient and rate restrictions; it is not iMessage account access."
+    },
+    {
+      "url": "https://support.apple.com/guide/security/imessage-security-overview-secd9764312f/web",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple documents device-generated encryption and signing keys and end-to-end protection that prevents Apple from decrypting iMessage content or attachments."
+    }
+  ]
+}

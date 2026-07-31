@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "splash",
+  "name": "Splash",
+  "category": "communication",
+  "description": "Splash is an event marketing platform for designing, promoting and measuring in-person, virtual and hybrid events. Teams use it to create branded event pages, manage invitations and registration, coordinate programs, communicate with guests and analyze event performance.",
+  "agentUseSummary": "Connect a Customer Success-issued Splash API client and dedicated customer API user through Railway's encrypted credential boundary, then let selected agents list page-one event summaries or inspect one exact event without guest or contact data.",
+  "provider": { "websiteUrl": "https://splashthat.com/", "docsUrl": "https://api-docs.splashthat.com/", "developerConsoleUrl": null, "termsUrl": "https://splashthat.com/terms", "privacyUrl": "https://splashthat.com/privacy" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": ["user"], "pkce": false, "refreshTokens": true, "authorizationUrl": null, "tokenUrl": "https://api.splashthat.com/oauth/v2/token", "revocationUrl": null },
+  "connection": {
+    "types": ["customer_success_issued_client", "customer_controlled_api_user", "oauth_password_grant", "eight_hour_access_token", "encrypted_secrets", "fixed_splash_api_origin", "local_disconnect"],
+    "credentialRequirements": [
+      { "name": "SPLASH_CLIENT_ID", "label": "Splash API client ID", "required": true, "secret": false, "helpText": "Obtain the customer-specific client from Splash Customer Success." },
+      { "name": "SPLASH_CLIENT_SECRET", "label": "Splash API client secret", "required": true, "secret": true, "helpText": "Store the issued client secret encrypted." },
+      { "name": "SPLASH_API_USERNAME", "label": "Splash API username", "required": true, "secret": false, "helpText": "Use a dedicated customer-controlled API user email." },
+      { "name": "SPLASH_API_PASSWORD", "label": "Splash API user password", "required": true, "secret": true, "helpText": "Splash's documented password grant requires this encrypted credential." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [{ "id": "event_read", "label": "Read event metadata", "description": "List bounded Splash event summaries and inspect one exact event without guest or contact data.", "defaultSelected": true }],
+  "actions": {
+    "allowed": [
+      { "id": "splash_events_list", "label": "List events", "description": "List at most twenty-five Splash event summaries from page one." },
+      { "id": "splash_event_get", "label": "Read an event", "description": "Read one exact numeric Splash event metadata summary." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "splash_people_data", "label": "Block people data", "description": "Guests, contacts, email, RSVP answers, QR codes, campaigns, unsubscribe state and attendee analytics are not exposed." },
+      { "id": "splash_mutations", "label": "Block mutations", "description": "Event, workflow, guest, contact, unsubscribe, team and CRM event writes are not exposed." },
+      { "id": "splash_raw_api", "label": "Block raw API", "description": "Arbitrary view groups, filters, pages, bulk operations and raw responses are not exposed." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "splash_safe", "label": "Safe", "description": "Bounded event metadata reads run directly; guest/contact data, writes, bulk and raw API access remain blocked.", "defaultSelected": true, "allowedActions": ["splash_events_list", "splash_event_get"], "approvalRequiredActions": [], "blockedActions": ["splash_people_data", "splash_mutations", "splash_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The same selected read surface runs without Relay per-action approval; credential ownership, fixed origin, bounds, redaction and provider authority still apply.", "defaultSelected": false, "allowedActions": ["splash_events_list", "splash_event_get"], "approvalRequiredActions": [], "blockedActions": ["splash_people_data", "splash_mutations", "splash_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts two typed Splash event reads and sends encrypted customer credentials only to the fixed token endpoint." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts two typed Splash event reads and sends encrypted customer credentials only to the fixed token endpoint." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "Splash Customer Success must issue the customer API client, and a dedicated customer-controlled API username/password is required for the documented password grant.",
+    "nextAction": "In the separate provider-console task, obtain the client securely from Splash Customer Success, provision a dedicated least-authority API user under the customer's MFA/account policy, store both secrets encrypted, validate the token exchange and two reads, rotate/revoke credentials provider-side, and confirm post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://api-docs.splashthat.com/", "checkedAt": "2026-07-17", "supports": "Splash API v2.2 documents Customer Success-issued Client ID/secret, username/password token exchange with scope user, eight-hour access tokens, refresh tokens, fixed token/API origins, GET /events with explicit limit/page, and GET /events/{id}." },
+    { "url": "https://splashthat.com/platform/integrations", "checkedAt": "2026-07-17", "supports": "Splash describes its API and HTTP/webhook integrations as ways to connect event data with customer technology." },
+    { "url": "https://splashthat.com/platform/event-management", "checkedAt": "2026-07-17", "supports": "Splash describes event marketing, branded event experiences, registration and event analytics product capabilities." }
+  ]
+}

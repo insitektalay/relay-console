@@ -1,0 +1,180 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sendlane",
+  "name": "Sendlane",
+  "category": "communication",
+  "description": "Sendlane is an email and SMS marketing platform with custom ecommerce integrations, behavioral tracking, commerce events, segmentation, automations, and transactional customer data.",
+  "agentUseSummary": "Connect a customer-owned API v2 token and exact custom-integration token. Relay exposes one bounded sender read and six approval-gated v2 commerce-event writes; legacy v1, browser tracking, arbitrary API access, and agent-supplied event tokens remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.sendlane.com/",
+    "docsUrl": "https://help.sendlane.com/articles/3807111349-sendlane-custom-integration-setup-api-v2",
+    "developerConsoleUrl": "https://app.sendlane.com/",
+    "termsUrl": "https://www.sendlane.com/terms-of-service",
+    "privacyUrl": "https://www.sendlane.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_v2_token",
+      "customer_owned_custom_integration_token",
+      "bearer_authentication",
+      "server_side_integration_token_injection",
+      "fixed_v2_rest_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SENDLANE_API_V2_TOKEN",
+        "label": "Sendlane API v2 token",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated customer-owned API v2 token created for this Relay connection."
+      },
+      {
+        "name": "SENDLANE_CUSTOM_INTEGRATION_TOKEN",
+        "label": "Sendlane custom integration token",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the token for the exact customer-owned custom integration whose commerce events Relay may send."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read sender structure",
+      "description": "Use one bounded API v2 sender read.",
+      "defaultSelected": true
+    },
+    {
+      "id": "track",
+      "label": "Track commerce events",
+      "description": "Use six fixed custom-integration event writes with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "sendlane_structural_read",
+        "label": "Read Sendlane senders",
+        "description": "Read the bounded sender configuration visible to the connected API v2 token."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "sendlane_track",
+        "label": "Send Sendlane commerce events",
+        "description": "Send customer, product, browse, cart, checkout, and order events."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "sendlane_secret_exposure",
+        "label": "Expose credentials",
+        "description": "API v2, custom-integration, and custom-event tokens plus authorization headers never enter agent-visible inputs or results."
+      },
+      {
+        "id": "sendlane_custom_event_token",
+        "label": "Supply custom-event tokens",
+        "description": "Per-event tokens are credential lifecycle material and cannot be supplied by an agent; custom-event delivery is excluded until separately stored credentials can be bound."
+      },
+      {
+        "id": "sendlane_browser_tracking",
+        "label": "Install browser tracking",
+        "description": "Relay does not inject Beacon, pusher.js, cookies, identify calls, or tracking snippets into customer websites."
+      },
+      {
+        "id": "sendlane_unbounded_api",
+        "label": "Use arbitrary or legacy APIs",
+        "description": "Only seven pinned v2 operations run; legacy v1 query credentials, arbitrary paths, origins, headers, and oversized transfers are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sendlane_safe",
+      "label": "Safe",
+      "description": "The sender read runs directly; all six customer and commerce event writes require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["sendlane_structural_read"],
+      "approvalRequiredActions": ["sendlane_track"],
+      "blockedActions": [
+        "sendlane_secret_exposure",
+        "sendlane_custom_event_token",
+        "sendlane_browser_tracking",
+        "sendlane_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All seven selected operations run without Relay per-action approval; fixed v2 routes, server-side credential injection, bounds, audits, and secret/browser/legacy blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["sendlane_structural_read", "sendlane_track"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sendlane_secret_exposure",
+        "sendlane_custom_event_token",
+        "sendlane_browser_tracking",
+        "sendlane_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected pinned Sendlane v2 tools and injects both encrypted customer tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected pinned Sendlane v2 tools and injects both encrypted customer tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Live acceptance requires a customer-owned Sendlane account, API v2 token, and configured custom integration. No provider console, account, token capture, event send, or consent action is allowed in this worker.",
+    "nextAction": "Create dedicated staging tokens outside this worker, store them in Railway staging, and verify sender binding, approval denial and approval, each event type, duplicate event behavior, consent mapping, bounds, rate limits, token revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.sendlane.com/articles/3807111349-sendlane-custom-integration-setup-api-v2",
+      "checkedAt": "2026-07-17",
+      "supports": "Sendlane documents its current JavaScript and server-side custom-integration APIs, v2 authorization, customer/product/order history sync, unique event behavior, and commerce event payloads."
+    },
+    {
+      "url": "https://sendlane.stoplight.io/docs/api-documentation/ZG9jOjE5MjAwNTUw-order-placed",
+      "checkedAt": "2026-07-17",
+      "supports": "The official reference publishes POST /v2/tracking/order-placed and requires the custom integration token in the request body."
+    },
+    {
+      "url": "https://sendlane.stoplight.io/docs/api-documentation/605e3c80bea60-product-added",
+      "checkedAt": "2026-07-17",
+      "supports": "The official reference publishes POST /v2/tracking/product-added and its bounded product schema."
+    },
+    {
+      "url": "https://www.sendlane.com/blog/api-v2-and-custom-integrations",
+      "checkedAt": "2026-07-17",
+      "supports": "Sendlane identifies API v2 and custom integrations as the replacement for the sunset v1 API."
+    },
+    {
+      "url": "https://help.sendlane.com/articles/1308078996-how-to-use-custom-events-to-trigger-automations",
+      "checkedAt": "2026-07-17",
+      "supports": "Custom events use per-event tokens; Relay therefore excludes agent-supplied custom-event credentials from this connector boundary."
+    }
+  ]
+}

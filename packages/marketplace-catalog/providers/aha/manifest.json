@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "aha",
+  "name": "Aha!",
+  "category": "work_management",
+  "description": "Aha! is a product development platform for setting strategy and turning customer ideas into planned, delivered work. Product teams collect and prioritize feedback, build roadmaps, plan releases, manage features and goals, collaborate on product knowledge, and coordinate development.",
+  "agentUseSummary": "Connect one Aha! account, then choose which agents can read or manage its authorized product work under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.aha.io/",
+    "docsUrl": "https://www.aha.io/api",
+    "developerConsoleUrl": "https://secure.aha.io/settings/oauth_applications",
+    "termsUrl": "https://www.aha.io/legal/terms_of_service",
+    "privacyUrl": "https://www.aha.io/legal/privacy_policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://secure.aha.io/oauth/authorize",
+    "tokenUrl": "https://secure.aha.io/oauth/token"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/aha/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "product_management_read",
+      "label": "Read product work",
+      "description": "Read the connected account's strategy, ideas, roadmaps, releases, features, goals, users, and development records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "product_management_manage",
+      "label": "Manage product work",
+      "description": "Create, update, and delete product records that the signed-in Aha! user is allowed to manage.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "aha_read",
+        "label": "Read Aha!",
+        "description": "Read bounded Aha! resources from the connected account."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "aha_manage",
+        "label": "Manage Aha!",
+        "description": "Create, update, or delete authorized Aha! records."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "aha_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth credentials never enter agent-visible requests or results."
+      },
+      {
+        "id": "aha_other_account",
+        "label": "Access another account",
+        "description": "Every request uses the Aha! account selected during sign-in."
+      },
+      {
+        "id": "aha_unsupported_api",
+        "label": "Call an unsupported API",
+        "description": "Relay permits only documented Aha! REST v1 routes."
+      },
+      {
+        "id": "aha_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds queries, request bodies, responses, redirects, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "aha_safe",
+      "label": "Safe",
+      "description": "Reads run directly. Every create, update, or delete requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["aha_read"],
+      "approvalRequiredActions": ["aha_manage"],
+      "blockedActions": [
+        "aha_secret_exposure",
+        "aha_other_account",
+        "aha_unsupported_api",
+        "aha_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Aha! action authorized by the connected user runs without Relay per-action approval. Account binding, Aha! permissions, request bounds, credential protection, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["aha_read", "aha_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "aha_secret_exposure",
+        "aha_other_account",
+        "aha_unsupported_api",
+        "aha_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts account-bound Aha! REST v1 tools and attaches the OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts account-bound Aha! REST v1 tools and attaches the OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Aha! OAuth application and production client credentials are not configured yet.",
+    "nextAction": "Register Relay Console as an OAuth application in Aha!, set https://api.relayconsole.work/api/v1/marketplace/oauth/aha/callback, store AHA_CLIENT_ID and AHA_CLIENT_SECRET in Railway, deploy, and run live connect, read, Safe approval, Dangerous mutation, disconnect, and post-disconnect denial checks with an Aha! account administrator."
+  },
+  "evidence": [
+    {
+      "url": "https://www.aha.io/api/oauth2",
+      "checkedAt": "2026-07-15",
+      "supports": "Aha! documents OAuth authorization code, Relay-owned client credentials, account selection at secure.aha.io, callback account_subdomain binding, tenant-specific token exchange, user-attributed access, and user revocation."
+    },
+    {
+      "url": "https://www.aha.io/api/resources/me/get_the_current_user_profile",
+      "checkedAt": "2026-07-15",
+      "supports": "Aha! documents GET /api/v1/me as the authenticated user's profile and account context endpoint."
+    },
+    {
+      "url": "https://www.aha.io/api/resources/features/list_features",
+      "checkedAt": "2026-07-15",
+      "supports": "Aha! REST API v1 exposes permission-bound product resources including features and their supported mutations."
+    },
+    {
+      "url": "https://support.aha.io/aha-software/overview/aha-product-overview~7444633962873993357",
+      "checkedAt": "2026-07-15",
+      "supports": "Aha! describes a unified product development suite for strategy, ideas, discovery, roadmaps, knowledge, teamwork, and development."
+    }
+  ]
+}

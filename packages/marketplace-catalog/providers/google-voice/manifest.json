@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-voice",
+  "name": "Google Voice",
+  "category": "communication",
+  "description": "Google Voice is Google's consumer and Workspace telephony service for phone numbers, calling, text messaging, voicemail, forwarding, call history, recording, and business routing.",
+  "agentUseSummary": "Google Voice is not available through Relay. Google publishes end-user and administrator interfaces but no supported delegated API for a third party to read a user's calls, texts, voicemails, recordings, or settings or to place calls and send messages; its current Acceptable Use Policy explicitly prohibits automated calling and messaging. Relay will not scrape or automate the Voice web or device clients.",
+  "provider": {
+    "websiteUrl": "https://voice.google.com/",
+    "docsUrl": "https://support.google.com/voice/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://support.google.com/voice/answer/9231816",
+    "privacyUrl": "https://support.google.com/voice/answer/10464820"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "consumer_and_workspace_user_interfaces_only",
+      "workspace_admin_configuration_only",
+      "no_published_delegated_voice_content_api",
+      "no_voice_application_in_reports_api",
+      "automated_calls_and_messages_prohibited",
+      "takeout_export_not_live_api",
+      "credentials_and_session_material_rejected"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "google_voice_connection",
+        "label": "Connect Google Voice",
+        "description": "Google publishes no supported third-party delegated connection for a user's Voice content and telephony controls."
+      },
+      {
+        "id": "google_voice_content_reads",
+        "label": "Read Voice content",
+        "description": "Phone numbers, contacts, calls, texts, MMS, voicemails, transcripts, recordings, AI notes, forwarding, spam, billing, and settings remain unavailable."
+      },
+      {
+        "id": "google_voice_calls_and_messages",
+        "label": "Place calls or send messages",
+        "description": "Automated calling, texting, voicemail, recording, forwarding, blocking, deletion, archiving, number changes, and other telephony mutations are blocked."
+      },
+      {
+        "id": "google_voice_recording_and_emergency_risk",
+        "label": "Record calls or affect emergency routing",
+        "description": "Recording, transcription, AI note capture, notice handling, emergency-address changes, emergency calls, caller-ID changes, and routing changes are never exposed to Relay."
+      },
+      {
+        "id": "google_voice_private_automation",
+        "label": "Use private or automated Voice interfaces",
+        "description": "Web or device automation, private endpoints, scraping, reverse engineering, cookies, passwords, verification codes, linked-phone verification, and exported archives treated as live state are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "google_voice_unsupported",
+      "label": "Unsupported",
+      "description": "No Google Voice action is enabled because no supported delegated API exists and Google's policy prohibits the automated calling and messaging behavior an agent connector would require.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_voice_connection",
+        "google_voice_content_reads",
+        "google_voice_calls_and_messages",
+        "google_voice_recording_and_emergency_risk",
+        "google_voice_private_automation"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Google Voice wrapper is mounted without a published delegated API and an automation policy that permits the exact use case."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Google Voice wrapper is mounted without a published delegated API and an automation policy that permits the exact use case."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Google's current Voice documentation exposes calls, messages, voicemail, recordings, notes, history and settings through its first-party web, mobile and administrator experiences. Google documents data export through Takeout, not a live delegated content API. The current Workspace Reports API application list includes services such as Calendar, Drive, Gmail, Keep and Meet but not Voice. More decisively, the Google Voice Acceptable Use Policy forbids using an automated process to send messages and forbids automating the system to place phone calls or send messages. Voice also handles precise contact and communications content, recording notice, regulated telephony, charges and emergency-service addresses.",
+    "nextAction": "Keep Google Voice unavailable. Product owners may link users to the first-party Voice interface or let them export their own data for an explicit offline import workflow, but Relay must not request Google credentials, verification codes or session material and must not automate the Voice UI. Reconsider only if Google publishes a third-party delegated Voice API and written policy expressly permits Relay's bounded read and communication use case; any future review must separately address recipient consent, anti-spam and telemarketing rules, recording notice, data retention, emergency routing, charges, revocation and human confirmation."
+  },
+  "evidence": [
+    {
+      "url": "https://support.google.com/voice/answer/9230450",
+      "checkedAt": "2026-07-17",
+      "supports": "Google Voice's Acceptable Use Policy prohibits automated commercial or bulk messaging and explicitly prohibits automating the system to place phone calls or send messages."
+    },
+    {
+      "url": "https://support.google.com/voice/",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents calls, texts, voicemail, history, recording, routing and account settings as first-party Voice product features and documents user data export, without presenting a developer content API."
+    },
+    {
+      "url": "https://developers.google.com/workspace/admin/reports/reference/rest/v1/activities/list",
+      "checkedAt": "2026-07-17",
+      "supports": "The current official Reports API enumerates supported Workspace application activity sources, including Keep and Meet but not Google Voice, so it does not supply a Voice content or call-log contract."
+    },
+    {
+      "url": "https://support.google.com/voice/answer/12009609",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents business call recording in the Voice client, required participant notice, plan and administrator controls, call-log access and retention dependencies."
+    },
+    {
+      "url": "https://support.google.com/voice/answer/9231816",
+      "checkedAt": "2026-07-17",
+      "supports": "Google's Voice terms identify emergency-calling limitations, caller-ID behavior, recording-law responsibility, fees, credits and regulated telephony partners."
+    }
+  ]
+}

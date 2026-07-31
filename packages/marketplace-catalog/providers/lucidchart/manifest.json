@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "lucidchart",
+  "name": "Lucidchart",
+  "category": "content_creative",
+  "description": "Lucidchart is an intelligent diagramming application for mapping systems, processes, organizations, and technical architecture. Teams use it to build flowcharts, UML and entity-relationship diagrams, org charts, network diagrams, process maps, and data-linked visuals together.",
+  "agentUseSummary": "Connect a Lucid account once, then let agents find and inspect Lucidchart diagrams, read structured diagram content and discussions, create or organize diagrams and folders, manage collaborators and share links, and post comments under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://lucid.co/product/lucidchart",
+    "docsUrl": "https://developer.lucid.co/reference/overview",
+    "developerConsoleUrl": "https://lucid.app/developer",
+    "termsUrl": "https://lucid.co/legal/terms-of-service",
+    "privacyUrl": "https://lucid.co/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["lucidchart.document.content", "folder", "user.profile", "offline_access"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://lucid.app/oauth2/authorize",
+    "tokenUrl": "https://api.lucid.co/oauth2/token",
+    "revocationUrl": "https://api.lucid.co/v1/oauth2/token/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/lucidchart/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "diagram_read", "label": "Read diagrams and discussions", "description": "Search and inspect Lucidchart diagram metadata, structured canvas content, exports, comment threads, comments, collaborators, and share links.", "defaultSelected": true },
+    { "id": "diagram_management", "label": "Create and organize diagrams", "description": "Create, copy, rename, move, classify, and trash Lucidchart diagrams using Lucid's documented REST API.", "defaultSelected": true },
+    { "id": "collaboration", "label": "Manage diagram collaboration", "description": "Post comments and create, update, or remove user, team, and share-link access for Lucidchart diagrams.", "defaultSelected": true },
+    { "id": "folder_management", "label": "Organize folders", "description": "Search, create, rename, move, trash, restore, and inspect folders used to organize Lucidchart diagrams.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "lucidchart_api_read", "label": "Read Lucidchart diagrams", "description": "Use any supported read-only Lucid REST operation for Lucidchart diagrams, discussions, collaborators, share links, folders, and the connected profile." }],
+    "approvalRequired": [{ "id": "lucidchart_api_write", "label": "Change Lucidchart diagrams or access", "description": "Create, copy, rename, move, classify, trash, comment on, share, or reorganize Lucidchart resources; Safe mode requires approval." }],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "lucidchart_safe", "label": "Safe", "description": "Diagram, discussion, collaborator, sharing, folder, and profile reads run directly; every creation, content import, comment, organization, sharing, access, or deletion mutation requires approval.", "defaultSelected": true, "allowedActions": ["lucidchart_api_read"], "approvalRequiredActions": ["lucidchart_api_write"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected OAuth-authorized Lucidchart REST operation runs without Relay per-action approval; fixed Lucid origins, exact route allowlists, product binding, request bounds, audits, redaction, provider permissions, plan limits, and rate limits still apply.", "defaultSelected": false, "allowedActions": ["lucidchart_api_read", "lucidchart_api_write"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts exact Lucidchart REST wrappers and attaches the user's Lucid OAuth token without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts exact Lucidchart REST wrappers and attaches the user's Lucid OAuth token without exposing it to the agent." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's published Lucid OAuth application, exact Lucidchart callback, four scopes, and Railway client credentials have not yet been configured and verified in a signed-in eligible Lucid developer account.",
+    "nextAction": "A licensed Team or Enterprise Lucid developer creates and publishes Relay Console, adds the exact production callback and four scopes, stores the Lucid client ID and secret in Railway, then runs OAuth, refresh rotation, bounded diagram read, Safe mutation denial, approved or Dangerous mutation, upstream revocation, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    { "url": "https://developer.lucid.co/docs/oauth-20-client-creation", "checkedAt": "2026-07-14", "supports": "Lucid documents a developer-owned confidential authorization-code client, registered redirect URI, licensed developer-account requirement, collaborator-only unpublished apps, and publishing for general distribution; Lucid explicitly says not to ask end users for client credentials." },
+    { "url": "https://developer.lucid.co/reference/obtaining-an-access-token", "checkedAt": "2026-07-14", "supports": "Lucid documents browser authorization, a five-minute authorization code, JSON token exchange at api.lucid.co, one-hour access tokens, and returned refresh tokens." },
+    { "url": "https://developer.lucid.co/reference/refreshing-the-access-token", "checkedAt": "2026-07-14", "supports": "Lucid documents offline_access, rotating access and refresh tokens, 180-day unused refresh-token expiry, and invalidation of the previous token pair on refresh." },
+    { "url": "https://developer.lucid.co/reference/access-scopes", "checkedAt": "2026-07-14", "supports": "Lucid documents product-specific Lucidchart content and sharing scopes, folder access, profile access, and offline access; the broad product-content scope includes its child permissions." },
+    { "url": "https://developer.lucid.co/reference/documents", "checkedAt": "2026-07-14", "supports": "Lucid's current REST reference documents Lucidchart search, metadata, structured contents, image export, creation, copy, Standard Import creation, rename, move, classification, trash, discussion, sharing, and collaborator operations." },
+    { "url": "https://developer.lucid.co/reference/folders", "checkedAt": "2026-07-14", "supports": "Lucid documents folder search, inspection, content listing, creation, update, trash, restore, and app-folder operations for organizing documents." }
+  ]
+}

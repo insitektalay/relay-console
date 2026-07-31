@@ -1,0 +1,10 @@
+export const SHOPIFY_ENDPOINT_FAMILIES = [
+  { id: "admin_graphql", label: "Admin GraphQL API", docsUrl: "https://shopify.dev/docs/api/admin-graphql", guidance: "Use GraphQL queries and mutations for shops, products, variants, collections, orders, customers, inventory, fulfillments, refunds, returns, and webhooks. Prefer GraphQL for new work." },
+  { id: "admin_rest_legacy", label: "Admin REST API Legacy", docsUrl: "https://shopify.dev/docs/api/admin-rest", guidance: "Use REST only where relevant for legacy resources or migration. Respect REST legacy status and REST leaky-bucket rate limits." },
+  { id: "scopes", label: "Admin Access Scopes", docsUrl: "https://shopify.dev/docs/admin-api/access-scopes", guidance: "Verify minimum scopes such as read/write products, orders, customers, inventory, fulfillment orders, and returns before reads or writes." },
+  { id: "catalog", label: "Products Variants Collections", docsUrl: "https://shopify.dev/docs/api/admin-graphql", guidance: "Product, variant, collection, price, status, and publication changes affect storefront purchasing and require approval." },
+  { id: "orders_refunds_returns", label: "Orders Refunds Returns", docsUrl: "https://shopify.dev/docs/api/admin-rest/latest/resources/refund", guidance: "Read order state first. Refunds, returns, restock choices, and customer notifications require approval." },
+  { id: "inventory_fulfillment", label: "Inventory And Fulfillment", docsUrl: "https://shopify.dev/docs/api/admin-graphql", guidance: "Inventory and fulfillment writes require exact inventory item, location, fulfillment order, quantity, and approval." },
+  { id: "webhooks", label: "Webhook Subscriptions", docsUrl: "https://shopify.dev/docs/apps/build/webhooks", guidance: "Read webhook configuration freely when enabled. Create/update/delete webhook subscriptions only after approval." },
+  { id: "rate_limits_errors", label: "Rate Limits And Errors", docsUrl: "https://shopify.dev/docs/api/usage/limits", guidance: "GraphQL is cost-throttled and can return HTTP 200 with GraphQL errors or userErrors. REST uses call-limit headers and Retry-After on 429." },
+];

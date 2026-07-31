@@ -1,0 +1,208 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sage-intacct",
+  "name": "Sage Intacct",
+  "category": "commerce_payments",
+  "description": "Sage Intacct is cloud financial management software for growing and midsize organizations, with core accounting, multi-entity consolidation, reporting, budgeting, purchasing, cash management, revenue management, projects, and extensible business workflows.",
+  "agentUseSummary": "Connect one exact Sage Intacct company or intentionally selected entity with a customer-owned REST application and dedicated least-privilege Web Services user. Relay exchanges the encrypted client credentials and exact username for a short-lived bearer token on Railway, pins Sage's production API origin and reporting-period object, exposes only first-response listing capped at twenty-five and one exact opaque-key read, and excludes people, accounts, balances, budgets, transactions, reports, arbitrary APIs, XML Web Services, pagination, and writes.",
+  "provider": {
+    "websiteUrl": "https://www.sage.com/en-us/sage-business-cloud/intacct/",
+    "docsUrl": "https://developer.sage.com/intacct/",
+    "developerConsoleUrl": "https://developer.sage.com/",
+    "termsUrl": "https://developer.sage.com/assets/files/DeveloperServicesLicenseAgreement.pdf",
+    "privacyUrl": "https://www.sage.com/en-us/legal/terms-and-conditions/product-and-service-terms-and-conditions/sage-intacct/privacy-policy-full/"
+  },
+  "authentication": {
+    "model": "oauth2_client_credentials",
+    "relayOwned": false,
+    "scopes": ["reporting_period_read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.intacct.com/ia/api/v1/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_rest_application",
+      "authorized_client_application",
+      "dedicated_web_services_user",
+      "exact_company_or_entity_username_binding",
+      "server_side_client_credentials_tokens"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "SAGE_INTACCT_CLIENT_ID",
+        "label": "Sage Intacct REST client ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Use the client ID for the customer-owned production REST application authorized in the target company."
+      },
+      {
+        "key": "SAGE_INTACCT_CLIENT_SECRET",
+        "label": "Sage Intacct REST client secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Store the matching client secret only through Relay's encrypted credential boundary."
+      },
+      {
+        "key": "SAGE_INTACCT_USERNAME",
+        "label": "Dedicated Sage Intacct Web Services username",
+        "secret": false,
+        "required": true,
+        "helpText": "Use the exact API-only username bound to the authorized client application and target company; include an entity suffix only for an intentional entity binding."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "reporting_period_read",
+      "label": "Read reporting periods",
+      "description": "List bounded reporting-period summaries or inspect one exact period without accounts, balances, budgets, transactions, reports, people, or relationships.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "sage_intacct_reporting_period_list",
+        "label": "List reporting periods",
+        "description": "List at most twenty-five bounded reporting-period summaries from Sage Intacct's first collection response."
+      },
+      {
+        "id": "sage_intacct_reporting_period_get",
+        "label": "Read reporting period",
+        "description": "Read one exact bounded reporting-period summary by opaque provider key."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "sage_intacct_record_mutation",
+        "label": "Change Sage Intacct data",
+        "description": "Creating, updating, deleting, posting, approving, closing, reopening, importing, or otherwise changing Sage Intacct records is outside V1."
+      },
+      {
+        "id": "sage_intacct_private_business_data",
+        "label": "Read private business data",
+        "description": "Customers, vendors, contacts, employees, users, addresses, communications, attachments, notes, and custom fields are outside V1."
+      },
+      {
+        "id": "sage_intacct_financial_and_broader_product",
+        "label": "Access financial or broader Sage Intacct data",
+        "description": "Accounts, balances, budgets, journals, transactions, bills, invoices, payments, banking, tax, payroll, expenses, purchasing, inventory, projects, reports, administration, and other modules are outside V1."
+      },
+      {
+        "id": "sage_intacct_raw_api",
+        "label": "Call arbitrary Sage Intacct APIs",
+        "description": "Other origins, REST objects, fields, filters, query service calls, XML Web Services, DDS, methods, paths, request options, entity switches, and raw requests are outside V1."
+      },
+      {
+        "id": "sage_intacct_bulk_export",
+        "label": "Export Sage Intacct data",
+        "description": "Automatic pagination, polling, crawling, synchronization, downloads, imports, offline jobs, batch operations, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sage_intacct_safe",
+      "label": "Safe",
+      "description": "Both private reporting-period reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "sage_intacct_reporting_period_list",
+        "sage_intacct_reporting_period_get"
+      ],
+      "blockedActions": [
+        "sage_intacct_record_mutation",
+        "sage_intacct_private_business_data",
+        "sage_intacct_financial_and_broader_product",
+        "sage_intacct_raw_api",
+        "sage_intacct_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both selected read-only tools run without Relay per-action approval while exact token endpoint, API origin, username/company binding, object, paths, limits, audits, redaction, provider permissions, and credential isolation remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "sage_intacct_reporting_period_list",
+        "sage_intacct_reporting_period_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sage_intacct_record_mutation",
+        "sage_intacct_private_business_data",
+        "sage_intacct_financial_and_broader_product",
+        "sage_intacct_raw_api",
+        "sage_intacct_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded approval-gated Sage Intacct reporting-period reads and exchanges encrypted customer credentials only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded approval-gated Sage Intacct reporting-period reads and exchanges encrypted customer credentials only on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No eligible Sage Intacct company, active Web Services subscription, registered production REST application, authorized client ID, dedicated least-privilege Web Services user, client secret, or live acceptance evidence is available in this workspace.",
+    "nextAction": "In the provider-console task, use an eligible Sage Intacct company with Web Services enabled, register a customer-owned production REST application, authorize its Client ID in the exact company, bind a dedicated API-only Web Services user with only reporting-period List/View authority, store the three values through Relay, then validate company or intentional entity binding, token exchange, list and exact reads, approvals, permission denial, credential rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.sage.com/intacct/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage recommends the generally available REST API for new Sage Intacct integrations while continuing the older XML Web Services API."
+    },
+    {
+      "url": "https://developer.sage.com/intacct/docs/1/sage-intacct-rest-api/authorization-and-security/oauth2",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage documents OAuth 2.0 authorization for the Intacct REST API, including the client-credentials grant used by the server-side adapter."
+    },
+    {
+      "url": "https://www.intacct.com/ia/docs/en_US/help_action/Company/Company_setup/Company_Information/Security/company-authorized-client-applications.htm",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage requires REST client applications to be authorized in the target company and lets the company bind a specified Web Services user to client-credential access."
+    },
+    {
+      "url": "https://www.intacct.com/ia/docs/en_US/releasenotes/2025/2025_Release_1/Platform_Services/2025-R1-platform-restapi-ga.htm",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage states that the REST API is generally available and requires a Web Services subscription, Web Services user, and applicable permissions."
+    },
+    {
+      "url": "https://developer.intacct.com/api/general-ledger/reporting-periods/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage defines reporting periods as bounded report, budget, and book calendar metadata with identity, name, dates, budgeting state, and status fields."
+    },
+    {
+      "url": "https://www.sage.com/en-us/sage-business-cloud/intacct/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage describes Intacct as cloud financial management software spanning accounting, multi-entity operations, reporting, purchasing, cash, and extended finance capabilities."
+    },
+    {
+      "url": "https://developer.sage.com/assets/files/DeveloperServicesLicenseAgreement.pdf",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage publishes the terms governing use of Developer Services and applications built with them."
+    },
+    {
+      "url": "https://www.sage.com/en-us/legal/terms-and-conditions/product-and-service-terms-and-conditions/sage-intacct/privacy-policy-full/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage publishes the privacy policy for Sage Intacct Services; Relay excludes people and private financial records from V1."
+    }
+  ]
+}

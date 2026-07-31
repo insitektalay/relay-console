@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sendfox",
+  "name": "SendFox",
+  "category": "content_creative",
+  "description": "SendFox is an email marketing platform for creators and small teams to organize contact lists, build campaigns and automations, publish forms, and track audience growth.",
+  "agentUseSummary": "Connect one exact paid SendFox account through Relay-owned OAuth, then let agents inspect approval-gated, bounded account, contact-list aggregate, and campaign lifecycle metadata without exposing contacts or message content.",
+  "provider": {
+    "websiteUrl": "https://sendfox.com/",
+    "docsUrl": "https://sendfox.com/developer/docs/",
+    "developerConsoleUrl": "https://sendfox.com/account/oauth",
+    "termsUrl": "https://sendfox.com/terms",
+    "privacyUrl": "https://sendfox.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://sendfox.com/oauth/authorize",
+    "tokenUrl": "https://sendfox.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "authorization_code",
+      "exact_account_binding",
+      "fixed_api_origin",
+      "provider_managed_token_validity",
+      "local_disconnect_only",
+      "paid_provider_plan_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/sendfox/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "email_marketing_metadata_read",
+      "label": "Read marketing lifecycle metadata",
+      "description": "Read bounded account, list aggregate, and campaign lifecycle metadata for one exact paid SendFox account.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "sendfox_account_get",
+        "label": "Read account summary",
+        "description": "Read the exact SendFox user ID, contact count, contact limit, and account creation date without returning the user's name or email."
+      },
+      {
+        "id": "sendfox_list_list",
+        "label": "List contact-list summaries",
+        "description": "List at most twenty-five SendFox contact-list aggregate summaries from the first provider page."
+      },
+      {
+        "id": "sendfox_campaign_list",
+        "label": "List campaign lifecycle",
+        "description": "List at most twenty-five recent SendFox campaign lifecycle summaries without subject, preview, HTML, sender, recipient, or engagement data."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "sendfox_safe",
+      "label": "Safe",
+      "description": "Every bounded SendFox metadata read requires approval; contacts, message content, sender and recipient identity, engagement, forms, automations, domains, exports, webhooks, writes, sends, and raw API access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "sendfox_account_get",
+        "sendfox_list_list",
+        "sendfox_campaign_list"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three bounded SendFox metadata reads run without Relay per-action approval; exact-account binding, redaction, first-page bounds, audits, and rate limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "sendfox_account_get",
+        "sendfox_list_list",
+        "sendfox_campaign_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three exact-account, approval-aware SendFox metadata reads and attaches the OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three exact-account, approval-aware SendFox metadata reads and attaches the OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's SendFox OAuth Client, paid staging account, and production client credentials are not configured yet.",
+    "nextAction": "Using the separate provider-console task, create Relay's OAuth Client with the Railway callback, store SENDFOX_CLIENT_ID and SENDFOX_CLIENT_SECRET in Railway, deploy, and run live consent, exact-account reads, policy, disconnect, and post-disconnect denial checks with a paid SendFox account."
+  },
+  "evidence": [
+    {
+      "url": "https://help.sendfox.com/article/323-creating-an-oauth-2-0-client",
+      "checkedAt": "2026-07-17",
+      "supports": "SendFox documents confidential OAuth Client registration, an exact redirect URL, the authorization-code grant, and its authorization and token endpoints; API features require a paid plan."
+    },
+    {
+      "url": "https://sendfox.com/developer/docs/",
+      "checkedAt": "2026-07-17",
+      "supports": "SendFox documents the fixed API origin, GET /me, paginated Lists and Campaigns, a 60-request-per-minute per-user limit, standard errors, and broad write/send surfaces that Relay excludes."
+    },
+    {
+      "url": "https://help.sendfox.com/article/278-endpoints",
+      "checkedAt": "2026-07-17",
+      "supports": "SendFox documents GET /me, /lists, and /campaigns and confirms that free accounts receive HTTP 402 for API access."
+    }
+  ],
+  "securityNotes": [
+    "OAuth is provider-wide and SendFox documents no granular scopes; Relay compensates with three approval-aware metadata-only tools.",
+    "Relay stores the OAuth access token encrypted and never returns it to agents.",
+    "Runtime requests use only https://api.sendfox.com, reject redirects, cap responses at 2 MB, and enforce one request per second per exact account.",
+    "List output excludes contacts and owner IDs; Campaign output excludes title, subject, preview, HTML, sender, recipient, and engagement data.",
+    "Disconnect deletes Relay's encrypted grant; no upstream revocation endpoint or refresh-token lifecycle is claimed without official documentation."
+  ]
+}

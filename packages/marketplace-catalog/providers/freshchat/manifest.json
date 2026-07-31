@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "freshchat",
+  "name": "Freshchat",
+  "category": "crm_support",
+  "description": "Freshchat is Freshworks' customer-messaging platform for support conversations, routing, agents, groups, channels, bots, and outbound engagement.",
+  "agentUseSummary": "Enter one Freshchat account URL and customer-generated API key, then let selected agents use content-free conversation operations or approved documented API v2 requests under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.freshworks.com/live-chat-software/",
+    "docsUrl": "https://developers.freshchat.com/api/",
+    "developerConsoleUrl": "https://developers.freshchat.com/api/#authentication-and-authorization",
+    "termsUrl": "https://www.freshworks.com/terms/",
+    "privacyUrl": "https://www.freshworks.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "FRESHCHAT_ACCOUNT_URL",
+        "label": "Freshchat account URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the HTTPS chat account host shown by Freshchat, ending in .freshchat.com or .myfreshworks.com; omit resource paths."
+      },
+      {
+        "name": "FRESHCHAT_API_KEY",
+        "label": "Freshchat API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate an API token in Freshchat admin settings. Relay sends it only as a bearer credential to the exact account host."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "conversation_read",
+      "label": "Read conversation operations",
+      "description": "Read one exact conversation and bounded message metadata without message content, reply parts, attachments, user profiles, contact details, or custom properties.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Freshchat API v2",
+      "description": "Use documented API v2 operations allowed by the connected Freshchat account API key.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "freshchat_conversation_get",
+        "label": "Read conversation metadata",
+        "description": "Read one exact Freshchat conversation through Relay's content-free operational projection."
+      },
+      {
+        "id": "freshchat_message_list",
+        "label": "List message metadata",
+        "description": "List one fixed first page of content-free message metadata for one exact conversation."
+      },
+      {
+        "id": "freshchat_full_api",
+        "label": "Use Freshchat API v2",
+        "description": "Use a documented Freshchat API v2 operation authorized by the connected account API key; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "freshchat_safe",
+      "label": "Safe",
+      "description": "Content-free conversation reads and every broader API operation require approval; tenant binding, secret isolation, provider authorization, and limits remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "freshchat_conversation_get",
+        "freshchat_message_list",
+        "freshchat_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected API-key-authorized operations run without Relay per-action approval; exact tenant binding, secret isolation, request bounds, audits, provider authorization, and Freshchat limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "freshchat_conversation_get",
+        "freshchat_message_list",
+        "freshchat_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted API key only to the exact normalized Freshchat account origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted API key only to the exact normalized Freshchat account origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer Freshchat account URL and admin-generated API key are required for live acceptance.",
+    "nextAction": "A customer enters the exact Freshchat chat account URL and API key, then Relay verifies account health, content-free reads, Safe approval, Dangerous broader API behavior, token reset, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.freshchat.com/api/#authentication-and-authorization",
+      "checkedAt": "2026-07-18",
+      "supports": "Freshchat's official API reference documents customer-generated API tokens, bearer authentication, token lifetime, and the account-specific freshchat.com or retrieved myfreshworks.com chat URL."
+    },
+    {
+      "url": "https://developers.freshchat.com/api/#conversations",
+      "checkedAt": "2026-07-18",
+      "supports": "Freshchat documents API v2 conversation retrieval, conversation updates, bounded paginated message listing, message sends, and the corresponding OAuth permissions."
+    },
+    {
+      "url": "https://developers.freshchat.com/api/#accounts",
+      "checkedAt": "2026-07-18",
+      "supports": "Freshchat documents the account-configuration endpoint used for exact-account health verification and account metadata."
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "messagegears",
+  "name": "MessageGears",
+  "category": "communication",
+  "description": "MessageGears Cloud provides transactional messaging, rendering, and aggregate delivery reporting through account-bound web services.",
+  "agentUseSummary": "Connect the exact customer-owned account ID and API key. Relay pins five POST-only 3.1 actions: one aggregate account read runs directly, two exact job/preview reads and two one-recipient transactional sends require approval, and sends additionally require recorded recipient authorization.",
+  "provider": {
+    "websiteUrl": "https://messagegears.com/",
+    "docsUrl": "https://support.messagegears.com/hc/en-us/articles/115001492508-API-v3-1-Overview",
+    "developerConsoleUrl": "https://accelerator.messagegears.com/",
+    "termsUrl": "https://messagegears.com/terms-of-use/",
+    "privacyUrl": "https://messagegears.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_account_id",
+      "customer_owned_api_key",
+      "post_form_credential_injection",
+      "fixed_cloud_web_service"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MESSAGEGEARS_ACCOUNT_ID",
+        "label": "MessageGears account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact customer-owned MessageGears Cloud account ID."
+      },
+      {
+        "name": "MESSAGEGEARS_API_KEY",
+        "label": "MessageGears API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated customer-owned API key for the exact account."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read account summary",
+      "description": "Use one aggregate daily account summary read.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read job or preview data",
+      "description": "Use one exact bulk-job summary and one bounded one-recipient message preview with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Send transactional messages",
+      "description": "Use two one-recipient transactional sends with approval and recipient authorization attestation.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "messagegears_structural_read",
+        "label": "Read MessageGears account summary",
+        "description": "Read one aggregate daily account summary from the fixed Cloud web service."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "messagegears_sensitive_read",
+        "label": "Read MessageGears job or preview data",
+        "description": "Read an exact bulk-job aggregate or render a bounded one-recipient preview."
+      },
+      {
+        "id": "messagegears_manage",
+        "label": "Send MessageGears transactional messages",
+        "description": "Send one authorized recipient a direct-template or promoted-campaign transactional message."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "messagegears_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Account IDs, API keys, authorization parameters, and credential-bearing response elements never enter agent-visible inputs or results."
+      },
+      {
+        "id": "messagegears_bulk_streaming",
+        "label": "Run bulk or streaming APIs",
+        "description": "Bulk sends, daily activity file streams, SQS/event feeds, recipient-list URLs, imports, exports, and unbounded transfers are excluded."
+      },
+      {
+        "id": "messagegears_admin_attachments",
+        "label": "Administer accounts or attach content",
+        "description": "Account administration, key rotation, attachments, thumbnails, forwarding, custom headers/tracking domains, and delivery infrastructure remain provider-side."
+      },
+      {
+        "id": "messagegears_unbounded_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only five pinned actions run via POST form data on the fixed 3.1 Cloud web service; arbitrary actions, URLs, headers, XML entities, and oversized requests are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "messagegears_safe",
+      "label": "Safe",
+      "description": "The aggregate account summary runs directly; exact job/preview reads and both one-recipient sends require approval, and sends also require explicit recipient authorization attestation.",
+      "defaultSelected": true,
+      "allowedActions": ["messagegears_structural_read"],
+      "approvalRequiredActions": [
+        "messagegears_sensitive_read",
+        "messagegears_manage"
+      ],
+      "blockedActions": [
+        "messagegears_secret_exposure",
+        "messagegears_bulk_streaming",
+        "messagegears_admin_attachments",
+        "messagegears_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All five selected operations run without Relay per-action approval; recipient authorization, fixed routing, allowlists, bounds, audits, and bulk/admin/attachment blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "messagegears_structural_read",
+        "messagegears_sensitive_read",
+        "messagegears_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "messagegears_secret_exposure",
+        "messagegears_bulk_streaming",
+        "messagegears_admin_attachments",
+        "messagegears_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts five pinned MessageGears actions and injects encrypted account credentials only into fixed POST forms."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts five pinned MessageGears actions and injects encrypted account credentials only into fixed POST forms."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "MessageGears requires a customer-owned account, API key, configured sending identity/infrastructure, and promoted campaign for campaign-based sends. No console, account, key, sender, campaign, recipient consent, message, or deployment is allowed in this worker.",
+    "nextAction": "Configure a dedicated staging account/key in Railway staging, complete sender/domain and optional promoted-campaign setup outside this worker, and verify account/job reads, preview, approval and recipient-authorization denial/allow, one-recipient sends, XML/form bounds, rate behavior, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.messagegears.com/hc/en-us/articles/115001492508-API-v3-1-Overview",
+      "checkedAt": "2026-07-17",
+      "supports": "MessageGears documents the fixed 3.1 WebService URL, POST recommendation, 2 MB provider request ceiling, XML responses, available actions, and common success/error format."
+    },
+    {
+      "url": "https://support.messagegears.com/hc/en-us/articles/115001491148-BulkJobSummary-v3-1",
+      "checkedAt": "2026-07-17",
+      "supports": "MessageGears documents exact bulk-job summary identifiers and aggregate delivery, engagement, unsubscribe, complaint, and render-error results."
+    },
+    {
+      "url": "https://support.messagegears.com/hc/en-us/articles/115001491548-TransactionalJobSubmit-v3-1",
+      "checkedAt": "2026-07-17",
+      "supports": "MessageGears documents the one-recipient transactional job action, required account/key/form fields, templates, and optional capabilities excluded by Relay."
+    },
+    {
+      "url": "https://support.messagegears.com/hc/en-us/articles/115001495408-RecipientXML",
+      "checkedAt": "2026-07-17",
+      "supports": "MessageGears documents well-formed Recipient XML, a Recipient root, one required EmailAddress, and the sensitivity of recipient identifiers."
+    }
+  ]
+}

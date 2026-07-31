@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-graph-teams-export",
+  "name": "Microsoft Graph Teams Export",
+  "category": "communication",
+  "description": "Microsoft Graph Teams Export APIs provide programmatic, tenant-wide export of one-to-one, group, meeting-chat, and channel messages for licensed Microsoft Teams users. Exports can include deleted messages and attachment metadata and are designed for organizational compliance, migration, backup, analytics, and similar controlled purposes.",
+  "agentUseSummary": "Microsoft Graph Teams Export cannot yet be connected through Relay. The APIs require application permissions approved by a tenant administrator and can expose organization-wide communications without a signed-in user. Relay has no approved tenant, population, export purpose, message type, date range, attachment, retention, legal-hold, downstream-use, or administrator-consent contract.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-teams/",
+    "docsUrl": "https://learn.microsoft.com/en-us/microsoftteams/export-teams-content",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.microsoft.com/licensing/terms/",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "microsoft_365_tenant_required",
+      "tenant_admin_application_consent_required",
+      "licensed_teams_users_required",
+      "organization_wide_application_permissions",
+      "exact_export_population_purpose_and_retention_contract_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "teams_export_connect",
+        "label": "Connect Teams Export",
+        "description": "A customer Microsoft 365 tenant, app registration, administrator-approved application permissions, licensed user population, and compliance authority are required."
+      },
+      {
+        "id": "teams_export_messages",
+        "label": "Export Teams messages",
+        "description": "One-to-one, group, meeting-chat, channel, reply, system-event, edited, and recently deleted messages remain unavailable."
+      },
+      {
+        "id": "teams_export_attachments_and_meetings",
+        "label": "Export attachments or meeting content",
+        "description": "Attachment metadata, referenced files, transcripts, recordings, and meeting artifacts remain unavailable."
+      },
+      {
+        "id": "teams_export_bulk_or_continuous",
+        "label": "Run bulk or continuous export",
+        "description": "Tenant-wide backfills, date-range exports, polling, change notifications, archiving, migration, analytics, and downstream indexing are blocked."
+      },
+      {
+        "id": "teams_export_private_or_credential_access",
+        "label": "Use private or credential-based access",
+        "description": "Delegated workarounds, browser automation, password or session capture, broad Graph access, unapproved permissions, and privilege probing are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "teams_export_unavailable",
+      "label": "Unavailable",
+      "description": "No Teams Export action is enabled without one exact tenant, population, purpose, message and attachment scope, date range, legal basis, retention, and downstream-use contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "teams_export_connect",
+        "teams_export_messages",
+        "teams_export_attachments_and_meetings",
+        "teams_export_bulk_or_continuous",
+        "teams_export_private_or_credential_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Teams Export tools are mounted before tenant-wide communications, legal, population, retention, and downstream-use controls are approved."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Teams Export tools are mounted before tenant-wide communications, legal, population, retention, and downstream-use controls are approved."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Microsoft Teams Export APIs provide organization-scale communications export using app-only permissions rather than user-delegated access. Tenant administrators can grant Chat.Read.All, ChannelMessage.Read.All, User.Read.All, and separate transcript or recording permissions, allowing an unattended application to retrieve broad populations of chats and channels. Exports can include edited content, messages deleted by users for a limited period, and attachment metadata. Users whose data is exported require appropriate Teams licenses, and meeting recordings or transcripts have separate access and payment rules. A generic connector would create a surveillance, eDiscovery, retention, confidentiality, and downstream-reuse capability without an approved organizational purpose or population.",
+    "nextAction": "Product, communications, records-management, legal, privacy, security, employee-relations, works-council, compliance, audit, and customer owners must select one permitted export purpose and freeze the tenant, user and team population, chat and channel types, date window, edits, deletions, attachments, transcripts, recordings, licenses, legal basis, notices, holds, exclusions, retention, deletion, downstream recipients, search and model use, access review, audit, and incident duties. Only then may a tenant administrator create a dedicated single-tenant app and grant the minimal application permissions. Relay may subsequently implement purpose-bound export jobs with strict filters, incremental checkpoints, volume limits, encryption, redaction, audit, and post-disable denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/microsoftteams/export-teams-content",
+      "checkedAt": "2026-07-17",
+      "supports": "Teams Export covers chats and channel messages, including deleted-message and attachment metadata, and requires app-only permissions approved by an administrator plus licensed users."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/api/chats-getallmessages?view=graph-rest-1.0",
+      "checkedAt": "2026-07-17",
+      "supports": "The tenant export method does not support delegated access and uses Chat.Read.All or broader application permission with user and date-range filters."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/permissions-reference",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft defines separate high-privilege application permissions for tenant chat messages, channels, recordings, transcripts, and related resources."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/teams-licenses",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents license requirements and separate payment treatment for certain Teams meeting recording and transcript APIs."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/metered-api-list",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft states that Teams message APIs formerly listed as metered stopped requiring billing configuration in August 2025, while other product requirements still apply."
+    }
+  ]
+}

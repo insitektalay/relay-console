@@ -1,0 +1,171 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "shootproof",
+  "name": "ShootProof",
+  "category": "content_management",
+  "description": "ShootProof is a photography business platform for client galleries, albums, photo delivery, proofing, contracts, invoicing, payments, orders, price sheets, email, and studio management. Photographers use it to present and sell images while coordinating the commercial and client-service work around each shoot.",
+  "agentUseSummary": "Connect ShootProof once with Relay-owned OAuth, then let agents use all 302 operations in the pinned official Studio API contract through bounded read and manage wrappers. Safe mode runs 125 reads directly and approval-gates all 177 mutations; Dangerous mode removes Relay per-action approval while preserving OAuth authority, fixed routes, input and response bounds, audits, redaction, and provider limits.",
+  "provider": {
+    "websiteUrl": "https://www.shootproof.com/",
+    "docsUrl": "https://developer.shootproof.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.shootproof.com/legal/terms-of-use",
+    "privacyUrl": "https://www.shootproof.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "studio"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.shootproof.com/oauth2/authorization/new",
+    "tokenUrl": "https://auth.shootproof.com/oauth2/authorization/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "oauth2",
+      "relay_owned_oauth",
+      "provider_issued_client_id",
+      "openapi_pinned"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SHOOTPROOF_CLIENT_ID",
+        "label": "ShootProof OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "ShootProof issues the client ID after reviewing the app name, public description, support email, website, avatar, and callback URL."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/shootproof/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "shootproof_read",
+      "name": "Read photography studio data",
+      "description": "Use all 125 official GET operations for studio identity, brands, contacts, contracts, events, galleries, albums, photos, invoices, orders, price sheets, music, notifications, and settings.",
+      "defaultSelected": true,
+      "platformCapability": "shootproof_read"
+    },
+    {
+      "id": "shootproof_manage",
+      "name": "Manage photography studio data",
+      "description": "Use all 177 official mutations to create, update, send, sign, pay, refund, batch-change, or delete authorized ShootProof resources.",
+      "defaultSelected": true,
+      "platformCapability": "shootproof_manage"
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "shootproof_read",
+        "label": "Read ShootProof",
+        "description": "Read bounded studio, brand, contact, contract, event, gallery, album, photo, invoice, order, price-sheet, music, and account data."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "shootproof_manage",
+        "label": "Manage ShootProof",
+        "description": "Create, update, send, pay, refund, sign, batch-change, or delete authorized ShootProof records; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "shootproof_secret_exposure",
+        "label": "Expose ShootProof secrets",
+        "description": "OAuth tokens, application material, cookies, credentials, and authorization headers are never exposed."
+      },
+      {
+        "id": "shootproof_unofficial_origin",
+        "label": "Use unofficial ShootProof interfaces",
+        "description": "Private application calls, scraping, browser automation, arbitrary URLs, and legacy raw API access are blocked."
+      },
+      {
+        "id": "shootproof_unbounded_transfer",
+        "label": "Transfer unbounded content",
+        "description": "Relay limits request bodies to 2 MB, responses and downloads to 5 MB, and performs one pinned operation per tool call."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "shootproof_safe",
+      "label": "Safe",
+      "description": "All 125 bounded reads run directly; every provider mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "shootproof_read"
+      ],
+      "approvalRequiredActions": [
+        "shootproof_manage"
+      ],
+      "blockedActions": [
+        "shootproof_secret_exposure",
+        "shootproof_unofficial_origin",
+        "shootproof_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 302 selected and OAuth-authorized operations run without Relay per-action approval; ownership, exact routes, bounds, audits, redaction, provider limits, and ShootProof permissions still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "shootproof_read",
+        "shootproof_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "shootproof_secret_exposure",
+        "shootproof_unofficial_origin",
+        "shootproof_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "OpenClaw receives typed shootproof.read and shootproof.manage wrappers; OAuth tokens remain attached only by Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Hermes receives the same typed wrappers, selected capabilities, approval profile, and cloud-owned connection authority."
+    }
+  ],
+  "availability": "provider_setup_required",
+  "providerSetup": {
+    "status": "external_setup_required",
+    "blocker": "ShootProof must issue Relay a client ID by email after reviewing the app/company name, support email, app name, public description, website, 500x500 avatar, and one or more redirect URLs. No client ID was requested or captured in this worker task.",
+    "nextAction": "The provider-console acceptance owner should email ShootProof support with Relay's app identity and exact callback `https://api.relayconsole.work/api/v1/marketplace/oauth/shootproof/callback`, store the issued client ID as `SHOOTPROOF_CLIENT_ID` in the approved Railway environment, then run staging OAuth consent and bounded read/manage acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.shootproof.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "ShootProof states that the API is included with an account and requires requesting a client ID from support with app identity, support contact, description, website, avatar, and redirect URLs."
+    },
+    {
+      "url": "https://developer.shootproof.com/guide/authorization/",
+      "checkedAt": "2026-07-17",
+      "supports": "ShootProof documents OAuth 2.0 authorization code flow, the studio scope, state, bearer access tokens lasting two weeks, refresh-token rotation, and the authorization and token endpoints."
+    },
+    {
+      "url": "https://developer.shootproof.com/oas/studio.json",
+      "checkedAt": "2026-07-17",
+      "supports": "The official OpenAPI 3.0.1 document, pinned at SHA-256 635c005b078ebe2c7fd7276329eaf17beafcdf4d0048a99aa06113c1eab84f47, defines 302 Studio API operations: 125 GET reads and 177 mutations."
+    },
+    {
+      "url": "https://developer.shootproof.com/guide/service-description/",
+      "checkedAt": "2026-07-17",
+      "supports": "ShootProof documents the fixed `https://api.shootproof.com/studio` service-description endpoint as the stable gateway to its hypermedia API."
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "runn",
+  "name": "Runn",
+  "category": "work_management",
+  "description": "Runn is resource management, capacity planning, and forecasting software for project-based teams. Organizations use it to schedule people and projects, plan workloads and availability, manage assignments and time off, track timesheets and actuals, forecast utilization, revenue, costs, and profitability, and compare plans with real delivery.",
+  "agentUseSummary": "Add a Runn API token, choose the correct data region, then choose which agents can read or manage the connected organization's resource planning under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.runn.io/",
+    "docsUrl": "https://developer.runn.io/docs/getting-started",
+    "developerConsoleUrl": "https://app.runn.io/settings/api",
+    "termsUrl": "https://www.runn.io/terms-of-service",
+    "privacyUrl": "https://www.runn.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_token", "account_bound_read_or_write_scopes"],
+    "credentialRequirements": [
+      {
+        "key": "RUNN_API_TOKEN",
+        "label": "Runn API token",
+        "secret": true,
+        "required": true,
+        "helpText": "An account admin creates a read/write token in Runn Settings > API. Relay encrypts it and sends it only to the selected Runn API region."
+      },
+      {
+        "key": "RUNN_API_ORIGIN",
+        "label": "Runn data region",
+        "secret": false,
+        "required": true,
+        "helpText": "Choose Europe (api.runn.io) or United States (api.us.runn.io) to match the API URL shown in Runn Settings > API."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "runn_read",
+      "label": "Read resource planning",
+      "description": "Use all 92 pinned official reads for people, projects, schedules, capacity, time, forecasts, clients, rates, teams, and settings."
+    },
+    {
+      "id": "runn_manage",
+      "label": "Manage resource planning",
+      "description": "Use all 104 pinned official mutations for workforce plans, projects, assignments, actuals, invitations, rates, teams, leave, and account configuration."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "runn_read",
+        "label": "Read Runn",
+        "description": "Run one exact selected Runn GET operation from the pinned official API contract."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "runn_manage",
+        "label": "Manage Runn",
+        "description": "Run one exact selected Runn mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "runn_safe",
+      "label": "Safe",
+      "description": "All 92 bounded reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["runn_read"],
+      "approvalRequiredActions": ["runn_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 196 selected and token-authorized operations run without Relay per-action approval; ownership, exact routes, bounds, audits, redaction, rate limits, and Runn permissions still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["runn_read", "runn_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 196 pinned Runn API operations through the encrypted customer-token connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 196 pinned Runn API operations through the encrypted customer-token connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Runn API token or representative Standard or Advanced account is available in this workspace.",
+    "nextAction": "An account admin should create a read/write token in Runn Settings > API, copy the regional API URL shown there, save both through Relay Console, then verify /me identity, bounded reads, Safe approvals, Dangerous mutations, rate limits, agent assignment, token replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.runn.io/openapi/v1.0.0.json",
+      "checkedAt": "2026-07-15",
+      "supports": "Runn's official OpenAPI 3.1.0 contract has SHA-256 e7ba4d6ee0e1cd19a8bf9db40ad960e9ada3be11e5738fe1937df729592d7f91 and defines 196 operations: 92 reads and 104 mutations."
+    },
+    {
+      "url": "https://developer.runn.io/docs/authentication",
+      "checkedAt": "2026-07-15",
+      "supports": "Runn documents account-bound bearer API tokens with selectable read or write access, optional expiry, revocation, and fixed EU and US API origins."
+    },
+    {
+      "url": "https://developer.runn.io/docs/getting-started",
+      "checkedAt": "2026-07-15",
+      "supports": "Runn documents the Accept-Version 1.0.0 header, cursor pagination, the /me identity endpoint, and a 120 requests-per-minute limit per token and IP address."
+    },
+    {
+      "url": "https://help.runn.io/en/articles/7039247-how-to-generate-an-api-token-in-runn",
+      "checkedAt": "2026-07-15",
+      "supports": "Runn states that account admins generate tokens in Settings > API, that token values are shown only once, and that live and test accounts issue distinct token prefixes."
+    },
+    {
+      "url": "https://help.runn.io/en/articles/11620415-integrations-overview",
+      "checkedAt": "2026-07-15",
+      "supports": "Runn states that API integrations are available on Standard and Advanced plans; Relay therefore requires the customer's own paid account and token rather than purchasing provider access."
+    }
+  ]
+}

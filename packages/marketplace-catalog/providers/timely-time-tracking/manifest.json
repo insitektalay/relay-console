@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "timely-time-tracking",
+  "name": "Timely Time Tracking",
+  "category": "work_management",
+  "description": "Timely is automatic time-tracking and timesheet software for consultancies, agencies, software businesses, and other project-based teams. Organizations use it to capture work, plan time, organize projects and clients, coordinate people and capacity, monitor billable work and budgets, produce reports, and prepare invoices.",
+  "agentUseSummary": "Connect Timely once, then choose which agents can read or manage the connected workspaces' time, projects, clients, people, teams, tasks, reports, and settings under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.timely.com/",
+    "docsUrl": "https://developer.timely.com/",
+    "developerConsoleUrl": "https://app.timelyapp.com/",
+    "termsUrl": "https://www.timely.com/terms/",
+    "privacyUrl": "https://www.timely.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["manage"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.timelyapp.com/1.1/oauth/authorize",
+    "tokenUrl": "https://api.timelyapp.com/1.1/oauth/token",
+    "revocationUrl": "https://api.timelyapp.com/1.1/oauth/revoke"
+  },
+  "connection": {
+    "types": ["oauth_connector", "workspace_bound_manage_scope"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/timely-time-tracking/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "timely_time_tracking_read",
+      "label": "Read time and workspace data",
+      "description": "Use all 32 pinned official reads for accounts, time, projects, clients, people, teams, tasks, reports, capacities, permissions, tags, states, and webhooks."
+    },
+    {
+      "id": "timely_time_tracking_manage",
+      "label": "Manage time and workspaces",
+      "description": "Use all 38 pinned official mutations for time, timers, projects, clients, people, teams, tasks, tags, states, permissions, and webhooks."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "timely_time_tracking_read",
+        "label": "Read Timely",
+        "description": "Run one exact selected Timely GET operation from the pinned official API contract."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "timely_time_tracking_manage",
+        "label": "Manage Timely",
+        "description": "Run one exact selected Timely mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "timely_time_tracking_safe",
+      "label": "Safe",
+      "description": "All 32 bounded reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["timely_time_tracking_read"],
+      "approvalRequiredActions": ["timely_time_tracking_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 70 selected and provider-authorized operations run without Relay per-action approval; ownership, OAuth authority, exact routes, bounds, audits, redaction, provider limits, and Timely permissions still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "timely_time_tracking_read",
+        "timely_time_tracking_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 70 pinned Timely application operations through the authenticated server-side connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 70 pinned Timely application operations through the authenticated server-side connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Timely OAuth application, exact production callback, Railway client credentials, and a representative connected workspace are not configured.",
+    "nextAction": "Use an administrator account to create Relay Console as a confidential OAuth application inside Timely, register https://api.relayconsole.work/api/v1/marketplace/oauth/timely-time-tracking/callback exactly, store TIMELY_TIME_TRACKING_CLIENT_ID and TIMELY_TIME_TRACKING_CLIENT_SECRET on Railway, deploy, then verify authorization, manage-scope grant, account and user binding, refresh, bounded reads, Safe approval, Dangerous mutations, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.timely.com/",
+      "checkedAt": "2026-07-15",
+      "supports": "Timely publishes an embedded OpenAPI 3.1.0 document with SHA-256 7a6b42701035a887f513ec2ca9eafe61942eec229e705101a3e025a9df27dcab. Relay pins 70 application operations: 32 reads and 38 mutations; OAuth token-management endpoints remain broker-only rather than agent tools."
+    },
+    {
+      "url": "https://developer.timely.com/#authentication",
+      "checkedAt": "2026-07-15",
+      "supports": "Timely documents confidential OAuth 2.0 authorization code applications, the manage scope, bearer tokens, access and refresh tokens, token introspection, token revocation, account discovery, and application creation by a Timely workspace administrator."
+    },
+    {
+      "url": "https://www.timely.com/",
+      "checkedAt": "2026-07-15",
+      "supports": "Timely describes automatic time tracking, timesheets, project and people planning, capacity, reports, invoices, billable time, budgets, and project profitability for consultancies, agencies, and software businesses."
+    },
+    {
+      "url": "https://www.timely.com/integrations/",
+      "checkedAt": "2026-07-15",
+      "supports": "Timely presents integrations as connected workflows around its automatic time tracking product; Relay uses Timely's own documented OAuth application API instead of asking users for an API key."
+    }
+  ]
+}

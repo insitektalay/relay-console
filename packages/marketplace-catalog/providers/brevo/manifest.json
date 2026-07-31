@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "brevo", "name": "Brevo", "category": "communication",
+  "description": "Transactional messaging, campaigns, contacts, CRM, conversations, commerce, events, and analytics through Brevo v3.",
+  "agentUseSummary": "Connect a customer-owned API key and verified sender boundary, select capabilities, and let agents read, send, or use the full supported API under Safe or Dangerous policy.",
+  "provider": { "websiteUrl": "https://www.brevo.com/", "docsUrl": "https://developers.brevo.com/reference/getting-started-1", "developerConsoleUrl": "https://app.brevo.com/settings/keys/api", "termsUrl": "https://www.brevo.com/legal/termsofuse/", "privacyUrl": "https://www.brevo.com/legal/privacypolicy/" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": { "types": ["user_owned_api_key"], "credentialRequirements": [
+    { "name": "BREVO_API_KEY", "label": "Brevo API key", "required": true, "secret": true, "helpText": "A customer-owned API key generated in Brevo SMTP & API settings." },
+    { "name": "BREVO_SENDER_BOUNDARY", "label": "Verified sender boundary", "required": true, "secret": false, "helpText": "An exact registered sender email or authenticated domain." }
+  ], "callbackPath": null, "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "account", "label": "Account", "description": "Read bounded account and plan metadata.", "defaultSelected": true },
+    { "id": "senders", "label": "Senders", "description": "List bounded sender metadata.", "defaultSelected": true },
+    { "id": "templates", "label": "Templates", "description": "List bounded transactional template metadata.", "defaultSelected": true },
+    { "id": "send", "label": "Transactional email", "description": "Send through the bound verified sender.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full Brevo v3 API", "description": "Use every endpoint authorized by the customer API key.", "defaultSelected": false }
+  ],
+  "actions": { "allowed": [
+    { "id": "brevo_read_account", "label": "Read account", "description": "Read bounded account and plan metadata." },
+    { "id": "brevo_read_senders", "label": "Read senders", "description": "List bounded sender metadata." },
+    { "id": "brevo_read_templates", "label": "Read templates", "description": "List bounded transactional templates." }
+  ], "approvalRequired": [
+    { "id": "brevo_send_email", "label": "Send transactional email", "description": "Sending requires approval in Safe mode." },
+    { "id": "brevo_full_api", "label": "Use full Brevo API", "description": "All other v3 operations require approval in Safe mode." }
+  ], "blocked": [] },
+  "approvalProfiles": [
+    { "id": "brevo_safe", "label": "Safe", "description": "Bounded reads run directly; sends and all other API operations require approval.", "defaultSelected": true, "allowedActions": ["brevo_read_account", "brevo_read_senders", "brevo_read_templates"], "approvalRequiredActions": ["brevo_send_email", "brevo_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected API-key-authorized capability runs without Relay per-action approvals; ownership, sender binding, provider limits, secret isolation, evidence bounds, and audits still apply.", "defaultSelected": false, "allowedActions": ["brevo_read_account", "brevo_read_senders", "brevo_read_templates", "brevo_send_email", "brevo_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high", "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Brevo tools and proxies the API key server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Brevo tools and proxies the API key server-side." }
+  ],
+  "availability": "available", "providerSetup": { "status": "not_required", "blocker": null, "nextAction": "The customer generates an API key and enters it with an exact registered sender email or authenticated domain." },
+  "evidence": [
+    { "url": "https://developers.brevo.com/docs/oauth", "checkedAt": "2026-07-13", "supports": "Brevo OAuth exists but apps are currently private to users inside the app owner's Brevo organisation; public distribution is not yet supported." },
+    { "url": "https://developers.brevo.com/docs/api-key-authentication", "checkedAt": "2026-07-13", "supports": "Customers generate one-time-visible API keys and authenticate at the fixed v3 origin with the api-key header." },
+    { "url": "https://developers.brevo.com/reference/send-transac-email", "checkedAt": "2026-07-13", "supports": "Transactional sends support 2,000 total recipients and message versions of at most 99 recipients, with registered senders/templates." },
+    { "url": "https://developers.brevo.com/docs/api-limits", "checkedAt": "2026-07-13", "supports": "Brevo publishes endpoint-specific RPS/RPH limits and returns 429 when exceeded." },
+    { "url": "https://developers.brevo.com/docs/limit-headers", "checkedAt": "2026-07-13", "supports": "Responses expose x-sib rate-limit limit, remaining, and reset headers." }
+  ]
+}

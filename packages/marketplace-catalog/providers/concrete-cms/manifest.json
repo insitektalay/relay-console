@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "concrete-cms",
+  "name": "Concrete CMS",
+  "category": "knowledge_documents",
+  "description": "Concrete CMS is an open-source content management system with in-context editing and structured site management. It supports pages, areas, blocks, files, users, groups, permissions, workflows, Express data objects, themes, packages, and a core REST API.",
+  "agentUseSummary": "Relay reads only the page ID and date-added and last-updated timestamps for one preselected Concrete CMS page through a fixed core REST API GET. The upstream endpoint can return content and identity-bearing page fields, so Relay explicitly discards every field outside that lifecycle projection before returning data.",
+  "provider": {
+    "websiteUrl": "https://www.concretecms.org/",
+    "docsUrl": "https://documentation.concretecms.org/9-x/developers/rest-api/concrete-cms-rest-api-endpoints",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.concretecms.org/about/legal",
+    "privacyUrl": "https://www.concretecms.org/about/legal"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["pages:read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_operated_concrete_cms_9_2_plus",
+      "public_https_core_rest_api",
+      "dedicated_pages_read_token",
+      "selected_page_id"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CONCRETE_CMS_SITE_BASE_URL",
+        "label": "Concrete CMS HTTPS site base URL",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "CONCRETE_CMS_ACCESS_TOKEN",
+        "label": "Dedicated pages:read access token",
+        "required": true,
+        "secret": true,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "CONCRETE_CMS_PAGE_ID",
+        "label": "Selected page ID",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "concrete_cms_selected_page_lifecycle_get",
+      "label": "Read selected page lifecycle",
+      "description": "Read one selected page's ID and lifecycle timestamps.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "concrete_cms_selected_page_lifecycle_get",
+        "label": "Read selected page lifecycle",
+        "description": "Use one fixed core REST API individual-page GET and return only its lifecycle projection."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "concrete_cms_private_content",
+        "label": "Expose content or private site data",
+        "description": "Page names, descriptions, paths, content, blocks, areas, versions, users, permissions, attributes, files, links, and every non-lifecycle field are excluded from Relay output."
+      },
+      {
+        "id": "concrete_cms_mutation",
+        "label": "Mutate Concrete CMS",
+        "description": "Pages, versions, blocks, files, users, groups, permissions, Express objects, configuration, packages, and every POST, PUT, PATCH, DELETE, upload, or other mutation are blocked."
+      },
+      {
+        "id": "concrete_cms_broad_access",
+        "label": "Use broad Concrete CMS access",
+        "description": "Page collections, other page IDs, content resources, users, groups, files, Express data, arbitrary routes or queries, redirects, and administration are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "concrete_cms_selected_page_lifecycle_read",
+      "label": "Selected Page Lifecycle Read",
+      "description": "Read one selected page's lifecycle projection; content, identities, other resources, administration, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["concrete_cms_selected_page_lifecycle_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "concrete_cms_private_content",
+        "concrete_cms_mutation",
+        "concrete_cms_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-page lifecycle reader backed by Railway's bounded Concrete CMS adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-page lifecycle reader backed by Railway's bounded Concrete CMS adapter."
+    }
+  ],
+  "availability": "preview",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An authorized public HTTPS Concrete CMS 9.2+ staging site must provide a dedicated access token with exactly pages:read, one selected numeric page ID, and Fairfax validation.",
+    "nextAction": "In the provider-console lane, configure the least-privilege staging token, enter the site URL and selected page ID through Relay, then validate exact-resource binding, output redaction, redirect and private-DNS denial, insufficient-scope denial, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://documentation.concretecms.org/9-x/developers/rest-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Official Concrete CMS documentation states that versions 9.2 and later include a REST API with OAuth2 and OpenID Connect authentication."
+    },
+    {
+      "url": "https://documentation.concretecms.org/9-x/developers/rest-api/concrete-cms-rest-api-endpoints",
+      "checkedAt": "2026-07-18",
+      "supports": "Official endpoint documentation defines GET /ccm/api/1.0/pages/{pageID} for one specific page and shows that the response includes lifecycle fields alongside richer page data."
+    },
+    {
+      "url": "https://documentation.concretecms.org/9-x/developers/rest-api/concrete-cms-rest-api-scopes",
+      "checkedAt": "2026-07-18",
+      "supports": "Official scope documentation defines pages:read as the read scope for page endpoints, allowing Relay to require exactly that scope for the dedicated token."
+    },
+    {
+      "url": "https://documentation.concretecms.org/9-x/developers/introduction/version-history/920-release-notes",
+      "checkedAt": "2026-07-18",
+      "supports": "Official 9.2.0 release notes identify the built-in REST API and OAuth2/OpenID Connect server as core additions."
+    }
+  ]
+}

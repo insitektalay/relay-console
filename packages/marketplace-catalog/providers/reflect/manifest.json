@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "reflect",
+  "name": "Reflect",
+  "category": "knowledge_documents",
+  "description": "End-to-end encrypted networked notes, daily notes, bookmarks, books, backlinks, tasks, and knowledge capture through Reflect.",
+  "agentUseSummary": "Connect once through Relay-owned OAuth for graph metadata and append-only cloud capture. On Mac, Reflect's separate desktop MCP can additionally provide device-local decrypted search, reading, and editing without routing plaintext through Railway.",
+  "provider": { "websiteUrl": "https://reflect.app/", "docsUrl": "https://reflect.academy/api", "developerConsoleUrl": "https://reflect.app/developer/oauth", "termsUrl": "https://reflect.app/terms", "privacyUrl": "https://reflect.app/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["read:graph", "write:graph"], "pkce": true, "refreshTokens": false, "authorizationUrl": "https://reflect.app/oauth", "tokenUrl": "https://reflect.app/api/oauth/token", "revocationUrl": null },
+  "connection": { "types": ["relay_owned_oauth", "desktop_local_mcp"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/reflect/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "graph_read", "label": "Read graph metadata", "description": "Verify the connected user and list graphs, books, and bookmarks without claiming decrypted note access.", "defaultSelected": true },
+    { "id": "cloud_capture", "label": "Cloud capture", "description": "Create bookmarks and append or create notes through Reflect's append-only cloud API.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "reflect_get_me", "label": "Read connected user", "description": "Verify the connected Reflect user." },
+      { "id": "reflect_list_graphs", "label": "List graphs", "description": "List the connected user's graphs." },
+      { "id": "reflect_list_books", "label": "List books", "description": "List books in one graph." },
+      { "id": "reflect_list_links", "label": "List links", "description": "List bookmarks in one graph." }
+    ],
+    "approvalRequired": [
+      { "id": "reflect_create_link", "label": "Create link", "description": "Create one bookmark in a selected graph." },
+      { "id": "reflect_append_daily_note", "label": "Append daily note", "description": "Append bounded Markdown to a selected daily note." },
+      { "id": "reflect_create_note", "label": "Create note", "description": "Create one bounded Markdown note." }
+    ],
+    "blocked": [{ "id": "reflect_cloud_read_note_plaintext", "label": "Read note plaintext through Relay", "description": "Reflect's end-to-end encryption prevents its cloud REST API and Railway from returning decrypted note contents." }]
+  },
+  "approvalProfiles": [
+    { "id": "reflect_safe", "label": "Safe", "description": "Graph metadata reads run directly; bookmark and note capture require approval.", "defaultSelected": true, "allowedActions": ["reflect_get_me", "reflect_list_graphs", "reflect_list_books", "reflect_list_links"], "approvalRequiredActions": ["reflect_create_link", "reflect_append_daily_note", "reflect_create_note"], "blockedActions": ["reflect_cloud_read_note_plaintext"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected Reflect cloud action runs without Relay per-action approval; OAuth scopes, fixed origin, bounds, audits, and Reflect encryption constraints still apply.", "defaultSelected": false, "allowedActions": ["reflect_get_me", "reflect_list_graphs", "reflect_list_books", "reflect_list_links", "reflect_create_link", "reflect_append_daily_note", "reflect_create_note"], "approvalRequiredActions": [], "blockedActions": ["reflect_cloud_read_note_plaintext"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected cloud tools and proxies OAuth server-side; Mac-local MCP tools remain a separate device authority." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected cloud tools and proxies OAuth server-side; Mac-local MCP tools remain a separate device authority." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "credentials_required", "blocker": "Relay must sign into Reflect, create the production OAuth client, register the exact Railway callback, and place the client ID and secret in Railway.", "nextAction": "Sign into Reflect at the developer console, create Relay Console's OAuth client, register https://api.relayconsole.work/api/v1/marketplace/oauth/reflect/callback, configure REFLECT_CLIENT_ID and REFLECT_CLIENT_SECRET on Railway, then run OAuth, health, one bounded read, and one approved or Dangerous-mode capture." },
+  "evidence": [
+    { "url": "https://reflect.academy/api", "checkedAt": "2026-07-13", "supports": "Reflect supports OAuth 2, self-service client credentials, PKCE, Bearer access tokens, and an append-only REST model because its servers cannot decrypt note contents." },
+    { "url": "https://openpm.ai/packages/reflect", "checkedAt": "2026-07-13", "supports": "Reflect's Academy-linked API specification records the OAuth endpoints, read:graph and write:graph scopes, user/graph/bookmark reads, and bookmark/daily-note/note writes." },
+    { "url": "https://reflect.academy/artificial-intelligence", "checkedAt": "2026-07-13", "supports": "Reflect documents a desktop-app MCP server for Claude, Codex, and Cursor that can locally search, read, create, append, rename, edit, and delete decrypted notes." },
+    { "url": "https://reflect.academy/security-and-encryption", "checkedAt": "2026-07-13", "supports": "Reflect documents end-to-end encryption, explaining why Railway cloud authority cannot read note plaintext and why local MCP must remain separate." }
+  ]
+}

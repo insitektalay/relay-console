@@ -1,0 +1,143 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "intuit-mailchimp",
+  "name": "Intuit Mailchimp",
+  "category": "communication",
+  "description": "Intuit Mailchimp is the corporate styling of Mailchimp, the email and marketing automation platform acquired by Intuit in 2021. It uses the same Mailchimp accounts, login, Marketing API, Transactional API, surveys, terms, and developer platform rather than a separate Intuit Mailchimp service.",
+  "agentUseSummary": "Relay does not expose a second Connect surface for this duplicate identity. Use the canonical Mailchimp provider for bounded Marketing API metadata, Mailchimp Surveys for hosted-survey workflows, or Mailchimp Transactional for Mandrill email delivery; each owns its real authentication, policy, and runtime boundary.",
+  "provider": {
+    "websiteUrl": "https://mailchimp.com/",
+    "docsUrl": "https://mailchimp.com/developer/",
+    "developerConsoleUrl": "https://admin.mailchimp.com/account/oauth2/",
+    "termsUrl": "https://mailchimp.com/legal/terms/",
+    "privacyUrl": "https://www.intuit.com/privacy/statement/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "duplicate_provider_identity",
+      "canonical_mailchimp_handoff",
+      "no_separate_account_or_api_authority"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "mailchimp_marketing_handoff",
+      "label": "Mailchimp Marketing handoff",
+      "description": "Use the canonical Mailchimp provider for the Marketing API boundary.",
+      "defaultSelected": false
+    },
+    {
+      "id": "mailchimp_surveys_handoff",
+      "label": "Mailchimp Surveys handoff",
+      "description": "Use the Mailchimp Surveys provider for hosted survey catalog, reporting, responses, and distribution.",
+      "defaultSelected": false
+    },
+    {
+      "id": "mailchimp_transactional_handoff",
+      "label": "Mailchimp Transactional handoff",
+      "description": "Use the Mailchimp Transactional provider for Mandrill email delivery and account operations.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "intuit_mailchimp_duplicate_connect",
+        "label": "Create a duplicate Mailchimp connection",
+        "description": "A second connection would duplicate the same Mailchimp account and authority under a corporate-name variant."
+      },
+      {
+        "id": "intuit_mailchimp_duplicate_runtime",
+        "label": "Mount duplicate runtime tools",
+        "description": "Duplicate tools would make audit, selected capabilities, approvals, disconnect, and credential ownership ambiguous."
+      },
+      {
+        "id": "intuit_mailchimp_intuit_credentials",
+        "label": "Capture Intuit credentials",
+        "description": "Mailchimp states that its login remains unchanged; Relay must not request Intuit, QuickBooks, or other unrelated credentials for this candidate."
+      },
+      {
+        "id": "intuit_mailchimp_private_or_console",
+        "label": "Use private interfaces or console automation",
+        "description": "Private endpoints, browser automation, provider consoles, passwords, cookies, and session capture are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "intuit_mailchimp_duplicate",
+      "label": "Duplicate provider",
+      "defaultSelected": true,
+      "description": "No action is enabled; route users to the canonical Mailchimp product boundary instead.",
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "intuit_mailchimp_duplicate_connect",
+        "intuit_mailchimp_duplicate_runtime",
+        "intuit_mailchimp_intuit_credentials",
+        "intuit_mailchimp_private_or_console"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No duplicate runtime pack is mounted; use the canonical Mailchimp provider records."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No duplicate runtime pack is mounted; use the canonical Mailchimp provider records."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Official Mailchimp pages identify Intuit as Mailchimp's parent and say existing Mailchimp signup and login remain unchanged. Official API policy exposes Mailchimp Marketing and Transactional APIs, not a distinct Intuit Mailchimp API. Publishing this candidate would duplicate the same provider identity and make credentials, connections, approvals, audits, and disconnect semantics ambiguous.",
+    "nextAction": "Retire this duplicate candidate or make it a non-connectable search alias that redirects to Mailchimp, Mailchimp Surveys, and Mailchimp Transactional. Do not create a separate OAuth app, callback, credential form, connection row, provider card, or runtime pack."
+  },
+  "evidence": [
+    {
+      "url": "https://mailchimp.com/about/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mailchimp describes itself as the email and marketing automation product and says Intuit acquired it in 2021; Intuit Mailchimp is corporate styling, not a separate service."
+    },
+    {
+      "url": "https://mailchimp.com/help/mailchimp-intuit-privacy-faq/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mailchimp says signup and login remain unchanged after joining Intuit, confirming there is no separate Intuit Mailchimp account authority."
+    },
+    {
+      "url": "https://mailchimp.com/legal/terms/",
+      "checkedAt": "2026-07-17",
+      "supports": "The Mailchimp service is operated by Mailchimp within the Intuit group and remains governed as the Mailchimp App and Service."
+    },
+    {
+      "url": "https://mailchimp.com/legal/api_use/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official API policy names the Mailchimp developer and Mandrill Transactional API surfaces; it does not define a separate Intuit Mailchimp API."
+    },
+    {
+      "url": "https://mailchimp.com/developer/marketing/docs/integrations/",
+      "checkedAt": "2026-07-17",
+      "supports": "Official integrations authenticate Mailchimp users with OAuth against the Mailchimp Marketing API, which is already owned by Relay's canonical Mailchimp provider."
+    }
+  ]
+}

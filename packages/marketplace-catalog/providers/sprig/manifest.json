@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sprig",
+  "name": "Sprig",
+  "category": "work_management",
+  "description": "Sprig is a product-experience research platform for in-product and long-form surveys, feedback, session replay, heatmaps, prototype testing, and AI-assisted insights.",
+  "agentUseSummary": "Add a customer-owned Data Export API key, then let selected agents read a bounded, minimized study index. Relay does not expose questions, targeting constraints, cursors, responses, themes, users, visitor data, media, transcripts, metadata, or mutations.",
+  "provider": {
+    "websiteUrl": "https://sprig.com/",
+    "docsUrl": "https://docs.sprig.com/reference/sprig-api/overview",
+    "developerConsoleUrl": "https://docs.sprig.com/reference/sprig-api/overview",
+    "termsUrl": "https://sprig.com/terms-of-service/",
+    "privacyUrl": "https://sprig.com/privacy-policy/"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_data_export_api_key", "environment_specific_api"],
+    "credentialRequirements": [
+      { "key": "SPRIG_API_KEY", "label": "Sprig API key", "secret": true, "required": true, "helpText": "Use a customer-owned Sprig Data Export API key for the intended environment." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "sprig_read", "label": "Read study metadata", "description": "Use one pinned GET for a bounded, minimized study-configuration index.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "sprig_read", "label": "Read Sprig study metadata", "description": "Read one bounded, minimized study index without questions, targeting, responses, users, or cursors." }],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "sprig_manage", "label": "Change Sprig", "description": "Users, events, attributes, studies, responses, themes, visitors, purges, and every mutation remain blocked." },
+      { "id": "sprig_sensitive_data", "label": "Read sensitive research data", "description": "Questions, constraints, responses, themes, user and visitor identifiers, snapshots, URLs, metadata, deleted data, media, and transcripts are blocked." },
+      { "id": "sprig_arbitrary_api", "label": "Call arbitrary APIs", "description": "Arbitrary paths, status filters, date ranges, cursors, methods, request bodies, unbounded exports, and environment switching are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "sprig_safe", "label": "Safe", "description": "One bounded minimized study index runs directly. Questions, targeting, responses, users, themes, cursors, arbitrary APIs, and every mutation remain blocked.", "defaultSelected": true, "allowedActions": ["sprig_read"], "approvalRequiredActions": [], "blockedActions": ["sprig_manage", "sprig_sensitive_data", "sprig_arbitrary_api"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts one bounded study-metadata read through the encrypted customer-owned API key." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts one bounded study-metadata read through the encrypted customer-owned API key." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Sprig account with Data Export API access, environment-specific API key, representative study, or safe fixture is available in this workspace.",
+    "nextAction": "An authorized Sprig administrator obtains the intended environment's Data Export API key and stores it through Relay Console, then verifies the minimized study index, assignment, key replacement, disconnect, provider-side rotation, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://docs.sprig.com/reference/sprig-api/overview", "checkedAt": "2026-07-17", "supports": "Sprig documents its API authentication, response format, environment-specific keys, and API rate limiting." },
+    { "url": "https://docs.sprig.com/reference/sprig-api/v1/get-v1-surveys-1", "checkedAt": "2026-07-17", "supports": "Sprig documents the survey/study configuration export, its 1,000-item maximum, cursor and status inputs, and question and targeting fields Relay strips and caps." },
+    { "url": "https://docs.sprig.com/reference/sprig-api/v1/get-v1-responses-1", "checkedAt": "2026-07-17", "supports": "The response export can expose answers, user and visitor IDs, snapshots, URLs, metadata, deleted data, media, and transcripts, supporting Relay's exclusion of the endpoint." },
+    { "url": "https://docs.sprig.com/reference/sprig-api.json", "checkedAt": "2026-07-17", "supports": "The official OpenAPI schema pins `https://api.sprig.com`, Bearer API-key authentication, the V1 study export, response and theme exports, V2 user operations, and destructive visitor purge." }
+  ]
+}

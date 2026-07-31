@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "airtable-sync",
+  "name": "Airtable Sync",
+  "category": "knowledge_documents",
+  "description": "Airtable Sync is an in-product feature for copying records from a source into one or more destination bases. It supports one-way, two-way, and multi-source base syncs plus plan-gated external integrations such as CSV ingestion through the Sync API.",
+  "agentUseSummary": "Airtable Sync cannot be connected as a separate Relay provider. Use the canonical Airtable provider only for its approved bounded base, record, and comment actions; Relay does not configure syncs or shared views, push CSV to a generated Sync API endpoint, store a Sync API personal access token, or initiate bulk schema, record, propagation, or deletion effects until an exact ingestion contract receives product and security approval.",
+  "provider": {
+    "websiteUrl": "https://www.airtable.com/platform",
+    "docsUrl": "https://support.airtable.com/docs/getting-started-with-airtable-sync",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.airtable.com/company/terms-of-service",
+    "privacyUrl": "https://www.airtable.com/company/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "in_product_feature_of_airtable",
+      "use_canonical_airtable_for_bounded_record_actions",
+      "sync_api_pat_product_decision_required",
+      "no_public_sync_configuration_oauth_contract",
+      "no_duplicate_connection_state"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "airtable_sync_duplicate_connection",
+        "label": "Create an Airtable Sync connection",
+        "description": "Sync is Airtable base state, not a separate provider identity, OAuth grant, callback, or resource lifecycle; Relay does not duplicate the canonical Airtable connection."
+      },
+      {
+        "id": "airtable_sync_configure",
+        "label": "Configure Airtable syncs",
+        "description": "Creating, updating, reactivating, running, or deleting source and destination syncs, synced tables, shared views, fields, primary keys, schedules, or deletion settings is not exposed through Airtable's canonical Relay API contract."
+      },
+      {
+        "id": "airtable_sync_api_ingest",
+        "label": "Push CSV through the Sync API",
+        "description": "Relay does not store a generated Sync API endpoint or personal access token, construct or upload CSV, or replace destination data because each request may create, update, retain, or delete many records and fields."
+      },
+      {
+        "id": "airtable_sync_two_way_mutation",
+        "label": "Propagate two-way changes",
+        "description": "Creating, editing, deleting, or propagating records between source and destination bases, including multi-source conflict behavior, is blocked."
+      },
+      {
+        "id": "airtable_sync_share_link_and_secrets",
+        "label": "Handle sync links and credentials",
+        "description": "Capturing, sharing, storing, revealing, rotating, or using shared-view links, passwords, generated endpoints, personal access tokens, cookies, sessions, or other secrets is blocked."
+      },
+      {
+        "id": "airtable_sync_admin_and_limits",
+        "label": "Administer sync access and limits",
+        "description": "Organization restrictions, collaborator permissions, plan entitlements, external sharing, source and destination ownership, rate limits, and sync failure administration remain outside this provider boundary."
+      },
+      {
+        "id": "airtable_sync_private_or_raw_access",
+        "label": "Use private Airtable interfaces",
+        "description": "Browser automation, scraping, undocumented endpoints, private APIs, arbitrary raw requests, and untyped Airtable access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "airtable_sync_unavailable",
+      "label": "Unavailable",
+      "description": "No Airtable Sync action is enabled before Relay approves a bounded external ingestion contract with explicit schema, replacement, deletion, credential, and lifecycle rules.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "airtable_sync_duplicate_connection",
+        "airtable_sync_configure",
+        "airtable_sync_api_ingest",
+        "airtable_sync_two_way_mutation",
+        "airtable_sync_share_link_and_secrets",
+        "airtable_sync_admin_and_limits",
+        "airtable_sync_private_or_raw_access"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Airtable Sync tools are mounted. OpenClaw may use only the canonical Airtable provider's approved bounded base, record, and comment tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Airtable Sync tools are mounted. Hermes may use only the canonical Airtable provider's approved bounded base, record, and comment tools."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Airtable's ordinary one-way, two-way, and multi-source syncs are configured interactively by authorized base collaborators and do not publish a sync-management OAuth API. The separate Sync API is a Business or Enterprise Scale one-way CSV ingestion route whose destination is first created interactively and whose generated endpoint requires a customer personal access token with data.records:write and schema.bases:write. One request can change table structure and create, update, retain, or delete up to 10,000 records according to customer-selected primary-key and deletion settings. Supporting that bulk, schema-mutating, replacement-style endpoint would be a new high-impact data-ingestion product commitment rather than an ordinary extension of Relay's canonical resource-restricted Airtable OAuth connector, which explicitly blocks Sync API, schema administration, deletion, upsert, and bulk writes.",
+    "nextAction": "Keep this feature slug non-installable and use canonical Airtable only for its explicit bounded operations. If external Sync API ingestion becomes a product requirement, product, security, privacy, legal, runtime, and customer owners must approve one exact destination-bound contract covering the generated endpoint and PAT lifecycle, required scopes and resource access, encrypted storage, table and primary-key binding, allowed CSV headers and field types, strict row, column, and byte bounds, replacement and deletion disclosure, Safe approval and Dangerous behavior, idempotency and replay, audit and redaction, rate and plan limits, schema drift, partial failure and rollback, token rotation and revocation, and production acceptance before any connector or runtime tool is implemented."
+  },
+  "evidence": [
+    {
+      "url": "https://support.airtable.com/docs/getting-started-with-airtable-sync",
+      "checkedAt": "2026-07-18",
+      "supports": "Airtable documents Sync as paid-plan base configuration using sync-enabled shared views, with one-way, two-way, and multi-source modes, creator permissions, schedules, deletion behavior, and plan and record limits."
+    },
+    {
+      "url": "https://support.airtable.com/docs/en/sync-permissions",
+      "checkedAt": "2026-07-18",
+      "supports": "Airtable documents collaborator, source, destination, shared-link, domain, password, and two-way edit permissions that govern sync configuration and propagation."
+    },
+    {
+      "url": "https://support.airtable.com/docs/airtable-sync-integration-sync-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Airtable documents the Sync API as Business or Enterprise Scale one-way CSV ingestion configured inside a base, authorized by a PAT with record-write and base-schema-write scopes, with primary-key, deletion, field, payload, row, column, and rate-limit semantics."
+    },
+    {
+      "url": "https://airtable.com/developers/web/api/post-sync-api-endpoint",
+      "checkedAt": "2026-07-18",
+      "supports": "Airtable publishes a developer reference for posting CSV data to a configured Sync API endpoint."
+    }
+  ]
+}

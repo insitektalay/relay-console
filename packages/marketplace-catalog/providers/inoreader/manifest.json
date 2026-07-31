@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "inoreader",
+  "name": "Inoreader",
+  "category": "knowledge_documents",
+  "description": "Feeds, subscriptions, folders, tags, unread state, saved articles, and reading workflows through Inoreader's Reader API.",
+  "agentUseSummary": "Connect once through Relay-owned Inoreader OAuth, then let agents read bounded streams or use the complete selected Reader API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.inoreader.com/",
+    "docsUrl": "https://www.inoreader.com/developers/",
+    "developerConsoleUrl": "https://www.inoreader.com/developers/register-app",
+    "termsUrl": "https://www.inoreader.com/terms-of-service",
+    "privacyUrl": "https://www.inoreader.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["read", "write"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.inoreader.com/oauth2/auth",
+    "tokenUrl": "https://www.inoreader.com/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/inoreader/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "reader_read", "label": "Read feeds", "description": "Read the connected user, subscriptions, tags, unread counts, and bounded stream contents.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full Inoreader API", "description": "Subscribe, organize, tag, mark read, and use every OAuth-authorized Reader API operation.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "inoreader_get_user_info", "label": "Read user", "description": "Verify the connected Inoreader user." },
+      { "id": "inoreader_list_subscriptions", "label": "List subscriptions", "description": "List subscribed feeds." },
+      { "id": "inoreader_list_tags", "label": "List tags", "description": "List folders, tags, and system streams." },
+      { "id": "inoreader_stream_contents", "label": "Read stream", "description": "Read a bounded page from a feed, folder, tag, or system stream." }
+    ],
+    "approvalRequired": [
+      { "id": "inoreader_full_api", "label": "Use full Inoreader API", "description": "Use any documented Reader API GET or POST operation; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "inoreader_safe", "label": "Safe", "description": "Bounded reads run directly; every other Reader API operation requires approval.", "defaultSelected": true, "allowedActions": ["inoreader_get_user_info", "inoreader_list_subscriptions", "inoreader_list_tags", "inoreader_stream_contents"], "approvalRequiredActions": ["inoreader_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected OAuth-authorized Reader API operation runs without Relay per-action approval; ownership, fixed origin, bounds, audits, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["inoreader_get_user_info", "inoreader_list_subscriptions", "inoreader_list_tags", "inoreader_stream_contents", "inoreader_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected tools and proxies OAuth server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected tools and proxies OAuth server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay must sign into Inoreader, register the production OAuth application and exact Railway callback, and configure its App ID and App Key on Railway.",
+    "nextAction": "Create the Relay Console app, register https://api.relayconsole.work/api/v1/marketplace/oauth/inoreader/callback, configure INOREADER_CLIENT_ID and INOREADER_CLIENT_SECRET, then run OAuth, health, a bounded read, and an approved or Dangerous-mode mutation."
+  },
+  "evidence": [
+    { "url": "https://www.inoreader.com/developers/oauth", "checkedAt": "2026-07-13", "supports": "Inoreader documents confidential authorization-code OAuth, exact redirect URI matching, read or read-write scope, bearer access tokens, refresh tokens, and its auth and token endpoints." },
+    { "url": "https://www.inoreader.com/developers/", "checkedAt": "2026-07-13", "supports": "The official developer portal documents user, subscription, tag, stream, item, preference, and mutation endpoints across Reader API rate-limit zones." },
+    { "url": "https://www.inoreader.com/developers/register-app", "checkedAt": "2026-07-13", "supports": "Inoreader provides an application registration path that issues an App ID and App Key; application creation requires a signed-in account." },
+    { "url": "https://www.inoreader.com/developers/rate-limiting", "checkedAt": "2026-07-13", "supports": "Inoreader divides API calls into two quota zones and documents default daily request limits, so Relay bounds reads and preserves provider rate-limit errors." }
+  ]
+}

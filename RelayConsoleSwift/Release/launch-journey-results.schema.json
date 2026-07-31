@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "launch-journey-results.schema.json",
+  "title": "Relay completed one-product launch journeys",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "completedAt", "clientMatrix", "runtimeMatrix",
+    "marketplace", "billing", "relay", "migration"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.launch-journey-results.v3" },
+    "completedAt": { "type": "string", "format": "date-time" },
+    "clientMatrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["macOS", "web", "iPhone", "iPad"],
+      "properties": {
+        "macOS": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["appVersion", "appBuild", "deviceModel", "architecture", "osVersion", "cleanHost"],
+          "properties": {
+            "appVersion": { "$ref": "#/$defs/nonPlaceholder" },
+            "appBuild": { "$ref": "#/$defs/nonPlaceholder" },
+            "deviceModel": { "$ref": "#/$defs/nonPlaceholder" },
+            "architecture": { "enum": ["arm64", "x86_64"] },
+            "osVersion": { "$ref": "#/$defs/nonPlaceholder" },
+            "cleanHost": { "const": true }
+          }
+        },
+        "web": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sourceCommit", "deploymentId", "browser"],
+          "properties": {
+            "sourceCommit": { "$ref": "#/$defs/commit" },
+            "deploymentId": { "$ref": "#/$defs/nonPlaceholder" },
+            "browser": { "$ref": "#/$defs/nonPlaceholder" }
+          }
+        },
+        "iPhone": { "$ref": "#/$defs/mobileClient" },
+        "iPad": { "$ref": "#/$defs/mobileClient" }
+      }
+    },
+    "runtimeMatrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hermes", "openClaw"],
+      "properties": {
+        "hermes": { "$ref": "#/$defs/runtime" },
+        "openClaw": { "$ref": "#/$defs/runtime" }
+      }
+    },
+    "marketplace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["providerSlug", "connectionType", "liveActionName", "dedicatedTestAccount"],
+      "properties": {
+        "providerSlug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "connectionType": {
+          "enum": ["oauth", "api_key", "personal_access_token", "basic", "custom"]
+        },
+        "liveActionName": { "$ref": "#/$defs/nonPlaceholder" },
+        "dedicatedTestAccount": { "const": true }
+      }
+    },
+    "billing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stripeMode", "appleEnvironment", "plan",
+        "monthlyPriceUSD", "managedRuntimeAvailable"
+      ],
+      "properties": {
+        "stripeMode": { "const": "live" },
+        "appleEnvironment": { "const": "sandbox" },
+        "plan": { "const": "relay_connect_monthly" },
+        "monthlyPriceUSD": { "const": "9.99" },
+        "managedRuntimeAvailable": { "const": false }
+      }
+    },
+    "relay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "notarizedInstall", "accountVerification", "purchaseAndEntitlement",
+        "entitlementRequiredOnMac", "userInstalledRuntimes",
+        "sameMacHermes", "sameMacOpenClaw", "remoteBridgeEnrollment",
+        "crossClientConvergence", "dispatchFromEveryClient",
+        "runtimeOfflineState", "runtimeReconnectBackfill",
+        "messageAndPersistence", "liveMarketplaceLifecycle",
+        "cancellationExportDeletion"
+      ],
+      "properties": {
+        "notarizedInstall": { "$ref": "#/$defs/journey" },
+        "accountVerification": { "$ref": "#/$defs/journey" },
+        "purchaseAndEntitlement": { "$ref": "#/$defs/journey" },
+        "entitlementRequiredOnMac": { "$ref": "#/$defs/journey" },
+        "userInstalledRuntimes": { "$ref": "#/$defs/journey" },
+        "sameMacHermes": { "$ref": "#/$defs/journey" },
+        "sameMacOpenClaw": { "$ref": "#/$defs/journey" },
+        "remoteBridgeEnrollment": { "$ref": "#/$defs/journey" },
+        "crossClientConvergence": { "$ref": "#/$defs/journey" },
+        "dispatchFromEveryClient": { "$ref": "#/$defs/journey" },
+        "runtimeOfflineState": { "$ref": "#/$defs/journey" },
+        "runtimeReconnectBackfill": { "$ref": "#/$defs/journey" },
+        "messageAndPersistence": { "$ref": "#/$defs/journey" },
+        "liveMarketplaceLifecycle": { "$ref": "#/$defs/journey" },
+        "cancellationExportDeletion": { "$ref": "#/$defs/journey" }
+      }
+    },
+    "migration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "customerHostToCustomerHost", "interruptionAndRollback"
+      ],
+      "properties": {
+        "customerHostToCustomerHost": { "$ref": "#/$defs/journey" },
+        "interruptionAndRollback": { "$ref": "#/$defs/journey" }
+      }
+    }
+  },
+  "$defs": {
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "nonPlaceholder": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!.*[<>])(?!pending$)(?!tbd$).+$"
+    },
+    "mobileClient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["appVersion", "appBuild", "deviceModel", "osVersion"],
+      "properties": {
+        "appVersion": { "$ref": "#/$defs/nonPlaceholder" },
+        "appBuild": { "$ref": "#/$defs/nonPlaceholder" },
+        "deviceModel": { "$ref": "#/$defs/nonPlaceholder" },
+        "osVersion": { "$ref": "#/$defs/nonPlaceholder" }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version", "commit", "hostOS", "hostArchitecture",
+        "userInstalled", "relayInstalled"
+      ],
+      "properties": {
+        "version": { "$ref": "#/$defs/nonPlaceholder" },
+        "commit": {
+          "anyOf": [
+            { "$ref": "#/$defs/commit" },
+            { "type": "null" }
+          ]
+        },
+        "hostOS": { "$ref": "#/$defs/nonPlaceholder" },
+        "hostArchitecture": { "$ref": "#/$defs/nonPlaceholder" },
+        "userInstalled": { "const": true },
+        "relayInstalled": { "const": false }
+      }
+    },
+    "journey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "verifiedAt", "reviewer", "evidenceURL", "customerImpact",
+        "credentialMaterialIncluded", "customerContentIncluded",
+        "testAccountIdentifiersIncluded"
+      ],
+      "properties": {
+        "status": { "const": "passed" },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "reviewer": { "$ref": "#/$defs/nonPlaceholder" },
+        "evidenceURL": { "type": "string", "pattern": "^https://" },
+        "customerImpact": { "enum": ["none", "test-account", "synthetic-only"] },
+        "credentialMaterialIncluded": { "const": false },
+        "customerContentIncluded": { "const": false },
+        "testAccountIdentifiersIncluded": { "const": false }
+      }
+    }
+  }
+}

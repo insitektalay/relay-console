@@ -1,0 +1,220 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-ads",
+  "name": "Google Ads",
+  "category": "crm_support",
+  "description": "Google Ads is Google's advertising platform for search, display, video, shopping, app, and local campaigns. Advertisers and agencies use it to manage spend and measure aggregate campaign performance.",
+  "agentUseSummary": "Connect one Google account through Relay-owned user OAuth and a Relay-held developer token approved for reporting use. Agents can run two fixed wrappers: read bounded metadata for one explicit ten-digit customer ID and compare at most fifty campaigns over the last thirty days. Relay V1 blocks accessible-account discovery, manager hierarchy traversal, arbitrary GAQL, SearchStream, pagination, export, scheduling, all mutations, budgets, bids, ads, keywords, assets, planning, recommendations, audiences, Customer Match, search terms, click identifiers, offline conversions, billing, users, account links, raw services, service accounts, delegation, and automatic retries.",
+  "provider": {
+    "websiteUrl": "https://ads.google.com/",
+    "docsUrl": "https://developers.google.com/google-ads/api/docs/start",
+    "developerConsoleUrl": "https://ads.google.com/aw/apicenter",
+    "termsUrl": "https://developers.google.com/google-ads/api/terms",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["https://www.googleapis.com/auth/adwords"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "relay_owned_developer_token",
+      "explicit_customer_id_oauth_binding",
+      "optional_manager_login_customer_id",
+      "expiring_access_token",
+      "offline_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-ads/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "customer_summary",
+      "label": "Read customer summary",
+      "description": "Read bounded non-user metadata for one explicit Google Ads customer.",
+      "defaultSelected": true
+    },
+    {
+      "id": "campaign_performance",
+      "label": "Read campaign performance",
+      "description": "Compare up to fifty campaigns over the fixed last-thirty-days reporting window.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "google_ads_customer_summary_get",
+        "label": "Get Google Ads customer summary",
+        "description": "Read bounded metadata for one explicit advertiser or manager customer."
+      },
+      {
+        "id": "google_ads_campaign_performance_report",
+        "label": "Get Google Ads campaign performance",
+        "description": "Read up to fifty campaigns over the last thirty days through Relay's fixed reporting query."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "google_ads_account_discovery",
+        "label": "Discover Google Ads accounts",
+        "description": "Accessible-customer listing and manager hierarchy traversal are blocked in V1."
+      },
+      {
+        "id": "google_ads_arbitrary_query_stream_export",
+        "label": "Run arbitrary or bulk Google Ads reports",
+        "description": "Raw GAQL, SearchStream, pagination, export, and scheduled reporting are blocked."
+      },
+      {
+        "id": "google_ads_campaign_mutations",
+        "label": "Mutate Google Ads campaigns",
+        "description": "Creating, updating, pausing, enabling, or removing campaigns is blocked."
+      },
+      {
+        "id": "google_ads_budget_bidding_mutations",
+        "label": "Change Google Ads budgets or bids",
+        "description": "Financial controls, budgets, bids, and bidding strategies are blocked."
+      },
+      {
+        "id": "google_ads_ads_keywords_assets_mutations",
+        "label": "Mutate ads, keywords, or assets",
+        "description": "Advertising-object mutation is outside reporting-only V1."
+      },
+      {
+        "id": "google_ads_planning_recommendations",
+        "label": "Use planning or recommendations",
+        "description": "Planning, keyword research, and recommendation mutation are blocked."
+      },
+      {
+        "id": "google_ads_audiences_customer_match",
+        "label": "Access audiences or Customer Match",
+        "description": "Audience, user-list, and Customer Match data are excluded."
+      },
+      {
+        "id": "google_ads_search_terms_click_data",
+        "label": "Access search terms or click data",
+        "description": "Search terms, click views, GCLIDs, IP addresses, and granular user or location data are excluded."
+      },
+      {
+        "id": "google_ads_offline_conversions",
+        "label": "Use offline conversions",
+        "description": "Offline conversion and customer-data uploads or adjustments are blocked."
+      },
+      {
+        "id": "google_ads_billing_users_links",
+        "label": "Access billing, users, or account links",
+        "description": "Billing, invoices, payments, users, manager links, and linked-customer data are excluded."
+      },
+      {
+        "id": "google_ads_raw_service_account_delegation",
+        "label": "Use raw or delegated Google Ads access",
+        "description": "Raw services, service accounts, automatic retries, automatic pagination, and delegation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "google_ads_safe",
+      "label": "Safe",
+      "description": "Only two fixed, bounded, reporting-only reads run automatically; all discovery, raw, sensitive-data, financial, administrative, and mutation surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "google_ads_customer_summary_get",
+        "google_ads_campaign_performance_report"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_ads_account_discovery",
+        "google_ads_arbitrary_query_stream_export",
+        "google_ads_campaign_mutations",
+        "google_ads_budget_bidding_mutations",
+        "google_ads_ads_keywords_assets_mutations",
+        "google_ads_planning_recommendations",
+        "google_ads_audiences_customer_match",
+        "google_ads_search_terms_click_data",
+        "google_ads_offline_conversions",
+        "google_ads_billing_users_links",
+        "google_ads_raw_service_account_delegation"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both selected read-only wrappers run automatically while the exact scope, explicit-customer, fixed-query, response, privacy, and reporting-only boundaries remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "google_ads_customer_summary_get",
+        "google_ads_campaign_performance_report"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_ads_account_discovery",
+        "google_ads_arbitrary_query_stream_export",
+        "google_ads_campaign_mutations",
+        "google_ads_budget_bidding_mutations",
+        "google_ads_ads_keywords_assets_mutations",
+        "google_ads_planning_recommendations",
+        "google_ads_audiences_customer_match",
+        "google_ads_search_terms_click_data",
+        "google_ads_offline_conversions",
+        "google_ads_billing_users_links",
+        "google_ads_raw_service_account_delegation"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two fixed Google Ads reporting wrappers and attaches OAuth plus its developer token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two fixed Google Ads reporting wrappers and attaches OAuth plus its developer token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay must configure its Google Cloud confidential web client and Ads API access, hold a developer token approved for reporting permissible use at the appropriate access level, publish and verify the exact adwords OAuth consent, configure Railway staging secrets and any manager login customer ID, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the canonical Railway callback, exact adwords scope, reporting-approved developer token, and optional manager header, then verify both fixed reports, explicit ten-digit customer IDs, 50-row and LAST_30_DAYS bounds, no pagination or SearchStream, field redaction, Safe and Dangerous policy, refresh, rotation, revocation, disconnect, quota and error mapping, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/google-ads/api/rest/auth",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents the required OAuth access token and developer-token headers, exact adwords scope, and optional manager login-customer-id header without hyphens."
+    },
+    {
+      "url": "https://developers.google.com/google-ads/api/docs/oauth/internals",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents the single adwords OAuth scope, offline web access, Authorization header, and lack of domain-wide delegation support."
+    },
+    {
+      "url": "https://developers.google.com/google-ads/api/rest/common/search",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents v24 Search and SearchStream, Search pagination, query request bodies, and next-page tokens; Relay pins Search and never follows pagination."
+    },
+    {
+      "url": "https://developers.google.com/google-ads/api/docs/concepts/call-structure",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents ten-digit hyphen-free customer IDs, manager login customer semantics, and REST call structure."
+    },
+    {
+      "url": "https://developers.google.com/google-ads/api/docs/query/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents GAQL reporting across resources, segments, and metrics; Relay accepts no caller-supplied query and exposes only two fixed reports."
+    }
+  ]
+}

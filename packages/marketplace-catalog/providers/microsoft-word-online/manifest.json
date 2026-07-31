@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-word-online",
+  "name": "Microsoft Word Online",
+  "category": "knowledge_documents",
+  "description": "Microsoft Word Online edits Word documents in Microsoft 365, while developer access is split between in-client Office Add-ins and generic Microsoft Graph drive-item file operations.",
+  "agentUseSummary": "Word Online cannot yet be connected through Relay because Microsoft does not expose an Excel-like server-side Microsoft Graph object model for semantic Word editing. Word JavaScript APIs run inside a Word add-in, while Graph can only download or replace the underlying file. Relay exposes neither path until product owners choose an in-client add-in or whole-file document workflow.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft365.com/launch/word",
+    "docsUrl": "https://learn.microsoft.com/office/dev/add-ins/word/",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/licensing/terms/productoffering/Microsoft365/all",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "product_boundary_unresolved",
+      "word_office_addin_in_client_runtime_candidate",
+      "word_javascript_api_document_context_candidate",
+      "microsoft_graph_drive_item_download_upload_candidate",
+      "no_server_side_graph_word_object_model",
+      "semantic_editing_versus_whole_file_replacement_decision",
+      "addin_deployment_and_file_oauth_are_distinct_contracts"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "word_addin_candidate",
+      "label": "In-document add-in candidate",
+      "description": "If product selects an Office Add-in, interact with the currently open document through user-visible Word JavaScript APIs and an accepted add-in manifest and runtime."
+    },
+    {
+      "id": "word_file_read_candidate",
+      "label": "Whole-file read candidate",
+      "description": "If product selects a Graph file workflow, download one explicitly selected drive item for separate bounded document processing without claiming Word Online semantic API support."
+    },
+    {
+      "id": "word_file_replace_candidate",
+      "label": "Whole-file replacement candidate",
+      "description": "If separately approved, upload a fully regenerated file as one destructive replacement with eTag, backup, sharing, sensitivity-label, and format-preservation controls."
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "word_online_connect_before_product_decision",
+        "label": "Connect before the product boundary is selected",
+        "description": "Relay has no decision between an in-client Word add-in and a generic Microsoft Graph whole-file workflow, so no valid auth or runtime contract exists."
+      },
+      {
+        "id": "word_online_document_reads",
+        "label": "Read document content",
+        "description": "Text, structure, comments, revisions, headers, footers, controls, metadata, OOXML, files, versions, sharing, and sensitivity data remain unavailable."
+      },
+      {
+        "id": "word_online_semantic_mutations",
+        "label": "Change document content",
+        "description": "Editing text, ranges, styles, sections, comments, tracked changes, controls, fields, links, citations, footnotes, images, or layout is blocked."
+      },
+      {
+        "id": "word_online_file_and_sharing_mutations",
+        "label": "Replace files or change sharing",
+        "description": "Uploading, overwriting, moving, copying, renaming, deleting, converting, sharing, inviting, linking, or changing permissions and versions is blocked."
+      },
+      {
+        "id": "word_online_raw_addin_and_console_bypass",
+        "label": "Bypass client or file controls",
+        "description": "Hidden add-ins, unattended Office client automation, raw OOXML or file exports, arbitrary drive paths, cross-tenant access, macros, tokens, private endpoints, and provider-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "word_online_unavailable",
+      "label": "Product decision required",
+      "description": "No Word Online action is enabled until product owners choose an in-client add-in or whole-file workflow and its complete runtime, identity, file, content, mutation, sharing, revocation, and disconnect contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "word_online_connect_before_product_decision",
+        "word_online_document_reads",
+        "word_online_semantic_mutations",
+        "word_online_file_and_sharing_mutations",
+        "word_online_raw_addin_and_console_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Word Online wrapper is mounted before the add-in-versus-whole-file boundary and user-visible execution model are selected."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Word Online wrapper is mounted before the add-in-versus-whole-file boundary and user-visible execution model are selected."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Microsoft documents semantic Word content access through Office Add-ins and the Word JavaScript API, which run inside an open Word client or Word on the web and depend on document context, add-in deployment, requirement sets, and user-visible UI. Microsoft Graph instead exposes Word files as generic drive items: it can download file bytes with Files.Read or replace a file with Files.ReadWrite, but does not provide a server-side Word document object model comparable to Excel's workbook API. Whole-file replacement can lose concurrent edits, comments, revision state, formatting, labels, macros, signatures, links, versions, or sharing expectations. The current provider title does not specify which materially different product to build.",
+    "nextAction": "Product, security, and UX owners must choose one path. For semantic editing, define a user-installed or centrally deployed Word Office Add-in with visible activation, supported requirement sets, exact document context, and no unattended client automation. For background document processing, rename the capability as a Microsoft 365 file workflow, bind one selected drive item, use Graph Files.Read first, and treat upload as full-file destructive replacement with eTag, backup, version, sensitivity-label, macro, signature, sharing, and concurrent-edit safeguards. Acceptance must cover tenant and file selection, document size and format, OOXML validation, comments and tracked changes, external links, macros, labels, versions, coauthoring, rollback, revocation, disconnect, and cross-item denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/office/dev/add-ins/word/",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents semantic Word content and metadata integration through Office Add-ins running in Word on the web, Windows, Mac, or iPad."
+    },
+    {
+      "url": "https://learn.microsoft.com/office/dev/add-ins/overview/office-add-ins",
+      "checkedAt": "2026-07-17",
+      "supports": "Office Add-ins load web content inside Office clients and use Office JavaScript APIs in a client document context with manifests and deployment."
+    },
+    {
+      "url": "https://learn.microsoft.com/office/dev/add-ins/develop/support-for-task-pane-and-content-add-ins",
+      "checkedAt": "2026-07-17",
+      "supports": "Word add-ins can access the open document, selections, bindings, custom XML, and full document slices only after their client runtime and document context load."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/driveitem-get-content",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph can download a selected drive item's entire primary stream using delegated Files.Read or broader file and site permissions."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/driveitem-put-content",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph can create or replace whole drive-item content with Files.ReadWrite, which is a file-level operation rather than semantic Word editing."
+    }
+  ]
+}

@@ -1,0 +1,157 @@
+import {
+  isMarketplaceAppPublished,
+  PUBLISHED_MARKETPLACE_PROVIDER_SLUGS,
+} from "./marketplace-publication-gate";
+
+describe("Marketplace convergence publication gate", () => {
+  it("publishes completed providers and the active provider only with its completed deployment", () => {
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("slack")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("github")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("kantata-ox")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("accelo")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("avaza")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("microsoft-loop")).toBe(
+      true,
+    );
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("skype")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("xbox")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("zoom")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("discord")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("reddit")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("linkedin")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("x")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("facebook-pages")).toBe(
+      true,
+    );
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("instagram-business")).toBe(
+      true,
+    );
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("threads")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("pinterest")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("tumblr")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("mastodon")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("bluesky")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("nextdoor")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("meetup")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("eventbrite")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("luma")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("hopin")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("webex")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("goto-meeting")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("ringcentral")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("dialpad")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("aircall")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("openphone")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("twilio")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("vonage")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("messagebird")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("fred")).toBe(true);
+    expect(
+      PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("apollo-graphql-studio"),
+    ).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("hunter-io")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("snov-io")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("lusha")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("leadiq")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("seamless-ai")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("rocketreach")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("uplead")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("wiza")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("line")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("twist")).toBe(true);
+    expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has("zoho-mail")).toBe(true);
+    for (const slug of [
+      "gravity-forms",
+      "ninja-forms",
+      "wpforms",
+      "alchemer",
+      "qualtrics",
+      "asknicely",
+      "delighted",
+      "refiner",
+      "hotjar",
+      "usertesting",
+      "maze",
+      "lookback",
+      "user-interviews",
+      "respondent",
+      "dovetail",
+      "sprig",
+      "airtable-forms",
+      "docusign-clm",
+      "adobe-acrobat-sign",
+      "signnow",
+      "signrequest",
+      "signeasy",
+      "onespan-sign",
+      "rightsignature",
+      "getaccept",
+      "qwilr",
+      "proposify",
+      "better-proposals",
+      "concord",
+      "juro",
+      "ironclad",
+      "linksquares",
+      "spotdraft",
+      "contractbook",
+    ]) {
+      expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has(slug)).toBe(true);
+    }
+    for (const slug of ["docsend", "dropbox-docsend", "agiloft"]) {
+      expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has(slug)).toBe(false);
+    }
+    for (const slug of [
+      "proof",
+      "termly",
+      "cookiebot",
+      "onetrust",
+      "salesforce-marketing-cloud",
+      "salesforce-commerce-cloud",
+      "marketo",
+      "pardot",
+      "eloqua",
+      "drip",
+      "mailerlite",
+      "aweber",
+      "getresponse",
+      "moosend",
+      "omnisend",
+      "mailercloud",
+      "benchmark-email",
+      "emma",
+      "flodesk",
+      "homebrew",
+      "calibre",
+      "plex-personal-media-server",
+      "jellyfin",
+      "synology-dsm",
+      "wordpress-woocommerce-self-hosted",
+      "magento-self-hosted",
+      "prestashop-self-hosted",
+      "opencart-self-hosted",
+      "drupal",
+      "joomla",
+      "typo3",
+      "concrete-cms",
+      "craft-cms",
+      "expressionengine",
+      "statamic",
+      "kirby-cms",
+      "directus-self-hosted",
+      "strapi-self-hosted",
+      "supabase-self-hosted",
+    ]) {
+      expect(PUBLISHED_MARKETPLACE_PROVIDER_SLUGS.has(slug)).toBe(true);
+    }
+  });
+
+  it("does not hide workspace-local apps", () => {
+    expect(
+      isMarketplaceAppPublished({
+        slug: "local-example",
+        sourceType: "local_repo",
+      }),
+    ).toBe(true);
+  });
+});

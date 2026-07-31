@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sendbird",
+  "name": "Sendbird",
+  "category": "communication",
+  "description": "Sendbird is a communications platform for embedding chat, messaging, calls, support, moderation, and notifications into customer-owned applications.",
+  "agentUseSummary": "Sendbird cannot currently be connected as a Relay-owned account integration because its Platform API uses customer application master or secondary API tokens rather than delegated OAuth. The master token is immutable and irrevocable, secondary-token lifecycle operations require that master token, and end-user access/session tokens authorize users inside one customer application rather than delegated account administration.",
+  "provider": {
+    "websiteUrl": "https://sendbird.com/",
+    "docsUrl": "https://sendbird.com/docs/chat/platform-api/v3/prepare-to-use-api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://sendbird.com/terms-of-service",
+    "privacyUrl": "https://sendbird.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "delegated_account_oauth_not_available",
+      "customer_application_api_tokens_only",
+      "irrevocable_master_token_excluded",
+      "secondary_token_requires_master_for_revocation",
+      "end_user_tokens_are_not_account_authority"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "sendbird_connect_account",
+        "label": "Connect a Sendbird account",
+        "description": "Sendbird does not publish a distributable delegated account OAuth, consent, callback, refresh, or revocation lifecycle for third-party Relay connections."
+      },
+      {
+        "id": "sendbird_master_token",
+        "label": "Custody a master API token",
+        "description": "A customer application's master token cannot be changed or revoked and must not be requested or stored by Relay."
+      },
+      {
+        "id": "sendbird_secondary_token",
+        "label": "Manage a secondary API token",
+        "description": "Secondary tokens provide broad application API access and can be listed, generated, or revoked only with the excluded master token."
+      },
+      {
+        "id": "sendbird_user_token_relabel",
+        "label": "Relabel a user token as OAuth",
+        "description": "Chat access and session tokens authenticate end users inside a customer's own application and are not delegated authority over the Sendbird account or application."
+      },
+      {
+        "id": "sendbird_data_and_mutations",
+        "label": "Access Sendbird application data",
+        "description": "Channels, users, messages, announcements, moderation, notifications, calls, settings, files, exports, and every application or organization read/write remain unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sendbird_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled without a supported delegated account contract or a separately approved user-owned secondary-token product decision.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sendbird_connect_account",
+        "sendbird_master_token",
+        "sendbird_secondary_token",
+        "sendbird_user_token_relabel",
+        "sendbird_data_and_mutations"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No supported delegated Sendbird account contract is available to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No supported delegated Sendbird account contract is available to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Sendbird documents customer application API tokens rather than delegated account OAuth. The master token is immutable and irrevocable, and only it can manage or revoke broad secondary tokens.",
+    "nextAction": "Do not request Sendbird credentials or show Connect. Reconsider only after Sendbird publishes a distributable delegated account contract, or after a separate product/security decision approves a user-owned secondary-token integration whose master-token setup and revocation remain outside Relay."
+  },
+  "evidence": [
+    {
+      "url": "https://sendbird.com/docs/chat/platform-api/v3/prepare-to-use-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Sendbird documents an Application ID plus master or secondary Api-Token for server-side Platform API requests, and states that the master token cannot be changed or revoked."
+    },
+    {
+      "url": "https://docs.sendbird.com/docs/security/documentation/app/sendbird-api-token-security-guide",
+      "checkedAt": "2026-07-17",
+      "supports": "Sendbird describes master and secondary application tokens, secure server-side storage, and rotation, not delegated account OAuth."
+    },
+    {
+      "url": "https://sendbird.com/docs/chat/platform-api/v3/application/managing-api-tokens/generate-a-secondary-api-token",
+      "checkedAt": "2026-07-17",
+      "supports": "Sendbird requires the master API token to generate a broadly capable secondary API token."
+    },
+    {
+      "url": "https://docs.sendbird.com/docs/chat/platform-api/v3/application/managing-api-tokens/revoke-a-secondary-api-token",
+      "checkedAt": "2026-07-17",
+      "supports": "Sendbird states that only the master token can revoke secondary tokens and that the master itself cannot be revoked."
+    },
+    {
+      "url": "https://sendbird.com/docs/chat/platform-api/v3/user/managing-session-tokens/issue-a-session-token",
+      "checkedAt": "2026-07-17",
+      "supports": "Sendbird session tokens authenticate a user inside a Sendbird application; they are not delegated account authorization for Relay."
+    }
+  ]
+}

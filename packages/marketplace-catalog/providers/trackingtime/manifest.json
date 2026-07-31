@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "trackingtime",
+  "name": "TrackingTime",
+  "category": "work_management",
+  "description": "TrackingTime is time-tracking, project-management, and workforce-productivity software for individuals and teams. Organizations use it to record work, organize customers, projects, tasks, and services, manage attendance and timesheets, understand billable activity and budgets, and report on how time is spent.",
+  "agentUseSummary": "Create a TrackingTime App Password, add it once, then choose which agents can use all 26 official hosted-MCP tools to read or manage the connected account under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://trackingtime.co/",
+    "docsUrl": "https://support.trackingtime.co/en/articles/13738626-trackingtime-mcp-server-for-ai-assistants",
+    "developerConsoleUrl": "https://pro.trackingtime.co/settings/apps",
+    "termsUrl": "https://trackingtime.co/terms-and-conditions",
+    "privacyUrl": "https://trackingtime.co/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_trackingtime_app_password",
+      "official_hosted_mcp"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "TRACKINGTIME_APP_PASSWORD",
+        "label": "TrackingTime App Password",
+        "secret": true,
+        "required": true,
+        "helpText": "In TrackingTime, open Settings, Apps & Integrations, App Passwords and create a dedicated App Password. Relay encrypts it and sends it only to TrackingTime's hosted MCP server."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "trackingtime_read",
+      "label": "Read time and work data",
+      "description": "Use all 14 official hosted-MCP reads for identity, workspaces, time entries, people, projects, tasks, customers, and assignments."
+    },
+    {
+      "id": "trackingtime_manage",
+      "label": "Manage time and work data",
+      "description": "Use all 12 official hosted-MCP actions for projects, tasks, customers, events, timers, and custom fields."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "trackingtime_mcp_read",
+        "label": "Read TrackingTime",
+        "description": "Run one exact selected read through TrackingTime's official hosted MCP server."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "trackingtime_mcp_manage",
+        "label": "Manage TrackingTime",
+        "description": "Run one exact selected TrackingTime mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "trackingtime_safe",
+      "label": "Safe",
+      "description": "All 14 reads run directly; every create, update, timer, and custom-field action requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "trackingtime_mcp_read"
+      ],
+      "approvalRequiredActions": [
+        "trackingtime_mcp_manage"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 26 selected and App-Password-authorized MCP tools run without Relay per-action approval; connection ownership, TrackingTime permissions, exact tool allowlists, live schemas, bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "trackingtime_mcp_read",
+        "trackingtime_mcp_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 26 documented TrackingTime hosted-MCP tools through the encrypted App Password connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 26 documented TrackingTime hosted-MCP tools through the encrypted App Password connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned TrackingTime account and App Password are available in this workspace.",
+    "nextAction": "A TrackingTime user creates a dedicated App Password under Settings, Apps & Integrations, saves it through Relay Console, then verifies identity binding, the live 26-tool schema, reads, Safe approvals, Dangerous mutations, timer behavior, credential replacement, agent assignment, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.trackingtime.co/en/articles/13738626-trackingtime-mcp-server-for-ai-assistants",
+      "checkedAt": "2026-07-16",
+      "supports": "TrackingTime's official MCP guide documents the hosted https://mcp.trackingtime.co/mcp endpoint, customer-created App Passwords, the X-API-Key header, availability on all plans, and the supported tool families."
+    },
+    {
+      "url": "https://mcp.trackingtime.co/mcp",
+      "checkedAt": "2026-07-16",
+      "supports": "A headless JSON-RPC initialize and tools/list inspection identified trackingtime-v4-mcp 2.0.0 and 26 object-schema tools; the ordered tool-name contract hashes to sha256:5be6eb772030e5d1ccbb3cd1fb45a408356e13263f86837a010b3f9a5bb66105."
+    },
+    {
+      "url": "https://trackingtime.co/mcp-time-tracking-for-ai-assistants",
+      "checkedAt": "2026-07-16",
+      "supports": "TrackingTime's official MCP product page describes time tracking, project management, and productivity operations through AI assistants."
+    },
+    {
+      "url": "https://developers.trackingtime.co/",
+      "checkedAt": "2026-07-16",
+      "supports": "TrackingTime's official API reference documents the underlying v4 account, customer, project, task, event, user, custom-field, and attendance resources."
+    }
+  ]
+}

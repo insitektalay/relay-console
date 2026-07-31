@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mem",
+  "name": "Mem",
+  "category": "knowledge_documents",
+  "description": "AI-assisted notes, collections, attachments, recordings, and private knowledge through Mem's customer-authorized v2 API.",
+  "agentUseSummary": "Connect a customer-owned Mem API key, then let agents run bounded note reads or the complete selected v2 API surface under Safe or Dangerously skip permissions policy.",
+  "provider": {
+    "websiteUrl": "https://mem.ai/",
+    "docsUrl": "https://docs.mem.ai/api-reference/overview/introduction",
+    "developerConsoleUrl": "https://mem.ai/",
+    "termsUrl": "https://get.mem.ai/pages/terms-of-service",
+    "privacyUrl": "https://get.mem.ai/pages/privacy"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      { "name": "MEM_API_KEY", "label": "Mem API key", "required": true, "secret": true, "helpText": "Create your own Mem API key. Railway stores it encrypted and attaches it only to fixed-origin provider requests." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "notes_read", "label": "Read notes", "description": "List, search, and read bounded Mem notes.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full Mem API", "description": "Create, update, organize, trash, restore, delete, and use every other documented v2 endpoint authorized by the customer API key.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "mem_list_notes", "label": "List notes", "description": "List a bounded page of notes without full content by default." },
+      { "id": "mem_search_notes", "label": "Search notes", "description": "Search a bounded snapshot of notes." },
+      { "id": "mem_read_note", "label": "Read note", "description": "Read one note by UUID." }
+    ],
+    "approvalRequired": [
+      { "id": "mem_full_api", "label": "Use full Mem API", "description": "Use any documented Mem v2 operation; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "mem_safe", "label": "Safe", "description": "Bounded note reads run directly; all other Mem API operations require approval.", "defaultSelected": true, "allowedActions": ["mem_list_notes", "mem_search_notes", "mem_read_note"], "approvalRequiredActions": ["mem_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected API-key-authorized capability runs without Relay per-action approval; ownership, provider authority, secret isolation, fixed origin, bounds, and audits still apply.", "defaultSelected": false, "allowedActions": ["mem_list_notes", "mem_search_notes", "mem_read_note", "mem_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Mem tools and proxies the API key server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Mem tools and proxies the API key server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "not_required", "blocker": null, "nextAction": "The customer creates and enters a Mem API key, then selects the capabilities and Safe or Dangerous policy for each agent install." },
+  "evidence": [
+    { "url": "https://docs.mem.ai/api-reference/overview/authentication", "checkedAt": "2026-07-13", "supports": "Mem's native API uses customer-created Bearer API keys that must be kept out of browsers and securely loaded by a server." },
+    { "url": "https://docs.mem.ai/api-reference/notes/list-notes", "checkedAt": "2026-07-13", "supports": "The v2 API supports cursor-bounded note listing with content disabled by default and collection or content-type filters." },
+    { "url": "https://docs.mem.ai/api-reference/notes/create-note", "checkedAt": "2026-07-13", "supports": "The v2 API creates notes with full Markdown bodies up to 200000 characters and optional IDs collections and timestamps." },
+    { "url": "https://docs.mem.ai/api-reference/overview/changelog", "checkedAt": "2026-07-13", "supports": "Current v2 writes use create-only caller IDs and exact current versions for conflict-safe note updates; rate and complexity headers are available." },
+    { "url": "https://docs.mem.ai/mcp/supported-tools", "checkedAt": "2026-07-13", "supports": "Mem documents the product surface across notes collections attachments and audio recordings; Relay exposes it through fixed-origin REST wrappers rather than requiring provider-hosted MCP OAuth." }
+  ]
+}

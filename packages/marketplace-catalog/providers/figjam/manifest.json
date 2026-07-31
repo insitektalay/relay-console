@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "figjam",
+  "name": "FigJam",
+  "category": "content_creative",
+  "description": "FigJam is Figma's collaborative online whiteboard for brainstorming, diagrams, workshops, planning, and team exercises. Teams use boards filled with stickies, shapes, connectors, comments, stamps, and other visual material to develop ideas and make decisions together.",
+  "agentUseSummary": "Connect a Figma account once, then let agents read authorized FigJam boards, render selected content, work with comments and reactions, inspect versions, or manage board webhooks under Safe or Dangerous policy. Figma's remote REST API does not create or edit canvas objects; those operations require a plugin running inside the FigJam editor.",
+  "provider": {
+    "websiteUrl": "https://www.figma.com/figjam/",
+    "docsUrl": "https://developers.figma.com/docs/rest-api/",
+    "developerConsoleUrl": "https://www.figma.com/developers/apps",
+    "termsUrl": "https://www.figma.com/legal/tos/",
+    "privacyUrl": "https://www.figma.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "current_user:read",
+      "file_content:read",
+      "file_metadata:read",
+      "file_comments:read",
+      "file_comments:write",
+      "file_versions:read",
+      "webhooks:read",
+      "webhooks:write"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.figma.com/oauth",
+    "tokenUrl": "https://api.figma.com/v1/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/figjam/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "board_read",
+      "label": "Read FigJam boards",
+      "description": "Read an authorized board's metadata, node tree, selected nodes, image fills, rendered images, comments, reactions, and version history.",
+      "defaultSelected": true
+    },
+    {
+      "id": "comment_management",
+      "label": "Manage comments and reactions",
+      "description": "Post, reply to, delete, and react to comments on authorized FigJam boards.",
+      "defaultSelected": true
+    },
+    {
+      "id": "webhook_management",
+      "label": "Manage board webhooks",
+      "description": "Create, inspect, update, and delete Figma webhooks for explicitly selected FigJam files.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "figjam_api_read",
+        "label": "Read FigJam boards",
+        "description": "Use any supported read operation for an authorized FigJam file, its comments, versions, renders, or webhooks."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "figjam_api_write",
+        "label": "Change FigJam comments or webhooks",
+        "description": "Post or delete comments and reactions, or create, update, or delete board webhooks; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "figjam_canvas_write",
+        "label": "Edit the FigJam canvas remotely",
+        "description": "Figma exposes canvas creation and editing only to plugins running inside the FigJam editor, not to external OAuth REST clients."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "figjam_safe",
+      "label": "Safe",
+      "description": "Board, comment, version, render, and webhook reads run directly; comment, reaction, and webhook mutations require approval. Remote canvas editing remains unavailable because Figma does not expose it through OAuth REST.",
+      "defaultSelected": true,
+      "allowedActions": ["figjam_api_read"],
+      "approvalRequiredActions": ["figjam_api_write"],
+      "blockedActions": ["figjam_canvas_write"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized FigJam REST operation runs without Relay per-action approval; fixed Figma origins, exact route allowlists, request bounds, audits, redaction, provider permissions, rate limits, and the absence of a remote canvas-write API still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["figjam_api_read", "figjam_api_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["figjam_canvas_write"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts exact FigJam REST wrappers and attaches the user's Figma OAuth token without exposing it to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts exact FigJam REST wrappers and attaches the user's Figma OAuth token without exposing it to the agent."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Figma OAuth app has not been confirmed as a published public app with the FigJam callback and eight required granular scopes, so production client credentials and end-user authorization are not yet verified.",
+    "nextAction": "A Figma team or organization admin creates or updates Relay Console in My Apps, adds the exact production FigJam callback and eight granular scopes, submits the public app for review, stores the Figma client ID and secret in Railway, then runs OAuth, refresh, board-read, Safe mutation denial, approved or Dangerous mutation, local disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.figma.com/docs/rest-api/authentication/",
+      "checkedAt": "2026-07-14",
+      "supports": "Figma recommends OAuth 2 when a platform acts on behalf of individual users and documents that OAuth access remains bounded by the consenting user's Figma permissions."
+    },
+    {
+      "url": "https://developers.figma.com/docs/rest-api/oauth-apps/",
+      "checkedAt": "2026-07-16",
+      "supports": "Figma documents public OAuth app review, multiple redirect URLs, PKCE S256, HTTP Basic token exchange, reusable refresh tokens, and the current token endpoint used for both exchange and refresh."
+    },
+    {
+      "url": "https://developers.figma.com/docs/rest-api/scopes/",
+      "checkedAt": "2026-07-14",
+      "supports": "Figma documents granular user, file content, metadata, comments, versions, and webhook read/write scopes and states that scopes never exceed provider-side file permissions."
+    },
+    {
+      "url": "https://developers.figma.com/docs/rest-api/file-endpoints/",
+      "checkedAt": "2026-07-14",
+      "supports": "Figma's file endpoints accept any Figma file URL type, return editorType and node trees, and support bounded node reads, renders, image fills, and metadata for authorized files including FigJam boards."
+    },
+    {
+      "url": "https://developers.figma.com/docs/rest-api/comments-endpoints/",
+      "checkedAt": "2026-07-14",
+      "supports": "Figma documents external REST operations to read, post, reply to, delete, react to, and remove reactions from comments on authorized files."
+    },
+    {
+      "url": "https://developers.figma.com/docs/plugins/working-in-figjam/",
+      "checkedAt": "2026-07-14",
+      "supports": "Figma documents FigJam canvas creation and modification through the in-editor Plugin API, including stickies, shapes, connectors, code blocks, media, tables, and timer behavior; these are not external REST operations."
+    }
+  ]
+}

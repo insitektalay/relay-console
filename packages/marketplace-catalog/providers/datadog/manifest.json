@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "datadog",
+  "name": "Datadog",
+  "category": "developer",
+  "description": "Datadog is an observability and security platform that brings infrastructure, application, log, user-experience, incident, and service-management signals into one service. Engineering and operations teams use it to monitor systems, investigate failures, coordinate incident response, and understand service health and ownership.",
+  "agentUseSummary": "Connect one Datadog organization through Relay-owned OAuth, then let agents use three bounded read-only tools for monitor, incident, and service-definition summaries. Relay V1 excludes raw telemetry, logs, traces, messages, dashboards, writes, ingestion, key management, administration, arbitrary requests, pagination, and bulk export.",
+  "provider": {
+    "websiteUrl": "https://www.datadoghq.com/",
+    "docsUrl": "https://docs.datadoghq.com/api/latest/",
+    "developerConsoleUrl": "https://app.datadoghq.com/integrations/",
+    "termsUrl": "https://www.datadoghq.com/legal/terms/",
+    "privacyUrl": "https://www.datadoghq.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["monitors_read", "incident_read", "apm_service_catalog_read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.datadoghq.com/oauth2/v1/authorize",
+    "tokenUrl": "https://api.datadoghq.com/oauth2/v1/token"
+  },
+  "connection": {
+    "types": ["relay_owned_partner_oauth", "exact_organization_binding", "exact_datadog_site_allowlist", "expiring_access_token", "rotating_refresh_token", "provider_revocation"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/datadog/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "monitor_read", "label": "Read monitors", "description": "Search bounded monitor status summaries.", "defaultSelected": true },
+    { "id": "incident_read", "label": "Read incidents", "description": "Search bounded incident lifecycle summaries.", "defaultSelected": true },
+    { "id": "service_read", "label": "Read services", "description": "List bounded service definition and ownership summaries.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "datadog_search_monitors", "label": "Search monitors", "description": "Search at most twenty-five bounded monitor summaries." },
+      { "id": "datadog_search_incidents", "label": "Search incidents", "description": "Search at most twenty-five bounded incident summaries." },
+      { "id": "datadog_list_services", "label": "List service definitions", "description": "List at most twenty-five bounded service ownership summaries." }
+    ],
+    "blocked": [
+      { "id": "datadog_observability_write", "label": "Change observability state", "description": "Monitor, incident, service, dashboard, SLO, workflow, and configuration writes are outside V1." },
+      { "id": "datadog_private_telemetry", "label": "Read private telemetry", "description": "Logs, traces, spans, events, metrics, RUM, sessions, notebooks, and raw telemetry are outside V1." },
+      { "id": "datadog_ingestion", "label": "Ingest telemetry", "description": "Metrics, logs, traces, events, checks, and other ingestion are outside V1." },
+      { "id": "datadog_key_admin", "label": "Manage keys or administration", "description": "API/application keys, users, roles, organizations, billing, security, and administration are outside V1." },
+      { "id": "datadog_raw_api", "label": "Use raw Datadog API", "description": "Arbitrary hosts, paths, queries, cursors, pagination, bulk exports, and raw responses are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "datadog_safe", "label": "Safe", "description": "All three bounded observability reads require matching approval.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["datadog_search_monitors", "datadog_search_incidents", "datadog_list_services"], "blockedActions": ["datadog_observability_write", "datadog_private_telemetry", "datadog_ingestion", "datadog_key_admin", "datadog_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while connection ownership, exact scopes, fixed requests, limits, redaction, audit, provider authority, and rate limits remain enforced.", "defaultSelected": false, "allowedActions": ["datadog_search_monitors", "datadog_search_incidents", "datadog_list_services"], "approvalRequiredActions": [], "blockedActions": ["datadog_observability_write", "datadog_private_telemetry", "datadog_ingestion", "datadog_key_admin", "datadog_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three bounded Datadog read wrappers and attaches encrypted OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three bounded Datadog read wrappers and attaches encrypted OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay needs a Datadog Partner Sandbox, a confidential OAuth client and integration tile, exact Railway callback registration, scope review and publication, Railway staging credentials, and an authorized representative organization. Those provider-console actions are outside this worker task.",
+    "nextAction": "In the provider-console task, create the Partner Sandbox client and tile with the canonical callback, request the three exact scopes, complete provider review, configure Railway staging credentials, then verify organization and site binding, token refresh-pair rotation, revocation, all three reads, rate and permission errors, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://docs.datadoghq.com/developers/authorization/oauth2_in_datadog/", "checkedAt": "2026-07-17", "supports": "Datadog OAuth integrations use authorization code, scoped delegated authority, provider-hosted consent, token refresh, and revocation." },
+    { "url": "https://docs.datadoghq.com/api/latest/monitors/#monitors-search", "checkedAt": "2026-07-17", "supports": "Monitor search requires monitors_read and provides bounded pagination with monitor status, type, tags, scopes, and last-triggered context." },
+    { "url": "https://docs.datadoghq.com/api/latest/incidents/#search-for-incidents", "checkedAt": "2026-07-17", "supports": "Incident search requires incident_read and supports a bounded page size and incident lifecycle summaries." },
+    { "url": "https://docs.datadoghq.com/api/latest/service-definition/", "checkedAt": "2026-07-17", "supports": "Service Definition APIs expose bounded service schema, lifecycle, ownership, contact, link, and tag metadata across Datadog's documented API sites." }
+  ]
+}

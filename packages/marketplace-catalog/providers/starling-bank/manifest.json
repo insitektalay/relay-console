@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "starling-bank",
+  "name": "Starling Bank",
+  "category": "commerce_payments",
+  "description": "Starling Bank is a digital bank offering app-managed personal, joint, business, and multi-currency accounts. Personal customers use its current account, debit cards, Spaces, spending insights, instant notifications, bills tools, and payments to organize everyday money.",
+  "agentUseSummary": "Starling Bank is visible as a Marketplace-review preview only. Relay will not collect a personal access token, login, app approval, banking credential, certificate, or signing key, and no agent action is callable until Starling approves Relay for live customer OAuth with the exact read-only scopes and security contract.",
+  "provider": {
+    "websiteUrl": "https://www.starlingbank.com/",
+    "docsUrl": "https://developer.starlingbank.com/docs",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.starlingbank.com/legal/terms/",
+    "privacyUrl": "https://www.starlingbank.com/legal/privacy-notice/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "starling_marketplace_provider_approval_required",
+      "oauth_mtls_and_message_signing_required",
+      "personal_account_read_scope_approval_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "approved_personal_banking_read",
+      "label": "Read approved personal banking data",
+      "description": "After Starling approval, expose only bounded non-mutating summaries for the connected account holder's authorized personal accounts, balances, recent feed lifecycle, and Spaces under Relay's exact approved scopes.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "starling_connect_before_marketplace_approval",
+        "label": "Connect before Marketplace approval",
+        "description": "Live Starling accounts other than the developer's own require a regulated AISP or PISP, or an approved Starling Marketplace provider. Relay has no approved application, live customer scopes, OAuth client, mutual-TLS certificate, message-signing key, redirect registration, or production authorization contract."
+      },
+      {
+        "id": "starling_collect_personal_access_token",
+        "label": "Collect a personal access token",
+        "description": "Starling says a personal access token is for its owner's own account, must never be given to a third party, and is effectively equivalent to banking login authority. Relay will not ask customers for one or for login, app approval, browser session, bearer token, refresh token, PIN, card detail, certificate, signing key, identity document, or banking credential."
+      },
+      {
+        "id": "starling_api_actions_before_approval",
+        "label": "Run Starling API actions",
+        "description": "No account, balance, transaction-feed, Space, payee, payment, direct-debit, standing-order, card, identity, webhook, savings, borrowing, or other Starling API action can run while Marketplace and scope review is pending."
+      },
+      {
+        "id": "starling_money_movement_blocked",
+        "label": "Money movement unavailable",
+        "description": "Payments, transfers, payee changes, Space or savings-goal creation and movement, feed annotations, webhooks, cards, direct-debit or standing-order mutations, and every other financial or account mutation remain outside Relay's planned read-only V1 even after approval."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "starling_marketplace_review",
+      "label": "Marketplace review pending",
+      "description": "Agent actions remain unavailable until Starling approves Relay's live customer OAuth application and engineering implements and validates the exact bounded read-only scope contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "starling_connect_before_marketplace_approval",
+        "starling_collect_personal_access_token",
+        "starling_api_actions_before_approval",
+        "starling_money_movement_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No OpenClaw tools are callable until Starling approves Relay and Relay implements the contracted read-only Railway broker."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Hermes tools are callable until Starling approves Relay and Relay implements the contracted read-only Railway broker."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Starling permits personal access tokens only for a developer's own account and explicitly warns that customers must not share them. Live accounts belonging to other customers require Relay to be a regulated TPP or an approved Starling Marketplace provider. Starling then grants application-specific scopes according to regulatory approval and due diligence, and production OAuth uses a server-held client secret, OBIE or eIDAS mutual-TLS certificate, refresh lifecycle, and additional message signing for protected endpoints. Relay has no approved application, scopes, certificate, signing key, sandbox acceptance, or live authorization contract.",
+    "nextAction": "An authorized Relay business, legal, compliance, and security owner must apply to Starling as an approved Marketplace provider for a non-mutating personal-account integration, or document the regulated TPP status used instead. The owner must obtain written approval for exact account-list, balance-read, bounded transaction-feed-read, and Space-read scopes; confirm supported account holders and jurisdictions; register the fixed Relay callback; provision the server-held OAuth client, OBIE or eIDAS mutual-TLS certificate, any required message-signing keys, sandbox users, and production access; and document token rotation, consent, revocation, disconnect, data minimization, retention, rate limits, webhooks, and incident duties. Engineering can then implement the fixed-origin Railway OAuth broker and smallest bounded read-only V1. Payments and every mutation remain excluded."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.starlingbank.com/docs",
+      "checkedAt": "2026-07-18",
+      "supports": "Starling documents personal tokens only for the owner's own account, OAuth for approved third parties, application-specific scopes, short-lived access and longer-lived refresh tokens, mutual TLS for production token exchange, and live-account access only for regulated TPPs or approved Marketplace providers."
+    },
+    {
+      "url": "https://developer.starlingbank.com/faq",
+      "checkedAt": "2026-07-18",
+      "supports": "Starling states that a customer sharing a personal access token is effectively giving a third party the username and password for the bank account, so Relay must not use customer-supplied personal tokens."
+    },
+    {
+      "url": "https://developer.starlingbank.com/partner",
+      "checkedAt": "2026-07-18",
+      "supports": "Starling requires prospective Marketplace integrations to satisfy provider requirements and due diligence before customer distribution."
+    },
+    {
+      "url": "https://www.starlingbank.com/current-account/",
+      "checkedAt": "2026-07-18",
+      "supports": "Starling describes its personal current account as an app-managed bank account with debit cards, Spaces, spending insights, notifications, bills tools, and payments."
+    }
+  ]
+}

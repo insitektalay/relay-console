@@ -1,0 +1,209 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "aweber",
+  "name": "AWeber",
+  "category": "marketing_analytics",
+  "description": "AWeber is an email marketing platform for subscribers, lists, broadcasts, followup campaigns, landing pages, forms, and audience automation. Organizations use it to manage email audiences and campaigns.",
+  "agentUseSummary": "Connect one AWeber account through Relay's confidential OAuth app with PKCE, refresh tokens, and only account.read, list.read, subscriber.read, and email.read. Relay binds one account, list, numeric subscriber, and broadcast or followup campaign, then exposes only the subscriber ID and subscription time plus bounded campaign metadata; personal data, content, statistics, broader access, automation, exports, and mutations are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.aweber.com/",
+    "docsUrl": "https://api.aweber.com/",
+    "developerConsoleUrl": "https://labs.aweber.com/",
+    "termsUrl": "https://www.aweber.com/terms.htm",
+    "privacyUrl": "https://www.aweber.com/privacy.htm"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["account.read", "list.read", "subscriber.read", "email.read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.aweber.com/oauth2/authorize",
+    "tokenUrl": "https://auth.aweber.com/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "pkce",
+      "refresh_token",
+      "bound_account",
+      "bound_list",
+      "selected_numeric_subscriber_id",
+      "selected_broadcast_or_followup_campaign"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "AWEBER_CLIENT_ID",
+        "label": "Relay AWeber OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held Relay confidential-app client ID configured with the exact callback."
+      },
+      {
+        "name": "AWEBER_CLIENT_SECRET",
+        "label": "Relay AWeber OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-held AWeber client secret; never sent to clients or agents."
+      },
+      {
+        "name": "AWEBER_ACCOUNT_ID",
+        "label": "Selected AWeber account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The numeric account used in both fixed API paths."
+      },
+      {
+        "name": "AWEBER_LIST_ID",
+        "label": "Selected AWeber list ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The numeric list used in both fixed API paths."
+      },
+      {
+        "name": "AWEBER_SUBSCRIBER_ID",
+        "label": "Selected numeric subscriber ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The numeric subscriber ID whose ID and subscription time Relay may read."
+      },
+      {
+        "name": "AWEBER_CAMPAIGN_TYPE",
+        "label": "Selected campaign type",
+        "required": true,
+        "secret": false,
+        "helpText": "The documented b broadcast or f followup discriminator for the selected campaign."
+      },
+      {
+        "name": "AWEBER_CAMPAIGN_ID",
+        "label": "Selected campaign ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The numeric broadcast or followup campaign whose bounded summary Relay may read."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/aweber/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "aweber_subscriber_summary_get",
+      "label": "Read selected subscriber summary",
+      "description": "Read only the ID and subscription time for one selected subscriber without identity, contact, consent, status, activity, IP, location, tag, or custom fields.",
+      "defaultSelected": true
+    },
+    {
+      "id": "aweber_campaign_summary_get",
+      "label": "Read selected campaign summary",
+      "description": "Read bounded organizational metadata for one selected broadcast or followup campaign.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "aweber_subscriber_summary_get",
+        "label": "Read selected subscriber summary",
+        "description": "Read the selected subscriber's ID and subscription time while discarding all personal, preference, status, and engagement fields."
+      },
+      {
+        "id": "aweber_campaign_summary_get",
+        "label": "Read selected campaign summary",
+        "description": "Read the selected broadcast or followup campaign's ID, type, status, and timestamps while discarding subject, content, sender, recipient, link, and statistics fields."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "aweber_private_data",
+        "label": "Expose private marketing data",
+        "description": "Subscriber identity, contact, consent, status, activity, IP, location, tags, and custom fields plus campaign subject, content, sender, recipients, links, and statistics are excluded."
+      },
+      {
+        "id": "aweber_mutation",
+        "label": "Mutate AWeber state",
+        "description": "Subscriber changes, tags, custom fields, lists, broadcasts, followups, sends, webhooks, integrations, and every other mutation are blocked."
+      },
+      {
+        "id": "aweber_broad_access",
+        "label": "Use broad AWeber access",
+        "description": "Other accounts, lists, subscribers, campaigns, messages, collections, searches, pages, arbitrary paths, redirects, downloads, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "aweber_read_only",
+      "label": "Read Only",
+      "description": "Read one selected subscriber and campaign through an account-and-list-bound Relay OAuth grant; private data, broader access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "aweber_subscriber_summary_get",
+        "aweber_campaign_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "aweber_private_data",
+        "aweber_mutation",
+        "aweber_broad_access"
+      ]
+    },
+    {
+      "id": "aweber_no_access",
+      "label": "No Access",
+      "description": "Expose no AWeber actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "aweber_subscriber_summary_get",
+        "aweber_campaign_summary_get",
+        "aweber_private_data",
+        "aweber_mutation",
+        "aweber_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the renewable Relay-owned AWeber OAuth grant server-side and mounts exactly two account-and-list-bound projected reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the renewable Relay-owned AWeber OAuth grant server-side and mounts exactly two account-and-list-bound projected reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "An AWeber confidential OAuth app, exact Railway callback, provider-issued client credentials, authorized staging account and list, numeric subscriber ID, broadcast or followup campaign type and ID, and live grant are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "The provider-console lane must register Relay's confidential AWeber OAuth app with the exact Railway callback and four required read scopes, capture its client credentials in Railway, authorize a staging account, bind the numeric account, list, subscriber, campaign type, and campaign IDs, then validate account/list isolation, both redacted reads, campaign-type denial, authorization and rate errors, refresh rotation, revocation, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://api.aweber.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "AWeber documents OAuth 2 authorization-code grants at auth.aweber.com, confidential clients, PKCE, expiring access tokens, refresh tokens, and account.read, list.read, subscriber.read, and email.read scopes."
+    },
+    {
+      "url": "https://api.aweber.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "AWeber documents GET /1.0/accounts/{accountId}/lists/{listId}/subscribers/{subscriberId} and the personal, activity, IP, location, tag, and custom fields excluded by Relay."
+    },
+    {
+      "url": "https://api.aweber.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "AWeber documents GET /1.0/accounts/{accountId}/lists/{listId}/campaigns/{campaignType}{campaignId}, where b selects broadcasts and f selects followups; broader Campaigns automation is not API-supported."
+    },
+    {
+      "url": "https://api.aweber.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "AWeber documents safe 400, 401, 403, 404, 410, 500, and 503 response semantics used by Relay's bounded error mapping."
+    }
+  ]
+}

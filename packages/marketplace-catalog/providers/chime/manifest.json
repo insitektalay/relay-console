@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "chime",
+  "name": "Chime",
+  "category": "commerce_payments",
+  "description": "Chime is a financial technology company offering app-based checking, savings, debit, secured-credit, early-pay, overdraft, and money-management products through partner banks. Members use its mobile and web services to review balances and transactions, manage cards, save automatically, receive deposits, and send or transfer money.",
+  "agentUseSummary": "Chime is visible as an account-data partner-review preview only. Relay will not collect a Chime email, password, one-time code, browser session, routing or account number, card detail, PIN, or developer credential, and no agent action is callable until Chime and the applicable partner bank or authorized data provider approve an exact customer-consented read contract.",
+  "provider": {
+    "websiteUrl": "https://www.chime.com/",
+    "docsUrl": "https://help.chime.com/can-i-use-my-chime-account-with-third-party-apps-1d922bbb",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.chime.com/policies/",
+    "privacyUrl": "https://www.chime.com/policies/privacy-policy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "chime_account_data_contract_required",
+      "chime_and_partner_bank_approval_required",
+      "member_consent_and_read_scope_approval_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "approved_member_account_read",
+      "label": "Read approved Chime account data",
+      "description": "After Chime and the applicable partner bank or authorized data provider approve Relay, expose only bounded non-mutating summaries for the connected member's authorized account types, balances, and recent transaction lifecycle within explicitly eligible products.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "chime_connect_before_account_data_approval",
+        "label": "Connect before account-data approval",
+        "description": "Chime publicly documents third-party money apps that link through debit-card or routing/account details and separately uses Plaid to pull external accounts into Chime, but no public member account-data API contract authorizes Relay. Relay has no approved Chime product, partner-bank or aggregator agreement, consent model, scopes, credentials, sandbox acceptance, or production access."
+      },
+      {
+        "id": "chime_collect_member_credentials",
+        "label": "Collect member credentials",
+        "description": "Relay will not ask members for a Chime email, password, one-time code, browser session, bearer token, routing or account number, card number, expiration date, security code, PIN, Social Security number, identity document, developer credential, or other secret as a substitute for provider-approved consent."
+      },
+      {
+        "id": "chime_api_actions_before_approval",
+        "label": "Run Chime API actions",
+        "description": "No member, account, balance, transaction, card, statement, direct-deposit, credit, overdraft, Pay Anyone, payment, transfer, identity, consent, webhook, or other Chime API action can run while account-data partner review is pending."
+      },
+      {
+        "id": "chime_money_movement_blocked",
+        "label": "Money movement unavailable",
+        "description": "Payments, transfers, Pay Anyone, direct-deposit changes, card controls, savings movements, overdraft, credit, account maintenance, disputes, and every other financial or account mutation remain outside Relay's planned read-only V1 even after approval."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "chime_account_data_partner_review",
+      "label": "Account-data partner review pending",
+      "description": "Agent actions remain unavailable until Chime and the applicable partner bank or authorized data provider approve Relay's exact member-consent, read-scope, security, and production contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "chime_connect_before_account_data_approval",
+        "chime_collect_member_credentials",
+        "chime_api_actions_before_approval",
+        "chime_money_movement_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No OpenClaw tools are callable until Chime and its required partner approve Relay and Relay implements the approved read-only Railway broker."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Hermes tools are callable until Chime and its required partner approve Relay and Relay implements the approved read-only Railway broker."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Chime identifies itself as a financial technology company rather than a bank and says banking services are provided by The Bancorp Bank, N.A. or Stride Bank, N.A. Its public third-party-app instructions describe linking for money transfers with debit-card details or routing and account numbers, while its Plaid documentation describes Chime pulling external bank data into Chime. These are not a public read API or permission for Relay to collect member credentials or bank/card details. Relay has no approved Chime product, applicable partner-bank or authorized aggregator agreement, customer-consent route, scopes, credentials, sandbox acceptance, schema and rate-limit contract, privacy allocation, or production authority, so no connection can be offered safely.",
+    "nextAction": "An authorized Relay business, legal, compliance, privacy, and security owner must obtain written Chime approval and determine which partner bank or authorized data provider must contractually approve a Chime member account-data connection. The owner must document eligible products and sponsoring bank, exact read permissions and minimized response fields, provider-hosted consent copy and duration, authorization and token contracts, credentials and security controls, sandbox and production onboarding, schemas and rate limits, data retention, revocation and disconnect, audits, incident duties, and production approval. Engineering can then implement a fixed-origin Railway consent broker and the smallest bounded read-only account-type, balance, and recent transaction-lifecycle V1. Money movement and every mutation remain excluded."
+  },
+  "evidence": [
+    {
+      "url": "https://www.chime.com/online-banking/",
+      "checkedAt": "2026-07-18",
+      "supports": "Chime describes its checking and digital-money products and states that Chime is a financial technology company, not a bank, with banking services provided by The Bancorp Bank or Stride Bank."
+    },
+    {
+      "url": "https://help.chime.com/can-i-use-my-chime-account-with-third-party-apps-1d922bbb",
+      "checkedAt": "2026-07-18",
+      "supports": "Chime's public third-party-app guidance uses member debit-card details or routing and account numbers for transfers, not a public customer-authorized account-data API contract."
+    },
+    {
+      "url": "https://help.chime.com/how-do-i-transfer-money-from-another-bank-to-my-chime-ch-95368af1",
+      "checkedAt": "2026-07-18",
+      "supports": "Chime documents Plaid as a third-party service used inside Chime to link external bank accounts, which does not establish outbound Chime member-data access for Relay."
+    },
+    {
+      "url": "https://help.chime.com/account-security-00b00e5a/privacy-online-safety-05961699/how-can-i-protect-my-account-from-fraud-or-unauthorized-096ce3f0",
+      "checkedAt": "2026-07-18",
+      "supports": "Chime tells members not to share login information or verification codes, so Relay must not substitute member credentials for an approved integration."
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-365-ediscovery",
+  "name": "Microsoft 365 eDiscovery",
+  "category": "crm_support",
+  "description": "Microsoft 365 eDiscovery, now delivered as Microsoft Purview eDiscovery, helps authorized legal and compliance teams identify, preserve, collect, review, analyze, and export electronically stored information across Microsoft 365 services for investigations and legal matters. Microsoft Graph exposes role-controlled eDiscovery case resources for eligible work or school tenants.",
+  "agentUseSummary": "Connect a licensed work or school account through Relay-owned Microsoft OAuth after tenant admin consent and Purview role assignment; agents can perform four approval-gated, bounded metadata reads for visible cases, searches, and review sets. Relay excludes descriptions, external IDs, identities, members, custodians, data sources, search queries and results, documents, tags, holds, exports, writes, raw Graph, and pagination.",
+  "provider": {
+    "websiteUrl": "https://learn.microsoft.com/en-us/purview/edisc-settings-experience",
+    "docsUrl": "https://learn.microsoft.com/en-us/graph/api/resources/security-ediscoverycase?view=graph-rest-1.0",
+    "developerConsoleUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "profile", "offline_access", "https://graph.microsoft.com/eDiscovery.Read.All"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "delegated_work_school_account", "purview_role_enforced"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-365-ediscovery/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "case_metadata_read", "label": "Read eDiscovery case metadata", "description": "List and inspect bounded metadata for cases visible to the signed-in Purview role.", "defaultSelected": true },
+    { "id": "case_work_metadata_read", "label": "Read search and review-set metadata", "description": "List redacted search and review-set metadata in one explicit case.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "microsoft_365_ediscovery_cases_list", "label": "List eDiscovery cases", "description": "Read up to twenty-five cases visible to the signed-in Purview role." },
+      { "id": "microsoft_365_ediscovery_case_get", "label": "Get eDiscovery case", "description": "Read bounded metadata for one explicit case." },
+      { "id": "microsoft_365_ediscovery_searches_list", "label": "List case searches", "description": "Read up to twenty-five redacted search records in one explicit case." },
+      { "id": "microsoft_365_ediscovery_review_sets_list", "label": "List case review sets", "description": "Read up to twenty-five redacted review-set records in one explicit case." }
+    ],
+    "blocked": [
+      { "id": "microsoft_365_ediscovery_case_content_identity", "label": "Access case content or identities", "description": "Descriptions, external IDs, creators, modifiers, case members, custodians, data-source identities, mailboxes, sites, groups, and user details remain blocked." },
+      { "id": "microsoft_365_ediscovery_search_query_or_content", "label": "Access search queries or discovered content", "description": "KQL queries, source scopes, statistics, results, messages, files, conversations, and discovered content remain blocked." },
+      { "id": "microsoft_365_ediscovery_review_document_or_export", "label": "Access review documents or exports", "description": "Review-set documents, queries, tags, annotations, analytics, productions, downloads, and exports remain blocked." },
+      { "id": "microsoft_365_ediscovery_hold_write_or_admin", "label": "Use holds, writes, or administration", "description": "Legal holds, case/search/review-set mutations, estimates, collection, export creation, purge, role changes, application permissions, and administration remain blocked." },
+      { "id": "microsoft_365_ediscovery_raw_graph_or_bulk", "label": "Use raw Graph or bulk access", "description": "Arbitrary Graph resources, beta APIs, caller-selected paths or queries, pagination, delta, polling, retries, batch, SDK, CLI, and MCP passthrough remain blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "microsoft_365_ediscovery_safe", "label": "Safe", "description": "Every legal-case metadata read requires approval; content, identities, queries, documents, holds, exports, writes, raw Graph, and bulk remain blocked.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["microsoft_365_ediscovery_cases_list", "microsoft_365_ediscovery_case_get", "microsoft_365_ediscovery_searches_list", "microsoft_365_ediscovery_review_sets_list"], "blockedActions": ["microsoft_365_ediscovery_case_content_identity", "microsoft_365_ediscovery_search_query_or_content", "microsoft_365_ediscovery_review_document_or_export", "microsoft_365_ediscovery_hold_write_or_admin", "microsoft_365_ediscovery_raw_graph_or_bulk"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The same four bounded metadata reads run directly; delegated user and Purview-role authority, scope, redaction, caps, audits, provider limits, and no-write invariants remain mandatory.", "defaultSelected": false, "allowedActions": ["microsoft_365_ediscovery_cases_list", "microsoft_365_ediscovery_case_get", "microsoft_365_ediscovery_searches_list", "microsoft_365_ediscovery_review_sets_list"], "approvalRequiredActions": [], "blockedActions": ["microsoft_365_ediscovery_case_content_identity", "microsoft_365_ediscovery_search_query_or_content", "microsoft_365_ediscovery_review_document_or_export", "microsoft_365_ediscovery_hold_write_or_admin", "microsoft_365_ediscovery_raw_graph_or_bulk"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "native_tools", "description": "OpenClaw receives four fixed approval-controlled Microsoft Graph eDiscovery metadata wrappers." },
+    { "format": "hermes", "installSupport": "native_tools", "description": "Hermes receives the same four fixed approval-controlled metadata wrappers." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's multi-tenant Entra application has not completed tenant admin consent for delegated eDiscovery.Read.All and live acceptance with a licensed Microsoft 365 tenant whose user has an eligible Microsoft Purview eDiscovery role.",
+    "nextAction": "A tenant administrator consents delegated eDiscovery.Read.All for Relay's verified Entra application, assigns the connecting work user the least-privileged eligible Purview role and required license, then completes OAuth, refresh, bounded metadata reads, Safe approval denial/allow, Dangerous reads, disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    { "url": "https://learn.microsoft.com/en-us/purview/edisc-settings-experience", "checkedAt": "2026-07-18", "supports": "Microsoft documents eDiscovery as identifying, preserving, reviewing, and delivering electronically stored information across Exchange, Teams, Microsoft 365 Groups, OneDrive, SharePoint, and Viva Engage, with features depending on tenant licensing." },
+    { "url": "https://learn.microsoft.com/en-us/graph/api/security-casesroot-list-ediscoverycases?view=graph-rest-1.0", "checkedAt": "2026-07-18", "supports": "Microsoft Graph v1.0 documents delegated work/school eDiscovery case listing with least-privileged eDiscovery.Read.All; personal accounts are unsupported and access also requires an eligible Purview role." },
+    { "url": "https://learn.microsoft.com/en-us/graph/api/security-ediscoverycase-list-searches?view=graph-rest-1.0", "checkedAt": "2026-07-18", "supports": "Microsoft Graph v1.0 documents listing searches within one explicit eDiscovery case with delegated eDiscovery.Read.All and Purview role enforcement." },
+    { "url": "https://learn.microsoft.com/en-us/graph/api/security-ediscoverycase-list-reviewsets?view=graph-rest-1.0", "checkedAt": "2026-07-18", "supports": "Microsoft Graph v1.0 documents listing review sets within one explicit eDiscovery case with delegated eDiscovery.Read.All and Purview role enforcement." },
+    { "url": "https://learn.microsoft.com/en-us/graph/api/resources/security-ediscoverysearch?view=graph-rest-1.0", "checkedAt": "2026-07-18", "supports": "The search resource includes sensitive KQL, identities, data-source scope, and relationships; Relay returns only IDs, names, and timestamps." }
+  ],
+  "securityNotes": [
+    "Relay-owned confidential authorization-code OAuth uses PKCE, exact Railway callback, encrypted token storage, offline refresh, state verification, disconnect deletion, and exact delegated scope checks.",
+    "Railway allowlists only four GET paths under Graph v1.0 security/cases/ediscoveryCases, rejects redirects and all query strings, waits 30 seconds, caps responses at 1 MB, follows no nextLink, and retries nothing automatically.",
+    "Outputs contain only case/search/review-set IDs, display names, bounded status, and timestamps; descriptions, external IDs, identities, queries, source scopes, documents, content, and raw responses are excluded.",
+    "Legal holds, estimates, collections, queries, results, review documents, tags, analytics, productions, exports, creates, updates, deletes, closes, purge, role/admin operations, app-only permission, beta Graph, raw APIs, pagination, polling, batch, CLI, SDK, and MCP passthrough remain blocked.",
+    "Admin consent, licensed tenant access, Purview role assignment, Entra application configuration, and live acceptance remain external setup steps."
+  ]
+}

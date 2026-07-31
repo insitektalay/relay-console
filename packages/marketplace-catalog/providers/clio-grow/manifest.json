@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "clio-grow",
+  "name": "Clio Grow",
+  "category": "crm_support",
+  "description": "Clio Grow is legal client-intake and CRM software for managing prospective clients, intake workflows, consultations, documents, communications, and conversion into retained matters.",
+  "agentUseSummary": "Connect one US-region Clio Grow account through a separate Relay-owned Clio Platform OAuth application using confidential authorization code with PKCE. Relay requests only grow_user_read and exposes one approval-gated authority check that validates the current user and account transiently while returning no identity, firm, lead, contact, matter, or note data.",
+  "provider": {
+    "websiteUrl": "https://www.clio.com/grow/",
+    "docsUrl": "https://docs.developers.clio.com/clio-grow/api-reference/",
+    "developerConsoleUrl": "https://developers.api.clio.com/",
+    "termsUrl": "https://www.clio.com/partnerships/developers/developer-terms-service/",
+    "privacyUrl": "https://www.clio.com/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["grow_user_read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.api.clio.com/oauth/authorize",
+    "tokenUrl": "https://auth.api.clio.com/oauth/token",
+    "revocationUrl": "https://auth.api.clio.com/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "authorization_code_pkce_s256",
+      "us_region_bound",
+      "grow_user_read_only",
+      "twenty_four_hour_access_token",
+      "single_use_rotating_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/clio-grow/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "connection_authority_read",
+      "label": "Verify connection authority",
+      "description": "Verify that the US-region OAuth grant resolves to one current Clio Grow user and account while returning no user, firm, lead, contact, matter, or note data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "clio_grow_connection_authority_get",
+        "label": "Verify Clio Grow connection authority",
+        "description": "Call the fixed current-user endpoint, validate user and account IDs only in memory, discard the complete response, and return authorization state, US region, API version, and redaction status."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "clio_grow_identity_firm_lead_or_contact_data",
+        "label": "Access identity, firm, lead, or contact data",
+        "description": "User and account identities, firm names, leads, contacts, intake answers, personal information, notes, and related client-intake data are blocked."
+      },
+      {
+        "id": "clio_grow_matter_note_source_or_custom_action",
+        "label": "Access matters, notes, sources, or custom actions",
+        "description": "Matters, matter and contact notes, lead sources, custom actions, callback nonces, and contextual records are blocked."
+      },
+      {
+        "id": "clio_grow_create_update_delete_or_administer",
+        "label": "Write or administer Clio Grow",
+        "description": "Creates, updates, deletes, lead intake, notes, sources, custom actions, users, permissions, OAuth applications, settings, and administration are blocked."
+      },
+      {
+        "id": "clio_grow_raw_api_other_region_or_bulk",
+        "label": "Use raw APIs, another region, or bulk access",
+        "description": "Arbitrary endpoints, methods, filters, identifiers, pagination, other regions, browser sessions, scraping, raw responses, bulk operations, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "clio_grow_safe",
+      "label": "Safe",
+      "description": "The identity-free authority check requires approval; all identity, firm, legal-intake records, notes, sources, custom actions, writes, administration, arbitrary APIs, pagination, and other regions remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["clio_grow_connection_authority_get"],
+      "blockedActions": [
+        "clio_grow_identity_firm_lead_or_contact_data",
+        "clio_grow_matter_note_source_or_custom_action",
+        "clio_grow_create_update_delete_or_administer",
+        "clio_grow_raw_api_other_region_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same authority check runs directly; US-region binding, exact grow_user_read scope, PKCE, refresh rotation, redaction, auditing, response bounds, and provider rate limits remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["clio_grow_connection_authority_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "clio_grow_identity_firm_lead_or_contact_data",
+        "clio_grow_matter_note_source_or_custom_action",
+        "clio_grow_create_update_delete_or_administer",
+        "clio_grow_raw_api_other_region_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one identity-free authority check and injects OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one identity-free authority check and injects OAuth tokens server-side."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A separate US-region Clio Platform developer account and public OAuth application, accepted Developer Terms, exact Railway callback, confidential credentials, PKCE enabled, only grow_user_read permission, provider review and directory approval as applicable, customer consent, rotating-refresh and revocation validation, security/privacy review, and live acceptance are required.",
+    "nextAction": "Use the separate provider-console task to create the Clio Platform OAuth app with PKCE and only grow_user_read, register the exact Railway callback, store credentials on Railway, and validate consent, exact scope, refresh rotation, identity redaction, 3-per-second rate handling, upstream revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.developers.clio.com/api-docs/clio-platform/authorization/",
+      "checkedAt": "2026-07-18",
+      "supports": "Clio Platform confidential authorization-code OAuth, exact redirect, required scopes, optional PKCE, 24-hour access tokens, single-use rotating refresh tokens, regional isolation, and Basic-authenticated token revocation."
+    },
+    {
+      "url": "https://docs.developers.clio.com/api-docs/clio-platform/permissions/",
+      "checkedAt": "2026-07-18",
+      "supports": "The current-user endpoint is covered by grow_user_read; the broader Grow resources have separate read and write scopes that V1 intentionally does not request."
+    },
+    {
+      "url": "https://docs.developers.clio.com/clio-grow/api-reference/",
+      "checkedAt": "2026-07-18",
+      "supports": "The v2 Grow API documents the fixed current-user endpoint plus the broader contacts, notes, custom actions, inbox leads, matters, sources, and users surface intentionally excluded from V1."
+    },
+    {
+      "url": "https://docs.developers.clio.com/api-docs/clio-platform/rate-limits/",
+      "checkedAt": "2026-07-18",
+      "supports": "Clio Platform applies a shared per-application default limit of three requests per second and returns 429 when exceeded."
+    },
+    {
+      "url": "https://docs.developers.clio.com/handbook/getting-started/clio-manage-and-clio-platform/",
+      "checkedAt": "2026-07-18",
+      "supports": "Clio Grow integrations use a separate Clio Platform developer application and authorization from Clio Manage integrations."
+    },
+    {
+      "url": "https://www.clio.com/grow/",
+      "checkedAt": "2026-07-18",
+      "supports": "Current first-party product positioning for Clio Grow as legal client-intake and CRM software."
+    }
+  ],
+  "securityNotes": [
+    "Relay's US-only V1 requests exactly grow_user_read. It does not request the lead inbox, contact, matter, note, source, or custom-action scopes.",
+    "The sole request is GET https://api.clio.com/grow/users/who_am_i. User and account IDs are validated only in memory; the complete response is discarded and no names, email, firm identity, or legal-intake data is returned or persisted.",
+    "Requests reject redirects, time out after 20 seconds, cap responses at 1 MB, do not paginate or retry automatically, and preserve 401, 403, 429, and provider-unavailable outcomes.",
+    "Leads, contacts, matters, notes, sources, custom actions, users lists, identities, firm details, writes, administration, raw APIs, other regions, bulk access, and exports are unavailable.",
+    "Access and single-use refresh tokens remain encrypted server-side; refreshed token pairs replace the prior pair atomically, and disconnect revokes the access token upstream before deleting Relay's grant."
+  ]
+}

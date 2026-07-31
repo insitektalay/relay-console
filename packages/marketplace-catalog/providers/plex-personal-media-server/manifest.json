@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "plex-personal-media-server",
+  "name": "Plex Personal Media Server",
+  "category": "content_creative",
+  "description": "Plex Personal Media Server organizes and streams a person's movies, television, music, photos, and other media across supported devices. It provides a self-managed library server with browser, television, mobile, and streaming-device clients.",
+  "agentUseSummary": "Connect one exact public plex.direct HTTPS server origin with an encrypted customer-owned X-Plex-Token and one selected rating key. Relay exposes only the selected rating key, media type, and added and updated timestamps while blocking titles, summaries, people, tags, ratings, watch state, library identities, GUIDs, artwork, media details, filesystem paths, streams, downloads, playback, scans, refreshes, edits, deletes, sharing, user and server administration, DVR, process control, account access, broader browsing, and all other mutations.",
+  "provider": {
+    "websiteUrl": "https://www.plex.tv/personal-media-server/",
+    "docsUrl": "https://developer.plex.tv/pms/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.plex.tv/about/privacy-legal/plex-terms-of-service/",
+    "privacyUrl": "https://www.plex.tv/about/privacy-legal/"
+  },
+  "authentication": {
+    "model": "personal_access_token",
+    "relayOwned": false,
+    "scopes": ["user_token"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_plex_media_server",
+      "public_plex_direct_https_origin",
+      "customer_owned_user_token",
+      "selected_rating_key"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PLEX_PERSONAL_SERVER_ORIGIN",
+        "label": "Plex Media Server HTTPS origin",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact HTTPS plex.direct origin for one customer-owned server; Relay rejects non-Plex hosts, paths, embedded credentials, private DNS, queries, and fragments."
+      },
+      {
+        "name": "PLEX_PERSONAL_AUTH_TOKEN",
+        "label": "Plex authentication token",
+        "required": true,
+        "secret": true,
+        "helpText": "A customer-owned X-Plex-Token; Relay encrypts it and sends it only in the X-Plex-Token header to the configured server."
+      },
+      {
+        "name": "PLEX_PERSONAL_RATING_KEY",
+        "label": "Selected media rating key",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact rating key of the single media item Relay may inspect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "plex_personal_selected_item_lifecycle_get",
+      "label": "Read selected media lifecycle",
+      "description": "Read only the selected rating key, media type, and added and updated timestamps without title, summary, people, tags, ratings, watch state, library identity, GUID, artwork, media details, paths, streams, or content.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "plex_personal_selected_item_lifecycle_get",
+        "label": "Read selected media lifecycle",
+        "description": "Read only the selected rating key, media type, and added and updated timestamps."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "plex_personal_private_metadata_content",
+        "label": "Expose private media metadata or content",
+        "description": "Titles, summaries, people, tags, ratings, watch state, library identities, GUIDs, artwork, media details, filesystem paths, stream URLs, and media bytes are excluded."
+      },
+      {
+        "id": "plex_personal_mutation",
+        "label": "Mutate Plex or server state",
+        "description": "Playback, downloads, uploads, library scans, metadata refreshes or edits, ratings, watch-state changes, deletes, sharing, users, server settings, DVR, process control, and every other mutation are blocked."
+      },
+      {
+        "id": "plex_personal_broad_access",
+        "label": "Use broad Plex access",
+        "description": "Other items, libraries, servers, accounts, lists, search, hubs, recommendations, playlists, history, arbitrary paths or queries, redirects, and bulk access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "plex_personal_read_only",
+      "label": "Read Only",
+      "description": "Read one selected item's lifecycle summary; private metadata, media content, broader access, playback, administration, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["plex_personal_selected_item_lifecycle_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "plex_personal_private_metadata_content",
+        "plex_personal_mutation",
+        "plex_personal_broad_access"
+      ]
+    },
+    {
+      "id": "plex_personal_no_access",
+      "label": "No Access",
+      "description": "Expose no Plex Personal Media Server actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "plex_personal_selected_item_lifecycle_get",
+        "plex_personal_private_metadata_content",
+        "plex_personal_mutation",
+        "plex_personal_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted customer token and selected server/rating-key boundary and mounts exactly one projected GET."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted customer token and selected server/rating-key boundary and mounts exactly one projected GET."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A customer-owned Plex staging server reachable at a public plex.direct HTTPS origin, valid X-Plex-Token, and exact rating key are required. No authorized server or token is available in this worker lane.",
+    "nextAction": "The external setup lane must nominate a staging server and selected item, capture the customer-owned token and exact boundary directly in Railway, then validate the projected JSON read, plex.direct/public-DNS/fixed-path enforcement, private-field redaction, token failure, token replacement/revocation, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.plex.tv/pms/",
+      "checkedAt": "2026-07-18",
+      "supports": "Plex documents JSON via Accept: application/json, X-Plex-Token authentication, X-Plex client headers, plex.direct server origins, rating-key syntax, and GET /library/metadata/{ids} responses containing ratingKey, type, addedAt, updatedAt, private metadata, artwork, media, and filesystem details."
+    },
+    {
+      "url": "https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/",
+      "checkedAt": "2026-07-18",
+      "supports": "Plex documents that signed-in Media Servers require authenticated access and identifies X-Plex-Token as the account authentication token used for server endpoints."
+    },
+    {
+      "url": "https://support.plex.tv/articles/201638786-plex-media-server-url-commands/",
+      "checkedAt": "2026-07-18",
+      "supports": "Plex documents authenticated Media Server URL commands and the need for a valid token on server requests; Relay sends the token in a header rather than a query string."
+    }
+  ]
+}

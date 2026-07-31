@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "athenahealth",
+  "name": "athenahealth",
+  "category": "work_management",
+  "description": "athenahealth provides cloud healthcare software for electronic health records, medical billing, practice management, patient engagement, scheduling and clinical workflows across athenaOne, athenaPractice and athenaFlow.",
+  "agentUseSummary": "athenahealth publishes extensive integration surfaces, but Relay cannot expose one generic Connect flow until athenahealth confirms which product contract applies and approves a multi-customer healthcare integration. The current public contracts separate 800+ athenaOne APIs from versioned athenaPractice/athenaFlow FHIR servers, with different authorization, endpoint, practice, user and licensing boundaries.",
+  "provider": {
+    "websiteUrl": "https://www.athenahealth.com/",
+    "docsUrl": "https://www.athenahealth.com/developer-portal",
+    "developerConsoleUrl": "https://mydata.athenahealth.com/",
+    "termsUrl": "https://www.athenahealth.com/terms-and-conditions/terms-of-use",
+    "privacyUrl": "https://www.athenahealth.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "provider_partnership_required",
+      "product_contract_selection_required",
+      "healthcare_security_and_distribution_review_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "athenahealth_read",
+      "label": "Read authorized healthcare and practice data",
+      "description": "After provider approval, read only the product, practice, user, patient and resource families explicitly authorized for Relay's production application.",
+      "defaultSelected": true
+    },
+    {
+      "id": "athenahealth_manage",
+      "label": "Manage authorized healthcare workflows",
+      "description": "After provider approval, run only the production mutations explicitly authorized for Relay under approval-aware healthcare controls.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "athenahealth_connect_before_approval",
+        "label": "Connect before athenahealth approval",
+        "description": "Relay has no approved production application, healthcare customer context, product-family selection or multi-customer distribution contract."
+      },
+      {
+        "id": "athenahealth_merge_api_programs",
+        "label": "Merge athenahealth API programs",
+        "description": "Relay does not treat athenaOne REST, athenaPractice/athenaFlow FHIR, patient SMART OAuth, provider SMART OAuth and service-user access as interchangeable authority."
+      },
+      {
+        "id": "athenahealth_collect_user_credentials",
+        "label": "Collect healthcare user credentials",
+        "description": "Relay does not collect provider, staff or patient passwords or use the deprecated service-user password grant without an approved provider contract and dedicated service identity."
+      },
+      {
+        "id": "athenahealth_api_actions_before_review",
+        "label": "Run athenahealth API actions",
+        "description": "No clinical, billing, scheduling, patient, practice or administrative operation runs before athenahealth confirms the production contract and exact operation set."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "athenahealth_provider_review",
+      "label": "Provider review pending",
+      "description": "All actions remain unavailable until athenahealth approves Relay's product contract, authorization lifecycle, healthcare security controls and production distribution.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "athenahealth_connect_before_approval",
+        "athenahealth_merge_api_programs",
+        "athenahealth_collect_user_credentials",
+        "athenahealth_api_actions_before_review"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No athenahealth tools are callable in OpenClaw until provider review fixes one production product, authorization and operation contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No athenahealth tools are callable in Hermes until provider review fixes one production product, authorization and operation contract."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "athenahealth advertises more than 800 athenaOne endpoints and a Marketplace Partner program, while its separate athenaPractice/athenaFlow Developer Portal publishes versioned FHIR servers for patients, providers, staff and service applications. The FHIR security guide requires registered client credentials and product-managed access, uses SMART OAuth for people, and documents a service-user password grant while stating that client credentials are deprecated. Production applications must be registered and authorized by the relevant practice or partner program. Relay has no approved partner application, BAA/data-processing terms, product-family selection, exact production base URL, practice context, user class, permitted operations, rate limits, sandbox with representative data, or revocation lifecycle. Implementing a guessed union would create ambiguous authority over protected health information and financial workflows.",
+    "nextAction": "Ask athenahealth to approve Relay as a multi-customer integration and identify the intended athenaOne or athenaPractice/athenaFlow contract, exact production authorization grant, application distribution, practice and user binding, allowed endpoint set, rate limits, audit requirements, BAA/security obligations, sandbox and revocation process. Then generate the bounded operation registry from the approved current contract, implement Railway-held credentials and lifecycle, expose exact client semantics, and validate reads, Safe denial, approved or Dangerous mutations, redaction, rate limits, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://www.athenahealth.com/developer-portal",
+      "checkedAt": "2026-07-18",
+      "supports": "athenahealth's current developer page advertises over 800 API endpoints plus interfaces, Data View, EHI Export and a Marketplace Partners Program, confirming a large healthcare integration platform rather than one small universal API."
+    },
+    {
+      "url": "https://www.athenahealth.com/solutions/marketplace-partners",
+      "checkedAt": "2026-07-18",
+      "supports": "athenahealth describes Marketplace distribution as a partner program with onboarding, dedicated partner support and customer-facing distribution across athenaOne."
+    },
+    {
+      "url": "https://mydata.athenahealth.com/access-the-apis",
+      "checkedAt": "2026-07-18",
+      "supports": "The separate athenaPractice/athenaFlow portal requires developer application registration, client ID and secret, production status, a selected FHIR server and practice authorization, and distinguishes patient from provider access."
+    },
+    {
+      "url": "https://docs.mydata.athenahealth.com/fhir-r4/security.html",
+      "checkedAt": "2026-07-18",
+      "supports": "The current FHIR security guide distinguishes patient, provider/staff and service applications; requires application credentials and product access controls; and states the client-credentials grant is deprecated in favor of an offline-authorized service-user password flow."
+    },
+    {
+      "url": "https://sb.docs.mydata.athenahealth.com/fhir-r4/index.html",
+      "checkedAt": "2026-07-18",
+      "supports": "The active v27 R4 guide covers system, clinical, scheduling and billing resources whose availability depends on athenaPractice or athenaFlow licensing and configuration."
+    },
+    {
+      "url": "https://www.athenahealth.com/privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "athenahealth's privacy materials govern sensitive healthcare and business data, requiring a confirmed legal and security boundary before Relay handles production records."
+    }
+  ]
+}

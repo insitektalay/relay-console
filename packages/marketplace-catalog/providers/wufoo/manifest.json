@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "wufoo",
+  "name": "Wufoo",
+  "category": "work_management",
+  "description": "Wufoo is an online form builder for creating surveys, registrations, applications, contact forms, order forms, and payment-enabled forms without writing code. Teams use it to collect entries and files, apply conditional logic and branding, receive notifications, analyze submissions with reports and widgets, and connect form data to other business tools.",
+  "agentUseSummary": "Add a Wufoo account name and customer-owned API key once, then decide which agents can read forms, entries, reports, and users or submit entries and manage webhooks under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.wufoo.com/",
+    "docsUrl": "https://wufoo.github.io/docs/",
+    "developerConsoleUrl": "https://help.surveymonkey.com/en/wufoo/integrations/wufoo-api/",
+    "termsUrl": "https://www.wufoo.com/terms/",
+    "privacyUrl": "https://www.surveymonkey.com/mp/legal/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "fixed_account_subdomain",
+      "provider_user_permissions"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "WUFOO_API_KEY",
+        "label": "Wufoo API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Copy the API key from API Information on any form. A dedicated Wufoo sub-user key can restrict Relay to that user's existing permissions."
+      },
+      {
+        "key": "WUFOO_SUBDOMAIN",
+        "label": "Wufoo account name",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter only the account name before .wufoo.com, for example fishbowl from fishbowl.wufoo.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "wufoo_read",
+      "label": "Read forms and results",
+      "description": "Use all 15 documented reads for forms, fields, comments, entries, reports, report widgets, and account users.",
+      "defaultSelected": true
+    },
+    {
+      "id": "wufoo_manage",
+      "label": "Submit entries and manage webhooks",
+      "description": "Submit entries to an authorized form and add or remove form webhooks.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "wufoo_read",
+        "label": "Read Wufoo",
+        "description": "Run one exact documented read from the connected Wufoo account."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "wufoo_manage",
+        "label": "Submit entries and manage webhooks",
+        "description": "Submit an entry or add or remove a webhook; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "wufoo_safe",
+      "label": "Safe",
+      "description": "All 15 documented reads run directly; entry submissions and webhook changes require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["wufoo_read"],
+      "approvalRequiredActions": ["wufoo_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 18 selected and API-key-authorized Wufoo operations run without Relay per-action approval. Wufoo user permissions, plan and daily API limits, connection ownership, fixed-account routing, bounds, audits, redaction, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["wufoo_read", "wufoo_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 18 pinned Wufoo operations through the encrypted customer-key connector and configured account subdomain."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 18 pinned Wufoo operations through the encrypted customer-key connector and configured account subdomain."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Wufoo account name, API key, representative forms, entries, reports, users, or safe webhook target are available in this workspace.",
+    "nextAction": "A Wufoo user saves the account name and a dedicated API key through Relay Console, then verifies all 18 operations, bounded reads, Safe approval behavior, Dangerous entry and webhook mutations, agent assignment, key replacement, disconnect, provider-side key reset, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://wufoo.github.io/docs/",
+      "checkedAt": "2026-07-16",
+      "supports": "Wufoo's official API v3 documentation defines Basic authentication with a customer API key, account-subdomain routing, daily plan-based request limits, user-permission inheritance, and the 18 form, entry, report, user, and webhook operations pinned by this connector."
+    },
+    {
+      "url": "https://help.surveymonkey.com/en/wufoo/integrations/wufoo-api/",
+      "checkedAt": "2026-07-16",
+      "supports": "Wufoo's official help center explains how users obtain and reset their own API keys, and documents that webhooks are a paid integration feature with up to ten webhooks per form."
+    },
+    {
+      "url": "https://www.wufoo.com/features/",
+      "checkedAt": "2026-07-16",
+      "supports": "Wufoo describes its no-code form builder, conditional logic, branding, entries, files, payments, notifications, integrations, reports, and exports."
+    },
+    {
+      "url": "https://www.wufoo.com/pricing/",
+      "checkedAt": "2026-07-16",
+      "supports": "Wufoo publishes plan-dependent form, entry, user, storage, and daily API request limits and identifies integrations and file uploads as paid features."
+    }
+  ]
+}

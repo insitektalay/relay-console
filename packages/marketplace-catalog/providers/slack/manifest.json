@@ -1,0 +1,209 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "slack",
+  "name": "Slack",
+  "category": "communication",
+  "description": "Slack is a workplace communication platform that organizes conversations, updates, files, and automated work in channels. Teams use it to coordinate projects, share knowledge, make decisions, and connect the other tools they use every day.",
+  "agentUseSummary": "Connect a Slack workspace once, then choose which agents may list and read public channels, prepare messages, or send messages under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://slack.com/",
+    "docsUrl": "https://docs.slack.dev/authentication/installing-with-oauth/",
+    "developerConsoleUrl": "https://api.slack.com/apps",
+    "termsUrl": "https://slack.com/terms-of-service",
+    "privacyUrl": "https://slack.com/trust/privacy/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "channels:read",
+      "channels:history",
+      "chat:write",
+      "users:read"
+    ],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://slack.com/oauth/v2/authorize",
+    "tokenUrl": "https://slack.com/api/oauth.v2.access",
+    "revocationUrl": "https://slack.com/api/auth.revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth",
+      "workspace_scoped_bot",
+      "public_channels_only"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/slack/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "conversation_search",
+      "label": "List public channels",
+      "description": "List up to fifty public channels visible to the installed Slack app.",
+      "defaultSelected": true
+    },
+    {
+      "id": "conversation_history_read",
+      "label": "Read public-channel history",
+      "description": "Read up to fifty messages from one explicit public channel or one thread that the installed app may access.",
+      "defaultSelected": true
+    },
+    {
+      "id": "message_draft",
+      "label": "Prepare messages",
+      "description": "Prepare one bounded Slack message locally without sending it to Slack.",
+      "defaultSelected": true
+    },
+    {
+      "id": "message_send",
+      "label": "Send messages",
+      "description": "Send one exact message to an explicit public channel or thread available to the installed app.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "slack_conversations_list",
+        "label": "List public channels",
+        "description": "List a bounded page of public channels visible to the installed app."
+      },
+      {
+        "id": "slack_conversation_history_read",
+        "label": "Read public-channel history",
+        "description": "Read a bounded page from one explicit public channel or thread."
+      },
+      {
+        "id": "slack_message_draft",
+        "label": "Prepare a message",
+        "description": "Prepare one bounded message locally without a provider side effect."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "slack_message_send",
+        "label": "Send a message",
+        "description": "Send one exact message; Safe mode requires matching approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "slack_admin",
+        "label": "Workspace administration",
+        "description": "Workspace, organization, user, app, and channel administration are outside this connector's supported V1 surface."
+      },
+      {
+        "id": "slack_sensitive_reads",
+        "label": "Private conversations and broad exports",
+        "description": "Private channels, direct messages, group messages, broad exports, files, and discovery APIs are outside this connector's supported V1 surface."
+      },
+      {
+        "id": "slack_bulk_messaging",
+        "label": "Bulk messaging",
+        "description": "Bulk sends, mass direct messages, and channel-wide mentions are not supported."
+      },
+      {
+        "id": "slack_raw_api",
+        "label": "Arbitrary Slack API calls",
+        "description": "Raw tokens, arbitrary Slack methods, and unbounded pagination are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "slack_safe",
+      "label": "Safe",
+      "description": "Public-channel reads and local drafts run directly; each message send requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "slack_conversations_list",
+        "slack_conversation_history_read",
+        "slack_message_draft"
+      ],
+      "approvalRequiredActions": ["slack_message_send"],
+      "blockedActions": [
+        "slack_admin",
+        "slack_sensitive_reads",
+        "slack_bulk_messaging",
+        "slack_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Slack operation supported by this connector runs without Relay per-action approval; workspace ownership, granted scopes, channel membership, fixed methods, request bounds, audits, redaction, Slack limits, and Slack permissions still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "slack_conversations_list",
+        "slack_conversation_history_read",
+        "slack_message_draft",
+        "slack_message_send"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "slack_admin",
+        "slack_sensitive_reads",
+        "slack_bulk_messaging",
+        "slack_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts four typed Slack tools and attaches the connected workspace bot token server-side without exposing it to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts four typed Slack tools and attaches the connected workspace bot token server-side without exposing it to the agent."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Relay's Slack client credentials are configured in Railway, but public distribution or Slack Marketplace approval and a fresh production workspace authorization have not been verified without opening the signed-in Slack developer console.",
+    "nextAction": "Confirm the Slack app has https://api.relayconsole.work/api/v1/marketplace/oauth/slack/callback and the four bot scopes configured, complete any required public-distribution or Slack Marketplace review, then run a fresh Connect flow and verify workspace binding, channel listing and history, Safe send approval, Dangerous send, token revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.slack.dev/authentication/installing-with-oauth/",
+      "checkedAt": "2026-07-16",
+      "supports": "Slack documents OAuth V2 workspace installation through slack.com/oauth/v2/authorize, exact HTTPS redirect matching, state verification, oauth.v2.access code exchange, bot scopes, and installation into a user-selected workspace."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/methods/conversations.list/",
+      "checkedAt": "2026-07-16",
+      "supports": "Slack documents conversations.list for enumerating channel-like conversations under token scopes; Relay restricts it to one bounded public-channel page."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/methods/conversations.history/",
+      "checkedAt": "2026-07-16",
+      "supports": "Slack documents conversations.history for scoped conversation reads; Relay requires one explicit public channel and returns at most fifty messages."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/methods/conversations.replies/",
+      "checkedAt": "2026-07-16",
+      "supports": "Slack documents conversations.replies for retrieving a message thread; Relay requires an explicit channel and thread timestamp and applies the same bounded result limit."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/methods/chat.postMessage/",
+      "checkedAt": "2026-07-16",
+      "supports": "Slack documents chat.postMessage, chat:write scope, thread replies, client_msg_id, message length guidance, and channel-membership behavior used by Relay's exact-message send wrapper."
+    },
+    {
+      "url": "https://docs.slack.dev/authentication/using-token-rotation/",
+      "checkedAt": "2026-07-16",
+      "supports": "Slack documents optional token rotation: ordinary tokens remain long-lived when rotation is disabled, while enabled rotation issues twelve-hour access tokens and single-use rotating refresh tokens. Relay's current app contract keeps rotation disabled until refresh acceptance is implemented and verified."
+    },
+    {
+      "url": "https://docs.slack.dev/slack-marketplace/distributing-your-app-in-the-slack-marketplace/",
+      "checkedAt": "2026-07-16",
+      "supports": "Slack documents manual review for Marketplace distribution; Relay cannot claim general production availability until its app distribution state and a non-development workspace installation are verified."
+    }
+  ]
+}

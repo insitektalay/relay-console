@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "lusha",
+  "name": "Lusha",
+  "category": "crm_support",
+  "description": "Lusha is a business intelligence platform for finding, enriching and monitoring company and professional contact data. Sales, recruiting and go-to-market teams use it to research accounts, reveal business contact details, build prospect lists and act on market signals.",
+  "agentUseSummary": "Connect a dedicated customer-owned Lusha API key. Agents can read only a reduced account-governance snapshot covering credits, plan, rate limits and pricing; contact/company data, prospecting, signals, website visits, webhooks, provider-hosted MCP and raw API access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.lusha.com/",
+    "docsUrl": "https://docs.lusha.com/apis/openapi/account/getaccountusage",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.lusha.com/api-terms/",
+    "privacyUrl": "https://www.lusha.com/legal/privacy-notice/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "server_side_fixed_account_usage_route",
+      "manual_provider_rotation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "LUSHA_API_KEY",
+        "label": "Lusha API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated customer-owned API key created by an authorized Admin or Manager in Lusha API Hub. Relay encrypts it and permits only the fixed account-usage route."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_usage_read",
+      "label": "Read account usage",
+      "description": "Read a reduced snapshot of credits, plan, rate limits and action pricing without accessing business-profile data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "lusha_account_usage_get",
+        "label": "Read account usage",
+        "description": "Read the connected Lusha account's credits, plan, rate limits and action pricing without searching or revealing business-profile data."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "lusha_contact_company_data",
+        "label": "Block business-profile data",
+        "description": "Contact and company search, enrichment, search-and-enrich, decision makers, PII reveal and all profile data are unavailable."
+      },
+      {
+        "id": "lusha_prospecting_signals_automation",
+        "label": "Block prospecting and automation",
+        "description": "Prospecting, filters, lookalikes, recommendations, signals, website visits, CRM workflows, exports, outreach and bulk operations are unavailable."
+      },
+      {
+        "id": "lusha_webhooks_admin_mcp_raw",
+        "label": "Block webhooks, administration and raw access",
+        "description": "Webhook subscriptions, delivery logs, webhook secrets, opt-out subscriptions, API-key management, provider-hosted MCP, arbitrary API, retries, pagination and browser sessions are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "lusha_safe",
+      "label": "Safe",
+      "description": "The reduced account-usage read runs automatically. Business-profile data, prospecting, automation, webhooks, administration, MCP and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["lusha_account_usage_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "lusha_contact_company_data",
+        "lusha_prospecting_signals_automation",
+        "lusha_webhooks_admin_mcp_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same single bounded governance read runs without approval; the full-account API key never expands Relay's fixed account-usage route.",
+      "defaultSelected": false,
+      "allowedActions": ["lusha_account_usage_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "lusha_contact_company_data",
+        "lusha_prospecting_signals_automation",
+        "lusha_webhooks_admin_mcp_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly one parameterless account-governance read while Railway alone holds the customer API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly one parameterless account-governance read while Railway alone holds the customer API key."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An eligible customer Lusha plan, authorized Admin or Manager, dedicated API key, current API terms/privacy review, Railway staging entry, live Account Usage schema validation, disconnect rotation and post-rotation denial remain for a separate authorized provider task.",
+    "nextAction": "An authorized provider task must confirm plan eligibility and the usage-only purpose, review current API terms and privacy notice, create a dedicated key in Lusha API Hub, store it in Railway staging, and validate only GET /v3/account/usage, parameter rejection, five-per-minute behavior, reduced output, no contact/company/profile data, no retries/pagination/MCP, encrypted-copy deletion, provider-side key rotation and post-rotation denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.lusha.com/guides",
+      "checkedAt": "2026-07-18",
+      "supports": "Lusha documents V3's broad search, enrichment, prospecting, signals, lookalikes, website visits, webhooks and account surfaces, API-key authentication in the api_key header, plan-specific limits and fixed HTTPS JSON APIs."
+    },
+    {
+      "url": "https://docs.lusha.com/apis/openapi/account/getaccountusage",
+      "checkedAt": "2026-07-18",
+      "supports": "Lusha documents GET /v3/account/usage as a five-requests-per-minute read returning credits, plan dates, rate-limit state and per-action pricing."
+    },
+    {
+      "url": "https://docs.lusha.com/qa",
+      "checkedAt": "2026-07-18",
+      "supports": "Lusha documents credit charging by search, revealed fields, signals, lookalikes and webhooks, plus the separate Account Usage limit and API errors. Relay blocks every credit-consuming data action."
+    },
+    {
+      "url": "https://docs.lusha.com/mcp-docs",
+      "checkedAt": "2026-07-18",
+      "supports": "Lusha documents an official provider-hosted OAuth MCP for named clients and API-key MCP for custom clients. Relay blocks raw MCP because no Relay distribution/tool-schema contract is published."
+    },
+    {
+      "url": "https://docs.lusha.com/legal/terms",
+      "checkedAt": "2026-07-18",
+      "supports": "Lusha's responsible-use guidance requires a lawful purpose, compliance with API terms and privacy law, security safeguards, deletion handling and no spam or data-broker uses."
+    },
+    {
+      "url": "https://www.lusha.com/api-terms/",
+      "checkedAt": "2026-07-18",
+      "supports": "Lusha's API License Terms bind customer and authorized users to the applicable order, API service restrictions and incorporated privacy terms."
+    },
+    {
+      "url": "https://www.lusha.com/legal/privacy-notice/",
+      "checkedAt": "2026-07-18",
+      "supports": "Lusha's current privacy notice describes its B2B contact database, customer/end-user processing, legal bases, retention, suppression, access, rectification and deletion rights. Relay's V1 returns no contact data."
+    }
+  ]
+}

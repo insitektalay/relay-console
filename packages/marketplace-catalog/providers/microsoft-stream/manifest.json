@@ -1,0 +1,155 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-stream",
+  "name": "Microsoft Stream",
+  "category": "content_creative",
+  "description": "Microsoft Stream is the Microsoft 365 video experience for video and audio files stored and governed in SharePoint and OneDrive, with playback, recording, transcripts, search, comments, sharing, analytics, and portal embedding.",
+  "agentUseSummary": "Microsoft Stream cannot yet be connected as an independent API provider. Current Stream is built on SharePoint and OneDrive; Microsoft Graph exposes the underlying video as a drive item and a limited video facet, not a complete stable Stream API for playback, transcripts, comments, chapters, search, and portals. Relay exposes no video authority until product owners select an exact file, transcript, or analytics boundary.",
+  "provider": {
+    "websiteUrl": "https://stream.office.com/",
+    "docsUrl": "https://learn.microsoft.com/stream/streamnew/",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/licensing/terms/productoffering/Microsoft365/all",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "product_boundary_unresolved",
+      "stream_built_on_sharepoint_and_onedrive",
+      "microsoft_graph_drive_item_candidate",
+      "exact_site_drive_and_video_item_binding_candidate",
+      "video_facet_metadata_only",
+      "stream_experience_transcript_comment_analytics_and_portal_gaps",
+      "classic_stream_api_not_a_current_target"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "stream_video_metadata_candidate",
+      "label": "Video metadata candidate",
+      "description": "If product selects a Graph file workflow, read bounded drive-item and video-facet metadata for one exact selected SharePoint or OneDrive video."
+    },
+    {
+      "id": "stream_video_content_candidate",
+      "label": "Video content candidate",
+      "description": "If separately approved, download or stream one selected video's file bytes with size, purpose, retention, redistribution, and preauthenticated-URL controls."
+    },
+    {
+      "id": "stream_transcript_candidate",
+      "label": "Transcript candidate",
+      "description": "If product confirms a stable supported interface, read one selected video's transcript or captions with speaker, privacy, retention, search, and redaction controls."
+    },
+    {
+      "id": "stream_video_manage_candidate",
+      "label": "Video management candidate",
+      "description": "If critically approved, upload or change one selected media file and its supported metadata without changing unrelated SharePoint content or sharing."
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "stream_connect_before_product_decision",
+        "label": "Connect before the Stream boundary is selected",
+        "description": "Relay has no approved choice among underlying files, transcripts, analytics, comments, portals, recordings, or a broader SharePoint media workflow."
+      },
+      {
+        "id": "stream_video_and_transcript_reads",
+        "label": "Read videos or derived data",
+        "description": "Video and audio files, metadata, thumbnails, transcripts, captions, speakers, comments, chapters, analytics, activities, versions, permissions, recordings, and portal placement remain unavailable."
+      },
+      {
+        "id": "stream_video_file_and_experience_mutations",
+        "label": "Change videos or Stream experiences",
+        "description": "Uploading, replacing, trimming, recording, generating or changing transcripts, captions, chapters, thumbnails, comments, descriptions, embeds, pages, portals, or analytics state is blocked."
+      },
+      {
+        "id": "stream_sharing_and_lifecycle_mutations",
+        "label": "Change sharing or lifecycle",
+        "description": "Moving, copying, deleting, restoring, sharing, inviting, linking, changing permissions, labels, retention, versions, site placement, or ownership is blocked."
+      },
+      {
+        "id": "stream_classic_raw_and_scope_bypass",
+        "label": "Bypass product or file controls",
+        "description": "Stream Classic APIs, migration tooling, arbitrary sites or drives, broad file search, preauthenticated URL leakage, raw bulk downloads, beta-only assumptions, tokens, scraping, and provider-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "stream_unavailable",
+      "label": "Product decision required",
+      "description": "No Stream action is enabled until product owners choose an exact current Microsoft 365 file, transcript, analytics, comment, or portal boundary and its identity, storage, media, privacy, sharing, lifecycle, revocation, and disconnect contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "stream_connect_before_product_decision",
+        "stream_video_and_transcript_reads",
+        "stream_video_file_and_experience_mutations",
+        "stream_sharing_and_lifecycle_mutations",
+        "stream_classic_raw_and_scope_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Microsoft Stream wrapper is mounted before the underlying SharePoint and OneDrive media boundary and stable API surface are selected."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Microsoft Stream wrapper is mounted before the underlying SharePoint and OneDrive media boundary and stable API surface are selected."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Microsoft Stream is now a media experience built on video and audio files stored in SharePoint and OneDrive for Business. Microsoft Graph represents those files as drive items and exposes basic extracted video metadata such as codec, duration, bitrate, frame rate, height, and width. File APIs also expose content, permissions, sharing, activities, analytics, versions, retention labels, and preauthenticated download URLs. Stream-specific experiences include transcripts, captions, search, comments, chapters, recording, embeds, and portals, but the current stable Graph evidence reviewed here does not define one comprehensive Stream API that can safely back the generic candidate. Stream Classic is legacy and is not an acceptable target.",
+    "nextAction": "Product, privacy, and security owners must decide whether Stream means a selected Microsoft 365 video file, transcript and captions, analytics, comments, recording, or portal management. Prefer replacing this generic provider with a SharePoint or OneDrive media capability that binds one exact tenant, site, drive, and item and starts with file and video-facet metadata only. Acceptance must verify effective file permissions and sharing, preauthenticated URL handling, video size and content policy, transcripts and speaker identity, captions and accessibility, Teams recordings, comments and chapters, analytics and viewer privacy, thumbnails, search, retention labels, versions, upload and replacement, external sharing, revocation, disconnect, and cross-site denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/office365/servicedescriptions/microsoft-stream",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Stream is built on SharePoint and OneDrive for Business and provides playback, recording, transcripts, comments, search, sharing, embedding, and Microsoft 365 integrations."
+    },
+    {
+      "url": "https://learn.microsoft.com/stream/streamnew/portals-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft treats videos as Microsoft 365 content stored in SharePoint, Teams, and OneDrive and features them through sites, pages, portals, and web parts."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/resources/driveitem",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph represents OneDrive and SharePoint video files as drive items with file, video, sharing, activity, analytics, permissions, versions, and retention relationships."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/resources/video",
+      "checkedAt": "2026-07-17",
+      "supports": "The stable Microsoft Graph video facet exposes extracted technical metadata such as duration, bitrate, codec, frame rate, dimensions, and audio properties."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/resources/onedrive",
+      "checkedAt": "2026-07-17",
+      "supports": "Working with current Stream media inherits the OneDrive and SharePoint drive-item, shared-item, file-content, permission, invitation, and sharing-link model."
+    }
+  ]
+}

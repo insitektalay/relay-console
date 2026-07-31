@@ -1,0 +1,143 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "healthie",
+  "name": "Healthie",
+  "category": "work_management",
+  "description": "Healthie is an API-first electronic health record, scheduling, engagement, and practice-management platform for digital health organizations. Teams use it for patients, providers, appointments, forms, care plans, messaging, telehealth, billing, insurance, clinical records, programs, reporting, and operational workflows.",
+  "agentUseSummary": "Add a dedicated Healthie user or service-account API key, plus the shard authorization ID only when Healthie assigned one, then choose which agents can use the complete current GraphQL API under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.gethealthie.com/plus/developers",
+    "docsUrl": "https://docs.gethealthie.com/",
+    "developerConsoleUrl": "https://app.gethealthie.com/",
+    "termsUrl": "https://www.gethealthie.com/terms",
+    "privacyUrl": "https://www.gethealthie.com/privacy"
+  },
+  "authentication": {
+    "model": "customer_owned_api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["healthie_user_or_service_account_api_key"],
+    "credentialRequirements": [
+      {
+        "name": "HEALTHIE_API_KEY",
+        "label": "Healthie API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated Healthie user or service-account API key. Railway encrypts it and sends it only to api.gethealthie.com."
+      },
+      {
+        "name": "HEALTHIE_AUTHORIZATION_SHARD",
+        "label": "Shard authorization ID (if Healthie assigned one)",
+        "required": false,
+        "secret": true,
+        "helpText": "Only accounts hosted on a Healthie data shard need this value; Healthie support supplies it."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "healthcare_read",
+      "label": "Read Healthie data",
+      "description": "Run bounded GraphQL queries permitted by the customer-owned Healthie API key.",
+      "defaultEnabled": true
+    },
+    {
+      "id": "healthcare_write",
+      "label": "Manage Healthie workflows",
+      "description": "Run bounded GraphQL mutations permitted by the customer-owned Healthie API key.",
+      "defaultEnabled": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "healthie_graphql_query",
+        "label": "Query Healthie GraphQL",
+        "description": "Run one bounded, non-introspection GraphQL query against Healthie's fixed production API origin."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "healthie_graphql_mutation",
+        "label": "Mutate Healthie GraphQL",
+        "description": "Run one bounded Healthie GraphQL mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "healthie_safe",
+      "label": "Safe",
+      "description": "GraphQL queries run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["healthie_graphql_query"],
+      "approvalRequiredActions": ["healthie_graphql_mutation"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected API-key-authorized Healthie query or mutation runs without Relay per-action approval; connection ownership, fixed origin, bounds, audits, secret non-exposure, Healthie user permissions, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["healthie_graphql_query", "healthie_graphql_mutation"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "server_proxy",
+      "description": "Railway mounts separate bounded GraphQL query and mutation wrappers and attaches the encrypted Healthie API key server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "server_proxy",
+      "description": "Railway mounts separate bounded GraphQL query and mutation wrappers and attaches the encrypted Healthie API key server-side."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer needs Healthie API access, a dedicated user or service-account API key, any assigned shard authorization ID, representative non-production data, and an authorized test account. Public Harbor distribution additionally requires Healthie's security review, commercial agreement, technical review, and partner approval.",
+    "nextAction": "Apply to the Healthie Harbor with Relay's healthcare security and integration materials, obtain sandbox and authorized production API access, connect a dedicated key, then verify current-user health, queries, Safe mutation denial, approved or Dangerous-mode mutations, redaction, rate limits, key replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.gethealthie.com/guides/api-concepts/authentication/",
+      "checkedAt": "2026-07-15",
+      "supports": "Healthie documents per-user API keys, service-account API keys, Basic authorization with AuthorizationSource API, optional AuthorizationShard, user-bound permissions, and programmatic per-user key creation by arrangement with Healthie."
+    },
+    {
+      "url": "https://docs.gethealthie.com/guides/api-concepts/environments/",
+      "checkedAt": "2026-07-15",
+      "supports": "Healthie fixes production GraphQL traffic at https://api.gethealthie.com/graphql and provides a separate non-PHI sandbox at staging-api.gethealthie.com."
+    },
+    {
+      "url": "https://docs.gethealthie.com/guides/api-concepts/versioning/",
+      "checkedAt": "2026-07-15",
+      "supports": "Healthie documents an explicit Healthie-GraphQL-API-Version header, additive schema evolution, and the current 2026-01-01 version."
+    },
+    {
+      "url": "https://docs.gethealthie.com/guides/intro/",
+      "checkedAt": "2026-07-15",
+      "supports": "Healthie states that external developers receive the same GraphQL API used by its own clients across engagement, provider management, telehealth, billing, EHR, and other platform workflows."
+    },
+    {
+      "url": "https://www.gethealthie.com/become-a-partner",
+      "checkedAt": "2026-07-15",
+      "supports": "Healthie's Harbor requires accepted partners to complete a security review, commercial agreement, and technical review; application does not guarantee admission."
+    }
+  ]
+}

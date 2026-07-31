@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "whatsapp-business",
+  "name": "WhatsApp Business",
+  "category": "communication",
+  "description": "WhatsApp Business Platform is Meta's hosted API for businesses to receive customer messages and send service, utility, authentication, and marketing messages through registered WhatsApp business phone numbers.",
+  "agentUseSummary": "WhatsApp Business cannot yet be connected through Relay. Meta's Cloud API and Embedded Signup require a Relay-owned Meta app, approved permissions, a compliant technology-provider setup, customer WhatsApp Business Account and phone-number onboarding, signed webhooks, and representative acceptance. No messaging authority is exposed while that provider review and production configuration remain incomplete.",
+  "provider": {
+    "websiteUrl": "https://business.whatsapp.com/products/business-platform",
+    "docsUrl": "https://developers.facebook.com/docs/whatsapp/cloud-api/overview",
+    "developerConsoleUrl": "https://developers.facebook.com/apps/",
+    "termsUrl": "https://www.facebook.com/legal/BM-tech-provider-terms",
+    "privacyUrl": "https://www.whatsapp.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "whatsapp_business_management",
+      "whatsapp_business_messaging"
+    ],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.facebook.com/dialog/oauth",
+    "tokenUrl": "https://graph.facebook.com/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_meta_app",
+      "whatsapp_embedded_signup",
+      "customer_whatsapp_business_account",
+      "customer_business_phone_number",
+      "graph_api_access_token",
+      "signed_webhooks",
+      "provider_review_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/whatsapp-business/callback",
+    "webhookRequirements": [
+      "public_https_callback",
+      "verification_challenge",
+      "app_secret_signature_validation",
+      "waba_subscription",
+      "idempotent_event_processing"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "business_messaging_events",
+      "label": "Receive business messaging events",
+      "description": "After provider acceptance, receive bounded inbound customer messages and message-status events for the connected WhatsApp Business Account through verified webhooks.",
+      "defaultSelected": true
+    },
+    {
+      "id": "business_messaging_send",
+      "label": "Send business messages",
+      "description": "After provider acceptance, reply inside the customer-service window or initiate policy-compliant conversations with approved templates through the connected phone number.",
+      "defaultSelected": true
+    },
+    {
+      "id": "message_templates_manage",
+      "label": "Manage message templates",
+      "description": "After provider acceptance, create and manage the connected business's message templates subject to Meta review and policy.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "whatsapp_business_connect_before_review",
+        "label": "Connect before Meta review",
+        "description": "Relay has not completed its Meta technology-provider setup, app review, production permission approval, Embedded Signup configuration, or representative account acceptance."
+      },
+      {
+        "id": "whatsapp_business_receive_before_review",
+        "label": "Receive WhatsApp events",
+        "description": "Inbound message and delivery-status webhooks remain disabled until callback verification, signature validation, WABA subscription, account binding, replay handling, and redaction are accepted."
+      },
+      {
+        "id": "whatsapp_business_send_before_review",
+        "label": "Send WhatsApp messages",
+        "description": "Replies, template messages, media, reactions, location, contacts, interactive messages, and every other send remain unavailable before provider acceptance."
+      },
+      {
+        "id": "whatsapp_business_manage_before_review",
+        "label": "Manage WhatsApp business assets",
+        "description": "Templates, phone numbers, profiles, subscriptions, quality settings, and WhatsApp Business Account administration remain unavailable before provider acceptance."
+      },
+      {
+        "id": "whatsapp_business_raw_or_personal",
+        "label": "Use raw APIs or personal WhatsApp",
+        "description": "Arbitrary Graph calls, raw webhook payloads, personal-chat access, browser or device automation, QR-session capture, unofficial libraries, and customer-supplied Meta secrets are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "whatsapp_business_provider_review",
+      "label": "Provider review pending",
+      "description": "No WhatsApp Business action is enabled until Meta approves Relay's production app and the complete customer onboarding, webhook, policy, and revocation contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "whatsapp_business_connect_before_review",
+        "whatsapp_business_receive_before_review",
+        "whatsapp_business_send_before_review",
+        "whatsapp_business_manage_before_review",
+        "whatsapp_business_raw_or_personal"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded WhatsApp Business tools after Meta review; no OpenClaw tool is callable while provider review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded WhatsApp Business tools after Meta review; no Hermes tool is callable while provider review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Meta's official Cloud API requires a Meta business portfolio, WhatsApp Business Account, business phone number, access token, whatsapp_business_management and whatsapp_business_messaging permissions, and an explicitly subscribed webhook receiver. A multi-customer Relay product also needs a Relay-owned Meta app, Embedded Signup and customer asset binding, applicable technology-provider terms, production permission review, secret and callback configuration, and policy enforcement. None of that provider-console or representative-consent work is available to this worker.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should establish Relay's Meta business and developer ownership, accept the applicable technology-provider terms, create and configure the production app and Embedded Signup flow, register https://api.relayconsole.work/api/v1/marketplace/oauth/whatsapp-business/callback and the Railway webhook, request the minimum production permissions, complete Meta review, and run representative customer onboarding. It must verify WABA and phone-number binding, token lifecycle, webhook challenge and signature, event idempotency, message-window and template enforcement, opt-in and opt-out, media redaction, quality and rate errors, disconnect, revocation, and post-disconnect denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://www.postman.com/meta/whatsapp-business-platform/collection/wlk6lh4/whatsapp-cloud-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Meta's official WhatsApp Business Platform collection identifies Cloud API as the hosted business-messaging API, requires a business portfolio, WhatsApp Business Account and phone number, documents user or system-user access tokens, and names whatsapp_business_management and whatsapp_business_messaging as its two core permissions."
+    },
+    {
+      "url": "https://www.postman.com/meta/whatsapp-business-platform/folder/ozgs3jn/webhook-subscriptions",
+      "checkedAt": "2026-07-17",
+      "supports": "Meta's official webhook collection requires an explicit WABA subscription, a webhook server, WABA identifier, and a system-user token with whatsapp_business_management."
+    },
+    {
+      "url": "https://www.facebook.com/legal/BM-tech-provider-terms",
+      "checkedAt": "2026-07-17",
+      "supports": "Meta's technology-provider terms govern customer onboarding and require customer authorization, purpose-limited customer-data processing, protection of customer data, and compliance with the WhatsApp Business Solution terms."
+    },
+    {
+      "url": "https://business.whatsapp.com/policy",
+      "checkedAt": "2026-07-17",
+      "supports": "WhatsApp's Business Messaging Policy requires recipient opt-in, opt-out handling, approved templates for business-initiated conversations, a 24-hour customer-service reply window, human escalation for automation, privacy controls, and compliance with restricted-use rules."
+    }
+  ]
+}

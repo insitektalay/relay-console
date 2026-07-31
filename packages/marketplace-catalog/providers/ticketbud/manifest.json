@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "ticketbud", "name": "Ticketbud", "category": "communication",
+  "description": "Ticketbud is an event ticketing and registration platform for building event pages, selling tickets, managing orders and attendees, checking guests in and connecting ticketing data to other systems.",
+  "agentUseSummary": "Ticketbud is visible as a security-review preview. Relay will not connect while the documented beta API requires bearer access tokens in URL query strings and exposes broad attendee and mutation authority without granular scopes.",
+  "provider": { "websiteUrl": "https://www.ticketbud.com/", "docsUrl": "https://api.ticketbud.com/", "developerConsoleUrl": null, "termsUrl": "https://www.ticketbud.com/terms/", "privacyUrl": "https://www.ticketbud.com/privacy/" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": [], "pkce": false, "refreshTokens": true, "authorizationUrl": "https://api.ticketbud.com/oauth/authorize", "tokenUrl": "https://api.ticketbud.com/oauth/token", "revocationUrl": null },
+  "connection": { "types": ["legacy_query_token_oauth_beta", "security_review_required"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/ticketbud/callback", "webhookRequirements": [] },
+  "capabilities": [{ "id": "ticketing_access", "label": "Access authorized ticketing data", "description": "If Ticketbud publishes a header-based, scoped and lifecycle-complete contract, expose only reviewed ticketing capabilities within the consenting account authority.", "defaultSelected": true }],
+  "actions": { "allowed": [], "approvalRequired": [], "blocked": [
+    { "id": "ticketbud_query_token", "label": "Send access tokens in URLs", "description": "Relay will not place an OAuth bearer token in a URL query string where it can be retained by request logs, intermediaries or diagnostics." },
+    { "id": "ticketbud_people_data", "label": "Expose ticket-holder and purchaser data", "description": "Names, emails, barcodes, QR URLs, purchase status, price, quantities and custom-form responses are not exposed." },
+    { "id": "ticketbud_mutations", "label": "Run Ticketbud mutations", "description": "Check-in reversal, collaboration painting, collaborator invitations and every other mutation are unavailable." },
+    { "id": "ticketbud_runtime_before_review", "label": "Run Ticketbud actions before security review", "description": "No beta API action is callable until Ticketbud documents secure header authentication, scopes, refresh, revocation, bounds and supported event metadata reads." }
+  ] },
+  "approvalProfiles": [{ "id": "ticketbud_security_review", "label": "Security review required", "description": "Connection, installation and agent actions remain unavailable while the provider's beta OAuth contract sends access tokens in query strings and lacks granular authority.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": [], "blockedActions": ["ticketbud_query_token", "ticketbud_people_data", "ticketbud_mutations", "ticketbud_runtime_before_review"] }],
+  "riskLevel": "critical",
+  "runtimeSupport": [{ "format": "openclaw", "installSupport": "preview_only", "description": "No OpenClaw tools are callable under Ticketbud's current query-token beta contract." }, { "format": "hermes", "installSupport": "preview_only", "description": "No Hermes tools are callable under Ticketbud's current query-token beta contract." }],
+  "availability": "deferred",
+  "providerSetup": { "status": "blocked", "blocker": "Ticketbud's official beta API documents OAuth access and refresh tokens but requires every API call to include the access token as a URL parameter. The documented operations expose attendee/purchaser PII, barcodes, check-in mutation and collaborator invitation without scopes, revocation or a safe event-metadata-only contract.", "nextAction": "Ask Ticketbud for a production header-based OAuth contract with granular scopes, complete refresh/revocation semantics, bounded event metadata endpoints and third-party distribution terms. Re-run product and security review only after those materials are published." },
+  "evidence": [
+    { "url": "https://api.ticketbud.com/", "checkedAt": "2026-07-17", "supports": "Ticketbud labels the API beta, documents an authorization-code exchange, two-hour access tokens and refresh tokens, but requires access_token in the URL for all API calls." },
+    { "url": "https://api.ticketbud.com/", "checkedAt": "2026-07-17", "supports": "The documented API surface includes attendee names, email, barcodes, purchaser identity, prices and custom responses plus check-in, collaboration and invitation mutations, without granular scopes or a documented revocation lifecycle." },
+    { "url": "https://www.ticketbud.com/features/integrations/", "checkedAt": "2026-07-17", "supports": "Ticketbud continues to advertise API integrations as a product capability but does not publish a newer production security contract on the official integration page." }
+  ]
+}

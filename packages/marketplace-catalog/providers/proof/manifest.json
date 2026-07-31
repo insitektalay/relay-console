@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "proof",
+  "name": "Proof",
+  "category": "work_management",
+  "description": "Proof is a transaction platform for identity verification, electronic signatures, and remote online notarization. Organizations use its Business and Real Estate APIs to create, monitor, and complete legally significant document workflows.",
+  "agentUseSummary": "Connect one Proof organization with a customer-owned Full Access API key. Agents can list one page of ten redacted Business API transaction-status summaries and inspect one exact transaction status; people, identities, notaries, documents, messages, links, downloads, Real Estate API, child organizations, writes, pagination, and raw API access are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.proof.com/",
+    "docsUrl": "https://dev.proof.com/docs/overview",
+    "developerConsoleUrl": "https://app.proof.com/",
+    "termsUrl": "https://www.proof.com/legal/terms-of-use",
+    "privacyUrl": "https://www.proof.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "bound_organization"],
+    "credentialRequirements": [
+      {
+        "name": "PROOF_API_KEY",
+        "label": "Proof Full Access API key",
+        "required": true,
+        "secret": true,
+        "helpText": "An organization admin creates a customer-owned Full Access key in Proof Settings. Relay encrypts it and uses only the two bounded read tools."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "proof_transaction_list",
+      "label": "List transaction status",
+      "description": "List at most ten transaction status summaries without people, documents, or access links.",
+      "defaultSelected": true
+    },
+    {
+      "id": "proof_transaction_get",
+      "label": "Read transaction status",
+      "description": "Read one exact transaction status summary without people, documents, or access links.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "proof_transaction_list",
+        "label": "List Proof transactions",
+        "description": "List at most ten bounded transaction status summaries from the connected Proof organization."
+      },
+      {
+        "id": "proof_transaction_get",
+        "label": "Get Proof transaction",
+        "description": "Read one exact transaction's bounded status summary by Proof transaction ID."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "proof_private_transaction_data",
+        "label": "Expose private transaction data",
+        "description": "Signer, notary, identity, contact, document, annotation, message, access-link, audit-trail, and presigned-URL data are excluded."
+      },
+      {
+        "id": "proof_transaction_mutation",
+        "label": "Mutate Proof transactions",
+        "description": "Creating, activating, updating, deleting, sending, signing, verifying, notarizing, downloading, and webhook administration are blocked."
+      },
+      {
+        "id": "proof_broad_access",
+        "label": "Use broad Proof access",
+        "description": "Real Estate API, child-organization traversal, pagination, arbitrary filters, raw API paths, redirects, and bulk export are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "proof_read_only",
+      "label": "Read Only",
+      "description": "Run the two bounded status reads; private transaction data and all mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["proof_transaction_list", "proof_transaction_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "proof_private_transaction_data",
+        "proof_transaction_mutation",
+        "proof_broad_access"
+      ]
+    },
+    {
+      "id": "proof_no_access",
+      "label": "No Access",
+      "description": "Expose no Proof actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "proof_transaction_list",
+        "proof_transaction_get",
+        "proof_private_transaction_data",
+        "proof_transaction_mutation",
+        "proof_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted customer-owned API key server-side and mounts exactly two fixed-origin bounded read tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted customer-owned API key server-side and mounts exactly two fixed-origin bounded read tools."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A Proof Business account and organization-admin-created Full Access API key are required. No authorized credentials, paid account, or Fairfax test organization is available in this worker lane.",
+    "nextAction": "An authorized Proof organization admin must create a restricted-purpose Full Access key and connect it through Relay. Then validate bounded status reads, redaction, rate behavior, credential replacement, disconnect, post-disconnect denial, and Notarize alias convergence in Fairfax before any live use."
+  },
+  "evidence": [
+    {
+      "url": "https://dev.proof.com/docs/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Proof documents its Business and Real Estate transaction APIs for identity verification, eSign, and notarization."
+    },
+    {
+      "url": "https://dev.proof.com/docs/api-keys",
+      "checkedAt": "2026-07-17",
+      "supports": "Proof documents customer-created Full Access and Client Only API keys, fixed ApiKey authentication, paid-plan constraints, and separate Fairfax credentials."
+    },
+    {
+      "url": "https://dev.proof.com/reference/getalltransactions",
+      "checkedAt": "2026-07-17",
+      "supports": "Proof documents GET /v1/transactions, status filtering, and limit/offset pagination for Business API transactions."
+    },
+    {
+      "url": "https://dev.proof.com/reference/gettransaction",
+      "checkedAt": "2026-07-17",
+      "supports": "Proof documents GET /v1/transactions/{id} for one exact transaction."
+    },
+    {
+      "url": "https://dev.proof.com/docs/notarize-to-proof-whats-changing",
+      "checkedAt": "2026-07-17",
+      "supports": "Proof recommends api.proof.com for new integrations while retaining api.notarize.com with the same credentials, supporting one canonical Proof identity with a Notarize alias."
+    }
+  ]
+}

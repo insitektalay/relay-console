@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "front",
+  "name": "Front",
+  "category": "crm_support",
+  "description": "Front is a customer-operations platform that brings email, SMS, chat, WhatsApp, and other communication channels into shared team inboxes. Teams use it to manage customer conversations, collaborate internally, automate routing and workflows, maintain contacts, and measure service performance.",
+  "agentUseSummary": "Connect one Front company through OAuth, then let agents read bounded conversation metadata or use the complete account-authorized Core API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://front.com/",
+    "docsUrl": "https://dev.frontapp.com/reference/introduction",
+    "developerConsoleUrl": "https://app.frontapp.com/settings/developers",
+    "termsUrl": "https://front.com/legal/terms-of-service",
+    "privacyUrl": "https://front.com/legal/privacy-notice"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.frontapp.com/oauth/authorize",
+    "tokenUrl": "https://app.frontapp.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_app_oauth",
+      "exact_company_binding",
+      "expiring_access_token",
+      "expiring_refresh_token"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/front/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "conversation_read",
+      "label": "Read conversation metadata",
+      "description": "Read bounded privacy-redacted conversation metadata in the connected Front company.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Front Core API",
+      "description": "Use the complete documented Front Core API surface allowed by the OAuth app and connected company.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "front_conversation_list",
+        "label": "List conversations",
+        "description": "List at most twenty-five privacy-redacted conversation metadata summaries."
+      },
+      {
+        "id": "front_conversation_get",
+        "label": "Read conversation metadata",
+        "description": "Read one privacy-redacted conversation metadata summary by Front conversation ID."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "front_full_api",
+        "label": "Use full Front API",
+        "description": "Use any documented Front Core API operation authorized by the OAuth app; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "front_safe",
+      "label": "Safe",
+      "description": "Bounded privacy-redacted conversation reads run directly; every other Front API operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["front_conversation_list", "front_conversation_get"],
+      "approvalRequiredActions": ["front_full_api"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Front operation runs without Relay per-action approval; company binding, secret isolation, request bounds, audits, provider permissions, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["front_conversation_list", "front_conversation_get", "front_full_api"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Front wrappers and attaches the encrypted OAuth token only to the fixed Front Core API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Front wrappers and attaches the encrypted OAuth token only to the fixed Front Core API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "A Relay-owned Front OAuth app, staging credentials, configured resource permissions, and an authorized admin test account are required for live acceptance outside this code task.",
+    "nextAction": "In the provider-console task, configure the Front app with Relay's exact callback and intended resource permissions, add staging credentials, then verify authorization, company binding, token refresh, bounded reads, Safe approval, Dangerous mutation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://dev.frontapp.com/docs/oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Front documents authorization-code OAuth, the exact authorization and token endpoints, HTTP Basic token authentication, one-hour access tokens, and six-month refresh tokens."
+    },
+    {
+      "url": "https://dev.frontapp.com/docs/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Front requires OAuth for public integrations and configures resource namespaces and read, write, delete, and send permissions on the OAuth application."
+    },
+    {
+      "url": "https://dev.frontapp.com/reference/introduction",
+      "checkedAt": "2026-07-17",
+      "supports": "The official Core API reference fixes the universal API base URL at https://api2.frontapp.com."
+    },
+    {
+      "url": "https://dev.frontapp.com/reference/list-conversations",
+      "checkedAt": "2026-07-17",
+      "supports": "The conversation-list endpoint requires conversations:read and supports bounded pages of at most one hundred results; Relay fixes the first page to at most twenty-five and redacts private content."
+    },
+    {
+      "url": "https://dev.frontapp.com/reference/api-token-details",
+      "checkedAt": "2026-07-17",
+      "supports": "Front documents GET /me for token identity, which Relay uses to bind and revalidate the connected company."
+    }
+  ]
+}

@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "free-local-release-candidate.schema.json",
+  "title": "Relay Console Free Local release candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "status",
+    "releaseId",
+    "createdAt",
+    "source",
+    "product",
+    "scope",
+    "components",
+    "distribution",
+    "requiredAcceptance",
+    "authorization"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.free-local-release-candidate.v2" },
+    "status": { "enum": ["draft", "candidate"] },
+    "releaseId": { "type": "string", "pattern": "^relay-console-free-local-[0-9]+\\.[0-9]+\\.[0-9]+-build-[0-9]+$" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch", "commit", "clean"],
+      "properties": {
+        "branch": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "clean": { "type": "boolean" }
+      }
+    },
+    "product": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["edition", "price", "cloudAccountRequired", "paidEntitlementRequired", "runtimeOwnership"],
+      "properties": {
+        "edition": { "const": "free-local" },
+        "price": { "const": "free" },
+        "cloudAccountRequired": { "const": false },
+        "paidEntitlementRequired": { "const": false },
+        "runtimeOwnership": { "const": "user-managed" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["localConversations", "localAgents", "runtimeConnectivity", "supportedRuntimes", "marketplace", "outOfScope"],
+      "properties": {
+        "localConversations": { "const": true },
+        "localAgents": { "const": true },
+        "runtimeConnectivity": { "const": "same-mac-direct" },
+        "supportedRuntimes": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "enum": ["hermes", "openclaw"] }
+        },
+        "marketplace": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "productionGuarantee"],
+          "properties": {
+            "mode": { "const": "local-preview" },
+            "productionGuarantee": { "const": false }
+          }
+        },
+        "outOfScope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["relayCloud", "relayConnect", "webClient", "iOS", "managedRuntimeHosting", "bridgePluginDistribution"],
+          "properties": {
+            "relayCloud": { "const": true },
+            "relayConnect": { "const": true },
+            "webClient": { "const": true },
+            "iOS": { "const": true },
+            "managedRuntimeHosting": { "const": true },
+            "bridgePluginDistribution": { "const": true }
+          }
+        }
+      }
+    },
+    "components": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["macOS"],
+      "properties": {
+        "macOS": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["version", "build", "bundleIdentifier", "minimumOS", "architectures", "releaseChannel"],
+          "properties": {
+            "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+            "build": { "type": "string", "pattern": "^[1-9][0-9]*$" },
+            "bundleIdentifier": { "const": "com.relayconsole.app" },
+            "minimumOS": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+            "architectures": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "enum": ["arm64", "x86_64"] }
+            },
+            "releaseChannel": { "const": "public-beta" }
+          }
+        }
+      }
+    },
+    "distribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "artifact", "signing", "notarization", "updatePolicy"],
+      "properties": {
+        "method": { "const": "direct-download" },
+        "artifact": { "const": "dmg" },
+        "signing": { "const": "developer-id-hardened-runtime" },
+        "notarization": { "const": "apple-notary-service" },
+        "updatePolicy": { "const": "manual-signed" }
+      }
+    },
+    "requiredAcceptance": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "automated-release-gate",
+          "schema-38-to-40-upgrade",
+          "same-mac-hermes",
+          "same-mac-openclaw",
+          "signed-notarized-quarantined-install",
+          "clean-supported-mac",
+          "accessibility-smoke",
+          "https-publication-and-checksum",
+          "human-go-no-go"
+        ]
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signedArtifactCreation", "publicPublication", "finalOwner"],
+      "properties": {
+        "signedArtifactCreation": { "const": true },
+        "publicPublication": { "const": false },
+        "finalOwner": { "const": "human-release-owner" }
+      }
+    }
+  }
+}

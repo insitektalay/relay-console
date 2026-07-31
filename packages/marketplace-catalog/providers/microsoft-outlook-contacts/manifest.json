@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-outlook-contacts",
+  "name": "Microsoft Outlook Contacts",
+  "category": "communication",
+  "description": "Microsoft Outlook Contacts stores personal and organizational contact records in mailbox contact folders, including names, addresses, phones, organizations, notes, photos, extensions, categories, and change tracking through Microsoft Graph.",
+  "agentUseSummary": "Outlook Contacts cannot yet be connected through Relay. Microsoft Graph separates own-contact read and write scopes from shared-contact scopes, while application permissions can reach every mailbox. Relay exposes no contact data or mutation until its Entra OAuth app, one exact user mailbox, field-redaction rules, and own-versus-shared boundary pass acceptance.",
+  "provider": {
+    "websiteUrl": "https://outlook.office.com/people/",
+    "docsUrl": "https://learn.microsoft.com/graph/api/resources/contact",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/licensing/terms/productoffering/Microsoft365/all",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "offline_access",
+      "User.Read",
+      "Contacts.Read",
+      "Contacts.ReadWrite",
+      "Contacts.Read.Shared",
+      "Contacts.ReadWrite.Shared"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    "revocationUrl": "https://myapps.microsoft.com/"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_microsoft_entra_oauth_app",
+      "microsoft_identity_platform_authorization_code_pkce",
+      "microsoft_graph_v1_delegated_user_access",
+      "tenant_subject_and_mailbox_binding",
+      "own_contacts_read_first_incremental_scope_upgrades",
+      "own_shared_and_delegated_contact_folder_boundaries",
+      "provider_and_representative_mailbox_acceptance_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-outlook-contacts/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "own_contacts_read",
+      "label": "Read own contacts",
+      "description": "After acceptance with Contacts.Read only, list and read bounded fields from the signed-in user's selected contact folders.",
+      "defaultSelected": true
+    },
+    {
+      "id": "own_contacts_manage",
+      "label": "Manage own contacts",
+      "description": "After write acceptance, create, update, move, categorize, or delete one exact contact in a selected own folder with before-state and confirmation controls.",
+      "defaultSelected": false
+    },
+    {
+      "id": "contact_folders_manage",
+      "label": "Manage contact folders",
+      "description": "After write acceptance, create, rename, move, or delete selected contact folders without bulk contact changes.",
+      "defaultSelected": false
+    },
+    {
+      "id": "shared_contacts_read",
+      "label": "Read shared contacts",
+      "description": "After a separate shared-scope upgrade, read only explicitly delegated shared folders and retain the owning mailbox boundary on every result.",
+      "defaultSelected": false
+    },
+    {
+      "id": "shared_contacts_manage",
+      "label": "Manage shared contacts",
+      "description": "After separate shared-write acceptance, mutate one exact shared contact only when both Graph scope and mailbox delegation authorize it.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "outlook_contacts_connect_before_review",
+        "label": "Connect before Entra and mailbox review",
+        "description": "Relay has no accepted OAuth app, tenant and subject binding, representative mailbox, contact folder allowlist, or tested own-versus-shared scope boundary."
+      },
+      {
+        "id": "outlook_contacts_reads_before_acceptance",
+        "label": "Read contacts",
+        "description": "Contacts, folders, names, addresses, phones, organizations, notes, photos, relationships, extensions, categories, and change data remain unavailable."
+      },
+      {
+        "id": "outlook_contacts_mutations",
+        "label": "Change contacts or folders",
+        "description": "Creating, updating, moving, merging, categorizing, deleting, permanently deleting, restoring, importing, exporting, or bulk-changing contacts and folders is blocked."
+      },
+      {
+        "id": "outlook_contacts_shared_and_subscription_mutations",
+        "label": "Use shared or application-wide authority",
+        "description": "Shared or delegated folder access, application permissions across mailboxes, subscriptions, delta-token reuse across mailboxes, and directory or People API expansion are blocked."
+      },
+      {
+        "id": "outlook_contacts_raw_bulk_and_tenant_bypass",
+        "label": "Bypass data or tenant controls",
+        "description": "Cross-tenant or cross-mailbox access, arbitrary OData, unbounded pagination, raw photos, notes or extensions, bulk exports, tokens, private endpoints, and provider-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "outlook_contacts_provider_review",
+      "label": "Provider and mailbox review pending",
+      "description": "No contact action is enabled until Relay's Entra app, delegated scopes, tenant, user and mailbox binding, field minimization, folder and shared boundaries, delta and subscription behavior, revocation, and disconnect contracts pass representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "outlook_contacts_connect_before_review",
+        "outlook_contacts_reads_before_acceptance",
+        "outlook_contacts_mutations",
+        "outlook_contacts_shared_and_subscription_mutations",
+        "outlook_contacts_raw_bulk_and_tenant_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount mailbox- and folder-bounded Outlook Contacts tools after Entra and privacy acceptance; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount mailbox- and folder-bounded Outlook Contacts tools after Entra and privacy acceptance; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Microsoft Graph stores Outlook contacts in mailbox contact folders and exposes fields including personal addresses, phones, organizations, notes, photos, extensions, and relationships. Contacts.Read and Contacts.ReadWrite cover the signed-in user's contacts, while Contacts.Read.Shared and Contacts.ReadWrite.Shared add contacts the user can access through sharing or delegation. Application variants can reach all mailboxes and require admin consent. Contacts support folders, change notifications, delta tracking, extensions, deletion, and permanent deletion. This worker cannot alter Relay's Entra app, grant scopes, capture credentials, run consent or OAuth, obtain a representative mailbox, inspect personal data, or mutate contacts.",
+    "nextAction": "The exclusive provider-console and acceptance task should add https://api.relayconsole.work/api/v1/marketplace/oauth/microsoft-outlook-contacts/callback to Relay's reviewed Entra app and begin with one tenant, one dedicated user, delegated offline_access, User.Read, and Contacts.Read only. Acceptance must verify tenant and subject binding, mailbox and folder ownership, exact field allowlists and redaction for notes, addresses, phones, birthdays, relationships, photos and extensions, OData filters and pagination, stable IDs, delta tokens, subscriptions, duplicate detection, create and update patches, delete versus permanent delete and recovery, import and export prohibition, shared scope isolation, application-permission denial, throttling, consent withdrawal, refresh-token revocation, disconnect, and cross-mailbox denial. Write and shared scopes require separate upgrades."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/graph/api/resources/contact",
+      "checkedAt": "2026-07-17",
+      "supports": "Outlook contacts live in contact folders and support fields, extensions, notifications, delta tracking, create, update, delete, and permanent-delete methods."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/permissions-reference",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft separates delegated own-contact read and write scopes from shared-contact read and write scopes; application variants can access all mailboxes and require admin consent."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/user-list-contacts",
+      "checkedAt": "2026-07-17",
+      "supports": "Contact listing supports default and nested folders, delegated shared-folder scenarios, paging, and constrained OData filtering with Contacts.Read as least privilege."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/contactfolder-post-contacts",
+      "checkedAt": "2026-07-17",
+      "supports": "Creating a contact in an own or specified folder requires Contacts.ReadWrite and can target the signed-in or another authorized mailbox."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/outlook-mail-concept-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph accesses personal contacts stored in primary and shared Exchange Online mailboxes, while archive mailboxes are unsupported."
+    }
+  ]
+}

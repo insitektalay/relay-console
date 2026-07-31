@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "chase",
+  "name": "Chase",
+  "category": "commerce_payments",
+  "description": "Chase is a U.S. bank offering checking and savings accounts, credit cards, lending, investing, and digital banking. Personal customers use Chase Online and the Chase Mobile app to view balances and activity, manage cards and statements, deposit checks, pay bills, and move money.",
+  "agentUseSummary": "Chase is visible as an existing-partner review preview only. Relay will not collect a Chase username, password, one-time code, browser session, account number, card detail, or developer credential, and no agent action is callable until Chase approves a production account-data-sharing contract for Relay.",
+  "provider": {
+    "websiteUrl": "https://www.chase.com/",
+    "docsUrl": "https://developer.chase.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://developer.chase.com/terms",
+    "privacyUrl": "https://www.chase.com/digital/resources/privacy-security/privacy/consumer-privacy-notice"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "existing_chase_partner_relationship_required",
+      "production_api_license_and_onboarding_required",
+      "account_data_sharing_contract_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "approved_consumer_account_read",
+      "label": "Read approved consumer account data",
+      "description": "After Chase partnership and production approval, expose only bounded non-mutating summaries for the connected customer's authorized account types, balances, and recent transaction lifecycle under the exact licensed Account Data Sharing contract.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "chase_connect_before_partner_contract",
+        "label": "Connect before partner contract",
+        "description": "Chase APIs currently require an existing partner relationship. Relay has no approved Account Data Sharing product, API License Agreement, production application, customer-consent contract, credentials, configured security profile, test acceptance, or production authorization."
+      },
+      {
+        "id": "chase_collect_customer_credentials",
+        "label": "Collect customer credentials",
+        "description": "Relay will not ask customers for a Chase username, password, one-time code, browser session, bearer token, account or routing number, card detail, PIN, identity document, Social Security number, security answer, or other banking credential as a substitute for Chase-approved consent."
+      },
+      {
+        "id": "chase_api_actions_before_approval",
+        "label": "Run Chase API actions",
+        "description": "No account, customer, balance, transaction, card, statement, rewards, offer, payment, transfer, deposit, identity, consent, webhook, or other Chase API action can run while partner and product review is pending."
+      },
+      {
+        "id": "chase_money_movement_blocked",
+        "label": "Money movement unavailable",
+        "description": "Payments, transfers, deposits, bill pay, Zelle, wires, card controls, account maintenance, disputes, rewards redemption, offers, lending, investing, and every other financial or account mutation remain outside Relay's planned read-only V1 even after approval."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "chase_existing_partner_review",
+      "label": "Existing-partner review pending",
+      "description": "Agent actions remain unavailable until Chase approves Relay's production Account Data Sharing relationship and engineering implements and validates the exact bounded read-only contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "chase_connect_before_partner_contract",
+        "chase_collect_customer_credentials",
+        "chase_api_actions_before_approval",
+        "chase_money_movement_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No OpenClaw tools are callable until Chase approves Relay and Relay implements the licensed read-only Railway broker."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Hermes tools are callable until Chase approves Relay and Relay implements the licensed read-only Railway broker."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Chase states that its APIs are currently available only to existing partners. A prospective integration must establish a Chase relationship, select an approved product, complete technical onboarding and security configuration, test in Chase environments, pass production acceptance, and enter a separate API License Agreement. Chase's public Account Data Sharing APIs are still marked coming soon, so Relay has no final customer authorization contract, scopes, response schema, redaction obligations, credentials, sandbox approval, or production authority to implement truthfully.",
+    "nextAction": "An authorized Relay business, legal, compliance, privacy, and security owner must establish an eligible Chase partner relationship and obtain a production API License Agreement for Account Data Sharing. The owner must obtain the final Account Aggregation User Consent and Account and Customer Information specifications; document eligible customer products and jurisdictions, exact read permissions, consent copy and duration, redirect and token contracts, credentials and security controls, sandbox and test access, schema and rate limits, data minimization and retention, revocation, disconnect, webhooks, audits, incident duties, and production approval. Engineering can then implement a fixed-origin Railway consent broker and the smallest bounded read-only account-type, balance, and recent transaction-lifecycle V1. Money movement and every mutation remain excluded."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.chase.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Chase presents Account Data Sharing through Account Aggregation User Consent and Account and Customer Information products, currently marked coming soon, and describes its APIs as partner banking capabilities rather than a self-service consumer credential surface."
+    },
+    {
+      "url": "https://developer.chase.com/solutions/chase-our-process/",
+      "checkedAt": "2026-07-18",
+      "supports": "Chase states that its APIs are currently available to existing partners only and requires relationship establishment, product selection, technical onboarding, security configuration, playground and test work, and approval before production."
+    },
+    {
+      "url": "https://developer.chase.com/terms",
+      "checkedAt": "2026-07-18",
+      "supports": "Chase's portal terms limit exposed developer tools to testing and require a separate API License Agreement plus Chase production approval before a live application may access Chase products or services."
+    },
+    {
+      "url": "https://www.chase.com/personal/convenience-tools/digital-banking",
+      "checkedAt": "2026-07-18",
+      "supports": "Chase describes its personal digital banking products as online and mobile tools for statements, account activity, cards, deposits, bill pay, and transfers."
+    }
+  ]
+}

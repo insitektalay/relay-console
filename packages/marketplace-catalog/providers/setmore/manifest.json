@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "setmore",
+  "name": "Setmore",
+  "category": "work_management",
+  "description": "Setmore is an online appointment-scheduling platform for businesses that manage services, staff calendars, availability, customers, and bookings. Teams use it to publish booking pages, coordinate appointments across staff, and keep customer scheduling organized.",
+  "agentUseSummary": "Add the refresh token Setmore issues after approving API access for your Pro account, then choose which agents can use every operation in the current public beta API under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.setmore.com/",
+    "docsUrl": "https://setmore.docs.apiary.io/",
+    "developerConsoleUrl": "https://www.setmore.com/developers",
+    "termsUrl": "https://www.setmore.com/terms",
+    "privacyUrl": "https://www.setmore.com/privacy"
+  },
+  "authentication": { "model": "oauth2", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": true, "authorizationUrl": null, "tokenUrl": "https://developer.setmore.com/api/v1/o/oauth2/token", "revocationUrl": null },
+  "connection": {
+    "types": ["provider_issued_oauth_refresh_token"],
+    "credentialRequirements": [
+      { "name": "SETMORE_REFRESH_TOKEN", "label": "Setmore API refresh token", "required": true, "secret": true, "helpText": "Setmore issues this after approving API access for a Pro account. This is not your Setmore password." }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/setmore/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "schedule_read", "label": "Read scheduling data", "description": "Read all documented services, service categories, staff, availability slots, customer lookup, and appointment-list operations.", "defaultSelected": true },
+    { "id": "schedule_manage", "label": "Manage scheduling", "description": "Create customers and appointments or update an appointment label through every documented mutating beta API operation.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "setmore_api_read", "label": "Read Setmore", "description": "Read bounded services, categories, staff, availability slots, customers, and appointments through documented operations." }],
+    "approvalRequired": [{ "id": "setmore_api_manage", "label": "Manage Setmore", "description": "Create customers and appointments or update an appointment label through Setmore's documented beta API." }],
+    "blocked": [
+      { "id": "setmore_secret_exposure", "label": "Expose credentials", "description": "The provider-issued refresh token and derived access tokens never enter agent-visible requests or results." },
+      { "id": "setmore_unofficial_origin", "label": "Use another API origin", "description": "Every token and scheduling request stays on Setmore's documented developer API origin." },
+      { "id": "setmore_unsupported_endpoint", "label": "Call another endpoint", "description": "Relay permits only the ten operations in Setmore's current public beta API documentation." },
+      { "id": "setmore_unbounded_transfer", "label": "Run an unbounded transfer", "description": "Relay bounds queries, request bodies, responses, redirects, nesting, and execution time." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "setmore_safe", "label": "Safe", "description": "Documented reads and availability checks run directly. Every customer creation or appointment change requires approval.", "defaultSelected": true, "allowedActions": ["setmore_api_read"], "approvalRequiredActions": ["setmore_api_manage"], "blockedActions": ["setmore_secret_exposure", "setmore_unofficial_origin", "setmore_unsupported_endpoint", "setmore_unbounded_transfer"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every documented operation authorized by the connected Setmore refresh token runs without Relay per-action approval. Account authority, exact routes, bounds, token protection, provider limits, and audits still apply.", "defaultSelected": false, "allowedActions": ["setmore_api_read", "setmore_api_manage"], "approvalRequiredActions": [], "blockedActions": ["setmore_secret_exposure", "setmore_unofficial_origin", "setmore_unsupported_endpoint", "setmore_unbounded_transfer"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay exchanges the encrypted provider-issued refresh token server-side and mounts all ten documented beta API operations through fixed-origin bounded tools." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay exchanges the encrypted provider-issued refresh token server-side and mounts all ten documented beta API operations through fixed-origin bounded tools." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Setmore limits API access to Pro accounts reviewed individually by its API team. No approved account or provider-issued refresh token is available for Relay Console production verification.",
+    "nextAction": "The account owner must subscribe to Setmore Pro and email api@setmore.com with their name, registered email, and Relay Console integration use case. After approval, connect the issued refresh token and verify token exchange, reads, Safe approval, Dangerous mutations, redaction, token replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://support.setmore.com/en/articles/579360-request-access-to-the-setmore-api", "checkedAt": "2026-07-15", "supports": "Setmore currently requires a Pro account, an emailed API-access request, provider review, OAuth 2.0, rate-limit compliance, and live-account testing because no sandbox is offered." },
+    { "url": "https://jsapi.apiary.io/apis/setmore", "checkedAt": "2026-07-15", "supports": "Setmore's official Apiary source was last updated 2025-09-03 and documents the provider-issued refresh-token exchange, fixed developer.setmore.com origin, seven non-mutating operations, and three mutations." },
+    { "url": "https://www.setmore.com/developers", "checkedAt": "2026-07-15", "supports": "Setmore describes its product, OAuth 2.0 API, Pro-plan access requirement, live-only environment, booking use cases, and API application process." }
+  ]
+}

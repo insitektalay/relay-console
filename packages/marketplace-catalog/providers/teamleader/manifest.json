@@ -1,0 +1,194 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "teamleader",
+  "name": "Teamleader",
+  "category": "crm_support",
+  "description": "Teamleader Focus is a customer relationship management and work-management platform for small and midsize businesses, combining contacts and companies, deal pipelines, quotations and invoices, projects, time tracking, tasks, tickets, calendars, and reporting. Teams use it to manage customer relationships and coordinate sales and delivery work from one account.",
+  "agentUseSummary": "Connect one Teamleader Focus account through Relay-owned OAuth with only the deals scope, then let agents use three approval-gated bounded reads for the authorizing user and first-page or exact Deal summaries. Relay pins the official API origin and RPC actions, fixes Deal listing to page one and twenty-five results, and excludes customers, contacts, companies, owners, emails, phones, addresses, descriptions, custom fields, activities, files, relationships, quotations, invoices, projects, writes, arbitrary APIs, pagination, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.teamleader.eu/",
+    "docsUrl": "https://developer.focus.teamleader.eu/docs/authentication",
+    "developerConsoleUrl": "https://marketplace.focus.teamleader.eu/eu/en/build/integrations",
+    "termsUrl": "https://www.teamleader.eu/legal/terms-of-service-teamleader-focus",
+    "privacyUrl": "https://www.teamleader.eu/legal/privacy-statement-teamleader-focus"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["deals"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://focus.teamleader.eu/oauth2/authorize",
+    "tokenUrl": "https://focus.teamleader.eu/oauth2/access_token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_app_oauth",
+      "authorization_code_grant",
+      "exact_redirect_uri_allowlist",
+      "exact_authorizing_user_binding",
+      "single_use_rotating_refresh_tokens",
+      "authorizing_user_permission_inheritance"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/teamleader/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "user_read",
+      "label": "Read current user",
+      "description": "Read bounded identity metadata for the exact OAuth-bound user without returning email or account details.",
+      "defaultSelected": true
+    },
+    {
+      "id": "deal_read",
+      "label": "Read deals",
+      "description": "List bounded Deal summaries or inspect one exact Deal without customers, owners, people, descriptions, custom fields, activities, files, or relationships.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "teamleader_user_get",
+        "label": "Read current user",
+        "description": "Read bounded identity metadata for the exact OAuth-bound user."
+      },
+      {
+        "id": "teamleader_deal_list",
+        "label": "List deals",
+        "description": "List at most twenty-five bounded Deal summaries from fixed page one."
+      },
+      {
+        "id": "teamleader_deal_get",
+        "label": "Read deal",
+        "description": "Read one exact bounded Deal summary by UUID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "teamleader_record_mutation",
+        "label": "Change Teamleader data",
+        "description": "Creating, updating, assigning, moving, winning, losing, reopening, duplicating, bulk-changing, or deleting Teamleader records is outside V1."
+      },
+      {
+        "id": "teamleader_private_crm",
+        "label": "Read private CRM data",
+        "description": "Contacts, companies, customers, owners, users beyond the authorizing identity, email addresses, phone numbers, addresses, descriptions, custom fields, notes, activities, files, and relationships are outside V1."
+      },
+      {
+        "id": "teamleader_broader_product",
+        "label": "Access broader Teamleader data",
+        "description": "Deal phases and pipelines, quotations, invoices, products, projects, tasks, time tracking, tickets, calendars, departments, reports, administration, and webhooks are outside V1."
+      },
+      {
+        "id": "teamleader_raw_api",
+        "label": "Call arbitrary Teamleader APIs",
+        "description": "Arbitrary origins, methods, resource actions, filters, sorts, pages, includes, payloads, and raw API access are outside V1."
+      },
+      {
+        "id": "teamleader_bulk_export",
+        "label": "Export Teamleader data",
+        "description": "Automatic pagination, crawling, synchronization, bulk operations, downloads, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "teamleader_safe",
+      "label": "Safe",
+      "description": "All three bounded private CRM reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "teamleader_user_get",
+        "teamleader_deal_list",
+        "teamleader_deal_get"
+      ],
+      "blockedActions": [
+        "teamleader_record_mutation",
+        "teamleader_private_crm",
+        "teamleader_broader_product",
+        "teamleader_raw_api",
+        "teamleader_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only tools run without Relay per-action approval while exact OAuth user and resource binding, fixed origin and actions, the deals scope, limits, audits, redaction, serialized refresh rotation, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "teamleader_user_get",
+        "teamleader_deal_list",
+        "teamleader_deal_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "teamleader_record_mutation",
+        "teamleader_private_crm",
+        "teamleader_broader_product",
+        "teamleader_raw_api",
+        "teamleader_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded approval-gated Teamleader reads and attaches the encrypted OAuth token only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded approval-gated Teamleader reads and attaches the encrypted OAuth token only on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No Relay-owned Teamleader Focus OAuth integration, client credentials, callback allowlist entry, Marketplace review, or live consent evidence is available in this workspace.",
+    "nextAction": "In the provider-console task, register the Relay-owned public Teamleader Focus integration with only the deals scope and callback https://api.relayconsole.work/api/v1/marketplace/oauth/teamleader/callback, complete any listing and review requirements, store environment-specific client credentials, then validate state, exact user binding, bounded reads, serialized single-use refresh rotation, permission denial, uninstall or revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.focus.teamleader.eu/docs/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "The official authentication guide requires a Marketplace-registered OAuth client, exact redirect allowlisting, authorization code exchange with client secret, state verification, one-hour bearer access tokens, and single-use rotating refresh tokens; it identifies users.me for exact authorizing-user binding."
+    },
+    {
+      "url": "https://developer.focus.teamleader.eu/docs/general-principles",
+      "checkedAt": "2026-07-18",
+      "supports": "The official API principles pin HTTPS JSON POST calls to resource.action endpoints at api.focus.teamleader.eu, wrap results under data, document page metadata and rate limits, and enumerate write surfaces that Relay does not expose."
+    },
+    {
+      "url": "https://developer.focus.teamleader.eu/docs/api/deal-pipelines",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Deal Pipelines documentation states that Deal and pipeline APIs require the deals scope; Relay requests no other Teamleader scope."
+    },
+    {
+      "url": "https://support.focus.teamleader.eu/hc/en-150/articles/25691048319377-Getting-started-Can-I-build-a-custom-integration-with-Teamleader-Focus",
+      "checkedAt": "2026-07-18",
+      "supports": "The official support guide distinguishes private integrations from public Marketplace integrations and requires public integrations to complete Marketplace publication requirements; provider-console work remains external to this code iteration."
+    },
+    {
+      "url": "https://www.teamleader.eu/",
+      "checkedAt": "2026-07-18",
+      "supports": "Teamleader publishes Teamleader Focus as its CRM and business-management product for customer, sales, invoicing, project, and work coordination."
+    },
+    {
+      "url": "https://www.teamleader.eu/legal/terms-of-service-teamleader-focus",
+      "checkedAt": "2026-07-18",
+      "supports": "The official terms describe Teamleader Focus subscriptions, user permissions, confidential customer-account data, and customer responsibilities; Relay limits access to documented customer-authorized reads."
+    },
+    {
+      "url": "https://www.teamleader.eu/legal/privacy-statement-teamleader-focus",
+      "checkedAt": "2026-07-18",
+      "supports": "The official privacy statement and related DPA framework recognize personal customer-account data; Relay excludes customer and contact identity plus communication details from Deal results."
+    }
+  ]
+}

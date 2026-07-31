@@ -1,0 +1,189 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "close",
+  "name": "Close",
+  "category": "crm_support",
+  "description": "Close is a sales customer relationship management platform that combines lead and opportunity management with email, calling, SMS, automation, and reporting. Sales teams use it to organize prospective customers, manage pipelines, coordinate follow-up, and track deals from first contact to completion.",
+  "agentUseSummary": "Connect one Close organization through Relay Console OAuth, then let agents use three bounded read-only tools for Organization and Opportunity summaries. Close grants API-key-equivalent access, but Relay V1 excludes leads, contacts, communications, notes, custom fields, users, writes, reports, exports, arbitrary searches, pagination, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.close.com/",
+    "docsUrl": "https://developer.close.com/api/overview/oauth-authentication",
+    "developerConsoleUrl": "https://app.close.com/settings/developer/oauth-apps/",
+    "termsUrl": "https://www.close.com/terms",
+    "privacyUrl": "https://www.close.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["all.full_access", "offline_access"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.close.com/oauth2/authorize/",
+    "tokenUrl": "https://api.close.com/oauth2/token/"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth",
+      "public_app_review",
+      "exact_organization_binding",
+      "exact_authorizing_user_binding",
+      "rotating_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/close/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "organization_read",
+      "label": "Read organization",
+      "description": "Read bounded metadata for the exact connected Close organization.",
+      "defaultSelected": true
+    },
+    {
+      "id": "opportunity_read",
+      "label": "Read opportunities",
+      "description": "List bounded Opportunity summaries or inspect one exact Opportunity.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "close_organization_get",
+        "label": "Read organization",
+        "description": "Read bounded metadata for the exact token-bound Close organization."
+      },
+      {
+        "id": "close_opportunity_list",
+        "label": "List opportunities",
+        "description": "List at most twenty-five bounded Opportunity summaries."
+      },
+      {
+        "id": "close_opportunity_get",
+        "label": "Read opportunity",
+        "description": "Read one exact Opportunity by oppo_ ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "close_record_mutation",
+        "label": "Change CRM records",
+        "description": "Creating, updating, bulk-changing, merging, or deleting Close records is outside V1."
+      },
+      {
+        "id": "close_private_crm",
+        "label": "Read private CRM data",
+        "description": "Leads, contacts, phone numbers, email addresses, communications, activities, notes, files, and custom fields are outside V1."
+      },
+      {
+        "id": "close_broader_crm",
+        "label": "Access broader Close data",
+        "description": "Users beyond the authorizing user, tasks, sequences, workflows, inboxes, reporting, integrations, and administration are outside V1."
+      },
+      {
+        "id": "close_raw_search",
+        "label": "Run arbitrary searches",
+        "description": "Arbitrary paths, filters, search queries, fields, grouping, pages, and raw API access are outside V1."
+      },
+      {
+        "id": "close_bulk_export",
+        "label": "Export Close data",
+        "description": "Automatic pagination, crawling, synchronization, bulk APIs, and exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "close_safe",
+      "label": "Safe",
+      "description": "All three bounded reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "close_organization_get",
+        "close_opportunity_list",
+        "close_opportunity_get"
+      ],
+      "blockedActions": [
+        "close_record_mutation",
+        "close_private_crm",
+        "close_broader_crm",
+        "close_raw_search",
+        "close_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only tools run without Relay per-action approval while exact-organization binding, Close-granted authority, static requests, limits, audit, redaction, refresh rotation, revocation, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "close_organization_get",
+        "close_opportunity_list",
+        "close_opportunity_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "close_record_mutation",
+        "close_private_crm",
+        "close_broader_crm",
+        "close_raw_search",
+        "close_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded Close read wrappers and attaches encrypted OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded Close read wrappers and attaches encrypted OAuth tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay must create the Close OAuth app, request public distribution for customers outside Relay's own organization, configure Railway staging credentials, and authorize a representative Close organization. Those provider-console actions are outside this code-only task.",
+    "nextAction": "In the provider-console task, create the Relay Console OAuth app with https://api.relayconsole.work/api/v1/marketplace/oauth/close/callback, request public access, configure Railway staging credentials, then verify organization choice, exact organization and user binding, rotating refresh, revocation, all three reads, permission denial, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.close.com/integrations/create-an-oauth-app",
+      "checkedAt": "2026-07-17",
+      "supports": "Close lets developers create confidential OAuth apps with an HTTPS callback; apps are private by default and require a public-access request for authorization by other Close customers."
+    },
+    {
+      "url": "https://developer.close.com/api/overview/oauth-authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Close uses authorization code OAuth, all.full_access plus offline_access, one-hour access tokens, rotating refresh tokens, and an authenticated revoke endpoint."
+    },
+    {
+      "url": "https://developer.close.com/api/resources/users/get-me",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /api/v1/me/ identifies the exact current user and organization membership used to verify the token response binding."
+    },
+    {
+      "url": "https://developer.close.com/api/resources/organizations/get",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /api/v1/organization/:id/ returns organization metadata; Relay requests and returns only bounded non-member summary fields."
+    },
+    {
+      "url": "https://developer.close.com/api/resources/opportunities/list",
+      "checkedAt": "2026-07-17",
+      "supports": "Close supports limited Opportunity listing with explicit fields and sorting; Relay fixes these parameters, caps results at twenty-five, and does not paginate or accept a query."
+    },
+    {
+      "url": "https://developer.close.com/api/resources/opportunities/get",
+      "checkedAt": "2026-07-17",
+      "supports": "Close supports exact Opportunity retrieval with an explicit field list; Relay excludes lead, contact, note, custom-field, attachment, user-name, and communication data."
+    }
+  ]
+}

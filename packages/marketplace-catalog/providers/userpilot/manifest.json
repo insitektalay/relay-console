@@ -1,0 +1,163 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "userpilot",
+  "name": "Userpilot",
+  "category": "developer",
+  "description": "Userpilot is a product-growth platform for onboarding, in-app engagement, product analytics, user feedback, and session replay. Product teams use it to guide users, measure adoption, and improve retention.",
+  "agentUseSummary": "Connect one exact Userpilot environment with a customer-owned environment API key and its provider-issued export API origin, then let agents list only bounded, strictly projected tracked feature/event definitions under approval. Relay excludes user/company data, analytics, content, sessions, exports, imports, deletes, writes, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://userpilot.com/",
+    "docsUrl": "https://docs.userpilot.com/api-references/endpoints/lookups/features-events",
+    "developerConsoleUrl": "https://run.userpilot.io/",
+    "termsUrl": "https://userpilot.com/terms/",
+    "privacyUrl": "https://userpilot.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "customer_owned_environment_api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_environment_key",
+      "exact_environment_scope",
+      "exact_userpilot_origin_binding",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "USERPILOT_ENVIRONMENT_API_KEY",
+        "label": "Userpilot environment API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated environment API key and store it only through Relay's encrypted connection flow."
+      },
+      {
+        "name": "USERPILOT_EXPORT_API_ORIGIN",
+        "label": "Userpilot export API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Use https://appex.userpilot.io unless Userpilot provides a dedicated userpilot.io export origin for the environment."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "feature_event_inventory",
+      "label": "List feature and event definitions",
+      "description": "List at most 100 tracked feature/event keys, display names, and data types without user, company, analytics, or content data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "userpilot_feature_event_definitions_list",
+        "label": "List feature and event definitions",
+        "description": "List bounded projected feature/event definitions from one exact Userpilot environment."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "userpilot_user_company_data",
+        "label": "Access user or company data",
+        "description": "Users, companies, IDs, properties, metadata, segments, profiles, and identity data are blocked."
+      },
+      {
+        "id": "userpilot_analytics_content_data",
+        "label": "Access analytics or content data",
+        "description": "Analytics exports, events, sessions, flows, banners, embeds, spotlights, checklists, surveys, and resource-center data are blocked."
+      },
+      {
+        "id": "userpilot_mutation_delete",
+        "label": "Mutate or delete Userpilot data",
+        "description": "Identify, profile updates, event tracking, imports, bulk updates, deletion jobs, and administration are blocked."
+      },
+      {
+        "id": "userpilot_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, non-Userpilot origins, pagination, polling, retries, batches, exports, downloads, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "userpilot_feature_event_inventory_safe",
+      "label": "Safe",
+      "description": "The bounded definition inventory requires approval; user/company data, analytics, content, writes, deletes, bulk data, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["userpilot_feature_event_definitions_list"],
+      "blockedActions": [
+        "userpilot_user_company_data",
+        "userpilot_analytics_content_data",
+        "userpilot_mutation_delete",
+        "userpilot_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded definition inventory runs without Relay per-action approval; exact origin binding, strict projection, response cap, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["userpilot_feature_event_definitions_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "userpilot_user_company_data",
+        "userpilot_analytics_content_data",
+        "userpilot_mutation_delete",
+        "userpilot_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned environment key to an exact HTTPS userpilot.io origin and a projected definition-inventory wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned environment key to an exact HTTPS userpilot.io origin and a projected definition-inventory wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Userpilot administrator must provide a dedicated environment API key and the exact Userpilot export API origin, then store both through Relay. No account, key creation, credential capture, live API request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized Userpilot administrator creates or rotates a dedicated environment key, records the provider-issued export origin, stores both through Relay, then verifies health, one approved definition list, throttling, key rotation/revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.userpilot.com/api-references/endpoints/lookups/features-events",
+      "checkedAt": "2026-07-17",
+      "supports": "Userpilot documents authenticated GET /api/v1/analytics/exports/lookups/features_events returning feature/event display names, keys, and data types. Relay projects only those documented fields and caps output at 100."
+    },
+    {
+      "url": "https://docs.userpilot.com/api-references/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Userpilot documents environment API tokens in the Authorization: Token header, warns that keys carry many privileges, and requires HTTPS. Relay encrypts the key and exposes only one fixed read path."
+    },
+    {
+      "url": "https://docs.userpilot.com/api-references/export/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Userpilot documents bulk analytics exports containing event, user, company, device, browser, and custom metadata plus asynchronous jobs and downloads. Relay blocks export jobs, job polling, downloads, raw analytics, and all personal/customer data."
+    },
+    {
+      "url": "https://docs.userpilot.com/api-references/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Userpilot documents real-time identification/event tracking, bulk profile updates, imports, exports, and deletes. Relay blocks every mutation, bulk, import, export, and deletion surface."
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-merchant-center",
+  "name": "Google Merchant Center",
+  "category": "commerce_payments",
+  "description": "Google Merchant Center manages product data and eligibility across Google shopping surfaces, including processed catalog status and actionable item issues.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth with the exact content scope and bind one accounts/{id} resource. Four stable-v1 wrappers list the first fifty accessible accounts, list the first fifty processed products for the bound account, read one explicit product, or run Relay's fixed fifty-row product-issues report. Relay blocks writes despite the provider scope, administration, arbitrary Merchant Query Language, exports, page tokens, automatic pagination, raw tools, service accounts, v1beta, and the legacy Content API.",
+  "provider": { "websiteUrl": "https://merchants.google.com/", "docsUrl": "https://developers.google.com/merchant/api", "developerConsoleUrl": "https://console.cloud.google.com/apis/library/merchantapi.googleapis.com", "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy", "privacyUrl": "https://policies.google.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["https://www.googleapis.com/auth/content"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth", "tokenUrl": "https://oauth2.googleapis.com/token" },
+  "connection": { "types": ["relay_owned_global_oauth", "selected_merchant_account_binding", "expiring_access_token", "offline_refresh_token", "provider_revocation"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/google-merchant-center/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "accounts_list", "label": "List accounts", "description": "List at most fifty accessible accounts without pagination.", "defaultSelected": true },
+    { "id": "products_list", "label": "List processed products", "description": "List at most fifty products for the bound account.", "defaultSelected": true },
+    { "id": "product_get", "label": "Read processed product", "description": "Read one explicit processed product under the bound account.", "defaultSelected": true },
+    { "id": "product_issues_summary", "label": "Review product issues", "description": "Run one fixed fifty-row product issue report.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_merchant_center_accounts_list", "label": "List Merchant Center accounts", "description": "Read the first fifty accessible Merchant Center accounts." },
+      { "id": "google_merchant_center_products_list", "label": "List Merchant Center products", "description": "Read up to fifty processed products for the bound account." },
+      { "id": "google_merchant_center_product_get", "label": "Get Merchant Center product", "description": "Read one explicit processed product from the bound account." },
+      { "id": "google_merchant_center_product_issues_summary", "label": "Review Merchant Center product issues", "description": "Run Relay's fixed first-page product-issues report." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "google_merchant_center_catalog_mutation", "label": "Mutate catalog data", "description": "Product, input, inventory, data source, promotion, review, and conversion writes are blocked." },
+      { "id": "google_merchant_center_account_admin", "label": "Administer Merchant Center", "description": "Account, subaccount, user, service, shipping, return, registration, and quota administration is blocked." },
+      { "id": "google_merchant_center_arbitrary_query_export", "label": "Query or export Merchant data", "description": "Arbitrary Merchant Query Language, filters, fields, tables, exports, page tokens, and automatic pagination are blocked." },
+      { "id": "google_merchant_center_legacy_raw_access", "label": "Use legacy or raw Merchant APIs", "description": "Raw tools, service accounts, v1beta, Content API, batching, streaming, retries, and polling are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "google_merchant_center_safe", "label": "Safe", "description": "Four stable-v1 bounded reads run automatically while all writes, administration, arbitrary queries, legacy APIs, and pagination remain blocked.", "defaultSelected": true, "allowedActions": ["google_merchant_center_accounts_list", "google_merchant_center_products_list", "google_merchant_center_product_get", "google_merchant_center_product_issues_summary"], "approvalRequiredActions": [], "blockedActions": ["google_merchant_center_catalog_mutation", "google_merchant_center_account_admin", "google_merchant_center_arbitrary_query_export", "google_merchant_center_legacy_raw_access"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The exact scope, bound account, fixed query, fifty-row cap, stable-v1, redaction, and no-write boundaries remain enforced.", "defaultSelected": false, "allowedActions": ["google_merchant_center_accounts_list", "google_merchant_center_products_list", "google_merchant_center_product_get", "google_merchant_center_product_issues_summary"], "approvalRequiredActions": [], "blockedActions": ["google_merchant_center_catalog_mutation", "google_merchant_center_account_admin", "google_merchant_center_arbitrary_query_export", "google_merchant_center_legacy_raw_access"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts four bound-account stable-v1 Merchant reads and attaches encrypted OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts four bound-account stable-v1 Merchant reads and attaches encrypted OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "provider_review_pending", "blocker": "Relay must enable Merchant API, configure and verify the content scope, complete required developer registration, configure Railway staging credentials, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.", "nextAction": "In the provider-console task, configure the canonical Railway callback, API access, exact scope, developer registration, and staging credentials, then verify account binding, four wrappers, stable-v1 paths, fixed report, field redaction, refresh, rotation, revocation, disconnect, and quota/error mapping." },
+  "evidence": [
+    { "url": "https://developers.google.com/merchant/api/reference/rest/accounts_v1/accounts/list", "checkedAt": "2026-07-17", "supports": "Google documents stable-v1 account listing, content authorization, page size, and page tokens Relay does not follow." },
+    { "url": "https://developers.google.com/merchant/api/reference/rest/products_v1/accounts.products", "checkedAt": "2026-07-17", "supports": "Google documents stable-v1 processed product resources, useful product attributes, destination status, item issues, and explicit resource names." },
+    { "url": "https://developers.google.com/merchant/api/reference/rest/products_v1/accounts.products/get", "checkedAt": "2026-07-17", "supports": "Google documents explicit processed product reads, encoded product names, and the content scope." },
+    { "url": "https://developers.google.com/merchant/api/reference/rest/reports_v1/accounts.reports", "checkedAt": "2026-07-17", "supports": "Google documents the stable-v1 product view fields used by Relay's fixed product-issues report." }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "strapi-cloud",
+  "name": "Strapi Cloud",
+  "category": "content_creative",
+  "description": "Strapi Cloud is a managed hosting platform for Strapi, an open-source headless content management system. Teams use it to model structured content, manage editorial drafts, and deliver content to websites, apps, and other digital experiences through generated APIs.",
+  "agentUseSummary": "Enter a dedicated Strapi Content API token once, choose the Strapi Cloud project address and the exact content types agents may use, then let agents read bounded documents, prepare changes, create or update drafts, and publish a reviewed draft under Safe or Dangerous policy. Relay keeps the token encrypted, pins requests to the selected strapiapp.com project and content-type allowlist, and does not expose deletion, uploads, administration, arbitrary filtering or population, GraphQL, custom endpoints, or raw API access.",
+  "provider": {
+    "websiteUrl": "https://strapi.io/",
+    "docsUrl": "https://docs.strapi.io/cms/api/rest",
+    "developerConsoleUrl": "https://cloud.strapi.io/",
+    "termsUrl": "https://strapi.io/terms",
+    "privacyUrl": "https://strapi.io/privacy"
+  },
+  "authentication": {
+    "model": "api_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_token", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "STRAPI_CLOUD_INSTANCE_URL",
+        "label": "Strapi Cloud address",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact public HTTPS project address ending in strapiapp.com. Relay pins this connection to that project."
+      },
+      {
+        "name": "STRAPI_CLOUD_ALLOWED_API_IDS",
+        "label": "Allowed content types",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the plural API IDs agents may use, separated by commas, such as articles,authors."
+      },
+      {
+        "name": "STRAPI_CLOUD_API_TOKEN",
+        "label": "Content API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated Custom token in Settings > Global settings > API Tokens with only the selected content types and required find, findOne, create, and update permissions."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "document_read", "label": "Read content", "description": "List configured content types and read bounded draft or published documents.", "defaultSelected": true },
+    { "id": "document_draft", "label": "Prepare and create drafts", "description": "Prepare exact changes locally and create one draft document.", "defaultSelected": true },
+    { "id": "document_update", "label": "Update drafts", "description": "Update one draft after checking its exact updated time.", "defaultSelected": true },
+    { "id": "document_publish", "label": "Publish reviewed drafts", "description": "Publish one reviewed draft after checking its exact updated time.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "strapi_cloud_content_type_list", "label": "List configured content types", "description": "List the plural API IDs explicitly allowed by this connection." },
+      { "id": "strapi_cloud_document_list", "label": "List documents", "description": "List one bounded page of draft or published documents." },
+      { "id": "strapi_cloud_document_get", "label": "Read document", "description": "Read one explicit draft or published Strapi document." },
+      { "id": "strapi_cloud_document_prepare", "label": "Prepare document change", "description": "Normalize and hash one proposed document change locally." }
+    ],
+    "approvalRequired": [
+      { "id": "strapi_cloud_document_create_draft", "label": "Create draft", "description": "Create one draft in an allowed content type." },
+      { "id": "strapi_cloud_document_update_draft", "label": "Update draft", "description": "Update one draft after an exact updated-time preflight." },
+      { "id": "strapi_cloud_document_publish", "label": "Publish document", "description": "Publish one reviewed draft after an exact updated-time preflight." }
+    ],
+    "blocked": [
+      { "id": "strapi_cloud_destructive", "label": "Delete or unpublish content", "description": "Deletion, unpublishing, discarding, and bulk lifecycle changes are outside V1." },
+      { "id": "strapi_cloud_admin", "label": "Administer Strapi", "description": "Admin users, roles, tokens, schemas, plugins, projects, deployments, releases, review workflows, webhooks, assets, and uploads are outside V1." },
+      { "id": "strapi_cloud_raw", "label": "Use arbitrary Strapi APIs", "description": "Arbitrary REST, GraphQL, filters, population, field selection, custom endpoints, and automatic pagination are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "strapi_cloud_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local preparation run directly; draft creation, draft updates, and publication require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["strapi_cloud_content_type_list", "strapi_cloud_document_list", "strapi_cloud_document_get", "strapi_cloud_document_prepare"],
+      "approvalRequiredActions": ["strapi_cloud_document_create_draft", "strapi_cloud_document_update_draft", "strapi_cloud_document_publish"],
+      "blockedActions": ["strapi_cloud_destructive", "strapi_cloud_admin", "strapi_cloud_raw"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Strapi Cloud V1 operation runs without Relay per-action approval; connection ownership, exact instance and content-type binding, provider token permissions, bounds, preflight checks, audits, redaction, idempotency, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["strapi_cloud_content_type_list", "strapi_cloud_document_list", "strapi_cloud_document_get", "strapi_cloud_document_prepare", "strapi_cloud_document_create_draft", "strapi_cloud_document_update_draft", "strapi_cloud_document_publish"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["strapi_cloud_destructive", "strapi_cloud_admin", "strapi_cloud_raw"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts seven exact Strapi Cloud wrappers and injects the encrypted customer Content API token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts seven exact Strapi Cloud wrappers and injects the encrypted customer Content API token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No customer Strapi Cloud project, allowed plural API IDs, dedicated Content API token, or signed-in provider session was available.",
+    "nextAction": "A project administrator enables Draft & Publish on the selected content types, creates a dedicated expiring Custom Content API token with least-privilege endpoint permissions, enters the project address, allowed plural API IDs, and token, then Relay runs health, bounded reads, Safe approval checks, Dangerous draft create/update, explicit publication, token revocation, and disconnect checks."
+  },
+  "evidence": [
+    { "url": "https://docs.strapi.io/cms/features/api-tokens", "checkedAt": "2026-07-16", "supports": "Strapi Content API tokens authenticate external clients, are separate from Admin tokens, support Read-only, Full access, or Custom endpoint permissions and configurable expiry, and use Bearer authentication." },
+    { "url": "https://docs.strapi.io/cms/api/rest", "checkedAt": "2026-07-16", "supports": "Strapi 5 generates collection Content API routes for bounded list, get, create, update, and delete operations, uses stable documentId identifiers and flattened data, and accepts writes inside a data envelope." },
+    { "url": "https://docs.strapi.io/cms/api/rest/status", "checkedAt": "2026-07-16", "supports": "The REST Content API distinguishes draft and published versions with the status parameter; drafts return publishedAt null." },
+    { "url": "https://docs.strapi.io/cms/features/draft-and-publish", "checkedAt": "2026-07-16", "supports": "Draft & Publish is enabled per content type, new content is a draft when enabled, and Content APIs can request, create, update, and delete draft or published content through the status parameter." },
+    { "url": "https://docs.strapi.io/cloud/cli/cloud-cli", "checkedAt": "2026-07-16", "supports": "Strapi Cloud CLI browser login is a first-party project link and deployment workflow, not a documented public third-party Content API OAuth application grant." }
+  ]
+}

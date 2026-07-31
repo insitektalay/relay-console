@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "telegram",
+  "name": "Telegram",
+  "category": "communication",
+  "description": "Telegram is a cloud messaging platform with personal chats, groups, channels, bots, Mini Apps, an HTTP Bot API, OIDC Login, and the MTProto client protocol.",
+  "agentUseSummary": "Telegram is not currently installable as a persistent Relay provider. Telegram OIDC offers Authorization Code with PKCE for identity and optional linked-bot direct messaging, but documents only a one-hour access token and ID token with no refresh token or programmatic revocation endpoint. Bot tokens grant full bot control, while MTProto uses phone/code/2FA client sessions; neither is delegated account OAuth.",
+  "provider": {
+    "websiteUrl": "https://telegram.org/",
+    "docsUrl": "https://core.telegram.org/bots/telegram-login",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://telegram.org/tos",
+    "privacyUrl": "https://telegram.org/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "oidc_login_is_ephemeral",
+      "oidc_refresh_not_documented",
+      "oidc_programmatic_revocation_not_documented",
+      "bot_token_is_full_bot_control",
+      "mtproto_phone_session_is_not_oauth"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "telegram_persistent_oidc",
+        "label": "Create a persistent OIDC connection",
+        "description": "Telegram documents one-hour OIDC access and ID tokens but no refresh token or Relay-callable programmatic revocation lifecycle."
+      },
+      {
+        "id": "telegram_bot_access",
+        "label": "Retain linked-bot messaging access",
+        "description": "The telegram:bot_access scope grants persistent direct-message authority without a documented per-Relay-connection upstream revoke operation."
+      },
+      {
+        "id": "telegram_bot_token",
+        "label": "Custody a bot token",
+        "description": "A BotFather token gives anyone who holds it full control over the bot and belongs to the bot owner, not the connecting Telegram user."
+      },
+      {
+        "id": "telegram_mtproto_session",
+        "label": "Create a Telegram client session",
+        "description": "MTProto phone, code, passkey, QR, and 2FA authorization creates a persistent client encryption-key session and must not be represented as OAuth."
+      },
+      {
+        "id": "telegram_data_and_messages",
+        "label": "Access Telegram data or messaging",
+        "description": "Profiles, phone numbers, personal chats, groups, channels, messages, bot management, direct messaging, files, contacts, and every read/write remain unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "telegram_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled until Telegram documents a persistent refresh/revocation lifecycle or Relay approves a separate ephemeral-login or bot product.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "telegram_persistent_oidc",
+        "telegram_bot_access",
+        "telegram_bot_token",
+        "telegram_mtproto_session",
+        "telegram_data_and_messages"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "Telegram's current identity, bot, and MTProto lifecycles do not support a durable revocable Relay provider connection."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "Telegram's current identity, bot, and MTProto lifecycles do not support a durable revocable Relay provider connection."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Telegram OIDC does not document refresh tokens or programmatic revocation, telegram:bot_access has no per-installation revoke operation, Bot API tokens grant full bot control, and MTProto is a persistent client login rather than OAuth.",
+    "nextAction": "Do not request Telegram credentials or show Connect. Reconsider after official refresh/revocation documentation, or after a separate product decision accepts an ephemeral identity-only login or a Relay-owned bot with explicit bot-access disconnect risk."
+  },
+  "evidence": [
+    {
+      "url": "https://core.telegram.org/bots/telegram-login",
+      "checkedAt": "2026-07-17",
+      "supports": "Telegram documents OIDC Authorization Code with S256 PKCE, openid/profile/phone/telegram:bot_access scopes, and one-hour access/ID tokens, but no refresh token, UserInfo endpoint, or programmatic revocation endpoint."
+    },
+    {
+      "url": "https://core.telegram.org/bots",
+      "checkedAt": "2026-07-17",
+      "supports": "Telegram states that BotFather issues bot tokens and anyone holding one has full control over the bot."
+    },
+    {
+      "url": "https://core.telegram.org/bots/tutorial",
+      "checkedAt": "2026-07-17",
+      "supports": "Telegram documents bot-token revocation through BotFather, which rotates the bot credential rather than revoking one user's Relay installation."
+    },
+    {
+      "url": "https://core.telegram.org/api/auth",
+      "checkedAt": "2026-07-17",
+      "supports": "Telegram MTProto user authorization binds a persistent encryption key to a user through phone/code, QR, passkey, or 2FA client login rather than delegated OAuth."
+    }
+  ]
+}

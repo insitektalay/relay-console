@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "clickup",
+  "name": "ClickUp",
+  "category": "work_management",
+  "description": "ClickUp is a work management platform that combines tasks, projects, documents, goals, dashboards, and team collaboration in shared Workspaces. Teams use it to plan and assign work, organize tasks into Lists, track status and priority, and coordinate delivery.",
+  "agentUseSummary": "Connect a ClickUp account once, choose the Workspaces to authorize, then select which agents may find and read tasks, prepare changes, create or update tasks, and add comments under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://clickup.com/",
+    "docsUrl": "https://developer.clickup.com/",
+    "developerConsoleUrl": "https://app.clickup.com/settings/apps",
+    "termsUrl": "https://clickup.com/terms",
+    "privacyUrl": "https://clickup.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://app.clickup.com/api",
+    "tokenUrl": "https://api.clickup.com/api/v2/oauth/token"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "clickup_user_account", "selected_workspaces"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/clickup/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "workspace_read", "label": "View Workspaces", "description": "List the Workspaces selected during authorization.", "defaultSelected": true },
+    { "id": "task_read", "label": "Find and read tasks", "description": "Find bounded Workspace tasks, list tasks in one List, and read one explicit task.", "defaultSelected": true },
+    { "id": "task_draft", "label": "Prepare task changes", "description": "Prepare an exact task create, update, or comment locally without changing ClickUp.", "defaultSelected": true },
+    { "id": "task_write", "label": "Create and update tasks", "description": "Create tasks, update bounded task fields, and add comments.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "clickup_workspace_list", "label": "List Workspaces", "description": "List the Workspaces selected during ClickUp authorization." },
+      { "id": "clickup_workspace_task_search", "label": "Find Workspace tasks", "description": "Find a bounded set of accessible tasks from the first page of one authorized Workspace." },
+      { "id": "clickup_list_tasks", "label": "List tasks", "description": "List a bounded set of tasks whose home is one explicit ClickUp List." },
+      { "id": "clickup_task_get", "label": "Read a task", "description": "Read one explicit accessible ClickUp task." },
+      { "id": "clickup_task_prepare", "label": "Prepare a task change", "description": "Prepare and hash one task create, update, or comment locally." }
+    ],
+    "approvalRequired": [
+      { "id": "clickup_task_create", "label": "Create a task", "description": "Create one task in an explicit ClickUp List; Safe mode requires matching approval." },
+      { "id": "clickup_task_update", "label": "Update a task", "description": "Update bounded fields on one explicit ClickUp task; Safe mode requires matching approval." },
+      { "id": "clickup_task_comment_create", "label": "Add a comment", "description": "Add one bounded comment to one explicit ClickUp task; Safe mode requires matching approval." }
+    ],
+    "blocked": [
+      { "id": "clickup_admin", "label": "Administer ClickUp", "description": "Workspace, member, guest, Space, Folder, List, OAuth-app, webhook, and billing administration are outside V1." },
+      { "id": "clickup_destructive", "label": "Delete or bulk-change work", "description": "Task deletion, custom-field and dependency mutation, time tracking, broad exports, and bulk changes are outside V1." },
+      { "id": "clickup_raw_api", "label": "Call arbitrary ClickUp endpoints", "description": "Raw paths, automatic pagination, arbitrary REST requests, and the beta MCP surface are never exposed to agents." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "clickup_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local drafts run directly; each ClickUp task write requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["clickup_workspace_list", "clickup_workspace_task_search", "clickup_list_tasks", "clickup_task_get", "clickup_task_prepare"],
+      "approvalRequiredActions": ["clickup_task_create", "clickup_task_update", "clickup_task_comment_create"],
+      "blockedActions": ["clickup_admin", "clickup_destructive", "clickup_raw_api"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected ClickUp operation supported by this connector runs without Relay per-action approval; connection ownership, Workspace selection, request bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["clickup_workspace_list", "clickup_workspace_task_search", "clickup_list_tasks", "clickup_task_get", "clickup_task_prepare", "clickup_task_create", "clickup_task_update", "clickup_task_comment_create"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["clickup_admin", "clickup_destructive", "clickup_raw_api"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts eight typed ClickUp tools and attaches the authorized user's token server-side without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts eight typed ClickUp tools and attaches the authorized user's token server-side without exposing it to the agent." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay Console's ClickUp OAuth application, exact production redirect URL, client credentials, distribution settings, and a fresh production authorization have not been configured and verified.",
+    "nextAction": "Create a ClickUp OAuth application, register https://api.relayconsole.work/api/v1/marketplace/oauth/clickup/callback, add CLICKUP_CLIENT_ID and CLICKUP_CLIENT_SECRET to Railway, then verify state, Workspace selection and binding, bounded reads, Safe writes, Dangerous writes, local token removal on disconnect, provider-account revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developer.clickup.com/docs/authentication", "checkedAt": "2026-07-16", "supports": "ClickUp documents OAuth 2.0 authorization code for third-party apps, exact redirect URLs, optional state, user-selected Workspaces, confidential token exchange, Bearer authorization, and currently non-expiring access tokens." },
+    { "url": "https://developer.clickup.com/reference/getauthorizedteams", "checkedAt": "2026-07-16", "supports": "ClickUp documents the authorized Workspaces endpoint used to bind and display the Workspaces selected during consent." },
+    { "url": "https://developer.clickup.com/reference/getfilteredteamtasks", "checkedAt": "2026-07-16", "supports": "ClickUp documents first-page Workspace task retrieval, access filtering, and a provider page limit of one hundred tasks." },
+    { "url": "https://developer.clickup.com/reference/gettasks", "checkedAt": "2026-07-16", "supports": "ClickUp documents List task retrieval, home-List semantics, access filtering, and one-hundred-task pages." },
+    { "url": "https://developer.clickup.com/reference/createtask", "checkedAt": "2026-07-16", "supports": "ClickUp documents task creation in one explicit List with bounded standard fields." },
+    { "url": "https://developer.clickup.com/reference/updatetask", "checkedAt": "2026-07-16", "supports": "ClickUp documents bounded task-field updates and requires separate endpoints for custom fields." },
+    { "url": "https://developer.clickup.com/reference/createtaskcomment", "checkedAt": "2026-07-16", "supports": "ClickUp documents adding one text comment to one explicit task." },
+    { "url": "https://developer.clickup.com/docs/rate-limits", "checkedAt": "2026-07-16", "supports": "ClickUp documents per-token plan-based rate limits, HTTP 429, and rate-limit response headers." }
+  ]
+}

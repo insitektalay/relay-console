@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ontraport",
+  "name": "Ontraport",
+  "category": "crm_support",
+  "description": "Ontraport is a customer relationship management, marketing automation, sales, payments, and no-code web-app platform for growing businesses. Teams use it to manage contacts, companies, deals, campaigns, tasks, messages, pages, invoices, subscriptions, transactions, and custom business records in one account.",
+  "agentUseSummary": "Create a dedicated Ontraport App ID and API key, add them once, then choose which agents can use the complete documented hosted-MCP read or management surface under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://ontraport.com/",
+    "docsUrl": "https://ontraport.com/support/My-account/mcp-server",
+    "developerConsoleUrl": "https://app.ontraport.com/",
+    "termsUrl": "https://ontraport.com/legal",
+    "privacyUrl": "https://ontraport.com/legal"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_ontraport_app_id_and_api_key",
+      "official_hosted_mcp"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "ONTRAPORT_APP_ID",
+        "label": "Ontraport App ID",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated integration under Administration, Integrations, Ontraport API Instructions and Key Manager. Relay encrypts the App ID."
+      },
+      {
+        "key": "ONTRAPORT_API_KEY",
+        "label": "Ontraport API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Paste the matching dedicated API key. Relay encrypts it and sends both credentials only to https://mcp.ontraport.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ontraport_read",
+      "label": "Read CRM, automation, tasks, engagement, and commerce",
+      "description": "Use documented hosted-MCP reads for objects, fields, counts, account context, groups, subscribers, activity, messages, notes, tasks, broadcasts, pages, invoices, purchases, payments, and offer validation."
+    },
+    {
+      "id": "ontraport_manage",
+      "label": "Manage CRM, automation, tasks, and commerce",
+      "description": "Use documented hosted-MCP actions for records, relationships, tags, subscriptions, tasks, automations, invoices, charges, refunds, write-offs, and recurring orders."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "ontraport_mcp_read",
+        "label": "Read Ontraport",
+        "description": "Run one exact selected read through Ontraport's official hosted MCP server."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "ontraport_mcp_manage",
+        "label": "Manage Ontraport",
+        "description": "Run one exact selected Ontraport CRM, automation, task, deletion, messaging, invoice, payment, refund, subscription, or commerce mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "ontraport_raw_mcp",
+        "label": "Mount raw MCP",
+        "description": "Relay exposes typed read and manage wrappers instead of an ungoverned provider surface."
+      },
+      {
+        "id": "ontraport_other_origin",
+        "label": "Use another MCP origin",
+        "description": "Credentials are attached only to Ontraport's fixed hosted MCP endpoint."
+      },
+      {
+        "id": "ontraport_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The App ID and API key remain encrypted and are excluded from agent-visible arguments and results."
+      },
+      {
+        "id": "ontraport_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds tool names, arguments, result sizes, nesting, pagination, redirects, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "ontraport_safe",
+      "label": "Safe",
+      "description": "Documented reads run directly; every CRM, automation, task, deletion, messaging, invoice, payment, refund, subscription, and commerce mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "ontraport_mcp_read"
+      ],
+      "approvalRequiredActions": [
+        "ontraport_mcp_manage"
+      ],
+      "blockedActions": [
+        "ontraport_raw_mcp",
+        "ontraport_other_origin",
+        "ontraport_secret_exposure",
+        "ontraport_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected key-authorized Ontraport MCP action runs without Relay per-action approval; ownership, provider permissions, fixed origin, exact allowlists, live schemas, bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "ontraport_mcp_read",
+        "ontraport_mcp_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "ontraport_raw_mcp",
+        "ontraport_other_origin",
+        "ontraport_secret_exposure",
+        "ontraport_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts Ontraport's complete documented hosted-MCP read and management surface through encrypted customer-owned credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts Ontraport's complete documented hosted-MCP read and management surface through encrypted customer-owned credentials."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Ontraport account, approved API application, App ID, or API key is available in this workspace.",
+    "nextAction": "An Ontraport administrator creates a dedicated integration in API Key Manager, completes provider approval if prompted, grants only the intended account permissions, saves the App ID and API key through Relay Console, then validates identity, live schemas, reads, Safe approvals, Dangerous mutations against non-production records, credential replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://ontraport.com/support/My-account/mcp-server",
+      "checkedAt": "2026-07-17",
+      "supports": "Ontraport documents the fixed https://mcp.ontraport.com streamable HTTP server, recommended OAuth, App ID/API key header authentication for orchestration platforms, permission inheritance, secret non-exposure, revocation, bounded-agent cautions, CRUD, query, management, commerce tools, and available object access."
+    },
+    {
+      "url": "https://ontraport.com/support/Integrations/obtain-ontraport-api-key-and-app-id",
+      "checkedAt": "2026-07-17",
+      "supports": "Ontraport documents customer-created App IDs and API keys, possible API application review, dedicated keys per integration, and the requirement to keep those credentials secret."
+    },
+    {
+      "url": "https://ontraport.com/support/Integrations/use-ontraport-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Ontraport documents JSON API access for contacts, transactions, tags, automation maps, account-specific object discovery, and the sensitivity of live customer data."
+    },
+    {
+      "url": "https://ontraport.com/legal",
+      "checkedAt": "2026-07-17",
+      "supports": "Ontraport publishes the service terms, privacy policy, data-processing terms, and related legal conditions governing account and integration use."
+    }
+  ]
+}

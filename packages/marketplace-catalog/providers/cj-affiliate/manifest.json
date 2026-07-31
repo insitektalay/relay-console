@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "cj-affiliate",
+  "name": "CJ Affiliate",
+  "category": "marketing",
+  "description": "CJ Affiliate is an affiliate-marketing network for advertisers and publishers, including programs, relationships, promotional links, products, commissions, actions, tracking, and data feeds.",
+  "agentUseSummary": "CJ Affiliate cannot yet be connected through Relay. CJ APIs use a user-generated Personal Access Token as a bearer credential without published granular scopes, while API availability and authority differ across publisher, advertiser, and technical-partner products; a representative publisher token, Website ID, role, and lifecycle contract is required first.",
+  "provider": {
+    "websiteUrl": "https://www.cj.com/",
+    "docsUrl": "https://developers.cj.com/",
+    "developerConsoleUrl": "https://developers.cj.com/account/personal-access-tokens",
+    "termsUrl": "https://www.cj.com/legal/terms-of-use",
+    "privacyUrl": "https://www.cj.com/legal/privacy-policy-services"
+  },
+  "authentication": {
+    "model": "personal_access_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_personal_access_token",
+      "bearer_authentication",
+      "publisher_role_only",
+      "exact_website_property_id_binding",
+      "api_specific_entitlements",
+      "no_published_granular_scopes"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CJ_PERSONAL_ACCESS_TOKEN",
+        "label": "CJ Personal Access Token",
+        "required": true,
+        "secret": true,
+        "helpText": "Dedicated publisher-user token stored only in Railway's encrypted credential boundary."
+      },
+      {
+        "name": "CJ_WEBSITE_ID",
+        "label": "CJ Website ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Exact publisher Website ID / Property ID used to constrain generated link data."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "cj_credentials",
+        "label": "Collect a CJ token",
+        "description": "Relay does not collect a personal token before representative publisher ownership, role, Website ID, and lifecycle acceptance."
+      },
+      {
+        "id": "cj_publisher_reads",
+        "label": "Read CJ publisher data",
+        "description": "Advertisers, relationships, links, products, commissions, actions, offers, and publisher account data remain unavailable."
+      },
+      {
+        "id": "cj_advertiser_tech_partner",
+        "label": "Access advertiser or tech-partner APIs",
+        "description": "Advertiser tracking, publisher lookup, action imports, product feeds, corrections, and technical-partner APIs are outside the publisher-only boundary."
+      },
+      {
+        "id": "cj_mutations_raw",
+        "label": "Track, import, or use raw CJ APIs",
+        "description": "Actions, conversions, tracking, data imports, feeds, arbitrary endpoints, pagination, bulk export, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "cj_unavailable",
+      "label": "Unavailable",
+      "description": "No CJ Affiliate action is enabled before representative publisher token, role, and Website ID acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "cj_credentials",
+        "cj_publisher_reads",
+        "cj_advertiser_tech_partner",
+        "cj_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No CJ Affiliate wrappers are mounted until a representative publisher establishes the frozen token and property contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No CJ Affiliate wrappers are mounted until a representative publisher establishes the frozen token and property contract."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "CJ users create Personal Access Tokens while logged into the Developer Portal and send them as bearer credentials. CJ publishes no granular PAT scopes and separates publisher-only APIs from advertiser tracking, data imports, technical-partner APIs, and product-specific entitlements; Relay has no representative publisher proving exact account role, Website ID, relationships, available APIs, or token lifecycle.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should obtain authorization from a representative CJ publisher, create a dedicated Personal Access Token without exposing it in reports, bind the exact Website ID, store the token in Railway, and return publisher-role, property and advertiser-relationship binding, rotation and revocation, API entitlement, schemas, quotas, financial and personal-data redaction, denial, and disconnect evidence before implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.cj.com/authentication/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "CJ documents Personal Access Tokens supplied through HTTPS bearer authentication and deprecates legacy developer keys for future APIs."
+    },
+    {
+      "url": "https://developers.cj.com/account/personal-access-tokens",
+      "checkedAt": "2026-07-17",
+      "supports": "CJ requires an authenticated user to create and manage account-bound Personal Access Tokens and warns that they must remain private."
+    },
+    {
+      "url": "https://developers.cj.com/docs/rest-apis/link-search",
+      "checkedAt": "2026-07-17",
+      "supports": "CJ's publisher-only Link Search API requires the bearer token plus an exact Website ID and exposes joined and unjoined advertiser relationships, promotional links, commission terms, and tracking code at a 25-call-per-minute limit."
+    },
+    {
+      "url": "https://developers.cj.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "CJ publishes separate publisher, advertiser, data-import, tracking, product-feed, and technical-partner products and requires a CJ Technical Integration Engineer for advertiser API tracking integration."
+    }
+  ]
+}

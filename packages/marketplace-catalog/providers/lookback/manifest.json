@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "lookback",
+  "name": "Lookback",
+  "category": "work_management",
+  "description": "Lookback is a user-research platform for moderated and unmoderated sessions, participant recordings, transcripts, findings, reels, projects, rounds, and research analysis.",
+  "agentUseSummary": "Connect an authorized Lookback collaborator to the official hosted MCP, then let selected agents navigate permitted research and analyze transcripts, notes, goals, findings, tasks, and summaries. Relay blocks all project, round, finding, reel, theme, participant, and recording mutations.",
+  "provider": {
+    "websiteUrl": "https://www.lookback.com/",
+    "docsUrl": "https://help.lookback.io/en/articles/13793032-lookback-mcp",
+    "developerConsoleUrl": "https://mcp.lookback.io/.well-known/oauth-authorization-server",
+    "termsUrl": "https://www.lookback.com/terms/",
+    "privacyUrl": "https://www.lookback.com/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "offline", "mcp"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://hydra.svc.production.lookback.io/oauth2/auth",
+    "tokenUrl": "https://hydra.svc.production.lookback.io/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_dynamic_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/lookback/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "research_read", "label": "Read user research", "description": "Navigate authorized projects, rounds, recordings, goals, findings, tasks, notes, transcripts, and summaries through verified read-only hosted-MCP tools.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "lookback_mcp_read", "label": "Read Lookback research", "description": "Use one live-discovered, verified non-mutating Lookback MCP tool with bounded arguments." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "lookback_manage", "label": "Change Lookback", "description": "Projects, rounds, findings, reels, themes, participants, recordings, and every other mutation remain blocked." },
+      { "id": "lookback_unverified_tool", "label": "Call an unverified tool", "description": "Mutating names or descriptions, destructive or false-read-only annotations, invalid schemas, credential arguments, and undiscovered tools are blocked." },
+      { "id": "lookback_arbitrary_endpoint", "label": "Call arbitrary endpoints", "description": "Requests are pinned to the official Lookback MCP and provider-discovered schemas; arbitrary REST hosts, paths, and methods are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "lookback_safe", "label": "Safe", "description": "Live-discovered read-only research tools run directly; mutating names and descriptions, unsafe annotations, credential arguments, and every write remain blocked.", "defaultSelected": true, "allowedActions": ["lookback_mcp_read"], "approvalRequiredActions": [], "blockedActions": ["lookback_manage", "lookback_unverified_tool", "lookback_arbitrary_endpoint"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts one bounded read wrapper and proxies user OAuth to Lookback's official hosted MCP." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts one bounded read wrapper and proxies user OAuth to Lookback's official hosted MCP." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No authorized customer collaborator, enabled team MCP setting, dynamically registered Relay OAuth client, consent grant, live tool schema, or safe research fixture is available in this workspace.",
+    "nextAction": "After a team owner enables MCP and Relay's dynamic OAuth client is configured, a collaborator connects through Relay Console and verifies refresh, live read-only tool discovery, bounded research retrieval, private-project isolation, write denial, disconnect, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://help.lookback.io/en/articles/13793032-lookback-mcp", "checkedAt": "2026-07-17", "supports": "Lookback documents the official hosted MCP URL, user OAuth connection, permitted research navigation and transcript analysis, and its broader project, round, finding, reel, and theme mutation surface." },
+    { "url": "https://mcp.lookback.io/.well-known/oauth-protected-resource", "checkedAt": "2026-07-17", "supports": "Lookback publishes the exact protected MCP resource, authorization issuer, Bearer-header method, and openid, offline, and mcp scopes." },
+    { "url": "https://mcp.lookback.io/.well-known/oauth-authorization-server", "checkedAt": "2026-07-17", "supports": "Lookback publishes dynamic client registration, authorization-code and refresh-token grants, S256 PKCE, and public or confidential client authentication." },
+    { "url": "https://help.lookback.io/en/articles/13941898-how-lookback-uses-ai-and-handles-your-data", "checkedAt": "2026-07-17", "supports": "Lookback documents MCP exposure of transcripts, session and project metadata, task instructions and answers, player links instead of media, standard user OAuth, and role-based access." }
+  ]
+}

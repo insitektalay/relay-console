@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "yodlee-fastlink",
+  "name": "Yodlee FastLink",
+  "category": "commerce_payments",
+  "description": "Yodlee FastLink is an embedded account-linking experience for financial applications that connects end users to thousands of institutions and handles credentials, OAuth handoffs, multifactor challenges, and connection errors. Yodlee's platform APIs let contracted partners retrieve enabled account, transaction, holding, statement, consent, verification, and derived financial data for partner-defined users.",
+  "agentUseSummary": "Add a customer's contracted Yodlee environment, client credentials, and exact partner-defined user ID, then let agents read bounded enabled financial data or use the full documented API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.yodlee.com/fastlink",
+    "docsUrl": "https://developer.yodlee.com/products/yodlee/core-apis/docs/api-reference",
+    "developerConsoleUrl": "https://developer.yodlee.com/",
+    "termsUrl": "https://www.yodlee.com/company/terms-of-use",
+    "privacyUrl": "https://www.yodlee.com/legal/privacy-notice"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_yodlee_partner_contract",
+      "customer_owned_client_credentials",
+      "short_lived_exact_user_access_token",
+      "fixed_official_yodlee_environment"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "YODLEE_API_ORIGIN",
+        "label": "Yodlee API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact official Yodlee API origin assigned to the customer's partner environment."
+      },
+      {
+        "name": "YODLEE_CLIENT_ID",
+        "label": "Yodlee client ID",
+        "required": true,
+        "secret": true,
+        "helpText": "The customer's Yodlee client ID, stored encrypted by Railway."
+      },
+      {
+        "name": "YODLEE_CLIENT_SECRET",
+        "label": "Yodlee client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "The customer's Yodlee client secret, stored encrypted by Railway."
+      },
+      {
+        "name": "YODLEE_LOGIN_NAME",
+        "label": "Partner-defined Yodlee user ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact customer-defined Yodlee user identifier this connection is bound to."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "financial_data_read",
+      "label": "Read financial data",
+      "description": "Read bounded exact-user accounts, transactions, holdings, statements, consents, verification, and derived summaries enabled by the customer's Yodlee contract.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Yodlee 1.1 API",
+      "description": "Use the complete documented Yodlee API surface enabled for the customer and exact user.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "yodlee_fastlink_read",
+        "label": "Read Yodlee data",
+        "description": "Read one bounded documented route for the exact partner-defined user."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "yodlee_fastlink_full_api",
+        "label": "Use full Yodlee API",
+        "description": "Use a documented mutation, consent, verification, refresh, or administrative operation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "yodlee_fastlink_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; every mutation and administrative operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "yodlee_fastlink_read"
+      ],
+      "approvalRequiredActions": [
+        "yodlee_fastlink_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Yodlee operation runs without Relay per-action approval; partner authorization, exact-user binding, provider limits, secret isolation, request bounds, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "yodlee_fastlink_read",
+        "yodlee_fastlink_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Yodlee wrappers and mints short-lived user tokens server-side for the fixed customer environment."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Yodlee wrappers and mints short-lived user tokens server-side for the fixed customer environment."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Each customer must hold a Yodlee partner contract with enabled datasets and supply its own environment, client credentials, and partner-defined user. Live FastLink, consent, institution, and data acceptance remains external.",
+    "nextAction": "In the provider-console task, use an approved customer Yodlee partner account to validate token issuance, FastLink 4, exact-user binding, enabled datasets, Safe approval, Dangerous mutation, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.yodlee.com/products/yodlee/core-apis/docs/api-reference",
+      "checkedAt": "2026-07-17",
+      "supports": "Yodlee documents client-credential user access tokens, token deletion, accounts, transactions, holdings, statements, consents, verification, derived data, and the complete API 1.1 resource surface."
+    },
+    {
+      "url": "https://developer.yodlee.com/products/yodlee/link-account-apis/docs/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Yodlee documents FastLink as its recommended account-linking experience and describes credential, MFA, CAPTCHA, token, and open-banking authorization flows."
+    },
+    {
+      "url": "https://developer.yodlee.com/resources/yodlee/fastlink-3/docs/documentation",
+      "checkedAt": "2026-07-17",
+      "supports": "Yodlee documents the server-generated user token used to launch FastLink and states that FastLink handles institution search, credentials, MFA, and errors."
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "eventzilla",
+  "name": "Eventzilla",
+  "category": "communication",
+  "description": "Eventzilla is an event registration and ticketing platform for creating event pages, selling tickets, collecting registrations, communicating with attendees, checking guests in and reporting on event performance.",
+  "agentUseSummary": "Connect a customer-owned Eventzilla application key through Railway's encrypted boundary, then let selected agents list one bounded event page or inspect one exact event without attendee, order or financial data.",
+  "provider": { "websiteUrl": "https://www.eventzilla.net/", "docsUrl": "https://developer.eventzilla.net/docs/", "developerConsoleUrl": "https://app.eventzilla.net/?mode=appmanagement", "termsUrl": "https://www.eventzilla.net/terms-of-service", "privacyUrl": "https://www.eventzilla.net/privacy-policy" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_application_key", "encrypted_secret", "fixed_eventzilla_api_origin", "local_disconnect"],
+    "credentialRequirements": [{ "name": "EVENTZILLA_API_KEY", "label": "Eventzilla API key", "required": true, "secret": true, "helpText": "Create an application key under Eventzilla Settings > App Management and store it encrypted." }],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [{ "id": "event_read", "label": "Read event metadata", "description": "List bounded Eventzilla event summaries and inspect one exact event without people, orders or financial data.", "defaultSelected": true }],
+  "actions": {
+    "allowed": [{ "id": "eventzilla_events_list", "label": "List events", "description": "List at most twenty-five Eventzilla event summaries from offset zero." }, { "id": "eventzilla_event_get", "label": "Read an event", "description": "Read one exact Eventzilla event metadata summary." }],
+    "approvalRequired": [],
+    "blocked": [{ "id": "eventzilla_people_and_financial_data", "label": "Block people and financial data", "description": "Attendees, buyers, orders, transactions, questions, answers, barcodes, promo codes and payment details are not exposed." }, { "id": "eventzilla_mutations", "label": "Block event and registration mutations", "description": "Publishing, checkout, registration, order confirmation, attendee check-in and other writes are not exposed." }, { "id": "eventzilla_raw_api", "label": "Block raw API access", "description": "Arbitrary endpoints, automatic pagination, bulk operations and raw responses are not exposed." }]
+  },
+  "approvalProfiles": [{ "id": "eventzilla_safe", "label": "Safe", "description": "Bounded event reads run directly; people, financial, registration, write, bulk and raw access remain blocked.", "defaultSelected": true, "allowedActions": ["eventzilla_events_list", "eventzilla_event_get"], "approvalRequiredActions": [], "blockedActions": ["eventzilla_people_and_financial_data", "eventzilla_mutations", "eventzilla_raw_api"] }, { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The same selected read surface runs without Relay per-action approval; credential ownership, fixed origin, bounds and redaction still apply.", "defaultSelected": false, "allowedActions": ["eventzilla_events_list", "eventzilla_event_get"], "approvalRequiredActions": [], "blockedActions": ["eventzilla_people_and_financial_data", "eventzilla_mutations", "eventzilla_raw_api"] }],
+  "riskLevel": "high",
+  "runtimeSupport": [{ "format": "openclaw", "installSupport": "installable", "description": "Relay mounts two typed Eventzilla event reads and attaches the encrypted application key only to the fixed API origin." }, { "format": "hermes", "installSupport": "installable", "description": "Relay mounts two typed Eventzilla event reads and attaches the encrypted application key only to the fixed API origin." }],
+  "availability": "available",
+  "providerSetup": { "status": "not_required", "blocker": null, "nextAction": "The customer creates an application key under Eventzilla Settings > App Management, enters it in Relay, selects event-read capability and chooses Safe or Dangerous policy per agent install." },
+  "evidence": [
+    { "url": "https://developer.eventzilla.net/docs/", "checkedAt": "2026-07-17", "supports": "Eventzilla documents HTTPS JSON API v2 at www.eventzillaapi.net, customer-created application x-api-key authentication, key disablement and offset/limit pagination." },
+    { "url": "https://developer.eventzilla.net/docs/#events", "checkedAt": "2026-07-17", "supports": "Eventzilla documents list and exact-event reads under /api/v2/events, including event identifiers, titles, status, dates, timezone and event URL fields." },
+    { "url": "https://www.eventzilla.net/platform/eventzilla-api/", "checkedAt": "2026-07-17", "supports": "Eventzilla advertises its event-management API as a supported integration surface with documentation and support." }
+  ]
+}

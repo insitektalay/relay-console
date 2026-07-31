@@ -1,0 +1,205 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-maps-platform",
+  "name": "Google Maps Platform",
+  "category": "developer",
+  "description": "Google Maps Platform provides address geocoding, place search, and route computation through server-side APIs.",
+  "agentUseSummary": "Connect a customer-owned billed-project Google Maps Platform API key, stored encrypted by Railway and restricted to Relay server egress plus the Geocoding, Places, and Routes APIs. Four wrappers resolve one address, reverse-geocode one coordinate pair, search up to ten places with fixed basic fields, or compute one distance-and-duration route summary. Relay blocks raw endpoints, expanded place content, browser and visual Maps products, tracking, navigation, batch use, exports, storage, automatic pagination and retries, writes, and administration.",
+  "provider": {
+    "websiteUrl": "https://mapsplatform.google.com/",
+    "docsUrl": "https://developers.google.com/maps/documentation",
+    "developerConsoleUrl": "https://console.cloud.google.com/google/maps-apis/credentials",
+    "termsUrl": "https://cloud.google.com/maps-platform/terms",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_server_api_key",
+      "railway_encrypted_secret",
+      "ip_restricted",
+      "api_restricted"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "GOOGLE_MAPS_PLATFORM_API_KEY",
+        "label": "Google Maps Platform API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Customer-owned billed-project API key stored encrypted by Railway and restricted to Relay server egress plus the Geocoding, Places, and Routes APIs."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "geocode",
+      "label": "Geocode address",
+      "description": "Resolve one address to bounded location matches.",
+      "defaultSelected": true
+    },
+    {
+      "id": "reverse_geocode",
+      "label": "Reverse geocode",
+      "description": "Resolve coordinates to bounded address matches.",
+      "defaultSelected": true
+    },
+    {
+      "id": "place_search",
+      "label": "Search places",
+      "description": "Find up to ten places with basic display and location fields.",
+      "defaultSelected": true
+    },
+    {
+      "id": "route_summary",
+      "label": "Compute route summary",
+      "description": "Read one distance and duration summary without route geometry.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "google_maps_platform_geocode_address",
+        "label": "Geocode address",
+        "description": "Resolve one explicit address to up to five bounded location matches."
+      },
+      {
+        "id": "google_maps_platform_reverse_geocode",
+        "label": "Reverse geocode coordinates",
+        "description": "Resolve one explicit coordinate pair to up to five bounded address matches."
+      },
+      {
+        "id": "google_maps_platform_search_places",
+        "label": "Search places",
+        "description": "Run one bounded text search and return up to ten basic place matches."
+      },
+      {
+        "id": "google_maps_platform_compute_route",
+        "label": "Compute route summary",
+        "description": "Compute one route summary between two explicit coordinate pairs without a polyline or steps."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "google_maps_platform_raw_maps",
+        "label": "Use raw Maps APIs",
+        "description": "Raw endpoints, arbitrary fields, browser SDKs, tiles, Static Maps, Street View, and embedded maps are blocked."
+      },
+      {
+        "id": "google_maps_platform_place_private_content",
+        "label": "Access expanded place content",
+        "description": "Place details, photos, reviews, phone numbers, websites, opening hours, autocomplete, and user content are blocked."
+      },
+      {
+        "id": "google_maps_platform_tracking_navigation",
+        "label": "Track or navigate",
+        "description": "Tracking, geofencing, route matrices, turn-by-turn navigation, traffic-aware monitoring, and location histories are blocked."
+      },
+      {
+        "id": "google_maps_platform_bulk_persist",
+        "label": "Bulk or persist Maps data",
+        "description": "Batch geocoding, exports, caching, storage, automatic pagination, polling, and automatic retries are blocked."
+      },
+      {
+        "id": "google_maps_platform_mutation_admin",
+        "label": "Mutate or administer Maps",
+        "description": "Edits, uploads, account administration, billing operations, key management, and project administration are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "google_maps_platform_bounded_reads",
+      "label": "Bounded reads",
+      "description": "Four single-request location reads run automatically; expanded place content, tracking, raw Maps access, bulk use, persistence, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "google_maps_platform_geocode_address",
+        "google_maps_platform_reverse_geocode",
+        "google_maps_platform_search_places",
+        "google_maps_platform_compute_route"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_maps_platform_raw_maps",
+        "google_maps_platform_place_private_content",
+        "google_maps_platform_tracking_navigation",
+        "google_maps_platform_bulk_persist",
+        "google_maps_platform_mutation_admin"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The fixed hosts, paths, fields, result caps, no-persistence rule, and single-request read-only boundaries remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "google_maps_platform_geocode_address",
+        "google_maps_platform_reverse_geocode",
+        "google_maps_platform_search_places",
+        "google_maps_platform_compute_route"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_maps_platform_raw_maps",
+        "google_maps_platform_place_private_content",
+        "google_maps_platform_tracking_navigation",
+        "google_maps_platform_bulk_persist",
+        "google_maps_platform_mutation_admin"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded Maps reads and attaches the encrypted API key server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded Maps reads and attaches the encrypted API key server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No customer-owned billed Google Cloud project or restricted Maps server key is available for acceptance. Credential creation, billing, provider-console changes, secret capture, and Railway configuration are outside this worker task.",
+    "nextAction": "A customer creates a dedicated billed project and server key restricted to Relay server egress plus Geocoding, Places, and Routes APIs, enters it through Relay's encrypted credential flow, then acceptance verifies all four wrappers, quotas, key isolation, response redaction, denial behavior, rotation, and error mapping."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/maps/documentation/geocoding/requests-geocoding",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents forward and reverse geocoding requests, API-key authentication, result statuses, place IDs, formatted addresses, types, and bounded location geometry."
+    },
+    {
+      "url": "https://developers.google.com/maps/documentation/places/web-service/text-search",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents Places API Text Search (New), POST textQuery requests, API-key headers, mandatory field masks, and paginated results Relay does not follow."
+    },
+    {
+      "url": "https://developers.google.com/maps/documentation/routes/compute_route_directions",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents Routes API Compute Routes requests, coordinate waypoints, travel modes, mandatory response field masks, alternatives, and route summaries."
+    },
+    {
+      "url": "https://developers.google.com/maps/api-security-best-practices",
+      "checkedAt": "2026-07-17",
+      "supports": "Google recommends separate, restricted API keys with both application and API restrictions; Relay requires backend-IP and exact-API restrictions."
+    }
+  ]
+}

@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "creatio",
+  "name": "Creatio",
+  "category": "crm_support",
+  "description": "Creatio is a no-code platform that combines customer relationship management with composable workflows and business applications. Teams use its shared data model and process automation to coordinate sales, service, marketing, accounts, contacts, leads, opportunities, cases, activities, orders, contracts, products, and other operational records.",
+  "agentUseSummary": "Add an official Creatio Cloud tenant and a dedicated least-privilege integration user, then choose which agents can read or manage selected OData 4 core records under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.creatio.com/",
+    "docsUrl": "https://academy.creatio.com/docs/developer/integrations_and_api/data_services/odata/overview/odata_odata_4",
+    "developerConsoleUrl": "https://academy.creatio.com/docs/developer/integrations_and_api/authentication/authentication_basics/overview",
+    "termsUrl": "https://www.creatio.com/sites/default/files/2019-12/MASTER_LICENSE_AGREEMENT.pdf",
+    "privacyUrl": "https://www.creatio.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_integration_user",
+      "forms_authentication",
+      "csrf_protected_session",
+      "official_creatio_cloud_tenant_boundary",
+      "odata_4"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CREATIO_HOST",
+        "label": "Creatio Cloud domain",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter only the lowercase Creatio Cloud domain, such as acme.creatio.com, without a scheme or path."
+      },
+      {
+        "name": "CREATIO_USERNAME",
+        "label": "Creatio integration username",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated integration user's login whose Creatio object, record, and column permissions Relay should preserve."
+      },
+      {
+        "name": "CREATIO_PASSWORD",
+        "label": "Creatio integration password",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the dedicated user's password. Relay encrypts it and sends it only to the validated tenant authentication service."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crm_read",
+      "label": "Read CRM and business records",
+      "description": "Read bounded records and selected fields from core account, contact, lead, opportunity, case, activity, campaign, contract, document, invoice, order, and product entities.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crm_manage",
+      "label": "Manage CRM and business records",
+      "description": "Create, update, and delete records in selected core Creatio CRM and low-code business entities.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "creatio_api_read",
+        "label": "Read Creatio",
+        "description": "Read bounded selected core CRM and low-code business records through Creatio's OData 4 service."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "creatio_api_manage",
+        "label": "Manage Creatio",
+        "description": "Create, update, or delete a selected core Creatio record through one exact OData 4 operation."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "creatio_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer username, password, authentication cookies, and CSRF token never enter agent-visible requests or results."
+      },
+      {
+        "id": "creatio_unofficial_origin",
+        "label": "Use another origin",
+        "description": "Every authentication and OData request stays on the exact configured official Creatio Cloud tenant."
+      },
+      {
+        "id": "creatio_unsupported_operation",
+        "label": "Call another operation",
+        "description": "Relay blocks arbitrary and on-site hosts, arbitrary objects and paths, raw OData expressions, expansions, metadata and discovery, custom web services, DataService, business-process execution, imports, exports, files, communications, administration, users, roles, licenses, configuration, OAuth and SSO administration, webhooks, raw MCP, and undocumented operations."
+      },
+      {
+        "id": "creatio_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay performs one request at a time and bounds entities, fields, filters, offsets, pages, bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "creatio_safe",
+      "label": "Safe",
+      "description": "Selected bounded core-record reads run directly. Every create, update, and delete requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["creatio_api_read"],
+      "approvalRequiredActions": ["creatio_api_manage"],
+      "blockedActions": [
+        "creatio_secret_exposure",
+        "creatio_unofficial_origin",
+        "creatio_unsupported_operation",
+        "creatio_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected record mutations authorized by the dedicated Creatio user run without Relay per-action approval. Exact tenant binding, provider permissions, typed routes, bounds, cookie protection, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["creatio_api_read", "creatio_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "creatio_secret_exposure",
+        "creatio_unofficial_origin",
+        "creatio_unsupported_operation",
+        "creatio_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway authenticates the encrypted dedicated user only at the exact Creatio Cloud tenant and mounts selected OData 4 reads and mutations through bounded tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway authenticates the encrypted dedicated user only at the exact Creatio Cloud tenant and mounts selected OData 4 reads and mutations through bounded tools."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "Each Creatio Cloud tenant must supply a dedicated least-privilege integration user. No authorized tenant, username, password, representative records, object and column permission matrix, enabled OData entity list, or tenant customizations are available in this code-only worker for live acceptance.",
+    "nextAction": "An authorized Creatio administrator should create and license a dedicated integration user, grant only the selected object, record, and column permissions, connect the exact creatio.com tenant and encrypted credentials through Relay, and then verify forms authentication, CSRF-protected OData access, representative bounded reads and filters, Safe approval, Dangerous create/update/delete with cleanup, permission denial, throttling, custom-field compatibility, cookie and credential redaction, password rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://academy.creatio.com/docs/developer/integrations_and_api/authentication/authentication_basics/overview",
+      "checkedAt": "2026-07-18",
+      "supports": "Creatio documents forms authentication through the tenant AuthService Login endpoint, ForceUseSession, the dedicated username/password body, returned BPMLOADER, ASPXAUTH, BPMCSRF, and UserName cookies, CSRF handling, and least-privilege integration-user guidance."
+    },
+    {
+      "url": "https://academy.creatio.com/docs/developer/integrations_and_api/data_services/odata/overview/odata_odata_4",
+      "checkedAt": "2026-07-18",
+      "supports": "Creatio documents the /0/odata OData 4 service, GET, POST, PATCH, and DELETE record operations, UUID record addressing, JSON bodies, session and CSRF headers, and select, top, skip, orderby, and filter query parameters."
+    },
+    {
+      "url": "https://academy.creatio.com/docs/developer/architecture/development_in_creatio/integrations/overview",
+      "checkedAt": "2026-07-18",
+      "supports": "Creatio identifies OData 4 as the preferred OData protocol for integrations and distinguishes data CRUD from DataService, process, and custom-service surfaces."
+    },
+    {
+      "url": "https://academy.creatio.com/docs/user/setup_and_administration/user_and_access_management/access_management/operation_permissions/object_operation_permissions",
+      "checkedAt": "2026-07-18",
+      "supports": "Creatio documents provider-enforced create, read, update, and delete object permissions assigned to users and roles."
+    },
+    {
+      "url": "https://www.creatio.com/privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "Creatio publishes its current privacy policy for its sites, products, and services."
+    }
+  ]
+}

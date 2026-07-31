@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "logseq",
+  "name": "Logseq",
+  "category": "knowledge_documents",
+  "description": "Logseq is a privacy-first, open-source knowledge-management outliner for linked pages, journals, blocks, tasks, properties, queries, and whiteboards. Individuals and teams use local graphs to capture ideas, connect references, plan work, and build a long-lived personal or collaborative knowledge base.",
+  "agentUseSummary": "Bind one exact local DB graph and source host, then let selected agents list bounded recent pages or tasks, read exact pages or blocks, and append one bounded block through Logseq's official CLI under Safe or Dangerously skip permissions. Railway stores connection and install policy without receiving a root directory, filesystem path, cloud login, or provider credential.",
+  "icon": {
+    "assetName": "marketplace-logo-logseq.png",
+    "sourceUrl": "https://asset.logseq.com/static/img/logo.png"
+  },
+  "provider": {
+    "websiteUrl": "https://logseq.com/",
+    "docsUrl": "https://github.com/logseq/logseq/blob/master/docs/cli/logseq-cli.md",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://logseq.com/terms",
+    "privacyUrl": "https://logseq.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "none",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["official_local_cli", "device_local_source_host", "exact_local_db_graph_binding", "no_filesystem_path"],
+    "credentialRequirements": [
+      {
+        "name": "LOGSEQ_SOURCE_HOST_ID",
+        "label": "Source host",
+        "required": true,
+        "secret": false,
+        "helpText": "A connected Hermes or OpenClaw source host with the current official Logseq DB CLI and local graph."
+      },
+      {
+        "name": "LOGSEQ_SOURCE_HOST_TYPE",
+        "label": "Source host type",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact hermes_bridge, openclaw_bridge, or runtime_host authority."
+      },
+      {
+        "name": "LOGSEQ_GRAPH",
+        "label": "Local DB graph",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact local DB graph name under the CLI's default root. Relay never receives a filesystem path."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "graph_read",
+      "label": "Read local graph",
+      "description": "List up to twenty recent pages or tasks and read one exact page or block with child-level and response bounds.",
+      "defaultSelected": true
+    },
+    {
+      "id": "graph_capture",
+      "label": "Capture to graph",
+      "description": "Append at most 16 KiB as one last-child block on one exact page.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "logseq_list_pages", "label": "List recent pages", "description": "List at most twenty recently updated pages in the selected local graph." },
+      { "id": "logseq_list_tasks", "label": "List recent tasks", "description": "List at most twenty recently updated tasks in the selected local graph." },
+      { "id": "logseq_show_page", "label": "Read page", "description": "Read one exact page with bounded child level and response size." },
+      { "id": "logseq_show_block", "label": "Read block", "description": "Read one exact block UUID with bounded child level and response size." },
+      { "id": "logseq_append_block", "label": "Append block", "description": "Append one bounded block as the last child of one exact page." }
+    ],
+    "blocked": [
+      { "id": "logseq_raw_command", "label": "Run unsupported command", "description": "Raw queries and search, broader upserts, moves, removals, files, exports, backups, sync, login, server control, debug, configuration, arbitrary offsets, and filesystem paths are outside Relay's V1 surface." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "logseq_safe",
+      "label": "Safe",
+      "description": "Private graph reads and block capture require approval. Exact source-host and graph binding, structured output, bounds, and audits always apply.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["logseq_list_pages", "logseq_list_tasks", "logseq_show_page", "logseq_show_block", "logseq_append_block"],
+      "blockedActions": ["logseq_raw_command"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All five selected Logseq actions run without Relay per-action approval; exact source-host and graph binding, structured output, bounds, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["logseq_list_pages", "logseq_list_tasks", "logseq_show_page", "logseq_show_block", "logseq_append_block"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["logseq_raw_command"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway registers bounded tools and dispatches only to the exact connected OpenClaw source host and local DB graph; no filesystem path or cloud credential is stored by Relay."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway registers bounded tools and dispatches only to the exact connected Hermes source host and local DB graph; no filesystem path or cloud credential is stored by Relay."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer installs the current Logseq nightly application that includes the official DB CLI, ensures one local DB graph exists under the CLI's default root, connects that device as a Relay source host, and saves the exact graph name."
+  },
+  "evidence": [
+    {
+      "url": "https://github.com/logseq/logseq/blob/master/docs/cli/logseq-cli.md",
+      "checkedAt": "2026-07-17",
+      "supports": "Logseq documents an official `logseq` Node CLI for local DB graphs, exact `--graph` selection, structured JSON output, bounded page/task lists, exact page/block show commands, and block creation at a specified position."
+    },
+    {
+      "url": "https://github.com/logseq/docs/blob/master/db-version.md",
+      "checkedAt": "2026-07-17",
+      "supports": "Logseq documents its DB graph model, local-first CLI, optional MCP and HTTP server, journals, tasks, properties, sync, publish, plugins, exports, and scripting; Relay selects the local CLI and excludes the broader raw surfaces."
+    },
+    {
+      "url": "https://github.com/logseq/logseq",
+      "checkedAt": "2026-07-17",
+      "supports": "Logseq identifies itself as a privacy-first open-source knowledge-management platform and links its official CLI documentation and releases."
+    }
+  ]
+}

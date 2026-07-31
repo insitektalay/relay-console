@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "openphone",
+  "name": "Quo (formerly OpenPhone)",
+  "category": "communication",
+  "description": "Quo, formerly OpenPhone, is a collaborative business-phone platform for calling, messaging, shared numbers, contacts, team workflows, analytics, and AI-assisted customer communications.",
+  "agentUseSummary": "Add one customer-owned Quo owner/admin workspace API key, then let agents list at most ten privacy-masked phone-number labels through one fixed read without exposing raw numbers, provider IDs, users, contacts, forwarding, restrictions, communications, content, writes, billing, pagination, or raw APIs.",
+  "provider": {
+    "websiteUrl": "https://www.quo.com/",
+    "docsUrl": "https://openphone.mintlify.dev/docs/mdx/api-reference/introduction",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.quo.com/terms",
+    "privacyUrl": "https://www.quo.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_workspace_api_key",
+      "owner_or_admin_generated",
+      "full_workspace_authority_read_surface_only",
+      "raw_authorization_header_not_bearer",
+      "canonical_api_openphone_com_origin",
+      "manual_provider_revocation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "OPENPHONE_API_KEY",
+        "label": "Quo workspace API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a full-access workspace key as a Quo owner or admin. Relay encrypts it, sends it only as the raw Authorization value to api.openphone.com, and exposes one fixed masked read. Delete the key manually in Quo Workspace Settings to revoke provider access."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "phone_number_read",
+      "label": "List workspace phone numbers",
+      "description": "Inspect at most ten privacy-masked phone-number labels from the connected Quo workspace.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "openphone_phone_numbers_list",
+        "label": "List workspace phone numbers",
+        "description": "Read at most ten privacy-masked phone-number labels without provider IDs, users, forwarding, restrictions, or raw digits."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "openphone_users_contacts_identity",
+        "label": "Block users, contacts, and identity",
+        "description": "Users, owner/admin identity, email, roles, groups, Contacts, custom fields, and provider IDs are unavailable."
+      },
+      {
+        "id": "openphone_communications_content",
+        "label": "Block communications and content",
+        "description": "Calls, recordings, transcripts, voicemail, Conversations, Messages, participants, forwarding, AI output, webhooks, and communication content are unavailable."
+      },
+      {
+        "id": "openphone_writes_billing_raw",
+        "label": "Block writes, billing, and raw access",
+        "description": "SMS/MMS sending, contact mutations, phone administration, carrier registration, paid messaging, later pages, arbitrary filters, writes, deletes, and raw APIs are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "openphone_safe",
+      "label": "Safe",
+      "description": "The one fixed masked-number read runs automatically; users, contacts, communications, content, writes, billing, pagination, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["openphone_phone_numbers_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "openphone_users_contacts_identity",
+        "openphone_communications_content",
+        "openphone_writes_billing_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same fixed read runs without Relay per-action approval; exact encrypted key authority, route, bounds, masking, audits, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["openphone_phone_numbers_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "openphone_users_contacts_identity",
+        "openphone_communications_content",
+        "openphone_writes_billing_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts one typed masked-number read while Railway alone holds the customer-owned full-workspace API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts one typed masked-number read while Railway alone holds the customer-owned full-workspace API key."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A representative active paid Quo workspace, owner/admin-generated API key, developer registration, API-terms review, any required prior written monetization approval, staging credential entry, and live validation remain for separate authorized tasks.",
+    "nextAction": "After batch integration, an authorized Quo owner/admin must create a dedicated key and validate raw Authorization, the fixed phone-number route, privacy masking, ten-record and 512 KiB bounds, 429 behavior without retry, encrypted-copy deletion, manual provider revocation, and post-revocation denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.quo.com/core-concepts/integrations/api",
+      "checkedAt": "2026-07-18",
+      "supports": "Quo documents owner/admin-generated API keys, active paid subscription requirements, full workspace access, encrypted key handling, manual deletion, and provider rate-limit behavior."
+    },
+    {
+      "url": "https://openphone.mintlify.dev/docs/mdx/api-reference/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "The official API reference requires the API key as the raw Authorization header value; it does not document Bearer, OAuth scopes, PKCE, or refresh tokens."
+    },
+    {
+      "url": "https://openphone.mintlify.dev/docs/mdx/api-reference/phone-numbers/list-phone-numbers",
+      "checkedAt": "2026-07-18",
+      "supports": "The official reference documents GET /v1/phone-numbers and its sensitive adjacent phone-number, user, forwarding, restriction, porting, timestamp, and identifier fields, which Relay minimizes and masks."
+    },
+    {
+      "url": "https://openphone.mintlify.dev/docs/mdx/api-reference/rate-limits",
+      "checkedAt": "2026-07-18",
+      "supports": "Quo documents an API-key rate limit of ten requests per second. Relay performs one request per action and does not retry."
+    },
+    {
+      "url": "https://www.quo.com/blog/next-chapter/",
+      "checkedAt": "2026-07-18",
+      "supports": "The provider officially documents the September 2025 rebrand from OpenPhone to Quo while existing product and API continuity remains."
+    },
+    {
+      "url": "https://www.quo.com/docs/mdx/pricing-support/terms-of-service",
+      "checkedAt": "2026-07-18",
+      "supports": "Quo's API terms require developer registration and prior written approval for monetizing an API application, keeping live release externally gated."
+    }
+  ]
+}

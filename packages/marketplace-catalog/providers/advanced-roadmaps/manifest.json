@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "advanced-roadmaps",
+  "name": "Advanced Roadmaps",
+  "category": "project_management",
+  "description": "Advanced Roadmaps, now called Plans in Jira, is Atlassian's cross-project planning experience for Jira Premium, Enterprise and Data Center. Teams use plans to combine work from boards, projects and filters, model hierarchy, dependencies, capacity, releases and scenarios, and coordinate long-range delivery across teams.",
+  "agentUseSummary": "Advanced Roadmaps is not a separate Relay account provider. Its Cloud plan resources use the canonical Jira site, user, OAuth scopes, permissions and REST origin, so supported plan calls must run through Relay's existing Jira connection rather than a duplicate Advanced Roadmaps credential or policy surface.",
+  "provider": {
+    "websiteUrl": "https://www.atlassian.com/software/jira",
+    "docsUrl": "https://support.atlassian.com/jira-software-cloud/docs/what-is-advanced-roadmaps/",
+    "developerConsoleUrl": "https://developer.atlassian.com/console/myapps/",
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "canonical_jira_provider_only",
+      "jira_cloud_premium_or_enterprise_plan_feature",
+      "same_jira_site_oauth_and_permissions",
+      "experimental_jira_cloud_plans_rest_api",
+      "administer_jira_global_permission_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "advanced_roadmaps_separate_connect",
+        "label": "Connect Advanced Roadmaps separately",
+        "description": "Plans are part of the connected Jira Cloud site and have no separate account, OAuth grant, token, tenant or revocation lifecycle."
+      },
+      {
+        "id": "advanced_roadmaps_duplicate_tools",
+        "label": "Mount duplicate plan tools",
+        "description": "Documented Cloud plan routes must use the canonical Jira connector's site-bound REST tools, scopes, approval profile and audit trail."
+      },
+      {
+        "id": "advanced_roadmaps_permission_bypass",
+        "label": "Bypass Jira administration",
+        "description": "Atlassian requires the Administer Jira global permission for every experimental Cloud plan REST operation; Relay cannot weaken or substitute that permission."
+      },
+      {
+        "id": "advanced_roadmaps_unsafe_mutation",
+        "label": "Mutate plans without Jira policy",
+        "description": "Plan creation, duplication, JSON Patch updates, archive and trash operations remain Jira mutations and must follow the canonical Jira Safe or Dangerous policy."
+      },
+      {
+        "id": "advanced_roadmaps_data_center_proxy",
+        "label": "Proxy Data Center APIs",
+        "description": "Advanced Roadmaps Data Center exposes separate Team Management, Live Plans and Java APIs on customer infrastructure; those are not interchangeable with the Jira Cloud connection."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "advanced_roadmaps_canonical_jira",
+      "label": "Use Jira",
+      "description": "No separate Advanced Roadmaps actions are enabled. Connect the canonical Jira provider and apply its selected capabilities and Safe or Dangerous profile to documented Cloud plan routes.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "advanced_roadmaps_separate_connect",
+        "advanced_roadmaps_duplicate_tools",
+        "advanced_roadmaps_permission_bypass",
+        "advanced_roadmaps_unsafe_mutation",
+        "advanced_roadmaps_data_center_proxy"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No separate Advanced Roadmaps tools are mounted; OpenClaw uses the canonical Jira connector for documented site-bound Cloud plan routes."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No separate Advanced Roadmaps tools are mounted; Hermes uses the canonical Jira connector for documented site-bound Cloud plan routes."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Advanced Roadmaps is a Jira feature rather than a separate provider authority. Cloud Plans requires Jira Premium or Enterprise, and its experimental REST operations use the same Jira Cloud site and OAuth resource while requiring the connected user to hold the Administer Jira global permission. Relay's canonical Jira connector already accepts documented `/rest/api/3` reads and mutations under its site binding, scopes and approval policy; a second connection would duplicate credentials, install state, consent, refresh, disconnect and audit semantics.",
+    "nextAction": "Do not show a separate Advanced Roadmaps Connect action. Complete and validate the canonical Jira OAuth setup, connect one eligible Jira Premium or Enterprise site with an appropriately governed Jira administrator only when plan API access is required, and call documented plan routes through Jira's existing tools and policy. Keep Data Center integration separate unless Relay later implements its customer-hosted authority explicitly."
+  },
+  "evidence": [
+    {
+      "url": "https://support.atlassian.com/jira-software-cloud/docs/what-is-advanced-roadmaps/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian now describes Advanced Roadmaps as Plans included with Jira Premium and Enterprise, combining Jira work from boards, projects and filters for cross-team planning."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-plans/",
+      "checkedAt": "2026-07-18",
+      "supports": "The experimental Jira Cloud Plans REST group uses `/rest/api/3`, requires read:jira-work or write:jira-work plus Administer Jira, and supports list, get, create, update, duplicate, archive and trash operations."
+    },
+    {
+      "url": "https://support.atlassian.com/jira-software-cloud/docs/where-do-i-find-advanced-roadmaps/",
+      "checkedAt": "2026-07-18",
+      "supports": "Plans appears inside the eligible Jira site's navigation and is controlled by that Jira license and Jira administration."
+    },
+    {
+      "url": "https://developer.atlassian.com/server/jira/platform/integrating-with-portfolio-for-jira/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents Advanced Roadmaps Data Center as part of Jira Software Data Center with separate Team Management, Live Plans and Java integration APIs."
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "moosend",
+  "name": "Moosend",
+  "category": "marketing_analytics",
+  "description": "Moosend is an email marketing platform for mailing lists, subscribers, campaigns, automation, segments, forms, and reporting.",
+  "agentUseSummary": "Connect one Moosend account with an encrypted customer-generated account API key. Relay contains the broad key with one selected mailing list, non-email subscriber ID, and campaign ID, exposes only subscriber timestamps and non-statistical campaign lifecycle metadata, and blocks private data, content, senders, statistics, broad access, exports, and mutations.",
+  "provider": {
+    "websiteUrl": "https://moosend.com/",
+    "docsUrl": "https://docs.moosend.com/api-documentation",
+    "developerConsoleUrl": "https://platform.moosend.com/settings/apikey",
+    "termsUrl": "https://moosend.com/terms-of-service/",
+    "privacyUrl": "https://moosend.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["account_api_key"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_account_api_key",
+      "selected_mailing_list",
+      "selected_non_email_subscriber_id",
+      "selected_campaign",
+      "non_statistical_campaign_details"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MOOSEND_API_KEY",
+        "label": "Moosend API key",
+        "required": true,
+        "secret": true,
+        "helpText": "A customer-generated account API key; Relay encrypts it and sends it only to the fixed api.moosend.com request."
+      },
+      {
+        "name": "MOOSEND_MAILING_LIST_ID",
+        "label": "Selected mailing list ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact list containing the selected subscriber."
+      },
+      {
+        "name": "MOOSEND_SUBSCRIBER_ID",
+        "label": "Selected subscriber ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact non-email subscriber ID whose ID and timestamps Relay may read."
+      },
+      {
+        "name": "MOOSEND_CAMPAIGN_ID",
+        "label": "Selected campaign ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact campaign whose bounded non-statistical details Relay may read."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "moosend_subscriber_summary_get",
+      "label": "Read selected subscriber summary",
+      "description": "Read only the ID and timestamps for one selected subscriber without identity, email, status, preferences, custom fields, tags, IP, or activity.",
+      "defaultSelected": true
+    },
+    {
+      "id": "moosend_campaign_summary_get",
+      "label": "Read selected campaign summary",
+      "description": "Read bounded lifecycle metadata for one selected campaign without message content, sender data, recipients, lists, or statistics.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "moosend_subscriber_summary_get",
+        "label": "Read selected subscriber summary",
+        "description": "Read the selected subscriber's ID and timestamps while discarding all personal, preference, and engagement fields."
+      },
+      {
+        "id": "moosend_campaign_summary_get",
+        "label": "Read selected campaign summary",
+        "description": "Read the selected campaign's ID, status, transactional flag, and timestamps using the non-statistical details endpoint."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "moosend_private_data",
+        "label": "Expose private marketing data",
+        "description": "Subscriber identity, email, status, preferences, custom fields, tags, IP, and activity plus campaign name, subject, content, sender, recipients, lists, links, and statistics are excluded."
+      },
+      {
+        "id": "moosend_mutation",
+        "label": "Mutate Moosend state",
+        "description": "Subscribers, lists, segments, campaigns, sends, automation, webhooks, and every other mutation are blocked."
+      },
+      {
+        "id": "moosend_broad_access",
+        "label": "Use broad Moosend access",
+        "description": "Other subscribers, lists, campaigns, segments, reports, arbitrary paths or queries, redirects, downloads, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "moosend_read_only",
+      "label": "Read Only",
+      "description": "Read one selected subscriber and campaign through an encrypted account API key; private data, broader access, statistics, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "moosend_subscriber_summary_get",
+        "moosend_campaign_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "moosend_private_data",
+        "moosend_mutation",
+        "moosend_broad_access"
+      ]
+    },
+    {
+      "id": "moosend_no_access",
+      "label": "No Access",
+      "description": "Expose no Moosend actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "moosend_subscriber_summary_get",
+        "moosend_campaign_summary_get",
+        "moosend_private_data",
+        "moosend_mutation",
+        "moosend_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted customer API key server-side and mounts exactly two selected-resource projected reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted customer API key server-side and mounts exactly two selected-resource projected reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A Moosend staging account, newly generated account API key, mailing-list ID, non-email subscriber ID, and campaign ID are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "The provider-console lane must generate a new staging API key, capture it directly in Railway, bind exact resource IDs, then validate both redacted reads, query-key containment, non-statistical campaign selection, authorization and rate errors, key replacement, regeneration revocation, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.moosend.com/api-documentation/articles/KnowledgeBase/54552-Authenticate-a-Moosend-API-request?lang=en_US",
+      "checkedAt": "2026-07-17",
+      "supports": "Moosend documents one unique account API key, required as the apikey query parameter for every request, and regeneration as the replacement path."
+    },
+    {
+      "url": "https://docs.moosend.com/api-documentation/articles/KnowledgeBase/54580-Get-subscriber-by-ID?lang=en_US",
+      "checkedAt": "2026-07-17",
+      "supports": "Moosend documents GET /v3/subscribers/{MailingListID}/find/{SubscriberID}.json and the identity, email, status, preferences, tags, custom fields, and timestamps returned; Relay exposes only ID and timestamps."
+    },
+    {
+      "url": "https://docs.moosend.com/api-documentation/articles/KnowledgeBase/54586-Get-campaign-details?lang=en_US",
+      "checkedAt": "2026-07-17",
+      "supports": "Moosend documents GET /v3/campaigns/{CampaignID}/view.json as the selected campaign details endpoint without statistics and lists the message, sender, and audience details Relay excludes."
+    },
+    {
+      "url": "https://docs.moosend.com/api-documentation/articles/KnowledgeBase/54604-Get-campaign-summary?lang=en_US",
+      "checkedAt": "2026-07-17",
+      "supports": "Moosend documents that the separate view-summary endpoint returns recipient, open, click, bounce, complaint, forward, unsubscribe, and send statistics; Relay does not call it."
+    }
+  ]
+}

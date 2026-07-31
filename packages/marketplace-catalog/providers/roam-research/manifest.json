@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "roam-research",
+  "name": "Roam Research",
+  "category": "knowledge_documents",
+  "description": "Roam Research is a note-taking and knowledge-management workspace built around networked pages, outline blocks, backlinks, and graph relationships. Researchers and teams use it to capture ideas, connect references, develop arguments, and revisit related work over time.",
+  "agentUseSummary": "Bind one exact graph on a connected source host, then let selected agents search, read bounded pages or blocks, and append bounded Markdown to daily notes through Roam's official CLI under Safe or Dangerously skip permissions. Railway stores connection and install policy, while the provider-issued graph token stays in the official CLI's device-local configuration.",
+  "icon": {
+    "assetName": "marketplace-logo-roam-research.ico",
+    "sourceUrl": "https://roamresearch.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://roamresearch.com/",
+    "docsUrl": "https://github.com/Roam-Research/roam-tools/tree/main/packages/cli",
+    "developerConsoleUrl": null,
+    "termsUrl": null,
+    "privacyUrl": null
+  },
+  "authentication": {
+    "model": "none",
+    "relayOwned": false,
+    "scopes": ["read-append"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["official_local_cli", "device_local_source_host", "exact_graph_binding", "provider_granted_read_append"],
+    "credentialRequirements": [
+      {
+        "name": "ROAM_RESEARCH_SOURCE_HOST_ID",
+        "label": "Source host",
+        "required": true,
+        "secret": false,
+        "helpText": "A connected Hermes or OpenClaw source host with Node.js 18+, the official Roam CLI, and an approved graph connection."
+      },
+      {
+        "name": "ROAM_RESEARCH_SOURCE_HOST_TYPE",
+        "label": "Source host type",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact hermes_bridge, openclaw_bridge, or runtime_host authority."
+      },
+      {
+        "name": "ROAM_RESEARCH_GRAPH",
+        "label": "Graph name or nickname",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact graph name or nickname configured by the official CLI. Relay never receives the graph token."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "graph_read",
+      "label": "Read connected graph",
+      "description": "Search up to twenty results and read one exact page or block with depth and response bounds.",
+      "defaultSelected": true
+    },
+    {
+      "id": "daily_capture",
+      "label": "Capture to daily notes",
+      "description": "Append at most 16 KiB of Markdown to one daily note without editing existing content.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "roam_research_search", "label": "Search graph", "description": "Search at most twenty matching pages or blocks in the selected graph." },
+      { "id": "roam_research_get_page", "label": "Read page", "description": "Read one exact page with bounded child depth and response size." },
+      { "id": "roam_research_get_block", "label": "Read block", "description": "Read one exact block UID with bounded child depth and response size." },
+      { "id": "roam_research_append_daily_note", "label": "Append to daily note", "description": "Append bounded Markdown to one exact daily note without editing existing content." }
+    ],
+    "blocked": [
+      { "id": "roam_research_raw_command", "label": "Run unsupported command", "description": "Raw CLI and Datalog queries, semantic search, page or block create/update/move/delete, comments, navigation, shortcuts, file operations, graph setup, token management, and arbitrary pagination are outside Relay's V1 surface." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "roam_research_safe",
+      "label": "Safe",
+      "description": "Private graph reads and daily-note capture require approval. Exact source-host and graph binding, provider-granted read-append authority, graph guidelines, bounds, and audits always apply.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["roam_research_search", "roam_research_get_page", "roam_research_get_block", "roam_research_append_daily_note"],
+      "blockedActions": ["roam_research_raw_command"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected Roam actions run without Relay per-action approval; exact source-host and graph binding, provider-granted read-append authority, graph guidelines, bounds, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["roam_research_search", "roam_research_get_page", "roam_research_get_block", "roam_research_append_daily_note"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["roam_research_raw_command"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway registers bounded tools and dispatches only to the exact connected OpenClaw source host; the graph token stays in the official CLI's device-local configuration."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway registers bounded tools and dispatches only to the exact connected Hermes source host; the graph token stays in the official CLI's device-local configuration."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer installs Node.js 18+ and @roam-research/roam-cli 0.9.0+ on a source host, runs roam connect for one exact graph with read-append access, approves the token in the Roam desktop app, and saves that graph name or nickname in Relay."
+  },
+  "evidence": [
+    {
+      "url": "https://www.npmjs.com/package/@roam-research/roam-cli",
+      "checkedAt": "2026-07-17",
+      "supports": "Roam publishes an official alpha CLI requiring Node.js 18+ and the desktop app, with exact graph selection, read-only/read-append/full permission tiers, graph guidelines, bounded search and reads, and append-only daily-note capture."
+    },
+    {
+      "url": "https://github.com/Roam-Research/roam-tools/tree/main/packages/cli",
+      "checkedAt": "2026-07-17",
+      "supports": "Roam's official repository identifies the CLI package and its fixed command surface; Relay selects four typed wrappers and excludes raw, destructive, navigation, token, and file operations."
+    },
+    {
+      "url": "https://roamresearch.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Roam describes its product as a networked note-taking tool for organizing long-term research and lists API access and apps as a paid-plan feature."
+    }
+  ]
+}

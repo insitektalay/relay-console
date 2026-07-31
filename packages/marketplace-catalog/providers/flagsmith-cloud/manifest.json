@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "flagsmith-cloud",
+  "name": "Flagsmith Cloud",
+  "category": "developer",
+  "description": "Flagsmith Cloud manages feature flags, remote configuration, environments, segments, identities, experiments, and controlled releases.",
+  "agentUseSummary": "Connect a view-only service-account token bound to one non-production project. Relay approval-gates bounded project feature metadata reads while values, states, environments, identities, owners, overrides, experiments, and mutations remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.flagsmith.com/",
+    "docsUrl": "https://api.flagsmith.com/api/v1/docs/",
+    "developerConsoleUrl": "https://app.flagsmith.com/",
+    "termsUrl": "https://www.flagsmith.com/terms-of-service",
+    "privacyUrl": "https://www.flagsmith.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["project_view"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_service_account_token",
+      "project_view_permission",
+      "exact_project_binding",
+      "fixed_cloud_admin_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "FLAGSMITH_CLOUD_SERVICE_ACCOUNT_TOKEN",
+        "label": "Flagsmith Cloud service-account token",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated service account restricted to view one project."
+      },
+      {
+        "name": "FLAGSMITH_CLOUD_PROJECT_ID",
+        "label": "Flagsmith Cloud project ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one non-production numeric project."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read feature metadata",
+      "description": "Read bounded project-level feature metadata with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "flagsmith_cloud_sensitive_read",
+        "label": "Read Flagsmith Cloud features",
+        "description": "Read bounded project-level feature metadata."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "flagsmith_cloud_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Service-account tokens and authorization headers never enter agent-visible inputs or results."
+      },
+      {
+        "id": "flagsmith_cloud_private_data",
+        "label": "Read flag values or identities",
+        "description": "Initial and multivariate values, environments, states, overrides, identities, owners, metadata, segments, experiments, and code references are excluded."
+      },
+      {
+        "id": "flagsmith_cloud_mutation",
+        "label": "Mutate Flagsmith",
+        "description": "Feature, state, environment, segment, identity, experiment, project, permission, token, and every other mutation remain provider-side."
+      },
+      {
+        "id": "flagsmith_cloud_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only project feature list and exact GETs run on api.flagsmith.com with stored project binding; arbitrary paths, queries, pagination, evaluation, exports, and self-hosted origins are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "flagsmith_cloud_safe",
+      "label": "Safe",
+      "description": "Both metadata reads require approval; project/view authority, fixed Cloud routes, bounds, redaction, audits, and value/evaluation/mutation blocks remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["flagsmith_cloud_sensitive_read"],
+      "blockedActions": [
+        "flagsmith_cloud_secret_exposure",
+        "flagsmith_cloud_private_data",
+        "flagsmith_cloud_mutation",
+        "flagsmith_cloud_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected metadata read runs without Relay approval; project/view authority, fixed Cloud routes, bounds, redaction, audits, and value/evaluation/mutation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["flagsmith_cloud_sensitive_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "flagsmith_cloud_secret_exposure",
+        "flagsmith_cloud_private_data",
+        "flagsmith_cloud_mutation",
+        "flagsmith_cloud_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted project-view token server-side and mounts two approval-gated metadata reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted project-view token server-side and mounts two approval-gated metadata reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Flagsmith requires a customer organization, dedicated view-only service account/token, and one project. This worker may not create or configure them.",
+    "nextAction": "Create the restricted staging account/token outside this worker, configure token and project ID in Railway staging, then verify binding, reads, redaction, approvals, bounds, revocation, disconnect, and denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.flagsmith.com/api/v1/swagger.json",
+      "checkedAt": "2026-07-18",
+      "supports": "Flagsmith Cloud's live official OpenAPI pins token authentication, project feature list/exact GETs, pagination, response fields, and separate mutation routes."
+    },
+    {
+      "url": "https://docs.flagsmith.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Flagsmith documents Cloud feature flags, remote configuration, environments, SDKs, and the REST API."
+    }
+  ]
+}

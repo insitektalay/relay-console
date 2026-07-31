@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "wise-personal",
+  "name": "Wise Personal",
+  "category": "commerce_payments",
+  "description": "Wise Personal is a multi-currency account and international money-transfer product for individuals. Customers use it to hold and convert supported currencies, send money, receive account details, use a Wise card where available, and track personal transfers.",
+  "agentUseSummary": "Wise Personal is visible as a partner-review preview only. Relay will not collect a Wise password, browser session, Wise Business personal API token, payment credential, or identity-verification data, and no agent action is callable until Wise approves a customer OAuth and mTLS contract for personal profiles.",
+  "provider": {
+    "websiteUrl": "https://wise.com/",
+    "docsUrl": "https://docs.wise.com/guides/developer/auth-and-security",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://wise.com/terms-and-conditions",
+    "privacyUrl": "https://wise.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["wise_platform_partnership_required", "oauth_mtls_required", "personal_profile_contract_required"],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "approved_personal_read",
+      "label": "Read approved personal data",
+      "description": "After partner approval, expose only the provider-approved non-mutating personal-profile, balance, exchange-rate, and exact transfer-status surface documented in Relay's signed Wise Platform contract.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "wise_personal_connect_before_partner_approval",
+        "label": "Connect before partner approval",
+        "description": "Relay has no current Wise Platform partnership, approved customer OAuth application, client credentials, mTLS certificate, redirect registration, sandbox tenant, personal-profile scope, permitted operation list, or compliance allocation."
+      },
+      {
+        "id": "wise_personal_collect_customer_credentials",
+        "label": "Collect customer credentials",
+        "description": "Relay will not ask customers for a Wise password, browser session, bearer token, Wise Business personal API token, card or bank credential, identity document, tax identifier, or verification response as a substitute for provider-approved OAuth."
+      },
+      {
+        "id": "wise_personal_api_actions_before_approval",
+        "label": "Run Wise Personal API actions",
+        "description": "No personal-profile, balance, rate, quote, recipient, transfer, card, account-detail, identity, statement, webhook, or status API action can run while partner review is pending."
+      },
+      {
+        "id": "wise_personal_money_movement_blocked",
+        "label": "Money movement unavailable",
+        "description": "Creating quotes for execution, recipients, transfers, funding instructions, conversions, balance movements, account details, cards, cancellations, refunds, or other financial mutations remains outside Relay's planned read-only V1 even after partner approval."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "wise_personal_partner_review",
+      "label": "Partner review pending",
+      "description": "Agent actions remain unavailable until Wise approves Relay's customer OAuth integration and engineering implements and validates the exact read-only personal-profile contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "wise_personal_connect_before_partner_approval",
+        "wise_personal_collect_customer_credentials",
+        "wise_personal_api_actions_before_approval",
+        "wise_personal_money_movement_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No OpenClaw tools are callable until Wise approves Relay and Relay implements the contracted read-only Railway broker."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Hermes tools are callable until Wise approves Relay and Relay implements the contracted read-only Railway broker."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Wise Platform customer OAuth requires a partnership agreement, Wise-issued client credentials, a coordinated redirect URL, mTLS, sandbox and production onboarding, and an approved integration access model. Wise's current personal API-token guide applies to a customer's own Wise Business account rather than Wise Personal, so Relay cannot honestly collect that token for this provider. Relay has no approved customer OAuth application, personal-profile scope, mTLS material, sandbox tenant, compliance allocation, or permitted operation list.",
+    "nextAction": "An authorized Relay business, security, and compliance owner must complete Wise Platform partnership review and obtain a customer authorization contract covering personal profiles, exact OAuth scopes and consent copy, redirect registration, mTLS and certificate lifecycle, token refresh and revocation rules, supported jurisdictions, permitted read-only profile, balance, rate, and transfer-status endpoints, data minimization and retention, rate limits, webhooks, sandbox users, and production onboarding. Engineering can then implement a fixed-origin Railway OAuth broker and the smallest bounded read-only personal-account V1, with encrypted tokens, serialized refresh, redaction, audit, disconnect, revocation, and post-disconnect denial. Money movement remains excluded."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.wise.com/guides/developer/auth-and-security",
+      "checkedAt": "2026-07-18",
+      "supports": "Wise Platform requires partnership onboarding for OAuth 2.0, Wise-issued client credentials, a registered redirect URL, and mTLS; customer-facing integrations use the partner authorization model."
+    },
+    {
+      "url": "https://docs.wise.com/guides/developer/auth-and-security/personal-api-token",
+      "checkedAt": "2026-07-18",
+      "supports": "Wise's current personal API-token guide limits self-service tokens to a customer's own Wise Business account and a bounded payout workflow, so it is not an authorization contract for the Wise Personal provider."
+    },
+    {
+      "url": "https://docs.wise.com/guides/developer/auth-and-security/user-access-token",
+      "checkedAt": "2026-07-18",
+      "supports": "Wise documents partner user authorization through an authorization-code redirect and token exchange using a Wise-issued client ID and secret, with access and refresh tokens managed under the approved integration model."
+    },
+    {
+      "url": "https://docs.wise.com/api-reference/profile/profile",
+      "checkedAt": "2026-07-18",
+      "supports": "Wise Platform models both personal and business profiles and exposes financial resources only to callers holding valid Wise-issued user or personal-token authority."
+    },
+    {
+      "url": "https://wise.com/help/articles/2958106/whats-the-wise-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Wise's help centre says personal customers use the API for transfers, status monitoring, and statements, but it does not provide Relay with a self-service distributable customer authorization application."
+    }
+  ]
+}

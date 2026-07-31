@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sage-accounting",
+  "name": "Sage Accounting",
+  "category": "commerce_payments",
+  "description": "Sage Accounting, formerly Sage Business Cloud Accounting, is cloud accounting software for small and midsize businesses. It supports business settings, charts of accounts, contacts, sales and purchase documents, payments, banking, tax, products, reporting, and collaboration with accountants across supported regions.",
+  "agentUseSummary": "Connect one exact Sage Accounting business through a customer-owned confidential OAuth application and APIM subscription key, then let agents use three approval-gated bounded reads for business and ledger-classification metadata. Relay requires a rotating refresh token, rejects grants spanning more than one business, pins API v3.1 and X-Business, fixes page one and at most twenty-five items, and excludes people, accounts, balances, transactions, invoices, payments, banking, tax, payroll, writes, arbitrary APIs, pagination, downloads, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.sage.com/en-gb/sage-business-cloud/accounting/",
+    "docsUrl": "https://developer.sage.com/accounting/reference/",
+    "developerConsoleUrl": "https://developer.sage.com/accounting/",
+    "termsUrl": "https://www.sage.com/en-gb/legal/terms-and-conditions/",
+    "privacyUrl": "https://www.sage.com/en-gb/legal/privacy-and-cookies/"
+  },
+  "authentication": {
+    "model": "oauth2_authorization_code",
+    "relayOwned": false,
+    "scopes": ["full_access"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.sageone.com/oauth2/auth/central?filter=apiv3.1",
+    "tokenUrl": "https://oauth.accounting.sage.com/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_confidential_oauth_application",
+      "customer_owned_apim_subscription_key",
+      "railway_callback_only",
+      "single_business_grant_required",
+      "exact_x_business_binding",
+      "rotating_refresh_token_storage"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "SAGE_ACCOUNTING_CLIENT_ID",
+        "label": "Sage Accounting OAuth client ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Use the client ID from a customer-owned Sage Accounting developer application with Relay's exact Railway callback."
+      },
+      {
+        "key": "SAGE_ACCOUNTING_CLIENT_SECRET",
+        "label": "Sage Accounting OAuth client secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Store the customer-owned confidential client secret only through Relay's encrypted OAuth boundary."
+      },
+      {
+        "key": "SAGE_ACCOUNTING_SUBSCRIPTION_KEY",
+        "label": "Sage Accounting API subscription key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use the primary or secondary APIM subscription key issued to the same customer-owned Sage developer application."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/connectors/sage-accounting/oauth/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "business_structure_read",
+      "label": "Read business structure",
+      "description": "Read a bounded connected-business summary and ledger-account classification metadata without accounts, balances, transactions, people, or writes.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "sage_accounting_business_get",
+        "label": "Read business summary",
+        "description": "Read one bounded summary for the exactly connected Sage Accounting business."
+      },
+      {
+        "id": "sage_accounting_ledger_classification_list",
+        "label": "List ledger classifications",
+        "description": "List at most twenty-five ledger-account classifications from fixed page one."
+      },
+      {
+        "id": "sage_accounting_ledger_classification_get",
+        "label": "Read ledger classification",
+        "description": "Read one exact bounded ledger-account classification by provider ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "sage_accounting_record_mutation",
+        "label": "Change Sage Accounting data",
+        "description": "Creating, updating, deleting, posting, allocating, importing, or otherwise changing Sage Accounting records is outside V1."
+      },
+      {
+        "id": "sage_accounting_private_business_data",
+        "label": "Read private business data",
+        "description": "Contacts, people, addresses, communication, notes, attachments, customers, suppliers, products, services, and custom data are outside V1."
+      },
+      {
+        "id": "sage_accounting_financial_data",
+        "label": "Access financial data",
+        "description": "Ledger accounts, balances, journals, transactions, invoices, credit notes, payments, banking, tax, payroll, expenses, reports, and financial settings are outside V1."
+      },
+      {
+        "id": "sage_accounting_raw_api",
+        "label": "Call arbitrary Sage APIs",
+        "description": "Other origins, businesses, paths, fields, filters, expands, query parameters, methods, API versions, and raw requests are outside V1."
+      },
+      {
+        "id": "sage_accounting_bulk_export",
+        "label": "Export Sage Accounting data",
+        "description": "Automatic pagination, crawling, polling, synchronization, downloads, imports, batch operations, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sage_accounting_safe",
+      "label": "Safe",
+      "description": "All three private business-structure reads require approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "sage_accounting_business_get",
+        "sage_accounting_ledger_classification_list",
+        "sage_accounting_ledger_classification_get"
+      ],
+      "blockedActions": [
+        "sage_accounting_record_mutation",
+        "sage_accounting_private_business_data",
+        "sage_accounting_financial_data",
+        "sage_accounting_raw_api",
+        "sage_accounting_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three selected read-only tools run without Relay per-action approval while exact app, token, subscription key, business, origin, path, page, limit, redaction, audits, and provider permissions remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "sage_accounting_business_get",
+        "sage_accounting_ledger_classification_list",
+        "sage_accounting_ledger_classification_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sage_accounting_record_mutation",
+        "sage_accounting_private_business_data",
+        "sage_accounting_financial_data",
+        "sage_accounting_raw_api",
+        "sage_accounting_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded approval-gated Sage Accounting business-structure reads and keeps OAuth and APIM secrets on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded approval-gated Sage Accounting business-structure reads and keeps OAuth and APIM secrets on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Sage developer subscription and confidential Accounting application, exact Railway callback registration, client credential pair, APIM subscription key, single-business least-privilege user, consent grant, rotating refresh token, or live acceptance evidence is available in this workspace.",
+    "nextAction": "In the provider-console task, create or select a customer-owned Sage Accounting developer subscription and confidential application, register Relay's exact Railway callback, issue the client secret and APIM subscription key, authorize a dedicated least-privilege user that can access exactly one intended business, store all values through Relay, then validate callback state, rotating refresh persistence, exact X-Business binding, bounded reads, Safe approvals, representative Dangerous reads, permission denial, key and token rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.sage.com/accounting/guides/authenticating/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage documents OAuth 2.0 authorization-code authentication, bearer access tokens, refresh tokens, and the Sage Accounting authorization flow."
+    },
+    {
+      "url": "https://developer.sage.com/accounting/reference/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage publishes Accounting API v3.1 at the fixed api.accounting.sage.com origin, including business and ledger-account-classification resources."
+    },
+    {
+      "url": "https://developer.sage.com/accounting/apis/sagebusinesscloudaccounting/3.1.0/accounting/groups/chart-of-accounts/tags/ledger-account-classifications",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage documents read-only list and exact-item operations for ledger-account classifications; Relay exposes only those bounded classification reads."
+    },
+    {
+      "url": "https://qa-developer-portal-accounting.sageaccountantscloud.com/guides/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage's developer guide identifies the client ID, client secret, and APIM subscription ID required for Accounting API applications."
+    },
+    {
+      "url": "https://www.sage.com/en-gb/legal/terms-and-conditions/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage publishes the legal terms governing its products and services."
+    },
+    {
+      "url": "https://www.sage.com/en-gb/legal/privacy-and-cookies/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sage publishes privacy information for its services; Relay excludes people and private accounting data from V1."
+    }
+  ]
+}

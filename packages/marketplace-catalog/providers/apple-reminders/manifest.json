@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "apple-reminders",
+  "name": "Apple Reminders",
+  "category": "work_management",
+  "description": "Apple Reminders is Apple's local and iCloud-backed task application for lists, reminders, completion, due dates, recurrence, priorities, tags, attachments, subtasks, and time- or location-based alerts.",
+  "agentUseSummary": "Apple Reminders cannot yet be connected through Relay. Apple documents native EventKit access inside an Apple-platform app with explicit per-device full read/write permission, but it publishes no Reminders server API, delegated account scope, client enrollment path, or webhook contract for a Railway-hosted connector; the product must choose and validate a local runtime architecture first.",
+  "provider": {
+    "websiteUrl": "https://www.icloud.com/reminders/",
+    "docsUrl": "https://developer.apple.com/documentation/eventkit/accessing-the-event-store",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.apple.com/legal/internet-services/icloud/",
+    "privacyUrl": "https://www.apple.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "native_eventkit_candidate",
+      "per_device_full_read_write_permission",
+      "no_read_only_permission",
+      "no_published_reminders_server_api",
+      "icloud_web_ui_not_api",
+      "apple_credentials_rejected",
+      "architecture_decision_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "apple_reminders_connection",
+        "label": "Connect Apple Reminders",
+        "description": "Connect remains unavailable until Relay selects and accepts a supported native runtime and per-device authority model."
+      },
+      {
+        "id": "apple_reminders_credentials",
+        "label": "Collect Apple credentials",
+        "description": "Apple Account passwords, app-specific passwords, verification codes, cookies, session tokens, and private framework material are never collected."
+      },
+      {
+        "id": "apple_reminders_reads",
+        "label": "Read reminders",
+        "description": "Lists, tasks, titles, notes, URLs, attachments, due dates, locations, priorities, tags, subtasks, recurrence, completion, and collaborators remain unavailable."
+      },
+      {
+        "id": "apple_reminders_mutations_raw",
+        "label": "Change reminders or use private interfaces",
+        "description": "Creating, updating, completing, deleting, moving, or sharing reminders, scraping iCloud.com, private database access, device automation, arbitrary endpoints, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "apple_reminders_unavailable",
+      "label": "Unavailable",
+      "description": "No Apple Reminders action is enabled before a supported native runtime architecture and representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "apple_reminders_connection",
+        "apple_reminders_credentials",
+        "apple_reminders_reads",
+        "apple_reminders_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Apple Reminders wrapper is mounted before the local EventKit runtime and authority architecture is frozen."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Apple Reminders wrapper is mounted before the local EventKit runtime and authority architecture is frozen."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Apple's documented Reminders integration surface is EventKit inside an Apple-platform app. It requires explicit per-device full read/write permission even for reads; Apple does not offer read-only Reminders authorization. Apple's iCloud guidance documents Apple-device and signed-in iCloud.com use, while public developer documentation does not publish a Reminders server endpoint, delegated account scope, app enrollment, token lifecycle, webhook, quota, or Railway-compatible authorization contract.",
+    "nextAction": "The product and security owners should decide whether Relay may introduce a Mac-local EventKit runtime whose reminders authority is necessarily full read/write. If accepted, an exclusive task must build the signed and permission-declared native boundary, run representative consent, verify sources, fields, recurrence, locations, attachments, change notifications, revocation, offline behavior, mutation confirmations, and disconnect denial before any wrapper is exposed."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.apple.com/documentation/eventkit/accessing-the-event-store",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple requires explicit user permission through a local EKEventStore and states that reminder reads require full access because read-only reminder authorization is unavailable."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/eventkit/managing-location-based-reminders",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple's native sample requires NSRemindersFullAccessUsageDescription and full access that can create, fetch, edit, complete, and delete reminders across all of a person's calendars."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/eventkit/creating-events-and-reminders",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple documents native reminder creation, editing, completion, saving, and deletion and requires specific user confirmation before an app modifies the Calendar database."
+    },
+    {
+      "url": "https://support.apple.com/en-gb/guide/icloud/mmbf52194b5a/icloud",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple documents iCloud Reminders access through signed-in Apple devices and iCloud.com rather than a third-party developer endpoint."
+    }
+  ]
+}

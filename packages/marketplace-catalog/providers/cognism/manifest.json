@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "cognism",
+  "name": "Cognism",
+  "category": "crm_support",
+  "description": "Cognism is a B2B sales-intelligence platform for searching, previewing, enriching, and redeeming company and contact records. Teams use it to build compliant prospecting datasets and add account or contact context to sales workflows.",
+  "agentUseSummary": "Add a customer-owned Cognism API key with Account entitlements, then let selected agents preview up to 20 exact account-name or domain matches. Relay fixes the first page and exact-match flags, minimizes company fields, and excludes contacts, personal fields, events, technologies, enrichment, redemption, credits, pagination, arbitrary filters, bulk extraction, and mutations.",
+  "provider": {
+    "websiteUrl": "https://www.cognism.com/",
+    "docsUrl": "https://developers.cognism.com/",
+    "developerConsoleUrl": "https://app.cognism.com/",
+    "termsUrl": "https://www.cognism.com/terms-of-website-use",
+    "privacyUrl": "https://www.cognism.com/en/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "provider_configured_entitlements",
+      "six_month_key_rotation"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "COGNISM_API_KEY",
+        "label": "Cognism API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a customer-owned Cognism API key with Account entitlements; Relay encrypts it server-side."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "cognism_read",
+      "label": "Preview accounts",
+      "description": "Use one pinned first-page account search with exact name or domain matching and minimized, contact-free previews.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "cognism_read",
+        "label": "Preview Cognism accounts",
+        "description": "Search the first 20 exact account-name or domain matches without redemption, contact data, pagination, or arbitrary filters."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "cognism_manage",
+        "label": "Change Cognism",
+        "description": "Configuration, entitlement changes, exports, integrations, and every mutation are outside Relay's V1 contract."
+      },
+      {
+        "id": "cognism_personal_or_redeemed_data",
+        "label": "Read personal or redeemed data",
+        "description": "Contact search, emails, phones, social profiles, person identity, locations, contact or account redemption, and enrichment are blocked."
+      },
+      {
+        "id": "cognism_arbitrary_api",
+        "label": "Use arbitrary Cognism API access",
+        "description": "Pagination, cursors, broad filters, technologies, events, compliance queries, filter APIs, bulk extraction, and custom API routes are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "cognism_safe",
+      "label": "Safe",
+      "description": "One minimized first-page account preview runs directly. Contacts, personal data, redemption, enrichment, credits, paging, arbitrary filters, bulk extraction, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["cognism_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "cognism_manage",
+        "cognism_personal_or_redeemed_data",
+        "cognism_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed first-page account-preview tool through the encrypted customer-owned Cognism API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed first-page account-preview tool through the encrypted customer-owned Cognism API key."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer Cognism subscription, API access, active API key, Account entitlement definition, representative company fixtures, preview allowance, or six-month rotation procedure is available in this workspace.",
+    "nextAction": "A Cognism administrator with the required role creates or rotates an API token, confirms Account entitlements with Cognism Support, saves the key through Relay Console, then verifies entitlement health, exact name and domain previews, minimization, preview and rate limits, agent assignment, credential replacement, deletion, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.cognism.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Cognism documents six-month API keys, recommended Authorization Bearer headers, provider-configured entitlements, account search at /api/search/account/search, index sizes up to 100, preview limits, rate limits, and broader contact, redeem, enrich, entitlement, filter, and compliance APIs."
+    },
+    {
+      "url": "https://help.cognism.com/hc/en-gb/articles/34674998544274-Search-and-Access-Records-Using-the-Cognism-API",
+      "checkedAt": "2026-07-17",
+      "supports": "Cognism's current official workflow guide confirms API-access, key, entitlement and credit prerequisites; Search previews; 20–100 result page sizes; preview-limit consumption; and separate credit-bearing Redeem access that Relay excludes."
+    },
+    {
+      "url": "https://help.cognism.com/hc/en-gb/articles/34195245226258-How-to-Generate-an-API-Token",
+      "checkedAt": "2026-07-17",
+      "supports": "Cognism documents role-gated token creation, token names and expiration dates, immediate copying, deletion, and secure storage requirements used to define the customer-owned setup and rotation blocker."
+    }
+  ]
+}

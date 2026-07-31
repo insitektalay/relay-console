@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "tiktok",
+  "name": "TikTok",
+  "category": "social_media",
+  "description": "TikTok is a short-form video platform whose developer products provide user-authorized profile and public-video reads, content posting, and application webhooks.",
+  "agentUseSummary": "TikTok cannot yet be connected through Relay. TikTok Login Kit requires a Relay-owned reviewed application and approved scopes, while public Direct Post requires a separate audit and strict creator-facing controls. Relay exposes no profile, video, webhook, upload, or posting authority until provider review and representative acceptance establish the exact approved products and consent boundary.",
+  "provider": {
+    "websiteUrl": "https://www.tiktok.com/",
+    "docsUrl": "https://developers.tiktok.com/doc/login-kit-overview",
+    "developerConsoleUrl": "https://developers.tiktok.com/apps/",
+    "termsUrl": "https://www.tiktok.com/legal/page/global/tiktok-developer-terms-of-service/en",
+    "privacyUrl": "https://www.tiktok.com/legal/page/row/privacy-policy/en"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "user.info.basic",
+      "user.info.profile",
+      "user.info.stats",
+      "video.list",
+      "video.publish",
+      "video.upload"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.tiktok.com/v2/auth/authorize/",
+    "tokenUrl": "https://open.tiktokapis.com/v2/oauth/token/",
+    "revocationUrl": "https://open.tiktokapis.com/v2/oauth/revoke/"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_tiktok_app",
+      "login_kit_web_oauth",
+      "user_selected_scopes",
+      "display_api",
+      "content_posting_api",
+      "https_webhooks",
+      "scope_approval_and_posting_audit_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/tiktok/callback",
+    "webhookRequirements": [
+      "registered_https_callback",
+      "immediate_success_acknowledgement",
+      "at_least_once_delivery",
+      "idempotent_event_processing"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "profile_read",
+      "label": "Read TikTok profile",
+      "description": "After provider acceptance, read only the profile identity, profile fields, verification state, and aggregate statistics covered by user-approved scopes.",
+      "defaultSelected": true
+    },
+    {
+      "id": "public_videos_read",
+      "label": "Read public videos",
+      "description": "After provider acceptance, list and query the authorized user's public TikTok video metadata through Display API.",
+      "defaultSelected": true
+    },
+    {
+      "id": "content_post",
+      "label": "Post TikTok content",
+      "description": "After a successful Direct Post audit and representative acceptance, upload or direct-post user-selected video or photo content with TikTok's required creator controls and disclosures.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "tiktok_connect_before_review",
+        "label": "Connect before TikTok review",
+        "description": "Relay has no approved TikTok production app, scopes, redirect, content-posting audit, or representative consent evidence."
+      },
+      {
+        "id": "tiktok_profile_before_review",
+        "label": "Read TikTok profile",
+        "description": "Basic and extended profile fields, statistics, identities, and tokens remain unavailable before scope approval and acceptance."
+      },
+      {
+        "id": "tiktok_videos_before_review",
+        "label": "Read TikTok videos",
+        "description": "Public video lists, selected video metadata, cover images, embeds, engagement counts, and query responses remain unavailable before approval."
+      },
+      {
+        "id": "tiktok_post_before_audit",
+        "label": "Post TikTok content",
+        "description": "Uploads, direct posts, captions, privacy selection, commercial-content declarations, media transfer, and status polling remain unavailable before TikTok's posting audit and representative acceptance."
+      },
+      {
+        "id": "tiktok_raw_private_automation",
+        "label": "Use raw, private, or automated TikTok interfaces",
+        "description": "Arbitrary API calls, raw webhook payloads, scraping, browser or device automation, session cookies, unofficial APIs, watermark injection, and credential collection are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "tiktok_provider_review",
+      "label": "Provider review pending",
+      "description": "No TikTok action is enabled until TikTok approves Relay's app and scopes, audits any public posting use, and the complete OAuth, data, webhook, creator-control, and revocation contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "tiktok_connect_before_review",
+        "tiktok_profile_before_review",
+        "tiktok_videos_before_review",
+        "tiktok_post_before_audit",
+        "tiktok_raw_private_automation"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount approved bounded TikTok tools after provider review; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount approved bounded TikTok tools after provider review; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "TikTok requires a registered Relay application, client key and secret, exact redirect URI, enabled Login Kit products, provider-approved scopes beyond baseline identity, and direct user consent. Display API reads require user.info and video.list scopes. Direct Post requires video.publish and a provider audit to lift unaudited private-only and five-user restrictions, while Upload API uses video.upload. Webhooks require a registered HTTPS callback and at-least-once idempotency. This worker cannot open the developer portal, create the app, capture secrets, request review, or run consent.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should create Relay's TikTok app, register https://api.relayconsole.work/api/v1/marketplace/oauth/tiktok/callback and the Railway webhook, request only the selected read scopes, and submit the app for review. If content posting remains in scope, it must separately pass the Direct Post audit and preserve creator preview, editable metadata, privacy options, commercial-content disclosure, status, and rate controls. Then verify partial consent, code exchange, token refresh and revocation, exact profile and video schemas, webhook retries and deduplication, posting confirmations and failures, disconnect, and post-disconnect denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.tiktok.com/doc/login-kit-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "TikTok documents Login Kit as OAuth 2.0, requires app registration, a client key and secret, registered redirect, direct user consent, server-side code exchange, refresh tokens, and pre-approval for additional user data."
+    },
+    {
+      "url": "https://developers.tiktok.com/doc/display-api-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "TikTok's Display API exposes bounded profile information and recently uploaded public-video metadata through user.info.basic and video.list."
+    },
+    {
+      "url": "https://developers.tiktok.com/doc/content-sharing-guidelines/",
+      "checkedAt": "2026-07-17",
+      "supports": "TikTok requires a Direct Post audit for public visibility; unaudited clients are limited to private posts and five users per 24 hours, while all clients face creator and posting caps plus strict creator-control, disclosure, and watermark rules."
+    },
+    {
+      "url": "https://developers.tiktok.com/doc/webhooks-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "TikTok requires a registered HTTPS webhook callback, immediate 200 acknowledgement, handles retries for up to 72 hours, and explicitly requires idempotent handling because delivery is at least once."
+    },
+    {
+      "url": "https://developers.tiktok.com/doc/login-kit-manage-user-access-tokens",
+      "checkedAt": "2026-07-17",
+      "supports": "TikTok documents refreshable user access tokens, scope-level consent including partial grants, and server-side token storage."
+    }
+  ]
+}

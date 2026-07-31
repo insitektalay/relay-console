@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mural",
+  "name": "Mural",
+  "category": "content_creative",
+  "description": "Mural is a visual collaboration workspace for brainstorming, planning, workshops, and team problem-solving on a shared canvas. Teams use it to organize projects into workspaces and rooms, build murals with structured content, run facilitated sessions, and turn ideas into collaborative decisions.",
+  "agentUseSummary": "Connect a Mural account once, then let agents read collaboration spaces and create, organize, facilitate, share, or administer every OAuth-authorized public API resource under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.mural.co/",
+    "docsUrl": "https://developers.mural.co/public/reference",
+    "developerConsoleUrl": "https://app.mural.co/me/apps",
+    "termsUrl": "https://www.mural.co/terms/services-agreement",
+    "privacyUrl": "https://www.mural.co/terms/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["identity:read", "workspaces:read", "workspaces:write", "rooms:read", "rooms:write", "murals:read", "murals:write", "templates:read", "templates:write", "users:read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.mural.co/api/public/v1/authorization/oauth2/",
+    "tokenUrl": "https://app.mural.co/api/public/v1/authorization/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/mural/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "collaboration_read", "label": "Read collaboration spaces", "description": "Read the connected user, workspaces, rooms, murals, widgets, chat, tags, timers, voting sessions, users, templates, search results, and exports.", "defaultSelected": true },
+    { "id": "collaboration_write", "label": "Create and edit collaboration content", "description": "Create, update, duplicate, export, and delete rooms, murals, folders, templates, tags, and every supported widget type.", "defaultSelected": true },
+    { "id": "facilitation", "label": "Run collaborative sessions", "description": "Manage private mode, timers, voting sessions, comments, access requests, and visitor settings.", "defaultSelected": true },
+    { "id": "access_management", "label": "Manage collaborators and access", "description": "Invite or remove users and update workspace, room, mural, and visitor permissions authorized by Mural.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "mural_api_read", "label": "Read Mural workspaces and canvases", "description": "Use any current documented Mural public API read operation." }],
+    "approvalRequired": [{ "id": "mural_api_write", "label": "Change Mural workspaces and canvases", "description": "Use any current documented Mural public API mutation; Safe mode requires approval." }],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "mural_safe", "label": "Safe", "description": "Every documented Mural read runs directly; creation, editing, facilitation, sharing, permission, invitation, removal, and deletion operations require approval.", "defaultSelected": true, "allowedActions": ["mural_api_read"], "approvalRequiredActions": ["mural_api_write"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected OAuth-authorized Mural public API operation runs without Relay per-action approval; fixed origins, exact route allowlists, request bounds, audits, redaction, provider permissions, plan limits, and Mural enforcement still apply.", "defaultSelected": false, "allowedActions": ["mural_api_read", "mural_api_write"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts exact Mural read and write wrappers and proxies user OAuth to the fixed Mural public API." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts exact Mural read and write wrappers and proxies user OAuth to the fixed Mural public API." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "The Mural developer console is not signed in, so Relay's confidential OAuth app, exact callback, ten scopes, HTTPS reject URL, and unlisted sharing link could not be created and its Railway client credentials are unavailable.",
+    "nextAction": "A Mural account owner signs in at Create and manage apps, creates Relay Console with the production callback and all ten public API scopes, sets HTTPS access and reject URLs, changes sharing to Unlisted, stores the client credentials in Railway, then runs OAuth, refresh, bounded read, Safe mutation denial, approved or Dangerous mutation, local disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    { "url": "https://developers.mural.co/public/docs/oauth", "checkedAt": "2026-07-14", "supports": "Mural documents confidential authorization-code OAuth, PKCE, the app.mural.co authorization and token endpoints, fifteen-minute access tokens, and refresh tokens." },
+    { "url": "https://developers.mural.co/public/docs/scopes", "checkedAt": "2026-07-14", "supports": "Mural documents resource-specific read and write scopes and provider-side enforcement for workspaces, rooms, murals, templates, users, and identity." },
+    { "url": "https://developers.mural.co/public/reference", "checkedAt": "2026-07-14", "supports": "Mural's current official OpenAPI registry documents 88 public operations across workspaces, rooms, murals, widgets, facilitation, templates, search, exports, and collaborator access." },
+    { "url": "https://developers.mural.co/public/docs/register-your-app", "checkedAt": "2026-07-14", "supports": "Mural documents developer-owned app registration, redirect URLs, credentials, scopes, access settings, and sharing configuration in Create and manage apps." },
+    { "url": "https://developers.mural.co/public/docs/sharing-page", "checkedAt": "2026-07-14", "supports": "Mural documents Private and Unlisted app distribution, HTTPS URL requirements, listing details, and the generated unlisted installation link." }
+  ]
+}

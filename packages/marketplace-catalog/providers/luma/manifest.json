@@ -1,0 +1,196 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "luma",
+  "name": "Luma",
+  "category": "communication",
+  "description": "Luma is an event-hosting and discovery platform for creating event pages, managing registrations, selling tickets, and growing communities around shared calendars. Hosts use it to publish in-person and online experiences, invite guests, communicate updates, and organize recurring programs, while attendees use it to discover and join events.",
+  "agentUseSummary": "Add one customer-owned Luma Plus Calendar API key, bind it to its exact user and Calendar, then let agents verify that connection, read the Calendar, list up to ten approved managed Events in an explicit date window, and inspect one Event without exposing the full-access key, provider user ID or email, guest data, meeting links, guest-only exact addresses, writes, pagination, or raw API access.",
+  "provider": {
+    "websiteUrl": "https://luma.com/",
+    "docsUrl": "https://docs.luma.com/reference/getting-started-with-your-api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://luma.com/terms",
+    "privacyUrl": "https://luma.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_calendar_api_key",
+      "luma_plus_required",
+      "full_calendar_authority_read_surface_only",
+      "exact_key_user_and_calendar_binding",
+      "fixed_public_api_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "LUMA_API_KEY",
+        "label": "Luma Calendar API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a key for one Luma Plus Calendar. Relay encrypts it and sends it only to public-api.luma.com in the x-luma-api-key header; Luma warns that the key grants full Calendar access even though Relay exposes only four fixed reads."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "user_read",
+      "label": "Verify connected user",
+      "description": "Verify the exact user returned by the Calendar API key without exposing the provider user ID or email.",
+      "defaultSelected": true
+    },
+    {
+      "id": "calendar_read",
+      "label": "Read bound Calendar",
+      "description": "Read useful bounded fields for the one Calendar to which the key is scoped.",
+      "defaultSelected": true
+    },
+    {
+      "id": "event_read",
+      "label": "Read managed Events",
+      "description": "List up to ten approved managed Events in an explicit bounded date window and inspect one exact Event.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "luma_user_get",
+        "label": "Verify connected user",
+        "description": "Verify the API-key user binding and return only a bounded name and binding status."
+      },
+      {
+        "id": "luma_calendar_get",
+        "label": "Read bound Calendar",
+        "description": "Read bounded name, description, canonical URL, personal state, and city-level location fields for the bound Calendar."
+      },
+      {
+        "id": "luma_calendar_events_list",
+        "label": "List managed Events",
+        "description": "List at most ten first-page approved Luma Events managed by the bound Calendar in a caller-supplied window no longer than 366 days."
+      },
+      {
+        "id": "luma_event_get",
+        "label": "Read one Event",
+        "description": "Read one exact evt- identifier managed by the bound Calendar with bounded public schedule, description, URL, visibility, and city-level location fields."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "luma_mutations",
+        "label": "Block mutations",
+        "description": "Event, guest, registration, ticket, invite, host, contact, coupon, membership, webhook, calendar, and cancellation/refund writes are unavailable."
+      },
+      {
+        "id": "luma_sensitive_reads",
+        "label": "Block sensitive reads",
+        "description": "Guests, contacts, registrations, answers, emails, meeting URLs, guest-only exact addresses, tickets, coupons, analytics, and check-in data are unavailable."
+      },
+      {
+        "id": "luma_broad_raw",
+        "label": "Block broad and raw access",
+        "description": "Organization-wide access, externally managed Events, pending submissions, cursors, pagination, arbitrary filters, bulk work, and raw API access are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "luma_safe",
+      "label": "Safe",
+      "description": "The four fixed bound-user, Calendar, and Event reads run automatically; sensitive, mutating, broad, paginated, and raw surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "luma_user_get",
+        "luma_calendar_get",
+        "luma_calendar_events_list",
+        "luma_event_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "luma_mutations",
+        "luma_sensitive_reads",
+        "luma_broad_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four selected reads run without Relay per-action approval; exact key, user, and Calendar authority, fixed routes, bounds, audits, secret isolation, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "luma_user_get",
+        "luma_calendar_get",
+        "luma_calendar_events_list",
+        "luma_event_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "luma_mutations",
+        "luma_sensitive_reads",
+        "luma_broad_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Luma reads while keeping the full-access Calendar API key encrypted inside Railway's fixed public API adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Luma reads while keeping the full-access Calendar API key encrypted inside Railway's fixed public API adapter."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A representative Luma Plus Calendar, customer-generated full-access Calendar API key, explicit full-key-risk acceptance, staging credential entry, and live read validation remain for the separate provider-console and integration tasks.",
+    "nextAction": "After batch integration, a Luma Plus Calendar owner must create a dedicated key, accept its full Calendar authority, save it in Railway staging, and validate exact user and Calendar binding, fixed reads, approved/manage-only filtering, event-window and response bounds, private-location redaction, quota behavior, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.luma.com/reference/getting-started-with-your-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Luma documents the fixed public-api.luma.com origin, x-luma-api-key header, Luma Plus requirement, one-Calendar key scope, full Calendar authority warning, get-self health endpoint, and public OpenAPI contract."
+    },
+    {
+      "url": "https://public-api.luma.com/openapi.json",
+      "checkedAt": "2026-07-18",
+      "supports": "Luma's OpenAPI 3.1 contract documents API-key header security, the user and Calendar identity reads, Calendar Event listing filters, exact Event lookup, response shapes, and sensitive read/write surfaces Relay does not expose."
+    },
+    {
+      "url": "https://docs.luma.com/reference/api-conventions",
+      "checkedAt": "2026-07-18",
+      "supports": "Luma documents versioned resource/action routes, GET for reads, POST for writes, and per-route versioning. Relay pins only four documented GET routes."
+    },
+    {
+      "url": "https://docs.luma.com/reference/formats",
+      "checkedAt": "2026-07-18",
+      "supports": "Luma documents ISO 8601 date-time values, UTC storage, duration syntax, and Google Maps place identifiers for Event locations."
+    },
+    {
+      "url": "https://help.luma.com/p/luma-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Luma describes customer-generated Calendar keys, Luma Plus access, full event and guest management authority, key secrecy, provider rate limiting, and API use for event and Calendar workflows."
+    },
+    {
+      "url": "https://luma.com/terms",
+      "checkedAt": "2026-07-18",
+      "supports": "Luma's current terms identify the events service, host responsibility, content rights, and third-party service conditions requiring separate acceptance for live use."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+export const SLACK_ENDPOINT_FAMILIES = [
+  { id: "auth", label: "auth.test and OAuth V2 installation", docsUrl: "https://api.slack.com/authentication/oauth-v2", guidance: "Verify token workspace/team, bot user, token type, and installed scopes before Slack writes." },
+  { id: "conversations", label: "conversations.* methods", docsUrl: "https://api.slack.com/methods/conversations.history", guidance: "Use conversations.list/info/history/replies/members/join/open for channels, IMs, MPIMs, and Slack Connect conversations where scopes and membership allow." },
+  { id: "chat", label: "chat.* message methods", docsUrl: "https://api.slack.com/methods/chat.postMessage", guidance: "Use chat.postMessage/update/delete/scheduleMessage/getPermalink with explicit channel id, text/blocks, thread_ts, unfurl, and approval state." },
+  { id: "users", label: "users.* identity methods", docsUrl: "https://api.slack.com/methods/users.info", guidance: "Use users.info/list/lookupByEmail to resolve Slack user ids; never rely on display names alone." },
+  { id: "reactions", label: "reactions.* methods", docsUrl: "https://api.slack.com/web", guidance: "Use reactions.add/remove/get for narrow acknowledgement workflows; do not treat reactions as approval records." },
+  { id: "files", label: "files external upload and info methods", docsUrl: "https://api.slack.com/web", guidance: "Use files.getUploadURLExternal, files.completeUploadExternal, and files.info with approval for private or Slack Connect destinations." },
+  { id: "events", label: "Events API and interactivity", docsUrl: "https://api.slack.com/apis/connections/events-api", guidance: "Handle event_callback, app_mention, message, reaction_added, file_shared, slash command, modal, and interactivity payloads with signature verification and deduplication." },
+];

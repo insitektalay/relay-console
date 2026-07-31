@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mastodon",
+  "name": "Mastodon",
+  "category": "content_creative",
+  "description": "Mastodon is a decentralized social network made of independently operated, interoperable servers. People and organizations join a chosen instance to publish short posts, follow accounts, and participate across the federated network.",
+  "agentUseSummary": "Connect one local account on a verified public instance, then let agents read bounded own activity, draft text, and publish one approval-controlled public or unlisted status without exposing tokens or arbitrary instance APIs.",
+  "provider": {
+    "websiteUrl": "https://joinmastodon.org/",
+    "docsUrl": "https://docs.joinmastodon.org/api/",
+    "developerConsoleUrl": "https://docs.joinmastodon.org/methods/apps/",
+    "termsUrl": "https://joinmastodon.org/covenant",
+    "privacyUrl": "https://joinmastodon.org/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["read:accounts", "read:statuses", "write:statuses"],
+    "pkce": true,
+    "refreshTokens": false,
+    "authorizationUrl": "https://INSTANCE_DOMAIN/oauth/authorize",
+    "tokenUrl": "https://INSTANCE_DOMAIN/oauth/token",
+    "revocationUrl": "https://INSTANCE_DOMAIN/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_dynamic_per_instance_oauth_app",
+      "confidential_authorization_code_pkce",
+      "verified_public_https_instance",
+      "exact_local_account_binding",
+      "dns_pinned_no_redirect_transport"
+    ],
+    "credentialRequirements": ["MASTODON_INSTANCE_ORIGIN"],
+    "callbackPath": "/api/v1/marketplace/oauth/mastodon/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_read",
+      "label": "Read account",
+      "description": "Read the exact OAuth-bound local account on one verified public Mastodon instance.",
+      "defaultSelected": true
+    },
+    {
+      "id": "own_statuses_read",
+      "label": "Read own statuses",
+      "description": "List at most ten recent own statuses, excluding replies and boosts.",
+      "defaultSelected": true
+    },
+    {
+      "id": "text_status_publish",
+      "label": "Publish text statuses",
+      "description": "Draft and publish one bounded public or unlisted text status.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "mastodon_account_get",
+        "label": "Read connected account",
+        "description": "Read the exact OAuth-bound local account on the verified instance."
+      },
+      {
+        "id": "mastodon_own_statuses_list",
+        "label": "List own statuses",
+        "description": "List at most ten recent own statuses, excluding replies and boosts."
+      },
+      {
+        "id": "mastodon_text_status_draft",
+        "label": "Draft text status",
+        "description": "Prepare one bounded public or unlisted text status locally."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "mastodon_text_status_publish",
+        "label": "Publish text status",
+        "description": "Publish one exact approval-controlled public or unlisted text status with an idempotency key."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "mastodon_broader_social_actions",
+        "label": "Block broader social actions",
+        "description": "Timelines, discovery, other accounts, replies, quotes, direct posts, boosts, favourites, follows, blocks, reports, notifications, media, polls, edits, deletion, scheduling, streaming, and moderation are not registered."
+      },
+      {
+        "id": "mastodon_raw_or_unverified_instance_access",
+        "label": "Block raw and unverified access",
+        "description": "Private-network origins, redirects, arbitrary endpoints, pagination, bulk work, automatic retry, and raw ActivityPub or Mastodon API access are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "mastodon_safe",
+      "label": "Safe",
+      "description": "Account reads, bounded own-status reads, and local drafts run automatically; exact text publishing requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "mastodon_account_get",
+        "mastodon_own_statuses_list",
+        "mastodon_text_status_draft"
+      ],
+      "approvalRequiredActions": ["mastodon_text_status_publish"],
+      "blockedActions": [
+        "mastodon_broader_social_actions",
+        "mastodon_raw_or_unverified_instance_access"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected Mastodon actions run without Relay per-action approval; exact instance/account authority, bounds, idempotency, audits, and secret isolation still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "mastodon_account_get",
+        "mastodon_own_statuses_list",
+        "mastodon_text_status_draft",
+        "mastodon_text_status_publish"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mastodon_broader_social_actions",
+        "mastodon_raw_or_unverified_instance_access"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Mastodon wrappers and attaches the encrypted token only inside Railway's verified, DNS-pinned per-instance adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Mastodon wrappers and attaches the encrypted token only inside Railway's verified, DNS-pinned per-instance adapter."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "The sharded worker may not deploy Railway or run live provider consent; staging deployment and representative-instance OAuth acceptance remain for the integration and provider-console tasks.",
+    "nextAction": "After batch integration, deploy only Railway staging, then use the separate provider-console task to connect representative public instances and validate dynamic registration, PKCE consent, exact account binding, bounded reads, exact approved publishing, idempotency, revocation, SSRF denial, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.joinmastodon.org/client/token/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mastodon documents per-server app registration, authorization-code token acquisition, token use, and revocation."
+    },
+    {
+      "url": "https://docs.joinmastodon.org/methods/apps/",
+      "checkedAt": "2026-07-17",
+      "supports": "The apps API documents dynamic confidential-client registration, redirect URIs, scopes, client identifiers, and client secrets."
+    },
+    {
+      "url": "https://docs.joinmastodon.org/methods/accounts/",
+      "checkedAt": "2026-07-17",
+      "supports": "The accounts API documents exact credential verification and bounded account-status reads with reply and reblog exclusions."
+    },
+    {
+      "url": "https://docs.joinmastodon.org/methods/statuses/",
+      "checkedAt": "2026-07-17",
+      "supports": "The statuses API documents text publishing, public and unlisted visibility, language, and Idempotency-Key support."
+    },
+    {
+      "url": "https://docs.joinmastodon.org/api/rate-limits/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mastodon documents per-account and per-IP request limits, supporting Relay's bounded no-retry contract."
+    }
+  ]
+}

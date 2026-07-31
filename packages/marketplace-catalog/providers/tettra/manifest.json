@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "tettra", "name": "Tettra", "category": "knowledge_documents",
+  "description": "Search, pages, page suggestions, questions, and categories through Tettra's experimental customer API.",
+  "agentUseSummary": "Enter a customer-owned team ID and user API key once, then let agents use the complete documented API under Safe or Dangerously skip permissions.",
+  "provider": { "websiteUrl": "https://tettra.com/", "docsUrl": "https://support.tettra.com/api-overview", "developerConsoleUrl": "https://app.tettra.co/", "termsUrl": "https://tettra.com/terms/", "privacyUrl": "https://tettra.com/privacy/" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": { "types": ["customer_owned_api_key", "api_connector"], "credentialRequirements": [
+    { "name": "TETTRA_TEAM_ID", "label": "Tettra team ID", "required": true, "secret": false, "helpText": "Copy the numeric team ID from the Tettra team URL or API example." },
+    { "name": "TETTRA_API_KEY", "label": "Tettra API key", "required": true, "secret": true, "helpText": "Generate a user-and-team-bound API key under My settings on an eligible paid plan." }
+  ], "callbackPath": null, "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "knowledge_read", "label": "Read knowledge", "description": "Search pages and browse permitted category items.", "defaultSelected": true },
+    { "id": "knowledge_write", "label": "Create and update pages", "description": "Publish pages, replace permitted page fields, and create page suggestions.", "defaultSelected": true },
+    { "id": "questions", "label": "Ask and assign questions", "description": "Create questions and assign them to permitted Tettra users.", "defaultSelected": true },
+    { "id": "category_admin", "label": "Create categories", "description": "Create top-level categories under the connected user's authority.", "defaultSelected": true }
+  ],
+  "actions": { "allowed": [
+    { "id": "tettra_search", "label": "Search pages", "description": "Return Tettra's bounded page search results." },
+    { "id": "tettra_get_category_items", "label": "Browse category", "description": "List items in one permitted category." }
+  ], "approvalRequired": [
+    { "id": "tettra_create_page", "label": "Create page", "description": "Publish a new HTML page; Safe mode requires approval." },
+    { "id": "tettra_update_page", "label": "Update page", "description": "Replace selected page fields; Safe mode requires approval." },
+    { "id": "tettra_create_suggestion", "label": "Create suggestion", "description": "Suggest a new page or page update; Safe mode requires approval." },
+    { "id": "tettra_create_question", "label": "Ask question", "description": "Create and optionally assign a question; Safe mode requires approval." },
+    { "id": "tettra_create_category", "label": "Create category", "description": "Create a top-level category; Safe mode requires approval." }
+  ], "blocked": [] },
+  "approvalProfiles": [
+    { "id": "tettra_safe", "label": "Safe", "description": "Bounded search and category browsing run directly; every published mutation requires approval.", "defaultSelected": true, "allowedActions": ["tettra_search", "tettra_get_category_items"], "approvalRequiredActions": ["tettra_create_page", "tettra_update_page", "tettra_create_suggestion", "tettra_create_question", "tettra_create_category"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected API-key-authorized operation runs without Relay per-action approval; ownership, fixed origin, bounds, audits, redaction, plan, and user permissions still apply.", "defaultSelected": false, "allowedActions": ["tettra_search", "tettra_get_category_items", "tettra_create_page", "tettra_update_page", "tettra_create_suggestion", "tettra_create_question", "tettra_create_category"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high", "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts typed wrappers and injects the encrypted customer key server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts typed wrappers and injects the encrypted customer key server-side." }
+  ], "availability": "available",
+  "providerSetup": { "status": "customer_action_required", "blocker": "No eligible customer Tettra team, user API key, or signed-in provider session was available.", "nextAction": "A customer on an eligible plan generates a dedicated user key, enters the team ID and key, then Relay runs health, reads, Safe denial plus approval, Dangerous mutation, revocation, and disconnect checks." },
+  "evidence": [
+    { "url": "https://support.tettra.com/api-overview", "checkedAt": "2026-07-13", "supports": "Tettra calls the API experimental, customer-key based, and limited to eligible paid plans." },
+    { "url": "https://support.tettra.com/api-overview/how-to-find-your-api-credentials", "checkedAt": "2026-07-13", "supports": "Keys are generated per user and team, inherit that user's page permissions including private categories, and should use a restricted dedicated user when appropriate." },
+    { "url": "https://support.tettra.com/pages-2", "checkedAt": "2026-07-13", "supports": "Official page API documentation publishes create, update, new-page suggestion, and page-update suggestion operations." },
+    { "url": "https://support.tettra.com/categories-and-subcategories", "checkedAt": "2026-07-13", "supports": "Official category API documentation publishes category creation and category-item reads; its subcategory article currently omits a usable URL, so Relay does not invent one." },
+    { "url": "https://support.tettra.com/api-overview/api-endpoint-search", "checkedAt": "2026-07-13", "supports": "Search is a fixed-team GET-with-JSON-body endpoint returning up to five accessible pages." },
+    { "url": "https://support.tettra.com/api-overview/using-the-tettra-mcp-connect-tettra-to-your-ai-assistant", "checkedAt": "2026-07-13", "supports": "Tettra also offers a separate customer-generated MCP key on Scaling plans; it is not OAuth, acts as the user, and needs team/support enablement." }
+  ]
+}

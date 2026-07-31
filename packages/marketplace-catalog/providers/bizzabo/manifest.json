@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "bizzabo",
+  "name": "Bizzabo",
+  "category": "communication",
+  "description": "Bizzabo is an event experience platform for planning, marketing and delivering conferences, field events, webinars and other in-person, virtual and hybrid programs. Event teams use it for registration, websites, agenda and speaker management, onsite experiences, networking, engagement, integrations and analytics.",
+  "agentUseSummary": "Connect a customer-owned Bizzabo API credential through Railway's encrypted boundary, then let selected agents list one bounded event page or inspect one exact event without registrant, attendee or engagement data.",
+  "provider": { "websiteUrl": "https://www.bizzabo.com/", "docsUrl": "https://www.bizzabo.com/event-management-software/event-software-integrations", "developerConsoleUrl": null, "termsUrl": "https://www.bizzabo.com/legal/terms-of-service", "privacyUrl": "https://www.bizzabo.com/legal/privacy-policy" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_api_credential", "encrypted_secret", "fixed_bizzabo_api_origin", "local_disconnect"],
+    "credentialRequirements": [{ "name": "BIZZABO_API_KEY", "label": "Bizzabo API key", "required": true, "secret": true, "helpText": "Create the credential in the customer's Bizzabo API/Integrations area after confirming Open API plan access." }],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [{ "id": "event_read", "label": "Read event metadata", "description": "List bounded Bizzabo event summaries and inspect one exact event without people or engagement data.", "defaultSelected": true }],
+  "actions": {
+    "allowed": [{ "id": "bizzabo_events_list", "label": "List events", "description": "List at most twenty-five Bizzabo event summaries from page zero." }, { "id": "bizzabo_event_get", "label": "Read an event", "description": "Read one exact Bizzabo event metadata summary." }],
+    "approvalRequired": [],
+    "blocked": [{ "id": "bizzabo_people_data", "label": "Block people data", "description": "Contacts, registrants, attendees, speakers, partners, badges, engagement and analytics are not exposed." }, { "id": "bizzabo_mutations", "label": "Block mutations", "description": "Event, agenda, session, registration, attendee and webhook writes are not exposed." }, { "id": "bizzabo_raw_api", "label": "Block raw API", "description": "Arbitrary endpoints, automatic pagination, bulk operations and raw responses are not exposed." }]
+  },
+  "approvalProfiles": [{ "id": "bizzabo_safe", "label": "Safe", "description": "Bounded event reads run directly; people, engagement, writes, bulk and raw access remain blocked.", "defaultSelected": true, "allowedActions": ["bizzabo_events_list", "bizzabo_event_get"], "approvalRequiredActions": [], "blockedActions": ["bizzabo_people_data", "bizzabo_mutations", "bizzabo_raw_api"] }, { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The same selected read surface runs without Relay per-action approval; credential ownership, fixed origin, bounds and redaction still apply.", "defaultSelected": false, "allowedActions": ["bizzabo_events_list", "bizzabo_event_get"], "approvalRequiredActions": [], "blockedActions": ["bizzabo_people_data", "bizzabo_mutations", "bizzabo_raw_api"] }],
+  "riskLevel": "high",
+  "runtimeSupport": [{ "format": "openclaw", "installSupport": "installable", "description": "Relay mounts two typed Bizzabo event reads and attaches the encrypted credential only to the fixed API origin." }, { "format": "hermes", "installSupport": "installable", "description": "Relay mounts two typed Bizzabo event reads and attaches the encrypted credential only to the fixed API origin." }],
+  "availability": "available",
+  "providerSetup": { "status": "external_blocker", "blocker": "Customer plan/API access, an account-created API credential and live confirmation of the account's current API version are required.", "nextAction": "In the separate provider-console task, confirm Open API plan access, create the customer credential, store it encrypted, confirm the current documented API version/origin in the account docs, validate the two bounded reads, revoke provider-side on disconnect, and confirm subsequent denial." },
+  "evidence": [
+    { "url": "https://www.bizzabo.com/event-management-software/event-software-integrations", "checkedAt": "2026-07-17", "supports": "Bizzabo advertises an Open API for connecting event data to customer technology." },
+    { "url": "https://www.bizzabo.com/pricing", "checkedAt": "2026-07-17", "supports": "Bizzabo lists Open API access as a plan capability that customers use to build solutions and connectors." },
+    { "url": "https://www.bizzabo.com/legal/security-compliance", "checkedAt": "2026-07-17", "supports": "Bizzabo documents TLS 1.2 in transit, AES-256 at rest and logical customer-data segregation." }
+  ]
+}

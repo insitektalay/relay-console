@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "really-simple-systems",
+  "name": "Spotler CRM",
+  "category": "crm_support",
+  "description": "Really Simple Systems is now Spotler CRM, a B2B customer relationship management platform for maintaining accounts and contacts, tracking activities and opportunities, coordinating sales pipelines, and extending into marketing campaigns and service cases. Teams use its central customer database, workflow automation, permissions, reporting, and integrations to coordinate marketing, sales, and service work.",
+  "agentUseSummary": "Add a V4 access token generated for a dedicated Spotler CRM user, then choose which agents can read or manage the record types enabled by that user's plan, add-ons, and permissions under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://spotler.com/en-gb/crm",
+    "docsUrl": "https://support.reallysimplesystems.com/api-v4/",
+    "developerConsoleUrl": "https://support.reallysimplesystems.com/api-v4/",
+    "termsUrl": "https://spotler.com/en-gb/legal/user-agreement",
+    "privacyUrl": "https://spotler.com/en-gb/privacy-statement"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_generated_oauth2_access_token",
+      "bearer_token",
+      "connected_user_role_authority",
+      "plan_and_add_on_authority",
+      "fixed_legacy_v4_api_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SPOTLER_CRM_ACCESS_TOKEN",
+        "label": "Spotler CRM V4 access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Enable API V4 for a dedicated least-privilege user, generate its one-time token under Manage API Keys and Alerts, and paste it here. Relay encrypts it and sends it only to apiv4.reallysimplesystems.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crm_read",
+      "label": "Read CRM and configuration",
+      "description": "Read supported accounts, activities, contacts, campaigns, campaign details and stages, cases, documents, opportunities and histories, opportunity lines, data dictionaries, and lookup values.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crm_manage",
+      "label": "Manage CRM records and lookups",
+      "description": "Create, update, and delete all eleven documented record types and append provider lookup-list values, subject to the connected user's plan, add-ons, and permissions.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "really_simple_systems_api_read",
+        "label": "Read Spotler CRM",
+        "description": "Read one exact V4 record, data-dictionary, or lookup route with bounded pagination, filter, and ordering parameters."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "really_simple_systems_api_manage",
+        "label": "Manage Spotler CRM",
+        "description": "Create, update, or delete one supported record, or append lookup values, through an exact V4 operation."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "really_simple_systems_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer-generated access token never enters agent-visible requests or results."
+      },
+      {
+        "id": "really_simple_systems_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every request stays on Spotler CRM's documented https://apiv4.reallysimplesystems.com origin."
+      },
+      {
+        "id": "really_simple_systems_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only the eleven documented V4 record resources plus bounded data-dictionary and lookup operations; it blocks user, subscription, API-token, alert, import, export, automation, arbitrary URL, and private application interfaces."
+      },
+      {
+        "id": "really_simple_systems_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay performs one request at a time and bounds pages, 100-record limits, filter and order JSON, arrays, bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "really_simple_systems_safe",
+      "label": "Safe",
+      "description": "Selected bounded reads run directly. Every CRM, marketing, service, document, opportunity, lookup, and deletion mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["really_simple_systems_api_read"],
+      "approvalRequiredActions": ["really_simple_systems_api_manage"],
+      "blockedActions": [
+        "really_simple_systems_secret_exposure",
+        "really_simple_systems_unofficial_origin",
+        "really_simple_systems_unsupported_endpoint",
+        "really_simple_systems_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected V4 mutation authorized by the connected Spotler CRM user runs without Relay per-action approval. Connection ownership, provider roles and plan, exact routes, fixed origin, bounds, redaction, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "really_simple_systems_api_read",
+        "really_simple_systems_api_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "really_simple_systems_secret_exposure",
+        "really_simple_systems_unofficial_origin",
+        "really_simple_systems_unsupported_endpoint",
+        "really_simple_systems_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the documented Spotler CRM V4 record, data-dictionary, and lookup surfaces through fixed-origin bounded tools and an encrypted customer access token."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the documented Spotler CRM V4 record, data-dictionary, and lookup surfaces through fixed-origin bounded tools and an encrypted customer access token."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No authorized Spotler CRM Professional or Enterprise account, API-enabled dedicated user, generated V4 access token, optional Marketing or Service & Support modules, representative records, or account call-limit policy is available in this code-only worker for live acceptance.",
+    "nextAction": "An authorized Spotler CRM administrator should enable API V4 for a dedicated least-privilege user, generate its one-time access token under Manage API Keys and Alerts, connect it through Relay, and verify plan/module visibility, all eleven record dictionaries, representative reads, 100-record pagination, JSON filters and ordering, Safe approvals, Dangerous CRUD and lookup append behavior, role and plan denial, usage limits and alerts, audit redaction, token replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.reallysimplesystems.com/api-v4/",
+      "checkedAt": "2026-07-18",
+      "supports": "Spotler CRM documents the legacy-named fixed V4 origin, customer-generated user access tokens, bearer authentication, eleven CRUD record resources, data dictionaries, lookup reads and appends, 100-record pagination, JSON filters and ordering, errors, and usage alerts."
+    },
+    {
+      "url": "https://spotler.com/en-gb/crm",
+      "checkedAt": "2026-07-18",
+      "supports": "Spotler's current product page identifies Spotler CRM as its B2B CRM for accounts, contacts, opportunities, workflows, marketing and sales processes, lead scoring, permissions, reporting, and integrations."
+    },
+    {
+      "url": "https://spotler.com/en-gb/pricing",
+      "checkedAt": "2026-07-18",
+      "supports": "Spotler documents current CRM and lead-management subscription pricing, annual licensing, included account, opportunity, task, activity, automation, and reporting features, and modular add-on products."
+    },
+    {
+      "url": "https://support.reallysimplesystems.com/crm-user-security/",
+      "checkedAt": "2026-07-18",
+      "supports": "Spotler CRM documents per-user security and permission levels that remain authoritative for the dedicated user behind a V4 access token."
+    },
+    {
+      "url": "https://spotler.com/en-gb/legal/user-agreement",
+      "checkedAt": "2026-07-18",
+      "supports": "Spotler's current user agreement governs licensed software access, normal-business and lawful use, fees, customer data, backups, and the service relationship."
+    },
+    {
+      "url": "https://spotler.com/en-gb/privacy-statement",
+      "checkedAt": "2026-07-18",
+      "supports": "Spotler's privacy statement covers customer and contact personal information, service use, storage, processing, security, disclosure, retention, and data-subject rights."
+    }
+  ]
+}

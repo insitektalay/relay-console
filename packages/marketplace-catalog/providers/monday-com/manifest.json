@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "monday-com",
+  "name": "Monday.com",
+  "category": "work_management",
+  "description": "Monday.com is a work management platform built around boards, groups, items, columns, dashboards, and automations. Teams use it to plan projects, assign work, track status and dates, and coordinate workflows across departments.",
+  "agentUseSummary": "Connect a monday.com account once, then select which agents may list boards, read items and updates, prepare changes, create or update items, and add discussion updates under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://monday.com/",
+    "docsUrl": "https://developer.monday.com/",
+    "developerConsoleUrl": "https://developer.monday.com/apps/docs/the-developer-center",
+    "termsUrl": "https://monday.com/terms-of-service/",
+    "privacyUrl": "https://monday.com/l/privacy/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["me:read", "account:read", "workspaces:read", "boards:read", "boards:write", "updates:read", "updates:write"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.monday.com/oauth2/authorize",
+    "tokenUrl": "https://auth.monday.com/oauth_ms/oauth/token",
+    "revocationUrl": "https://auth.monday.com/oauth_ms/oauth/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "monday_user_account", "monday_account_bound"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/monday-com/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "board_read", "label": "View boards", "description": "List boards visible to the connected user.", "defaultSelected": true },
+    { "id": "item_read", "label": "Find and read items", "description": "List board items and read item details and discussion updates.", "defaultSelected": true },
+    { "id": "item_draft", "label": "Prepare item changes", "description": "Prepare an exact item create, update, or comment locally.", "defaultSelected": true },
+    { "id": "item_write", "label": "Create and update items", "description": "Create items, update names or column values, and add discussion updates.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "monday_board_list", "label": "List boards", "description": "List a bounded set of boards visible to the connected user." },
+      { "id": "monday_board_items", "label": "List board items", "description": "List a bounded first page of items from one explicit board." },
+      { "id": "monday_item_get", "label": "Read an item", "description": "Read one explicit item with its board, group, columns, and bounded update context." },
+      { "id": "monday_item_updates", "label": "List item updates", "description": "List bounded discussion updates for one explicit item." },
+      { "id": "monday_item_prepare", "label": "Prepare an item change", "description": "Prepare and hash one item create, update, or comment locally." }
+    ],
+    "approvalRequired": [
+      { "id": "monday_item_create", "label": "Create an item", "description": "Create one item on an explicit board; Safe mode requires matching approval." },
+      { "id": "monday_item_update", "label": "Update an item", "description": "Change the name or bounded column values of one explicit item; Safe mode requires matching approval." },
+      { "id": "monday_item_comment_create", "label": "Add an update", "description": "Post one bounded discussion update to an explicit item; Safe mode requires matching approval." }
+    ],
+    "blocked": [
+      { "id": "monday_structure_admin", "label": "Administer monday.com", "description": "Workspace, board, group, column, user, team, permission, and billing administration are outside V1." },
+      { "id": "monday_destructive", "label": "Delete or bulk-change work", "description": "Item deletion, file mutation, webhooks, schema mutation, broad exports, and bulk changes are outside V1." },
+      { "id": "monday_raw_graphql", "label": "Call arbitrary GraphQL", "description": "Raw GraphQL, automatic pagination, and monday platform MCP tools are never exposed to agents." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "monday_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local drafts run directly; each monday.com item write requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["monday_board_list", "monday_board_items", "monday_item_get", "monday_item_updates", "monday_item_prepare"],
+      "approvalRequiredActions": ["monday_item_create", "monday_item_update", "monday_item_comment_create"],
+      "blockedActions": ["monday_structure_admin", "monday_destructive", "monday_raw_graphql"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected monday.com operation supported by this connector runs without Relay per-action approval; connection ownership, request bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["monday_board_list", "monday_board_items", "monday_item_get", "monday_item_updates", "monday_item_prepare", "monday_item_create", "monday_item_update", "monday_item_comment_create"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["monday_structure_admin", "monday_destructive", "monday_raw_graphql"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts eight typed monday.com tools and attaches the authorized user's token server-side without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts eight typed monday.com tools and attaches the authorized user's token server-side without exposing it to the agent." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay Console's monday.com OAuth 2.1 application, exact production redirect URL, scopes, client credentials, live app version, and a fresh production authorization have not been configured and verified.",
+    "nextAction": "Create a monday.com app, enable the new OAuth flow, register https://api.relayconsole.work/api/v1/marketplace/oauth/monday-com/callback, grant the seven declared scopes, add MONDAY_CLIENT_ID and MONDAY_CLIENT_SECRET to Railway, promote the tested app version live, then verify PKCE, account binding, token rotation and revocation, bounded reads, Safe writes, Dangerous writes, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developer.monday.com/apps/docs/migrating-to-the-new-oauth-flow", "checkedAt": "2026-07-16", "supports": "Monday.com documents its OAuth 2.1 token endpoint, required S256 PKCE, expiring access tokens, rotating refresh tokens, six-month maximum lifetime, and revocation endpoint." },
+    { "url": "https://developer.monday.com/apps/docs/oauth", "checkedAt": "2026-07-16", "supports": "Monday.com documents the authorization endpoint, exact redirect URL matching, state, account selection, and the declared account, workspace, board, and update scopes." },
+    { "url": "https://developer.monday.com/api-reference/docs/api-versioning", "checkedAt": "2026-07-16", "supports": "Monday.com identifies 2026-04 as the stable current production API version and recommends sending the API-Version header." },
+    { "url": "https://developer.monday.com/api-reference/reference/boards", "checkedAt": "2026-07-16", "supports": "Monday.com documents bounded board queries and board groups, columns, workspaces, item counts, and items_page." },
+    { "url": "https://developer.monday.com/api-reference/reference/items", "checkedAt": "2026-07-16", "supports": "Monday.com documents explicit item reads, create_item, and JSON column values." },
+    { "url": "https://developer.monday.com/api-reference/reference/updates", "checkedAt": "2026-07-16", "supports": "Monday.com documents reading updates and posting one create_update mutation." },
+    { "url": "https://developer.monday.com/api-reference/docs/authentication", "checkedAt": "2026-07-16", "supports": "Monday.com requires tokens in the Authorization header and limits app tokens by both user permissions and app scopes." }
+  ]
+}

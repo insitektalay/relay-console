@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-search-console",
+  "name": "Google Search Console",
+  "category": "developer",
+  "description": "Google Search Console reports how Google Search discovers, crawls, indexes, and presents website properties in search results.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth with only webmasters.readonly and bind one URL-prefix or sc-domain property. Six semantic wrappers list up to twenty-five accessible properties, confirm selected-property access, query at most twenty-eight days and twenty-five Search Analytics rows, inspect one contained URL, list up to twenty-five sitemaps, or read one contained sitemap. Relay blocks property and sitemap writes, broad exports, raw tools, service accounts, delegation, and automatic pagination.",
+  "provider": {
+    "websiteUrl": "https://search.google.com/search-console",
+    "docsUrl": "https://developers.google.com/webmaster-tools",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/library/searchconsole.googleapis.com",
+    "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["https://www.googleapis.com/auth/webmasters.readonly"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token"
+  },
+  "connection": {
+    "types": ["relay_owned_global_oauth", "selected_site_property_binding", "expiring_access_token", "offline_refresh_token", "provider_revocation"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-search-console/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "properties_list", "label": "List properties", "description": "List at most twenty-five accessible Search Console properties without pagination.", "defaultSelected": true },
+    { "id": "property_get", "label": "Read property", "description": "Confirm access to the selected property.", "defaultSelected": true },
+    { "id": "search_analytics_query", "label": "Query Search Analytics", "description": "Read up to twenty-five rows over no more than twenty-eight days.", "defaultSelected": true },
+    { "id": "url_inspect", "label": "Inspect indexed URL", "description": "Read safe index, canonical, mobile, and rich-result status for one contained URL.", "defaultSelected": true },
+    { "id": "sitemaps_list", "label": "List sitemaps", "description": "List up to twenty-five sitemap status records.", "defaultSelected": true },
+    { "id": "sitemap_get", "label": "Read sitemap", "description": "Read one contained sitemap status record.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_search_console_properties_list", "label": "List Search Console properties", "description": "List at most twenty-five accessible Search Console properties." },
+      { "id": "google_search_console_property_get", "label": "Get Search Console property", "description": "Confirm access to the connection-bound Search Console property." },
+      { "id": "google_search_console_search_analytics_query", "label": "Query Search Analytics", "description": "Run one bounded Search Analytics query for the connection-bound property." },
+      { "id": "google_search_console_url_inspect", "label": "Inspect indexed URL", "description": "Read the indexed status of one URL under the connection-bound property." },
+      { "id": "google_search_console_sitemaps_list", "label": "List sitemaps", "description": "List at most twenty-five sitemaps for the connection-bound property." },
+      { "id": "google_search_console_sitemap_get", "label": "Get sitemap", "description": "Read one sitemap status record for the connection-bound property." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "google_search_console_sitemap_submit", "label": "Submit sitemap", "description": "Sitemap submission is a write and is blocked." },
+      { "id": "google_search_console_sitemap_delete", "label": "Delete sitemap", "description": "Sitemap deletion is blocked." },
+      { "id": "google_search_console_site_add", "label": "Add property", "description": "Search Console property administration is blocked." },
+      { "id": "google_search_console_site_delete", "label": "Delete property", "description": "Search Console property administration is blocked." },
+      { "id": "google_search_console_broad_export", "label": "Export Search Console data", "description": "Broad exports, automatic pagination, and raw API access are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "google_search_console_safe",
+      "label": "Safe",
+      "description": "Six bounded read-only wrappers run automatically while administration, writes, broad exports, and pagination remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["google_search_console_properties_list", "google_search_console_property_get", "google_search_console_search_analytics_query", "google_search_console_url_inspect", "google_search_console_sitemaps_list", "google_search_console_sitemap_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["google_search_console_sitemap_submit", "google_search_console_sitemap_delete", "google_search_console_site_add", "google_search_console_site_delete", "google_search_console_broad_export"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The exact scope, selected-property, containment, response-size, result-count, and no-pagination boundaries remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["google_search_console_properties_list", "google_search_console_property_get", "google_search_console_search_analytics_query", "google_search_console_url_inspect", "google_search_console_sitemaps_list", "google_search_console_sitemap_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["google_search_console_sitemap_submit", "google_search_console_sitemap_delete", "google_search_console_site_add", "google_search_console_site_delete", "google_search_console_broad_export"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts six bounded Google Search Console read wrappers and attaches encrypted OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts six bounded Google Search Console read wrappers and attaches encrypted OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay must enable the Search Console API, configure its confidential Google web client, verify the exact webmasters.readonly consent scope, configure Railway staging credentials, and authorize an acceptance account with a Search Console property. Those provider-console and environment actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the canonical Railway callback and exact read-only scope, complete Google review, configure staging credentials, then verify property binding, all six reads, containment, bounds, refresh, rotation, revocation, disconnect, and quota/error mapping."
+  },
+  "evidence": [
+    { "url": "https://developers.google.com/webmaster-tools/v1/sites/list", "checkedAt": "2026-07-17", "supports": "Google documents the bounded sites.list discovery endpoint and read-only authorization scope." },
+    { "url": "https://developers.google.com/webmaster-tools/v1/searchanalytics/query", "checkedAt": "2026-07-17", "supports": "Google documents the property-bound Search Analytics POST endpoint, dimensions, search and aggregation types, rows, and offset pagination Relay does not follow." },
+    { "url": "https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect", "checkedAt": "2026-07-17", "supports": "Google documents URL Inspection as a read-only POST requiring an inspection URL under the selected site property." },
+    { "url": "https://developers.google.com/webmaster-tools/v1/sitemaps/list", "checkedAt": "2026-07-17", "supports": "Google documents property-bound sitemap listing and the webmasters.readonly scope." }
+  ]
+}

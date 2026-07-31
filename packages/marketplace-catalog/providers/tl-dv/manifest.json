@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "tl-dv",
+  "name": "tl;dv",
+  "category": "communication",
+  "description": "tl;dv is an AI meeting assistant that records, transcribes, summarizes, and organizes conversations from Google Meet, Zoom, and Microsoft Teams. Individuals and teams use it to search meeting knowledge, revisit transcripts and notes, share recordings, and turn calls into follow-up work.",
+  "agentUseSummary": "Enter an API key from the customer's own eligible tl;dv account, then let agents search meetings, read transcripts and notes, prepare recording downloads, and import public media through the complete documented API under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://tldv.io/",
+    "docsUrl": "https://doc.tldv.io/",
+    "developerConsoleUrl": "https://tldv.io/app/settings/personal-settings/api-keys",
+    "termsUrl": "https://tldv.io/terms/",
+    "privacyUrl": "https://tldv.io/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "TL_DV_API_KEY",
+        "label": "tl;dv API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create an API key in tl;dv Personal settings > API keys. API availability depends on the customer's plan, and export access depends on the meeting organizer's plan."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "meeting_knowledge",
+      "label": "Read meeting knowledge",
+      "description": "Search meetings and read metadata, transcripts, structured notes, and recording-download readiness.",
+      "defaultSelected": true
+    },
+    {
+      "id": "meeting_import",
+      "label": "Import recordings",
+      "description": "Import publicly accessible audio or video URLs into the customer's tl;dv account for processing.",
+      "defaultSelected": true
+    },
+    {
+      "id": "administration",
+      "label": "Use the complete tl;dv API",
+      "description": "Use every current documented public v1alpha1 API operation authorized by the customer key and organizer plan.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "tl_dv_list_meetings",
+        "label": "List meetings",
+        "description": "Search one bounded page of meetings available to the API key."
+      },
+      {
+        "id": "tl_dv_get_meeting",
+        "label": "Read meeting",
+        "description": "Read the metadata for one meeting."
+      },
+      {
+        "id": "tl_dv_get_transcript",
+        "label": "Read transcript",
+        "description": "Read the speaker-attributed transcript for one meeting."
+      },
+      {
+        "id": "tl_dv_get_notes",
+        "label": "Read notes",
+        "description": "Read the structured and Markdown notes for one meeting."
+      },
+      {
+        "id": "tl_dv_get_recording_download",
+        "label": "Prepare recording download",
+        "description": "Ask tl;dv to prepare the recording download without exposing its signed URL."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "tl_dv_import_meeting",
+        "label": "Import meeting",
+        "description": "Import public HTTPS audio or video into the customer's tl;dv account."
+      },
+      {
+        "id": "tl_dv_full_api",
+        "label": "Use full tl;dv API",
+        "description": "Use any current documented tl;dv public API operation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "tl_dv_safe",
+      "label": "Safe",
+      "description": "Bounded meeting, transcript, notes, and recording-readiness checks run directly; imports and other API operations require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["tl_dv_list_meetings", "tl_dv_get_meeting", "tl_dv_get_transcript", "tl_dv_get_notes", "tl_dv_get_recording_download"],
+      "approvalRequiredActions": ["tl_dv_import_meeting", "tl_dv_full_api"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected key- and plan-authorized tl;dv API operation runs without Relay per-action approval; ownership, key secrecy, fixed origin, public-import boundaries, bounds, audits, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["tl_dv_list_meetings", "tl_dv_get_meeting", "tl_dv_get_transcript", "tl_dv_get_notes", "tl_dv_get_recording_download", "tl_dv_import_meeting", "tl_dv_full_api"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected tl;dv tools and injects the encrypted customer API key server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected tl;dv tools and injects the encrypted customer API key server-side."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer tl;dv API key from a Business or Enterprise account is available for production acceptance.",
+    "nextAction": "Create an API key in the intended customer's tl;dv Personal settings, connect it in Relay Console, then verify bounded reads, organizer-plan enforcement, Safe import denial, an approved or Dangerous dry-run import, signed-URL redaction, key revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://doc.tldv.io/",
+      "checkedAt": "2026-07-14",
+      "supports": "tl;dv documents x-api-key authentication on the fixed https://pasta.tldv.io/v1alpha1 origin and the complete current surface: meeting import, list, metadata, recording download, transcript, notes, deprecated highlights, and health."
+    },
+    {
+      "url": "https://gitlab.com/tldv/tldv-mcp-server",
+      "checkedAt": "2026-07-14",
+      "supports": "tl;dv's official MCP server is self-hosted over stdio, requires the customer's TL_DV_API_KEY, and exposes list meetings, meeting metadata, transcript, and the now-deprecated highlights operation; it does not provide hosted OAuth."
+    },
+    {
+      "url": "https://tldv.io/blog/tldv-mcp-elevating-meeting-intelligence-with-ai-driven-contextualization/",
+      "checkedAt": "2026-07-14",
+      "supports": "tl;dv describes the product as meeting intelligence for Google Meet, Zoom, and Microsoft Teams and requires a customer API key from an eligible paid account for MCP/API access."
+    }
+  ]
+}

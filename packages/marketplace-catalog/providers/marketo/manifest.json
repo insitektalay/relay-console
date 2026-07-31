@@ -1,0 +1,210 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "marketo",
+  "name": "Marketo",
+  "category": "marketing_analytics",
+  "description": "Adobe Marketo Engage is a marketing automation platform for lead management, campaigns, programs, assets, scoring, and cross-channel engagement. Organizations use it to coordinate marketing operations and measure how people progress through customer journeys.",
+  "agentUseSummary": "Connect one Marketo subscription through a customer-owned custom service assigned to a dedicated API-only user with only Read-Only Lead and Read-Only Assets. Relay binds the returned token owner and exposes only two preselected reads: lead ID and timestamps, plus bounded program metadata; personal fields, activities, memberships, other assets, bulk APIs, exports, and all mutations are blocked.",
+  "provider": {
+    "websiteUrl": "https://business.adobe.com/products/marketo/adobe-marketo.html",
+    "docsUrl": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/authentication",
+    "developerConsoleUrl": "https://login.marketo.com/",
+    "termsUrl": "https://www.adobe.com/legal/terms.html",
+    "privacyUrl": "https://www.adobe.com/privacy/policy.html"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["Read-Only Lead", "Read-Only Assets"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://{subscriptionId}.mktorest.com/identity/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_custom_service",
+      "bound_subscription",
+      "bound_api_only_user",
+      "selected_lead",
+      "selected_program"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MARKETO_SUBSCRIPTION_ID",
+        "label": "Marketo subscription ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact Munchkin/account ID from the subscription REST and Identity endpoints."
+      },
+      {
+        "name": "MARKETO_CLIENT_ID",
+        "label": "Marketo custom-service client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "A dedicated customer-owned custom service assigned only Read-Only Lead and Read-Only Assets."
+      },
+      {
+        "name": "MARKETO_CLIENT_SECRET",
+        "label": "Marketo custom-service client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay encrypts this secret and sends it only to the selected subscription Identity endpoint."
+      },
+      {
+        "name": "MARKETO_API_USER",
+        "label": "Expected API-only user",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact API-only user email that the Identity token scope must return."
+      },
+      {
+        "name": "MARKETO_LEAD_ID",
+        "label": "Selected lead ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one Marketo lead whose ID and timestamps Relay may read."
+      },
+      {
+        "name": "MARKETO_PROGRAM_ID",
+        "label": "Selected program ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one Marketo program whose bounded summary Relay may read."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "marketo_lead_summary_get",
+      "label": "Read selected lead summary",
+      "description": "Read only the ID and timestamps for one selected lead without exposing personal or custom fields.",
+      "defaultSelected": true
+    },
+    {
+      "id": "marketo_program_summary_get",
+      "label": "Read selected program summary",
+      "description": "Read bounded organizational metadata for one selected program.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "marketo_lead_summary_get",
+        "label": "Read selected lead summary",
+        "description": "Read the selected lead's ID and timestamps while discarding contact, custom, and membership fields."
+      },
+      {
+        "id": "marketo_program_summary_get",
+        "label": "Read selected program summary",
+        "description": "Read the selected program's ID, name, type, status, channel, and workspace while discarding other asset details."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "marketo_private_data",
+        "label": "Expose private marketing data",
+        "description": "Lead contact fields, activities, memberships, cookies, companies, opportunities, custom objects, tokens, secrets, raw responses, and unselected asset details are excluded."
+      },
+      {
+        "id": "marketo_mutation",
+        "label": "Mutate Marketo state",
+        "description": "Lead sync, merges, associations, campaign requests, imports, activity creation, asset changes, approvals, administration, and user management are blocked."
+      },
+      {
+        "id": "marketo_broad_access",
+        "label": "Use broad Marketo access",
+        "description": "Other subscriptions, API users, leads, programs, assets, workspaces, partitions, list or search endpoints, paging, bulk APIs, SOAP, arbitrary paths, redirects, downloads, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "marketo_read_only",
+      "label": "Read Only",
+      "description": "Read one selected lead and program through a dedicated two-permission API-only user; personal data, broader access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "marketo_lead_summary_get",
+        "marketo_program_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "marketo_private_data",
+        "marketo_mutation",
+        "marketo_broad_access"
+      ]
+    },
+    {
+      "id": "marketo_no_access",
+      "label": "No Access",
+      "description": "Expose no Marketo actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "marketo_lead_summary_get",
+        "marketo_program_summary_get",
+        "marketo_private_data",
+        "marketo_mutation",
+        "marketo_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches encrypted customer credentials server-side and mounts exactly two preselected, projected Marketo reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches encrypted customer credentials server-side and mounts exactly two preselected, projected Marketo reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A Marketo Engage subscription, dedicated API-only user, least-privilege role, custom service, subscription ID, credentials, and staging lead/program IDs are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "An authorized Marketo administrator must create a customer-owned API-only user with only Read-Only Lead and Read-Only Assets in the required workspace, create its custom service, connect the encrypted credentials and exact IDs through Relay, then validate token-owner binding, both projections, permission denial, replacement, disconnect, and post-disconnect denial in Fairfax before live use."
+  },
+  "evidence": [
+    {
+      "url": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents Marketo two-legged OAuth custom-service credentials, the subscription Identity endpoint, bearer Authorization headers, one-hour tokens, caching, and token scope as the owning API-only user."
+    },
+    {
+      "url": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/custom-services",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents that each custom service inherits one API-only user's roles and recommends granting only the minimum permissions; Read-Only Lead and Read-Only Assets are distinct permissions."
+    },
+    {
+      "url": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/base-url",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents the subscription-specific mktorest.com base URL containing the Munchkin/account ID."
+    },
+    {
+      "url": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/lead-database/leads",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents GET /rest/v1/lead/{id}.json and the fields parameter used to request only selected fields."
+    },
+    {
+      "url": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/assets/programs",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents GET /rest/asset/v1/program/{id}.json and the program metadata returned by that selected-resource endpoint."
+    },
+    {
+      "url": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/error-codes",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents response-level errors inside HTTP 200 envelopes, including authentication, permission, rate, quota, and availability codes."
+    }
+  ]
+}

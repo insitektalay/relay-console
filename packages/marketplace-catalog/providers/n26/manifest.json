@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "n26",
+  "name": "N26",
+  "category": "commerce_payments",
+  "description": "N26 is a mobile bank offering personal accounts, cards, Spaces, transfers, and digital money-management features across supported European markets. Customers use its app and web services to review accounts, balances, transactions, spending insights, and everyday banking activity.",
+  "agentUseSummary": "N26 is visible as a regulated Open Banking TPP-review preview only. Relay will not collect an N26 email, password, confirmation PIN, one-time code, browser session, card detail, IBAN, QWAC private key, or other customer or TPP credential, and no agent action is callable until Relay is authorized and N26 approves the exact account-information integration.",
+  "provider": {
+    "websiteUrl": "https://n26.com/",
+    "docsUrl": "https://support.n26.com/en-eu/security/open-banking-psd2/psd2-open-banking-for-third-party-providers",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://n26.com/en-eu/legal-documents",
+    "privacyUrl": "https://n26.com/en-eu/privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "regulated_open_banking_tpp_contract_required",
+      "n26_sandbox_and_production_approval_required",
+      "customer_consent_and_read_scope_approval_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "approved_account_information_read",
+      "label": "Read approved N26 account information",
+      "description": "After N26 approves Relay as a regulated TPP, expose only bounded non-mutating summaries for the connected customer's consented account list, account details, balances, and recent transaction lifecycle within explicitly eligible accounts.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "n26_connect_before_tpp_approval",
+        "label": "Connect before regulated TPP approval",
+        "description": "N26 requires third-party service providers to be licensed by a national regulatory authority and to use a valid production QWAC for its PSD2 dedicated interface. Relay has no approved N26 TPP identity, consent contract, scopes, certificate, sandbox acceptance, or production access."
+      },
+      {
+        "id": "n26_collect_customer_credentials",
+        "label": "Collect customer or TPP credentials",
+        "description": "Relay will not ask customers for an N26 email, password, confirmation PIN, one-time code, browser session, bearer token, card detail, IBAN, identity document, QWAC private key, developer credential, or other secret as a substitute for N26-hosted consent and approved TPP authentication."
+      },
+      {
+        "id": "n26_api_actions_before_approval",
+        "label": "Run N26 API actions",
+        "description": "No account, balance, transaction, card, Space, statement, payment, transfer, standing-order, direct-debit, identity, consent, webhook, or other N26 API action can run while regulated TPP review is pending."
+      },
+      {
+        "id": "n26_money_movement_blocked",
+        "label": "Money movement unavailable",
+        "description": "Payment initiation, transfers, card controls, Space movements, account maintenance, standing orders, direct debits, disputes, and every other financial or account mutation remain outside Relay's planned read-only V1 even after approval."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "n26_open_banking_tpp_review",
+      "label": "Regulated Open Banking TPP review pending",
+      "description": "Agent actions remain unavailable until Relay has regulatory authorization and a production QWAC, and N26 approves the exact account-information consent, read scope, security profile, and production integration.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "n26_connect_before_tpp_approval",
+        "n26_collect_customer_credentials",
+        "n26_api_actions_before_approval",
+        "n26_money_movement_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No OpenClaw tools are callable until N26 approves Relay and Relay implements the approved read-only Railway broker."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Hermes tools are callable until N26 approves Relay and Relay implements the approved read-only Railway broker."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "N26 states that a third-party service provider seeking access to its PSD2 interfaces must be licensed by a national regulatory authority and hold a valid QWAC; its dedicated REST interface follows the Berlin Group guidelines and uses OAuth 2.0, with a sandbox available for testing. Relay has no regulatory authorization, production QWAC, approved N26 TPP identity, customer-consent contract, exact AIS scope, sandbox acceptance, schema and rate-limit contract, privacy allocation, or production authority, so no connection can be offered safely.",
+    "nextAction": "An authorized Relay business, legal, compliance, privacy, and security owner must obtain the applicable account-information-service regulatory authorization, qualified production QWAC, and written N26 approval for Relay's exact AIS integration. The owner must document eligible countries and accounts, customer consent and duration, exact read permissions and minimized response fields, redirect and token contracts, certificate custody and rotation, sandbox and production onboarding, schemas and rate limits, data retention, revocation and disconnect, audits, incident duties, and production approval. Engineering can then implement a fixed-origin Railway consent broker and the smallest bounded read-only account-list, account-detail, balance, and recent transaction-lifecycle V1. Payment initiation and every mutation remain excluded."
+  },
+  "evidence": [
+    {
+      "url": "https://support.n26.com/en-eu/security/open-banking-psd2/psd2-open-banking-for-third-party-providers",
+      "checkedAt": "2026-07-18",
+      "supports": "N26 requires a TPP to be licensed by a national regulatory authority and use a valid production QWAC. Its dedicated REST interface follows Berlin Group guidelines, uses OAuth 2.0, and has a sandbox."
+    },
+    {
+      "url": "https://support.n26.com/en-eu/security/open-banking-psd2/psd2-and-secure-open-banking",
+      "checkedAt": "2026-07-18",
+      "supports": "N26 describes consented Account Information Service access to account lists, account details, balances, and transactions, alongside a separate Payment Initiation Service that Relay excludes."
+    }
+  ]
+}

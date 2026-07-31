@@ -1,0 +1,228 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "liquidplanner",
+  "name": "LiquidPlanner",
+  "category": "project_management",
+  "description": "LiquidPlanner is a predictive project-management and resource-planning platform built around priority, ranged estimates and capacity-aware scheduling. Teams organize work into workspaces, packages, projects, folders, tasks and assignments while LiquidPlanner forecasts timing and delivery risk.",
+  "agentUseSummary": "Connect a customer-owned LiquidPlanner New API token. Selected agents can use five bounded workspace and plan-item actions under Safe or Dangerously skip permissions; descriptions, people, assignments, estimates, time and cost data, files, exports, Classic and raw API access remain unavailable.",
+  "icon": {
+    "assetName": "marketplace-logo-liquidplanner.png",
+    "sourceUrl": "https://www.liquidplanner.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://www.liquidplanner.com/",
+    "docsUrl": "https://api-docs.liquidplanner.com/docs/getting-started-notes-from-readme",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.tempo.io/terms-of-use",
+    "privacyUrl": "https://www.tempo.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_bearer_token",
+      "dedicated_least_authority_user",
+      "liquidplanner_new_only"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "LIQUIDPLANNER_API_TOKEN",
+        "label": "LiquidPlanner API token",
+        "required": true,
+        "secret": true,
+        "helpText": "A separate bearer token owned by a dedicated least-authority LiquidPlanner New member and rotated regularly."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workspace_read",
+      "label": "Read workspaces",
+      "description": "List bounded workspaces available to the token owner.",
+      "defaultSelected": true
+    },
+    {
+      "id": "item_read",
+      "label": "Read plan items",
+      "description": "List and inspect bounded plan-item metadata without descriptions, people or estimates.",
+      "defaultSelected": true
+    },
+    {
+      "id": "item_write",
+      "label": "Manage plan items",
+      "description": "Create minimal tasks and name-check plan-item renames.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "liquidplanner_workspaces_list",
+        "label": "List workspaces",
+        "description": "List at most twenty workspaces available to the token owner."
+      },
+      {
+        "id": "liquidplanner_items_list",
+        "label": "List plan items",
+        "description": "List at most twenty metadata-only plan items in one exact workspace."
+      },
+      {
+        "id": "liquidplanner_item_get",
+        "label": "Read plan item",
+        "description": "Read bounded metadata for one exact plan item."
+      },
+      {
+        "id": "liquidplanner_task_create",
+        "label": "Create task",
+        "description": "Create one minimal task under one exact parent item."
+      },
+      {
+        "id": "liquidplanner_item_rename",
+        "label": "Rename plan item",
+        "description": "Rename one exact plan item after its current name matches."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "liquidplanner_org_workspace_admin",
+        "label": "Administer organizations or workspaces",
+        "description": "Organizations, workspaces, members, resources, placeholders, roles, tokens, billing and settings are unavailable."
+      },
+      {
+        "id": "liquidplanner_item_advanced",
+        "label": "Change advanced plan data",
+        "description": "Descriptions, dates, estimates, priorities, status, custom fields, assignments, dependencies and item movement are unavailable."
+      },
+      {
+        "id": "liquidplanner_people_financials",
+        "label": "Access people or financial data",
+        "description": "Members, assignments, time entries, timesheet notes, cost codes, billing rates and pay rates are unavailable."
+      },
+      {
+        "id": "liquidplanner_files_exports",
+        "label": "Access files or exports",
+        "description": "Files, attachments, timesheet exports and grid downloads are unavailable."
+      },
+      {
+        "id": "liquidplanner_classic_api",
+        "label": "Use LiquidPlanner Classic",
+        "description": "The legacy app.liquidplanner.com API and Classic credentials are outside this connection."
+      },
+      {
+        "id": "liquidplanner_raw_api",
+        "label": "Run arbitrary LiquidPlanner calls",
+        "description": "Agents cannot choose origins, paths, raw filters, continuation tokens, fields or request bodies."
+      },
+      {
+        "id": "liquidplanner_bulk_unbounded",
+        "label": "Run bulk or unbounded operations",
+        "description": "Bulk mutation, recursive tree walks, duplication, deletion, exports and responses above twenty rows or 256 KiB are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "liquidplanner_safe",
+      "label": "Safe",
+      "description": "Private reads and both mutations require approval. Fixed origin, token-owner authority, bounds, field allowlists, name checks, redaction and audits always apply.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "liquidplanner_workspaces_list",
+        "liquidplanner_items_list",
+        "liquidplanner_item_get",
+        "liquidplanner_task_create",
+        "liquidplanner_item_rename"
+      ],
+      "blockedActions": [
+        "liquidplanner_org_workspace_admin",
+        "liquidplanner_item_advanced",
+        "liquidplanner_people_financials",
+        "liquidplanner_files_exports",
+        "liquidplanner_classic_api",
+        "liquidplanner_raw_api",
+        "liquidplanner_bulk_unbounded"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All five selected actions run without Relay per-action approval; fixed origin, token authority, bounds, field allowlists, name checks, redaction and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "liquidplanner_workspaces_list",
+        "liquidplanner_items_list",
+        "liquidplanner_item_get",
+        "liquidplanner_task_create",
+        "liquidplanner_item_rename"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "liquidplanner_org_workspace_admin",
+        "liquidplanner_item_advanced",
+        "liquidplanner_people_financials",
+        "liquidplanner_files_exports",
+        "liquidplanner_classic_api",
+        "liquidplanner_raw_api",
+        "liquidplanner_bulk_unbounded"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway executes five fixed LiquidPlanner New API actions at next.liquidplanner.com with bearer authentication, bounds, redaction and name checks."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway executes five fixed LiquidPlanner New API actions at next.liquidplanner.com with bearer authentication, bounds, redaction and name checks."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "LiquidPlanner New API access requires a paid Ultimate organization and an Org Admin must create and assign the non-expiring API token from Administration > API Access.",
+    "nextAction": "In the provider-console acceptance task, use a synthetic LiquidPlanner New workspace, assign a separate token to a dedicated least-authority member, verify the five bounded tools and permission denials, then disable and delete the token."
+  },
+  "evidence": [
+    {
+      "url": "https://api-docs.liquidplanner.com/docs/getting-started-notes-from-readme",
+      "checkedAt": "2026-07-18",
+      "supports": "LiquidPlanner documents the New API, fixed next.liquidplanner.com surface, paid Ultimate requirement, bearer tokens and supported plan-item operations."
+    },
+    {
+      "url": "https://api-docs.liquidplanner.com/docs/authentication-and-authorization",
+      "checkedAt": "2026-07-18",
+      "supports": "Tokens inherit the active owner member's workspace, plan-item and edit authority; LiquidPlanner recommends a separate API user and says tokens do not expire."
+    },
+    {
+      "url": "https://api-docs.liquidplanner.com/docs/workspaces-1",
+      "checkedAt": "2026-07-18",
+      "supports": "The official workspaces endpoint returns authorized workspace IDs and names."
+    },
+    {
+      "url": "https://api-docs.liquidplanner.com/docs/plan-items",
+      "checkedAt": "2026-07-18",
+      "supports": "The official items endpoint documents filtered reads, minimal task creation and name updates alongside much broader fields that Relay blocks."
+    },
+    {
+      "url": "https://api-docs.liquidplanner.com/docs/pagination-limits-counts",
+      "checkedAt": "2026-07-18",
+      "supports": "LiquidPlanner documents case-sensitive limit and continuation-token pagination; Relay fixes the limit at twenty or fewer and blocks caller continuation tokens."
+    }
+  ]
+}

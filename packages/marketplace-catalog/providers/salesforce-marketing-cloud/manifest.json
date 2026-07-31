@@ -1,0 +1,190 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "salesforce-marketing-cloud",
+  "name": "Salesforce Marketing Cloud",
+  "category": "crm_support",
+  "description": "Salesforce Marketing Cloud Engagement is an enterprise marketing automation platform for email, mobile messaging, journeys, audiences, content, and campaign operations. Organizations use it to coordinate personalized communications and marketing lifecycle workflows across business units.",
+  "agentUseSummary": "Connect one Marketing Cloud Engagement tenant and one exact business-unit MID with customer-owned server-to-server credentials. Relay explicitly requests an empty scope and exposes only two platform validation reads; contacts, subscribers, tracking, messages, content, campaigns, journeys, automations, data extensions, other business units, non-empty scopes, raw APIs, exports, and all mutations are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.salesforce.com/marketing/engagement/",
+    "docsUrl": "https://developer.salesforce.com/docs/marketing/marketing-cloud/guide/integration-s2s-client-credentials",
+    "developerConsoleUrl": "https://mc.exacttarget.com/",
+    "termsUrl": "https://www.salesforce.com/company/legal/agreements/",
+    "privacyUrl": "https://www.salesforce.com/company/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://{subdomain}.auth.marketingcloudapis.com/v2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_server_to_server_credentials",
+      "bound_tenant",
+      "selected_business_unit",
+      "explicit_empty_scope"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SALESFORCE_MARKETING_CLOUD_SUBDOMAIN",
+        "label": "Marketing Cloud tenant subdomain",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact tenant-specific subdomain from the installed package's Authentication Base URI."
+      },
+      {
+        "name": "SALESFORCE_MARKETING_CLOUD_CLIENT_ID",
+        "label": "Marketing Cloud client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "A customer-owned server-to-server integration client ID configured for the selected business unit."
+      },
+      {
+        "name": "SALESFORCE_MARKETING_CLOUD_CLIENT_SECRET",
+        "label": "Marketing Cloud client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay encrypts this customer secret and uses it only in the tenant-specific v2 token exchange."
+      },
+      {
+        "name": "SALESFORCE_MARKETING_CLOUD_ACCOUNT_ID",
+        "label": "Selected business-unit MID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact numeric account_id/MID whose zero-scope context Relay may validate."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "salesforce_marketing_cloud_business_unit_context_get",
+      "label": "Validate business-unit context",
+      "description": "Validate the selected business-unit token context without exposing users, permissions, or raw context data.",
+      "defaultSelected": true
+    },
+    {
+      "id": "salesforce_marketing_cloud_endpoint_summary_get",
+      "label": "Validate platform endpoints",
+      "description": "Validate platform endpoint availability without exposing raw endpoint details.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "salesforce_marketing_cloud_business_unit_context_get",
+        "label": "Validate business-unit context",
+        "description": "Call the no-scope tokenContext resource for the exact selected business unit and return only a validation marker."
+      },
+      {
+        "id": "salesforce_marketing_cloud_endpoint_summary_get",
+        "label": "Validate platform endpoints",
+        "description": "Call the no-scope platform endpoints resource and return only the trusted REST host and a validation marker."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "salesforce_marketing_cloud_private_data",
+        "label": "Expose private marketing data",
+        "description": "Contacts, subscribers, audiences, tracking events, messages, content, data extensions, users, permissions, secrets, tokens, and raw endpoint details are excluded."
+      },
+      {
+        "id": "salesforce_marketing_cloud_mutation",
+        "label": "Mutate Marketing Cloud state",
+        "description": "Sends, imports, automations, journeys, campaigns, content, contacts, callbacks, subscriptions, packages, and administration are blocked."
+      },
+      {
+        "id": "salesforce_marketing_cloud_broad_access",
+        "label": "Use broad Marketing Cloud access",
+        "description": "Other tenants or business units, non-empty scopes, SOAP, list/search endpoints, paging, arbitrary paths, raw APIs, redirects, downloads, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "salesforce_marketing_cloud_read_only",
+      "label": "Read Only",
+      "description": "Validate two zero-scope platform resources for one selected business unit; marketing data and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "salesforce_marketing_cloud_business_unit_context_get",
+        "salesforce_marketing_cloud_endpoint_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "salesforce_marketing_cloud_private_data",
+        "salesforce_marketing_cloud_mutation",
+        "salesforce_marketing_cloud_broad_access"
+      ]
+    },
+    {
+      "id": "salesforce_marketing_cloud_no_access",
+      "label": "No Access",
+      "description": "Expose no Salesforce Marketing Cloud actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "salesforce_marketing_cloud_business_unit_context_get",
+        "salesforce_marketing_cloud_endpoint_summary_get",
+        "salesforce_marketing_cloud_private_data",
+        "salesforce_marketing_cloud_mutation",
+        "salesforce_marketing_cloud_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches encrypted customer credentials server-side, explicitly requests an empty scope, and mounts exactly two platform validation reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches encrypted customer credentials server-side, explicitly requests an empty scope, and mounts exactly two platform validation reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A Marketing Cloud Engagement tenant, enhanced installed package, server-to-server API integration, tenant subdomain, client credentials, and staging business-unit MID are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "An authorized Marketing Cloud administrator must create a customer-owned server-to-server integration for a staging business unit, connect the encrypted credentials and exact MID through Relay, then validate empty returned scope, token caching, both platform resources, redaction, replacement, disconnect, post-disconnect denial, and broader-scope rejection in Fairfax before live use."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.salesforce.com/docs/marketing/marketing-cloud/guide/integration-s2s-client-credentials",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents customer-created server-to-server integrations, client credentials, no refresh token, and tenant REST/SOAP base URLs returned with access tokens."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/marketing/marketing-cloud/guide/access-token-s2s.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents the tenant-specific v2/token endpoint, account_id business-unit binding, 20-minute token lifetime, explicit empty scope behavior, and server-side secret handling."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/marketing/marketing-cloud/guide/integration-considerations.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents tenant-specific OAuth endpoints and business-unit/MID context for server-to-server integrations."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/marketing/marketing-cloud/references/mc_rest_rest_permission_scopes",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce's REST permission table marks GET /platform/v1/tokenContext and GET /platform/v1/endpoints as requiring no user permission or API scope."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/marketing/marketing-cloud/guide/api-integration.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents enhanced installed-package API integrations and requires administrators to keep client IDs and secrets out of client-side applications."
+    }
+  ]
+}

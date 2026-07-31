@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "raycast-extensions",
+  "name": "Raycast Extensions",
+  "category": "productivity",
+  "description": "Raycast Extensions add focused commands and integrations to Raycast's launcher for macOS and Windows. Users can discover community-built public extensions in the Store, receive automatic updates, and access private extensions shared through a Raycast organization.",
+  "agentUseSummary": "Raycast Extensions cannot yet be connected to Relay agents because Store packages execute inside the installed Raycast application's local Node.js runtime with broad filesystem and networking authority, while deeplinks and extension OAuth do not provide a bounded provider-authenticated remote execution API for Railway.",
+  "provider": {
+    "websiteUrl": "https://www.raycast.com/store",
+    "docsUrl": "https://developers.raycast.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.raycast.com/terms-of-service",
+    "privacyUrl": "https://www.raycast.com/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["device_local_raycast_extension_authority_unavailable"],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "raycast_extensions_connect",
+        "label": "Connect Raycast Extensions",
+        "description": "Relay does not present a Raycast account, organization, subscription, installed application, extension library, local database, macOS permission, or extension-owned third-party credential as a Railway API connection."
+      },
+      {
+        "id": "raycast_extensions_install",
+        "label": "Install or update extensions",
+        "description": "Relay does not discover, download, install, update, enable, disable, uninstall, develop, publish, or trust public, private, or locally developed Raycast extensions and their package dependencies."
+      },
+      {
+        "id": "raycast_extensions_local_control",
+        "label": "Launch local extension commands",
+        "description": "Relay does not call raycast deeplinks, bypass command confirmation, inject arguments or launch context, use background launch types, search Root Search, or automate the Raycast application UI."
+      },
+      {
+        "id": "raycast_extensions_execute",
+        "label": "Execute extension integrations",
+        "description": "Local files, application data, network requests, provider API calls, OAuth or personal tokens, preferences, storage, clipboard data, system permissions, and other extension effects remain unavailable until Relay ships explicit Mac-local authority and bounded approvals."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "raycast_extensions_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled until Relay ships a separately disclosed, user-authorized Mac-local connector with immutable reviewed extension and command allowlists and no generic Node.js, filesystem, networking, or credential surface.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "raycast_extensions_connect",
+        "raycast_extensions_install",
+        "raycast_extensions_local_control",
+        "raycast_extensions_execute"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "Relay does not silently bridge OpenClaw to Raycast's installed app, Store, extension runtime, deeplinks, third-party OAuth tokens, permissions, preferences, storage, files, or network access."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "Relay does not silently bridge Hermes to Raycast's installed app, Store, extension runtime, deeplinks, third-party OAuth tokens, permissions, preferences, storage, files, or network access."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Raycast Extensions are installed into and executed by the user's local Raycast application. Raycast builds Store submissions, archives the resulting extensions, distributes them through the Store, downloads installed packages to disk, and automatically updates them. Extensions run in Raycast's managed child Node.js process and separate V8 isolates, but Raycast explicitly states that they are not further sandboxed for filesystem I/O, networking, or other Node runtime features. Store source is public and reviewed, yet each extension still defines its own commands, dependencies, preferences, credentials, third-party providers, data contracts, and effects; private and local development extensions add separate trust boundaries. Extension OAuth is a native-client PKCE facility for authorizing the extension to a third-party provider and storing that provider's tokens locally, not an OAuth grant for Railway to control Raycast. Raycast deeplinks only launch an installed and enabled local command and ordinarily ask the user to confirm. Raycast's local-first account, Teams, Pro, AI, and synchronization services do not establish a published remote extension-execution API, webhook, or MCP contract. Relay's current Marketplace runtime excludes local-app command execution and cannot truthfully report local effects.",
+    "nextAction": "Do not request a Raycast account, organization membership, subscription, extension preference, OAuth or personal token, package, owner, command, deeplink, argument, launch context, local database, file, or system permission; install, update, develop, publish, or invoke extensions; call deeplinks; bypass confirmation; inspect local storage or credentials; automate the app UI; or show Connect. Reconsider after Relay ships a disclosed Mac-local connector that verifies Raycast and the exact reviewed extension package are installed and enabled; pins immutable owner, extension, command, version, and artifact-digest identifiers; exposes bounded typed arguments and results; rejects arbitrary Node.js, package, filesystem, networking, dynamic download, and credential access; obtains least-privilege system permissions; preserves Raycast and Relay approvals; redacts extension-scoped secrets; audits each invocation; supports revocation; and reports only observable outcomes."
+  },
+  "evidence": [
+    {
+      "url": "https://manual.raycast.com/extensions",
+      "checkedAt": "2026-07-18",
+      "supports": "Raycast describes extensions as focused command sets installed through its local Store, including community public extensions, organization-private extensions, and automatic background updates."
+    },
+    {
+      "url": "https://developers.raycast.com/information/security",
+      "checkedAt": "2026-07-18",
+      "supports": "Raycast documents its local-first architecture, reviewed open-source Store pipeline, on-disk installation, managed Node.js child process and V8 isolates, absence of further filesystem or networking sandboxing, and extension-scoped encrypted local storage."
+    },
+    {
+      "url": "https://developers.raycast.com/basics/install-an-extension",
+      "checkedAt": "2026-07-18",
+      "supports": "Raycast documents installation from its in-app or web Store followed by local command discovery and configuration in the Extensions preferences tab."
+    },
+    {
+      "url": "https://developers.raycast.com/information/lifecycle/deeplinks",
+      "checkedAt": "2026-07-18",
+      "supports": "Raycast documents deeplinks as local URLs for installed and enabled commands, with owner, extension, and command identifiers, optional arguments and context, and a confirmation prompt when launched."
+    },
+    {
+      "url": "https://developers.raycast.com/api-reference/oauth",
+      "checkedAt": "2026-07-18",
+      "supports": "Raycast documents extension OAuth as a native-client PKCE flow to third-party providers where the local extension receives, stores, refreshes, and uses provider access tokens for API calls."
+    },
+    {
+      "url": "https://www.raycast.com/privacy",
+      "checkedAt": "2026-07-18",
+      "supports": "Raycast's current privacy policy describes a local-first architecture while distinguishing optional account, Teams, Pro, AI, cloud-processing, and synchronization features."
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "wave",
+  "name": "Wave",
+  "category": "commerce_payments",
+  "description": "Wave is online accounting and invoicing software for small businesses. It brings bookkeeping, invoices, payments, banking, payroll, and financial reporting into one service, with API access available for eligible subscribed businesses.",
+  "agentUseSummary": "Connect one eligible Wave business through the Relay Console OAuth app, then let agents inspect bounded business metadata and privacy-redacted invoice summaries through three read-only GraphQL tools. V1 excludes accounting writes, customer identity, line items, tax, memos, URLs, payments, broader accounting resources, automatic pagination, arbitrary GraphQL, and Wave's separate payment-wallet APIs.",
+  "provider": {
+    "websiteUrl": "https://www.waveapps.com/",
+    "docsUrl": "https://developer.waveapps.com/hc/en-us/articles/360019493652-OAuth-Guide",
+    "developerConsoleUrl": "https://developer.waveapps.com/hc/en-us/articles/360019762711-Manage-Applications",
+    "termsUrl": "https://www.waveapps.com/legal/terms-of-use",
+    "privacyUrl": "https://www.waveapps.com/legal/privacy-and-security"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["business:read", "invoice:read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.waveapps.com/oauth2/authorize/",
+    "tokenUrl": "https://api.waveapps.com/oauth2/token/",
+    "revocationUrl": "https://api.waveapps.com/oauth2/token-revoke/"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth_app", "exact_subscription_eligible_business_binding"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/wave/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "business_read", "label": "Read business", "description": "Read bounded metadata for the exact connected Wave business.", "defaultSelected": true },
+    { "id": "invoice_read", "label": "Read invoices", "description": "List bounded redacted invoice summaries or inspect one exact invoice.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "wave_business_get", "label": "Read connected business", "description": "Read bounded metadata for the exact connected Wave business." }],
+    "approvalRequired": [
+      { "id": "wave_invoice_list", "label": "List invoices", "description": "List at most twenty-five privacy-redacted invoice summaries." },
+      { "id": "wave_invoice_get", "label": "Read invoice", "description": "Read one exact privacy-redacted invoice summary by opaque ID." }
+    ],
+    "blocked": [
+      { "id": "wave_invoice_mutation", "label": "Change invoices", "description": "Creating, updating, sending, deleting, or otherwise changing invoices is outside V1." },
+      { "id": "wave_private_accounting", "label": "Read private accounting data", "description": "Customer identity, line items, tax, memos, URLs, payment details, and send or view history are outside V1." },
+      { "id": "wave_broader_accounting", "label": "Access broader accounting", "description": "Accounts, products, sales tax, transactions, vendors, estimates, user identity, and administration are outside V1." },
+      { "id": "wave_payment_wallet", "label": "Use payment-wallet APIs", "description": "Wave's separate checkout, payout, reconciliation, and payment-wallet APIs are outside V1." },
+      { "id": "wave_raw_graphql", "label": "Use arbitrary GraphQL", "description": "Arbitrary queries, mutations, introspection, automatic pagination, and raw GraphQL access are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "wave_safe", "label": "Safe", "description": "Connected-business metadata runs directly; invoice reads require matching approval.", "defaultSelected": true, "allowedActions": ["wave_business_get"], "approvalRequiredActions": ["wave_invoice_list", "wave_invoice_get"], "blockedActions": ["wave_invoice_mutation", "wave_private_accounting", "wave_broader_accounting", "wave_payment_wallet", "wave_raw_graphql"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while exact-business binding, bounds, audit, redaction, token refresh, subscription limits, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["wave_business_get", "wave_invoice_list", "wave_invoice_get"], "approvalRequiredActions": [], "blockedActions": ["wave_invoice_mutation", "wave_private_accounting", "wave_broader_accounting", "wave_payment_wallet", "wave_raw_graphql"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three exact Wave read wrappers and attaches the encrypted business token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three exact Wave read wrappers and attaches the encrypted business token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "relay_action_required",
+    "blocker": "Relay Console needs a Wave OAuth application, production client credentials, the two V1 scopes, branding and support details, an eligible Pro or Wave Advisor test business, and any Wave distribution review before public OAuth can be accepted. This staging/code worker does not open provider consoles or capture credentials.",
+    "nextAction": "In the provider-console task, register or approve the Relay Console Wave application, request business:read and invoice:read, register https://api.relayconsole.work/api/v1/marketplace/oauth/wave/callback, store production client credentials in Railway production, authorize one eligible business, and verify all three reads, refresh, disconnect, revocation, scope denial, subscription denial, and exact-business denial."
+  },
+  "evidence": [
+    { "url": "https://developer.waveapps.com/hc/en-us/articles/360019493652-OAuth-Guide", "checkedAt": "2026-07-17", "supports": "Wave uses OAuth 2.0 authorization code flow with confidential client credentials, exact redirect validation, expiring access tokens, refresh tokens, a token revocation endpoint, optional single-business authorization, and Pro or Wave Advisor eligibility." },
+    { "url": "https://developer.waveapps.com/hc/en-us/articles/360032818132-OAuth-Scopes", "checkedAt": "2026-07-17", "supports": "Wave scopes are independently granted per resource and operation; business:read and invoice:read are the least-privilege scopes for this V1." },
+    { "url": "https://developer.waveapps.com/hc/en-us/articles/360018856171-Clients", "checkedAt": "2026-07-17", "supports": "Wave's public API is GraphQL over one HTTPS endpoint and bearer tokens authorize requests." },
+    { "url": "https://developer.waveapps.com/hc/en-us/articles/360032908111-Query-List-businesses", "checkedAt": "2026-07-17", "supports": "Wave business queries expose bounded business ID, name, and personal-business status with explicit pagination." },
+    { "url": "https://developer.waveapps.com/hc/en-us/articles/360038426192-Query-List-invoices", "checkedAt": "2026-07-17", "supports": "Wave invoices are nested under an exact business and support explicit page and page-size bounds." }
+  ]
+}

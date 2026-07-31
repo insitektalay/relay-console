@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "craft",
+  "name": "Craft",
+  "category": "knowledge_documents",
+  "description": "Craft is a collaborative writing and knowledge workspace for documents, linked pages, daily notes, tasks, folders, and structured collections. Individuals and teams use its native apps and web editor to capture ideas, organize projects, publish polished documents, and keep shared knowledge connected.",
+  "agentUseSummary": "Create a scoped API Connection in Craft, then let selected agents search and read its authorized content or manage blocks, collections, documents, folders, and tasks under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "marketplace-logo-craft.png",
+    "sourceUrl": "https://www.craft.do/favicons/light/light_192.png"
+  },
+  "provider": {
+    "websiteUrl": "https://www.craft.do/",
+    "docsUrl": "https://connect.craft.do/api-docs/space",
+    "developerConsoleUrl": "https://connect.craft.do/api-docs",
+    "termsUrl": "https://www.craft.do/terms",
+    "privacyUrl": "https://www.craft.do/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false
+  },
+  "connection": {
+    "types": ["customer_scoped_api_url", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "CRAFT_API_URL",
+        "label": "Craft API connection URL",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a least-privilege API Connection in Craft's Imagine tab and paste its full https://connect.craft.do/link/.../api/v1 URL."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "knowledge_read",
+      "label": "Read workspace knowledge",
+      "description": "Fetch and search selected documents and blocks, then list authorized collections, folders, documents, and tasks.",
+      "defaultSelected": true
+    },
+    {
+      "id": "knowledge_manage",
+      "label": "Manage workspace knowledge",
+      "description": "Insert, update, move, and delete authorized blocks, collection items, documents, folders, and tasks.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "craft_api_read",
+        "label": "Read Craft content",
+        "description": "Use one stable, allowlisted Craft Space API read against the connection's selected content."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "craft_api_manage",
+        "label": "Manage Craft content",
+        "description": "Use one stable, allowlisted Craft Space API mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "craft_raw_api",
+        "label": "Call arbitrary Craft APIs",
+        "description": "Agents choose only an enumerated stable operation; raw paths, methods, and experimental endpoints are unavailable."
+      },
+      {
+        "id": "craft_secret_exposure",
+        "label": "Expose the API connection URL",
+        "description": "The secret Craft connection URL remains encrypted and never enters tool inputs, results, logs, or audits."
+      },
+      {
+        "id": "craft_unbounded_transfer",
+        "label": "Transfer unbounded content",
+        "description": "Requests, responses, arrays, nesting, and query fields remain inside Relay bounds."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "craft_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; every Craft content or organization mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["craft_api_read"],
+      "approvalRequiredActions": ["craft_api_manage"],
+      "blockedActions": [
+        "craft_raw_api",
+        "craft_secret_exposure",
+        "craft_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected connection-authorized Craft operation runs without Relay per-action approval; exact authority, provider permissions, operation allowlists, bounds, redaction, audits, and fair-use limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["craft_api_read", "craft_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "craft_raw_api",
+        "craft_secret_exposure",
+        "craft_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts two bounded Craft wrappers and applies the encrypted scoped connection URL server-side without exposing it to agents."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts two bounded Craft wrappers and applies the encrypted scoped connection URL server-side without exposing it to agents."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "not_started",
+    "blocker": "No customer Craft API Connection URL or signed-in provider session was available for live action verification.",
+    "nextAction": "A customer creates a least-privilege API Connection for the intended space or documents, selects read or write access, enters its secret URL in Relay, then verifies health, bounded reads, Safe mutation approval, Dangerous mutation, connection rotation, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.craft.do/en/integrate/api",
+      "checkedAt": "2026-07-17",
+      "supports": "Craft documents customer-created API Connections with selected document or full-space authority, configurable access permissions, secret endpoint credentials, search, daily-note and task access, document mutations, collections, and advanced filters."
+    },
+    {
+      "url": "https://connect.craft.do/api-docs/space",
+      "checkedAt": "2026-07-17",
+      "supports": "Craft's official Space API reference documents the stable blocks, search, collections, documents, folders, and tasks read and mutation endpoints used by Relay's operation allowlists."
+    },
+    {
+      "url": "https://support.craft.do/en/integrate/mcp/security",
+      "checkedAt": "2026-07-17",
+      "supports": "Craft documents space-bound connections, cryptographically unguessable links, independently selected read/write permissions, content-scope restrictions, rotation, and least-privilege guidance."
+    },
+    {
+      "url": "https://support.craft.do/en/integrate",
+      "checkedAt": "2026-07-17",
+      "supports": "Craft describes its product integration surface across documents, daily notes, tasks, collections, API automation, MCP, native Apple automation, and deep links, with API and MCP usage included under fair-use limits."
+    }
+  ]
+}

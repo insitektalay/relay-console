@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "fred",
+  "name": "FRED",
+  "category": "knowledge_documents",
+  "description": "FRED is the Federal Reserve Bank of St. Louis service for economic data series from public and third-party sources. This product uses the FRED® API but is not endorsed or certified by the Federal Reserve Bank of St. Louis.",
+  "agentUseSummary": "Add your own FRED API key, then let agents search at most ten public economic series and read at most 25 newest observations for one validated series identifier. Bulk downloads, vintage data, transformations, broader metadata surfaces, arbitrary requests, and raw APIs remain blocked. Review each third-party series owner's restrictions before reuse.",
+  "provider": {
+    "websiteUrl": "https://fred.stlouisfed.org/",
+    "docsUrl": "https://fred.stlouisfed.org/docs/api/fred/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://fred.stlouisfed.org/docs/api/terms_of_use.html",
+    "privacyUrl": "https://www.stlouisfed.org/about-us/privacy-policy/online-notice"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "query_parameter_authentication",
+      "public_economic_data_read_only",
+      "manual_provider_revocation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "FRED_API_KEY",
+        "label": "Customer-owned FRED API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Enter your own 32-character lowercase FRED API key. Relay encrypts its copy; replace or revoke it from your FRED account after disconnect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "series_search",
+      "label": "Search economic series",
+      "description": "Search for at most ten public FRED series with bounded metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "series_observations_read",
+      "label": "Read recent observations",
+      "description": "Read at most 25 newest observations for one validated FRED series.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "fred_series_search",
+        "label": "Search FRED series",
+        "description": "Search for at most ten public economic-data series through one fixed FRED endpoint."
+      },
+      {
+        "id": "fred_series_observations_get",
+        "label": "Read recent FRED observations",
+        "description": "Read at most 25 newest observations for one validated series identifier through one fixed FRED endpoint."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "fred_bulk_vintage_transforms",
+        "label": "Block bulk, vintage, and transformed data",
+        "description": "Bulk downloads, pagination, offsets, ALFRED/vintage dates, output formats, units transformations, frequency aggregation, and unbounded observation history are unavailable."
+      },
+      {
+        "id": "fred_categories_releases_sources_tags",
+        "label": "Block broader metadata surfaces",
+        "description": "Categories, releases, release dates, sources, tags, maps, related tags, series updates, and arbitrary discovery surfaces are unavailable."
+      },
+      {
+        "id": "fred_credentials_raw_mutations",
+        "label": "Block credential and raw access",
+        "description": "API-key administration, arbitrary hosts, paths, query parameters, redirects, retries, writes, deletes, uploads, webhooks, and raw APIs are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "fred_safe",
+      "label": "Safe",
+      "description": "Two fixed, bounded public economic-data reads run automatically; bulk, vintage, transformed, broader metadata, credential administration, and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["fred_series_search", "fred_series_observations_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "fred_bulk_vintage_transforms",
+        "fred_categories_releases_sources_tags",
+        "fred_credentials_raw_mutations"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same two fixed reads run without Relay per-action approval; query and result bounds, exact routes, response reduction, audits, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["fred_series_search", "fred_series_observations_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "fred_bulk_vintage_transforms",
+        "fred_categories_releases_sources_tags",
+        "fred_credentials_raw_mutations"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded typed reads while Railway alone holds the customer-owned FRED API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded typed reads while Railway alone holds the customer-owned FRED API key."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A representative customer-owned FRED API key, current terms/privacy and third-party series-rights review, staging credential entry, live response validation, and provider-side key lifecycle testing remain for separate authorized tasks.",
+    "nextAction": "After batch integration, an authorized provider task must obtain its own FRED key, accept current terms, review relevant data-series restrictions, store the key in Railway staging, and validate exact fixed routes, bounded reduction, 256 KiB limit, no retry or pagination, encrypted-copy deletion, provider-side key replacement/revocation, and post-revocation denial."
+  },
+  "evidence": [
+    {
+      "url": "https://fred.stlouisfed.org/docs/api/api_key.html",
+      "checkedAt": "2026-07-18",
+      "supports": "FRED documents that every request requires a user-owned API key supplied as api_key and that the key is a 32-character lowercase alphanumeric string."
+    },
+    {
+      "url": "https://fred.stlouisfed.org/docs/api/fred/series_search.html",
+      "checkedAt": "2026-07-18",
+      "supports": "FRED documents the HTTPS GET series-search endpoint, JSON output, search text, limit, popularity ordering, and descending sort controls used by the bounded search action."
+    },
+    {
+      "url": "https://fred.stlouisfed.org/docs/api/fred/series_observations.html",
+      "checkedAt": "2026-07-18",
+      "supports": "FRED documents the HTTPS GET observations endpoint, required series ID, JSON output, limit, and descending observation-date sort used by the bounded observations action."
+    },
+    {
+      "url": "https://fred.stlouisfed.org/docs/api/terms_of_use.html",
+      "checkedAt": "2026-07-18",
+      "supports": "FRED documents API use requirements, possible provider limits, mandatory non-endorsement notice, and that third-party data series can retain separate copyright restrictions."
+    }
+  ]
+}

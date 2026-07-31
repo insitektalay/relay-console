@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "hootsuite",
+  "name": "Hootsuite",
+  "category": "communication",
+  "description": "Hootsuite manages social publishing channels, schedules, approvals, organizations, teams, engagement, and analytics.",
+  "agentUseSummary": "Connect one Hootsuite member through Relay-owned OAuth, then let agents inspect bounded, identity-redacted account and social-profile status metadata.",
+  "provider": {
+    "websiteUrl": "https://www.hootsuite.com/",
+    "docsUrl": "https://apidocs.hootsuite.com/docs/api/index.html",
+    "developerConsoleUrl": "https://hootsuite.com/developers/my-apps",
+    "termsUrl": "https://www.hootsuite.com/legal/api-terms-of-service",
+    "privacyUrl": "https://www.hootsuite.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["offline"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://platform.hootsuite.com/oauth2/auth",
+    "tokenUrl": "https://platform.hootsuite.com/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "authorization_code",
+      "offline_refresh",
+      "fixed_platform_origin",
+      "local_disconnect_only"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/hootsuite/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "social_account_metadata_read",
+      "label": "Read social account metadata",
+      "description": "Read bounded, identity-redacted Hootsuite member and social-profile status metadata.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "hootsuite_account_get",
+        "label": "Read Hootsuite account status",
+        "description": "Read member ID, active state, timezone, language, and lifecycle dates without identity fields."
+      },
+      {
+        "id": "hootsuite_social_profile_id_list",
+        "label": "List accessible social profile IDs",
+        "description": "List at most twenty-five accessible profile IDs."
+      },
+      {
+        "id": "hootsuite_social_profile_get",
+        "label": "Read social profile status",
+        "description": "Read one exact profile ID, network type, ownership category, and reauthorization state."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "hootsuite_safe",
+      "label": "Safe",
+      "description": "Every bounded metadata read requires approval; identity, content, publishing, organizations, teams, Inbox, SCIM, analytics, ads, messages, writes, and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "hootsuite_account_get",
+        "hootsuite_social_profile_id_list",
+        "hootsuite_social_profile_get"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three metadata reads run directly; fixed origin, exact identifiers, redaction, bounds, audits, and provider rate-limit responses remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "hootsuite_account_get",
+        "hootsuite_social_profile_id_list",
+        "hootsuite_social_profile_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts only three redacted metadata reads and injects OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts only three redacted metadata reads and injects OAuth tokens server-side."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A Hootsuite Developer App, confidential client credentials, exact Railway callback, paid/account API entitlement as applicable, consent, refresh testing, and live acceptance are required.",
+    "nextAction": "Use the separate provider-console task to register the app, configure the exact callback and Railway credentials, then validate authorization, refresh, profile redaction, rate-limit handling, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://apidocs.hootsuite.com/docs/api/index.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Official REST v1 fixed origin, confidential OAuth token exchange, offline refresh scope, 30-day token lifetime example, bearer authentication, member and social-profile endpoints, errors, and unspecified 429 rate limits."
+    },
+    {
+      "url": "https://www.hootsuite.com/legal/api-terms-of-service",
+      "checkedAt": "2026-07-18",
+      "supports": "Hootsuite Developer Terms and API License Agreement govern API access."
+    }
+  ],
+  "securityNotes": [
+    "Relay requests only offline, not analytics:read, and exposes three approval-gated read-only wrappers.",
+    "Member email, full name, company, biography, profile username, social-network identifier, avatar, content, URLs, and owner IDs are stripped.",
+    "Requests use only https://platform.hootsuite.com, reject redirects, validate exact positive-decimal IDs, cap responses at 1 MB, and return at most 25 profile IDs.",
+    "Messages, publishing, media, comments, organizations, members, teams, Inbox, SCIM, ads, analytics, writes, arbitrary queries, pagination, raw APIs, and exports are unavailable.",
+    "Hootsuite documents 429 handling but no numeric REST v1 rate; Relay propagates provider throttling and does not invent a quota. Disconnect is local because the current reference exposes no revocation endpoint."
+  ]
+}

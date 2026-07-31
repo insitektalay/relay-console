@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "adobe-commerce-cloud",
+  "name": "Adobe Commerce Cloud",
+  "category": "commerce_payments",
+  "description": "Adobe Commerce Cloud provides enterprise storefront, catalog, inventory, pricing, customer, order, promotion, and integration capabilities across Adobe Commerce cloud deployment models.",
+  "agentUseSummary": "Adobe documents materially different REST endpoints and authentication for Commerce on Cloud PaaS and Commerce as a Cloud Service SaaS. Relay mounts no connection or tools until the customer identifies one deployment model, exact API origin and tenant, bounded commerce resource, and least-privilege service credential.",
+  "provider": {
+    "websiteUrl": "https://business.adobe.com/products/magento/magento-commerce.html",
+    "docsUrl": "https://developer.adobe.com/commerce/webapi/rest/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.adobe.com/legal/terms.html",
+    "privacyUrl": "https://www.adobe.com/privacy/policy.html"
+  },
+  "authentication": {"model": "none", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null},
+  "connection": {"types": ["multiple_deployment_models", "deployment_specific_authentication", "no_new_relay_connection"], "credentialRequirements": [], "callbackPath": null, "webhookRequirements": []},
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {"id": "adobe_commerce_cloud_connect", "label": "Connect Adobe Commerce Cloud", "description": "Relay has not selected PaaS or SaaS, an exact deployment origin and tenant, and a bounded service credential contract."},
+      {"id": "adobe_commerce_cloud_read", "label": "Read commerce data", "description": "Catalog, inventory, pricing, customers, carts, orders, stores, configuration, and operational data are unavailable."},
+      {"id": "adobe_commerce_cloud_manage", "label": "Change Adobe Commerce Cloud", "description": "Product, inventory, price, customer, cart, order, refund, promotion, configuration, integration, and administrative mutations are unavailable."}
+    ]
+  },
+  "approvalProfiles": [{"id": "adobe_commerce_cloud_unavailable", "label": "Unavailable", "description": "No agent action can be enabled until one Commerce cloud deployment and bounded resource/authentication contract are reviewed.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": [], "blockedActions": ["adobe_commerce_cloud_connect", "adobe_commerce_cloud_read", "adobe_commerce_cloud_manage"]}],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {"format": "openclaw", "installSupport": "unsupported", "description": "No Commerce tools are mounted without a selected cloud deployment and bounded resource/authentication contract."},
+    {"format": "hermes", "installSupport": "unsupported", "description": "No Commerce tools are mounted without a selected cloud deployment and bounded resource/authentication contract."}
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "The generic provider name does not identify Adobe Commerce on Cloud PaaS versus Adobe Commerce as a Cloud Service SaaS; Adobe documents different endpoint structures, available APIs, and authentication models for them.",
+    "nextAction": "Record the exact Commerce deployment model. For SaaS, record the Adobe-provided API endpoint, server/tenant identifiers, store scope, and least-privilege IMS server-to-server product profile; for PaaS, record the exact HTTPS store origin and a narrowly scoped Commerce integration. Then select one bounded read-only resource and complete security review before mounting any connection or tool."
+  },
+  "evidence": [
+    {"url": "https://developer.adobe.com/commerce/webapi/rest/", "checkedAt": "2026-07-17", "supports": "Adobe explicitly distinguishes PaaS and SaaS Commerce REST APIs, documents different endpoint structures and available endpoints, and states PaaS uses OAuth 1.0a/tokens while SaaS uses IMS."},
+    {"url": "https://developer.adobe.com/commerce/webapi/rest/authentication/server-to-server", "checkedAt": "2026-07-17", "supports": "Adobe documents IMS OAuth server-to-server authentication for Commerce as a Cloud Service, requiring Developer Console, an organization admin, client credentials, and organization identity."},
+    {"url": "https://developer.adobe.com/commerce/webapi/get-started/authentication/gs-authentication-oauth", "checkedAt": "2026-07-17", "supports": "Adobe documents PaaS third-party integrations using store-specific OAuth 1.0a credentials, activation callbacks, long-lived access tokens, and resource permissions."},
+    {"url": "https://developer.adobe.com/commerce/webapi/rest/reference/", "checkedAt": "2026-07-17", "supports": "Adobe publishes separate PaaS and SaaS REST references, confirming that a generic Commerce Cloud contract cannot assume one common resource surface."}
+  ]
+}

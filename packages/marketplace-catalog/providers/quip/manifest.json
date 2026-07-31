@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "quip",
+  "name": "Quip",
+  "category": "knowledge_documents",
+  "description": "Documents, spreadsheets, messages, folders, users, sharing, exports, blobs, and collaboration through Quip's Automation API.",
+  "agentUseSummary": "A Quip company admin enters a customer-owned API key once, then users connect through OAuth and agents use selected Automation API capabilities under Safe or Dangerously skip permissions.",
+  "provider": { "websiteUrl": "https://quip.com/", "docsUrl": "https://quip.com/dev/automation/documentation/current", "developerConsoleUrl": "https://quip.com/dev/token", "termsUrl": "https://www.salesforce.com/company/legal/agreements/", "privacyUrl": "https://www.salesforce.com/company/privacy/" },
+  "authentication": { "model": "oauth2", "relayOwned": false, "scopes": ["USER_READ", "USER_WRITE", "USER_MANAGE"], "pkce": false, "refreshTokens": true, "authorizationUrl": "https://platform.quip.com/1/oauth/login", "tokenUrl": "https://platform.quip.com/1/oauth/access_token", "revocationUrl": "https://platform.quip.com/1/oauth/revoke" },
+  "connection": {
+    "types": ["customer_owned_oauth2"],
+    "credentialRequirements": [
+      { "name": "QUIP_CLIENT_ID", "label": "Quip API key client ID", "required": true, "secret": false, "helpText": "A Quip company admin creates an API key with USER_READ, USER_WRITE, and USER_MANAGE." },
+      { "name": "QUIP_CLIENT_SECRET", "label": "Quip API key client secret", "required": true, "secret": true, "helpText": "Railway encrypts the customer-owned secret and uses it only for Quip OAuth, refresh, and revocation." }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/quip/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "knowledge_read", "label": "Read Quip", "description": "Read the connected user's authorized Quip knowledge and collaboration resources.", "defaultSelected": true },
+    { "id": "knowledge_write", "label": "Manage Quip content", "description": "Create, edit, copy, message, upload, export, archive, and delete authorized Quip resources.", "defaultSelected": true },
+    { "id": "sharing_manage", "label": "Manage Quip sharing", "description": "Manage authorized membership, access, link sharing, locks, and folders.", "defaultSelected": true }
+  ],
+  "actions": { "allowed": [{ "id": "quip_read", "label": "Read Quip", "description": "Read user-authorized Quip documents, spreadsheets, messages, folders, users, and metadata." }], "approvalRequired": [{ "id": "quip_write", "label": "Change Quip", "description": "Create, edit, copy, export, message, upload, archive, or delete authorized Quip resources." }, { "id": "quip_manage", "label": "Manage Quip sharing", "description": "Manage provider-authorized thread and folder access, link sharing, locks, and membership." }], "blocked": [] },
+  "approvalProfiles": [
+    { "id": "quip_safe", "label": "Safe", "description": "Typed reads run directly; every upload, write, delete, export, message, or sharing/management request requires approval.", "defaultSelected": true, "allowedActions": ["quip_read"], "approvalRequiredActions": ["quip_write", "quip_manage"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected, API-key-scoped Quip action runs without Relay per-action approval; ownership, fixed origin, selected capabilities, bounds, audits, secret non-exposure, Quip permissions, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["quip_read", "quip_write", "quip_manage"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts bounded Quip Automation API wrappers and attaches refreshed customer OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts bounded Quip Automation API wrappers and attaches refreshed customer OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "blocked", "blocker": "A Quip company admin must create a customer-owned API key with all three Automation scopes; Relay cannot create one global cross-company Quip key.", "nextAction": "In the customer's Quip Admin Console create a dedicated API key with USER_READ, USER_WRITE, and USER_MANAGE, enter the client ID and secret in Relay Console, approve OAuth, and run health/read/Safe denial/approval/Dangerous/revoke checks." },
+  "evidence": [
+    { "url": "https://quip.com/dev/automation/documentation/current", "checkedAt": "2026-07-13", "supports": "Quip documents the complete current read/write Automation API, customer-admin-created API keys, USER_READ/USER_WRITE/USER_MANAGE scopes, 30-day OAuth tokens with refresh, revoke and verify endpoints, company/user permissions, and default per-user rate limits." },
+    { "url": "https://quip.com/dev/automation/documentation/all/openapi-specs", "checkedAt": "2026-07-13", "supports": "Quip publishes downloadable current and historical OpenAPI specifications for its Automation API, supporting a version-preserving fixed-origin wrapper rather than a stale endpoint subset." }
+  ]
+}

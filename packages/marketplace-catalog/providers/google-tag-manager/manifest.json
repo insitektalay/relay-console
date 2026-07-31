@@ -1,0 +1,173 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-tag-manager",
+  "name": "Google Tag Manager",
+  "category": "marketing",
+  "description": "Google Tag Manager manages accounts, containers, workspaces, tags, triggers, variables, templates, environments, versions, publishing, and user permissions for web and app measurement.",
+  "agentUseSummary": "Google Tag Manager cannot yet be connected through Relay. Its OAuth scopes separately authorize reading, container editing and deletion, version management, publishing, account management, and user administration. Relay exposes no GTM data or mutation until its verified OAuth client and a representative least-privilege account and container pass acceptance.",
+  "provider": {
+    "websiteUrl": "https://tagmanager.google.com/",
+    "docsUrl": "https://developers.google.com/tag-platform/tag-manager/api/v2",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/library/tagmanager.googleapis.com",
+    "termsUrl": "https://developers.google.com/terms",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://www.googleapis.com/auth/tagmanager.readonly",
+      "https://www.googleapis.com/auth/tagmanager.edit.containers",
+      "https://www.googleapis.com/auth/tagmanager.delete.containers",
+      "https://www.googleapis.com/auth/tagmanager.edit.containerversions",
+      "https://www.googleapis.com/auth/tagmanager.publish",
+      "https://www.googleapis.com/auth/tagmanager.manage.accounts",
+      "https://www.googleapis.com/auth/tagmanager.manage.users"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token",
+    "revocationUrl": "https://oauth2.googleapis.com/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_google_oauth_client",
+      "oauth2_web_server_user_flow",
+      "tag_manager_api_v2",
+      "authenticated_user_account_and_container_permissions",
+      "readonly_first_incremental_scope_upgrades",
+      "account_container_workspace_and_version_boundaries",
+      "oauth_verification_and_representative_acceptance_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-tag-manager/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "configuration_read",
+      "label": "Read GTM configuration",
+      "description": "After acceptance with tagmanager.readonly only, read bounded accounts, containers, workspaces, tags, triggers, variables, templates, environments, versions, and permissions visible to the user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "workspace_configuration_manage",
+      "label": "Manage workspace configuration",
+      "description": "After write acceptance, create or change selected workspaces, tags, triggers, variables, folders, templates, clients, zones, transformations, and environments with explicit confirmation.",
+      "defaultSelected": false
+    },
+    {
+      "id": "container_versions_manage",
+      "label": "Manage container versions",
+      "description": "After version acceptance, create, update, delete, undelete, or set a selected container version as latest with conflict and rollback controls.",
+      "defaultSelected": false
+    },
+    {
+      "id": "container_publish",
+      "label": "Publish container versions",
+      "description": "After critical publishing acceptance, publish one reviewed container version to the live environment with an explicit version fingerprint and confirmation.",
+      "defaultSelected": false
+    },
+    {
+      "id": "accounts_and_users_manage",
+      "label": "Manage accounts and users",
+      "description": "After separate administrative acceptance, change selected account settings or user permissions without crossing the authorized account boundary.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "gtm_connect_before_review",
+        "label": "Connect before OAuth review",
+        "description": "Relay has no verified production OAuth client or accepted representative GTM account, container, user-role, and scope boundary."
+      },
+      {
+        "id": "gtm_reads_before_acceptance",
+        "label": "Read GTM configuration",
+        "description": "Accounts, containers, workspaces, tags, triggers, variables, templates, environments, versions, snippets, and permissions remain unavailable."
+      },
+      {
+        "id": "gtm_configuration_mutations",
+        "label": "Change container configuration",
+        "description": "Creating, updating, reverting, moving, combining, or deleting containers, workspaces, tags, triggers, variables, folders, templates, clients, zones, transformations, and environments is blocked."
+      },
+      {
+        "id": "gtm_version_and_publish_mutations",
+        "label": "Change or publish versions",
+        "description": "Creating, setting latest, updating, deleting, undeleting, or publishing container versions is blocked because it can change live measurement and executable tag behavior."
+      },
+      {
+        "id": "gtm_account_access_and_raw_bypass",
+        "label": "Bypass account or access controls",
+        "description": "Account changes, user-permission changes, cross-account access, arbitrary snippets or endpoints, raw secrets, private-console automation, and quota bypass are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "gtm_provider_review",
+      "label": "Provider and account review pending",
+      "description": "No GTM action is enabled until Google's OAuth client requirements and a representative account's roles pass and the complete read, edit, delete, version, publish, administration, quota, rollback, revocation, and disconnect contract is accepted.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "gtm_connect_before_review",
+        "gtm_reads_before_acceptance",
+        "gtm_configuration_mutations",
+        "gtm_version_and_publish_mutations",
+        "gtm_account_access_and_raw_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded GTM tools after OAuth, account, role, version, and publishing acceptance; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded GTM tools after OAuth, account, role, version, and publishing acceptance; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Google requires every Tag Manager API request to be authorized by an authenticated user and documents distinct scopes for readonly access, container edits and deletion, version management, publishing, account management, and user management. API v2 exposes accounts, containers, workspaces, tags, triggers, variables, templates, environments, versions, snippets, destinations, permissions, clients, zones, and transformations. Publishing changes the live container, while tags and templates can alter measurement and executable behavior. The API also enforces project quotas. This worker cannot enable the API, create or verify the OAuth client, capture credentials, run consent, obtain an account or container role, inspect live tags, or publish configuration.",
+    "nextAction": "The exclusive provider-console and acceptance task should enable Tag Manager API v2 in Relay's verified Google project and register https://api.relayconsole.work/api/v1/marketplace/oauth/google-tag-manager/callback. Start with a dedicated user and tagmanager.readonly only. Acceptance must verify account and container selection, permission inheritance, pagination, fingerprints and concurrent changes, secrets and custom HTML redaction, template and destination safety, workspace conflict resolution, preview isolation, version diffs and rollback, explicit publish confirmation, delete and undelete behavior, user-permission isolation, quota backoff, token revocation, disconnect, and cross-account denial. Each edit, delete, version, publish, account, and user scope requires a separate upgrade before Connect or write tools are enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/tag-platform/tag-manager/api/v2/authorization",
+      "checkedAt": "2026-07-17",
+      "supports": "Google requires OAuth2 by an authenticated user and documents separate readonly, edit, delete, version, publish, account, and user-management scopes plus offline web-server access."
+    },
+    {
+      "url": "https://developers.google.com/tag-platform/tag-manager/api/v2",
+      "checkedAt": "2026-07-17",
+      "supports": "Tag Manager API v2 manages accounts, containers, destinations, workspaces, tags, triggers, variables, versions, permissions, and environments."
+    },
+    {
+      "url": "https://developers.google.com/tag-platform/tag-manager/api/reference/rest",
+      "checkedAt": "2026-07-17",
+      "supports": "The REST reference exposes read and mutation methods across containers, workspaces, configuration entities, destinations, snippets, versions, and permissions at tagmanager.googleapis.com."
+    },
+    {
+      "url": "https://developers.google.com/tag-platform/tag-manager/api/reference/rest/v2/accounts.containers.versions",
+      "checkedAt": "2026-07-17",
+      "supports": "Container-version methods include live lookup, publish, delete, undelete, update, and set-latest operations, requiring explicit version and publishing safeguards."
+    },
+    {
+      "url": "https://developers.google.com/tag-platform/tag-manager/api/v2/limits-quotas",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents project registration and enforced per-project daily and QPS quotas with 403 responses when exceeded."
+    }
+  ]
+}

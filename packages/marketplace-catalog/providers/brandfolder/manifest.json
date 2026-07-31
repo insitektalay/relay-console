@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "brandfolder",
+  "name": "Brandfolder",
+  "category": "content_creative",
+  "description": "Brandfolder is a digital asset management platform for organizing, governing, sharing, and measuring brand content. Marketing and creative teams use it to manage asset libraries, metadata, collections, approvals, permissions, distribution, and reusable brand experiences.",
+  "agentUseSummary": "Connect your own Brandfolder API key, then let agents use the complete documented V4 asset, organization, metadata, access, webhook, and upload surface under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "brandfolder",
+    "sourceUrl": "https://brandfolder.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://brandfolder.com/",
+    "docsUrl": "https://developers.smartsheet.com/api/brandfolder/introduction",
+    "developerConsoleUrl": "https://brandfolder.com/profile#integrations",
+    "termsUrl": "https://www.smartsheet.com/legal/agreements",
+    "privacyUrl": "https://www.smartsheet.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "BRANDFOLDER_API_KEY",
+        "label": "Brandfolder API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy your key from Brandfolder Profile > Integrations. The key inherits the connected user's Brandfolder permissions."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": [
+      {
+        "event": "asset.create, asset.update, or asset.delete",
+        "path": "/api/v1/marketplace/webhooks/brandfolder",
+        "signature": "Brandfolder documents API-key authorization for subscription management but does not document a webhook-payload signature. Runtime event ingestion remains unavailable until Relay can authenticate callbacks without relying on a guessable URL."
+      }
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "dam_read",
+      "label": "Browse brand content",
+      "description": "Read authorized organizations, Brandfolders, collections, sections, assets, attachments, custom fields, tags, labels, invitations, permissions, and webhook subscriptions."
+    },
+    {
+      "id": "dam_manage",
+      "label": "Manage brand content",
+      "description": "Create, update, organize, invite, permission, subscribe, test, move, and delete through every fixed-origin V4 operation, plus bounded end-to-end binary upload."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "brandfolder_read",
+        "label": "Read Brandfolder data",
+        "description": "Run one bounded GET operation from Brandfolder's current V4 OpenAPI surface."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "brandfolder_manage",
+        "label": "Change Brandfolder data",
+        "description": "Run one documented create, upload, update, invite, permission, webhook, move, or delete operation; Safe mode requires approval."
+      },
+      {
+        "id": "brandfolder_upload",
+        "label": "Upload a Brandfolder asset",
+        "description": "Upload one bounded file through Brandfolder's temporary signed storage flow and create the asset without exposing signed URLs."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "brandfolder_secret_exposure",
+        "label": "Expose credentials",
+        "description": "API keys, authorization headers, cookies, and temporary signed upload capabilities never enter agent-visible results."
+      },
+      {
+        "id": "brandfolder_untrusted_route",
+        "label": "Call an undocumented route",
+        "description": "Every request is pinned to the fixed Brandfolder V4 origin and an exact method-route pair from the current OpenAPI description."
+      },
+      {
+        "id": "brandfolder_unbounded_transfer",
+        "label": "Transfer unbounded data",
+        "description": "Relay bounds request bodies to five megabytes, responses to ten megabytes, and refuses redirects."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "brandfolder_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; every provider mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["brandfolder_read"],
+      "approvalRequiredActions": ["brandfolder_manage", "brandfolder_upload"],
+      "blockedActions": ["brandfolder_secret_exposure", "brandfolder_untrusted_route", "brandfolder_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected API-key-authorized V4 operation runs without Relay per-action approval; ownership, exact routes, bounds, redaction, audits, account permissions, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["brandfolder_read", "brandfolder_manage", "brandfolder_upload"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["brandfolder_secret_exposure", "brandfolder_untrusted_route", "brandfolder_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded wrappers for all 69 fixed-origin V4 operations and an end-to-end wrapper for Brandfolder's temporary signed binary-upload flow."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded wrappers for all 69 fixed-origin V4 operations and an end-to-end wrapper for Brandfolder's temporary signed binary-upload flow."
+    }
+  ],
+  "availability": "beta_available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No customer Brandfolder account, API key, accessible organization, representative assets, or live provider session is available for production acceptance.",
+    "nextAction": "A customer copies an API key from Profile > Integrations, clicks Connect, and then verifies bounded reads, Safe denial plus approval, Dangerous content and access mutations, bounded upload, redaction, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.smartsheet.com/api/brandfolder/introduction",
+      "checkedAt": "2026-07-14",
+      "supports": "Brandfolder documents a fixed V4 REST origin and per-user bearer API keys whose results follow the user's permissions."
+    },
+    {
+      "url": "https://developers.smartsheet.com/api/brandfolder/openapi",
+      "checkedAt": "2026-07-14",
+      "supports": "The current downloadable V4 OpenAPI description contains 73 operations across assets, attachments, uploads, Brandfolders, collections, metadata, invitations, permissions, labels, tags, organizations, sections, and webhooks."
+    },
+    {
+      "url": "https://help.smartsheet.com/brandfolder",
+      "checkedAt": "2026-07-14",
+      "supports": "Smartsheet describes Brandfolder as a platform for marketers and creatives to manage, distribute, and measure brand assets."
+    },
+    {
+      "url": "https://brandfolder.com/",
+      "checkedAt": "2026-07-14",
+      "supports": "Brandfolder is the provider's canonical product and account origin."
+    }
+  ]
+}

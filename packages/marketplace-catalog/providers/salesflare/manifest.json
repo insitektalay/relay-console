@@ -1,0 +1,171 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "salesflare",
+  "name": "Salesflare",
+  "category": "crm_support",
+  "description": "Salesflare is a collaborative sales CRM that automatically enriches customer records and helps teams manage accounts, contacts, opportunities, tasks, email workflows, meetings, calls, notes, and pipeline activity. Teams use it to keep relationship context current and coordinate sales follow-up without relying on manual data entry.",
+  "agentUseSummary": "Add a dedicated Salesflare API key once, then choose which agents can read CRM and configuration data or manage records, workflows, interactions, and settings under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://salesflare.com/",
+    "docsUrl": "https://api.salesflare.com/docs",
+    "developerConsoleUrl": "https://app.salesflare.com/#/settings/apikeys",
+    "termsUrl": "https://salesflare.com/terms",
+    "privacyUrl": "https://salesflare.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "connected_user_role_authority",
+      "fixed_salesflare_api_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SALESFLARE_API_KEY",
+        "label": "Salesflare API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated key under Settings → API keys. Relay encrypts it and sends it only to api.salesflare.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crm_read",
+      "label": "Read CRM and configuration",
+      "description": "Read documented Salesflare resources for tasks, accounts, contacts, opportunities, workflows, interactions, users, groups, currencies, pipelines, stages, custom fields, email data sources, tags, filter fields, persons, and AI settings.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crm_manage",
+      "label": "Manage CRM and automation",
+      "description": "Use documented mutations for CRM records, tasks, workflows, calls, meetings, internal notes, custom fields, email-source settings, tags, and AI settings.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "salesflare_api_read",
+        "label": "Read Salesflare",
+        "description": "Run one exact documented non-mutating Salesflare operation with bounded query parameters."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "salesflare_api_manage",
+        "label": "Manage Salesflare",
+        "description": "Run one exact documented record, workflow, communication, interaction, configuration, or deletion mutation."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "salesflare_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer API key and credential-like response fields never enter agent-visible requests or results."
+      },
+      {
+        "id": "salesflare_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every request stays on Salesflare's documented https://api.salesflare.com origin."
+      },
+      {
+        "id": "salesflare_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only routes and methods pinned from Salesflare's current official OpenAPI contract."
+      },
+      {
+        "id": "salesflare_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay blocks export mode and bounds list windows, offsets, query fields, arrays, bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "salesflare_safe",
+      "label": "Safe",
+      "description": "Documented bounded reads run directly. Every CRM, workflow, communication, configuration, and deletion mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["salesflare_api_read"],
+      "approvalRequiredActions": ["salesflare_api_manage"],
+      "blockedActions": [
+        "salesflare_secret_exposure",
+        "salesflare_unofficial_origin",
+        "salesflare_unsupported_endpoint",
+        "salesflare_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every documented operation authorized by the connected Salesflare user runs without Relay per-action approval. Connection ownership, provider roles, exact routes, bounds, export denial, redaction, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["salesflare_api_read", "salesflare_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "salesflare_secret_exposure",
+        "salesflare_unofficial_origin",
+        "salesflare_unsupported_endpoint",
+        "salesflare_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the documented Salesflare read and manage surfaces through fixed-origin bounded tools and encrypted customer credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the documented Salesflare read and manage surfaces through fixed-origin bounded tools and encrypted customer credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No authorized representative Salesflare account, dedicated API key, or sample CRM data is available in this code-only worker for live acceptance. Salesflare API keys inherit the generating user's role and may authorize CRM records, bulk or destructive changes, workflows that send email, interaction logs, configuration, and administrative data.",
+    "nextAction": "An authorized Salesflare administrator should create a dedicated least-privilege Relay user and API key under Settings → API keys, connect it through Relay, then verify current-user binding, representative reads, 100-item and 10000-offset bounds, export denial, Safe approvals, Dangerous mutations, workflow email effects, user-role denial, 429 handling, audit redaction, key replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.salesflare.com/docs",
+      "checkedAt": "2026-07-18",
+      "supports": "Salesflare publishes a current REST API with bearer API-key authentication, TLS 1.2+, JSON requests and responses, provider error codes, and a downloadable OpenAPI contract."
+    },
+    {
+      "url": "https://api.salesflare.com/openapi.json",
+      "checkedAt": "2026-07-18",
+      "supports": "The official OpenAPI 1.0.0 contract fixes api.salesflare.com and documents tasks, accounts, contacts, opportunities, workflows, insights, interactions, users, groups, currencies, pipelines, stages, custom fields, email data sources, tags, filters, persons, and AI settings."
+    },
+    {
+      "url": "https://howto.salesflare.com/en/articles/8010911-where-can-i-find-api-documentation-for-salesflare",
+      "checkedAt": "2026-07-18",
+      "supports": "Salesflare's official help center directs integration developers to the current API and authentication documentation and identifies the API as the supported application-integration surface."
+    },
+    {
+      "url": "https://salesflare.com/pricing",
+      "checkedAt": "2026-07-18",
+      "supports": "Salesflare documents automated CRM enrichment, pipelines, campaigns, multi-email workflows, user permissions, dashboards, lead credits, and plan-dependent functionality relevant to connected authority and acceptance."
+    },
+    {
+      "url": "https://salesflare.com/terms",
+      "checkedAt": "2026-07-18",
+      "supports": "Salesflare's terms govern customer accounts, authorized users, internal business use, customer data, credential security, permitted sales follow-up and personal communications, availability, and service restrictions."
+    }
+  ]
+}

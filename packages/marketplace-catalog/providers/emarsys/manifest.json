@@ -1,0 +1,189 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "emarsys",
+  "name": "Emarsys",
+  "category": "communication",
+  "description": "SAP Emarsys Customer Engagement provides contact, campaign, automation, email, SMS, loyalty, voucher, and behavioral-data APIs.",
+  "agentUseSummary": "Connect dedicated customer-owned OAuth client credentials. Relay pins six v3 routes: two account-configuration reads run directly, two exact campaign/contact reads and two one-contact writes require approval, writes require contact authorization, and opt-in=true additionally requires recorded double-opt-in evidence.",
+  "provider": {
+    "websiteUrl": "https://emarsys.com/",
+    "docsUrl": "https://dev.emarsys.com/",
+    "developerConsoleUrl": "https://suite16.emarsys.net/",
+    "termsUrl": "https://www.sap.com/about/legal/terms-of-use.html",
+    "privacyUrl": "https://emarsys.com/privacy-statement/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://auth.emarsys.net/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_oauth_client_id",
+      "customer_owned_oauth_client_secret",
+      "client_credentials_token_exchange",
+      "fixed_v3_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "EMARSYS_CLIENT_ID",
+        "label": "Emarsys OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use a dedicated customer-owned least-privilege API user client ID."
+      },
+      {
+        "name": "EMARSYS_CLIENT_SECRET",
+        "label": "Emarsys OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay exchanges this customer-owned secret at the fixed Emarsys token endpoint and never exposes it to agents."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read fields and categories",
+      "description": "Use two bounded account-configuration reads.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read campaign or contact",
+      "description": "Use one exact non-raw campaign read and one exact email contact lookup with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage one contact",
+      "description": "Use two one-contact writes with approval, authorization, and double-opt-in enforcement.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "emarsys_structural_read",
+        "label": "Read Emarsys fields and categories",
+        "description": "Read bounded account field definitions or email campaign categories from fixed v3 routes."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "emarsys_sensitive_read",
+        "label": "Read Emarsys campaign or contact",
+        "description": "Read one exact email campaign without raw content or look up one contact by email."
+      },
+      {
+        "id": "emarsys_manage",
+        "label": "Create or update one Emarsys contact",
+        "description": "Create or update one authorized email contact with explicit opt-in state."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "emarsys_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Client credentials, access tokens, authorization headers, and credential-bearing response fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "emarsys_bulk_export",
+        "label": "Run bulk or export APIs",
+        "description": "Batch contact operations, exports, imports, response streams, relational data, Open Data, and unbounded reads are excluded."
+      },
+      {
+        "id": "emarsys_send_admin",
+        "label": "Send or administer campaigns",
+        "description": "Campaign launch, transactional/event triggers, content/templates, lists/segments, automations, SMS, loyalty, vouchers, keys/users, and destructive operations remain provider-side."
+      },
+      {
+        "id": "emarsys_unbounded_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only six pinned v3 routes run on fixed API/token origins; arbitrary paths, URLs, methods, headers, dynamic fields, raw campaign content, and oversized results are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "emarsys_safe",
+      "label": "Safe",
+      "description": "Field/category reads run directly; exact campaign/contact reads and both one-contact writes require approval, writes require contact authorization, and opt-in=true additionally requires recorded double-opt-in evidence.",
+      "defaultSelected": true,
+      "allowedActions": ["emarsys_structural_read"],
+      "approvalRequiredActions": ["emarsys_sensitive_read", "emarsys_manage"],
+      "blockedActions": [
+        "emarsys_secret_exposure",
+        "emarsys_bulk_export",
+        "emarsys_send_admin",
+        "emarsys_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All six selected operations run without Relay per-action approval; contact/double-opt-in attestations, fixed routing, allowlists, bounds, audits, and bulk/send/admin blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "emarsys_structural_read",
+        "emarsys_sensitive_read",
+        "emarsys_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "emarsys_secret_exposure",
+        "emarsys_bulk_export",
+        "emarsys_send_admin",
+        "emarsys_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts six pinned Emarsys routes and performs a fixed client-credentials exchange without exposing secrets or access tokens to agents."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts six pinned Emarsys routes and performs a fixed client-credentials exchange without exposing secrets or access tokens to agents."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Emarsys requires a customer-owned least-privilege OAuth API user, client credentials, contact field configuration, and permission-based double-opt-in process. No console, API user/app, credentials, contact, consent, campaign, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create and privilege a dedicated staging API user outside this worker, configure its client credentials in Railway staging, and verify token exchange, fields/categories, exact campaign/contact reads, approval and contact/double-opt-in denial/allow, one-contact create/update and opt-out, response bounds, rate behavior, secret rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://dev.emarsys.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "The SAP Emarsys developer portal documents the fixed Core API origin, REST style, OAuth 2.0 authentication, v3 contact/campaign/field endpoints, and separate Loyalty, Voucher, SMS, and Web Extend surfaces."
+    },
+    {
+      "url": "https://github.com/emartech/Emarsys-postman-collection",
+      "checkedAt": "2026-07-17",
+      "supports": "The official current collection documents client-credentials authentication at auth.emarsys.net, bearer use, fixed api.emarsys.net v3 routes, contact batch ceilings, and the selected field/category/campaign/contact operations."
+    },
+    {
+      "url": "https://help.emarsys.com/hc/en-us/articles/115004637665-Overview-The-SAP-Emarsys-system-fields",
+      "checkedAt": "2026-07-17",
+      "supports": "Emarsys documents system field IDs 1/2/3 and opt-in field 31, API values 1/2, empty-value risks, and the requirement that opt-in true follow a double-opt-in process."
+    },
+    {
+      "url": "https://help.emarsys.com/hc/en-us/articles/214230425-Email-Deliverability-Deliverability-Policy-Requirements",
+      "checkedAt": "2026-07-17",
+      "supports": "Emarsys documents confirmed opt-in as a baseline and double opt-in as the recommended standard for permission-based messaging."
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "vero",
+  "name": "Vero",
+  "category": "communication",
+  "description": "Vero is a customer messaging platform with a stable Track API plus public-preview APIs for broadcast and journey structure and draft content.",
+  "agentUseSummary": "Connect dedicated tracking and Campaigns API keys for the exact project. Relay pins 24 v2 operations: ten campaign-structure reads run directly, two content-body reads and 12 customer/event/draft mutations require approval, and profile creation, event ingestion, and resubscription also require explicit recorded consent attestation.",
+  "provider": {
+    "websiteUrl": "https://www.getvero.com/",
+    "docsUrl": "https://help.getvero.com/api-reference/overview",
+    "developerConsoleUrl": "https://app.getvero.com/",
+    "termsUrl": "https://www.getvero.com/terms/",
+    "privacyUrl": "https://www.getvero.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_tracking_api_key",
+      "customer_owned_campaigns_secret_key",
+      "tracking_key_body_injection",
+      "campaigns_authorization_header",
+      "fixed_v2_rest_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "VERO_TRACKING_API_KEY",
+        "label": "Vero tracking API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated customer-owned Tracking API key for the exact Vero project."
+      },
+      {
+        "name": "VERO_CAMPAIGNS_API_SECRET_KEY",
+        "label": "Vero Campaigns API secret key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated Campaigns API secret key after Vero grants public-preview access."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read campaign structure",
+      "description": "Use ten bounded broadcast and journey metadata, graph, message, and content-variant reads.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read message content",
+      "description": "Use two exact broadcast or journey content-body reads with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage tracking and drafts",
+      "description": "Use six Track API mutations and six unscheduled broadcast-draft mutations with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "vero_structural_read",
+        "label": "Read Vero campaign structure",
+        "description": "Read bounded broadcast and journey metadata, graphs, messages, and content-variant metadata."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "vero_sensitive_read",
+        "label": "Read Vero message content",
+        "description": "Read exact broadcast or journey message content bodies."
+      },
+      {
+        "id": "vero_manage",
+        "label": "Manage Vero tracking and drafts",
+        "description": "Identify or update users, track events, manage tags/subscriptions/aliases, and create or update unscheduled broadcast drafts."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "vero_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Tracking keys, Campaigns API secret keys, authorization headers, and credential-bearing URLs never enter agent-visible inputs or results."
+      },
+      {
+        "id": "vero_delete_export",
+        "label": "Delete or export data",
+        "description": "User deletion, campaign/customer exports, bulk imports, arbitrary pagination, and destructive administration are excluded."
+      },
+      {
+        "id": "vero_send_schedule_setup",
+        "label": "Send, schedule, or configure delivery",
+        "description": "Audience/scheduling, publishing, live sends, webhooks, domains, delivery providers, key administration, and send-mode changes remain provider-side."
+      },
+      {
+        "id": "vero_unbounded_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only 24 pinned v2 operations run on api.getvero.com with bounded input/output and a pinned Campaigns API revision; arbitrary routes, origins, headers, and browser tracking are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "vero_safe",
+      "label": "Safe",
+      "description": "Ten structural reads run directly; two content reads and all 12 Track/draft mutations require approval, with explicit consent attestation for profile creation, event ingestion, and resubscription.",
+      "defaultSelected": true,
+      "allowedActions": ["vero_structural_read"],
+      "approvalRequiredActions": ["vero_sensitive_read", "vero_manage"],
+      "blockedActions": [
+        "vero_secret_exposure",
+        "vero_delete_export",
+        "vero_send_schedule_setup",
+        "vero_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 24 selected operations run without Relay per-action approval; fixed v2 routing, pinned revision, bounds, audits, consent attestation, and delete/export/send/setup blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "vero_structural_read",
+        "vero_sensitive_read",
+        "vero_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "vero_secret_exposure",
+        "vero_delete_export",
+        "vero_send_schedule_setup",
+        "vero_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded Vero tools, injects encrypted keys by API family, and pins the Campaigns API revision."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded Vero tools, injects encrypted keys by API family, and pins the Campaigns API revision."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Vero requires a customer-owned project and tracking key; Campaigns API access is a public preview granted by Vero on request and uses a separate one-time-visible secret. No console, account, access request, key, consent, customer data, message, or deployment is allowed in this worker.",
+    "nextAction": "Obtain Campaigns API access outside this worker, configure dedicated project keys in Railway staging, and verify project binding, structural/content reads, approval and consent-attestation denial/allow, tracking and draft edits, bounds, revision behavior, rate limits, key revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.getvero.com/api-reference/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Vero documents the fixed https://api.getvero.com/api/v2 origin, stable Track API body-key authentication, Campaigns API Authorization authentication, and public-preview access requirement."
+    },
+    {
+      "url": "https://help.getvero.com/api-reference/users/identify",
+      "checkedAt": "2026-07-17",
+      "supports": "Vero documents POST /users/track, profile create-or-update behavior, update-only support, and stale-data rejection semantics."
+    },
+    {
+      "url": "https://help.getvero.com/api-reference/events/track",
+      "checkedAt": "2026-07-17",
+      "supports": "Vero documents POST /events/track, implicit profile creation, and event deduplication behavior."
+    },
+    {
+      "url": "https://help.getvero.com/api-reference/broadcasts/list-broadcasts",
+      "checkedAt": "2026-07-17",
+      "supports": "Vero documents the bounded cursor-paginated broadcast read, Authorization header, permissions, and optional dated revision."
+    },
+    {
+      "url": "https://help.getvero.com/api-reference/broadcasts/create-a-broadcast",
+      "checkedAt": "2026-07-17",
+      "supports": "Vero documents unscheduled broadcast-draft creation and currently rejects audience and schedule fields, which Relay blocks explicitly."
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "appcues",
+  "name": "Appcues",
+  "category": "developer",
+  "description": "Appcues is a product-adoption platform for onboarding flows, in-app experiences, announcements, surveys, checklists, and behavioral targeting. Product teams use it to guide users, improve activation, and measure feature adoption across web and mobile products.",
+  "agentUseSummary": "Connect one exact Appcues account with a customer-owned Public API V2 key and secret plus its US or EU region, then let agents list only bounded, strictly projected flow inventory metadata under approval. Relay excludes flow content, creators, tags, URLs, users, events, groups, segments, exports, imports, publishing, administration, and raw API access.",
+  "provider": { "websiteUrl": "https://www.appcues.com/", "docsUrl": "https://api.appcues.com/v2/docs", "developerConsoleUrl": "https://studio.appcues.com/settings/integrations", "termsUrl": "https://www.appcues.com/terms", "privacyUrl": "https://www.appcues.com/privacy" },
+  "authentication": { "model": "customer_owned_api_key_and_secret", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["api_key", "customer_owned_key_and_secret", "exact_account_scope", "us_or_eu_region_binding", "railway_brokered"],
+    "credentialRequirements": [
+      { "name": "APPCUES_API_KEY", "label": "Appcues API key", "required": true, "secret": true, "helpText": "Create a dedicated least-privilege Public API V2 key and store it only through Relay's encrypted connection flow." },
+      { "name": "APPCUES_API_SECRET", "label": "Appcues API secret", "required": true, "secret": true, "helpText": "Capture the one-time secret and store it only through Relay's encrypted connection flow." },
+      { "name": "APPCUES_ACCOUNT_ID", "label": "Appcues account ID", "required": true, "secret": false, "helpText": "Enter the exact account ID shown on the Appcues account page." },
+      { "name": "APPCUES_REGION", "label": "Appcues region", "required": true, "secret": false, "helpText": "Enter us or eu to match the account's region." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [{ "id": "flow_inventory", "label": "List flows", "description": "List at most 50 flow IDs, names, publication states, frequencies, and lifecycle timestamps without private content or people.", "defaultSelected": true }],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [{ "id": "appcues_flows_list", "label": "List flows", "description": "List bounded projected flow inventory metadata from one exact Appcues account." }],
+    "blocked": [
+      { "id": "appcues_private_flow_data", "label": "Access private flow data", "description": "Flow step content, screenshots, creator/updater identities, tags, URLs, targeting, translations, and experience payloads are blocked." },
+      { "id": "appcues_users_segments_data", "label": "Access users, groups, or segments", "description": "User profiles, events, identities, groups, segment membership, exports, imports, raw event data, and bulk data are blocked." },
+      { "id": "appcues_mutation_admin", "label": "Mutate or administer Appcues", "description": "Publishing, unpublishing, profile updates, event tracking, segment changes, imports, filters, SDK keys, enforcement modes, and administration are blocked." },
+      { "id": "appcues_raw_bulk", "label": "Use raw or bulk access", "description": "Raw paths, arbitrary accounts or origins, CSV/NDJSON, pagination, polling, retries, batches, downloads, screenshots, and provider-response pass-through are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "appcues_flow_inventory_safe", "label": "Safe", "description": "The bounded flow inventory requires approval; private content, users, segments, writes, bulk data, and raw APIs remain blocked.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["appcues_flows_list"], "blockedActions": ["appcues_private_flow_data", "appcues_users_segments_data", "appcues_mutation_admin", "appcues_raw_bulk"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The bounded flow inventory runs without Relay per-action approval; exact account/region binding, strict projection, response cap, audits, and no-write behavior remain enforced.", "defaultSelected": false, "allowedActions": ["appcues_flows_list"], "approvalRequiredActions": [], "blockedActions": ["appcues_private_flow_data", "appcues_users_segments_data", "appcues_mutation_admin", "appcues_raw_bulk"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway binds customer-owned Basic credentials to one exact account/region and a projected flow inventory wrapper." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway binds customer-owned Basic credentials to one exact account/region and a projected flow inventory wrapper." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "customer_action_required", "blocker": "An Appcues Account Admin must create a dedicated least-privilege Public API V2 key, capture its one-time secret, select the exact account ID and US/EU region, and store them through Relay. No account, key creation, credential capture, live API request, or provider acceptance is available in this worker task.", "nextAction": "An authorized Appcues Account Admin creates a dedicated key with the narrowest flow-read access available, captures its one-time secret, and stores it with the exact account ID and region through Relay. They then verify health, one approved flow list, throttling, disable/re-enable/delete, disconnect, and post-disconnect denial." },
+  "evidence": [
+    { "url": "https://api.appcues.com/v2/docs", "checkedAt": "2026-07-17", "supports": "Appcues documents Public API V2 versioned endpoints, US and EU origins, HTTP Basic key/secret authentication, account IDs in paths, standard errors, and GET /v2/accounts/{account_id}/flows with flow identity, publication, frequency, timestamps, creators, URLs, and tags. Relay projects only non-person flow inventory fields." },
+    { "url": "https://docs.appcues.com/en_US/dev-api-data/appcues-public-api", "checkedAt": "2026-07-17", "supports": "Appcues documents Admin-created API keys with selectable access levels and one-time secrets, plus broad flows, users, segments, import/export, groups, pins, mobile experiences, launchpads, banners, checklists, and screenshots. Relay chooses one least-privilege flow-read wrapper and blocks all other surfaces." },
+    { "url": "https://docs.appcues.com/en_US/install-appcues-web/identify-users-and-groups", "checkedAt": "2026-07-17", "supports": "Appcues documents that user profiles may include opaque IDs, names, email, roles, language, plan, and group data. Relay therefore blocks users, groups, profiles, event history, and identity operations." },
+    { "url": "https://docs.appcues.com/en_US/installation-overview/identity-verification", "checkedAt": "2026-07-17", "supports": "Appcues warns that API and SDK secrets must remain confidential and documents identity-verification enforcement and SDK-key administration. Relay encrypts the Public API secret and blocks SDK-key and enforcement-mode operations." }
+  ]
+}

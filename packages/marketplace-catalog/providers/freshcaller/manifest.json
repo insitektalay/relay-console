@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "freshcaller",
+  "name": "Freshcaller",
+  "category": "communication",
+  "description": "Freshcaller is Freshworks' cloud contact-center product for inbound and outbound calling, queues, IVR, routing, teams, call monitoring, recordings, and operational analytics.",
+  "agentUseSummary": "Enter one Freshcaller account domain and user API key, then let selected agents use bounded call-performance metrics or approved documented API v1 requests under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.freshworks.com/freshcaller-cloud-pbx/",
+    "docsUrl": "https://developers.freshcaller.com/api/",
+    "developerConsoleUrl": "https://developers.freshcaller.com/api/#authorization",
+    "termsUrl": "https://www.freshworks.com/terms/",
+    "privacyUrl": "https://www.freshworks.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "FRESHCALLER_DOMAIN",
+        "label": "Freshcaller domain",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the account name before .freshcaller.com."
+      },
+      {
+        "name": "FRESHCALLER_API_KEY",
+        "label": "Freshcaller API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy your API key from Freshcaller Profile Settings. Its access follows your account role."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "call_metric_read",
+      "label": "Read call metrics",
+      "description": "Read bounded call-performance metrics without phone numbers, participants, recordings, agents, teams, tags, lifecycle traces, integrated resources, or exports.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Freshcaller API v1",
+      "description": "Use documented API v1 operations allowed by the connected Freshcaller user API key.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "freshcaller_call_metric_list",
+        "label": "List call metrics",
+        "description": "List one fixed first page of bounded Freshcaller call-performance metrics."
+      },
+      {
+        "id": "freshcaller_call_metric_get",
+        "label": "Read call metrics",
+        "description": "Read bounded performance metrics for one exact Freshcaller call."
+      },
+      {
+        "id": "freshcaller_full_api",
+        "label": "Use Freshcaller API v1",
+        "description": "Use a documented Freshcaller API v1 operation authorized by the connected user API key; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "freshcaller_safe",
+      "label": "Safe",
+      "description": "Bounded call-metric reads and every broader API operation require approval; tenant binding, secret isolation, provider roles, and limits remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "freshcaller_call_metric_list",
+        "freshcaller_call_metric_get",
+        "freshcaller_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected API-key-authorized operations run without Relay per-action approval; exact tenant binding, secret isolation, bounds, audits, provider roles, and Freshcaller limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "freshcaller_call_metric_list",
+        "freshcaller_call_metric_get",
+        "freshcaller_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted API key only to the exact normalized freshcaller.com tenant."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted API key only to the exact normalized freshcaller.com tenant."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer Freshcaller domain and user API key are required for live acceptance.",
+    "nextAction": "A customer enters the account name before .freshcaller.com and user API key, then Relay verifies health, bounded metric reads, Safe approval, Dangerous broader API behavior, key reset, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.freshcaller.com/api/#authorization",
+      "checkedAt": "2026-07-18",
+      "supports": "Freshcaller's official API reference documents per-user API keys in X-Api-Auth, exact freshcaller.com account origins, role authorization, status errors, and rate limits."
+    },
+    {
+      "url": "https://developers.freshcaller.com/api/#call-metrics",
+      "checkedAt": "2026-07-18",
+      "supports": "Freshcaller documents list and exact-call metric endpoints, page/per-page controls, duration and cost metrics, and optional lifecycle data that Relay excludes from bounded tools."
+    },
+    {
+      "url": "https://developers.freshcaller.com/api/#account",
+      "checkedAt": "2026-07-18",
+      "supports": "Freshcaller documents call, recording, user, and team exports as admin operations, supporting Relay's exclusion of exports and recordings from bounded V1 reads."
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoominfo",
+  "name": "ZoomInfo",
+  "category": "crm_support",
+  "description": "ZoomInfo is a B2B intelligence platform for company and contact discovery, enrichment, intent, scoops, news, account research, recommendations, and go-to-market data workflows.",
+  "agentUseSummary": "Add the customer workspace's ZoomInfo client-credentials app limited to api:data:company, then let selected agents search the first 20 basic company matches by name. Relay requests only the company scope, fixes page one and size 20, excludes defunct companies, minimizes results, and blocks enrichment, contacts, personal data, signals, research, recommendations, credits, paging, bulk extraction, and mutations.",
+  "provider": {
+    "websiteUrl": "https://www.zoominfo.com/",
+    "docsUrl": "https://docs.zoominfo.com/",
+    "developerConsoleUrl": "https://login.zoominfo.com/",
+    "termsUrl": "https://www.zoominfo.com/legal/terms-of-use",
+    "privacyUrl": "https://www.zoominfo.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": ["api:data:company"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.zoominfo.com/gtm/oauth/v1/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_credentials",
+      "integration_user_attributed",
+      "api_data_company_scope"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "ZOOMINFO_CLIENT_ID",
+        "label": "ZoomInfo OAuth client ID",
+        "secret": true,
+        "required": true,
+        "helpText": "Use the client ID for a customer-owned client-credentials app limited to api:data:company."
+      },
+      {
+        "key": "ZOOMINFO_CLIENT_SECRET",
+        "label": "ZoomInfo OAuth client secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Use the matching client secret; Relay encrypts both credentials server-side."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/zoominfo/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "zoominfo_read",
+      "label": "Search companies",
+      "description": "Use one pinned no-credit company-name search with a fixed first page and minimized basic company fields.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "zoominfo_read",
+        "label": "Search ZoomInfo companies",
+        "description": "Search the first 20 basic company matches by name without enrichment, contacts, credits, paging, or arbitrary filters."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "zoominfo_manage",
+        "label": "Change ZoomInfo",
+        "description": "GTM configuration, audiences, activation, exports, webhooks, and every mutation are outside Relay's V1 contract."
+      },
+      {
+        "id": "zoominfo_personal_or_credit_data",
+        "label": "Read personal or credit-bearing data",
+        "description": "Contacts, emails, phones, professional profiles, company or contact enrichment, full records, and AI account or contact research are blocked."
+      },
+      {
+        "id": "zoominfo_arbitrary_api",
+        "label": "Use arbitrary ZoomInfo API or MCP access",
+        "description": "Intent, scoops, news, recommendations, CRM context, arbitrary filters, pages, sorting, bulk requests, other scopes, MCP tools, and custom routes are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zoominfo_safe",
+      "label": "Safe",
+      "description": "One no-credit first-page company search runs directly. Enrichment, contacts, personal data, signals, research, recommendations, credits, paging, bulk access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["zoominfo_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zoominfo_manage",
+        "zoominfo_personal_or_credit_data",
+        "zoominfo_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed no-credit company-search tool through the encrypted customer-owned ZoomInfo client credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed no-credit company-search tool through the encrypted customer-owned ZoomInfo client credentials."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer ZoomInfo subscription, DevPortal application, integration user, client ID-secret pair, api:data:company entitlement, representative company fixtures, or credential-rotation procedure is available in this workspace.",
+    "nextAction": "A ZoomInfo administrator creates or rotates a client-credentials application, selects an integration user, grants only api:data:company, saves the pair through Relay Console, then verifies token exchange, first-page company search, minimization, request and rate limits, agent assignment, credential replacement, app revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.zoominfo.com/docs/general-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "ZoomInfo's current GTM API overview documents the https://api.zoominfo.com/gtm base, search-before-enrich workflow, generally free search and lookup calls, credit-bearing enrichment and AI research, entitlement enforcement, broader company, contact, intent, scoops, news and MCP surfaces, and rate limits."
+    },
+    {
+      "url": "https://docs.zoominfo.com/docs/client-credentials-flow",
+      "checkedAt": "2026-07-17",
+      "supports": "ZoomInfo documents client-credentials applications with an attributed integration user, recommended HTTP Basic client authentication, the /gtm/oauth/v1/token endpoint, optional narrowed scopes, and Bearer access tokens."
+    },
+    {
+      "url": "https://docs.zoominfo.com/reference/searchinterface_searchcompany",
+      "checkedAt": "2026-07-17",
+      "supports": "The official Search Companies reference documents POST /gtm/data/v1/companies/search, JSON:API companyName input, api:data:company scope, pages of 1–100, basic no-credit results, and separate credit-bearing company enrichment that Relay excludes."
+    }
+  ]
+}

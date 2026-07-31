@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "wistia",
+  "name": "Wistia",
+  "category": "content_creative",
+  "description": "Wistia is a business video hosting and marketing platform for managing, publishing, embedding, and measuring video content. Teams use it to organize media and folders, customize players, run channels and webinars, capture leads, search transcripts, and analyze viewer engagement.",
+  "agentUseSummary": "Connect a Wistia account once through Relay-owned OAuth, then let agents use the complete account-, plan-, feature-, and scope-authorized API under Safe or Dangerous policy.",
+  "provider": { "websiteUrl": "https://wistia.com/", "docsUrl": "https://docs.wistia.com/reference/getting-started-with-the-data-api", "developerConsoleUrl": "https://app.wistia.com/account", "termsUrl": "https://wistia.com/terms", "privacyUrl": "https://wistia.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["all:all"], "pkce": false, "refreshTokens": true, "authorizationUrl": "https://app.wistia.com/oauth/authorize", "tokenUrl": "https://api.wistia.com/oauth/token" },
+  "connection": { "types": ["relay_owned_oauth"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/wistia/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "media_read", "label": "Read video library", "description": "Read the connected account, media, folders, customizations, captions, tags, channels, webinars, and search results." },
+    { "id": "media_write", "label": "Manage video content", "description": "Upload or import, edit, organize, publish, customize, and delete Wistia resources permitted by the connected account." },
+    { "id": "analytics", "label": "Use engagement analytics", "description": "Read account-authorized media, audience, visitor, event, and engagement statistics." },
+    { "id": "administration", "label": "Use the complete Wistia API", "description": "Use every current documented JSON API operation permitted by the connected account, plan, features, and OAuth application." }
+  ],
+  "actions": { "allowed": [
+    { "id": "wistia_get_account", "label": "Read account", "description": "Read the connected Wistia account summary." },
+    { "id": "wistia_list_media", "label": "List media", "description": "List a bounded page of media in the connected account." },
+    { "id": "wistia_get_media", "label": "Read media", "description": "Read one exact media item by hashed ID." },
+    { "id": "wistia_list_folders", "label": "List folders", "description": "List a bounded page of folders." },
+    { "id": "wistia_get_folder", "label": "Read folder", "description": "Read one exact folder by hashed ID." },
+    { "id": "wistia_search", "label": "Search library", "description": "Search a bounded set of media, folders, channels, webinars, and transcript matches." }
+  ], "approvalRequired": [{ "id": "wistia_full_api", "label": "Use full Wistia API", "description": "Use any current documented Wistia JSON API operation; Safe mode requires approval." }], "blocked": [] },
+  "approvalProfiles": [
+    { "id": "wistia_safe", "label": "Safe", "description": "Bounded account, media, folder, and search reads run directly; every other Wistia operation requires approval.", "defaultSelected": true, "allowedActions": ["wistia_get_account", "wistia_list_media", "wistia_get_media", "wistia_list_folders", "wistia_get_folder", "wistia_search"], "approvalRequiredActions": ["wistia_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected OAuth-authorized Wistia JSON API operation runs without Relay per-action approval; fixed origins, request bounds, audits, redaction, account ownership, provider permissions, plan limits, and Wistia enforcement still apply.", "defaultSelected": false, "allowedActions": ["wistia_get_account", "wistia_list_media", "wistia_get_media", "wistia_list_folders", "wistia_get_folder", "wistia_search", "wistia_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Wistia tools through the authenticated server-side connector." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Wistia tools through the authenticated server-side connector." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": { "status": "blocked", "blocker": "Wistia OAuth is not enabled for every account, and Relay's OAuth application has not yet been enabled, created, configured with the production callback and all:all permission, or supplied to Railway.", "nextAction": "Use an eligible Wistia owner account or contact Wistia to enable OAuth, create the Relay Console OAuth application with all:all, register https://api.relayconsole.work/api/v1/marketplace/oauth/wistia/callback, and set WISTIA_CLIENT_ID and WISTIA_CLIENT_SECRET in Railway before live acceptance." },
+  "evidence": [
+    { "url": "https://docs.wistia.com/docs/authenticating-with-oauth2", "checkedAt": "2026-07-14", "supports": "Wistia documents third-party OAuth authorization, account selection and consent, fixed application permissions including all:all, six-hour access tokens, persistent refresh tokens, and manager-or-owner authorization; OAuth may require Wistia enablement." },
+    { "url": "https://docs.wistia.com/docs/making-api-requests", "checkedAt": "2026-07-14", "supports": "Wistia requires HTTPS bearer authentication, caps list pages at 100, rate-limits accounts to 600 requests per minute, and documents Data API request semantics." },
+    { "url": "https://docs.wistia.com/reference/getaccountdetails", "checkedAt": "2026-07-14", "supports": "The modern account endpoint validates the token and returns the connected account summary using the versioned Wistia API." },
+    { "url": "https://docs.wistia.com/reference/get_search", "checkedAt": "2026-07-14", "supports": "The modern search endpoint covers folders, subfolders, media, channels, episodes, webinars, and transcript matches with bounded query parameters." },
+    { "url": "https://docs.wistia.com/reference/getting-started-with-the-upload-api-1", "checkedAt": "2026-07-14", "supports": "The upload API accepts bearer-authorized uploads and remote URL imports, subject to account video limits." }
+  ]
+}

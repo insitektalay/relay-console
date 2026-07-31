@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "line",
+  "name": "LINE",
+  "category": "communication",
+  "description": "LINE is a messaging and social platform whose LINE Login v2.1 product provides OAuth and OpenID Connect identity for users of customer applications.",
+  "agentUseSummary": "Connect one user through Relay's confidential LINE Login channel with mandatory S256 PKCE and exact profile/openid scopes. Relay exposes one fixed read of the OIDC-bound user's main profile; email, friendship state, Messaging API channel tokens, bot authority, messages, webhooks, audiences, exports, arbitrary API access, and every write remain blocked.",
+  "provider": {
+    "websiteUrl": "https://line.me/",
+    "docsUrl": "https://developers.line.biz/en/docs/line-login/integrate-line-login/",
+    "developerConsoleUrl": "https://developers.line.biz/console/",
+    "termsUrl": "https://terms.line.me/line_terms/",
+    "privacyUrl": "https://terms.line.me/line_rules/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["profile", "openid"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://access.line.me/oauth2/v2.1/authorize",
+    "tokenUrl": "https://api.line.me/oauth2/v2.1/token",
+    "revocationUrl": "https://api.line.me/oauth2/v2.1/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_confidential_oauth", "mandatory_pkce_s256", "oidc_nonce_and_subject_binding", "rotating_encrypted_refresh", "main_profile_only"],
+    "credentialRequirements": [
+      { "name": "LINE_CLIENT_ID", "label": "LINE Login channel ID", "required": true, "secret": false, "helpText": "Railway-held production LINE Login Channel ID." },
+      { "name": "LINE_CLIENT_SECRET", "label": "LINE Login channel secret", "required": true, "secret": true, "helpText": "Railway-encrypted Channel Secret; never returned to clients or agents." }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/line/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "profile_read", "label": "Read connected profile", "description": "Read the bound LINE Login user's useful main-profile fields.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "line_profile_get", "label": "Read connected profile", "description": "Return userId, displayName, and optional pictureUrl/statusMessage for the OIDC-bound LINE Login user." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "line_extra_identity", "label": "Access extra identity", "description": "Email, phone, friendship status, social graph, add-friend prompts, subprofiles, and broader personal data are outside V1." },
+      { "id": "line_messaging_authority", "label": "Use Messaging API authority", "description": "Channel access tokens, Official Account administration, bot profiles, webhooks, messages, replies, push, multicast, narrowcast, broadcast, rich menus, and audiences are outside V1." },
+      { "id": "line_writes_raw", "label": "Write or use raw LINE access", "description": "All writes, exports, arbitrary endpoints, retries, pagination, and raw provider tools are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "line_read_only", "label": "Read only", "description": "Only the OIDC-bound main-profile read is enabled.", "defaultSelected": true, "allowedActions": ["line_profile_get"], "approvalRequiredActions": [], "blockedActions": ["line_extra_identity", "line_messaging_authority", "line_writes_raw"] },
+    { "id": "line_no_access", "label": "No access", "description": "Every LINE action is blocked.", "defaultSelected": false, "allowedActions": [], "approvalRequiredActions": [], "blockedActions": ["line_extra_identity", "line_messaging_authority", "line_writes_raw", "line_profile_get"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts one fixed LINE Login profile wrapper and attaches refreshed user access server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts one fixed LINE Login profile wrapper and attaches refreshed user access server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's production LINE Login channel, exact Railway callback, profile/openid approval, brand/publication review, and real connected-user lifecycle evidence are not available.",
+    "nextAction": "Create and approve the production LINE Login channel, register the exact Railway callback, configure LINE_CLIENT_ID and LINE_CLIENT_SECRET on Railway, then deploy and run consent, subject/profile binding, refresh, profile read, revoke, disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    { "url": "https://developers.line.biz/en/docs/line-login/overview", "checkedAt": "2026-07-17", "supports": "LINE documents active Login v2.1 OAuth/OIDC and main-profile fields including user ID, display name, image URL, and status message." },
+    { "url": "https://developers.line.biz/en/docs/line-login/integrate-pkce/", "checkedAt": "2026-07-17", "supports": "LINE documents PKCE for Authorization Code and supports only S256." },
+    { "url": "https://developers.line.biz/en/reference/line-login/", "checkedAt": "2026-07-17", "supports": "LINE documents token issue/refresh/revoke, ID-token verification, and GET /v2/profile with profile scope." },
+    { "url": "https://developers.line.biz/en/docs/basics/channel-access-token/", "checkedAt": "2026-07-17", "supports": "LINE documents Messaging API channel access tokens as a separate high-authority channel credential excluded from the Login profile connector." }
+  ]
+}

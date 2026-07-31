@@ -1,0 +1,164 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoom-phone",
+  "name": "Zoom Phone",
+  "category": "communication",
+  "description": "Zoom Phone is Zoom's cloud telephony platform for business numbers, calling, routing, queues, voicemail, SMS, and administration.",
+  "agentUseSummary": "Enter credentials from a customer-owned Server-to-Server OAuth app with one granular Number Management read scope, then let selected agents inspect one bounded page of masked Zoom Phone inventory.",
+  "provider": {
+    "websiteUrl": "https://www.zoom.com/en/products/voip-phone/",
+    "docsUrl": "https://developers.zoom.us/docs/api/number-management/",
+    "developerConsoleUrl": "https://marketplace.zoom.us/develop/create",
+    "termsUrl": "https://explore.zoom.us/en/terms/",
+    "privacyUrl": "https://explore.zoom.us/en/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["number_management:read:list_numbers:admin"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://zoom.us/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_server_to_server_oauth",
+      "fixed_zoom_number_inventory"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ZOOM_PHONE_ACCOUNT_ID",
+        "label": "Zoom account ID",
+        "required": true,
+        "secret": false
+      },
+      {
+        "name": "ZOOM_PHONE_CLIENT_ID",
+        "label": "Zoom Server-to-Server OAuth client ID",
+        "required": true,
+        "secret": false
+      },
+      {
+        "name": "ZOOM_PHONE_CLIENT_SECRET",
+        "label": "Zoom Server-to-Server OAuth client secret",
+        "required": true,
+        "secret": true
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "number_inventory",
+      "label": "Read masked number inventory",
+      "description": "Inspect bounded Zoom Phone number state without private assignment, address, or full-number data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "zoom_phone_numbers_list",
+        "label": "List Zoom Phone numbers",
+        "description": "List one bounded page of masked Zoom Phone number-inventory metadata."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "zoom_phone_private_number_data",
+        "label": "Private number data",
+        "description": "Full numbers, raw IDs, assignee names and IDs, extensions, caller-ID and display names, emergency addresses, sites, locations, SIP groups, and carrier details are not returned."
+      },
+      {
+        "id": "zoom_phone_number_mutation",
+        "label": "Number changes",
+        "description": "Allocation, assignment, deletion, porting, ordering, address, site, caller-ID, capability, and routing changes are not exposed."
+      },
+      {
+        "id": "zoom_phone_calls_messages_content",
+        "label": "Communications data",
+        "description": "Call history and logs, recordings, transcripts, voicemail, SMS, contacts, participants, diagnostics, and call control are not exposed."
+      },
+      {
+        "id": "zoom_phone_raw_api",
+        "label": "Raw Zoom API",
+        "description": "Arbitrary Zoom paths, products, filters, page tokens, origins, headers, bodies, and raw access tokens are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zoom_phone_safe",
+      "label": "Safe",
+      "description": "Every organization-wide masked Zoom Phone number-inventory read requires matching Relay approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["zoom_phone_numbers_list"],
+      "blockedActions": [
+        "zoom_phone_private_number_data",
+        "zoom_phone_number_mutation",
+        "zoom_phone_calls_messages_content",
+        "zoom_phone_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected masked inventory reads run without Relay per-action approval while the fixed Zoom origins, product filter, bound, redaction, audit, scope, account roles, licensing, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["zoom_phone_numbers_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zoom_phone_private_number_data",
+        "zoom_phone_number_mutation",
+        "zoom_phone_calls_messages_content",
+        "zoom_phone_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware masked Zoom Phone inventory tool and obtains short-lived account tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware masked Zoom Phone inventory tool and obtains short-lived account tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer administrator must create and activate a Server-to-Server OAuth app with only number_management:read:list_numbers:admin, then supply its account ID, client ID, and client secret through Relay's encrypted connection flow.",
+    "nextAction": "Configure a dedicated customer-owned Zoom app, verify Zoom Phone licensing and the granular scope, store credentials on Railway, exercise Safe denial/approval and Dangerous reads, verify token renewal and revocation, deploy through the integration lane, and run live acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.zoom.us/docs/api/number-management/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom documents GET /v2/number_management/numbers, the granular number_management:read:list_numbers:admin scope, bounded page_size, and number metadata including private assignment, address, site, and location fields that Relay excludes."
+    },
+    {
+      "url": "https://developers.zoom.us/docs/integrations/oauth-scopes-granular/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom's granular-scope registry maps List phone numbers to number_management:read:list_numbers:admin and separates get, update, delete, allocation, plan, SMS, and routing authorities."
+    },
+    {
+      "url": "https://developers.zoom.us/docs/api/authentication/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom requires Bearer authentication and recommends Server-to-Server OAuth for backend services operating only on the customer's own account."
+    },
+    {
+      "url": "https://developers.zoom.us/changelog/phone/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom announced May 2026 deprecations for older Phone number endpoints and directs integrations to the replacement Number Management APIs."
+    }
+  ]
+}

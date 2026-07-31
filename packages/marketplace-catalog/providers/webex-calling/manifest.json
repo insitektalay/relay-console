@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "webex-calling",
+  "name": "Webex Calling",
+  "category": "communication",
+  "description": "Webex Calling is Cisco's cloud business phone system for PSTN calling, number management, locations, routing, queues, auto attendants, voicemail, devices, and telephony administration.",
+  "agentUseSummary": "Connect an eligible Webex administrator through Relay-owned PKCE OAuth with one read-only telephony configuration scope, then inspect one bounded page of masked number state and type metadata.",
+  "provider": {
+    "websiteUrl": "https://www.webex.com/suite/calling.html",
+    "docsUrl": "https://developer.webex.com/calling/docs/api/v1/numbers",
+    "developerConsoleUrl": "https://developer.webex.com/my-apps/new/integration",
+    "termsUrl": "https://www.cisco.com/c/en/us/about/legal/terms-conditions.html",
+    "privacyUrl": "https://www.cisco.com/c/en/us/about/legal/privacy-full.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["spark-admin:telephony_config_read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://webexapis.com/v1/authorize",
+    "tokenUrl": "https://webexapis.com/v1/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth_pkce",
+      "rotating_refresh_token",
+      "masked_number_inventory"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "WEBEX_CLIENT_ID",
+        "label": "Relay Webex Integration client ID",
+        "required": true,
+        "secret": false
+      },
+      {
+        "name": "WEBEX_CLIENT_SECRET",
+        "label": "Relay Webex Integration client secret",
+        "required": true,
+        "secret": true
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/webex-calling/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "number_inventory",
+      "label": "Read masked number inventory",
+      "description": "Inspect bounded Webex Calling number state and type without owner, location, routing, or full-number data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "webex_calling_numbers_list",
+        "label": "List masked calling numbers",
+        "description": "List one bounded page of masked Webex Calling number-inventory metadata."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "webex_calling_private_identity",
+        "label": "Private identity and location",
+        "description": "Full phone numbers, full extensions, routing prefixes, enterprise significant numbers, owner IDs and names, location IDs and names, mobile networks, routing profiles, and raw records are not returned."
+      },
+      {
+        "id": "webex_calling_configuration_mutation",
+        "label": "Calling configuration changes",
+        "description": "Number assignment, activation, porting, location, routing, trunks, plans, queues, auto attendants, voicemail, emergency settings, policies, and all other configuration writes are not exposed."
+      },
+      {
+        "id": "webex_calling_calls_content",
+        "label": "Calls and communications content",
+        "description": "Active calls, call history, CDRs, participants, voicemail, recordings, transcripts, messages, contacts, dialing, answering, transfer, redirect, media, and tones are not exposed."
+      },
+      {
+        "id": "webex_calling_raw_api",
+        "label": "Raw Webex API access",
+        "description": "Arbitrary paths, filters, cursors, origins, headers, bodies, access tokens, pagination, bulk export, and adjacent Webex products are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "webex_calling_safe",
+      "label": "Safe",
+      "description": "Every organization-wide masked number-inventory read requires matching Relay approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["webex_calling_numbers_list"],
+      "blockedActions": [
+        "webex_calling_private_identity",
+        "webex_calling_configuration_mutation",
+        "webex_calling_calls_content",
+        "webex_calling_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected masked inventory reads run without Relay per-action approval while fixed Webex origins, endpoint, bounds, masking, audits, OAuth scope, admin role, licensing, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["webex_calling_numbers_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "webex_calling_private_identity",
+        "webex_calling_configuration_mutation",
+        "webex_calling_calls_content",
+        "webex_calling_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware masked Webex Calling inventory tool and refreshes the OAuth grant server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware masked Webex Calling inventory tool and refreshes the OAuth grant server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay must register and verify a Webex Integration with the exact spark-admin:telephony_config_read scope; an eligible Webex administrator in a Calling-enabled organization must then authorize it.",
+    "nextAction": "Configure the exact Railway callback and encrypted client secret, complete provider/app review if required, authorize with an eligible administrator, exercise Safe denial/approval and Dangerous reads, verify refresh/disconnect, deploy through the integration lane, and run live acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.webex.com/calling/docs/api/v1/numbers",
+      "checkedAt": "2026-07-18",
+      "supports": "Webex documents organization number reads and requires a full or read-only administrator token with spark-admin:telephony_config_read; Relay uses only the fixed list endpoint and masks its private fields."
+    },
+    {
+      "url": "https://developer.webex.com/create/docs/integrations",
+      "checkedAt": "2026-07-18",
+      "supports": "Webex documents authorization-code token exchange, rotating refresh tokens, admin-only scope behavior, and the telephony configuration read scope."
+    },
+    {
+      "url": "https://developer.webex.com/blog/picking-the-right-scopes-with-webex-calling-oauth-integrations",
+      "checkedAt": "2026-07-18",
+      "supports": "Webex identifies spark-admin:telephony_config_read as the read-only organization Calling configuration scope and separates it from call control and CDR scopes."
+    }
+  ]
+}

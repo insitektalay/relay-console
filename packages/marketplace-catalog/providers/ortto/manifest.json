@@ -1,0 +1,195 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ortto",
+  "name": "Ortto",
+  "category": "communication",
+  "description": "Ortto is a customer data and marketing automation platform for people, accounts, audiences, activities, reports, email, and push engagement.",
+  "agentUseSummary": "Connect a dedicated custom API key and exact default/Australia/Europe region enum. Relay pins 19 v1 operations: seven structural reads run directly, while five customer/report reads and seven bounded mutations require approval; audience opt-ins additionally require explicit recorded consent attestation.",
+  "provider": {
+    "websiteUrl": "https://ortto.com/",
+    "docsUrl": "https://help.ortto.com/a-223-developer-guide",
+    "developerConsoleUrl": "https://ortto.app/",
+    "termsUrl": "https://ortto.com/terms/",
+    "privacyUrl": "https://ortto.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_custom_api_key",
+      "x_api_key_header",
+      "exact_account_binding",
+      "default_au_or_eu_region_enum",
+      "fixed_v1_rest_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ORTTO_CUSTOM_API_KEY",
+        "label": "Ortto custom API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated customer-owned custom API key for the exact Ortto account and Relay application."
+      },
+      {
+        "name": "ORTTO_REGION",
+        "label": "Ortto account region",
+        "required": true,
+        "secret": false,
+        "helpText": "Set to default, au, or eu; Relay maps this enum to Ortto's fixed regional API origin."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read CDP structure",
+      "description": "Use seven bounded schema, audience, field, tag, campaign-calendar, and report-list reads.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read customer and report data",
+      "description": "Use five bounded people, account, subscription, campaign-report, and saved-report reads with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage CDP engagement",
+      "description": "Use seven bounded record, audience, activity, email, and push mutations with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "ortto_structural_read",
+        "label": "Read Ortto structure",
+        "description": "Read bounded schema, audiences, custom fields, tags, campaign calendar, and report-list metadata."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "ortto_sensitive_read",
+        "label": "Read Ortto customer and report data",
+        "description": "Read bounded people, accounts, subscriptions, campaign reports, and saved reports."
+      },
+      {
+        "id": "ortto_manage",
+        "label": "Manage Ortto engagement",
+        "description": "Merge bounded records, update attested audience permissions, create activities, and send transactional email or push."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "ortto_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Custom API keys, authorization headers, secrets, and credential-bearing URLs never enter agent-visible inputs or results."
+      },
+      {
+        "id": "ortto_destructive_admin",
+        "label": "Delete or administer Ortto data",
+        "description": "Archive, restore, delete, suppression, identity, schema-definition, API-key, and integration administration are excluded."
+      },
+      {
+        "id": "ortto_exports_attachments",
+        "label": "Export or attach bulk data",
+        "description": "Campaign exports, files, attachments, unbounded pagination, arbitrary Talk messages, and bulk transfers are excluded."
+      },
+      {
+        "id": "ortto_unbounded_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only 19 pinned v1 operations run on the selected fixed regional origin; arbitrary routes, origins, headers, and oversized requests are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "ortto_safe",
+      "label": "Safe",
+      "description": "Seven structural reads run directly; five customer/report reads and all seven mutations require approval, with explicit consent attestation for opt-ins.",
+      "defaultSelected": true,
+      "allowedActions": ["ortto_structural_read"],
+      "approvalRequiredActions": ["ortto_sensitive_read", "ortto_manage"],
+      "blockedActions": [
+        "ortto_secret_exposure",
+        "ortto_destructive_admin",
+        "ortto_exports_attachments",
+        "ortto_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 19 selected operations run without Relay per-action approval; fixed regional routing, bounds, audits, consent attestation, and secret/destructive/export blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "ortto_structural_read",
+        "ortto_sensitive_read",
+        "ortto_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "ortto_secret_exposure",
+        "ortto_destructive_admin",
+        "ortto_exports_attachments",
+        "ortto_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded Ortto tools, injects the encrypted custom key, and maps the stored region enum to a fixed v1 origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded Ortto tools, injects the encrypted custom key, and maps the stored region enum to a fixed v1 origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Ortto requires a customer-owned account, dedicated custom API key, exact region, and provider-side sender/push setup. No console, account, credential, consent, message, or deployment is allowed in this worker.",
+    "nextAction": "Configure a dedicated staging key and default/au/eu region in Railway staging, then verify account binding, structural and sensitive reads, approval and consent-attestation denial/allow, record/activity writes, email/push delivery, bounds, rate limits, key disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.ortto.com/a-223-developer-guide",
+      "checkedAt": "2026-07-17",
+      "supports": "Ortto documents customer-owned custom API keys, per-application keys, configurable merge behavior, X-Api-Key authentication, and fixed default/Australia/Europe API origins."
+    },
+    {
+      "url": "https://help.ortto.com/c-49-api-reference",
+      "checkedAt": "2026-07-17",
+      "supports": "Ortto's current API reference enumerates the selected schema, people, accounts, audiences, activities, campaign, report, email, and push endpoints and destructive/export endpoints intentionally excluded."
+    },
+    {
+      "url": "https://help.ortto.com/a-258-retrieve-one-or-more-people-get",
+      "checkedAt": "2026-07-17",
+      "supports": "Ortto documents the regional POST /v1/person/get resource and custom-key request model used for bounded sensitive reads."
+    },
+    {
+      "url": "https://help.ortto.com/a-269-subscribe-or-unsubscribe-people-to-from-an-audience-subscribe",
+      "checkedAt": "2026-07-17",
+      "supports": "Ortto documents the PUT audience subscription endpoint and its email and SMS permission mutations, which Relay approval-gates and requires consent attestation for opt-ins."
+    },
+    {
+      "url": "https://help.ortto.com/a-827-send-emails-via-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Ortto documents the regional transactional email endpoint, X-Api-Key header, request model, recipient batches, and attachment capability excluded by Relay."
+    }
+  ]
+}

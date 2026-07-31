@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "yammer",
+  "name": "Yammer",
+  "category": "communication",
+  "description": "Yammer, now part of Microsoft Viva Engage, is an enterprise social network for communities, conversations, knowledge sharing, leadership engagement, campaigns, events, and employee connection.",
+  "agentUseSummary": "Connect through Relay-owned Microsoft OAuth and let selected agents verify only the signed-in Yammer identity and network. Relay blocks feeds, messages, communities, search, users, exports, administration, impersonation, and mutations in V1.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/en-us/microsoft-viva/engage",
+    "docsUrl": "https://learn.microsoft.com/en-us/rest/api/yammer/userscurrentjson",
+    "developerConsoleUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["offline_access", "https://www.yammer.com/.default"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "signed_in_identity_only"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/yammer/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "yammer_read",
+      "label": "Read signed-in identity",
+      "description": "Verify and return a minimized profile for the signed-in Yammer user.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "yammer_read",
+        "label": "Read signed-in Yammer identity",
+        "description": "Return only the signed-in user's Yammer ID, name, email, and network ID."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "yammer_manage",
+        "label": "Access content or change Yammer",
+        "description": "Feeds, messages, threads, communities, users, groups, topics, search, files, exports, memberships, subscriptions, administration, impersonation, and all mutations are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "yammer_safe",
+      "label": "Safe",
+      "description": "One signed-in profile read runs directly. Content, directory collections, exports, administration, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["yammer_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["yammer_manage"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one fixed Yammer current-user wrapper through Relay-owned Microsoft OAuth."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one fixed Yammer current-user wrapper through Relay-owned Microsoft OAuth."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's multi-tenant Entra application has not been configured and accepted for the exact Yammer callback and delegated access_as_user permission, and no organizational tenant has completed non-production acceptance.",
+    "nextAction": "The provider-console owner updates Relay's verified multi-tenant Entra application, adds the exact callback and delegated Yammer access_as_user permission, stores the Microsoft client ID and secret in Railway, then validates OAuth, refresh, the minimized current-user read, disconnect, and post-disconnect denial in a non-production organizational tenant."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/yammer/app-registration",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft recommends Microsoft Entra application registration for Yammer and documents delegated access_as_user as the Yammer API permission."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/yammer/authentication-1",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents Entra access tokens for Yammer, the https://www.yammer.com/.default scope, and authorization code with PKCE as an interactive flow option."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/yammer/userscurrentjson",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents the supported /api/v1/users/current.json endpoint for the current Yammer user."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/yammer/getting-started",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents Entra authentication as required for Yammer API access from July 1, 2025 and retirement of the legacy registration platform."
+    }
+  ]
+}

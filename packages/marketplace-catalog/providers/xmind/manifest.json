@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "xmind",
+  "name": "XMind",
+  "category": "content_creative",
+  "description": "XMind is a mind-mapping application for brainstorming, organizing research, planning projects, and turning complex ideas into visual structures. People use its desktop and web editors to create mind maps, logic charts, timelines, organization charts, tree charts, brace maps, and fishbone diagrams.",
+  "agentUseSummary": "Connect an XMind account once, then let agents list and read recent cloud mind maps or create and edit maps through XMind's official hosted OAuth MCP under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://xmind.com/",
+    "docsUrl": "https://xmind.com/user-guide/xmind-mcp",
+    "developerConsoleUrl": "https://app.xmind.com/.well-known/oauth-authorization-server",
+    "termsUrl": "https://xmind.com/legal/terms",
+    "privacyUrl": "https://xmind.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["mcp:connect"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.xmind.com/oauth/consent",
+    "tokenUrl": "https://app.xmind.com/api/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/xmind/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "mind_map_read",
+      "label": "Read mind maps",
+      "description": "List recently opened XMind cloud maps and read an authorized map as structured content.",
+      "defaultSelected": true
+    },
+    {
+      "id": "mind_map_write",
+      "label": "Create and edit mind maps",
+      "description": "Create a new cloud mind map in one of XMind's supported structures or revise an existing map while preserving its visual style.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [{
+      "id": "xmind_mcp_read",
+      "label": "Read XMind maps",
+      "description": "List recent cloud mind maps or read one authorized map through the official hosted MCP."
+    }],
+    "approvalRequired": [{
+      "id": "xmind_mcp_write",
+      "label": "Create or edit XMind maps",
+      "description": "Create a cloud mind map or change an existing map; Safe mode requires approval."
+    }],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "xmind_safe",
+      "label": "Safe",
+      "description": "Listing and reading maps runs directly; creating or editing cloud maps requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["xmind_mcp_read"],
+      "approvalRequiredActions": ["xmind_mcp_write"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected OAuth-authorized XMind MCP operations run without Relay per-action approval; ownership, provider permissions, exact tool allowlists, live schemas, bounds, audits, and redaction still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["xmind_mcp_read", "xmind_mcp_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts exact XMind read and write wrappers and proxies user OAuth to XMind's official hosted MCP." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts exact XMind read and write wrappers and proxies user OAuth to XMind's official hosted MCP." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay's dynamically registered public PKCE client and exact Railway callback are configured, but no signed-in XMind user was available to complete production OAuth and MCP acceptance.",
+    "nextAction": "An XMind user clicks Connect, approves access, then Relay verifies refresh, the exact four-tool MCP surface, bounded reads, Safe write denial, an approved or Dangerous create-edit lifecycle, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://xmind.com/user-guide/xmind-mcp", "checkedAt": "2026-07-14", "supports": "XMind documents its official hosted Streamable HTTP MCP, browser OAuth authorization, and cloud map creation, listing, reading, and editing from MCP-compatible clients." },
+    { "url": "https://app.xmind.com/.well-known/oauth-authorization-server", "checkedAt": "2026-07-14", "supports": "XMind publishes authorization, token, registration, and JWKS endpoints with authorization code, refresh token, public-client authentication, and S256 PKCE support." },
+    { "url": "https://app.xmind.com/.well-known/oauth-protected-resource", "checkedAt": "2026-07-14", "supports": "XMind publishes https://app.xmind.com/api/mcp as the protected resource and requires the mcp:connect scope." },
+    { "url": "https://xmind.com/user-guide/chatgpt-apps", "checkedAt": "2026-07-14", "supports": "XMind documents one-click account connection and the create, list, read, and edit cloud-map capability set in another supported MCP client." }
+  ]
+}

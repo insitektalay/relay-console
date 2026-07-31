@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "freshdesk",
+  "name": "Freshdesk",
+  "category": "crm_support",
+  "description": "Freshdesk is a cloud customer-support platform for ticketing, team inboxes, automation, knowledge bases, reporting, and omnichannel service. Support teams use it to organize requests, collaborate on resolutions, manage service workflows, and track performance.",
+  "agentUseSummary": "Enter your Freshdesk domain and personal API key once, then let agents read tickets or use the complete key-authorized API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.freshworks.com/freshdesk/",
+    "docsUrl": "https://developers.freshdesk.com/api/",
+    "developerConsoleUrl": "https://support.freshdesk.com/support/solutions/articles/215517-how-to-find-your-api-key-",
+    "termsUrl": "https://www.freshworks.com/terms/",
+    "privacyUrl": "https://www.freshworks.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "FRESHDESK_DOMAIN",
+        "label": "Freshdesk domain",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the part before .freshdesk.com in your Freshdesk address."
+      },
+      {
+        "name": "FRESHDESK_API_KEY",
+        "label": "Freshdesk API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy your own API key from your Freshdesk profile. Its access follows your Freshdesk agent role."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ticket_read",
+      "label": "Read support tickets",
+      "description": "List bounded ticket pages and read individual tickets from the connected Freshdesk account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Freshdesk API",
+      "description": "Use the complete documented Freshdesk API v2 surface allowed by the connected agent's role and API key.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "freshdesk_list_tickets",
+        "label": "List tickets",
+        "description": "List one bounded page of tickets from the connected Freshdesk account."
+      },
+      {
+        "id": "freshdesk_get_ticket",
+        "label": "Read ticket",
+        "description": "Read one ticket by its Freshdesk ID."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "freshdesk_full_api",
+        "label": "Use full Freshdesk API",
+        "description": "Use any documented Freshdesk API v2 operation authorized by the connected agent API key; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "freshdesk_safe",
+      "label": "Safe",
+      "description": "Bounded ticket reads run directly; every other Freshdesk API operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["freshdesk_list_tickets", "freshdesk_get_ticket"],
+      "approvalRequiredActions": ["freshdesk_full_api"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected API-key-authorized Freshdesk operation runs without Relay per-action approval; account ownership, exact tenant binding, secret isolation, request bounds, audits, provider roles, and Freshdesk limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "freshdesk_list_tickets",
+        "freshdesk_get_ticket",
+        "freshdesk_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "The backend mounts typed wrappers and attaches the encrypted customer key only to the exact Freshdesk account."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "The backend mounts typed wrappers and attaches the encrypted customer key only to the exact Freshdesk account."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer Freshdesk domain and personal agent API key are required for live acceptance.",
+    "nextAction": "A customer enters the domain and API key, then Relay verifies the account, bounded reads, Safe approval, Dangerous mutation, key reset, and disconnect behavior."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.freshdesk.com/api/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official Freshdesk API v2 reference documents Basic authentication with a personal API key, exact account-domain API origins, ticket and administration endpoints, pagination, role-based authority, and rate limits."
+    },
+    {
+      "url": "https://support.freshdesk.com/support/solutions/articles/215517-how-to-find-your-api-key-",
+      "checkedAt": "2026-07-17",
+      "supports": "Freshdesk documents where an agent finds and resets their personal API key in the profile settings."
+    },
+    {
+      "url": "https://community.freshworks.dev/t/how-to-use-oauth-authentication-mechanism-for-freshdesk-api/1691/2",
+      "checkedAt": "2026-07-17",
+      "supports": "Freshworks staff state that the Freshdesk API supports Basic authentication with an API key rather than OAuth."
+    }
+  ]
+}

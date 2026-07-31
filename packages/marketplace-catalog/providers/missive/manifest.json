@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "missive",
+  "name": "Missive",
+  "category": "communication",
+  "description": "Missive is a collaborative inbox and team communication product combining email and other channels with conversations, internal comments, drafts, tasks, assignments, labels, and contacts.",
+  "agentUseSummary": "Missive cannot currently be connected because its official REST API uses a manually generated personal Bearer token available on paid organization plans, not delegated third-party OAuth. The unscoped token follows all data and broad mutation authority visible to its owning user, so Relay requires explicit approval of a separate customer-owned token product.",
+  "provider": {
+    "websiteUrl": "https://missiveapp.com/",
+    "docsUrl": "https://missiveapp.com/docs/developers/rest-api/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://missiveapp.com/terms",
+    "privacyUrl": "https://missiveapp.com/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "personal_api_token_only",
+      "productive_plan_required",
+      "delegated_oauth_not_documented",
+      "granular_token_scopes_not_documented",
+      "token_follows_owning_user_authority"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "missive_delegated_oauth",
+        "label": "Connect through delegated OAuth",
+        "description": "Missive does not document third-party client registration, authorization-code consent, granular scopes, refresh tokens, or per-installation revocation."
+      },
+      {
+        "id": "missive_personal_api_token",
+        "label": "Use a personal API token",
+        "description": "The manually generated token belongs to one paid-plan user and follows all resources and mutation authority visible to that user without granular scopes."
+      },
+      {
+        "id": "missive_webhooks_or_custom_channels",
+        "label": "Use webhooks or custom channels",
+        "description": "Webhook and custom-channel mechanisms have different event, content-injection, signing, retry, and lifecycle boundaries and are not a delegated account connection."
+      },
+      {
+        "id": "missive_data_and_mutations",
+        "label": "Access Missive data",
+        "description": "Organizations, teams, users, accounts, conversations, messages, comments, drafts, posts, contacts, labels, tasks, responses, hooks, analytics, exports, and every read or write remain unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "missive_unavailable",
+      "label": "Unavailable",
+      "description": "No agent action can be enabled until Relay approves a separately governed customer-owned API-token product or Missive publishes delegated OAuth.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "missive_delegated_oauth",
+        "missive_personal_api_token",
+        "missive_webhooks_or_custom_channels",
+        "missive_data_and_mutations"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No approved Missive credential, authority, or wrapper contract is available to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No approved Missive credential, authority, or wrapper contract is available to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Missive documents a broad customer-owned personal API token on paid organization plans, not granular delegated OAuth; changing the approved credential ownership model requires a product/security decision.",
+    "nextAction": "Do not request a Missive token or show Connect. Reconsider after explicit approval of a narrowly governed user-owned token integration, or after Missive provides an official multi-tenant delegated OAuth and revocation contract."
+  },
+  "evidence": [
+    {
+      "url": "https://missiveapp.com/docs/developers/rest-api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Missive instructs users to create a personal API token in preferences, requires a Productive-plan organization, and authenticates it as a Bearer token."
+    },
+    {
+      "url": "https://missiveapp.com/docs/developers/rest-api/endpoints",
+      "checkedAt": "2026-07-17",
+      "supports": "The same token accesses user-visible conversations and broad analytics, contact, message, draft, post, task, label, team, hook, and conversation-state read/write surfaces without documented token scopes."
+    },
+    {
+      "url": "https://missiveapp.com/docs/developers/rest-api/rate-limits",
+      "checkedAt": "2026-07-17",
+      "supports": "Missive publishes API concurrency and rate limits but no delegated consent, refresh, or per-installation revocation lifecycle."
+    },
+    {
+      "url": "https://missiveapp.com/docs/developers/webhooks",
+      "checkedAt": "2026-07-17",
+      "supports": "Missive webhooks are a separately configured event mechanism with message-content, optional signing, and retry behavior rather than delegated OAuth."
+    }
+  ]
+}

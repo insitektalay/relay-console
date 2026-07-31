@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoho-analytics",
+  "name": "Zoho Analytics",
+  "category": "work_management",
+  "description": "Zoho Analytics is a business-intelligence and analytics platform for combining data, building reports and dashboards, and sharing governed insights. Teams use it to organize reporting workspaces, model data, visualize performance, and collaborate around analysis.",
+  "agentUseSummary": "Connect one Zoho Analytics account through Relay-owned multi-data-center OAuth, then let selected agents list bounded workspace and view identity metadata. Rows, columns, descriptions, creator identities, users, exports, embeds, writes, pagination, and raw APIs are outside V1.",
+  "provider": {
+    "websiteUrl": "https://www.zoho.com/analytics/",
+    "docsUrl": "https://www.zoho.com/analytics/api/v2/",
+    "developerConsoleUrl": "https://api-console.zoho.com/",
+    "termsUrl": "https://www.zoho.com/terms.html",
+    "privacyUrl": "https://www.zoho.com/privacy.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["AaaServer.profile.Read", "ZohoAnalytics.metadata.read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.zoho.com/oauth/v2/auth",
+    "tokenUrl": "https://accounts.zoho.com/oauth/v2/token",
+    "revocationUrl": "https://accounts.zoho.com/oauth/v2/token/revoke"
+  },
+  "connection": {
+    "types": ["oauth_connector"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/zoho-analytics/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "analytics_metadata_read",
+      "label": "Read Analytics workspace metadata",
+      "description": "Read bounded workspace and view identity metadata without rows, columns, creator identities, exports, embeds, writes, or raw responses."
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "zoho_analytics_workspace_list",
+        "label": "List Analytics workspaces",
+        "description": "List at most twenty-five owned and shared workspace summaries from the bounded metadata endpoint."
+      },
+      {
+        "id": "zoho_analytics_view_list",
+        "label": "List workspace views",
+        "description": "List at most twenty-five view identity summaries for one exact numeric organization and workspace."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "zoho_analytics_business_data",
+        "label": "Access rows or columns",
+        "description": "Table rows, columns, formulas, charts, dashboards, reports, and underlying business data are outside V1."
+      },
+      {
+        "id": "zoho_analytics_identity_detail",
+        "label": "Access descriptions or identities",
+        "description": "Descriptions, creator identities, user lists, collaboration details, and permission inventories are outside V1."
+      },
+      {
+        "id": "zoho_analytics_mutation_export_raw",
+        "label": "Modify or export Zoho Analytics",
+        "description": "Writes, imports, administration, exports, embeds, arbitrary endpoints, automatic pagination, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zoho_analytics_safe",
+      "label": "Safe",
+      "description": "Both bounded metadata reads require approval; business data, identities, exports, embeds, and mutations remain outside V1.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "zoho_analytics_workspace_list",
+        "zoho_analytics_view_list"
+      ],
+      "blockedActions": [
+        "zoho_analytics_business_data",
+        "zoho_analytics_identity_detail",
+        "zoho_analytics_mutation_export_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected metadata reads run without Relay per-action approval; exact user, regional origin, scope, bounds, audits, and privacy exclusions remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "zoho_analytics_workspace_list",
+        "zoho_analytics_view_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zoho_analytics_business_data",
+        "zoho_analytics_identity_detail",
+        "zoho_analytics_mutation_export_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts two typed metadata wrappers and attaches the encrypted token only to the exact regional Accounts and Analytics API origins."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts two typed metadata wrappers and attaches the encrypted token only to the exact regional Accounts and Analytics API origins."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "Relay's multi-data-center Zoho server application, exact callback, shared client credentials, Railway staging configuration, and representative Zoho Analytics consent are not configured in this code-only worker task.",
+    "nextAction": "In the separate provider-console task, create or extend Relay's Zoho server application, enable Multi-DC with shared credentials for the eight documented Analytics data centers, register https://api.relayconsole.work/api/v1/marketplace/oauth/zoho-analytics/callback, request only AaaServer.profile.Read and ZohoAnalytics.metadata.read, configure ZOHO_ANALYTICS_CLIENT_ID and ZOHO_ANALYTICS_CLIENT_SECRET on Railway staging, then validate regional consent, exact-user binding, both bounded wrappers, refresh, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.zoho.com/analytics/api/v2/authentication.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents OAuth 2.0 access and refresh tokens, Zoho-oauthtoken authorization, and module-specific Analytics scopes."
+    },
+    {
+      "url": "https://www.zoho.com/analytics/api/v2/api-specification.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents the Analytics V2 request conventions, regional Analytics API and Accounts origins, organization header, configuration parameter, and JSON response envelope."
+    },
+    {
+      "url": "https://www.zoho.com/analytics/api/v2/metadata-api/all-workspace.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents GET /restapi/v2/workspaces under ZohoAnalytics.metadata.read and the owned/shared workspace identifiers, names, organization IDs, and metadata that Relay strictly projects."
+    },
+    {
+      "url": "https://www.zoho.com/analytics/api/v2/metadata-api/get-views.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents the workspace Views metadata route, required organization header, bounded start and result configuration, and view identifiers, names, and types."
+    },
+    {
+      "url": "https://www.zoho.com/accounts/protocol/oauth/multi-dc.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents Multi-DC server clients, regional callback and token exchange, shared credentials, api_domain verification, and regional Accounts authorities."
+    }
+  ]
+}

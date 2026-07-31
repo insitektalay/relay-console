@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "uplead",
+  "name": "UpLead",
+  "category": "crm_support",
+  "description": "UpLead is a B2B sales intelligence platform for finding, verifying, enriching and exporting professional contact and company data, including intent and technographic signals.",
+  "agentUseSummary": "Connect a dedicated customer-owned UpLead API key. Agents can read only the remaining credit count; account email, people and company data, lookup, enrichment, prospecting, preview, lists, exports and raw API access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.uplead.com/",
+    "docsUrl": "https://docs.uplead.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.uplead.com/terms-and-conditions/",
+    "privacyUrl": "https://www.uplead.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "server_side_fixed_credit_balance_read",
+      "manual_provider_rotation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "UPLEAD_API_KEY",
+        "label": "UpLead API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated customer-owned key from UpLead account settings. Relay encrypts it and permits only the fixed remaining-credit read."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_usage_read",
+      "label": "Read credit balance",
+      "description": "Read a reduced remaining-credit snapshot without returning the account email or accessing people or company data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "uplead_credit_balance_get",
+        "label": "Read credit balance",
+        "description": "Read only the connected UpLead account's remaining credit count without returning its email or accessing contact or company records."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "uplead_people_company_and_intent_data",
+        "label": "Block people, company, and intent data",
+        "description": "Person, company and combined lookup, enrichment, emails, phones, employment, education, location, social profiles, firmographics, technographics, intent and company news are unavailable."
+      },
+      {
+        "id": "uplead_prospecting_preview_lists_and_exports",
+        "label": "Block prospecting, preview, lists, and exports",
+        "description": "Prospector and Prospector Pro, Preview API, quick search, lists, CRM sync, downloads, exports, exclusions, browser extensions, batching and pagination are unavailable."
+      },
+      {
+        "id": "uplead_admin_and_raw_access",
+        "label": "Block administration and raw access",
+        "description": "API-key management, user and credit allocation, purchases, arbitrary endpoints, raw REST, retries, browser sessions, platform credentials and unrestricted tools are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "uplead_safe",
+      "label": "Safe",
+      "description": "The reduced credit-balance read runs automatically. People, company and intent data, prospecting, preview, lists, exports, administration and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["uplead_credit_balance_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "uplead_people_company_and_intent_data",
+        "uplead_prospecting_preview_lists_and_exports",
+        "uplead_admin_and_raw_access"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same single bounded governance read runs without approval; the full-account API key never expands Relay's fixed credits request.",
+      "defaultSelected": false,
+      "allowedActions": ["uplead_credit_balance_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "uplead_people_company_and_intent_data",
+        "uplead_prospecting_preview_lists_and_exports",
+        "uplead_admin_and_raw_access"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly one parameterless remaining-credit read while Railway alone holds the customer API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly one parameterless remaining-credit read while Railway alone holds the customer API key."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An active customer UpLead account with API entitlement, an authorized user, a dedicated API key, current terms/privacy review, Railway staging entry, live credits-schema validation, disconnect rotation and post-rotation denial remain for a separate authorized provider task.",
+    "nextAction": "An authorized provider task must confirm API entitlement and the governance-only purpose, review current terms and privacy policy, create a dedicated key in UpLead account settings, store it in Railway staging, and validate only GET https://api.uplead.com/v2/credits. Confirm raw Authorization-header authentication, the exact reduced integer schema, 64 KiB cap, one-request/no-retry behavior, no record credit consumption, stripping of account email and unexpected fields, no people/company data, encrypted-copy deletion, provider-side rotation and post-rotation denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.uplead.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "UpLead documents the fixed https://api.uplead.com/v2 origin, raw Authorization API-key header, 500-request-per-minute limit, conventional errors, one GET or POST /credits response containing email and remaining credits, and broader contact, company, combined, prospector, preview and list APIs. Relay uses GET /credits only and strips email."
+    },
+    {
+      "url": "https://www.uplead.com/data-api/",
+      "checkedAt": "2026-07-18",
+      "supports": "UpLead describes its API as verified B2B person and company enrichment, combined data and prospecting, generally charging one credit per returned contact or company. Relay blocks all data-returning and credit-consuming operations."
+    },
+    {
+      "url": "https://support.uplead.com/en/articles/5621272-what-is-a-credit",
+      "checkedAt": "2026-07-18",
+      "supports": "UpLead documents that credits unlock, export or download contact and company data. Relay exposes only the remaining-credit counter and no unlock, download or export action."
+    },
+    {
+      "url": "https://www.uplead.com/terms-and-conditions/",
+      "checkedAt": "2026-07-18",
+      "supports": "UpLead's current terms govern its hosted database and API, restrict use to authorized users and licensed purposes, impose legal and privacy duties, and specifically constrain Preview API scraping, storage and credit-circumvention. Relay blocks Preview and all profile data."
+    },
+    {
+      "url": "https://www.uplead.com/privacy/",
+      "checkedAt": "2026-07-18",
+      "supports": "UpLead's current privacy policy describes business profiles and personal information including names, emails, phones, job titles, locations, education, experience and social handles, plus rights and opt-out controls. Relay's V1 returns none of that profile data."
+    }
+  ]
+}

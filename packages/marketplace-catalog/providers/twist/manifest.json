@@ -1,0 +1,217 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "twist",
+  "name": "Twist",
+  "category": "communication",
+  "description": "Twist is an asynchronous team communication platform organized around workspaces, channels, topic-focused threads, comments, and an inbox.",
+  "agentUseSummary": "Connect one user through Relay's confidential Twist General Integration with exact user/workspace/channel/thread/comment read scopes. Relay exposes five fixed bounded reads for the connected user, workspaces, channels, recent inbox threads, and one thread with recent comments; direct messages, search, files, webhooks, bots, raw API access, and every mutation remain blocked.",
+  "provider": {
+    "websiteUrl": "https://twist.com/",
+    "docsUrl": "https://developer.twist.com/v3/",
+    "developerConsoleUrl": "https://twist.com/integrations/build",
+    "termsUrl": "https://doist.com/terms-of-service",
+    "privacyUrl": "https://doist.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "user:read",
+      "workspaces:read",
+      "channels:read",
+      "threads:read",
+      "comments:read"
+    ],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://twist.com/oauth/authorize",
+    "tokenUrl": "https://twist.com/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth",
+      "comma_delimited_exact_read_scopes",
+      "state_bound_railway_callback",
+      "durable_access_token_without_refresh",
+      "connected_user_identity_binding"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "TWIST_CLIENT_ID",
+        "label": "Twist client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held production Twist General Integration client ID."
+      },
+      {
+        "name": "TWIST_CLIENT_SECRET",
+        "label": "Twist client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-encrypted confidential client secret; never returned to clients or agents."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/twist/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "user_read",
+      "label": "Read connected user",
+      "description": "Verify the exact OAuth-authorized Twist user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "workspace_read",
+      "label": "List workspaces",
+      "description": "List at most twenty workspaces available to the connected user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "channel_read",
+      "label": "List channels",
+      "description": "List at most fifty channels in one explicit workspace.",
+      "defaultSelected": true
+    },
+    {
+      "id": "inbox_thread_read",
+      "label": "List inbox threads",
+      "description": "List at most twenty recent active inbox threads in one explicit workspace.",
+      "defaultSelected": true
+    },
+    {
+      "id": "thread_comment_read",
+      "label": "Read thread comments",
+      "description": "Read one explicit thread with at most thirty recent comments.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "twist_user_get",
+        "label": "Read connected user",
+        "description": "Return the bound Twist user's useful identity fields."
+      },
+      {
+        "id": "twist_workspaces_list",
+        "label": "List workspaces",
+        "description": "Return at most twenty workspace IDs and human-readable names."
+      },
+      {
+        "id": "twist_channels_list",
+        "label": "List workspace channels",
+        "description": "Return at most fifty useful channels for one numeric workspace ID."
+      },
+      {
+        "id": "twist_inbox_threads_list",
+        "label": "List inbox threads",
+        "description": "Return at most twenty recent active inbox threads with useful titles, content, authorship, and timestamps."
+      },
+      {
+        "id": "twist_thread_comments_get",
+        "label": "Read thread with comments",
+        "description": "Return one numeric thread and at most thirty recent comments with bounded useful content."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "twist_mutations",
+        "label": "Block mutations",
+        "description": "Thread, comment, channel, workspace, message, reaction, notification, membership, and administration mutations are not exposed."
+      },
+      {
+        "id": "twist_sensitive_reads",
+        "label": "Block sensitive reads",
+        "description": "Direct messages, conversations, attachments, notifications, groups, and broad member data are not exposed."
+      },
+      {
+        "id": "twist_broad_raw",
+        "label": "Block broad and raw access",
+        "description": "Global search, cursors, pagination, bulk export, webhooks, bots, update integrations, arbitrary endpoints, and raw API access are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "twist_read_only",
+      "label": "Read only",
+      "description": "Only five fixed bounded Twist reads are enabled.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "twist_user_get",
+        "twist_workspaces_list",
+        "twist_channels_list",
+        "twist_inbox_threads_list",
+        "twist_thread_comments_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "twist_mutations",
+        "twist_sensitive_reads",
+        "twist_broad_raw"
+      ]
+    },
+    {
+      "id": "twist_no_access",
+      "label": "No access",
+      "description": "Every Twist action is blocked.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "twist_mutations",
+        "twist_sensitive_reads",
+        "twist_broad_raw",
+        "twist_user_get",
+        "twist_workspaces_list",
+        "twist_channels_list",
+        "twist_inbox_threads_list",
+        "twist_thread_comments_get"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the same five fixed bounded Twist read wrappers for OpenClaw without exposing OAuth credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the same five fixed bounded Twist read wrappers for Hermes without exposing OAuth credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's production Twist General Integration, exact Railway callback registration, credentials, distribution review, authorized backend deployment, and real connected-user lifecycle evidence are not available.",
+    "nextAction": "Create and approve the production General Integration, register the exact Railway callback, configure TWIST_CLIENT_ID and TWIST_CLIENT_SECRET on Railway, then deploy and run consent, user binding, bounded semantic reads, remove-integration, disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.twist.com/v3/",
+      "checkedAt": "2026-07-17",
+      "supports": "Twist documents production General Integration OAuth authorization-code flow, exact comma-separated scopes, confidential token exchange, bearer API access, and granular read/write/remove permissions."
+    },
+    {
+      "url": "https://developer.twist.com/v3/",
+      "checkedAt": "2026-07-17",
+      "supports": "The API documents useful user, workspace, channel, inbox, thread, and comment objects and separate messages/search/attachment/write scopes excluded from V1."
+    },
+    {
+      "url": "https://developer.twist.com/v3/",
+      "checkedAt": "2026-07-17",
+      "supports": "Twist directs production integrations through OAuth and identifies its full-scope personal integration token as development-only."
+    },
+    {
+      "url": "https://twist.com/help/articles/remove-an-integration-in-twist-FHswXK5q",
+      "checkedAt": "2026-07-17",
+      "supports": "Twist provides an upstream user-facing Remove integration flow; the API does not document a narrow per-installation revocation endpoint for Relay to call."
+    }
+  ]
+}

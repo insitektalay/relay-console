@@ -1,0 +1,183 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "dialpad",
+  "name": "Dialpad",
+  "category": "communication",
+  "description": "Dialpad is an AI-powered customer communications platform that brings calling, messaging, meetings, support, and contact-center workflows into one service. Organizations use it to connect teams and customers, operate business phone systems, manage conversations, and apply real-time communications intelligence.",
+  "agentUseSummary": "Connect one Dialpad user with Relay-owned confidential S256 PKCE OAuth, then let agents verify that exact user and inspect at most ten deduplicated privacy-masked Caller ID choices without exposing provider identity, email, extension, organization metadata, forwarding numbers, communications, special scopes, administration, writes, pagination, or raw APIs.",
+  "provider": {
+    "websiteUrl": "https://www.dialpad.com/",
+    "docsUrl": "https://developers.dialpad.com/docs/oauth",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.dialpad.com/legal/",
+    "privacyUrl": "https://www.dialpad.com/legal/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["offline_access"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://dialpad.com/oauth2/authorize",
+    "tokenUrl": "https://dialpad.com/oauth2/token",
+    "revocationUrl": "https://dialpad.com/oauth2/deauthorize"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_dialpad_confidential_oauth_client",
+      "authorization_code_s256_pkce_rotating_refresh",
+      "exact_additional_offline_access_scope",
+      "canonical_production_dialpad_only",
+      "exact_self_user_binding",
+      "encrypted_state_verifier_client_secret_and_token_bundle"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "DIALPAD_CLIENT_ID",
+        "label": "Dialpad OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held client ID for an approved Dialpad OAuth app requesting only the additional offline_access scope."
+      },
+      {
+        "name": "DIALPAD_CLIENT_SECRET",
+        "label": "Dialpad OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-encrypted confidential OAuth secret used for code and refresh exchanges; never entered in Relay Console clients."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/dialpad/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "user_read",
+      "label": "Verify connected user",
+      "description": "Verify the exact OAuth-bound Dialpad user without exposing provider IDs, email, extension, organization, or status metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "caller_id_read",
+      "label": "Read caller-ID choices",
+      "description": "Inspect at most ten deduplicated privacy-masked primary, user, office, and group Caller ID choices while excluding forwarding numbers.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "dialpad_user_get",
+        "label": "Verify connected user",
+        "description": "Verify the exact OAuth-bound Dialpad user without returning provider identity."
+      },
+      {
+        "id": "dialpad_caller_id_get",
+        "label": "Read caller-ID choices",
+        "description": "Read at most ten deduplicated privacy-masked own-user Caller ID choices from the current provider schema without forwarding numbers."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "dialpad_identity_company_admin",
+        "label": "Block identity, organization, and administration",
+        "description": "Provider user ID, email, extension, state, license, company, office, groups, directories, voicemail settings, app settings, and administration are unavailable."
+      },
+      {
+        "id": "dialpad_sensitive_communications",
+        "label": "Block communications and sensitive artifacts",
+        "description": "Calls, callbacks, SMS, fax, recordings, transcripts, messages, voicemail, forwarding numbers, routing, contacts, contact-center data, and every communication action are unavailable."
+      },
+      {
+        "id": "dialpad_special_scopes_products_raw",
+        "label": "Block special scopes, other products, and raw access",
+        "description": "calls:list, recordings_export, message exports, screen_pop, change_log, devices, events, webhooks, websockets, AI products, sandbox, pagination, exports, writes, and raw APIs are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "dialpad_safe",
+      "label": "Safe",
+      "description": "The two selected fixed reads run automatically; provider identity, forwarding numbers, communications, special scopes, organization data, writes, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["dialpad_user_get", "dialpad_caller_id_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "dialpad_identity_company_admin",
+        "dialpad_sensitive_communications",
+        "dialpad_special_scopes_products_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same two reads run without Relay per-action approval; exact user binding, fixed routes, response bounds, audits, masking, and secret isolation still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["dialpad_user_get", "dialpad_caller_id_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "dialpad_identity_company_admin",
+        "dialpad_sensitive_communications",
+        "dialpad_special_scopes_products_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two typed Dialpad reads while Railway alone holds the confidential OAuth client, rotating refresh-token bundle, and exact user binding."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two typed Dialpad reads while Railway alone holds the confidential OAuth client, rotating refresh-token bundle, and exact user binding."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Approved Dialpad OAuth access, exact Railway callback, credentials, API-terms/privacy/brand review, representative user account, consent, any provider marketplace review, and staging validation remain for separate authorized tasks.",
+    "nextAction": "After batch integration, request or review Dialpad OAuth access, register the exact Railway callback, store credentials in staging, and validate state, S256 PKCE, exact additional offline_access scope, confidential code exchange, rotating refresh replacement, exact user binding, sensitive metadata exclusion, current Caller ID schema, forwarding-number exclusion, response limits, rate-limit handling, upstream deauthorization, local deletion, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.dialpad.com/ai-customer-intelligence-platform/",
+      "checkedAt": "2026-07-18",
+      "supports": "Dialpad presents an AI-powered customer communications platform spanning calling, messaging, meetings, support, contact-center workflows, and communications intelligence."
+    },
+    {
+      "url": "https://developers.dialpad.com/docs/oauth",
+      "checkedAt": "2026-07-18",
+      "supports": "Dialpad documents confidential authorization-code OAuth, production authorization and token endpoints, state, S256 PKCE, offline_access refresh tokens, rotating refresh exchange, special scopes Relay excludes, self-user validation, and bearer deauthorization."
+    },
+    {
+      "url": "https://developers.dialpad.com/docs/authentication-basics",
+      "checkedAt": "2026-07-18",
+      "supports": "Dialpad recommends Bearer authorization headers and documents authentication boundaries Relay keeps server-side."
+    },
+    {
+      "url": "https://developers.dialpad.com/reference/usersget",
+      "checkedAt": "2026-07-18",
+      "supports": "Dialpad documents the User Get route with the me identifier and sensitive identity, contact, organization, status, license, voicemail, and group fields Relay excludes from agent-visible output."
+    },
+    {
+      "url": "https://developers.dialpad.com/reference/caller_idusersget",
+      "checkedAt": "2026-07-18",
+      "supports": "Dialpad's current Caller ID response schema exposes caller_id, primary_phone, phone_numbers, office_main_line, groups, and forwarding_numbers; Relay masks and bounds the first four candidate sources and excludes forwarding_numbers."
+    },
+    {
+      "url": "https://developers.dialpad.com/docs/rate-limits",
+      "checkedAt": "2026-07-18",
+      "supports": "Dialpad documents company and endpoint-specific limits and HTTP 429 behavior; Relay performs one request per action and does not retry automatically."
+    },
+    {
+      "url": "https://www.dialpad.com/legal/",
+      "checkedAt": "2026-07-18",
+      "supports": "Dialpad publishes API Terms of Service and privacy terms governing API registration, credentials, end-user data, branding, and use, so live release remains externally gated."
+    }
+  ]
+}

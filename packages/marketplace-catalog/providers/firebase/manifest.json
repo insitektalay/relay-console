@@ -1,0 +1,199 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "firebase",
+  "name": "Firebase",
+  "category": "developer",
+  "description": "Firebase is Google's application development platform for building and operating web and mobile apps.",
+  "agentUseSummary": "Connect one exact Firebase Project through Relay's confidential Google OAuth client with only firebase.readonly and offline access, then let agents list a bounded page of active Projects, inspect the exact selected Project, and list bounded App summaries. Relay V1 excludes API-key identifiers and values, app configs, credentials, product data, writes, administration, raw APIs, broader Google scopes, and pagination.",
+  "provider": {
+    "websiteUrl": "https://firebase.google.com/",
+    "docsUrl": "https://firebase.google.com/docs/reference/firebase-management/rest",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials",
+    "termsUrl": "https://firebase.google.com/terms",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["https://www.googleapis.com/auth/firebase.readonly"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token",
+    "revocationUrl": "https://oauth2.googleapis.com/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth",
+      "exact_firebase_readonly_scope",
+      "offline_refresh_token",
+      "exact_selected_project",
+      "provider_revocable"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "FIREBASE_CLIENT_ID",
+        "label": "Firebase Google OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Relay-owned confidential Google OAuth client ID configured only on Railway."
+      },
+      {
+        "name": "FIREBASE_CLIENT_SECRET",
+        "label": "Firebase Google OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay-owned confidential Google OAuth client secret configured only on Railway."
+      },
+      {
+        "name": "FIREBASE_PROJECT_ID",
+        "label": "Selected Firebase Project ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind the connection to one exact 6-30 character Firebase Project ID before authorization."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/firebase/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "project_read",
+      "label": "Read Firebase Projects",
+      "description": "List a bounded page of accessible Projects and inspect one exact selected Project.",
+      "defaultSelected": true
+    },
+    {
+      "id": "app_read",
+      "label": "Read selected-Project Apps",
+      "description": "List a bounded App summary without API-key identifiers or configuration.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "firebase_project_list",
+        "label": "List Firebase Projects",
+        "description": "List at most twenty-five active Firebase Projects from the first page accessible to the OAuth grant."
+      },
+      {
+        "id": "firebase_project_get",
+        "label": "Read selected Project",
+        "description": "Read one exact selected Firebase Project and verify its resource binding."
+      },
+      {
+        "id": "firebase_app_list",
+        "label": "List selected-Project Apps",
+        "description": "List at most twenty-five active Apps from the selected Project's first search page without API-key identifiers or app configs."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "firebase_write",
+        "label": "Change Firebase",
+        "description": "Project and App creation, update, provisioning, deletion, undelete, and every product mutation are outside V1."
+      },
+      {
+        "id": "firebase_sensitive_read",
+        "label": "Read sensitive Firebase data",
+        "description": "API-key identifiers and values, SDK/app configs, credentials, service accounts, user data, databases, storage, logs, analytics, messaging, and product-specific data are outside V1."
+      },
+      {
+        "id": "firebase_admin",
+        "label": "Administer Firebase",
+        "description": "IAM, users, billing, OAuth clients, service accounts, extensions, App Check, security rules, and administration are outside V1."
+      },
+      {
+        "id": "firebase_raw_api",
+        "label": "Use raw Firebase or Google APIs",
+        "description": "Arbitrary REST, paths, queries, page tokens, pagination, Cloud Platform scopes, product APIs, Admin SDK, CLI tokens, and raw responses are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "firebase_safe",
+      "label": "Safe",
+      "description": "All three bounded Firebase reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "firebase_project_list",
+        "firebase_project_get",
+        "firebase_app_list"
+      ],
+      "blockedActions": [
+        "firebase_write",
+        "firebase_sensitive_read",
+        "firebase_admin",
+        "firebase_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only tools run without Relay per-action approval while exact Project binding, fixed requests, bounds, redaction, audit, refresh, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "firebase_project_list",
+        "firebase_project_get",
+        "firebase_app_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "firebase_write",
+        "firebase_sensitive_read",
+        "firebase_admin",
+        "firebase_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three fixed Firebase Management API read wrappers and attaches refreshed OAuth access tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three fixed Firebase Management API read wrappers and attaches refreshed OAuth access tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay's confidential Google OAuth application, exact Railway callback, firebase.readonly consent configuration, Firebase Management API enablement, and staging credentials require provider-console completion and authorized staging acceptance.",
+    "nextAction": "Configure the confidential Google OAuth web client with Relay's exact Railway callback and firebase.readonly, enable the Firebase Management API, add staging credentials, then validate exact scope, offline refresh, revoke, selected-Project binding, denial, and all three bounded reads."
+  },
+  "evidence": [
+    {
+      "url": "https://firebase.google.com/docs/reference/firebase-management/rest/v1beta1/projects/list",
+      "checkedAt": "2026-07-17",
+      "supports": "Firebase documents active Project listing at GET /v1beta1/projects, bounded pageSize, short-lived page tokens, and firebase.readonly as an accepted authorization scope."
+    },
+    {
+      "url": "https://firebase.google.com/docs/reference/firebase-management/rest/v1beta1/projects/get",
+      "checkedAt": "2026-07-17",
+      "supports": "Firebase documents consistent exact Project reads at GET /v1beta1/projects/{projectId} with firebase.readonly."
+    },
+    {
+      "url": "https://firebase.google.com/docs/reference/firebase-management/rest/v1beta1/projects/searchApps",
+      "checkedAt": "2026-07-17",
+      "supports": "Firebase documents searchApps as the cross-platform App-summary selector surface, with pageSize, active-only filtering, and FirebaseAppInfo fields including API-key identifiers that Relay explicitly redacts."
+    },
+    {
+      "url": "https://developers.google.com/identity/protocols/oauth2/web-server",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents the confidential web-server authorization-code flow, CSRF state, offline access, prompt=consent refresh-token behavior, token refresh, and HTTPS authorization and token endpoints."
+    },
+    {
+      "url": "https://developers.google.com/identity/protocols/oauth2/web-server#tokenrevoke",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents provider-side OAuth grant revocation through oauth2.googleapis.com/revoke."
+    }
+  ]
+}

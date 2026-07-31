@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "fillout",
+  "name": "Fillout",
+  "category": "work_management",
+  "description": "Fillout is an online form, survey, quiz, scheduling, and workflow platform. Teams use it to collect structured information, connect forms to business tools and databases, schedule appointments, take payments, and review submissions.",
+  "agentUseSummary": "Connect one Fillout grant through Relay-owned third-party OAuth and bind the provider-returned global or EU API origin. Agents can list 25 Form summaries, inspect one exact Form's structural counts, and list 25 recent finished Submission lifecycle summaries; submission content and identity, schemas, arbitrary queries, pagination, exports, webhooks, databases, self-hosted origins, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.fillout.com/",
+    "docsUrl": "https://www.fillout.com/help/fillout-rest-api",
+    "developerConsoleUrl": "https://build.fillout.com/home/settings/developer/oauth",
+    "termsUrl": "https://www.fillout.com/terms",
+    "privacyUrl": "https://www.fillout.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://build.fillout.com/authorize/oauth",
+    "tokenUrl": "https://server.fillout.com/public/oauth/accessToken"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_third_party_oauth",
+      "provider_returned_api_origin",
+      "token_visible_authority",
+      "provider_documents_no_scopes_or_refresh",
+      "provider_token_invalidation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/fillout/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "form_list",
+      "label": "List forms",
+      "description": "Read bounded token-visible Form ID and name summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "form_metadata",
+      "label": "Read form metadata",
+      "description": "Read one exact Form metadata count summary.",
+      "defaultSelected": true
+    },
+    {
+      "id": "submission_list",
+      "label": "List submission metadata",
+      "description": "Read bounded finished Submission lifecycle summaries without response content.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "fillout_form_list",
+        "label": "List forms",
+        "description": "Read at most twenty-five token-visible Form ID and name summaries."
+      },
+      {
+        "id": "fillout_form_get_metadata_summary",
+        "label": "Read form metadata",
+        "description": "Read one exact Form ID, name, structural category counts, and quiz-enabled flag."
+      },
+      {
+        "id": "fillout_submission_list_recent",
+        "label": "List recent submission metadata",
+        "description": "Read at most twenty-five recent finished Submission lifecycle summaries without response content."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "fillout_submission_content",
+        "label": "Read submission content",
+        "description": "Questions, answers, calculations, respondent and login identity, scheduling, payments, files, edit links, previews, and private values are outside V1."
+      },
+      {
+        "id": "fillout_submission_mutation",
+        "label": "Change submissions",
+        "description": "Creating, importing, updating, or deleting Fillout submissions is outside V1."
+      },
+      {
+        "id": "fillout_webhook_mutation",
+        "label": "Change webhooks",
+        "description": "Creating or removing Fillout webhook subscriptions is outside V1."
+      },
+      {
+        "id": "fillout_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary paths, filters, dates, statuses, pages, searches, origins, and raw API access are outside V1."
+      },
+      {
+        "id": "fillout_bulk_export",
+        "label": "Export Fillout data",
+        "description": "Automatic pagination, crawling, Zite or database APIs, synchronization, and export are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "fillout_safe",
+      "label": "Safe",
+      "description": "Three bounded metadata-only reads run automatically; submission content, arbitrary queries, exports, webhooks, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "fillout_form_list",
+        "fillout_form_get_metadata_summary",
+        "fillout_submission_list_recent"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "fillout_submission_content",
+        "fillout_submission_mutation",
+        "fillout_webhook_mutation",
+        "fillout_raw_query",
+        "fillout_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while token authority, official origin binding, fixed requests, limits, audit, redaction, invalidation, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "fillout_form_list",
+        "fillout_form_get_metadata_summary",
+        "fillout_submission_list_recent"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "fillout_submission_content",
+        "fillout_submission_mutation",
+        "fillout_webhook_mutation",
+        "fillout_raw_query",
+        "fillout_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded Fillout metadata wrappers and attaches the encrypted origin-bound OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded Fillout metadata wrappers and attaches the encrypted origin-bound OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Fillout requires Relay to register and, for public shared use, submit a third-party OAuth application with the exact Railway callback and client credentials. Railway staging credentials and an authorized acceptance account are not configured in this code-only task.",
+    "nextAction": "In the provider-console task, register or submit Relay's Fillout OAuth application with https://api.relayconsole.work/api/v1/marketplace/oauth/fillout/callback, configure Railway staging credentials, then verify global and EU base_url binding, the three metadata reads, five-request-per-second handling, token invalidation, plan behavior, privacy, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.fillout.com/help/oauth-applications",
+      "checkedAt": "2026-07-17",
+      "supports": "Fillout documents third-party OAuth registration and review, authorization and token endpoints, a provider-returned access_token and base_url, and authenticated token invalidation."
+    },
+    {
+      "url": "https://www.fillout.com/help/fillout-rest-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Fillout documents bearer-token access to global or EU REST origins and the Forms and Submissions resources wrapped by Relay."
+    },
+    {
+      "url": "https://www.fillout.com/help/api-reference/create-submissions",
+      "checkedAt": "2026-07-17",
+      "supports": "Fillout submission records can contain answers, respondent identity, scheduling, payment, login, and other private data; Relay allowlists only lifecycle IDs and timestamps and blocks submission writes."
+    }
+  ]
+}

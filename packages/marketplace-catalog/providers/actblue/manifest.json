@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "actblue",
+  "name": "ActBlue",
+  "category": "commerce_payments",
+  "description": "ActBlue is a fundraising platform used by Democratic campaigns, committees and organizations to collect and report contributions.",
+  "agentUseSummary": "Add one campaign or organization's ActBlue CSV API client UUID and secret, then generate any of four official report types and retrieve one exact report status under approval. Relay does not mount dashboard administration, webhooks, contribution forms, donation processing, refunds or recurring-contribution changes.",
+  "provider": {
+    "websiteUrl": "https://secure.actblue.com/",
+    "docsUrl": "https://secure.actblue.com/docs/csv_api",
+    "developerConsoleUrl": "https://secure.actblue.com/",
+    "termsUrl": "https://secure.actblue.com/legal-terms",
+    "privacyUrl": "https://secure.actblue.com/legal-privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "basic_auth",
+      "client_uuid",
+      "client_secret",
+      "entity_scoped_credentials",
+      "fixed_secure_actblue_origin",
+      "csv_api_v1"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "ACTBLUE_CLIENT_UUID",
+        "label": "ActBlue client UUID",
+        "secret": false,
+        "required": true,
+        "helpText": "Generate this credential for the intended campaign or organization. Relay uses it only as the Basic-auth username on secure.actblue.com."
+      },
+      {
+        "key": "ACTBLUE_CLIENT_SECRET",
+        "label": "ActBlue client secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Generate this credential in the authorized ActBlue dashboard. Relay encrypts it and uses it only as the Basic-auth password on secure.actblue.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "actblue_manage",
+      "label": "Generate and retrieve contribution reports",
+      "description": "Create any of ActBlue's four credential-scoped CSV report types and retrieve one exact report status after approval.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "actblue_manage",
+        "label": "Generate or retrieve ActBlue CSV reports",
+        "description": "Create one bounded contribution report or retrieve one exact report status and short-lived signed URL; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "actblue_dashboard_admin",
+        "label": "Administer ActBlue",
+        "description": "Dashboard administration, API credential creation, contribution forms and webhook configuration are not mounted."
+      },
+      {
+        "id": "actblue_contribution_mutation",
+        "label": "Create, refund or change contributions",
+        "description": "Relay does not mount donation processing, refunds, recurring changes or any other contribution mutation."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "actblue_safe",
+      "label": "Safe",
+      "description": "Both report generation and signed-URL retrieval require approval because the resulting CSV can contain bulk political-contribution data; dashboard and contribution mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["actblue_manage"],
+      "blockedActions": [
+        "actblue_dashboard_admin",
+        "actblue_contribution_mutation"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both pinned report operations run without Relay per-action approval; fixed origin, encrypted credentials, exact report IDs, audits, provider limits and blocked administration/contribution mutations still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["actblue_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "actblue_dashboard_admin",
+        "actblue_contribution_mutation"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts the two official CSV API actions with fixed-origin server-side Basic authentication and approval-aware bulk-export handling."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts the two official CSV API actions with fixed-origin server-side Basic authentication and approval-aware bulk-export handling."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Live acceptance requires an authorized ActBlue campaign or organization, dashboard-generated entity-scoped CSV API credentials, representative report data and approval to exercise a bulk political-contribution export in staging.",
+    "nextAction": "The authorized entity generates and stores a dedicated client UUID and secret through Relay Console, then validates the 404 credential probe, one approved bounded report, signed-URL expiry, cache/rate behavior, credential replacement/deletion, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://secure.actblue.com/docs/csv_api",
+      "checkedAt": "2026-07-18",
+      "supports": "ActBlue documents Basic authentication with an entity-scoped client UUID and secret, POST /api/v1/csvs, GET /api/v1/csvs/{id}, four supported report types, a ten-request-per-minute create limit and ten-minute signed download URLs."
+    },
+    {
+      "url": "https://secure.actblue.com/docs",
+      "checkedAt": "2026-07-18",
+      "supports": "ActBlue's official developer documentation distinguishes CSV reports as the reporting/compliance source of truth and webhooks as real-time contribution notifications; Relay mounts only the CSV API."
+    }
+  ]
+}

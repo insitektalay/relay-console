@@ -1,0 +1,207 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "confluence",
+  "name": "Confluence",
+  "category": "knowledge_documents",
+  "description": "Confluence is Atlassian's workspace for team documentation and shared knowledge. Teams create pages, databases, and whiteboards, organize them into spaces, collaborate through comments, and connect documentation to project work.",
+  "agentUseSummary": "Connect one Confluence Cloud site through Relay-owned Atlassian OAuth, then let agents read, maintain, or administer its authorized content under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.atlassian.com/software/confluence",
+    "docsUrl": "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/",
+    "developerConsoleUrl": "https://developer.atlassian.com/console/myapps/",
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "offline_access",
+      "read:confluence-content.all",
+      "read:confluence-space.summary",
+      "search:confluence",
+      "read:confluence-content.permission",
+      "read:confluence-user",
+      "read:confluence-groups",
+      "read:confluence-props",
+      "readonly:content.attachment:confluence",
+      "write:confluence-content",
+      "write:confluence-space",
+      "write:confluence-file",
+      "write:confluence-props",
+      "write:confluence-groups",
+      "manage:confluence-configuration",
+      "read:analytics.content:confluence",
+      "read:audit-log:confluence",
+      "write:audit-log:confluence",
+      "read:email-address:confluence",
+      "write:content.restriction:confluence",
+      "write:space.permission:confluence",
+      "delete:attachment:confluence",
+      "delete:blogpost:confluence",
+      "delete:comment:confluence",
+      "delete:content:confluence",
+      "delete:custom-content:confluence",
+      "delete:database:confluence",
+      "delete:embed:confluence",
+      "delete:folder:confluence",
+      "delete:page:confluence",
+      "delete:space:confluence",
+      "delete:whiteboard:confluence"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.atlassian.com/authorize",
+    "tokenUrl": "https://auth.atlassian.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/confluence/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "knowledge_read",
+      "label": "Read Confluence",
+      "description": "Read and search the selected site's spaces, content, users, and metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "knowledge_write",
+      "label": "Manage Confluence",
+      "description": "Create, update, upload, archive, and delete authorized site content.",
+      "defaultSelected": true
+    },
+    {
+      "id": "administration",
+      "label": "Administer Confluence",
+      "description": "Manage authorized configuration, permissions, groups, and audit resources.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "confluence_read",
+        "label": "Read Confluence",
+        "description": "Read and search content in the connected Confluence site."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "confluence_write",
+        "label": "Change Confluence",
+        "description": "Create, update, upload, archive, or delete content in the connected site."
+      },
+      {
+        "id": "confluence_admin",
+        "label": "Administer Confluence",
+        "description": "Use the selected account's authorized Confluence administration APIs."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "confluence_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth credentials never enter agent-visible requests or results."
+      },
+      {
+        "id": "confluence_other_site",
+        "label": "Access another Confluence site",
+        "description": "Every request remains pinned to the Confluence Cloud site selected during sign-in."
+      },
+      {
+        "id": "confluence_unsupported_api",
+        "label": "Call an unsupported API",
+        "description": "Relay permits only documented Confluence Cloud REST v2 and legacy v1 routes."
+      },
+      {
+        "id": "confluence_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds queries, uploads, request bodies, responses, redirects, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "confluence_safe",
+      "label": "Safe",
+      "description": "Reads run directly; every write, delete, upload, or administrative request requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["confluence_read"],
+      "approvalRequiredActions": ["confluence_write", "confluence_admin"],
+      "blockedActions": [
+        "confluence_secret_exposure",
+        "confluence_other_site",
+        "confluence_unsupported_api",
+        "confluence_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected, provider-authorized Confluence action runs without Relay per-action approval; site binding, ownership, selected capabilities, bounds, audits, secret non-exposure, and Atlassian authorization still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "confluence_read",
+        "confluence_write",
+        "confluence_admin"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "confluence_secret_exposure",
+        "confluence_other_site",
+        "confluence_unsupported_api",
+        "confluence_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts site-bound Confluence REST tools and attaches refreshed OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts site-bound Confluence REST tools and attaches refreshed OAuth tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Atlassian developer-console OAuth 2.0 integration and Railway Confluence client credentials are not configured yet.",
+    "nextAction": "Create or update the Relay Console Atlassian 3LO integration, add the manifest's Confluence scopes, enable resource-level grants and sharing, register https://api.relayconsole.work/api/v1/marketplace/oauth/confluence/callback, store CONFLUENCE_CLIENT_ID and CONFLUENCE_CLIENT_SECRET in Railway, deploy, and run live connect, read, Safe approval, Dangerous mutation, refresh, disconnect, and post-disconnect denial checks."
+  },
+  "evidence": [
+    {
+      "url": "https://www.atlassian.com/software/confluence",
+      "checkedAt": "2026-07-15",
+      "supports": "Atlassian presents Confluence as a shared knowledge workspace built around pages, spaces, databases, whiteboards, collaboration, and connected project work."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/confluence/oauth-2-3lo-apps/",
+      "checkedAt": "2026-07-15",
+      "supports": "Atlassian documents one distributable OAuth 2.0 app, exact callbacks, resource-level grants, accessible-resources site discovery, cloud-ID routing, sharing, and rotating offline refresh tokens."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/confluence/rest/v2/",
+      "checkedAt": "2026-07-15",
+      "supports": "Confluence Cloud REST v2 is the current API for attachments, pages, spaces, comments, databases, folders, whiteboards, permissions, and related resources, with cursor pagination."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/confluence/scopes-for-oauth-2-3LO-and-forge-apps/",
+      "checkedAt": "2026-07-15",
+      "supports": "Atlassian publishes Confluence OAuth scopes and recommends classic scopes where available while retaining Confluence user permissions."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/confluence/rate-limiting/",
+      "checkedAt": "2026-07-15",
+      "supports": "Atlassian documents Confluence Cloud rate limiting and retry behavior; Relay maps throttling to a provider-safe rate-limit error."
+    }
+  ]
+}

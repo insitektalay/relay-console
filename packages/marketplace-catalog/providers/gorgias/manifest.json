@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "gorgias",
+  "name": "Gorgias",
+  "category": "crm_support",
+  "description": "Gorgias is an ecommerce customer-service platform for tickets, shared inboxes, chat, social messaging, voice, automation, macros, routing, customer context, and support analytics.",
+  "agentUseSummary": "Enter one Gorgias account domain, dedicated user email, and customer-owned API key, then let selected agents use content-free ticket operations or approved documented API requests under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.gorgias.com/",
+    "docsUrl": "https://developers.gorgias.com/reference",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.gorgias.com/terms-of-use",
+    "privacyUrl": "https://www.gorgias.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "GORGIAS_DOMAIN",
+        "label": "Gorgias domain",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the account name before .gorgias.com."
+      },
+      {
+        "name": "GORGIAS_USERNAME",
+        "label": "Gorgias API username",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the email of a dedicated Gorgias user whose role grants only required operations."
+      },
+      {
+        "name": "GORGIAS_API_KEY",
+        "label": "Gorgias API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a revocable private-app access token for the dedicated user."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ticket_metadata_read",
+      "label": "Read ticket operations",
+      "description": "List and inspect bounded ticket operational metadata without subjects, summaries, customers, messages, source addresses, assignees, tags, satisfaction, custom fields, metadata, events, or raw records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Gorgias API",
+      "description": "Use documented tenant-bound API paths and methods allowed by the connected API key user's role.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "gorgias_ticket_list",
+        "label": "List ticket metadata",
+        "description": "List one fixed first page of content-free Gorgias ticket summaries."
+      },
+      {
+        "id": "gorgias_ticket_get",
+        "label": "Read ticket metadata",
+        "description": "Read one exact Gorgias ticket through Relay's content-free projection."
+      },
+      {
+        "id": "gorgias_full_api",
+        "label": "Use Gorgias API",
+        "description": "Use a documented Gorgias API operation authorized by the API key user's role; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "gorgias_safe",
+      "label": "Safe",
+      "description": "Content-free ticket reads and every broader API operation require approval; tenant binding, Basic-auth secret isolation, user roles, bounds, and limits remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "gorgias_ticket_list",
+        "gorgias_ticket_get",
+        "gorgias_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected role-authorized operations run without Relay per-action approval; tenant binding, Basic-auth secret isolation, bounds, audits, roles, and Gorgias limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "gorgias_ticket_list",
+        "gorgias_ticket_get",
+        "gorgias_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted username/API key only to the tenant-bound Gorgias API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted username/API key only to the tenant-bound Gorgias API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer Gorgias account domain plus dedicated user email and API key with appropriate role permissions are required for live acceptance.",
+    "nextAction": "Create a dedicated least-privilege Gorgias user and revocable private-app API key, enter the domain/email/key in Relay, and verify bounded reads, Safe approval, Dangerous broader operations, rate limits, role removal, key rotation, revocation, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.gorgias.com/docs/access-tokens-api-keys",
+      "checkedAt": "2026-07-18",
+      "supports": "Gorgias's official authentication documentation defines tenant-specific gorgias.com origins, HTTP Basic authentication using username plus API key, private-app access tokens, revocation, and user-role-derived permissions."
+    },
+    {
+      "url": "https://developers.gorgias.com/reference/list-tickets",
+      "checkedAt": "2026-07-18",
+      "supports": "Gorgias's official API reference defines the tenant-bound /api/tickets list endpoint, cursor pagination, deterministic ordering, filters, and a 1-100 limit."
+    },
+    {
+      "url": "https://developers.gorgias.com/reference/limitations",
+      "checkedAt": "2026-07-18",
+      "supports": "Gorgias documents API-key and OAuth rate limits, HTTP 429 behavior, Retry-After, and X-Gorgias-Account-Api-Call-Limit response headers."
+    }
+  ]
+}

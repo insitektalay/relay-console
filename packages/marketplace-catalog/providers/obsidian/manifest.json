@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "obsidian",
+  "name": "Obsidian",
+  "category": "knowledge_documents",
+  "description": "Obsidian is a private, local-first note-taking and knowledge-management app built around Markdown files. People use linked notes, properties, search, graph views, canvases, and plugins to develop a durable personal or team knowledge base.",
+  "agentUseSummary": "Bind one exact local vault and source host, then let selected agents search, read, create, or append bounded Markdown notes through Obsidian's official CLI under Safe or Dangerously skip permissions. Railway persists the connection and install policy, but note plaintext executes only on the bound device authority.",
+  "icon": {
+    "assetName": "marketplace-logo-obsidian.ico",
+    "sourceUrl": "https://obsidian.md/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://obsidian.md/",
+    "docsUrl": "https://obsidian.md/help/cli",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://obsidian.md/terms",
+    "privacyUrl": "https://obsidian.md/privacy"
+  },
+  "authentication": {
+    "model": "none",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["official_local_cli", "device_local_source_host", "exact_vault_binding"],
+    "credentialRequirements": [
+      {
+        "name": "OBSIDIAN_SOURCE_HOST_ID",
+        "label": "Source host",
+        "required": true,
+        "secret": false,
+        "helpText": "A connected Hermes or OpenClaw source host with Obsidian 1.12.7+ and the official CLI enabled."
+      },
+      {
+        "name": "OBSIDIAN_SOURCE_HOST_TYPE",
+        "label": "Source host type",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact hermes_bridge, openclaw_bridge, or runtime_host authority."
+      },
+      {
+        "name": "OBSIDIAN_VAULT",
+        "label": "Vault name or ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact local vault name or ID; Relay never receives its filesystem path."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "vault_read",
+      "label": "Read local vault",
+      "description": "Search up to twenty note paths and read one exact Markdown note with a 64 KiB response bound.",
+      "defaultSelected": true
+    },
+    {
+      "id": "vault_write",
+      "label": "Write local vault",
+      "description": "Create one non-overwriting Markdown note or append at most 16 KiB to one exact existing note.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "obsidian_search", "label": "Search notes", "description": "Search at most twenty matching note paths in the selected vault." },
+      { "id": "obsidian_read_note", "label": "Read note", "description": "Read one exact bounded Markdown note." },
+      { "id": "obsidian_create_note", "label": "Create note", "description": "Create one exact Markdown note without overwriting an existing file." },
+      { "id": "obsidian_append_note", "label": "Append to note", "description": "Append bounded Markdown to one exact existing note." }
+    ],
+    "blocked": [
+      { "id": "obsidian_raw_command", "label": "Run raw command", "description": "Raw CLI commands, command-palette IDs, eval, developer tools, plugin management, sync, publish, workspace control, deletes, moves, renames, and filesystem paths are outside Relay's V1 surface." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "obsidian_safe",
+      "label": "Safe",
+      "description": "Private note reads and every mutation require approval. Exact source-host and vault binding, path validation, content and output bounds, and audits always apply.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["obsidian_search", "obsidian_read_note", "obsidian_create_note", "obsidian_append_note"],
+      "blockedActions": ["obsidian_raw_command"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected Obsidian actions run without Relay per-action approval; exact source-host and vault binding, path validation, content and output bounds, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["obsidian_search", "obsidian_read_note", "obsidian_create_note", "obsidian_append_note"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["obsidian_raw_command"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway registers bounded tools and forwards execution only to the exact connected OpenClaw source host; note plaintext remains device-local."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway registers bounded tools and forwards execution only to the exact connected Hermes source host; note plaintext remains device-local."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer installs Obsidian 1.12.7 or later, enables Command line interface in Settings > General, connects a source host, and selects one exact vault."
+  },
+  "evidence": [
+    {
+      "url": "https://obsidian.md/help/cli",
+      "checkedAt": "2026-07-17",
+      "supports": "Obsidian's official CLI requires the 1.12 installer and an enabled CLI, targets an exact vault by name or ID, and documents bounded search, exact-path read, non-overwriting create, and append commands."
+    },
+    {
+      "url": "https://docs.obsidian.md/Plugins/Vault",
+      "checkedAt": "2026-07-17",
+      "supports": "Obsidian documents a vault as a folder hierarchy and distinguishes safe cached reads from modification APIs, supporting Relay's exact vault and note-path boundary."
+    }
+  ]
+}

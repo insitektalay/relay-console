@@ -1,0 +1,209 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "onenote",
+  "name": "OneNote",
+  "category": "knowledge_documents",
+  "description": "OneNote is Microsoft's digital notebook product for capturing and organizing notes. People use it to arrange notebooks and sections, keep pages for ideas and reference, and access notes across devices.",
+  "agentUseSummary": "Connect OneNote through Relay-owned Microsoft OAuth for personal or work accounts, then let agents inspect bounded notebook, section, and page metadata through four fixed Graph wrappers. Relay excludes page HTML and previews, resources, media, OCR, shared, group, and site notebooks, search, class and staff notebooks, writes, copy, permissions, webhooks, application access, exports, pagination, beta APIs, and raw Graph access.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-365/onenote/digital-note-taking-app",
+    "docsUrl": "https://learn.microsoft.com/graph/integrate-with-onenote",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["https://graph.microsoft.com/Notes.Read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "microsoft_delegated_personal_or_work_user",
+      "signed_in_user_onenote_authority",
+      "encrypted_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/onenote/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "notebook_structure",
+      "label": "Read notebook structure",
+      "description": "Review bounded notebook and section metadata for the signed-in Microsoft account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "page_metadata",
+      "label": "Read page metadata",
+      "description": "Review bounded page titles, order, and timestamps without page content.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "onenote_notebooks_list",
+        "label": "List notebooks",
+        "description": "List at most twenty-five bounded notebook metadata records for the signed-in Microsoft account."
+      },
+      {
+        "id": "onenote_notebook_sections_list",
+        "label": "List notebook sections",
+        "description": "List at most twenty-five sections from one explicit prior-result notebook."
+      },
+      {
+        "id": "onenote_section_pages_list",
+        "label": "List section pages",
+        "description": "List at most twenty-five page metadata records from one explicit prior-result section."
+      },
+      {
+        "id": "onenote_page_get",
+        "label": "Read page metadata",
+        "description": "Read bounded metadata for one explicit prior-result page without fetching its content."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "onenote_page_content_preview",
+        "label": "Read page content or previews",
+        "description": "Page HTML, content URLs, previews, body text, tags, and embedded data are outside V1."
+      },
+      {
+        "id": "onenote_resources_media_ocr",
+        "label": "Read resources, media, or OCR",
+        "description": "Images, files, audio, video, OCR, and other content-derived data are outside V1."
+      },
+      {
+        "id": "onenote_shared_group_site",
+        "label": "Access shared or organizational notebooks",
+        "description": "Other-user, shared, group, SharePoint site, and tenant notebook access is outside V1."
+      },
+      {
+        "id": "onenote_search_class_staff",
+        "label": "Search or access special notebooks",
+        "description": "Search, class notebooks, staff notebooks, and education APIs are outside V1."
+      },
+      {
+        "id": "onenote_mutations_copy",
+        "label": "Change OneNote resources",
+        "description": "Create, update, delete, copy, move, share, and append operations are outside V1."
+      },
+      {
+        "id": "onenote_permissions_webhooks",
+        "label": "Administer OneNote",
+        "description": "Permissions, subscriptions, webhooks, operations, and sharing administration are outside V1."
+      },
+      {
+        "id": "onenote_application_raw_pagination",
+        "label": "Use broad or raw access",
+        "description": "Application permissions, Notes.Read.All, beta or raw endpoints, OData customization, exports, retries, polling, and automatic pagination are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "onenote_safe",
+      "label": "Safe",
+      "description": "Four bounded delegated metadata reads run automatically; page content, media, shared or special notebooks, writes, administration, application access, pagination, beta, and raw Graph remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "onenote_notebooks_list",
+        "onenote_notebook_sections_list",
+        "onenote_section_pages_list",
+        "onenote_page_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "onenote_page_content_preview",
+        "onenote_resources_media_ocr",
+        "onenote_shared_group_site",
+        "onenote_search_class_staff",
+        "onenote_mutations_copy",
+        "onenote_permissions_webhooks",
+        "onenote_application_raw_pagination"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four metadata reads run without Relay per-action approval; exact scope, signed-in-user authority, limits, audit, exclusions, and Microsoft controls still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "onenote_notebooks_list",
+        "onenote_notebook_sections_list",
+        "onenote_section_pages_list",
+        "onenote_page_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "onenote_page_content_preview",
+        "onenote_resources_media_ocr",
+        "onenote_shared_group_site",
+        "onenote_search_class_staff",
+        "onenote_mutations_copy",
+        "onenote_permissions_webhooks",
+        "onenote_application_raw_pagination"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded OneNote metadata wrappers and attaches encrypted Microsoft tokens only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded OneNote metadata wrappers and attaches encrypted Microsoft tokens only on Railway."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_setup_pending",
+    "blocker": "Relay still needs its Entra application registration for personal and organizational accounts, delegated Notes.Read configuration, exact Railway callback, staging credentials, personal and work test accounts, and Microsoft acceptance. Those provider-console and live-consent actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the Relay-owned Entra application and exact callback, store its credentials on Railway staging, then verify personal- and work-account consent, exact scope, PKCE/state, refresh rotation, signed-in-user binding, all four metadata reads, content and identity exclusions, throttling, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/graph/auth-v2-user",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph delegated authorization uses the v2 authorization-code flow, supports PKCE, and uses refresh tokens for long-lived delegated access."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/permissions-reference#notesread",
+      "checkedAt": "2026-07-17",
+      "supports": "Delegated Notes.Read permits reading the signed-in user's notebooks and is available to personal and organizational Microsoft accounts."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/onenote-list-notebooks",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides the signed-in-user notebooks collection under delegated Notes.Read."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/onenote-list-sections",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides notebook-section metadata reads under delegated Notes.Read."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/onenote-list-pages",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides section-page metadata reads under delegated Notes.Read."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/page-get",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph separates page metadata from the page content endpoint, allowing Relay to retain metadata while excluding HTML content."
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "hive",
+  "name": "Hive",
+  "category": "work_management",
+  "description": "Hive is a work-management platform for planning projects, assigning tasks, collaborating, and tracking delivery in one shared workspace. Teams use it for project views, action cards, goals, dashboards, approvals, time tracking, resourcing, forms, and automated workflows.",
+  "agentUseSummary": "Add your Hive API key and user ID once, then select which agents can read or manage your authorized Hive work under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://hive.com/",
+    "docsUrl": "https://developers.hive.com/reference",
+    "developerConsoleUrl": "https://app.hive.com/",
+    "termsUrl": "https://hive.com/policy-documents/terms-of-service",
+    "privacyUrl": "https://hive.com/policy-documents/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "HIVE_API_KEY",
+        "label": "Hive API key",
+        "required": true,
+        "secret": true,
+        "helpText": "In Hive, open My profile > API info and generate an API key. Relay encrypts it and only sends it to Hive's fixed API origin."
+      },
+      {
+        "name": "HIVE_USER_ID",
+        "label": "Hive user ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Copy the user ID displayed beside your API key in Hive's API info tab."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workspace_read",
+      "label": "Read projects and work",
+      "description": "Read the connected user's workspaces, projects, actions, comments, attachments, groups, users, labels, custom fields, workflows, dashboards, sprints, resources, and other documented Hive data.",
+      "defaultSelected": true
+    },
+    {
+      "id": "workspace_manage",
+      "label": "Manage projects and work",
+      "description": "Create, update, and delete resources through every JSON operation supported by Hive's documented REST API and the connected user's authority.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "hive_api_read",
+        "label": "Read Hive",
+        "description": "Run one bounded GET request against Hive's documented REST API."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "hive_api_write",
+        "label": "Manage Hive",
+        "description": "Run one bounded POST, PUT, PATCH, or DELETE request; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "hive_credential_exposure",
+        "label": "Expose credentials",
+        "description": "The API key and user ID never enter agent-visible requests or results."
+      },
+      {
+        "id": "hive_unofficial_origin",
+        "label": "Use another origin",
+        "description": "Every request is pinned to Hive's official HTTPS API origin."
+      },
+      {
+        "id": "hive_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds request paths, query values, JSON bodies, redirects, results, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "hive_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly. Every write or administrative operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["hive_api_read"],
+      "approvalRequiredActions": ["hive_api_write"],
+      "blockedActions": ["hive_credential_exposure", "hive_unofficial_origin", "hive_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected key-authorized Hive read, write, or administrative operation runs without Relay per-action approval. Connection ownership, provider permissions, fixed origin, request bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["hive_api_read", "hive_api_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["hive_credential_exposure", "hive_unofficial_origin", "hive_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded read and write tools and attaches the encrypted credentials only at Hive's fixed API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded read and write tools and attaches the encrypted credentials only at Hive's fixed API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A Hive user must generate the customer-owned API key and copy their user ID. Hive's current public API documentation does not provide a distributable Relay-owned OAuth application registration flow.",
+    "nextAction": "In Hive, open My profile > API info, generate a dedicated key, save the key and user ID in Relay Console, then run credential health, read, Safe write approval, Dangerous write, disconnect, and post-disconnect denial checks."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.hive.com/reference/api-keys-and-auth",
+      "checkedAt": "2026-07-15",
+      "supports": "Hive documents user-generated API keys under My profile > API info, a user_id query parameter, the api_key request header, and the testcredentials validation endpoint."
+    },
+    {
+      "url": "https://developers.hive.com/reference",
+      "checkedAt": "2026-07-15",
+      "supports": "Hive publishes current REST v1 and v2 read and mutation endpoints for workspaces, projects, actions, comments, attachments, users, groups, labels, custom fields, workflows, dashboards, sprints, resources, and related workspace data."
+    },
+    {
+      "url": "https://help.hive.com/en/articles/5407965-getting-started-with-the-hive-api",
+      "checkedAt": "2026-07-15",
+      "supports": "Hive's help center, updated April 7, 2026, directs users to the current API reference and to Edit Profile > API Info for their own credentials."
+    },
+    {
+      "url": "https://hive.com/features",
+      "checkedAt": "2026-07-15",
+      "supports": "Hive describes projects, tasks, multiple project views, dashboards, goals, collaboration, proofing, approvals, time tracking, resourcing, and workflows as core product capabilities."
+    }
+  ]
+}

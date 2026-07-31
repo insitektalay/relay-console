@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-vault",
+  "name": "Google Vault",
+  "category": "knowledge_documents",
+  "description": "Google Vault is Google Workspace's information governance and eDiscovery service for retaining, holding, searching, and exporting supported organizational data. Legal and compliance teams organize investigations in matters that contain holds, saved searches, exports, sharing, and audit activity.",
+  "agentUseSummary": "Connect one licensed Google Workspace Vault administrator through Relay-owned OAuth with the read-only eDiscovery scope. Agents can list visible matters and read one bounded matter overview containing redacted hold, export-status, and saved-query metadata; identities, query terms, evidence content, downloads, search execution, result counts, writes, retention administration, raw APIs, and automatic pagination remain blocked.",
+  "provider": {
+    "websiteUrl": "https://workspace.google.com/products/vault/",
+    "docsUrl": "https://developers.google.com/workspace/vault/reference/rest",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials",
+    "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "openid",
+      "email",
+      "https://www.googleapis.com/auth/ediscovery.readonly"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token",
+    "revocationUrl": "https://oauth2.googleapis.com/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "exact_google_workspace_account_binding",
+      "vault_licensed_admin",
+      "vault_privilege_and_matter_access",
+      "expiring_access_token",
+      "offline_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-vault/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ediscovery_metadata_read",
+      "label": "Read eDiscovery metadata",
+      "description": "List visible matters and read bounded matter, hold, export-status, and saved-query metadata without evidence content or identities.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "google_vault_matters_list",
+        "label": "List Google Vault matters",
+        "description": "List at most twenty-five matters visible to the connected Vault administrator without following pagination."
+      },
+      {
+        "id": "google_vault_matter_overview_get",
+        "label": "Get Google Vault matter overview",
+        "description": "Read one matter plus bounded hold, export, and saved-query metadata while excluding identities, query terms, evidence content, and download URLs."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "google_vault_identity_or_evidence_content",
+        "label": "Access identities or evidence content",
+        "description": "Held-account identities, collaborators, query terms, message and file contents, export archives, storage URLs, audit logs, and raw provider payloads remain blocked."
+      },
+      {
+        "id": "google_vault_search_count_or_export",
+        "label": "Search, count, create, or download exports",
+        "description": "Search execution, result counting, saved-query execution, export creation, export download, export deletion, and operation polling remain blocked."
+      },
+      {
+        "id": "google_vault_matter_hold_or_query_mutation",
+        "label": "Change matters, holds, or saved queries",
+        "description": "Matter creation, sharing, updates, closing, reopening, deletion, hold changes, held-account changes, saved-query changes, and retention administration remain blocked."
+      },
+      {
+        "id": "google_vault_raw_api_pagination_or_bypass",
+        "label": "Use raw APIs, pagination, or bypass",
+        "description": "Arbitrary endpoints, hosts, headers, request bodies, page tokens, automatic pagination, retries, browser sessions, domain-wide delegation, and undocumented APIs remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "google_vault_safe",
+      "label": "Safe",
+      "description": "Bounded eDiscovery metadata reads require approval; identities, evidence content, queries, downloads, writes, retention, raw APIs, and administration remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "google_vault_matters_list",
+        "google_vault_matter_overview_get"
+      ],
+      "blockedActions": [
+        "google_vault_identity_or_evidence_content",
+        "google_vault_search_count_or_export",
+        "google_vault_matter_hold_or_query_mutation",
+        "google_vault_raw_api_pagination_or_bypass"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same two bounded read-only tools run directly; Google account and Vault privilege binding, the read-only scope, redaction, response caps, audits, and provider limits remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "google_vault_matters_list",
+        "google_vault_matter_overview_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_vault_identity_or_evidence_content",
+        "google_vault_search_count_or_export",
+        "google_vault_matter_hold_or_query_mutation",
+        "google_vault_raw_api_pagination_or_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives two fixed Google Vault wrappers for approved matter listing and redacted matter overviews."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same two fixed Google Vault wrappers."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay must enable the Google Vault API, configure the confidential web OAuth client and exact Railway callback, publish verified relayconsole.work consent details, complete Google's verification for the eDiscovery read-only scope, configure staging credentials, and authorize a licensed Workspace administrator with the required Vault privileges and matter access.",
+    "nextAction": "In the provider-console task, configure the canonical callback and exact scopes, complete Google's brand, restricted-scope verification and any required security review, configure Railway staging credentials, then verify admin identity binding, Vault privilege and matter access, both tools, Safe and Dangerous policy, refresh, revocation, disconnect, quota/error mapping, redaction, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/workspace/vault/reference/rest",
+      "checkedAt": "2026-07-18",
+      "supports": "Google documents the Vault API at vault.googleapis.com with matters, exports, holds, held accounts, saved queries, and operations; access also requires Vault privileges and matter access."
+    },
+    {
+      "url": "https://developers.google.com/workspace/vault/auth",
+      "checkedAt": "2026-07-18",
+      "supports": "Google documents OAuth 2.0 and the narrowly scoped https://www.googleapis.com/auth/ediscovery.readonly permission for viewing eDiscovery data, plus verification requirements for public apps that access user data."
+    },
+    {
+      "url": "https://support.google.com/vault/answer/2799699",
+      "checkedAt": "2026-07-18",
+      "supports": "Google documents Vault licensing, administrator roles, matter access, View All Matters, and separate privileges for matters, holds, searches, exports, audits, and retention."
+    },
+    {
+      "url": "https://workspace.google.com/products/vault/",
+      "checkedAt": "2026-07-18",
+      "supports": "Google describes Vault as an information governance and eDiscovery product for retaining, searching, and exporting supported Google Workspace data."
+    }
+  ],
+  "securityNotes": [
+    "Relay uses only the eDiscovery read-only scope with confidential authorization code, PKCE, offline refresh, encrypted token storage, provider revocation, exact callback handling, and exact Google Workspace account binding.",
+    "V1 exposes only first-page matters.list plus fixed matter get, holds.list, exports.list, and savedQueries.list calls; result counts are capped at 25 per resource, responses at 1 MB, requests at 20 seconds, and redirects are rejected.",
+    "Outputs exclude permissions, collaborators, held-account identities, query objects and terms, evidence content, export requester identities, export files and storage locations, download URLs, audit logs, operations, and raw provider payloads.",
+    "Searches, result counts, exports, downloads, matters, holds, held accounts, saved queries, retention rules, permissions, raw APIs, page tokens, automatic pagination, retries, browser sessions, domain-wide delegation, and undocumented endpoints remain blocked.",
+    "Google API enablement, restricted-scope verification and any required security review, Railway credential configuration, licensed Vault administrator authorization, exact Vault privileges, matter access, and live acceptance remain external setup steps."
+  ]
+}

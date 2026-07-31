@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-keep",
+  "name": "Google Keep",
+  "category": "knowledge_documents",
+  "description": "Google Keep is Google's notes and lists product; its enterprise API can create, list, get, delete, download attachments from, and change permissions on Workspace users' notes.",
+  "agentUseSummary": "Google Keep cannot yet be connected through Relay. The Keep API is explicitly an enterprise-administration surface and requires a Google Workspace administrator to grant domain-wide delegation to Relay's OAuth client or service account. Relay exposes no note read, creation, deletion, attachment, or sharing authority until an organization administrator approves least-privilege scopes and representative acceptance passes.",
+  "provider": {
+    "websiteUrl": "https://keep.google.com/",
+    "docsUrl": "https://developers.google.com/workspace/keep/api/guides",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/library/keep.googleapis.com",
+    "termsUrl": "https://developers.google.com/terms",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://www.googleapis.com/auth/keep.readonly",
+      "https://www.googleapis.com/auth/keep"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token",
+    "revocationUrl": "https://oauth2.googleapis.com/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_google_cloud_project",
+      "enterprise_google_workspace_only",
+      "oauth_client_domain_wide_delegation",
+      "workspace_super_admin_scope_approval",
+      "authenticated_user_impersonation_boundary",
+      "separate_readonly_and_full_keep_scopes",
+      "no_consumer_keep_contract"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-keep/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "notes_read",
+      "label": "Read Keep notes",
+      "description": "After administrator and provider acceptance, list and retrieve text or list notes, timestamps, trash state, attachments, and permissions for only the authenticated Workspace user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "notes_create",
+      "label": "Create Keep notes",
+      "description": "After acceptance, create bounded text or checklist notes with explicit confirmation and documented field limits.",
+      "defaultSelected": false
+    },
+    {
+      "id": "notes_permissions_manage",
+      "label": "Manage note permissions",
+      "description": "After acceptance, add or remove writer permissions on a selected note with explicit recipient and confirmation controls.",
+      "defaultSelected": false
+    },
+    {
+      "id": "notes_delete",
+      "label": "Delete Keep notes",
+      "description": "After destructive-action acceptance, permanently delete a specifically identified note under explicit confirmation.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "google_keep_connect_before_admin_approval",
+        "label": "Connect before Workspace approval",
+        "description": "Relay has no administrator-approved domain-wide delegation, production OAuth client acceptance, or representative Workspace authorization evidence."
+      },
+      {
+        "id": "google_keep_reads_before_acceptance",
+        "label": "Read Keep notes",
+        "description": "Notes, lists, attachments, permissions, identities, timestamps, deleted state, and tokens remain unavailable before administrator approval and acceptance."
+      },
+      {
+        "id": "google_keep_create_before_acceptance",
+        "label": "Create Keep notes",
+        "description": "Creating text notes or checklists and assigning content or initial permissions remains unavailable."
+      },
+      {
+        "id": "google_keep_permissions_and_delete",
+        "label": "Change permissions or delete notes",
+        "description": "Sharing with users or groups, removing writers, and deleting notes are blocked before full-scope approval and explicit per-action confirmation."
+      },
+      {
+        "id": "google_keep_domain_or_raw_bypass",
+        "label": "Bypass user or domain boundaries",
+        "description": "Service-account domain impersonation, cross-user scans, CASB-style bulk access, arbitrary endpoints, raw attachment exposure, scraping, and UI or credential automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "google_keep_provider_review",
+      "label": "Provider and Workspace review pending",
+      "description": "No Keep action is enabled until Google and a representative Workspace administrator accept Relay's exact OAuth client, scopes and authenticated-user boundary and the complete note, permission, attachment, delete and revocation contract passes acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_keep_connect_before_admin_approval",
+        "google_keep_reads_before_acceptance",
+        "google_keep_create_before_acceptance",
+        "google_keep_permissions_and_delete",
+        "google_keep_domain_or_raw_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded Keep tools after provider and Workspace administrator approval; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded Keep tools after provider and Workspace administrator approval; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Google describes the Keep API as an enterprise surface for administrators and CASB applications, not a general consumer Keep API. Authorization requires domain-wide delegation with either a service account that can impersonate any user or an OAuth client ID whose scopes are approved by the Workspace administrator and whose API access is limited to the authenticated user. The readonly scope views all Keep data; the full scope can view, create, permanently delete and change all Keep data. The REST surface supports create, get, list and delete notes, attachment downloads, and batch permission changes, but not general body updates. This worker cannot create or configure the Cloud project or OAuth client, request domain-wide delegation, capture credentials, use a representative Workspace, or run administrator or user authorization.",
+    "nextAction": "Use the OAuth-client domain-wide-delegation path rather than a service account so the API remains bound to the authenticated user. The exclusive provider-console and acceptance task should enable Keep API in Relay's Google project, register https://api.relayconsole.work/api/v1/marketplace/oauth/google-keep/callback, obtain Google production verification as required, and have a representative Workspace super administrator authorize only keep.readonly first. Full keep scope must be a later explicit upgrade for create, permission and permanent-delete features. Acceptance must verify consumer-account denial, administrator approval and revocation, authenticated-user isolation, partial scope behavior, pagination and concurrent-change aborts, field and nesting limits, attachment MIME and size handling, permission recipient confirmation, permanent-delete confirmation, token refresh and revocation, disconnect, and cross-user denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/workspace/keep/api/guides",
+      "checkedAt": "2026-07-17",
+      "supports": "Google defines Keep API as an enterprise-administration surface and requires domain-wide delegation through a service account or OAuth client ID; the OAuth-client option requires administrator scope approval and is limited to the authenticated user's data."
+    },
+    {
+      "url": "https://developers.google.com/workspace/keep/api/reference/rest",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents the supported Keep REST surface as note create, get, list and delete, attachment download, and batch permission create or delete."
+    },
+    {
+      "url": "https://developers.google.com/workspace/keep/api/reference/rest/v1/notes",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents note text and list schemas, attachments, permissions, trash state and strict title, text, item-count and nesting limits."
+    },
+    {
+      "url": "https://developers.google.com/workspace/keep/api/reference/rest/v1/notes/list",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents readonly and full scopes, opaque pagination, time and trash filters, and consistency or ABORTED behavior under concurrent changes."
+    },
+    {
+      "url": "https://developers.google.com/identity/protocols/oauth2/scopes",
+      "checkedAt": "2026-07-17",
+      "supports": "Google defines keep.readonly as viewing all Keep data and keep as seeing, editing, creating and permanently deleting all Keep data."
+    }
+  ]
+}

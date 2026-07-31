@@ -1,0 +1,178 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "slack-enterprise-grid",
+  "name": "Slack Enterprise Grid",
+  "category": "communication",
+  "description": "Slack Enterprise Grid provides organization-wide governance across many Slack workspaces. Organization owners and admins use its Admin APIs to inventory workspaces and manage enterprise policy.",
+  "agentUseSummary": "Connect a customer-owned org-installed Slack admin token, then choose which agents may validate the organization and inspect bounded workspace, admin-ID, and owner-ID metadata.",
+  "provider": {
+    "websiteUrl": "https://slack.com/enterprise-grid",
+    "docsUrl": "https://docs.slack.dev/enterprise/organization-ready-apps",
+    "developerConsoleUrl": "https://api.slack.com/apps",
+    "termsUrl": "https://slack.com/terms-of-service",
+    "privacyUrl": "https://slack.com/trust/privacy/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["admin.teams:read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_org_ready_slack_app",
+      "enterprise_org_installed_user_token",
+      "read_only_admin_teams_scope"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SLACK_ENTERPRISE_ADMIN_TOKEN",
+        "label": "Slack Enterprise organization admin token",
+        "required": true,
+        "secret": true,
+        "helpText": "An Enterprise org owner or admin obtains this user token by installing the customer's own org-ready Slack app with admin.teams:read. Railway stores it encrypted and sends it only to slack.com/api."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "organization_read",
+      "label": "Read Enterprise organization metadata",
+      "description": "Validate one organization token and inspect bounded workspace, admin-ID, and owner-ID metadata.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "slack_enterprise_identity_read",
+        "label": "Validate Enterprise authorization",
+        "description": "Validate the customer-owned organization token and return its bounded Slack identity metadata."
+      },
+      {
+        "id": "slack_enterprise_workspaces_list",
+        "label": "List organization workspaces",
+        "description": "List one bounded page of workspaces in the authorized Enterprise organization without owner contact data."
+      },
+      {
+        "id": "slack_enterprise_workspace_admins_list",
+        "label": "List workspace admins",
+        "description": "List bounded admin IDs for one explicit workspace."
+      },
+      {
+        "id": "slack_enterprise_workspace_owners_list",
+        "label": "List workspace owners",
+        "description": "List bounded owner IDs for one explicit workspace."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "slack_enterprise_mutations",
+        "label": "Organization mutations",
+        "description": "App approvals, user lifecycle, workspace creation and settings, channel administration, roles, and IDP changes are not exposed."
+      },
+      {
+        "id": "slack_enterprise_sensitive_exports",
+        "label": "Sensitive exports",
+        "description": "Audit Logs, Discovery APIs, message content, emails, profiles, files, access logs, and bulk exports are not exposed."
+      },
+      {
+        "id": "slack_enterprise_raw_api",
+        "label": "Raw Slack APIs",
+        "description": "Arbitrary Slack methods, caller-selected origins, raw tokens, and unbounded pagination are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "slack_enterprise_safe",
+      "label": "Safe",
+      "description": "Only bounded organization identity, workspace, admin-ID, and owner-ID reads are mounted.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "slack_enterprise_identity_read",
+        "slack_enterprise_workspaces_list",
+        "slack_enterprise_workspace_admins_list",
+        "slack_enterprise_workspace_owners_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "slack_enterprise_mutations",
+        "slack_enterprise_sensitive_exports",
+        "slack_enterprise_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same selected read-only operations run directly; encrypted token storage, fixed methods, response shaping, request bounds, audits, Slack scopes, organization grants, and rate limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "slack_enterprise_identity_read",
+        "slack_enterprise_workspaces_list",
+        "slack_enterprise_workspace_admins_list",
+        "slack_enterprise_workspace_owners_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "slack_enterprise_mutations",
+        "slack_enterprise_sensitive_exports",
+        "slack_enterprise_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts four typed read-only Slack Enterprise tools and attaches the encrypted organization token server-side without exposing it to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts four typed read-only Slack Enterprise tools and attaches the encrypted organization token server-side without exposing it to the agent."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A Slack Enterprise org owner or admin must create the customer's own org-ready app, grant only admin.teams:read, activate the distribution state Slack requires for Admin API installation, install it on the entire organization, and enter the resulting user token in Relay.",
+    "nextAction": "Create and org-install a least-privilege customer-owned Slack app without granting app, user, channel, audit, discovery, or write scopes. Connect the resulting token, verify the exact enterprise ID and selected workspaces, test bounded reads and denial of blocked methods, then rotate or revoke it through the customer's Slack app lifecycle."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.slack.dev/reference/methods/admin.teams.list/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents admin.teams.list for listing Enterprise organization workspaces with the admin.teams:read user-token scope, organization-level installation, and bounded cursor pagination."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/methods/admin.teams.admins.list/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents a scoped method for listing administrator IDs for one explicit Enterprise workspace."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/methods/admin.teams.owners.list/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents a scoped method for listing owner IDs for one explicit Enterprise workspace."
+    },
+    {
+      "url": "https://docs.slack.dev/enterprise/organization-ready-apps",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents organization-ready app installation, one organization-wide token, workspace grants, and organization-admin control over app distribution."
+    },
+    {
+      "url": "https://docs.slack.dev/enterprise/developing-for-enterprise-orgs/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents org-ready app configuration, org installation review, is_enterprise_install identity, and organization-level OAuth behavior."
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "lucky-orange",
+  "name": "Lucky Orange",
+  "category": "developer",
+  "description": "Lucky Orange is a digital experience analytics platform for session recordings, dynamic heatmaps, visitor profiles, surveys, chat, funnels, and conversion analysis. Teams use it to understand how people interact with websites and diagnose friction in customer journeys.",
+  "agentUseSummary": "Lucky Orange cannot currently be connected as a Relay agent provider because its public developer documentation covers browser and server instrumentation that writes events and visitor identity data using a site ID, not a customer-authenticated account read or management API. Relay will not expose a public ingestion identifier as agent authority, poison customer analytics, attach identity metadata, automate the dashboard, or infer private endpoints.",
+  "provider": {
+    "websiteUrl": "https://www.luckyorange.com/",
+    "docsUrl": "https://developers.luckyorange.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.luckyorange.com/legal/terms-of-service",
+    "privacyUrl": "https://www.luckyorange.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "public_site_id_instrumentation_only",
+      "browser_and_server_event_ingestion",
+      "customer_configured_zapier_integration_only",
+      "no_supported_delegated_account_api"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "lucky_orange_connect_account",
+        "label": "Connect a Lucky Orange account",
+        "description": "Lucky Orange does not publish a supported OAuth, account API token, remote MCP, or other delegated account contract for Relay to implement."
+      },
+      {
+        "id": "lucky_orange_account_analytics",
+        "label": "Access Lucky Orange analytics",
+        "description": "Relay cannot truthfully list or change sites, visitors, sessions, recordings, heatmaps, funnels, events, surveys, chat, announcements, users, settings, or reports without a supported authenticated account API."
+      },
+      {
+        "id": "lucky_orange_instrumentation_as_agent_api",
+        "label": "Use instrumentation as agent authority",
+        "description": "The public site-ID browser and server libraries write events and identify visitors; they are not least-privilege customer authentication and must not be used to let agents inject events, identities, or arbitrary metadata."
+      },
+      {
+        "id": "lucky_orange_unsupported_automation",
+        "label": "Use unsupported automation",
+        "description": "Relay will not automate the Lucky Orange dashboard, reuse browser sessions, scrape customer analytics, reverse-engineer private endpoints, or relabel customer-configured Zapier workflows as a native account API."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "lucky_orange_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled without a supported customer-authenticated Lucky Orange account API or distributable provider integration contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "lucky_orange_connect_account",
+        "lucky_orange_account_analytics",
+        "lucky_orange_instrumentation_as_agent_api",
+        "lucky_orange_unsupported_automation"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No customer-authenticated Lucky Orange account operation is available to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No customer-authenticated Lucky Orange account operation is available to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Lucky Orange's public browser and Node.js developer libraries initialize with a site ID and only ingest events or visitor identity metadata. The documented Zapier integration is customer-configured and exposes event triggers plus Create Event and Identify Visitor workflows, but no Relay-distributable account authentication, stable read schemas, or least-privilege management contract. Publishing those write-only surfaces as a native agent connector would permit analytics poisoning and privacy-sensitive identity attachment without a trustworthy account authority boundary.",
+    "nextAction": "Do not request a site ID as a credential, expose Connect, publish a runtime card, write tracking events, identify visitors, or use private dashboard endpoints. Reconsider Lucky Orange only if the provider publishes a supported customer-authenticated account API, remote MCP service, or written distributable integration contract with stable operation schemas, least-privilege authorization, revocation, and privacy controls."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.luckyorange.com/libraries/node",
+      "checkedAt": "2026-07-17",
+      "supports": "Lucky Orange's official server library initializes only with a unique site ID and documents two ingestion operations: track events with arbitrary metadata and identify visitors with a user ID and properties. It does not document customer account authentication, reads, management actions, scopes, revocation, or response schemas."
+    },
+    {
+      "url": "https://developers.luckyorange.com/libraries/browser",
+      "checkedAt": "2026-07-17",
+      "supports": "Lucky Orange's official browser library uses a public site ID in an HTML script and creates sessions and visitor profiles. Its on-page API tracks events and can associate names, email addresses, phone numbers, IDs, and arbitrary profile data with visitors; this is instrumentation, not a safe delegated account API."
+    },
+    {
+      "url": "https://www.luckyorange.com/integrations/zapier",
+      "checkedAt": "2026-07-17",
+      "supports": "Lucky Orange describes a customer-configured Zapier integration where behavioral events trigger workflows and two actions create events or identify visitors. This does not publish a native authenticated account read surface or stable Relay-callable management contract."
+    },
+    {
+      "url": "https://developers.luckyorange.com/libraries/browser/privacy-tools",
+      "checkedAt": "2026-07-17",
+      "supports": "Lucky Orange documents that loading its browser library creates visitor profiles and sessions by default, that consent can start session recording, and that visitor-data privacy and opt-out controls are required. Relay therefore will not repurpose instrumentation for autonomous identity or recording workflows."
+    },
+    {
+      "url": "https://www.luckyorange.com/legal/terms-of-service",
+      "checkedAt": "2026-07-17",
+      "supports": "Lucky Orange's terms grant limited access through the documented service, prohibit reverse engineering, harvesting, bots, unauthorized systems, and improper data changes, and place consent and privacy responsibility on the customer. Relay will not scrape the dashboard, infer private protocols, or inject identity data through a fabricated connector."
+    }
+  ]
+}

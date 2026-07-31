@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "dotdigital",
+  "name": "Dotdigital",
+  "category": "communication",
+  "description": "Dotdigital provides email, SMS, WhatsApp, automation, contact, campaign, transactional messaging, and customer-data APIs.",
+  "agentUseSummary": "Connect a dedicated customer-owned API user. Relay discovers and allowlists the account region, then pins four operations: bounded address-book inventory and exact-address-book reads run directly, while one exact contact read and one subscription-state update require approval. The update requires contact authorization and subscription additionally requires double-opt-in evidence.",
+  "provider": {
+    "websiteUrl": "https://dotdigital.com/",
+    "docsUrl": "https://developer.dotdigital.com/",
+    "developerConsoleUrl": "https://login.dotdigital.com/",
+    "termsUrl": "https://dotdigital.com/terms/",
+    "privacyUrl": "https://dotdigital.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_username",
+      "customer_owned_api_password",
+      "basic_authentication",
+      "account_discovered_regional_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "DOTDIGITAL_API_USERNAME",
+        "label": "Dotdigital API username",
+        "required": true,
+        "secret": false,
+        "helpText": "Use a dedicated customer-owned API user with least-privilege address-book and contact access."
+      },
+      {
+        "name": "DOTDIGITAL_API_PASSWORD",
+        "label": "Dotdigital API password",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay uses this only for Basic authentication to the fixed discovery and allowlisted regional API origins."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read address books",
+      "description": "Use bounded address-book inventory and exact-address-book reads.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read contact",
+      "description": "Use one exact email-contact lookup with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage one contact",
+      "description": "Use one contact subscription-state update with approval and consent enforcement.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "dotdigital_structural_read",
+        "label": "Read Dotdigital address books",
+        "description": "Read a bounded address-book inventory or one exact address book."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "dotdigital_sensitive_read",
+        "label": "Read Dotdigital contact",
+        "description": "Read one exact email contact."
+      },
+      {
+        "id": "dotdigital_manage",
+        "label": "Manage Dotdigital contact",
+        "description": "Update one authorized contact's email subscription state."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "dotdigital_secret_exposure",
+        "label": "Expose credentials",
+        "description": "API credentials, Basic authorization, and credential-bearing fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "dotdigital_bulk_transfer",
+        "label": "Run bulk transfers",
+        "description": "Contact collections, imports, exports, bulk deletes, suppression downloads, and unbounded address-book traversal are excluded."
+      },
+      {
+        "id": "dotdigital_send_admin",
+        "label": "Send or administer campaigns",
+        "description": "Campaign sends, programs, transactional email, SMS, WhatsApp, Insight data, preferences, address-book mutations, and contact deletes remain provider-side."
+      },
+      {
+        "id": "dotdigital_unbounded_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only four pinned v2/v3 routes run after fixed regional discovery; arbitrary origins, paths, queries, fields, headers, resubscribe overrides, and oversized results are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "dotdigital_safe",
+      "label": "Safe",
+      "description": "Bounded address-book reads run directly; exact contact reads and one-contact writes require approval, writes require contact authorization, and subscription additionally requires double-opt-in evidence.",
+      "defaultSelected": true,
+      "allowedActions": ["dotdigital_structural_read"],
+      "approvalRequiredActions": [
+        "dotdigital_sensitive_read",
+        "dotdigital_manage"
+      ],
+      "blockedActions": [
+        "dotdigital_secret_exposure",
+        "dotdigital_bulk_transfer",
+        "dotdigital_send_admin",
+        "dotdigital_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected operations run without Relay per-action approval; authorization/double-opt-in attestations, fixed regional routing, bounds, audits, and bulk/send/admin blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "dotdigital_structural_read",
+        "dotdigital_sensitive_read",
+        "dotdigital_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "dotdigital_secret_exposure",
+        "dotdigital_bulk_transfer",
+        "dotdigital_send_admin",
+        "dotdigital_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway discovers and allowlists the account region, then mounts four pinned Dotdigital v2/v3 operations without exposing Basic credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway discovers and allowlists the account region, then mounts four pinned Dotdigital v2/v3 operations without exposing Basic credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Dotdigital requires a customer-owned least-privilege API user, password, address books, contacts, and permission-based contact acquisition. No console, API user, credentials, address book, contact, consent, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create a dedicated staging API user outside this worker with only address-book and contact access, configure credentials in Railway staging, and verify regional discovery, address-book/contact reads, approval and contact/double-opt-in denial/allow, subscribe/unsubscribe behavior without resubscribe override, response bounds, credential rotation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://marketing.developer.dotdigital.com/docs/api-end-points",
+      "checkedAt": "2026-07-17",
+      "supports": "Dotdigital documents the r1/r2/r3 regional APIs, account-info endpoint discovery, TLS requirements, and current Contacts API guidance."
+    },
+    {
+      "url": "https://marketing.developer.dotdigital.com/reference/get-account-information",
+      "checkedAt": "2026-07-17",
+      "supports": "Dotdigital documents Basic authentication and the fixed v2 account-info route that returns the account API endpoint."
+    },
+    {
+      "url": "https://developer.dotdigital.com/openapi",
+      "checkedAt": "2026-07-17",
+      "supports": "Dotdigital publishes the current Contacts v3 OpenAPI contract covering exact identifier reads and one-contact PATCH updates, channel status, and opt-in types."
+    },
+    {
+      "url": "https://developer.dotdigital.com/reference/get-address-book",
+      "checkedAt": "2026-07-17",
+      "supports": "Dotdigital documents the v2 address-book inventory and exact-address-book routes used for bounded structural reads."
+    }
+  ]
+}

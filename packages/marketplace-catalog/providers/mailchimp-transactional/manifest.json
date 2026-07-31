@@ -1,0 +1,222 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mailchimp-transactional",
+  "name": "Mailchimp Transactional",
+  "category": "communication",
+  "description": "Mailchimp Transactional is an email-delivery product, formerly known as Mandrill, for application-generated and event-driven messages. Teams use it to send direct or template email and review sending domains, reputation, delivery activity, and aggregate performance.",
+  "agentUseSummary": "Connect a customer-owned Transactional API key and exact sender boundary, then let agents inspect bounded account and sender state, send approval-gated email, or use the broader documented JSON API under Safe or Dangerous policy. Relay fixes the provider origin, injects and redacts the key server-side, bounds requests and responses, and blocks sender-bypass sends, SMS, raw MIME relay, exports, and credential-bearing input.",
+  "provider": {
+    "websiteUrl": "https://mailchimp.com/features/transactional-email/",
+    "docsUrl": "https://mailchimp.com/developer/transactional/api/",
+    "developerConsoleUrl": "https://mandrillapp.com/settings/",
+    "termsUrl": "https://mailchimp.com/legal/terms/",
+    "privacyUrl": "https://www.intuit.com/privacy/statement/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "user_owned_api_key",
+      "provider_endpoint_restrictions",
+      "exact_sender_boundary"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MAILCHIMP_TRANSACTIONAL_API_KEY",
+        "label": "Mailchimp Transactional API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a customer-owned key and restrict its endpoint and IP permissions as narrowly as practical."
+      },
+      {
+        "name": "MAILCHIMP_TRANSACTIONAL_SENDER_BOUNDARY",
+        "label": "Sender boundary",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter one exact verified sender email or authenticated sending domain."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account",
+      "label": "Account",
+      "description": "Read bounded account, quota, reputation, and aggregate sending metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sender_domains",
+      "label": "Sender domains",
+      "description": "Read bounded sender-domain authentication state.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sender_stats",
+      "label": "Sender statistics",
+      "description": "Read bounded sender identities and aggregate delivery statistics.",
+      "defaultSelected": true
+    },
+    {
+      "id": "send",
+      "label": "Send email",
+      "description": "Send direct, Transactional-template, or Mailchimp-template email from the configured sender boundary.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Transactional API",
+      "description": "Use other documented JSON API methods within the customer key's provider permissions and Relay's fixed safety boundaries.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "mailchimp_transactional_account_get",
+        "label": "Read account",
+        "description": "Read bounded account, reputation, quota, and aggregate sending metadata with secrets redacted."
+      },
+      {
+        "id": "mailchimp_transactional_sender_domains_list",
+        "label": "List sender domains",
+        "description": "List bounded sender-domain authentication state with verification secrets redacted."
+      },
+      {
+        "id": "mailchimp_transactional_senders_list",
+        "label": "List senders",
+        "description": "List bounded sender identities and aggregate delivery statistics."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "mailchimp_transactional_send",
+        "label": "Send transactional email",
+        "description": "Sending direct or template email requires approval in Safe mode."
+      },
+      {
+        "id": "mailchimp_transactional_full_api",
+        "label": "Use Transactional API",
+        "description": "Every other supported Transactional API operation requires approval in Safe mode."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "mailchimp_transactional_sms",
+        "label": "Send SMS",
+        "description": "Transactional SMS sending is outside this email connector boundary."
+      },
+      {
+        "id": "mailchimp_transactional_raw_or_export",
+        "label": "Relay raw MIME or export data",
+        "description": "Raw MIME relay and export jobs are blocked to prevent unbounded or credential-bearing transfer."
+      },
+      {
+        "id": "mailchimp_transactional_secret_input",
+        "label": "Supply credentials in tool input",
+        "description": "API keys and other credential-bearing fields are always rejected."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "mailchimp_transactional_safe",
+      "label": "Safe",
+      "description": "Bounded account and sender reads run directly; sends and all other supported API methods require approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "mailchimp_transactional_account_get",
+        "mailchimp_transactional_sender_domains_list",
+        "mailchimp_transactional_senders_list"
+      ],
+      "approvalRequiredActions": [
+        "mailchimp_transactional_send",
+        "mailchimp_transactional_full_api"
+      ],
+      "blockedActions": [
+        "mailchimp_transactional_sms",
+        "mailchimp_transactional_raw_or_export",
+        "mailchimp_transactional_secret_input"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected supported email/API action runs without Relay per-action approval; key authority, sender binding, fixed origin, transfer bounds, secret isolation, audit, and blocked SMS/raw/export routes remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "mailchimp_transactional_account_get",
+        "mailchimp_transactional_sender_domains_list",
+        "mailchimp_transactional_senders_list",
+        "mailchimp_transactional_send",
+        "mailchimp_transactional_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mailchimp_transactional_sms",
+        "mailchimp_transactional_raw_or_export",
+        "mailchimp_transactional_secret_input"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts sender-bound Mailchimp Transactional tools and injects the encrypted customer key server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts sender-bound Mailchimp Transactional tools and injects the encrypted customer key server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer creates a restricted Transactional API key, authenticates a sending domain, and enters the key plus exact sender boundary in Relay Console."
+  },
+  "evidence": [
+    {
+      "url": "https://mailchimp.com/developer/transactional/docs/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official fundamentals fix all API calls to mandrillapp.com/api/1.0, require POST JSON, and authenticate by a key field in every request body."
+    },
+    {
+      "url": "https://mailchimp.com/developer/transactional/guides/quick-start/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official quick start says Transactional uses customer-created API keys with full account access, so Relay stores the key encrypted and asks customers to restrict it."
+    },
+    {
+      "url": "https://mailchimp.com/developer/transactional/api/messages/send-new-message/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official message endpoint documents direct transactional email, recipient status results, asynchronous delivery behavior, IP pools, and scheduling up to one year."
+    },
+    {
+      "url": "https://mailchimp.com/developer/transactional/api/messages/send-using-message-template/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official template endpoint uses immutable template slugs and the same message and delivery controls as direct sending."
+    },
+    {
+      "url": "https://mailchimp.com/developer/transactional/api/users/get-user-info/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official account endpoint returns user, quota, reputation, and historical sending statistics and can include key material that Relay must redact."
+    },
+    {
+      "url": "https://mailchimp.com/developer/transactional/api/senders/list-sender-domains/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official sender-domain endpoint returns DKIM, SPF, DMARC, verification, and signing state for the account's domains."
+    }
+  ]
+}

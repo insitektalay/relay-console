@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "totango",
+  "name": "Totango",
+  "category": "developer",
+  "description": "Totango is a customer-success platform for customer data, health scoring, lifecycle orchestration, engagement, risk management, retention, and growth. Customer-success teams use it to coordinate customer outcomes.",
+  "agentUseSummary": "Connect one exact Totango US or EU environment with a customer-owned app token, then let agents list only bounded, strictly projected flow metadata under approval. Relay excludes activity counts, icons, customer and user data, events, touchpoints, tasks, objectives, writes, search, bulk, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.totango.com/",
+    "docsUrl": "https://support.totango.com/hc/en-us/articles/115000597266-Touchpoints-API",
+    "developerConsoleUrl": "https://support.totango.com/hc/en-us/articles/204174145-API-authentication",
+    "termsUrl": "https://www.totango.com/terms-of-service",
+    "privacyUrl": "https://www.totango.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "customer_owned_app_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_app_token",
+      "exact_region_scope",
+      "fixed_us_eu_origin_binding",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "TOTANGO_APP_TOKEN",
+        "label": "Totango app token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated app token and store it only through Relay's encrypted connection flow."
+      },
+      {
+        "name": "TOTANGO_REGION",
+        "label": "Totango region",
+        "required": true,
+        "secret": false,
+        "helpText": "Use us or eu to bind the fixed Totango API origin."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "flow_inventory",
+      "label": "List flows",
+      "description": "List at most 30 flow identifiers, names, and low-risk system/default/disabled flags without usage counts or customer data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "totango_flows_list",
+        "label": "List flows",
+        "description": "List bounded projected flow metadata from one exact Totango region."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "totango_customer_user_data",
+        "label": "Access customer or user data",
+        "description": "Accounts, users, attributes, health, lifecycle, assignments, usage, and customer record values are blocked."
+      },
+      {
+        "id": "totango_events_engagement_data",
+        "label": "Access engagement data",
+        "description": "Events, touchpoints, tasks, objectives, campaigns, notes, content, participants, authors, and activity counts are blocked."
+      },
+      {
+        "id": "totango_mutation_admin",
+        "label": "Mutate or administer Totango",
+        "description": "Creates, updates, deletes, uploads, triggers, user management, SCIM, configuration, and administration are blocked."
+      },
+      {
+        "id": "totango_raw_search_bulk",
+        "label": "Use raw, search, or bulk access",
+        "description": "Raw paths, arbitrary origins, search APIs, pagination, exports, bulk jobs, retries, and response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "totango_flow_inventory_safe",
+      "label": "Safe",
+      "description": "The bounded flow-metadata read requires approval; customer, engagement, mutation, search, bulk, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["totango_flows_list"],
+      "blockedActions": [
+        "totango_customer_user_data",
+        "totango_events_engagement_data",
+        "totango_mutation_admin",
+        "totango_raw_search_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded flow-metadata read runs without Relay per-action approval; fixed region/path binding, strict projection, response cap, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["totango_flows_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "totango_customer_user_data",
+        "totango_events_engagement_data",
+        "totango_mutation_admin",
+        "totango_raw_search_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned app token to one exact Totango US or EU origin and a projected flow-metadata wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned app token to one exact Totango US or EU origin and a projected flow-metadata wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Totango global admin must create a dedicated API token, identify the US or EU service region, and store both through Relay. No account or token creation, credential capture, live API request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized Totango global admin creates the token, stores it with the matching region through Relay, then verifies health, one approved flow list, throttling, token rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.totango.com/hc/en-us/articles/115000597266-Touchpoints-API",
+      "checkedAt": "2026-07-17",
+      "supports": "Totango documents GET /api/v3/activity-types/ with an app-token header, fixed US and EU API origins, and a flow map containing IDs, display names, activity counts, icons, and status flags. Relay projects only IDs, names, and status flags."
+    },
+    {
+      "url": "https://support.totango.com/hc/en-us/articles/23797766837652-Tasks-API",
+      "checkedAt": "2026-07-17",
+      "supports": "Totango documents global-admin API tokens, US/EU origins, a 100-call-per-minute token limit, and the activity-types endpoint for flow IDs. Relay makes one request with no retries."
+    },
+    {
+      "url": "https://support.totango.com/hc/en-us/articles/204174135-Search-API",
+      "checkedAt": "2026-07-17",
+      "supports": "Totango documents broad account and user search capabilities. Relay blocks search, customer records, users, values, pagination, and bulk access."
+    }
+  ]
+}

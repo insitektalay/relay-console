@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoom-events",
+  "name": "Zoom Events",
+  "category": "communication",
+  "description": "Zoom Events is a virtual and hybrid event platform for conferences, sessions, hubs, tickets, registration, exhibitors, engagement, reporting, and video on demand.",
+  "agentUseSummary": "Connect a customer-owned Server-to-Server OAuth app with one granular list scope, then inspect a bounded content-free page of event lifecycle metadata.",
+  "provider": {
+    "websiteUrl": "https://www.zoom.com/en/products/event-platform/",
+    "docsUrl": "https://developers.zoom.us/docs/api/events/",
+    "developerConsoleUrl": "https://marketplace.zoom.us/develop/create",
+    "termsUrl": "https://explore.zoom.us/en/terms/",
+    "privacyUrl": "https://explore.zoom.us/en/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["zoom_events:read:list_events:admin"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://zoom.us/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_server_to_server_oauth",
+      "content_free_event_lifecycle"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ZOOM_EVENTS_ACCOUNT_ID",
+        "label": "Zoom account ID",
+        "required": true,
+        "secret": false
+      },
+      {
+        "name": "ZOOM_EVENTS_CLIENT_ID",
+        "label": "Zoom Server-to-Server OAuth client ID",
+        "required": true,
+        "secret": false
+      },
+      {
+        "name": "ZOOM_EVENTS_CLIENT_SECRET",
+        "label": "Zoom Server-to-Server OAuth client secret",
+        "required": true,
+        "secret": true
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "lifecycle_read",
+      "label": "Read event lifecycle",
+      "description": "Inspect bounded content-free Zoom Events type, status, and schedule metadata.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "zoom_events_lifecycle_list",
+        "label": "List event lifecycle",
+        "description": "List one bounded page of content-free Zoom Events lifecycle metadata."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "zoom_events_identity_content",
+        "label": "Identity and content",
+        "description": "Event names, descriptions, taglines, IDs, hub IDs, URLs, contacts, physical locations, countries, categories, tags, calendars, recurrence detail, and raw records are not returned."
+      },
+      {
+        "id": "zoom_events_people_access",
+        "label": "People and access",
+        "description": "Registrants, attendees, co-editors, speakers, exhibitors, sponsors, tickets, access links, authentication policy, invitations, email, and attendee actions are not exposed."
+      },
+      {
+        "id": "zoom_events_sessions_reports_media",
+        "label": "Sessions, reports, and media",
+        "description": "Session content, reservations, surveys, attendance, engagement, chat transcripts, custom reports, VOD, recordings, files, livestreams, and analytics are not exposed."
+      },
+      {
+        "id": "zoom_events_mutation_raw",
+        "label": "Changes and raw API",
+        "description": "Event/session/ticket/access/exhibitor/VOD changes, uploads, actions, and arbitrary paths, filters, cursors, origins, headers, bodies, or tokens are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zoom_events_safe",
+      "label": "Safe",
+      "description": "Every account-associated Zoom Events lifecycle read requires matching Relay approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["zoom_events_lifecycle_list"],
+      "blockedActions": [
+        "zoom_events_identity_content",
+        "zoom_events_people_access",
+        "zoom_events_sessions_reports_media",
+        "zoom_events_mutation_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected lifecycle reads run without Relay per-action approval while fixed origins, endpoint, bound, redaction, audit, scope, licensing, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["zoom_events_lifecycle_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zoom_events_identity_content",
+        "zoom_events_people_access",
+        "zoom_events_sessions_reports_media",
+        "zoom_events_mutation_raw"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware content-free Zoom Events lifecycle tool and obtains short-lived account tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware content-free Zoom Events lifecycle tool and obtains short-lived account tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer administrator must activate a Server-to-Server OAuth app with only zoom_events:read:list_events:admin, provide encrypted credentials, and have a Webinars Plus or Events license.",
+    "nextAction": "Configure the dedicated customer app and Railway credentials, verify licensing and scope, exercise Safe denial/approval and Dangerous reads, verify renewal/revocation, deploy through the integration lane, and run live acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.zoom.us/docs/api/events/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom documents GET /v2/zoom_events/events, the Webinars Plus or Events license prerequisite, event lifecycle fields, and private identity/content/access fields that Relay excludes."
+    },
+    {
+      "url": "https://developers.zoom.us/docs/integrations/oauth-scopes-granular/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom maps List events to zoom_events:read:list_events:admin and separates sessions, attendees, access links, tickets, reports, VOD, exhibitors, files, and mutation scopes."
+    },
+    {
+      "url": "https://developers.zoom.us/changelog/webinars-plus-events/june-22-2026/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom enhanced the list-events endpoint in June 2026; Relay consumes only a fixed allowlist of stable lifecycle fields."
+    }
+  ]
+}

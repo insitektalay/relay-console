@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "resource-guru",
+  "name": "Resource Guru",
+  "category": "work_management",
+  "description": "Resource Guru is resource scheduling and capacity-planning software for teams that need to coordinate people, equipment, and shared spaces. Organizations use it to manage bookings, availability, leave, projects, clients, utilization, billable time, timesheets, workload, and resource-planning reports.",
+  "agentUseSummary": "Connect Resource Guru once, then choose which agents can read or manage the connected organization's resource planning under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://resourceguruapp.com/",
+    "docsUrl": "https://resourceguruapp.com/docs/api",
+    "developerConsoleUrl": "https://app.resourceguruapp.com/developers",
+    "termsUrl": "https://resourceguruapp.com/terms",
+    "privacyUrl": "https://resourceguruapp.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.resourceguruapp.com/oauth/authorize",
+    "tokenUrl": "https://api.resourceguruapp.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["oauth_connector"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/resource-guru/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "resource_guru_read",
+      "label": "Read resource planning",
+      "description": "Use all 60 pinned official read operations for accounts, schedules, bookings, resources, projects, clients, time off, timesheets, reports, and settings."
+    },
+    {
+      "id": "resource_guru_manage",
+      "label": "Manage resource planning",
+      "description": "Use all 52 pinned official mutations for bookings, people and resources, projects, clients, leave, timesheets, webhooks, and account configuration."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "resource_guru_read",
+        "label": "Read Resource Guru",
+        "description": "Run one exact selected Resource Guru GET operation from the pinned official API contract."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "resource_guru_manage",
+        "label": "Manage Resource Guru",
+        "description": "Run one exact selected Resource Guru mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "resource_guru_safe",
+      "label": "Safe",
+      "description": "All 60 bounded reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["resource_guru_read"],
+      "approvalRequiredActions": ["resource_guru_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 112 selected and provider-authorized operations run without Relay per-action approval; connection ownership, exact routes, bounds, audits, redaction, provider limits, and account authority still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["resource_guru_read", "resource_guru_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected pinned Resource Guru operations through the authenticated server-side connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected pinned Resource Guru operations through the authenticated server-side connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Resource Guru OAuth application, exact production callback, Railway client credentials, and a representative connected account are not configured.",
+    "nextAction": "Create a Resource Guru ID, register Relay Console as a confidential OAuth application at app.resourceguruapp.com/developers, register https://api.relayconsole.work/api/v1/marketplace/oauth/resource-guru/callback exactly, store RESOURCE_GURU_CLIENT_ID and RESOURCE_GURU_CLIENT_SECRET on Railway, deploy, then verify authorization, identity and account binding, seven-day access-token renewal with refresh-token rotation, bounded reads, Safe approval, Dangerous mutations, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://resourceguruapp.com/docs/api",
+      "checkedAt": "2026-07-15",
+      "supports": "Resource Guru publishes an OpenAPI 3.0.3 REST contract with 112 operations across accounts, bookings, clients, projects, resources, time off, timesheets, webhooks, reports, and settings; Relay pins the complete documented operation set."
+    },
+    {
+      "url": "https://resourceguruapp.com/docs/api#section/Authentication/OAuth-2.0",
+      "checkedAt": "2026-07-15",
+      "supports": "Resource Guru documents OAuth 2.0 authorization-code applications, exact HTTPS redirect URIs, confidential client secrets or public-client PKCE, seven-day access tokens, rotating refresh tokens, and the connected-user /v1/me endpoint."
+    },
+    {
+      "url": "https://app.resourceguruapp.com/developers",
+      "checkedAt": "2026-07-15",
+      "supports": "Resource Guru provides a signed-in developer center for registering OAuth applications; Relay still needs its own application ID, secret, callback registration, and representative test authorization."
+    },
+    {
+      "url": "https://resourceguruapp.com/integrations",
+      "checkedAt": "2026-07-15",
+      "supports": "Resource Guru states that API and webhook integrations are available on all plans without an integration surcharge, while ordinary Resource Guru account ownership and provider limits still apply."
+    }
+  ]
+}

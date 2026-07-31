@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "opsgenie-cloud",
+  "name": "Opsgenie Cloud",
+  "category": "work_management",
+  "description": "Opsgenie is Atlassian's legacy alerting and on-call platform for consolidating operational alerts and notifying responders.",
+  "agentUseSummary": "Connect an existing read-enabled Opsgenie API key and region, then let agents list bounded alert summaries or inspect one exact alert without mutations or account configuration.",
+  "provider": {
+    "websiteUrl": "https://www.atlassian.com/software/opsgenie",
+    "docsUrl": "https://docs.opsgenie.com/docs/api-overview",
+    "developerConsoleUrl": "https://app.opsgenie.com/",
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "customer_api_key",
+    "relayOwned": false,
+    "scopes": ["read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "OPSGENIE_API_KEY",
+        "label": "Opsgenie API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a read-enabled account API key from an existing Opsgenie account."
+      },
+      {
+        "name": "OPSGENIE_REGION",
+        "label": "Opsgenie region",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter US or EU so Relay uses only the matching official Opsgenie origin."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "alerts_read",
+      "label": "Read alerts",
+      "description": "List bounded alert summaries and inspect one exact alert without mutations or configuration access.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "opsgenie_cloud_list_alerts",
+        "label": "List alerts",
+        "description": "List at most 25 bounded alert summaries for one exact US or EU Opsgenie account."
+      },
+      {
+        "id": "opsgenie_cloud_get_alert",
+        "label": "Read one alert",
+        "description": "Read a bounded summary for one exact Opsgenie alert ID."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "opsgenie_cloud_mutate_alerts",
+        "label": "Change alerts",
+        "description": "Creating, acknowledging, closing, deleting, or otherwise changing alerts is unavailable in this read-only legacy connector."
+      },
+      {
+        "id": "opsgenie_cloud_manage_configuration",
+        "label": "Manage Opsgenie",
+        "description": "Users, teams, schedules, integrations, policies, services, and account configuration are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "opsgenie_cloud_read_only",
+      "label": "Read only",
+      "description": "Bounded alert reads run directly; every mutation and configuration action remains blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "opsgenie_cloud_list_alerts",
+        "opsgenie_cloud_get_alert"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "opsgenie_cloud_mutate_alerts",
+        "opsgenie_cloud_manage_configuration"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts two read-only alert wrappers and keeps the API key server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts two read-only alert wrappers and keeps the API key server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": "Opsgenie is closed to new sales and reaches end of support on 5 April 2027; this connector is only for existing customers while the API remains supported.",
+    "nextAction": "An existing customer enters a read-enabled account API key and its US or EU region. New customers should use Jira Service Management or Compass instead."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.opsgenie.com/docs/api-overview",
+      "checkedAt": "2026-07-18",
+      "supports": "Opsgenie documents its still-operational REST API, separate US and EU origins, and the migration notice for end of support."
+    },
+    {
+      "url": "https://docs.opsgenie.com/docs/alert-api",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Alert API documents GenieKey authorization, List Alerts, Get Alert, result bounds, filters, and alert lifecycle operations."
+    },
+    {
+      "url": "https://support.atlassian.com/opsgenie/docs/api-key-management/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents read-enabled account API keys and explicitly permits Get Alert and List Alerts while distinguishing mutation-restricted account keys from integration keys."
+    },
+    {
+      "url": "https://support.atlassian.com/jira-service-management-cloud/docs/merge-opsgenie-with-jira-service-management/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian states that new Opsgenie sales ended 4 June 2025 and support ends 5 April 2027, with migration to Jira Service Management or Compass."
+    }
+  ]
+}

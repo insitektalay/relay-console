@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "substack",
+  "name": "Substack",
+  "category": "content_creative",
+  "description": "Substack is a publishing platform for writers, podcasters, video creators, and communities to distribute subscription-supported work through email, the web, and its apps.",
+  "agentUseSummary": "Connect a customer-owned, access-approved Substack Developer API token, then let agents perform the API's single documented public creator-profile lookup by exact LinkedIn handle.",
+  "provider": {
+    "websiteUrl": "https://substack.com/",
+    "docsUrl": "https://support.substack.com/hc/en-us/articles/45099095296916-Substack-Developer-API",
+    "developerConsoleUrl": "https://substack.com/settings",
+    "termsUrl": "https://substack.com/tos",
+    "privacyUrl": "https://substack.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_developer_api_token",
+      "terms_and_access_approval_required",
+      "fixed_substack_origin",
+      "local_disconnect_only",
+      "undocumented_token_transport_live_acceptance_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SUBSTACK_API_TOKEN",
+        "label": "Substack Developer API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a token only after Substack approves the account for its Developer API. The current public guide does not document the token header, so provider-console acceptance must confirm the Bearer convention before release."
+      },
+      {
+        "name": "SUBSTACK_VALIDATION_LINKEDIN_HANDLE",
+        "label": "Validation LinkedIn handle",
+        "required": true,
+        "secret": false,
+        "helpText": "A public LinkedIn profile handle used for the bounded connection check."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "public_creator_discovery",
+      "label": "Search public creator profiles",
+      "description": "Look up public, authenticity-thresholded Substack creator profiles by exact LinkedIn handle.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "substack_profile_search_linkedin",
+        "label": "Search public creator profiles",
+        "description": "Retrieve public Substack creator-profile summaries for one exact LinkedIn handle using Substack's only documented Developer API endpoint."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "substack_safe",
+      "label": "Safe",
+      "description": "The single public, read-only, exact-handle creator lookup runs directly; publication operations, private profiles, subscribers, posts, Notes, Chat, payments, writes, scraping, and raw access remain unavailable because Substack does not document them in its Developer API.",
+      "defaultSelected": true,
+      "allowedActions": ["substack_profile_search_linkedin"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same single public lookup runs directly; token secrecy, fixed origin, exact-handle validation, response bounds, conservative throttling, and audits remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["substack_profile_search_linkedin"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "medium",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the exact-handle public-profile lookup and injects the encrypted customer token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the exact-handle public-profile lookup and injects the encrypted customer token server-side."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Substack requires Developer API Terms acceptance, access approval that may take 7-10 business days, and a customer-generated token; its current public guide does not document token transport.",
+    "nextAction": "Using the separate provider-console task, accept the Developer API Terms, obtain access approval and a disposable customer token, confirm the documented-at-runtime authentication header with Substack Support, then test exact-handle lookup, empty/multiple matches, bounds, throttling, token invalidation, disconnect, and post-disconnect denial before release."
+  },
+  "evidence": [
+    {
+      "url": "https://support.substack.com/hc/en-us/articles/45099095296916-Substack-Developer-API",
+      "checkedAt": "2026-07-17",
+      "supports": "Substack documents account and Terms requirements, a 7-10-business-day access review, customer token generation, one GET profile/search/linkedin/{handle} endpoint, its public response fields, authenticity thresholds, empty/multiple matches, at-least-daily freshness, and unspecified rate limits. The published curl example omits token transport."
+    }
+  ],
+  "securityNotes": [
+    "Relay exposes only Substack's one documented public, read-only exact-LinkedIn-handle lookup; it does not use undocumented private APIs, browser sessions, RSS scraping, or publisher operations.",
+    "The customer token is encrypted and server-side only. Relay's provisional Bearer transport must remain blocked from production until provider-console acceptance confirms it because the public guide does not name the token header.",
+    "Requests use only https://substack.com, reject redirects, validate the path segment, cap responses at 1 MB and ten matches, and conservatively allow one request per second while Substack publishes no numeric rate limit.",
+    "Results are public and may be self-reported, missing, multiple, authenticity-filtered, and at least one day stale; Relay preserves those caveats and never claims a guaranteed identity match.",
+    "Disconnect deletes Relay's encrypted token reference; Substack documents no token expiry, rotation, or remote revocation lifecycle in the current guide."
+  ]
+}

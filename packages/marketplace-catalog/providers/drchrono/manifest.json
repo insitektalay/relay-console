@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "drchrono",
+  "name": "DrChrono",
+  "category": "work_management",
+  "description": "DrChrono is an electronic health record, practice-management and medical-billing platform with scheduling, patient, clinical, laboratory, messaging and financial workflows.",
+  "agentUseSummary": "DrChrono publishes an OAuth REST API, but Relay cannot distribute one customer-facing connection until DrChrono approves a public partner application. Self-created applications default to private mode and can connect only inside their home account or practice group; public mode for outside customers is reserved for business partners.",
+  "provider": {
+    "websiteUrl": "https://www.drchrono.com/",
+    "docsUrl": "https://app.drchrono.com/api-docs/",
+    "developerConsoleUrl": "https://app.drchrono.com/api-management/",
+    "termsUrl": "https://app.drchrono.com/api-terms/",
+    "privacyUrl": "https://www.drchrono.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "provider_partnership_required",
+      "public_application_approval_required",
+      "healthcare_security_and_distribution_review_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "drchrono_read",
+      "label": "Read authorized practice and healthcare data",
+      "description": "After provider approval, read only the patient, scheduling, clinical, billing, laboratory, messaging, task and configuration resources explicitly authorized for Relay's public application.",
+      "defaultSelected": true
+    },
+    {
+      "id": "drchrono_manage",
+      "label": "Manage authorized healthcare workflows",
+      "description": "After provider approval, perform only the mutations and webhook workflows explicitly authorized for Relay under approval-aware healthcare controls.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "drchrono_connect_before_approval",
+        "label": "Connect before DrChrono approval",
+        "description": "Relay has no DrChrono-approved public partner application for connections outside one private home practice."
+      },
+      {
+        "id": "drchrono_use_private_app_for_customers",
+        "label": "Use a private app for customer connections",
+        "description": "A private DrChrono application is limited to users in its home account or practice group and cannot serve as Relay's multi-customer integration."
+      },
+      {
+        "id": "drchrono_collect_user_credentials",
+        "label": "Collect DrChrono user credentials",
+        "description": "Relay never collects DrChrono usernames or passwords and does not substitute browser automation for the provider-approved OAuth flow."
+      },
+      {
+        "id": "drchrono_api_actions_before_review",
+        "label": "Run DrChrono API actions",
+        "description": "No patient, clinical, scheduling, billing, laboratory, messaging, task or administrative operation runs before DrChrono approves the production application and exact operation set."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "drchrono_provider_review",
+      "label": "Provider review pending",
+      "description": "All actions remain unavailable until DrChrono approves Relay's public partner application, production distribution, healthcare security controls and exact operation contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "drchrono_connect_before_approval",
+        "drchrono_use_private_app_for_customers",
+        "drchrono_collect_user_credentials",
+        "drchrono_api_actions_before_review"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No DrChrono tools are callable in OpenClaw until DrChrono approves Relay's public application and bounded production operation contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No DrChrono tools are callable in Hermes until DrChrono approves Relay's public application and bounded production operation contract."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "DrChrono documents an OAuth REST API and lets a practice create an application from Account > API, but new applications are private and may connect only to users in the same account or practice group. Public mode, which permits connections to outside DrChrono customers, is reserved for business partners. The API covers protected health information and financial workflows, applies user permissions and granular OAuth scopes, defaults to 500 calls per hour, and gives some operations additional provider-controlled permissions. Relay has no approved public partner application, marketplace/distribution agreement, production client, BAA/security review, exact permitted endpoint inventory, rate-limit allocation, webhook contract or revocation test environment.",
+    "nextAction": "Ask DrChrono to approve Relay as a public integration partner and confirm the production application, marketplace/distribution terms, BAA and security obligations, exact scopes and user permissions, endpoint and webhook inventory, rate limits, sandbox data, refresh and revocation lifecycle, and any endpoint-level vendor permissions. Then implement Railway-held OAuth credentials, generate the bounded operation registry from the approved current API, expose exact client semantics, and validate reads, Safe denial, approved or Dangerous mutations, redaction, rate limits, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://support.drchrono.com/home/private-vs-public-api-application",
+      "checkedAt": "2026-07-18",
+      "supports": "DrChrono states that API applications default to private mode, private apps can connect only inside their home account or practice group, and public mode for connections to outside users is reserved for business partners."
+    },
+    {
+      "url": "https://support.drchrono.com/home/creating-an-api-application",
+      "checkedAt": "2026-07-18",
+      "supports": "Creating an application requires a signed-in DrChrono account, Settings staff permission, an application name and redirect URI, confirming that a local practice app is account-bound rather than Relay's distributable production identity."
+    },
+    {
+      "url": "https://support.drchrono.com/home/getting-started-with-our-apis-via-postman",
+      "checkedAt": "2026-07-18",
+      "supports": "DrChrono documents OAuth authorization and token endpoints, granular read/write scopes, bearer access and refresh tokens, and the current-user API request."
+    },
+    {
+      "url": "https://app.drchrono.com/api-docs/",
+      "checkedAt": "2026-07-18",
+      "supports": "The current API reference spans administrative, patient, calendar, clinical, billing and related resources, applies OAuth and practice permissions, and documents a default application rate limit of 500 calls per hour."
+    },
+    {
+      "url": "https://www.drchrono.com/partners/",
+      "checkedAt": "2026-07-18",
+      "supports": "DrChrono presents multi-customer API integration and Marketplace distribution as partnership programs with technical and commercial onboarding."
+    },
+    {
+      "url": "https://app.drchrono.com/api-terms/",
+      "checkedAt": "2026-07-18",
+      "supports": "DrChrono's API terms govern both proprietary and FHIR APIs, require developer registration, and make production access subject to a revocable, non-transferable license and provider controls."
+    }
+  ]
+}

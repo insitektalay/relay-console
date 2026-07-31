@@ -1,0 +1,224 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ghost",
+  "name": "Ghost",
+  "category": "content_creative",
+  "description": "Ghost is an open-source publishing platform for professional websites, newsletters, memberships, and subscription businesses. Publishers use its editor, themes, member tools, email delivery, and analytics to create and run independent publications.",
+  "agentUseSummary": "Add the URL and Admin API key from a Custom Integration in your Ghost publication, then choose which agents may inspect the site and bounded post pages, prepare exact changes, create drafts, update current drafts, or publish a reviewed version under Safe or Dangerous policy. Relay signs short-lived Ghost Admin API tokens server-side and never exposes the integration key to agents.",
+  "provider": {
+    "websiteUrl": "https://ghost.org/",
+    "docsUrl": "https://docs.ghost.org/admin-api",
+    "developerConsoleUrl": "https://ghost.org/integrations/custom-integrations/",
+    "termsUrl": "https://ghost.org/terms/",
+    "privacyUrl": "https://ghost.org/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false
+  },
+  "connection": {
+    "types": ["api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "GHOST_ADMIN_URL",
+        "label": "Ghost publication URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the HTTPS address of your Ghost publication, such as https://news.example.com."
+      },
+      {
+        "name": "GHOST_ADMIN_API_KEY",
+        "label": "Ghost Admin API key",
+        "required": true,
+        "secret": true,
+        "helpText": "In Ghost Admin, create a Custom Integration and copy its Admin API key."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "site_read",
+      "label": "Read publication",
+      "description": "Inspect the connected Ghost publication's identity, version, and basic settings.",
+      "defaultSelected": true
+    },
+    {
+      "id": "post_read",
+      "label": "Read posts",
+      "description": "List one bounded page and inspect one explicit post with current editor content and version metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "post_draft",
+      "label": "Prepare and create drafts",
+      "description": "Prepare exact changes locally and create one Ghost post forced to draft.",
+      "defaultSelected": true
+    },
+    {
+      "id": "post_update",
+      "label": "Update drafts",
+      "description": "Update one explicit draft after confirming it has not changed since review.",
+      "defaultSelected": true
+    },
+    {
+      "id": "post_publish",
+      "label": "Publish reviewed posts",
+      "description": "Publish one explicit reviewed draft after confirming its current updated time.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "ghost_site_get",
+        "label": "Read publication",
+        "description": "Read bounded identity and version details for the connected Ghost publication."
+      },
+      {
+        "id": "ghost_post_list",
+        "label": "List posts",
+        "description": "List one bounded Ghost post page without following pagination."
+      },
+      {
+        "id": "ghost_post_get",
+        "label": "Read post",
+        "description": "Read one explicit post with bounded editor content and version metadata."
+      },
+      {
+        "id": "ghost_post_prepare",
+        "label": "Prepare post change",
+        "description": "Normalize and hash one draft creation, draft update, or publication locally."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "ghost_post_create_draft",
+        "label": "Create draft",
+        "description": "Create one post with Ghost status forced to draft."
+      },
+      {
+        "id": "ghost_post_update_draft",
+        "label": "Update draft",
+        "description": "Update explicit fields on one current Ghost draft."
+      },
+      {
+        "id": "ghost_post_publish",
+        "label": "Publish post",
+        "description": "Publish one explicit current reviewed Ghost draft."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "ghost_destructive",
+        "label": "Delete content",
+        "description": "Deleting or bulk-mutating posts, pages, tags, members, or other resources is outside V1."
+      },
+      {
+        "id": "ghost_members_admin",
+        "label": "Manage members or administration",
+        "description": "Member data, invitations, users, roles, themes, tiers, offers, newsletters, webhooks, configuration, and site administration are outside V1."
+      },
+      {
+        "id": "ghost_unbounded",
+        "label": "Run broad or raw API requests",
+        "description": "Automatic pagination, broad exports, arbitrary filters or includes, uploads, email sending, and arbitrary Admin API routes are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "ghost_safe",
+      "label": "Safe",
+      "description": "Bounded publication and post reads plus local change preparation run directly; draft creation, draft updates, and publication require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "ghost_site_get",
+        "ghost_post_list",
+        "ghost_post_get",
+        "ghost_post_prepare"
+      ],
+      "approvalRequiredActions": [
+        "ghost_post_create_draft",
+        "ghost_post_update_draft",
+        "ghost_post_publish"
+      ],
+      "blockedActions": [
+        "ghost_destructive",
+        "ghost_members_admin",
+        "ghost_unbounded"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Ghost operation supported by this connector runs without Relay per-action approval; connection ownership, publication binding, short-lived JWTs, fixed routes, updated-time checks, bounds, audits, redaction, idempotency, and Ghost limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "ghost_site_get",
+        "ghost_post_list",
+        "ghost_post_get",
+        "ghost_post_prepare",
+        "ghost_post_create_draft",
+        "ghost_post_update_draft",
+        "ghost_post_publish"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "ghost_destructive",
+        "ghost_members_admin",
+        "ghost_unbounded"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts seven exact Ghost publication and post wrappers and signs short-lived Admin API JWTs without exposing the user's key to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts seven exact Ghost publication and post wrappers and signs short-lived Admin API JWTs without exposing the user's key to the agent."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No customer Ghost publication URL or Custom Integration Admin API key was supplied for staging action verification.",
+    "nextAction": "The publication owner creates a dedicated Custom Integration in Ghost Admin, connects its HTTPS publication URL and Admin API key in Relay, then Relay verifies bounded reads, Safe denial and approval, Dangerous draft creation and update, explicit publication, key revocation, and disconnect."
+  },
+  "evidence": [
+    {
+      "url": "https://ghost.org/integrations/custom-integrations/",
+      "checkedAt": "2026-07-16",
+      "supports": "Ghost documents Custom Integrations as the supported way to obtain publication-specific Content and Admin API keys and configure webhooks."
+    },
+    {
+      "url": "https://docs.ghost.org/admin-api",
+      "checkedAt": "2026-07-16",
+      "supports": "Ghost documents Admin API keys, five-minute HS256 JWT authentication, the fixed /ghost/api/admin/ base path, version headers, wrapped resources, and publication-local permissions."
+    },
+    {
+      "url": "https://docs.ghost.org/admin-api/posts/overview",
+      "checkedAt": "2026-07-16",
+      "supports": "The official posts reference documents wrapped post resources, fields, statuses, pagination metadata, formats, and updated_at version values."
+    },
+    {
+      "url": "https://docs.ghost.org/admin-api/posts/creating-a-post",
+      "checkedAt": "2026-07-16",
+      "supports": "Ghost documents draft-first post creation, HTML-to-Lexical conversion with source=html, and explicit publish status."
+    },
+    {
+      "url": "https://ghost.org/docs/content-api/",
+      "checkedAt": "2026-07-16",
+      "supports": "Ghost distinguishes the read-only Content API from the authenticated Admin API used by a user-owned Custom Integration for editorial writes."
+    }
+  ]
+}

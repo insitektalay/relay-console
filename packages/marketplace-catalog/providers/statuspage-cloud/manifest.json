@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "statuspage-cloud",
+  "name": "Statuspage Cloud",
+  "category": "work_management",
+  "description": "Statuspage Cloud is Atlassian's hosted service-status platform for publishing component health, incidents, maintenance, and uptime information.",
+  "agentUseSummary": "Connect one exact Statuspage with a customer API token, then let agents read bounded component and incident summaries or update one component status under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.atlassian.com/software/statuspage",
+    "docsUrl": "https://developer.statuspage.io/",
+    "developerConsoleUrl": "https://manage.statuspage.io/",
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "customer_api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "STATUSPAGE_API_TOKEN",
+        "label": "Statuspage API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy an API token authorized for the intended Statuspage."
+      },
+      {
+        "name": "STATUSPAGE_PAGE_ID",
+        "label": "Statuspage page ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind this connection to one exact Statuspage page ID."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "status_read",
+      "label": "Read status",
+      "description": "List bounded component and incident summaries for one exact Statuspage.",
+      "defaultSelected": true
+    },
+    {
+      "id": "component_status_write",
+      "label": "Update component status",
+      "description": "Set one exact component to one documented operational status.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "statuspage_cloud_list_components",
+        "label": "List components",
+        "description": "List at most 25 bounded component summaries for the bound page."
+      },
+      {
+        "id": "statuspage_cloud_list_incidents",
+        "label": "List incidents",
+        "description": "List at most 25 bounded incident summaries for the bound page."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "statuspage_cloud_update_component_status",
+        "label": "Update component status",
+        "description": "Set one exact component to one documented operational status; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "statuspage_cloud_notify_or_create_incident",
+        "label": "Create incidents or notify subscribers",
+        "description": "Incident creation and notification delivery are unavailable in this bounded connector."
+      },
+      {
+        "id": "statuspage_cloud_admin",
+        "label": "Administer Statuspage",
+        "description": "Deleting resources, managing subscribers, users, templates, metrics, access groups, and account configuration is blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "statuspage_cloud_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; every component-status change requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "statuspage_cloud_list_components",
+        "statuspage_cloud_list_incidents"
+      ],
+      "approvalRequiredActions": ["statuspage_cloud_update_component_status"],
+      "blockedActions": [
+        "statuspage_cloud_notify_or_create_incident",
+        "statuspage_cloud_admin"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected reads and component-status changes run without Relay per-action approval; page binding, provider authority, bounds, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "statuspage_cloud_list_components",
+        "statuspage_cloud_list_incidents",
+        "statuspage_cloud_update_component_status"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "statuspage_cloud_notify_or_create_incident",
+        "statuspage_cloud_admin"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts page-bound read and approved component-status tools while keeping the API token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts page-bound read and approved component-status tools while keeping the API token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer enters a Statuspage API token and the one exact page ID that Relay may read and update."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.statuspage.io/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents the fixed api.statuspage.io/v1 origin, API-token authorization, one-request-per-second rate limit, 420/429 responses, and the current REST resource catalog."
+    },
+    {
+      "url": "https://developer.statuspage.io/#tag/components",
+      "checkedAt": "2026-07-18",
+      "supports": "The official component reference documents bounded pagination, component summaries, exact component reads, and PATCH status updates under one page ID."
+    },
+    {
+      "url": "https://developer.statuspage.io/#tag/incidents",
+      "checkedAt": "2026-07-18",
+      "supports": "The official incident reference documents page-bound incident lists with a maximum of 100 rows; Relay further limits this to 25 minimized summaries."
+    }
+  ]
+}

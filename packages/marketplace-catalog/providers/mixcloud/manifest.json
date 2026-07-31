@@ -1,0 +1,183 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mixcloud",
+  "name": "Mixcloud",
+  "category": "content_creative",
+  "description": "Mixcloud is a creator audio platform for publishing and discovering DJ mixes, radio shows, and podcasts, following creators, and organizing listening activity.",
+  "agentUseSummary": "Connect Mixcloud through Relay-owned OAuth. Agents can read canonical API objects, connections, lists, and searches, follow users, manage favorites, reposts and listen-later state, and upload or edit bounded cloudcasts. Safe mode approval-gates every engagement and publishing change. Mixcloud does not expose audio streams through its API, so playback extraction and downloading remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.mixcloud.com/",
+    "docsUrl": "https://www.mixcloud.com/developers/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.mixcloud.com/terms/",
+    "privacyUrl": "https://www.mixcloud.com/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.mixcloud.com/oauth/authorize",
+    "tokenUrl": "https://www.mixcloud.com/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "oauth2",
+      "relay_owned_oauth",
+      "non_refreshable_token",
+      "canonical_object_keys"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MIXCLOUD_CLIENT_ID",
+        "label": "Mixcloud client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Relay-owned OAuth application client ID issued after application registration."
+      },
+      {
+        "name": "MIXCLOUD_CLIENT_SECRET",
+        "label": "Mixcloud client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay-owned OAuth client secret stored only in Railway."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/mixcloud/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "mixcloud_read",
+      "label": "Read Mixcloud resources",
+      "description": "Read API-visible users, shows, tags, cities, connections, lists, search results, and the authenticated user.",
+      "defaultSelected": true,
+      "platformCapability": "mixcloud_read"
+    },
+    {
+      "id": "mixcloud_engage",
+      "label": "Manage Mixcloud engagement",
+      "description": "Follow users and add or remove favorites, reposts, and listen-later entries.",
+      "defaultSelected": true,
+      "platformCapability": "mixcloud_engage"
+    },
+    {
+      "id": "mixcloud_upload",
+      "label": "Manage Mixcloud uploads",
+      "description": "Upload one bounded MP3 with supported metadata or edit an existing cloudcast.",
+      "defaultSelected": true,
+      "platformCapability": "mixcloud_upload"
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "mixcloud_read",
+        "label": "Read Mixcloud",
+        "description": "Read one bounded official Mixcloud object, connection, list, search, or authenticated-user resource."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "mixcloud_engage",
+        "label": "Manage Mixcloud engagement",
+        "description": "Follow a user or favorite, repost, or add one show to listen later; Safe mode requires approval."
+      },
+      {
+        "id": "mixcloud_upload",
+        "label": "Manage Mixcloud uploads",
+        "description": "Upload or edit one cloudcast and its supported metadata; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "mixcloud_secret_exposure",
+        "label": "Expose Mixcloud secrets",
+        "description": "OAuth client secrets, access tokens, cookies, and authorization data are never exposed."
+      },
+      {
+        "id": "mixcloud_audio_streams",
+        "label": "Retrieve Mixcloud audio streams",
+        "description": "Mixcloud's API explicitly does not expose audio stream URLs; downloading, scraping, and private playback interfaces are blocked."
+      },
+      {
+        "id": "mixcloud_arbitrary_interface",
+        "label": "Use arbitrary Mixcloud interfaces",
+        "description": "Relay accepts only canonical object keys on api.mixcloud.com and the documented engagement, upload, and edit suffixes."
+      },
+      {
+        "id": "mixcloud_unbounded_transfer",
+        "label": "Transfer unbounded Mixcloud data",
+        "description": "Reads are one bounded page, responses are capped at 5 MB, audio uploads at 25 MB, and pictures at 10 MB."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "mixcloud_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; every engagement, upload, and edit requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["mixcloud_read"],
+      "approvalRequiredActions": ["mixcloud_engage", "mixcloud_upload"],
+      "blockedActions": [
+        "mixcloud_secret_exposure",
+        "mixcloud_audio_streams",
+        "mixcloud_arbitrary_interface",
+        "mixcloud_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected OAuth-authorized writes run without Relay per-action approval; specific intent, provider authority, bounds, fixed origins, audits, and provider rules still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["mixcloud_read", "mixcloud_engage", "mixcloud_upload"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mixcloud_secret_exposure",
+        "mixcloud_audio_streams",
+        "mixcloud_arbitrary_interface",
+        "mixcloud_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "OpenClaw receives bounded canonical-key read, engagement, and upload wrappers."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Hermes receives the same selected capabilities, approval profile, and cloud-held OAuth authority."
+    }
+  ],
+  "availability": "provider_setup_required",
+  "providerSetup": {
+    "status": "external_setup_required",
+    "blocker": "Relay must register a Mixcloud OAuth application, configure the exact Railway callback, and store the issued client ID and secret. Mixcloud provides no refresh token, so an expired or revoked token requires reauthorization. This worker opened no provider console and created no application or credential.",
+    "nextAction": "The acceptance owner should register Relay's Mixcloud application, set https://api.relayconsole.work/api/v1/marketplace/oauth/mixcloud/callback, store MIXCLOUD_CLIENT_ID and MIXCLOUD_CLIENT_SECRET in the approved Railway environment, then run staging OAuth, authenticated-user, read, engagement approval, upload/edit, rate-limit, token-replacement, disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://www.mixcloud.com/developers/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mixcloud documents browser OAuth 2, its authorization and URL-encoded access-token endpoints, canonical object keys, metadata connections, lists, paging, search, authenticated-user, engagement POST/DELETE routes, uploads and edits, rate-limit behavior, and the absence of audio streams."
+    },
+    {
+      "url": "https://www.mixcloud.com/terms/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mixcloud's current terms govern account, content, rights, platform, and API use."
+    },
+    {
+      "url": "https://www.mixcloud.com/privacy/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mixcloud's current privacy notice describes platform data handling and user rights."
+    }
+  ]
+}

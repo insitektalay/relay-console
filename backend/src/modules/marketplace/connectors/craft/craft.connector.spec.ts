@@ -1,0 +1,100 @@
+import {
+  CRAFT_MANAGE_OPERATIONS,
+  CRAFT_READ_OPERATIONS,
+  CraftApiAdapter,
+  CraftApiError,
+} from "./craft-api.adapter";
+import { CRAFT_CONNECTOR_MANIFEST } from "./craft.connector";
+import { MarketplaceConnectorRegistry } from "../connector-registry";
+
+const credentials = {
+  apiUrl: "https://connect.craft.do/link/example_connection_123/api/v1",
+};
+
+describe("Craft connector", () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it("stores one scoped connection URL encrypted and exposes the stable API surface", () => {
+    expect(new MarketplaceConnectorRegistry().get("craft")).toBe(
+      CRAFT_CONNECTOR_MANIFEST,
+    );
+    expect(CRAFT_CONNECTOR_MANIFEST.auth.type).toBe("api_key");
+    expect(CRAFT_CONNECTOR_MANIFEST.auth.credentialSchema).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "CRAFT_API_URL",
+          secret: true,
+          storedIn: "encrypted_secret",
+        }),
+      ]),
+    );
+    expect(CRAFT_READ_OPERATIONS).toHaveLength(9);
+    expect(CRAFT_MANAGE_OPERATIONS).toHaveLength(16);
+    expect(
+      CRAFT_CONNECTOR_MANIFEST.approvalProfiles.find(
+        (profile) => profile.id === "dangerously_skip_permissions",
+      )?.approvalRequiredActions,
+    ).toEqual([]);
+  });
+
+  it("pins the secret authority and validates it with one bounded folder read", async () => {
+    const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ items: [{ id: "unsorted" }] }), {
+        status: 200,
+      }),
+    );
+    const result = await new CraftApiAdapter().health(credentials);
+    expect(result).toMatchObject({ folderCount: 1, providerRequestCount: 1 });
+    expect(fetchMock.mock.calls[0]?.[0].toString()).toBe(
+      `${credentials.apiUrl}/folders`,
+    );
+    expect(JSON.stringify(result)).not.toContain("example_connection_123");
+  });
+
+  it("maps exact read and manage operations without exposing a raw path", async () => {
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ items: [{ id: "doc-1" }] }), {
+          status: 200,
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ items: [{ id: "task-1" }] }), {
+          status: 200,
+        }),
+      );
+    const adapter = new CraftApiAdapter();
+    await adapter.callRead(credentials, {
+      operation: "search_documents",
+      query: { include: "planning" },
+    });
+    await adapter.callManage(credentials, {
+      operation: "add_tasks",
+      body: { tasks: [{ markdown: "Review", location: { type: "inbox" } }] },
+    });
+    expect(fetchMock.mock.calls.map((call) => call[0].toString())).toEqual([
+      `${credentials.apiUrl}/documents/search?include=planning`,
+      `${credentials.apiUrl}/tasks`,
+    ]);
+    expect((fetchMock.mock.calls[1]?.[1] as RequestInit).method).toBe("POST");
+  });
+
+  it("rejects untrusted authorities, cross-policy operations, and credential fields", async () => {
+    const adapter = new CraftApiAdapter();
+    await expect(
+      adapter.health({ apiUrl: "https://example.com/link/not-craft/api/v1" }),
+    ).rejects.toMatchObject<Partial<CraftApiError>>({
+      code: "provider_validation_error",
+    });
+    expect(() =>
+      adapter.callRead(credentials, { operation: "delete_documents" }),
+    ).toThrow("Craft operation is not supported by this Relay action.");
+    await expect(
+      adapter.callManage(credentials, {
+        operation: "add_tasks",
+        body: { apiUrl: "must-not-pass" },
+      }),
+    ).rejects.toMatchObject<Partial<CraftApiError>>({ code: "policy_blocked" });
+  });
+});

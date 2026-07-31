@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "figma-slides",
+  "name": "Figma Slides",
+  "category": "content_creative",
+  "description": "Figma Slides is Figma's collaborative presentation product for designing decks, importing presentations, presenting prototypes and media, gathering audience feedback, and working with comments inside the Figma platform.",
+  "agentUseSummary": "Do not create a separate Figma Slides connection or install. Connect the canonical Figma provider once and use its bounded file, node, render, version, selection, and comment operations for authorized Slides files where Figma's REST API supports them. Relay does not create or edit slide canvas content, presenter notes, polls, transitions, playback, imports, exports, or AI features because those lack supported external REST mutations.",
+  "provider": {
+    "websiteUrl": "https://www.figma.com/slides/",
+    "docsUrl": "https://developers.figma.com/docs/rest-api/",
+    "developerConsoleUrl": "https://www.figma.com/developers/apps",
+    "termsUrl": "https://www.figma.com/legal/tos/",
+    "privacyUrl": "https://www.figma.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "product_mode_of_figma",
+      "use_canonical_figma_connection",
+      "no_duplicate_connection_state"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "figma_slides_duplicate_connection",
+        "label": "Create a separate Figma Slides connection",
+        "description": "Figma Slides uses the same Figma user, OAuth grant, file keys, comments, permissions, and API origin as the canonical Figma provider; a second connection would duplicate identity and authority."
+      },
+      {
+        "id": "figma_slides_duplicate_install",
+        "label": "Install duplicate Figma Slides tools",
+        "description": "Relay mounts supported file and comment operations once through the canonical Figma provider rather than publishing parallel Slides tools and policies."
+      },
+      {
+        "id": "figma_slides_canvas_write",
+        "label": "Create or edit slides",
+        "description": "Figma's external REST API does not create, move, resize, style, animate, or delete slide canvas nodes; canvas editing requires an in-editor plugin and user context."
+      },
+      {
+        "id": "figma_slides_presentation_features",
+        "label": "Control presentation features",
+        "description": "Presenter notes, co-presenting, playback, transitions, animations, polls, voting, audience responses, AI writing, prototypes, and live objects are outside Relay's external REST boundary."
+      },
+      {
+        "id": "figma_slides_import_export_admin",
+        "label": "Import, export, or administer decks",
+        "description": "PowerPoint import, binary export, broad ingestion, sharing, membership, seat, billing, plan, deletion, raw API, browser automation, and enterprise governance are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "figma_slides_alias_unavailable",
+      "label": "Use Figma",
+      "description": "No separate Figma Slides action is enabled because Slides shares the canonical Figma provider and its supported file and comment boundary.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "figma_slides_duplicate_connection",
+        "figma_slides_duplicate_install",
+        "figma_slides_canvas_write",
+        "figma_slides_presentation_features",
+        "figma_slides_import_export_admin"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No duplicate Figma Slides tools are mounted. OpenClaw uses the canonical Figma provider for supported bounded file and comment workflows."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No duplicate Figma Slides tools are mounted. Hermes uses the canonical Figma provider for supported bounded file and comment workflows."
+    }
+  ],
+  "availability": "deferred",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": "Figma Slides is a Figma file product, not a separate provider identity or authorization surface. A second provider card, OAuth grant, credential record, installation, policy, or runtime adapter would duplicate the existing Figma connection. Figma's REST API supports authorized file and comment operations but does not publish external mutations for slide canvas content or presentation-specific features; those editing semantics remain in Figma and its Plugin API.",
+    "nextAction": "Keep this product-mode slug non-installable and direct setup, connection, installation, and supported execution to the canonical Figma provider. Use exact bounded file, node, image, version, selection, and comment routes only when Figma authorizes the Slides file. Revisit slide-specific actions only if Figma publishes stable external REST endpoints and granular scopes for deck creation, slide content, presenter notes, transitions, polls, playback, imports, exports, and rollback, and Relay approves their exact customer authority and data contract."
+  },
+  "evidence": [
+    {
+      "url": "https://www.figma.com/slides/",
+      "checkedAt": "2026-07-18",
+      "supports": "Figma describes Slides as its presentation product with collaborative files, comments, presenter notes, co-presenting, polls, prototypes, plugins, AI assistance, and PowerPoint import."
+    },
+    {
+      "url": "https://developers.figma.com/docs/rest-api/",
+      "checkedAt": "2026-07-18",
+      "supports": "Figma documents one REST API across its products for authenticated files, layers, images, versions, comments, projects, libraries, variables, developer resources, and webhooks."
+    },
+    {
+      "url": "https://developers.figma.com/docs/rest-api/file-endpoints/",
+      "checkedAt": "2026-07-18",
+      "supports": "Figma's file endpoints accept a key parsed from any Figma file URL and return bounded file metadata and a JSON node tree under file scopes."
+    },
+    {
+      "url": "https://developers.figma.com/docs/plugins/",
+      "checkedAt": "2026-07-18",
+      "supports": "Figma documents Slides as a Figma editor context with one PageNode and reserves read-write file-content manipulation for plugins running inside Figma, while the REST API supplies external read access."
+    },
+    {
+      "url": "https://developers.figma.com/docs/rest-api/scopes/",
+      "checkedAt": "2026-07-18",
+      "supports": "Figma's granular scopes govern files and comments through the same user authorization and do not define a separate Slides grant or slide-canvas mutation scope."
+    }
+  ]
+}

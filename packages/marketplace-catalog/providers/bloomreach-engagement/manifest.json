@@ -1,0 +1,204 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "bloomreach-engagement",
+  "name": "Bloomreach Engagement",
+  "category": "communication",
+  "description": "Bloomreach Engagement provides customer data, tracking, catalogs, analysis, campaign, email, import/export, and GDPR APIs.",
+  "agentUseSummary": "Connect a dedicated customer-owned private API group. Relay pins four project-bound operations: catalog inventory and exact-catalog reads run directly, while a bounded exact-customer property read and one-customer property update require approval. The update requires customer authorization and consent/subscription properties remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.bloomreach.com/en/products/engagement",
+    "docsUrl": "https://documentation.bloomreach.com/engagement/reference/welcome",
+    "developerConsoleUrl": "https://app.exponea.com/",
+    "termsUrl": "https://www.bloomreach.com/en/legal",
+    "privacyUrl": "https://www.bloomreach.com/en/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_project_token",
+      "customer_owned_private_api_key_id",
+      "customer_owned_private_api_secret",
+      "fixed_standard_api_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "BLOOMREACH_ENGAGEMENT_PROJECT_TOKEN",
+        "label": "Bloomreach Engagement project token",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the project token bound to the dedicated private API group."
+      },
+      {
+        "name": "BLOOMREACH_ENGAGEMENT_API_KEY_ID",
+        "label": "Bloomreach Engagement API key ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use a dedicated private API group with only catalog-read and customer property get/set permissions."
+      },
+      {
+        "name": "BLOOMREACH_ENGAGEMENT_API_SECRET",
+        "label": "Bloomreach Engagement API secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay uses this only for Basic authentication to the fixed standard API origin."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read catalogs",
+      "description": "Use catalog inventory and exact-catalog reads.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read customer",
+      "description": "Read named properties for one exact customer with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage one customer",
+      "description": "Update bounded non-consent properties for one authorized customer with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "bloomreach_engagement_structural_read",
+        "label": "Read Bloomreach Engagement catalogs",
+        "description": "Read the catalog inventory or one exact catalog name."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "bloomreach_engagement_sensitive_read",
+        "label": "Read Bloomreach Engagement customer",
+        "description": "Read up to 20 named properties for one exact customer."
+      },
+      {
+        "id": "bloomreach_engagement_manage",
+        "label": "Manage Bloomreach Engagement customer",
+        "description": "Update up to 20 non-consent properties for one authorized customer."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "bloomreach_engagement_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Project tokens, private API credentials, Basic authorization, and credential-bearing fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "bloomreach_engagement_bulk_transfer",
+        "label": "Run bulk transfers",
+        "description": "Batch commands, imports, exports, customer collections, catalog-item traversal, and mass data movement are excluded."
+      },
+      {
+        "id": "bloomreach_engagement_send_admin",
+        "label": "Send or administer campaigns",
+        "description": "Email sends/campaigns, events, analyses, catalogs/items mutations, GDPR deletion/anonymization, consent, subscription, and access-key administration remain provider-side."
+      },
+      {
+        "id": "bloomreach_engagement_unbounded_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only four pinned routes run on the standard fixed API origin; custom origins, arbitrary paths, queries, headers, customer structures, and oversized results are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "bloomreach_engagement_safe",
+      "label": "Safe",
+      "description": "Catalog reads run directly; exact customer-property reads and one-customer updates require approval, and writes require customer authorization while consent/subscription properties remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["bloomreach_engagement_structural_read"],
+      "approvalRequiredActions": [
+        "bloomreach_engagement_sensitive_read",
+        "bloomreach_engagement_manage"
+      ],
+      "blockedActions": [
+        "bloomreach_engagement_secret_exposure",
+        "bloomreach_engagement_bulk_transfer",
+        "bloomreach_engagement_send_admin",
+        "bloomreach_engagement_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected operations run without Relay per-action approval; customer authorization, fixed routing, field/response bounds, audits, and bulk/send/admin/consent blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "bloomreach_engagement_structural_read",
+        "bloomreach_engagement_sensitive_read",
+        "bloomreach_engagement_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "bloomreach_engagement_secret_exposure",
+        "bloomreach_engagement_bulk_transfer",
+        "bloomreach_engagement_send_admin",
+        "bloomreach_engagement_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts four pinned project-bound Bloomreach Engagement routes with private Basic credentials kept server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts four pinned project-bound Bloomreach Engagement routes with private Basic credentials kept server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Bloomreach Engagement requires a customer-owned project, least-privilege private API group, credentials, catalogs, and customers. No console, API group, credentials, catalog, customer, consent, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create a dedicated staging private API group outside this worker with only catalog list/get and customer property get/set permissions, configure the project token and credentials in Railway staging, and verify catalog/customer reads, approval and customer-authorization denial/allow, consent-property blocking, asynchronous write results, response bounds, key rotation/revocation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://documentation.bloomreach.com/engagement/reference/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Bloomreach documents project tokens, standard/custom base URLs, least-privilege API groups, and private key-ID/secret access."
+    },
+    {
+      "url": "https://documentation.bloomreach.com/engagement/reference/technical-information",
+      "checkedAt": "2026-07-17",
+      "supports": "Bloomreach documents private Basic authentication as Base64 API key ID and API secret."
+    },
+    {
+      "url": "https://documentation.bloomreach.com/engagement/reference/customer-attributes-2",
+      "checkedAt": "2026-07-17",
+      "supports": "Bloomreach documents the project-bound customer attributes route, private access, exact customer IDs, and property attribute requests."
+    },
+    {
+      "url": "https://documentation.bloomreach.com/engagement/reference/update-customer-properties-2",
+      "checkedAt": "2026-07-17",
+      "supports": "Bloomreach documents the single-customer property update route, payload and value bounds, asynchronous result, and prohibition on large-volume use."
+    },
+    {
+      "url": "https://documentation.bloomreach.com/engagement/reference/get-all-catalogs-2",
+      "checkedAt": "2026-07-17",
+      "supports": "Bloomreach documents the project-bound catalog inventory route and least-privilege permission."
+    }
+  ]
+}

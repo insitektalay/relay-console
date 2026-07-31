@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "onesignal",
+  "name": "OneSignal",
+  "category": "communication",
+  "description": "OneSignal is a customer-engagement platform for push notifications, in-app messages, email, SMS, live activities, journeys, and user data. Product and marketing teams use it to coordinate cross-channel messaging and measure delivery and engagement.",
+  "agentUseSummary": "Add a dedicated customer-owned OneSignal App API Key and bind its exact App ID; agents can inspect a redacted first page of recent message delivery counts without content, targeting, or recipient data.",
+  "provider": {
+    "websiteUrl": "https://onesignal.com/",
+    "docsUrl": "https://documentation.onesignal.com/reference/view-messages",
+    "developerConsoleUrl": "https://dashboard.onesignal.com/",
+    "termsUrl": "https://onesignal.com/tos",
+    "privacyUrl": "https://onesignal.com/privacy_policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_app_api_key", "exact_app_binding"],
+    "credentialRequirements": [
+      {
+        "name": "ONESIGNAL_APP_ID",
+        "label": "OneSignal App ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact UUID v4 App ID from Settings > Keys & IDs. Relay binds every request to this app."
+      },
+      {
+        "name": "ONESIGNAL_APP_API_KEY",
+        "label": "OneSignal App API Key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated App API Key, preferably with an IP allowlist. Relay encrypts it and sends it only in the Authorization header to https://api.onesignal.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "notification_delivery_summary_read",
+      "label": "Read notification delivery summaries",
+      "description": "Read page 0 of at most 25 recent message lifecycle/count summaries while excluding content, targeting, recipients, templates, URLs, media, outcomes, and raw provider data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "onesignal_notification_delivery_summary_list",
+        "label": "List OneSignal notification delivery summaries",
+        "description": "Return at most 25 recent message IDs, lifecycle timestamps, cancellation state, and aggregate delivery counts with content and audience data removed."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "onesignal_message_content_targeting_or_outcomes",
+        "label": "Access message content, targeting, or outcomes",
+        "description": "Names, headings, contents, custom data, segments, filters, aliases, recipients, templates, URLs, media, platform delivery detail, outcomes, and raw messages remain blocked."
+      },
+      {
+        "id": "onesignal_users_subscriptions_or_exports",
+        "label": "Access users, subscriptions, or exports",
+        "description": "Users, aliases, external IDs, subscriptions, devices, tags, properties, segments, custom events, CSV exports, Event Streams, and recipient history remain blocked."
+      },
+      {
+        "id": "onesignal_send_cancel_write_or_administer",
+        "label": "Send, cancel, write, or administer OneSignal",
+        "description": "Push/email/SMS/in-app sends, cancellation, users/subscriptions/events, segments/templates, apps, API keys, webhooks, journeys, live activities, and administration remain blocked."
+      },
+      {
+        "id": "onesignal_raw_api_or_bulk",
+        "label": "Use raw API or bulk access",
+        "description": "Arbitrary origins, apps, paths, methods, headers, queries, bodies, kinds, templates, offsets, cursors, automatic pagination, retries, SDK surfaces, raw responses, browser sessions, and bulk/export operations remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "onesignal_safe",
+      "label": "Safe",
+      "description": "The bounded delivery-summary read requires approval; content, targeting, users, exports, sends, cancellation, writes, administration, arbitrary APIs, pagination, and bulk remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["onesignal_notification_delivery_summary_list"],
+      "blockedActions": ["onesignal_message_content_targeting_or_outcomes", "onesignal_users_subscriptions_or_exports", "onesignal_send_cancel_write_or_administer", "onesignal_raw_api_or_bulk"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same bounded read runs directly; exact app binding, fixed endpoint, redaction, page/result caps, audits, rate limits, and provider authorization remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["onesignal_notification_delivery_summary_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["onesignal_message_content_targeting_or_outcomes", "onesignal_users_subscriptions_or_exports", "onesignal_send_cancel_write_or_administer", "onesignal_raw_api_or_bulk"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives one fixed OneSignal delivery-summary wrapper with exact App ID binding and message/audience redaction."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same fixed OneSignal delivery-summary wrapper with exact App ID binding and message/audience redaction."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "OneSignal REST access requires an eligible customer app and a customer-created secret App API Key whose authority can also send messages and manage users.",
+    "nextAction": "A customer admin creates a dedicated App API Key, configures an IP allowlist when available, supplies the exact App ID, and completes a live read-only connection check."
+  },
+  "evidence": [
+    {
+      "url": "https://documentation.onesignal.com/docs/en/keys-and-ids",
+      "checkedAt": "2026-07-18",
+      "supports": "OneSignal documents UUID v4 App IDs, secret single-app App API Keys, Key-scheme authorization, key rotation/deletion, separate organization keys, and optional IP allowlisting."
+    },
+    {
+      "url": "https://documentation.onesignal.com/reference/view-messages",
+      "checkedAt": "2026-07-18",
+      "supports": "OneSignal documents GET /notifications with required app_id, App API Key authorization, descending queued_at order, limit/offset pagination, and an identity/content/targeting-rich response."
+    },
+    {
+      "url": "https://documentation.onesignal.com/reference/rate-limits",
+      "checkedAt": "2026-07-18",
+      "supports": "OneSignal documents a one-request-per-second per-app limit for view endpoints, 429 Retry-After behavior, and separate high-impact send/application message limits."
+    },
+    {
+      "url": "https://documentation.onesignal.com/reference/rest-api-overview",
+      "checkedAt": "2026-07-18",
+      "supports": "OneSignal documents broad messaging, user, subscription, segment, export, and app-management API surfaces; Relay mounts only the bounded read wrapper."
+    }
+  ],
+  "securityNotes": [
+    "The App API Key is encrypted as a secret reference and sent only as Authorization: Key to https://api.onesignal.com; the UUID v4 App ID is exact-bound on the connection.",
+    "Relay allowlists only GET /notifications with fixed app_id, limit=25, offset=0, rejects redirects, uses a 30-second timeout, caps responses at 1 MB, and performs no retries or pagination.",
+    "The result includes at most 25 UUID message references, lifecycle timestamps, cancellation state, and aggregate delivery counts; it excludes names, content, data, targeting, recipients, templates, URLs, media, platform detail, outcomes, cursors, and raw responses.",
+    "Users, subscriptions, aliases, events, segments, exports, sends, cancellation, templates, apps, keys, webhooks, journeys, live activities, writes, administration, arbitrary APIs, SDKs, pagination, and bulk remain blocked.",
+    "Provider 401/403/429 and server errors are surfaced safely; key creation/capture, IP allowlisting, provider-console work, and live acceptance remain customer/external steps."
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "didomi",
+  "name": "Didomi",
+  "category": "developer",
+  "description": "Didomi provides consent management, preference management, privacy-request workflows, compliance reporting, data management, widgets, and consent-data integrations.",
+  "agentUseSummary": "Didomi is unavailable as a Relay agent connection because its documented private API key and secret exchange for a one-hour bearer token that grants access to the broader Didomi API, with no published least-privilege scopes or read-only key type. That API manages platform configuration, end-user consents, consent tokens and reusable secrets, privacy requests, reports, widgets, and mutations. Relay will not store a platform-wide privacy credential for a narrow agent read.",
+  "provider": {
+    "websiteUrl": "https://www.didomi.io/",
+    "docsUrl": "https://developers.didomi.io/api-and-platform",
+    "developerConsoleUrl": "https://console.didomi.io/",
+    "termsUrl": "https://www.didomi.io/terms-and-conditions",
+    "privacyUrl": "https://www.didomi.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "organization_private_api_key_not_collected",
+      "one_hour_platform_wide_jwt_not_minted",
+      "no_documented_read_only_scope",
+      "consent_and_privacy_mutation_authority_not_accepted"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "didomi_connection",
+        "label": "Connect Didomi",
+        "description": "Relay exposes no Didomi connection while private API keys grant broad platform authority without documented least-privilege scopes."
+      },
+      {
+        "id": "didomi_platform_credential",
+        "label": "Collect platform credentials",
+        "description": "Private/public API keys, secrets, session tokens, consent tokens, reusable secrets, organization IDs, and authorization headers are not collected or minted."
+      },
+      {
+        "id": "didomi_private_data",
+        "label": "Read privacy data",
+        "description": "Users, organization user IDs, emails, phones, metadata, consent status/history, events, proofs, tokens, secrets, preferences, privacy requests, notes, reports, exports, and webhooks remain unavailable."
+      },
+      {
+        "id": "didomi_mutation",
+        "label": "Mutate Didomi",
+        "description": "Consent events, users, links, tokens, secrets, notices, widgets, purposes, preferences, configuration trees, authentication providers, privacy requests, reports, domains, integrations, and every other mutation remain provider-side."
+      },
+      {
+        "id": "didomi_end_user_flow",
+        "label": "Run end-user consent flows",
+        "description": "OTP, magic links, consent links, consent collection or changes, end-user tokens, SDK/browser actions, consent strings, and preference-center sessions are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "didomi_unavailable",
+      "label": "Unavailable",
+      "description": "No Didomi action or credential path is exposed until private API keys support documented least-privilege scopes or a separate read-only key type with an authority boundary excluding consents, secrets, privacy requests, configuration, reports, and mutations.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "didomi_connection",
+        "didomi_platform_credential",
+        "didomi_private_data",
+        "didomi_mutation",
+        "didomi_end_user_flow"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No wrapper is mounted because the documented private key creates a broad Didomi API session without a published read-only scope."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No wrapper is mounted because the documented private key creates a broad Didomi API session without a published read-only scope."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": "Didomi documents one organization Private API key/secret flow that creates a one-hour JWT for the Didomi APIs. Its public documentation does not define scopes or a read-only key type, while the same API surface manages platform configuration, user consents and events, reusable secrets, end-user tokens, privacy requests, widgets, reports, domains, and integrations.",
+    "nextAction": "Keep Didomi unavailable and do not collect or mint platform credentials, consent tokens, reusable secrets, or end-user data. Re-evaluate only if Didomi publishes least-privilege scopes or a distinct read-only service credential, explicit endpoint authority, token revocation, and a boundary excluding consent, preference, privacy-request, secret, configuration, report, integration, and end-user-session mutations."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.didomi.io/api-and-platform",
+      "checkedAt": "2026-07-18",
+      "supports": "Didomi documents one standard REST API for managing all aspects of the platform, authenticated with a private API key and secret; it lists configuration, widgets, reports, consents, privacy requests, and domains under that API."
+    },
+    {
+      "url": "https://developers.didomi.io/api-and-platform/introduction/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Didomi documents exchanging an organization Private API key and secret at /v1/sessions for a one-hour bearer JWT expected by all other endpoints, without documenting a read-only scope or key type."
+    },
+    {
+      "url": "https://developers.didomi.io/api-and-platform/consents/users",
+      "checkedAt": "2026-07-18",
+      "supports": "The Consents API exposes end users, organization identifiers such as emails or CRM IDs, free-form metadata, consent state, and create/query workflows."
+    },
+    {
+      "url": "https://developers.didomi.io/api-and-platform/consents/secrets",
+      "checkedAt": "2026-07-18",
+      "supports": "The same API surface manages reusable organization secrets used to authenticate end-user IDs and consent proofs."
+    }
+  ]
+}

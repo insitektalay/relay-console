@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "instapage",
+  "name": "Instapage",
+  "category": "crm_support",
+  "description": "Instapage is a landing-page platform for page creation, publishing, personalization, experimentation, analytics, lead collection, collaboration, domains, and campaign assets.",
+  "agentUseSummary": "Add a customer-owned Instapage personal API token from a least-privilege team member with Developer Access, then let selected agents list the first 100 accessible workspace IDs, names, and access levels. Relay removes owner IDs and timestamps and blocks pages, leads, submissions, analytics, members, domains, groups, collections, experiments, assets, arbitrary API access, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://instapage.com/",
+    "docsUrl": "https://devdocs.instapage.com/",
+    "developerConsoleUrl": "https://app.instapage.com/account",
+    "termsUrl": "https://instapage.com/terms-of-service",
+    "privacyUrl": "https://instapage.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_personal_api_token",
+      "developer_access_required",
+      "creator_workspace_permissions_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "INSTAPAGE_API_TOKEN",
+        "label": "Instapage personal API token",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a customer-owned personal API token from an account with Developer Access and the least necessary workspace role; Relay encrypts it server-side."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "instapage_read",
+      "label": "List workspaces",
+      "description": "Use only GET /v1/workspaces?page=1 and return minimized workspace IDs, names, and access levels.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "instapage_read",
+        "label": "List Instapage workspaces",
+        "description": "List the first 100 accessible workspace IDs, names, and access levels without owner IDs, timestamps, pages, leads, analytics, or writes."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "instapage_manage",
+        "label": "Change Instapage",
+        "description": "Workspace, member, page, publication, group, collection, experiment, asset, submission, and every other mutation are blocked."
+      },
+      {
+        "id": "instapage_sensitive_or_metered_data",
+        "label": "Read lead, analytics, or owner data",
+        "description": "Leads, form submissions, analytics, team-member data, owner IDs, account details, page content, and metered reports are blocked."
+      },
+      {
+        "id": "instapage_arbitrary_api",
+        "label": "Use arbitrary API access",
+        "description": "Additional result pages, filters, pages, domains, groups, collections, experiments, assets, arbitrary routes, and custom arguments are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "instapage_safe",
+      "label": "Safe",
+      "description": "One minimized first-page workspace-directory read runs directly. Pages, leads, analytics, members, assets, arbitrary API access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["instapage_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "instapage_manage",
+        "instapage_sensitive_or_metered_data",
+        "instapage_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized workspace-directory tool through the encrypted customer-owned Instapage personal API token."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized workspace-directory tool through the encrypted customer-owned Instapage personal API token."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer Instapage account, least-privilege user with Developer Access, personal API token, representative multi-workspace fixture, role matrix, daily plan quota, or token-rotation procedure is available in this workspace.",
+    "nextAction": "An Instapage owner assigns Developer Access and the least necessary role to a dedicated user, that user creates or rotates a personal API token, saves it through Relay Console, then verifies minimized first-page workspace listing, permission changes, daily and per-minute limits, agent assignment, token replacement, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://devdocs.instapage.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Instapage documents Bearer authentication with a personal API token, creator-role and workspace-plan permission boundaries, revocation behavior, 200 requests per minute plus daily quotas, and GET /v1/workspaces?page=1 with a 100-item page and documented workspace response fields."
+    },
+    {
+      "url": "https://help.instapage.com/hc/en-us/articles/27634951739287-Public-API",
+      "checkedAt": "2026-07-17",
+      "supports": "The official help center documents that personal tokens can access every workspace available to their creator, can expose leads, inherit team-member and subscription restrictions, and must be treated as confidential."
+    },
+    {
+      "url": "https://help.instapage.com/hc/en-us/articles/33320794801559-Developer-Access-for-Team-Members",
+      "checkedAt": "2026-07-17",
+      "supports": "Instapage documents separate Developer Access and workspace roles, including that API actions remain constrained by the user's viewer, editor, manager, or owner authority."
+    }
+  ]
+}

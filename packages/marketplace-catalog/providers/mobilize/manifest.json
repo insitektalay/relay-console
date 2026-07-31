@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mobilize",
+  "name": "Mobilize",
+  "category": "crm_support",
+  "description": "Mobilize is Bonterra's event-management and volunteer-recruitment platform for mission-driven organizations. Teams use it to publish public and private actions, recruit and communicate with supporters, manage event attendance, coordinate promoted events and connect organizing data to other systems.",
+  "agentUseSummary": "Add a support-issued Mobilize API key and its exact numeric organization ID, then let selected agents use all 17 live or restricted v1 operations. Public reads run directly; private event, supporter and attendance reads plus every mutation require approval in Safe mode.",
+  "provider": {
+    "websiteUrl": "https://join.mobilize.us/",
+    "docsUrl": "https://github.com/mobilizeamerica/api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://join.mobilize.us/terms-of-service/",
+    "privacyUrl": "https://join.mobilize.us/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_bearer_api_key",
+      "support_issued_api_access",
+      "exact_organization_id_binding",
+      "fixed_api_mobilize_us_v1_origin",
+      "provider_restricted_write_access"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MOBILIZE_API_KEY",
+        "label": "Mobilize API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Ask Mobilize to issue a dedicated key for the intended organization and approve the required read/write operations. Relay encrypts it and sends it only to api.mobilize.us as a bearer token."
+      },
+      {
+        "name": "MOBILIZE_ORGANIZATION_ID",
+        "label": "Mobilize organization ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact numeric organization ID authorized for the key. Relay substitutes it server-side into every private organization route and never accepts a runtime organization override."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "mobilize_public_read",
+      "label": "Read public organizing data",
+      "description": "List public organizations, list organizations promoted by the connected organization, fetch one public event without credentials and read current enum values.",
+      "defaultSelected": true
+    },
+    {
+      "id": "mobilize_sensitive_read",
+      "label": "Read organization supporters and activity",
+      "description": "Read private-capable organization events, deleted events, supporter profiles and attendance records under Safe approval.",
+      "defaultSelected": true
+    },
+    {
+      "id": "mobilize_manage",
+      "label": "Manage events and participation",
+      "description": "Create, replace or delete events; create signups and organization affiliations; and upload a bounded event image when Mobilize has approved those restricted routes.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "mobilize_public_read",
+        "label": "Read public Mobilize data",
+        "description": "Use four pinned public or non-sensitive v1 reads without exposing private supporter records."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "mobilize_sensitive_read",
+        "label": "Read private Mobilize organization data",
+        "description": "Read private event details, supporter profiles or attendance records; Safe mode requires approval."
+      },
+      {
+        "id": "mobilize_manage",
+        "label": "Manage Mobilize",
+        "description": "Create, update or delete events, create signups or affiliations, or upload an event image; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "mobilize_safe",
+      "label": "Safe",
+      "description": "Public reads run directly. Private supporter/event reads and all six mutations require approval, in addition to provider-granted restricted-route access.",
+      "defaultSelected": true,
+      "allowedActions": ["mobilize_public_read"],
+      "approvalRequiredActions": [
+        "mobilize_sensitive_read",
+        "mobilize_manage"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 17 pinned operations run without Relay per-action approval; exact organization binding, provider authorization, supporter privacy, fixed routes, payload bounds, audits and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "mobilize_public_read",
+        "mobilize_sensitive_read",
+        "mobilize_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three approval-aware tools over all 17 live or restricted v1 operations with fixed origins, exact organization binding and encrypted customer credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three approval-aware tools over all 17 live or restricted v1 operations with fixed origins, exact organization binding and encrypted customer credentials."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Mobilize must issue an API key for the exact customer organization and explicitly approve access to restricted event, attendance, affiliation and image-upload routes. Live acceptance additionally needs representative supporter/event data and authorization to exercise sensitive political or advocacy records in Railway staging.",
+    "nextAction": "An authorized organization requests a dedicated least-privilege key and the six required restricted write routes from Mobilize, records its numeric organization ID, stores both through Relay Console, then validates exact-organization health, public credential omission, one approved private read, each approved mutation class, image bounds, provider rate limits, key replacement/deletion, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://github.com/mobilizeamerica/api",
+      "checkedAt": "2026-07-18",
+      "supports": "Mobilize's official v1 reference fixes the https://api.mobilize.us/v1 origin, bearer API-key authentication, JSON response envelope, cursor/page bounds, 15 read and 5 write requests per second, eleven live reads and six support-restricted mutations; Relay omits two deprecated global event-list routes."
+    },
+    {
+      "url": "https://help.mobilize.us/en/articles/4500024-what-s-new-on-mobilize",
+      "checkedAt": "2026-07-18",
+      "supports": "Mobilize's current product updates continue to reference its public API, supporter opt-in fields, organization/event filters and current API behavior, confirming that the documented v1 surface remains active."
+    },
+    {
+      "url": "https://help.mobilize.us/en/articles/11604981-event-sign-up-form-fields-and-disclaimers",
+      "checkedAt": "2026-07-18",
+      "supports": "Mobilize documents the supporter identity, contact, ZIP and SMS-consent fields collected during event signup and shared with organizers, supporting critical-risk classification and approval-gated private reads and writes."
+    },
+    {
+      "url": "https://join.mobilize.us/terms-of-service/",
+      "checkedAt": "2026-07-18",
+      "supports": "Mobilize's current terms identify the service as an EveryAction/NGP VAN product for mission-driven organizations to manage events and recruit volunteers."
+    },
+    {
+      "url": "https://join.mobilize.us/privacy-policy/",
+      "checkedAt": "2026-07-18",
+      "supports": "Bonterra's current Mobilize privacy notice describes event, supporter, campaign and organization data, service-provider processing, retention and data-subject boundaries that Relay must preserve."
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "pusher-beams",
+  "name": "Pusher Beams",
+  "category": "communication",
+  "description": "Pusher Beams is a hosted push-notification service for iOS, Android, and web applications. It manages device push tokens and supports anonymous Device Interests, authenticated users, delivery insights, webhooks, and realtime debugging.",
+  "agentUseSummary": "Add one Beams instance ID and secret key, then bind one anonymous Device Interest; agents can send a single bounded title/body notification to that interest under Relay approval policy.",
+  "provider": {
+    "websiteUrl": "https://pusher.com/beams/",
+    "docsUrl": "https://pusher.com/docs/beams/reference/publish-api/",
+    "developerConsoleUrl": "https://dashboard.pusher.com/",
+    "termsUrl": "https://pusher.com/legal/terms/",
+    "privacyUrl": "https://pusher.com/legal/privacy-policy/"
+  },
+  "authentication": {"model":"api_key","relayOwned":false,"scopes":[],"pkce":false,"refreshTokens":false,"authorizationUrl":null,"tokenUrl":null,"revocationUrl":null},
+  "connection": {
+    "types": ["customer_owned_instance_secret", "exact_device_interest_binding"],
+    "credentialRequirements": [
+      {"name":"PUSHER_BEAMS_INSTANCE_ID","label":"Pusher Beams instance ID","required":true,"secret":false,"helpText":"Enter the exact UUID instance ID. Relay uses it in both the allowlisted HTTPS host and path."},
+      {"name":"PUSHER_BEAMS_SECRET_KEY","label":"Pusher Beams secret key","required":true,"secret":true,"helpText":"Use the instance secret key from Credentials. Relay encrypts it and sends it only as a Bearer header to the exact instance host."},
+      {"name":"PUSHER_BEAMS_INTEREST","label":"Bound Device Interest","required":true,"secret":false,"helpText":"Enter one anonymous Device Interest. Relay permits notifications only to this exact interest."}
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [{"id":"interest_notification_publish","label":"Publish to one Device Interest","description":"Send one title/body notification to the exact connection-bound anonymous interest across configured APNs, FCM, and web platforms.","defaultSelected":true}],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [{"id":"pusher_beams_interest_notification_publish","label":"Publish Pusher Beams interest notification","description":"Send one bounded title/body notification to the single connection-bound Device Interest."}],
+    "blocked": [
+      {"id":"pusher_beams_users_devices_or_tokens","label":"Access users, devices, or tokens","description":"Authenticated user IDs, device IDs/tokens, platform tokens, Beams auth tokens, subscriptions, and per-device state remain blocked."},
+      {"id":"pusher_beams_arbitrary_interests_or_payloads","label":"Use arbitrary interests or payloads","description":"Runtime interests, multiple interests, user targeting, webhook URLs, custom data, deep links, media, platform overrides, and raw payloads remain blocked."},
+      {"id":"pusher_beams_delete_configure_or_administer","label":"Delete, configure, or administer Beams","description":"User/device deletion, interest changes, credentials, instances, platform configuration, webhooks, and administration remain blocked."},
+      {"id":"pusher_beams_raw_api_or_bulk","label":"Use raw API or bulk access","description":"Arbitrary instances, origins, paths, methods, headers, bodies, SDK surfaces, retries, browser sessions, bulk targeting, and exports remain blocked."}
+    ]
+  },
+  "approvalProfiles": [
+    {"id":"pusher_beams_safe","label":"Safe","description":"Every external notification requires approval; users, devices, arbitrary targets/payloads, administration, raw APIs, and bulk remain blocked.","defaultSelected":true,"allowedActions":[],"approvalRequiredActions":["pusher_beams_interest_notification_publish"],"blockedActions":["pusher_beams_users_devices_or_tokens","pusher_beams_arbitrary_interests_or_payloads","pusher_beams_delete_configure_or_administer","pusher_beams_raw_api_or_bulk"]},
+    {"id":"dangerously_skip_permissions","label":"Dangerously skip permissions","description":"The same one-interest notification runs directly; exact binding, content/size caps, provider limits, audits, and provider authorization remain mandatory.","defaultSelected":false,"allowedActions":["pusher_beams_interest_notification_publish"],"approvalRequiredActions":[],"blockedActions":["pusher_beams_users_devices_or_tokens","pusher_beams_arbitrary_interests_or_payloads","pusher_beams_delete_configure_or_administer","pusher_beams_raw_api_or_bulk"]}
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {"format":"openclaw","installSupport":"native_tools","description":"OpenClaw receives one exact-interest Pusher Beams notification wrapper with approval and payload bounds."},
+    {"format":"hermes","installSupport":"native_tools","description":"Hermes receives the same exact-interest Pusher Beams notification wrapper with approval and payload bounds."}
+  ],
+  "availability": "available",
+  "providerSetup": {"status":"customer_action_required","blocker":"Pusher Beams publishing requires an eligible instance, configured push platforms, an instance secret key, and an existing anonymous Device Interest.","nextAction":"A customer admin supplies the exact instance credentials and interest, confirms its subscribed audience, and completes one approval-controlled live notification acceptance test."},
+  "evidence": [
+    {"url":"https://pusher.com/docs/beams/reference/publish-api/","checkedAt":"2026-07-18","supports":"Pusher documents Bearer secret-key authentication, the exact instance host/path, one-to-100 Device Interests, a 10 KiB request limit, publishId response, 100 RPS limit, and provider errors."},
+    {"url":"https://pusher.com/docs/beams/reference/server-sdk-python/","checkedAt":"2026-07-18","supports":"Pusher documents instance ID/secret-key server credentials and APNs, FCM, and web title/body publishing through Device Interests."},
+    {"url":"https://pusher.com/docs/beams/concepts/device-interests/","checkedAt":"2026-07-18","supports":"Pusher documents Device Interests as anonymous device groups and restricts names to 164 allowlisted ASCII characters."},
+    {"url":"https://pusher.com/docs/beams/","checkedAt":"2026-07-18","supports":"Pusher documents Beams as a hosted multi-platform push service with users, interests, token management, insights, webhooks, and debugging; Relay mounts only exact-interest publishing."}
+  ],
+  "securityNotes": [
+    "The instance ID, secret key, and interest are encrypted references; the secret is sent only as a Bearer header to the UUID-derived pushnotifications.pusher.com host.",
+    "Relay fixes POST /publish_api/v1/instances/{same-instance}/publishes/interests, one bound interest, three title/body-only platform payloads, no webhook, redirects denied, 30 seconds, 10 KiB request, and 1 MB response.",
+    "Title is capped at 100 characters and body at 1000; arbitrary interests, users, custom data, links, media, platform overrides, tokens, SDK surfaces, retries, and bulk remain blocked.",
+    "Safe mode requires approval bound to the connection and action; Dangerous mode removes only Relay per-action approval, not provider authority, target binding, caps, audits, or truthful error handling.",
+    "Provider setup, secret capture, audience verification, and live acceptance remain customer/external steps."
+  ]
+}

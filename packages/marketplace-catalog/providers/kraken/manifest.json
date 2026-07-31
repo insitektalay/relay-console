@@ -1,0 +1,210 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "kraken",
+  "name": "Kraken",
+  "category": "commerce_payments",
+  "description": "Kraken is a cryptocurrency platform for buying, selling, trading, and holding digital assets. Individuals and institutions use its spot markets, account tools, and custody services to manage crypto portfolios and execute trades.",
+  "agentUseSummary": "Add a dedicated customer-owned Kraken Spot API key and private key, then choose which agents can read bounded public markets and private account data or place and cancel exact spot orders under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.kraken.com/",
+    "docsUrl": "https://docs.kraken.com/api/",
+    "developerConsoleUrl": "https://pro.kraken.com/app/settings/api",
+    "termsUrl": "https://www.kraken.com/legal",
+    "privacyUrl": "https://www.kraken.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [
+      "query-funds",
+      "query-open-trades",
+      "query-closed-trades",
+      "query-ledger",
+      "modify-trades",
+      "close-trades"
+    ],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key_pair",
+      "hmac_sha512_signed_spot_rest",
+      "strictly_increasing_nonce",
+      "fixed_kraken_api_origin",
+      "permission_restricted"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "KRAKEN_API_KEY",
+        "label": "Kraken API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated Spot API key with only Query Funds, Query Open Orders & Trades, Query Closed Orders & Trades, Query Ledger Entries, Create & Modify Orders, and Cancel & Close Orders as needed for selected capabilities. Do not enable withdrawal, deposit, Earn, export, address-management, WebSocket, or broader permissions."
+      },
+      {
+        "key": "KRAKEN_API_SECRET",
+        "label": "Kraken private key",
+        "secret": true,
+        "required": true,
+        "helpText": "Paste the base64 private key shown once by Kraken. Relay encrypts it and uses it only to produce API-Sign for the fixed Kraken Spot REST origin."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "market_data",
+      "label": "Read spot market data",
+      "description": "Read a bounded public ticker, 25-level order book, or OHLC summary for one exact spot pair.",
+      "defaultSelected": true
+    },
+    {
+      "id": "account_read",
+      "label": "Read account and trading data",
+      "description": "Read bounded balances, open or closed orders, trade history, and ledger pages authorized by the customer key.",
+      "defaultSelected": true
+    },
+    {
+      "id": "spot_trading",
+      "label": "Place and cancel spot orders",
+      "description": "Place one typed market or limit spot order and cancel one exact order, subject to Kraken key permissions and trading limits.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "kraken_market_read",
+        "label": "Read Kraken spot markets",
+        "description": "Read one bounded public ticker, order-book, or OHLC summary."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "kraken_account_read",
+        "label": "Read Kraken account data",
+        "description": "Read one bounded balance, order, trade, or ledger page; Safe mode requires approval."
+      },
+      {
+        "id": "kraken_order_place",
+        "label": "Place a Kraken spot order",
+        "description": "Place one typed market or limit spot order; Safe mode requires approval."
+      },
+      {
+        "id": "kraken_order_cancel",
+        "label": "Cancel a Kraken spot order",
+        "description": "Cancel one exact spot order; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "kraken_funding_blocked",
+        "label": "Funding and transfers unavailable",
+        "description": "Deposits, withdrawals, wallet transfers, subaccount transfers, and address management are outside Relay's V1 surface."
+      },
+      {
+        "id": "kraken_broader_trading_blocked",
+        "label": "Broader trading unavailable",
+        "description": "Batch orders, amend/edit, margin controls, derivatives, OTC, WebSocket/FIX tokens, and raw endpoint delegation are outside V1."
+      },
+      {
+        "id": "kraken_earn_export_blocked",
+        "label": "Earn and exports unavailable",
+        "description": "Earn allocation, deallocation, data exports, and API-key administration are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "kraken_safe",
+      "label": "Safe",
+      "description": "Public market summaries run directly; every private account read and every financial order action requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["kraken_market_read"],
+      "approvalRequiredActions": [
+        "kraken_account_read",
+        "kraken_order_place",
+        "kraken_order_cancel"
+      ],
+      "blockedActions": [
+        "kraken_funding_blocked",
+        "kraken_broader_trading_blocked",
+        "kraken_earn_export_blocked"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All selected Kraken market, account, and spot-order actions run without Relay per-action approval; connection ownership, key permissions, fixed routing, nonce discipline, bounds, redaction, audits, and Kraken limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "kraken_market_read",
+        "kraken_account_read",
+        "kraken_order_place",
+        "kraken_order_cancel"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "kraken_funding_blocked",
+        "kraken_broader_trading_blocked",
+        "kraken_earn_export_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Kraken Spot wrappers and performs nonce generation and HMAC signing server-side without exposing either key to the runtime."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Kraken Spot wrappers and performs nonce generation and HMAC signing server-side without exposing either key to the runtime."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No customer-owned Kraken account, dedicated API key pair, or representative Spot account is available to this code-only worker.",
+    "nextAction": "A Kraken customer creates a dedicated key with only the permissions needed for selected capabilities and no funding, withdrawal, Earn, export, address-management, WebSocket, or Futures authority; saves the key pair through Relay Console; and verifies key-info health, bounded market/account reads, Safe approval, validate-only and one permitted spot order, exact cancellation, credential replacement, disconnect, key revocation, nonce behavior, and post-disconnect denial in Railway staging. API-key 2FA is not supported by this server-side V1 because Relay never asks agents for a rotating OTP."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.kraken.com/exchange/guides/rest/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Kraken documents the Spot REST API-Key and API-Sign headers, HMAC-SHA512 construction over the URI path and SHA256 nonce-plus-payload digest, a base64 private key, and a strictly increasing nonce."
+    },
+    {
+      "url": "https://docs.kraken.com/api/docs/rest-api/get-api-key-info",
+      "checkedAt": "2026-07-17",
+      "supports": "Kraken documents GetApiKeyInfo as a signed health endpoint requiring no API-key permission and returning the key's permission, expiry, nonce-window, and IP-restriction configuration."
+    },
+    {
+      "url": "https://docs.kraken.com/api-reference/account-data/get-account-balance",
+      "checkedAt": "2026-07-17",
+      "supports": "Kraken documents signed account balances under the Funds Query permission and separately lists private order, trade, ledger, funding, subaccount, Earn, and export operations."
+    },
+    {
+      "url": "https://docs.kraken.com/api-reference/trading/add-order",
+      "checkedAt": "2026-07-17",
+      "supports": "Kraken documents typed Spot order placement, including pair, buy or sell side, order type, volume, price for limit orders, and validate-only order checking under Create & Modify Orders permission."
+    },
+    {
+      "url": "https://docs.kraken.com/api-reference/trading/cancel-order",
+      "checkedAt": "2026-07-17",
+      "supports": "Kraken documents cancellation of one exact order identifier under Cancel & Close Orders permission."
+    },
+    {
+      "url": "https://support.kraken.com/articles/360043577552-api-security-what-account-information-does-the-api-expose-",
+      "checkedAt": "2026-07-17",
+      "supports": "Kraken explains that key permissions govern balances, orders, trades, and histories while identity, contact details, passwords, 2FA secrets, and verification documents remain unavailable through the API."
+    }
+  ]
+}

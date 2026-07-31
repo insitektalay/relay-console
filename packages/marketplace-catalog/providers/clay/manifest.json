@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "clay", "name": "Clay", "category": "crm_support",
+  "description": "Clay is a go-to-market data and workflow platform for finding people and companies, enrichment, research, scoring, routing, tables, integrations, and outbound operations.",
+  "agentUseSummary": "Add a customer-owned Clay Public API key to validate one exact user/workspace binding and read only opaque workspace/user identifiers plus workspace name. Relay pins GET https://api.clay.com/public/v0/me, the clay-api-key header, response size, returned fields, audit, redaction, and approval boundary while excluding personal identity, GTM records, Searches, Routines, Claygents, Workflows, Enterprise table queries, credit-consuming actions, MCP/CLI, mutations, pagination, uploads, webhooks, and exports.",
+  "provider": { "websiteUrl": "https://www.clay.com/", "docsUrl": "https://developers.clay.com/", "termsUrl": "https://www.clay.com/terms-of-service", "privacyUrl": "https://privacy.clay.com/" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false },
+  "connection": { "types": ["customer_owned_personal_public_api_key", "workspace_bound", "encrypted_server_side_secret"], "credentialRequirements": [{ "key": "CLAY_PUBLIC_API_KEY", "label": "Clay Public API key", "secret": true, "required": true }], "callbackPath": null, "webhookRequirements": [] },
+  "capabilities": [{ "id": "workspace_read", "label": "Read connected workspace", "description": "Validate the exact API-key-bound Clay workspace and return only opaque workspace/user identifiers and workspace name.", "defaultSelected": true }],
+  "actions": { "allowed": [], "approvalRequired": [{ "id": "clay_workspace_get", "label": "Read connected workspace", "description": "Read bounded workspace and opaque user identifiers for the exact Clay Public API key without returning personal identity or GTM data." }], "blocked": [
+    { "id": "clay_search_and_enrichment", "label": "Search or enrich GTM data", "description": "Searches, filter discovery, routines, Clay-managed or custom functions, Claygents, Workflows, enrichment, scoring, routing, and credit-consuming runs are outside V1." },
+    { "id": "clay_private_table_data", "label": "Read private table data", "description": "Enterprise table queries, rows, cells, fields, people, companies, contact details, firmographics, signals, and other workspace content are outside V1." },
+    { "id": "clay_workspace_mutation", "label": "Change Clay data", "description": "Creating or changing tables, workflows, functions, searches, runs, records, integrations, settings, or other Clay state is outside V1." },
+    { "id": "clay_raw_api", "label": "Call arbitrary Clay tools", "description": "The raw Public API, MCP server, CLI, plugin, arbitrary origins, paths, methods, parameters, filters, cursors, payloads, and alpha surfaces are outside V1." },
+    { "id": "clay_bulk_export", "label": "Export Clay data", "description": "Batch runs, uploads, webhooks, polling, automatic pagination, crawling, synchronization, downloads, and exports are outside V1." }
+  ] },
+  "approvalProfiles": [
+    { "id": "clay_safe", "label": "Safe", "description": "The bounded private workspace-binding read requires matching approval.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["clay_workspace_get"], "blockedActions": ["clay_search_and_enrichment", "clay_private_table_data", "clay_workspace_mutation", "clay_raw_api", "clay_bulk_export"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The selected workspace-binding read runs without Relay per-action approval while exact key authority, fixed origin and endpoint, audit, redaction, response bounds, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["clay_workspace_get"], "approvalRequiredActions": [], "blockedActions": ["clay_search_and_enrichment", "clay_private_table_data", "clay_workspace_mutation", "clay_raw_api", "clay_bulk_export"] }
+  ],
+  "riskLevel": "high", "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts one bounded approval-gated Clay workspace-binding read and keeps the API key encrypted on Railway." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts one bounded approval-gated Clay workspace-binding read and keeps the API key encrypted on Railway." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": { "status": "blocked", "blocker": "No customer-owned Clay account, Public API key, or live acceptance evidence is available in this workspace.", "nextAction": "In the provider-console task, create a dedicated Clay Public API key under the beta API-key settings, store it through Relay, then validate exact workspace binding, the bounded workspace read, Safe approval, Dangerous read, permission denial, key rotation, disconnect, and post-disconnect denial without running credit-consuming or private-data APIs." },
+  "evidence": [
+    { "url": "https://developers.clay.com/public-api/authentication", "checkedAt": "2026-07-18", "supports": "Clay documents the fixed https://api.clay.com/public/v0 origin, personal API keys, the required clay-api-key header, user/workspace binding, server-side storage, and the GET /me example." },
+    { "url": "https://developers.clay.com/", "checkedAt": "2026-07-18", "supports": "Clay documents the open-beta developer platform and its Searches, Routines, read-only Enterprise Tables, API, CLI, and MCP primitives." },
+    { "url": "https://developers.clay.com/tables", "checkedAt": "2026-07-18", "supports": "Clay documents Enterprise-only table reads, required known table IDs, structured field/filter queries, maximum page size 100, and cursor pagination; Relay excludes this private, customer-schema-dependent surface from V1." },
+    { "url": "https://developers.clay.com/public-api/rate-limits", "checkedAt": "2026-07-18", "supports": "Clay documents per-workspace rate limiting, HTTP 429, Retry-After, and optional X-RateLimit headers." }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "opencart-self-hosted",
+  "name": "OpenCart Self-Hosted",
+  "category": "commerce_payments",
+  "description": "OpenCart is an open-source ecommerce platform for customer-operated online stores. It supports catalogs, inventory, pricing, storefronts, carts, checkout, orders, customers, extensions, and administration.",
+  "agentUseSummary": "OpenCart Self-Hosted cannot currently be connected to Relay agents because OpenCart 4.1's supported core API exposes only order and subscription workflows, with no isolated read-only catalog, inventory, customer, or order resource contract suitable for a safe V1 connector.",
+  "provider": {
+    "websiteUrl": "https://www.opencart.com/",
+    "docsUrl": "https://docs.opencart.com/system/users/api/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://github.com/opencart/opencart/blob/master/LICENSE.md",
+    "privacyUrl": "https://www.opencart.com/index.php?route=cms/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["no_safe_supported_read_only_core_api"],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "opencart_self_hosted_connect_core_api",
+        "label": "Connect the OpenCart core API",
+        "description": "OpenCart's supported core API authentication is bound to its order and subscription workflow endpoints; Relay will not collect an API key when no isolated safe read action can be offered."
+      },
+      {
+        "id": "opencart_self_hosted_order_subscription_workflows",
+        "label": "Run order or subscription workflows",
+        "description": "The core API can construct carts, confirm or edit orders and subscriptions, and append histories. These commerce mutations are too consequential to substitute for a bounded read-only V1."
+      },
+      {
+        "id": "opencart_self_hosted_extension_or_private_api",
+        "label": "Use an extension or private endpoint",
+        "description": "Relay will not assume a third-party REST extension, scrape storefront or admin HTML, automate a browser, query the database, or reverse engineer undocumented endpoints."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "opencart_self_hosted_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled until OpenCart publishes a supported isolated read-only resource API or Relay separately approves a named extension contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "opencart_self_hosted_connect_core_api",
+        "opencart_self_hosted_order_subscription_workflows",
+        "opencart_self_hosted_extension_or_private_api"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No safe supported read-only OpenCart core API or remote MCP service is available to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No safe supported read-only OpenCart core API or remote MCP service is available to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "OpenCart 4.1's startup API allowlist admits only api/order and api/subscription. Their documented core controller calls construct carts, select customers and addresses, confirm or edit orders and subscriptions, and append histories; the core distribution does not expose an isolated read-only catalog, inventory, customer, or order resource API for a least-privilege Relay connector.",
+    "nextAction": "Do not show Connect or request an OpenCart username, API key, or IP allowlist entry. Reconsider only if OpenCart publishes a supported read-only resource API, or if a separately reviewed named extension with a stable contract and least-privilege read permissions is explicitly commissioned."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.opencart.com/system/users/api/",
+      "checkedAt": "2026-07-18",
+      "supports": "OpenCart's official administration documentation identifies API users as a system setting rather than documenting a general read-only commerce resource API."
+    },
+    {
+      "url": "https://github.com/opencart/opencart/blob/4.1.0.3/upload/catalog/controller/startup/api.php",
+      "checkedAt": "2026-07-18",
+      "supports": "The official OpenCart 4.1.0.3 source allowlists only api/order and api/subscription, requires an API username, source-IP allowlist, timestamp, and HMAC signature, and blocks direct access to other api routes."
+    },
+    {
+      "url": "https://github.com/opencart/opencart/blob/4.1.0.3/upload/catalog/controller/api/order.php",
+      "checkedAt": "2026-07-18",
+      "supports": "The official order controller exposes cart construction, customer and address selection, shipping and payment selection, order confirmation or editing, and order-history mutation rather than an isolated resource read."
+    },
+    {
+      "url": "https://github.com/opencart/opencart/blob/4.1.0.3/upload/catalog/controller/api/subscription.php",
+      "checkedAt": "2026-07-18",
+      "supports": "The official subscription controller likewise constructs checkout state, confirms or edits subscriptions, and appends history; it does not provide a safe standalone read-only account surface."
+    }
+  ]
+}

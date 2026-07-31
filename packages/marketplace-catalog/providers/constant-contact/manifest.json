@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "constant-contact",
+  "name": "Constant Contact",
+  "category": "communication",
+  "description": "Constant Contact is a marketing platform for email Campaigns, contacts, lists, events, SMS, social publishing, landing pages, automation, and reporting.",
+  "agentUseSummary": "Connect one exact Constant Contact Account through Relay-owned server OAuth with only account_read, campaign_data, and offline_access after verifying account and report privileges. Relay serializes complete rotating token-pair replacement and exposes only Account ID/organization, twenty-five content-free Campaign lifecycle summaries, and twenty-five aggregate Campaign Summary Reports; contacts, identity, content, person-level tracking, broader APIs, arbitrary queries, pagination, exports, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.constantcontact.com/",
+    "docsUrl": "https://developer.constantcontact.com/api_guide/index.html",
+    "developerConsoleUrl": "https://app.constantcontact.com/pages/dma/portal/",
+    "termsUrl": "https://www.constantcontact.com/legal/terms",
+    "privacyUrl": "https://www.constantcontact.com/legal/privacy-notice"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["account_read", "campaign_data", "offline_access"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://authz.constantcontact.com/oauth2/default/v1/authorize",
+    "tokenUrl": "https://authz.constantcontact.com/oauth2/default/v1/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "exact_account_binding",
+      "exact_scope_binding",
+      "required_privilege_binding",
+      "twenty_four_hour_access_token",
+      "rotating_complete_token_pair",
+      "local_disconnect_and_provider_managed_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/constant-contact/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_metadata",
+      "label": "Account metadata",
+      "description": "Read the exact Constant Contact Account summary.",
+      "defaultSelected": true
+    },
+    {
+      "id": "campaign_metadata",
+      "label": "Email Campaign metadata",
+      "description": "List bounded recent Email Campaign lifecycle summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "campaign_summary",
+      "label": "Campaign aggregate reports",
+      "description": "List bounded aggregate Email Campaign Summary Reports.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "constant_contact_account_get",
+        "label": "Read Account metadata",
+        "description": "Read the exact encoded Account ID and organization name."
+      },
+      {
+        "id": "constant_contact_campaign_list_recent",
+        "label": "List recent Email Campaigns",
+        "description": "Read the first twenty-five Campaign lifecycle summaries."
+      },
+      {
+        "id": "constant_contact_campaign_summary_list_recent",
+        "label": "List recent Campaign Summary Reports",
+        "description": "Read the first twenty-five aggregate Campaign performance summaries."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "constant_contact_contact_private",
+        "label": "Access contacts or person-level tracking",
+        "description": "Contacts, lists, segments, identity, consent, and person-level reporting are outside V1."
+      },
+      {
+        "id": "constant_contact_campaign_content",
+        "label": "Access Campaign content or identity",
+        "description": "Campaign names, subjects, content, activities, senders, recipients, permalinks, and audience details are outside V1."
+      },
+      {
+        "id": "constant_contact_broader_api",
+        "label": "Access broader Constant Contact APIs",
+        "description": "SMS, events, social, landing pages, contacts, segments, and administration are outside V1."
+      },
+      {
+        "id": "constant_contact_marketing_mutation",
+        "label": "Change or send Constant Contact data",
+        "description": "Creating, updating, sending, administering, importing, or deleting provider resources is outside V1."
+      },
+      {
+        "id": "constant_contact_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary dates, pages, cursors, filters, paths, pagination, crawling, exports, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "constant_contact_safe",
+      "label": "Safe",
+      "description": "Three bounded metadata and aggregate-report reads run automatically; contacts, person-level tracking, content, broader APIs, raw requests, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "constant_contact_account_get",
+        "constant_contact_campaign_list_recent",
+        "constant_contact_campaign_summary_list_recent"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "constant_contact_contact_private",
+        "constant_contact_campaign_content",
+        "constant_contact_broader_api",
+        "constant_contact_marketing_mutation",
+        "constant_contact_raw_query"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact-Account, exact scopes, required privileges, fixed fields, page limits, audit, redaction, and token rotation remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "constant_contact_account_get",
+        "constant_contact_campaign_list_recent",
+        "constant_contact_campaign_summary_list_recent"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "constant_contact_contact_private",
+        "constant_contact_campaign_content",
+        "constant_contact_broader_api",
+        "constant_contact_marketing_mutation",
+        "constant_contact_raw_query"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Constant Contact reporting wrappers and attaches the encrypted, Account-bound rotating OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Constant Contact reporting wrappers and attaches the encrypted, Account-bound rotating OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Constant Contact requires Relay to register a confidential V3 application with the exact Railway callback, exact scopes, rotating refresh tokens, and secure client credentials. Railway staging credentials and Owner/Manager acceptance accounts are not configured in this code-only task.",
+    "nextAction": "In the provider-console task, create and review Relay's Constant Contact V3 app with https://api.relayconsole.work/api/v1/marketplace/oauth/constant-contact/callback and only account_read campaign_data offline_access, choose rotating refresh tokens, configure Railway staging credentials, then verify JWT/token claims, exact Account and privilege binding, all three minimized reads, near-expiry serialized pair rotation, provider revocation plus local disconnect, rate limits, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.constantcontact.com/api_guide/server_flow.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Constant Contact documents confidential Authorization Code OAuth, Basic-auth form token and refresh requests, 86,400-second access tokens, rate-limited rotating refresh pairs, and Bearer V3 API calls."
+    },
+    {
+      "url": "https://developer.constantcontact.com/api_guide/scopes.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Account, Email Campaign, email reporting, and refresh routes require account_read, campaign_data, and offline_access respectively; contact_data and account_update are not required."
+    },
+    {
+      "url": "https://developer.constantcontact.com/api_guide/user_privileges.html",
+      "checkedAt": "2026-07-17",
+      "supports": "The selected reads require account:read, campaign:read, and ui:campaign:metrics; Account Owners and Managers have these privileges while Campaign Creators lack account and report access."
+    },
+    {
+      "url": "https://developer.constantcontact.com/api_reference/index.html",
+      "checkedAt": "2026-07-17",
+      "supports": "The V3 account, Email Campaign collection, and Email Campaign Summary Report endpoints publish the response fields and bounded limit parameters used by Relay's privacy-minimized wrappers."
+    }
+  ]
+}

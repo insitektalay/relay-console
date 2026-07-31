@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "docusign-clm",
+  "name": "DocuSign CLM",
+  "category": "work_management",
+  "description": "DocuSign CLM is an enterprise contract lifecycle management platform for agreements, document repositories, generation, negotiation, workflows, tasks, attributes, parties, approvals, and contract operations.",
+  "agentUseSummary": "Connect an approved CLM OAuth integration, then let selected agents read one exact minimized folder from an account-issued CLM API host. Relay does not expose contracts, documents, content, attributes, tasks, workflows, searches, parties, users, locks, versions, downloads, uploads, or mutations.",
+  "provider": { "websiteUrl": "https://www.docusign.com/products/clm", "docsUrl": "https://developers.docusign.com/docs/clm-api/", "developerConsoleUrl": "https://apps.docusign.com/admin/apps-and-keys", "termsUrl": "https://www.docusign.com/company/terms-and-conditions/web", "privacyUrl": "https://www.docusign.com/company/privacy-policy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["signature", "extended"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://account.docusign.com/oauth/auth", "tokenUrl": "https://account.docusign.com/oauth/token", "revocationUrl": null },
+  "connection": { "types": ["relay_owned_oauth", "clm_enabled_account", "account_specific_api_origin"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/docusign-clm/callback", "webhookRequirements": [] },
+  "capabilities": [{ "id": "docusign_clm_read", "label": "Read folder metadata", "description": "Use one pinned GET for exact, minimized CLM folder metadata.", "defaultSelected": true }],
+  "actions": {
+    "allowed": [{ "id": "docusign_clm_read", "label": "Read CLM folder metadata", "description": "Read one exact minimized folder from the account-issued CLM Object API host." }],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "docusign_clm_manage", "label": "Change DocuSign CLM", "description": "Contracts, documents, attributes, tasks, workflows, folders, parties, users, locks, versions, uploads, downloads, and every mutation remain blocked." },
+      { "id": "docusign_clm_sensitive_data", "label": "Read contract data", "description": "Document content and metadata, attributes, parties, users, tasks, workflow history, search results, audit details, download links, previews, and OCR are blocked." },
+      { "id": "docusign_clm_arbitrary_api", "label": "Call arbitrary CLM APIs", "description": "Unvalidated hosts, legacy SpringCM endpoints, Content and Task APIs, arbitrary routes, methods, queries, bodies, and bulk reads are blocked." }
+    ]
+  },
+  "approvalProfiles": [{ "id": "docusign_clm_safe", "label": "Safe", "description": "One exact minimized folder read runs directly. Documents, attributes, parties, users, tasks, workflows, searches, arbitrary APIs, and every mutation remain blocked.", "defaultSelected": true, "allowedActions": ["docusign_clm_read"], "approvalRequiredActions": [], "blockedActions": ["docusign_clm_manage", "docusign_clm_sensitive_data", "docusign_clm_arbitrary_api"] }],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts one exact folder-metadata read through the encrypted CLM OAuth connection." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts one exact folder-metadata read through the encrypted CLM OAuth connection." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": { "status": "blocked", "blocker": "No CLM-enabled developer or production account, Relay-owned integration key, production client secret, approved go-live, customer authorization, account-specific API origin, account ID, representative folder, or safe fixture is available in this workspace.", "nextAction": "Provision a CLM developer account, register the OAuth integration and callback, complete required development validation and manual CLM go-live, configure Railway production credentials, then verify OAuth, the exact folder read on the account-issued host, assignment, refresh, disconnect, provider revocation, and post-disconnect denial." },
+  "evidence": [
+    { "url": "https://developers.docusign.com/docs/clm-api/reference/objects/folders/get/", "checkedAt": "2026-07-17", "supports": "DocuSign documents the CLM Object API folder Get operation used as Relay's single fixed read." },
+    { "url": "https://www.docusign.com/blog/developers/clm-api-first-steps-and-go-live", "checkedAt": "2026-07-17", "supports": "DocuSign documents CLM developer-account provisioning, OAuth requirements, production account requirements, development calls, and manual CLM go-live review." },
+    { "url": "https://www.docusign.com/blog/developers/from-the-trenches-use-the-docusign-clm-api-to-upload-download-and-version-documents", "checkedAt": "2026-07-17", "supports": "DocuSign documents account-specific Azure CLM hosts plus separate Object and Content APIs and sensitive upload, download, OCR, preview, lock, and version operations Relay excludes." },
+    { "url": "https://developers.docusign.com/docs/clm-api/go-live/", "checkedAt": "2026-07-17", "supports": "DocuSign's CLM go-live documentation supports treating production setup and validation as an external provisioning gate." }
+  ]
+}

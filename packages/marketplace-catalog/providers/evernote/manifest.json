@@ -1,0 +1,197 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "evernote",
+  "name": "Evernote",
+  "category": "knowledge_documents",
+  "description": "Search, read, create, update, organize, share, and administer notes, notebooks, tags, resources, and saved searches through the Evernote Cloud API.",
+  "agentUseSummary": "Connect once through Relay-owned Evernote OAuth 1.0a, then let agents use selected Full Access capabilities under Safe or Dangerously skip permissions policy.",
+  "provider": {
+    "websiteUrl": "https://evernote.com/",
+    "docsUrl": "https://dev.evernote.com/doc/",
+    "developerConsoleUrl": "https://dev.evernote.com/support/",
+    "termsUrl": "https://evernote.com/legal/terms-of-service",
+    "privacyUrl": "https://evernote.com/privacy/policy"
+  },
+  "authentication": {
+    "model": "oauth1",
+    "relayOwned": true,
+    "scopes": ["full_access"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.evernote.com/OAuth.action",
+    "tokenUrl": "https://www.evernote.com/oauth",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth1"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/evernote/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "profile",
+      "label": "Profile",
+      "description": "Read bounded connected-account metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "notebooks",
+      "label": "Notebooks",
+      "description": "List and manage notebooks within the granted Evernote account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "notes",
+      "label": "Notes",
+      "description": "Search, read, create, update, and delete notes and their resources.",
+      "defaultSelected": true
+    },
+    {
+      "id": "tags",
+      "label": "Tags",
+      "description": "List and manage tags.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Evernote API",
+      "description": "Use documented Full Access NoteStore operations, including searches, sharing, resources, sync, and administration.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "evernote_read_profile",
+        "label": "Read profile",
+        "description": "Read bounded account metadata."
+      },
+      {
+        "id": "evernote_list_notebooks",
+        "label": "List notebooks",
+        "description": "List bounded notebook metadata."
+      },
+      {
+        "id": "evernote_search_notes",
+        "label": "Search notes",
+        "description": "Search bounded note metadata."
+      },
+      {
+        "id": "evernote_read_note",
+        "label": "Read note",
+        "description": "Read one note and optional ENML content."
+      },
+      {
+        "id": "evernote_list_tags",
+        "label": "List tags",
+        "description": "List bounded tag metadata."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "evernote_create_note",
+        "label": "Create note",
+        "description": "Create a note with approval in Safe mode."
+      },
+      {
+        "id": "evernote_update_note",
+        "label": "Update note",
+        "description": "Update a note with approval in Safe mode."
+      },
+      {
+        "id": "evernote_delete_note",
+        "label": "Delete note",
+        "description": "Move a note to trash with approval in Safe mode."
+      },
+      {
+        "id": "evernote_full_api",
+        "label": "Use full Evernote API",
+        "description": "Call another documented NoteStore operation with approval in Safe mode."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "evernote_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; mutations and the full NoteStore surface require approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "evernote_read_profile",
+        "evernote_list_notebooks",
+        "evernote_search_notes",
+        "evernote_read_note",
+        "evernote_list_tags"
+      ],
+      "approvalRequiredActions": [
+        "evernote_create_note",
+        "evernote_update_note",
+        "evernote_delete_note",
+        "evernote_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Evernote Full Access capability runs without Relay per-action approvals; ownership, provider authority, secret isolation, result bounds, rate limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "evernote_read_profile",
+        "evernote_list_notebooks",
+        "evernote_search_notes",
+        "evernote_read_note",
+        "evernote_list_tags",
+        "evernote_create_note",
+        "evernote_update_note",
+        "evernote_delete_note",
+        "evernote_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected Evernote tools and proxies the OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected Evernote tools and proxies the OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay must receive Evernote production activation for a Full Access API key and configure EVERNOTE_CONSUMER_KEY and EVERNOTE_CONSUMER_SECRET on Railway.",
+    "nextAction": "Submit the production Full Access activation justification, register https://api.relayconsole.work/api/v1/marketplace/oauth/evernote/callback, and place the issued consumer credentials in Railway."
+  },
+  "evidence": [
+    {
+      "url": "https://dev.evernote.com/doc/articles/authentication.php",
+      "checkedAt": "2026-07-13",
+      "supports": "Evernote uses three-legged OAuth 1.0a with temporary credentials, authorization, verifier callback, access-token exchange, and expiring user-selected token durations."
+    },
+    {
+      "url": "https://dev.evernote.com/doc/articles/permissions.php",
+      "checkedAt": "2026-07-13",
+      "supports": "Full Access permits creating, reading, and updating notes, notebooks, tags, and shared notebooks; production activation requires justification."
+    },
+    {
+      "url": "https://dev.evernote.com/doc/reference/NoteStore.html",
+      "checkedAt": "2026-07-13",
+      "supports": "NoteStore documents notes, notebooks, tags, resources, searches, sharing, sync, and other account operations."
+    },
+    {
+      "url": "https://dev.evernote.com/doc/articles/rate_limits.php",
+      "checkedAt": "2026-07-13",
+      "supports": "Limits are per API key and user per time period; RATE_LIMIT_REACHED includes a retry duration and clients should avoid blind retry."
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "xero",
+  "name": "Xero",
+  "category": "commerce_payments",
+  "description": "Xero is cloud accounting software for small businesses, accountants, and bookkeepers. It brings invoicing, bank reconciliation, bills, expenses, reporting, payroll integrations, and financial records into one online workspace.",
+  "agentUseSummary": "Connect one organisation with a Xero Web app owned by your business, then let agents inspect bounded organisation metadata and privacy-redacted invoice summaries through three read-only tools. V1 excludes financial writes, contact identity, line items, payments, attachments, bank data, payroll, reports, administration, automatic pagination, and arbitrary Xero API calls.",
+  "provider": {
+    "websiteUrl": "https://www.xero.com/",
+    "docsUrl": "https://developer.xero.com/documentation/guides/oauth2/auth-flow",
+    "developerConsoleUrl": "https://developer.xero.com/app/manage/",
+    "termsUrl": "https://www.xero.com/legal/terms/",
+    "privacyUrl": "https://www.xero.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": ["offline_access", "accounting.settings.read", "accounting.invoices.read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.xero.com/identity/connect/authorize",
+    "tokenUrl": "https://identity.xero.com/connect/token",
+    "revocationUrl": "https://identity.xero.com/connect/revocation"
+  },
+  "connection": {
+    "types": ["customer_owned_oauth_app"],
+    "credentialRequirements": [
+      { "name": "XERO_CLIENT_ID", "label": "Xero client ID", "required": true, "secret": false, "helpText": "Client ID from a Xero Web app owned by your business." },
+      { "name": "XERO_CLIENT_SECRET", "label": "Xero client secret", "required": true, "secret": true, "helpText": "Matching client secret, encrypted and used only for OAuth exchange, refresh, and revocation." }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/xero/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "organisation_read", "label": "Read organisation", "description": "Read bounded metadata for the exact connected organisation.", "defaultSelected": true },
+    { "id": "invoice_read", "label": "Read invoices", "description": "List bounded redacted invoice summaries or inspect one exact invoice.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "xero_organisation_get", "label": "Read organisation", "description": "Read the exact connected Xero organisation's bounded accounting metadata." }],
+    "approvalRequired": [
+      { "id": "xero_invoice_list", "label": "List invoices", "description": "List at most twenty-five privacy-redacted invoice summaries." },
+      { "id": "xero_invoice_get", "label": "Read invoice", "description": "Read one exact privacy-redacted invoice summary by UUID." }
+    ],
+    "blocked": [
+      { "id": "xero_financial_write", "label": "Change financial records", "description": "Invoice, payment, contact, bank, journal, asset, payroll, and settings writes are outside V1." },
+      { "id": "xero_private_data", "label": "Read private accounting data", "description": "Contact identity, line items, references, payments, attachments, bank data, payroll, reports, and raw errors are outside V1." },
+      { "id": "xero_broader_admin", "label": "Administer Xero", "description": "Users, connections, subscriptions, tax administration, and broader organisation administration are outside V1." },
+      { "id": "xero_raw_api", "label": "Use arbitrary Xero APIs", "description": "Arbitrary paths, parameters, automatic pagination, and raw Xero API access are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "xero_safe", "label": "Safe", "description": "Organisation metadata runs directly; invoice reads require matching approval.", "defaultSelected": true, "allowedActions": ["xero_organisation_get"], "approvalRequiredActions": ["xero_invoice_list", "xero_invoice_get"], "blockedActions": ["xero_financial_write", "xero_private_data", "xero_broader_admin", "xero_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while organisation binding, scopes, bounds, audit, redaction, refresh rotation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["xero_organisation_get", "xero_invoice_list", "xero_invoice_get"], "approvalRequiredActions": [], "blockedActions": ["xero_financial_write", "xero_private_data", "xero_broader_admin", "xero_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three exact Xero read wrappers and attaches the encrypted organisation token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three exact Xero read wrappers and attaches the encrypted organisation token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer-owned Xero Web app, matching client credentials, and one authorized Xero organisation are required; this code-only worker does not create provider apps or capture credentials.",
+    "nextAction": "Create a Xero Web app owned by the customer, register https://api.relayconsole.work/api/v1/marketplace/oauth/xero/callback, enter its client ID and secret in Relay Console, authorize exactly one organisation, and verify all three reads, rolling refresh, disconnect, revocation, scope denial, and tenant denial in staging."
+  },
+  "evidence": [
+    { "url": "https://developer.xero.com/documentation/guides/oauth2/auth-flow", "checkedAt": "2026-07-17", "supports": "Xero Web apps use authorization code OAuth, HTTP Basic client authentication at the token endpoint, thirty-minute access tokens, and rolling refresh tokens." },
+    { "url": "https://developer.xero.com/documentation/guides/oauth2/scopes", "checkedAt": "2026-07-17", "supports": "The V1 surface needs offline_access, accounting.settings.read, and accounting.invoices.read; broader transaction scopes are unnecessary." },
+    { "url": "https://developer.xero.com/documentation/best-practices/managing-connections/connections", "checkedAt": "2026-07-17", "supports": "The connections endpoint binds an authorization event to exact tenant and connection UUIDs and supports exact connection deletion." },
+    { "url": "https://developer.xero.com/documentation/guides/oauth2/limits", "checkedAt": "2026-07-17", "supports": "Xero's current connection tiers charge for scaled distribution, so Relay does not own or subsidize a shared Xero OAuth app under the customer-paid-provider policy." },
+    { "url": "https://developer.xero.com/documentation/xero-app-store/app-partner-guides/certification-checkpoints", "checkedAt": "2026-07-17", "supports": "Public Xero App Store distribution requires a paid tier and certification checkpoints; customer-owned Web app credentials avoid making Relay the paid distributor." }
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "smokeball",
+  "name": "Smokeball",
+  "category": "crm_support",
+  "description": "Smokeball is cloud legal practice-management software for matters, contacts, documents, calendars, tasks, workflows, time tracking, billing, trust accounting, reporting, client intake, and client portal communications.",
+  "agentUseSummary": "Connect one US-region firm through a provider-approved Relay-owned public app using confidential OAuth authorization code with PKCE. Relay configures only the provider's firm-read permission and exposes one approval-gated authority check that calls GET /firm, validates the firm UUID transiently, discards the complete response, and returns no firm identity or legal-practice data.",
+  "provider": {
+    "websiteUrl": "https://www.smokeball.com/",
+    "docsUrl": "https://docs.smokeball.com/docs/api-docs/c916c683c136e-authentication-overview",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.smokeball.com/terms/",
+    "privacyUrl": "https://www.smokeball.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.smokeball.com/oauth2/authorize",
+    "tokenUrl": "https://auth.smokeball.com/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_partner_app",
+      "confidential_authorization_code_pkce_s256",
+      "us_region_bound",
+      "provider_assigned_firm_read_only_permission",
+      "provider_issued_api_key_header",
+      "one_hour_access_token",
+      "thirty_day_refresh_token"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/smokeball/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "connection_authority_read",
+      "label": "Verify connection authority",
+      "description": "Verify that the US-region OAuth grant and provider-issued API key can call the fixed firm endpoint while returning no firm identity, client, matter, document, communication, billing, payment, trust, or other legal-practice data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "smokeball_connection_authority_get",
+        "label": "Verify Smokeball connection authority",
+        "description": "Call only GET https://api.smokeball.com/firm, validate the firm UUID in memory, discard the complete response, and return authorization, US region, API version, and redaction status."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "smokeball_firm_user_client_or_matter_data",
+        "label": "Access firm, user, client, or matter data",
+        "description": "Firm and user identity, staff, roles, contacts, clients, matters, relationships, custom fields, tags, addresses, phone numbers, emails, licence numbers, and related legal-practice records are blocked."
+      },
+      {
+        "id": "smokeball_document_calendar_task_or_communication_data",
+        "label": "Access documents, calendars, tasks, or communications",
+        "description": "Documents, folders, memos, forms, events, calendars, tasks, notes, emails, messages, intake, portal activity, workflows, and related content are blocked."
+      },
+      {
+        "id": "smokeball_financial_write_or_administer",
+        "label": "Access financial data, write, or administer Smokeball",
+        "description": "Time, expenses, fees, rates, invoices, billing, payments, trust accounts, bank accounts, accounting, reports, creates, updates, deletes, uploads, webhooks, users, apps, settings, and administration are blocked."
+      },
+      {
+        "id": "smokeball_raw_api_other_region_pagination_or_bulk",
+        "label": "Use raw APIs, another region, pagination, or bulk access",
+        "description": "Arbitrary endpoints, methods, identifiers, headers, queries, bodies, AU/UK or staging origins, pagination, polling, retries, raw responses, SDKs, browser sessions, bulk operations, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "smokeball_safe",
+      "label": "Safe",
+      "description": "The identity-free authority check requires approval; firm identity, legal-practice records, financial data, writes, administration, other regions, pagination, and bulk remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["smokeball_connection_authority_get"],
+      "blockedActions": [
+        "smokeball_firm_user_client_or_matter_data",
+        "smokeball_document_calendar_task_or_communication_data",
+        "smokeball_financial_write_or_administer",
+        "smokeball_raw_api_other_region_pagination_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same authority check runs directly; connection ownership, provider authorization, US-region binding, credential secrecy, fixed endpoint, redaction, auditing, response bounds, and provider limits remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["smokeball_connection_authority_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "smokeball_firm_user_client_or_matter_data",
+        "smokeball_document_calendar_task_or_communication_data",
+        "smokeball_financial_write_or_administer",
+        "smokeball_raw_api_other_region_pagination_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one fixed identity-free Smokeball US authority wrapper and injects the OAuth token and provider-issued API key server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the same fixed identity-free Smokeball US authority wrapper."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Public apps are partner-only and require Smokeball review. Relay still needs partner approval, a US public app, confidential client credentials, the provider-issued API key, exact HTTPS callback and logout registration, approval of only the firm-read permission, customer consent, security/privacy review, and live acceptance.",
+    "nextAction": "Use the separate provider-console task to obtain Smokeball partner approval, create the US public app, configure confidential authorization code with PKCE S256 and only the permission required for GET /firm, register Relay's exact HTTPS callback/logout URLs, store the client ID/secret and API key, complete consent, and validate one-hour token exchange, refresh before the default 30-day refresh expiry, redaction, rate handling, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.smokeball.com/docs/api-docs/2t26gcuuqf1wk-authorization-code-grant",
+      "checkedAt": "2026-07-18",
+      "supports": "Smokeball documents authorization code at auth.smokeball.com, exact redirect matching, state, confidential HTTP Basic client authentication, optional PKCE with S256, one-hour access tokens, default 30-day refresh tokens, and refresh at the same token endpoint."
+    },
+    {
+      "url": "https://docs.smokeball.com/docs/platform-docs/3b45c6789d012-apps-overview",
+      "checkedAt": "2026-07-18",
+      "supports": "Smokeball documents public multi-firm apps as partner-only authorization-code integrations with one credential set, explicit firm authorization, scoped access, token expiry, audit logging, review, and marketplace publication."
+    },
+    {
+      "url": "https://docs.smokeball.com/docs/api-docs/ivmfjbc61tvjs-making-requests",
+      "checkedAt": "2026-07-18",
+      "supports": "Every API request requires both a provider-issued x-api-key and OAuth bearer access token; responses can paginate to 500 records, which Relay's fixed V1 wrapper does not use."
+    },
+    {
+      "url": "https://docs.smokeball.com/api-reference/firm/get-firm",
+      "checkedAt": "2026-07-18",
+      "supports": "GET https://api.smokeball.com/firm returns the authenticated firm's UUID plus extensive identity, address, contact, product, status, licence, logo, and styling fields that Relay validates transiently and discards."
+    },
+    {
+      "url": "https://docs.smokeball.com/docs/api-docs/z2q8vla6b77g8-base-urls",
+      "checkedAt": "2026-07-18",
+      "supports": "Smokeball publishes separate US, AU, and UK production and staging authentication/API origins; Relay V1 binds only to the documented US production origins."
+    },
+    {
+      "url": "https://support.smokeball.com/hc/en-us/articles/24804817026327-Smokeball-Partner-App-and-API-Enquiry",
+      "checkedAt": "2026-07-18",
+      "supports": "Technology providers must submit a partnership enquiry; firm-specific custom API access requires Smokeball Prosper+ and qualified development resources."
+    }
+  ],
+  "securityNotes": [
+    "Relay requests no scope string at authorization because Smokeball instructs access-token integrations to omit it; the provider app must be approved with only the permission required for GET /firm.",
+    "The sole request is GET https://api.smokeball.com/firm with the bearer token and provider-issued x-api-key. The firm UUID is validated only in memory and the complete firm response is discarded.",
+    "Requests reject redirects, time out after 20 seconds, cap responses at 64 KB, accept no runtime input, do not paginate or retry automatically, and preserve 401, 403, 404, 429, and provider-unavailable outcomes.",
+    "Firm and staff identity, contacts, clients, matters, documents, calendars, tasks, communications, time, billing, payments, trust data, writes, administration, other regions, raw APIs, pagination, bulk, and exports are unavailable.",
+    "Access tokens, refresh tokens, client secrets, PKCE verifiers, and the provider-issued API key remain encrypted server-side; disconnect deletes Relay's grant because the documented logout endpoint ends the hosted user session rather than revoking the app token grant."
+  ]
+}

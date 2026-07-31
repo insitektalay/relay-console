@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "craft-cms",
+  "name": "Craft CMS",
+  "category": "knowledge_documents",
+  "description": "Craft CMS is a flexible self-hosted content management system for custom websites and digital experiences. It supports entries, sections, custom fields, assets, categories, tags, users, multisite content, drafts, revisions, plugins, project configuration, and a core GraphQL API.",
+  "agentUseSummary": "Relay sends one fixed core GraphQL query for a preselected entry UUID and returns only that UUID, status, and creation and update timestamps. Craft schemas can expose content and mutations, so Relay requires a dedicated private schema token with entry-query access only to the selected section and no mutation permissions, then discards every non-lifecycle field before returning data.",
+  "provider": {
+    "websiteUrl": "https://craftcms.com/",
+    "docsUrl": "https://craftcms.com/docs/5.x/development/graphql",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://craftcms.com/terms-of-service",
+    "privacyUrl": "https://craftcms.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["selected-section entry query", "no mutations"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_operated_craft_cms",
+      "public_https_core_graphql_api",
+      "dedicated_read_only_private_schema_token",
+      "selected_entry_uuid"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CRAFT_CMS_SITE_BASE_URL",
+        "label": "Craft CMS HTTPS site base URL",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "CRAFT_CMS_GRAPHQL_TOKEN",
+        "label": "Dedicated read-only GraphQL schema token",
+        "required": true,
+        "secret": true,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "CRAFT_CMS_ENTRY_UID",
+        "label": "Selected entry UUID",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "craft_cms_selected_entry_lifecycle_get",
+      "label": "Read selected entry lifecycle",
+      "description": "Read one selected entry's UUID, status, and lifecycle timestamps.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "craft_cms_selected_entry_lifecycle_get",
+        "label": "Read selected entry lifecycle",
+        "description": "Use one fixed core GraphQL query for one selected entry UUID and return only its lifecycle projection."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "craft_cms_private_content",
+        "label": "Expose content or private project data",
+        "description": "Titles, slugs, URIs, authors, post dates, expiry dates, custom fields, relations, assets, drafts, revisions, and every non-lifecycle field are excluded from Relay output."
+      },
+      {
+        "id": "craft_cms_mutation",
+        "label": "Mutate Craft CMS",
+        "description": "Entries, drafts, revisions, assets, categories, tags, users, globals, project configuration, plugins, and every GraphQL mutation or other write are blocked."
+      },
+      {
+        "id": "craft_cms_broad_access",
+        "label": "Use broad Craft CMS access",
+        "description": "Entry collections, other entry UUIDs, other sections, assets, categories, tags, users, global sets, arbitrary GraphQL documents, introspection, aliases, directives, batching, redirects, and administration are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "craft_cms_selected_entry_lifecycle_read",
+      "label": "Selected Entry Lifecycle Read",
+      "description": "Read one selected entry's lifecycle projection; content, identities, other resources, administration, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["craft_cms_selected_entry_lifecycle_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "craft_cms_private_content",
+        "craft_cms_mutation",
+        "craft_cms_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-entry lifecycle reader backed by Railway's bounded Craft CMS adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-entry lifecycle reader backed by Railway's bounded Craft CMS adapter."
+    }
+  ],
+  "availability": "preview",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An authorized public HTTPS Craft CMS staging project must provide a dedicated private GraphQL schema token whose schema permits entry queries only for the selected entry's section, permits no mutations, and is not the control-panel Full Schema, plus one selected entry UUID and Fairfax validation.",
+    "nextAction": "In the provider-console lane, configure the least-privilege private schema and token, enter the project URL and selected entry UUID through Relay, then validate exact-entry binding, fixed-query enforcement, content-field redaction, GraphQL error denial, redirect and private-DNS denial, mutation denial, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://craftcms.com/docs/5.x/development/graphql",
+      "checkedAt": "2026-07-18",
+      "supports": "Official Craft documentation defines the built-in /actions/graphql/api endpoint, public and private schemas, bearer tokens, JSON POST requests with variables, entry queries filtered by UUID, lifecycle fields, and schema-controlled mutations."
+    },
+    {
+      "url": "https://craftcms.com/docs/5.x/system/elements",
+      "checkedAt": "2026-07-18",
+      "supports": "Official element documentation defines UUID, status, dateCreated, and dateUpdated as native element lifecycle properties, supporting Relay's narrow response projection."
+    },
+    {
+      "url": "https://craftcms.com/docs/5.x/",
+      "checkedAt": "2026-07-18",
+      "supports": "Official Craft CMS documentation identifies Craft as a self-hosted PHP CMS whose headless applications access content through GraphQL."
+    }
+  ]
+}

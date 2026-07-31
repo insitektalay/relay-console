@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "shortcut",
+  "name": "Shortcut",
+  "category": "work_management",
+  "description": "Shortcut is a software development platform that brings product planning and engineering work together in shared roadmaps, backlogs, and workflows. Teams use it to organize objectives, epics, iterations, stories, tasks, documents, and releases, collaborate on progress, and connect work to code and delivery.",
+  "agentUseSummary": "Add a Shortcut API token once, then select which agents can read or manage the token-authorized workspace under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.shortcut.com/",
+    "docsUrl": "https://developer.shortcut.com/api/rest/v3",
+    "developerConsoleUrl": "https://app.shortcut.com/settings/account/api-tokens",
+    "termsUrl": "https://www.shortcut.com/terms",
+    "privacyUrl": "https://www.shortcut.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "SHORTCUT_API_TOKEN",
+        "label": "Shortcut API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated token under Settings > Your Account > API Tokens. Shortcut gives the token the same complete workspace access as its member, so use a dedicated least-privileged member where possible."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workspace_read",
+      "label": "Read product and engineering work",
+      "description": "Read the token-authorized workspace, members, teams, workflows, objectives, key results, milestones, epics, iterations, stories, tasks, documents, labels, repositories, files, and history.",
+      "defaultSelected": true
+    },
+    {
+      "id": "workspace_manage",
+      "label": "Manage product and engineering work",
+      "description": "Create, update, and delete resources through every JSON operation supported by the current Shortcut REST API and token.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "shortcut_api_read",
+        "label": "Read Shortcut",
+        "description": "Run one bounded GET request against the current Shortcut REST API."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "shortcut_api_write",
+        "label": "Manage Shortcut",
+        "description": "Run one bounded POST, PUT, or DELETE request; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "shortcut_credential_exposure",
+        "label": "Expose credentials",
+        "description": "The API token never enters agent-visible requests or results."
+      },
+      {
+        "id": "shortcut_unofficial_origin",
+        "label": "Use another origin",
+        "description": "Every request is pinned to Shortcut's official HTTPS API origin."
+      },
+      {
+        "id": "shortcut_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds request paths, query values, JSON bodies, redirects, results, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "shortcut_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly. Every write or administrative operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["shortcut_api_read"],
+      "approvalRequiredActions": ["shortcut_api_write"],
+      "blockedActions": [
+        "shortcut_credential_exposure",
+        "shortcut_unofficial_origin",
+        "shortcut_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected token-authorized Shortcut read, write, or administrative operation runs without Relay per-action approval. Connection ownership, provider permissions, fixed origin, request bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["shortcut_api_read", "shortcut_api_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "shortcut_credential_exposure",
+        "shortcut_unofficial_origin",
+        "shortcut_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded read and write tools and attaches the encrypted token only at Shortcut's fixed API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded read and write tools and attaches the encrypted token only at Shortcut's fixed API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A Shortcut workspace member must create the customer-owned API token. Shortcut does not document a Relay-owned third-party OAuth flow, and its API tokens provide complete access to that member's workspace authority.",
+    "nextAction": "In Shortcut, open Settings > Your Account > API Tokens, create a dedicated token, save it in Relay Console, then run member health, read, Safe write approval, Dangerous write, disconnect, and post-disconnect denial checks."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.shortcut.com/api/rest/v3",
+      "checkedAt": "2026-07-15",
+      "supports": "Shortcut documents the current REST API at https://api.app.shortcut.com/api/v3, Shortcut-Token header authentication, HTTPS-only requests, 200 requests per minute, and the complete published read and mutation surface."
+    },
+    {
+      "url": "https://help.shortcut.com/hc/en-us/articles/205701199-Shortcut-API-Tokens",
+      "checkedAt": "2026-07-15",
+      "supports": "Shortcut documents member- and workspace-specific API tokens created under Settings > Your Account > API Tokens and warns that each token provides complete access to its Shortcut workspace."
+    },
+    {
+      "url": "https://www.shortcut.com/",
+      "checkedAt": "2026-07-15",
+      "supports": "Shortcut describes its product as a software development platform combining planning, roadmaps, issue tracking, documentation, and engineering workflows."
+    }
+  ]
+}

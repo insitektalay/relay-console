@@ -1,0 +1,143 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "wpforms",
+  "name": "WPForms",
+  "category": "work_management",
+  "description": "WPForms is a WordPress form builder for contact forms, registrations, surveys, payments, file collection, and other structured submissions. Site owners manage fields, notifications, confirmations, integrations, entries, and reporting from WordPress.",
+  "agentUseSummary": "Install WordPress 6.9 or later and WPForms Lite or Pro 1.9.9 or later on one public HTTPS site, create a dedicated WordPress Application Password for a user with only the required WPForms view capabilities, then let selected agents use five pinned reads for bounded form discovery, curated schemas, statistics, metadata-only entry summaries, and one exact entry. Relay does not mount cross-form entry search, field-bearing entry lists, arbitrary WordPress routes or abilities, notifications, confirmations, integrations, or writes.",
+  "provider": {
+    "websiteUrl": "https://wpforms.com/",
+    "docsUrl": "https://wpforms.com/developers/wpforms-rest-api/",
+    "developerConsoleUrl": "https://developer.wordpress.org/rest-api/using-the-rest-api/authentication/",
+    "termsUrl": "https://wpforms.com/terms/",
+    "privacyUrl": "https://wpforms.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_wordpress_application_password",
+      "exact_public_https_wordpress_site",
+      "wpforms_view_capability_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "WPFORMS_SITE_URL",
+        "label": "WPForms site URL",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter the public HTTPS WordPress site URL. Relay sends requests only to that site's WPForms WordPress Abilities API route and rejects private or local destinations."
+      },
+      {
+        "key": "WPFORMS_USERNAME",
+        "label": "WordPress username",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a dedicated WordPress user with only the WPForms view capabilities needed for the selected reads."
+      },
+      {
+        "key": "WPFORMS_APPLICATION_PASSWORD",
+        "label": "WordPress Application Password",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated revocable WordPress Application Password for Relay; never enter the user's normal WordPress password."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "wpforms_read",
+      "label": "Read forms and bounded entries",
+      "description": "Use five pinned read abilities for bounded form discovery, curated schemas, statistics, metadata-only entry summaries, and one exact entry.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "wpforms_read",
+        "label": "Read WPForms",
+        "description": "Read bounded form metadata, curated schemas, form statistics, entry summaries, and one exact entry from the configured site."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "wpforms_manage",
+        "label": "Change WPForms",
+        "description": "Form, field, setting, entry, notification, confirmation, integration, and all other mutations are outside Relay's V1 contract."
+      },
+      {
+        "id": "wpforms_broad_entry_access",
+        "label": "Search broadly or list entry fields",
+        "description": "Relay blocks cross-form search and forces entry summary lists to omit field values; field values require one exact entry ID."
+      },
+      {
+        "id": "wpforms_arbitrary_ability",
+        "label": "Run another ability or WordPress route",
+        "description": "Requests are pinned to five named WPForms read abilities on the configured site's WordPress Abilities API route."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "wpforms_safe",
+      "label": "Safe",
+      "description": "Five pinned reads run directly. Cross-form search, field-bearing entry lists, arbitrary abilities, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["wpforms_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "wpforms_manage",
+        "wpforms_broad_entry_access",
+        "wpforms_arbitrary_ability"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with five pinned GET abilities through the encrypted site-bound WordPress Application Password."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with five pinned GET abilities through the encrypted site-bound WordPress Application Password."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned public WordPress 6.9+ site with WPForms 1.9.9+, dedicated view-capability user and Application Password, representative forms, or safe test entries is available in this workspace.",
+    "nextAction": "A site administrator verifies the supported WordPress and WPForms versions, provisions a dedicated user with only the required WPForms view capabilities, creates a dedicated revocable Application Password, saves the exact public site URL, username, and Application Password through Relay Console, then verifies site binding, all five reads, list bounds, entry-field minimization, IP removal, agent assignment, credential replacement, disconnect, provider-side revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://wpforms.com/developers/wpforms-rest-api/",
+      "checkedAt": "2026-07-17",
+      "supports": "WPForms documents WordPress 6.9 and WPForms 1.9.9 requirements, Application Password authentication, GET-only read abilities, granular view capabilities, request schemas, pagination, Lite and Pro availability, and opt-in writes."
+    },
+    {
+      "url": "https://developer.wordpress.org/apis/abilities-api/rest-api-endpoints/",
+      "checkedAt": "2026-07-17",
+      "supports": "WordPress documents the authenticated /wp-abilities/v1 REST namespace and named ability execution model used by WPForms."
+    },
+    {
+      "url": "https://developer.wordpress.org/rest-api/using-the-rest-api/authentication/",
+      "checkedAt": "2026-07-17",
+      "supports": "WordPress documents Application Passwords as revocable credentials for remote REST API authentication over HTTPS."
+    }
+  ]
+}

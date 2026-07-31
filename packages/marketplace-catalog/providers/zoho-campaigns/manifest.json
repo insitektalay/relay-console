@@ -1,0 +1,155 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoho-campaigns",
+  "name": "Zoho Campaigns",
+  "category": "marketing",
+  "description": "Zoho Campaigns is an email-marketing platform for creating, sending, automating, and measuring campaigns, mailing lists, segments, templates, and subscriber engagement. Marketing teams use it to manage email programs and understand delivery and engagement performance.",
+  "agentUseSummary": "Connect one Zoho Campaigns account through Relay-owned multi-data-center OAuth, then let selected agents list bounded recent campaign summaries and inspect aggregate delivery metrics. Contacts, recipients, individual activity, sender addresses, subjects, content, writes, pagination, exports, and raw APIs are outside V1.",
+  "provider": {
+    "websiteUrl": "https://www.zoho.com/campaigns/",
+    "docsUrl": "https://www.zoho.com/campaigns/help/developers/",
+    "developerConsoleUrl": "https://api-console.zoho.com/",
+    "termsUrl": "https://www.zoho.com/terms.html",
+    "privacyUrl": "https://www.zoho.com/privacy.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["AaaServer.profile.Read", "ZohoCampaigns.campaign.READ"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.zoho.com/oauth/v2/auth",
+    "tokenUrl": "https://accounts.zoho.com/oauth/v2/token",
+    "revocationUrl": "https://accounts.zoho.com/oauth/v2/token/revoke"
+  },
+  "connection": {
+    "types": ["oauth_connector"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/zoho-campaigns/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "campaign_summary_read",
+      "label": "Read campaign summaries and aggregate reports",
+      "description": "Read bounded recent-campaign metadata and aggregate delivery metrics without contacts, recipients, sender addresses, content, writes, or raw responses."
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "zoho_campaigns_campaign_list",
+        "label": "List recent campaigns",
+        "description": "List at most twenty-five recent campaign summaries from the first result page."
+      },
+      {
+        "id": "zoho_campaigns_campaign_report",
+        "label": "Read aggregate campaign report",
+        "description": "Read bounded aggregate delivery and engagement metrics for one exact campaign key."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "zoho_campaigns_contacts_recipients",
+        "label": "Access contacts or recipients",
+        "description": "Contacts, lists, segments, recipient identities, and individual delivery or engagement activity are outside V1."
+      },
+      {
+        "id": "zoho_campaigns_sender_content",
+        "label": "Access sender or campaign content",
+        "description": "Sender and reply-to addresses, subjects, templates, message content, previews, and location detail are outside V1."
+      },
+      {
+        "id": "zoho_campaigns_mutation_raw_export",
+        "label": "Modify or export Zoho Campaigns",
+        "description": "Creation, sending, scheduling, writes, administration, arbitrary endpoints, automatic pagination, exports, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zoho_campaigns_safe",
+      "label": "Safe",
+      "description": "Both bounded campaign-summary reads require approval; contact, recipient, sender, content, and mutation surfaces remain outside Relay's V1 contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "zoho_campaigns_campaign_list",
+        "zoho_campaigns_campaign_report"
+      ],
+      "blockedActions": [
+        "zoho_campaigns_contacts_recipients",
+        "zoho_campaigns_sender_content",
+        "zoho_campaigns_mutation_raw_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected reads run without Relay per-action approval; exact user, regional origin, scope, result bounds, audits, and privacy exclusions remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "zoho_campaigns_campaign_list",
+        "zoho_campaigns_campaign_report"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zoho_campaigns_contacts_recipients",
+        "zoho_campaigns_sender_content",
+        "zoho_campaigns_mutation_raw_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts two typed campaign-summary wrappers and attaches the encrypted token only to the exact regional Accounts and Campaigns API origins."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts two typed campaign-summary wrappers and attaches the encrypted token only to the exact regional Accounts and Campaigns API origins."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "Relay's multi-data-center Zoho server application, exact callback, shared client credentials, Railway staging configuration, and representative Zoho Campaigns consent are not configured in this code-only worker task.",
+    "nextAction": "In the separate provider-console task, create or extend Relay's Zoho server application, enable Multi-DC with shared credentials for the six documented Campaigns data centers, register https://api.relayconsole.work/api/v1/marketplace/oauth/zoho-campaigns/callback, request only AaaServer.profile.Read and ZohoCampaigns.campaign.READ, configure ZOHO_CAMPAIGNS_CLIENT_ID and ZOHO_CAMPAIGNS_CLIENT_SECRET on Railway staging, then validate regional consent, exact-user binding, both bounded wrappers, one-hour refresh, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.zoho.com/campaigns/help/developers/",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents Campaigns API V1.1 as an OAuth access-and-refresh-token API for integrating campaign data and activities."
+    },
+    {
+      "url": "https://www.zoho.com/campaigns/help/developers/access-token.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents one-hour access tokens, refresh tokens, Zoho-oauthtoken authorization, module-specific scopes, and ZohoCampaigns.campaign.READ for campaign details and reports."
+    },
+    {
+      "url": "https://www.zoho.com/campaigns/help/developers/data-centers.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents six Campaigns data centers and the exact regional campaigns.zoho.com, .eu, .in, .com.au, .jp, and .com.cn API origins."
+    },
+    {
+      "url": "https://www.zoho.com/campaigns/help/developers/recent-campaign.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents the recentcampaigns read route, first-index and range parameters, status filters, campaign keys, names, statuses, times, and the campaign.READ scope."
+    },
+    {
+      "url": "https://www.zoho.com/campaigns/help/developers/campaign-reports.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents the exact-key campaignreports route and aggregate delivery, open, click, bounce, unsubscribe, and complaint metrics under campaign.READ; Relay strips sender, subject, location, and all other fields."
+    },
+    {
+      "url": "https://www.zoho.com/accounts/protocol/oauth/multi-dc.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Zoho documents Multi-DC server clients, regional callback and token exchange, shared credentials, api_domain verification, and regional Accounts authorities."
+    }
+  ]
+}

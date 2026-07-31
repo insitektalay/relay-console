@@ -1,0 +1,203 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "adobe-real-time-cdp",
+  "name": "Adobe Real-Time CDP",
+  "category": "crm_support",
+  "description": "Adobe Real-Time CDP unifies customer profiles, datasets, identities, audiences, governance, and activation on Adobe Experience Platform.",
+  "agentUseSummary": "Connect customer-owned OAuth Server-to-Server credentials bound to one organization and sandbox. Relay mounts three bounded GET operations: dataset metadata runs directly, while audience definitions and one exact profile require approval.",
+  "provider": {
+    "websiteUrl": "https://business.adobe.com/products/real-time-customer-data-platform/rtcdp.html",
+    "docsUrl": "https://experienceleague.adobe.com/en/docs/experience-platform/profile/api/overview",
+    "developerConsoleUrl": "https://developer.adobe.com/console/",
+    "termsUrl": "https://www.adobe.com/legal/terms.html",
+    "privacyUrl": "https://www.adobe.com/privacy.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://ims-na1.adobelogin.com/ims/token/v3",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_oauth_server_to_server",
+      "exact_organization_binding",
+      "exact_sandbox_binding",
+      "fixed_platform_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ADOBE_REAL_TIME_CDP_CLIENT_ID",
+        "label": "Adobe OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use a dedicated customer-owned OAuth Server-to-Server credential."
+      },
+      {
+        "name": "ADOBE_REAL_TIME_CDP_CLIENT_SECRET",
+        "label": "Adobe OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay sends this only to Adobe's fixed IMS token endpoint."
+      },
+      {
+        "name": "ADOBE_REAL_TIME_CDP_SCOPES",
+        "label": "Adobe OAuth scopes",
+        "required": true,
+        "secret": false,
+        "helpText": "Copy the least-privilege scopes assigned to the server-to-server credential."
+      },
+      {
+        "name": "ADOBE_REAL_TIME_CDP_ORGANIZATION_ID",
+        "label": "Adobe organization ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact organization ID ending in @AdobeOrg."
+      },
+      {
+        "name": "ADOBE_REAL_TIME_CDP_SANDBOX_NAME",
+        "label": "Adobe sandbox name",
+        "required": true,
+        "secret": false,
+        "helpText": "Use one exact non-production sandbox binding."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/adobe-real-time-cdp/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read datasets",
+      "description": "List bounded dataset metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read audiences and profiles",
+      "description": "List audience definitions or retrieve one exact profile with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "adobe_real_time_cdp_structural_read",
+        "label": "Read Adobe dataset metadata",
+        "description": "List at most twenty bounded dataset metadata records."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "adobe_real_time_cdp_sensitive_read",
+        "label": "Read Adobe audiences or profile",
+        "description": "List bounded audience definitions or retrieve one exact profile."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "adobe_real_time_cdp_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth credentials, IMS tokens, organization and sandbox routing headers, and credential-bearing fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "adobe_real_time_cdp_bulk_transfer",
+        "label": "Run bulk transfers",
+        "description": "Exports, destinations, ingestion, batches, files, pagination beyond the selected offset, multi-profile access, events, and responses above 1 MB are excluded."
+      },
+      {
+        "id": "adobe_real_time_cdp_mutation_admin",
+        "label": "Mutate or administer Platform",
+        "description": "Dataset, schema, profile, audience, identity, destination, source, policy, sandbox, permission, user, and project mutations remain provider-side."
+      },
+      {
+        "id": "adobe_real_time_cdp_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only three pinned GET routes run on platform.adobe.io with fixed headers and bounds; arbitrary origins, paths, headers, queries, fields, and raw APIs are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "adobe_real_time_cdp_safe",
+      "label": "Safe",
+      "description": "Bounded dataset metadata runs directly; audience definitions and one exact profile require approval while org, sandbox, field, page, and response bounds remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": ["adobe_real_time_cdp_structural_read"],
+      "approvalRequiredActions": ["adobe_real_time_cdp_sensitive_read"],
+      "blockedActions": [
+        "adobe_real_time_cdp_secret_exposure",
+        "adobe_real_time_cdp_bulk_transfer",
+        "adobe_real_time_cdp_mutation_admin",
+        "adobe_real_time_cdp_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected reads run without Relay per-action approval; fixed IMS/API origins, exact org/sandbox binding, list/profile/field/response bounds, audits, and mutation/admin/bulk blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "adobe_real_time_cdp_structural_read",
+        "adobe_real_time_cdp_sensitive_read"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "adobe_real_time_cdp_secret_exposure",
+        "adobe_real_time_cdp_bulk_transfer",
+        "adobe_real_time_cdp_mutation_admin",
+        "adobe_real_time_cdp_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges Adobe IMS credentials server-side and mounts three bounded org- and sandbox-bound reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges Adobe IMS credentials server-side and mounts three bounded org- and sandbox-bound reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Adobe requires a customer-owned Developer Console project, OAuth Server-to-Server credential, Experience Platform product profile and attribute permissions, exact organization, and non-production sandbox. Profile Access also requires Real-Time CDP Ultimate. No console, project, account, credential, token, org, sandbox, data, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create a dedicated staging project and least-privilege product profile outside this worker, configure the credential values in Railway staging, then verify token exchange, org/sandbox isolation, dataset/audience/profile reads, Ultimate-tier and attribute denial, approval denial/allow, field/page/response bounds, throttling, secret rotation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://experienceleague.adobe.com/en/docs/experience-platform/landing/platform-apis/api-authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents OAuth Server-to-Server as the supported method, API key and organization headers, sandbox requirements, product profiles, attribute permissions, and 24-hour access tokens."
+    },
+    {
+      "url": "https://developer.adobe.com/developer-console/docs/guides/authentication/ServerToServerAuthentication/implementation",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents client_credentials form POST to the fixed IMS v3 token endpoint, credential-provided scopes, expires_in, token caching, and throttling avoidance."
+    },
+    {
+      "url": "https://experienceleague.adobe.com/en/docs/experience-platform/catalog/api/list-objects",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents bounded Catalog dataSet listing with limit and properties filters."
+    },
+    {
+      "url": "https://experienceleague.adobe.com/en/docs/experience-platform/segmentation/api/segment-definitions",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents GET segment definitions with start, limit, page and sort filters and required org/API/sandbox headers."
+    },
+    {
+      "url": "https://experienceleague.adobe.com/en/docs/experience-platform/profile/api/entities",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents exact profile GET by schema, entity ID and namespace with explicit fields, and states Profile Access requires Real-Time CDP Ultimate."
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ryver",
+  "name": "Ryver",
+  "category": "communication",
+  "description": "Ryver is a team communication and task-management service with teams, forums, chats, topics, tasks, boards, custom integrations, bots, webhooks, and a REST API.",
+  "agentUseSummary": "Ryver cannot currently be connected because its general REST API still documents Basic Auth with a user's full account credential, not delegated OAuth. Its safer automation model is a customer-created Custom Integration user with manually generated tokens and selected team/forum installation, which is a distinct user-owned identity product requiring explicit approval.",
+  "provider": {
+    "websiteUrl": "https://ryver.com/",
+    "docsUrl": "https://api.ryver.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://ryver.com/terms-of-service/",
+    "privacyUrl": "https://ryver.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "general_api_uses_basic_auth",
+      "delegated_oauth_not_documented",
+      "customer_custom_integration_token",
+      "dedicated_integration_user_identity",
+      "selected_team_and_forum_installation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "ryver_delegated_oauth",
+        "label": "Connect through delegated OAuth",
+        "description": "Ryver's official v1 API documentation still says the general API uses Basic Auth and does not provide a current delegated OAuth lifecycle."
+      },
+      {
+        "id": "ryver_user_password",
+        "label": "Use a user's password",
+        "description": "Basic Auth would give Relay the user's full organization credential and effective account authority and is not an acceptable delegated connection."
+      },
+      {
+        "id": "ryver_custom_integration",
+        "label": "Use a Custom Integration",
+        "description": "A customer-created integration has its own user, selected team/forum membership, manually generated tokens, and optional bot/webhooks, requiring a separately approved user-owned product."
+      },
+      {
+        "id": "ryver_data_and_mutations",
+        "label": "Access Ryver data",
+        "description": "Organizations, users, teams, forums, chats, messages, topics, posts, tasks, boards, membership, administration, webhooks, arbitrary OData, and every read or write remain unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "ryver_unavailable",
+      "label": "Unavailable",
+      "description": "No agent action can be enabled until Relay approves a customer-owned Custom Integration identity or Ryver publishes a delegated OAuth contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "ryver_delegated_oauth",
+        "ryver_user_password",
+        "ryver_custom_integration",
+        "ryver_data_and_mutations"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No approved Ryver identity, credential, or wrapper contract is available to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No approved Ryver identity, credential, or wrapper contract is available to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Ryver offers unsafe user Basic Auth or a customer-owned Custom Integration user/token model, not a current delegated Relay-owned OAuth contract.",
+    "nextAction": "Do not request a user password or integration token and do not show Connect. Reconsider after an explicit product/security decision approves a least-privilege Custom Integration, or after Ryver publishes a delegated consent and revocation contract."
+  },
+  "evidence": [
+    {
+      "url": "https://api.ryver.com/ryvrest_api_examples.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Ryver's official v1 API documentation states that the REST API currently uses Basic Auth and that OAuth or API-token support was future intent."
+    },
+    {
+      "url": "https://support.ryver.com/custom-integrations-bots-webhooks-api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Ryver directs automation through customer-created Custom Integrations with a dedicated integration user, selected team/forum installation, webhooks, and one or more optionally expiring access tokens."
+    },
+    {
+      "url": "https://api.ryver.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Ryver's API exposes broad reads and mutations over teams, forums, users, messages, topics, tasks, membership, and administrative operations."
+    },
+    {
+      "url": "https://api.ryver.com/ryvbot_overview.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Ryver bots operate as customer-defined integration identities rather than user-consented delegated OAuth applications."
+    }
+  ]
+}

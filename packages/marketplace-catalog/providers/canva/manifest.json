@@ -1,0 +1,213 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "canva",
+  "name": "Canva",
+  "category": "content_creative",
+  "description": "Canva is an online visual communication and design platform for presentations, social posts, documents, whiteboards, videos, websites, and branded content. Individuals and teams use templates, media, shared projects, and browser-based editing to create, organize, and publish visual work.",
+  "agentUseSummary": "Connect a Canva account once, then let agents validate the connected team, inspect bounded design and folder metadata, prepare exact blank-design requests, or create a reviewed preset or custom design under Safe or Dangerous policy. Relay excludes temporary Canva URLs, preview APIs, broad exports and arbitrary REST access, and never exposes OAuth tokens.",
+  "provider": {
+    "websiteUrl": "https://www.canva.com/",
+    "docsUrl": "https://www.canva.dev/docs/connect/",
+    "developerConsoleUrl": "https://www.canva.com/developers/apps",
+    "termsUrl": "https://www.canva.com/policies/terms-of-use/",
+    "privacyUrl": "https://www.canva.com/policies/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["design:meta:read", "folder:read", "design:content:write"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.canva.com/api/oauth/authorize",
+    "tokenUrl": "https://api.canva.com/rest/v1/oauth/token",
+    "revocationUrl": "https://api.canva.com/rest/v1/oauth/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/canva/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "identity",
+      "label": "Read connected identity",
+      "description": "Validate and display the connected Canva user and team.",
+      "defaultSelected": true
+    },
+    {
+      "id": "design_read",
+      "label": "Read designs",
+      "description": "List bounded designs and inspect useful metadata for one explicit design.",
+      "defaultSelected": true
+    },
+    {
+      "id": "folder_read",
+      "label": "Read folders",
+      "description": "List one bounded page of typed folder, design, image, and brand-template items.",
+      "defaultSelected": true
+    },
+    {
+      "id": "design_draft",
+      "label": "Prepare designs",
+      "description": "Normalize and hash an exact preset or custom blank-design request locally.",
+      "defaultSelected": true
+    },
+    {
+      "id": "design_write",
+      "label": "Create blank designs",
+      "description": "Create one preset or bounded custom blank design for continued editing in Canva.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "canva_user_get",
+        "label": "Read connected user",
+        "description": "Read the connected Canva user and team identifiers."
+      },
+      {
+        "id": "canva_design_list",
+        "label": "List designs",
+        "description": "List one bounded page of designs visible to the connected Canva user."
+      },
+      {
+        "id": "canva_design_get",
+        "label": "Read design",
+        "description": "Read useful metadata for one explicit Canva design."
+      },
+      {
+        "id": "canva_folder_items",
+        "label": "List folder items",
+        "description": "List one bounded page of typed items from one explicit Canva folder."
+      },
+      {
+        "id": "canva_design_prepare",
+        "label": "Prepare design",
+        "description": "Normalize and hash one blank-design request locally."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "canva_design_create",
+        "label": "Create blank design",
+        "description": "Create one preset or bounded custom blank design for continued editing in Canva."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "canva_preview_apis",
+        "label": "Use preview Canva APIs",
+        "description": "Preview page, design-copy, and brand-template creation APIs are excluded from the public-review V1 surface."
+      },
+      {
+        "id": "canva_destructive_admin",
+        "label": "Delete or administer Canva resources",
+        "description": "Deletion, sharing, membership, team, brand, and enterprise administration are outside V1."
+      },
+      {
+        "id": "canva_binary_broad_raw",
+        "label": "Transfer or crawl broad content",
+        "description": "Exports, imports, asset binaries, automatic pagination, broad ingestion, and arbitrary REST calls are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "canva_safe",
+      "label": "Safe",
+      "description": "Connected identity, bounded design and folder reads, and local drafts run directly; creating a Canva design requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "canva_user_get",
+        "canva_design_list",
+        "canva_design_get",
+        "canva_folder_items",
+        "canva_design_prepare"
+      ],
+      "approvalRequiredActions": ["canva_design_create"],
+      "blockedActions": [
+        "canva_preview_apis",
+        "canva_destructive_admin",
+        "canva_binary_broad_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Canva operation supported by this connector runs without Relay per-action approval; connection ownership, OAuth grants, fixed routes, request bounds, audits, redaction, idempotency, provider limits, and Canva's seven-day blank-design rule still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "canva_user_get",
+        "canva_design_list",
+        "canva_design_get",
+        "canva_folder_items",
+        "canva_design_prepare",
+        "canva_design_create"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "canva_preview_apis",
+        "canva_destructive_admin",
+        "canva_binary_broad_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts six exact Canva user, design, and folder wrappers and attaches the user's OAuth token without exposing it to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts six exact Canva user, design, and folder wrappers and attaches the user's OAuth token without exposing it to the agent."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's public Canva Connect integration has not been confirmed with the exact production callback, three stable scopes, public review approval, and production client credentials.",
+    "nextAction": "Create or update Relay Console in Canva's Developer Portal, add the exact production callback and three stable scopes, keep preview APIs disabled, complete Canva's public submission checklist and review, store the client ID and secret in Railway, then test consent, identity, bounded reads, Safe approval, Dangerous create, atomic single-use refresh rotation, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.canva.dev/docs/connect/authentication/",
+      "checkedAt": "2026-07-16",
+      "supports": "Canva documents authorization-code OAuth with mandatory S256 PKCE, the exact authorization URL, backend token exchange, four-hour access tokens, and single-use rotating refresh tokens."
+    },
+    {
+      "url": "https://www.canva.dev/docs/connect/api-reference/authentication/revoke-token/",
+      "checkedAt": "2026-07-16",
+      "supports": "Canva documents backend HTTP Basic revocation at the fixed OAuth revoke endpoint and states that revoking a refresh token also revokes its token lineage and user consent."
+    },
+    {
+      "url": "https://www.canva.dev/docs/connect/api-reference/users/users-me/",
+      "checkedAt": "2026-07-16",
+      "supports": "The current-user endpoint requires no specific scope and returns the connected team-user identifiers used to bind a connection."
+    },
+    {
+      "url": "https://www.canva.dev/docs/connect/api-reference/designs/list-designs/",
+      "checkedAt": "2026-07-16",
+      "supports": "Canva lists designs through one bounded continuation page with ownership, query, sorting, metadata, thumbnails, page counts, and temporary URLs."
+    },
+    {
+      "url": "https://www.canva.dev/docs/connect/api-reference/folders/list-folder-items/",
+      "checkedAt": "2026-07-16",
+      "supports": "Canva lists typed folder, design, image, and brand-template items using bounded continuation pagination under folder:read."
+    },
+    {
+      "url": "https://www.canva.dev/docs/connect/api-reference/designs/create-design/",
+      "checkedAt": "2026-07-16",
+      "supports": "Canva creates stable preset or bounded custom blank designs under design:content:write and warns that unedited blank designs may be permanently deleted after seven days."
+    },
+    {
+      "url": "https://www.canva.dev/docs/connect/submitting-integrations/",
+      "checkedAt": "2026-07-16",
+      "supports": "Public Canva integrations require provider submission and review, while private integrations are limited to the owning Enterprise team and preview APIs are not eligible for public review."
+    }
+  ]
+}

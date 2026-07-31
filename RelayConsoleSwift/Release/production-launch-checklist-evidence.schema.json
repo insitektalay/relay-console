@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "production-launch-checklist-evidence.schema.json",
+  "title": "Relay Console release-bound production checklist completion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "releaseId", "capturedAt", "candidate", "checklist",
+    "review", "privacy"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.production-launch-checklist-evidence.v3" },
+    "releaseId": { "type": "string", "minLength": 1 },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceBranch", "sourceCommit", "manifestSHA256"],
+      "properties": {
+        "sourceBranch": { "type": "string", "pattern": "^release/.+" },
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "manifestSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "checklist": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path", "status", "fileSHA256", "itemSetSHA256", "sectionSetSHA256",
+        "sectionCount", "totalItemCount", "completedItemCount", "openItemCount"
+      ],
+      "properties": {
+        "path": { "const": "docs/production-launch-current/PRODUCTION_LAUNCH_CHECKLIST.md" },
+        "status": { "const": "complete" },
+        "fileSHA256": { "$ref": "#/$defs/sha256" },
+        "itemSetSHA256": { "$ref": "#/$defs/sha256" },
+        "sectionSetSHA256": { "$ref": "#/$defs/sha256" },
+        "sectionCount": { "const": 18 },
+        "totalItemCount": { "type": "integer", "minimum": 256 },
+        "completedItemCount": { "type": "integer", "minimum": 256 },
+        "openItemCount": { "const": 0 }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewedAt", "reviewer", "evidenceURL"],
+      "properties": {
+        "reviewedAt": { "type": "string", "format": "date-time" },
+        "reviewer": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!.*[<>]).+$"
+        },
+        "evidenceURL": { "type": "string", "pattern": "^https://" }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "credentialsIncluded", "secretValuesIncluded", "customerContentIncluded",
+        "customerIdentifiersIncluded", "rawCommandOutputIncluded"
+      ],
+      "properties": {
+        "credentialsIncluded": { "const": false },
+        "secretValuesIncluded": { "const": false },
+        "customerContentIncluded": { "const": false },
+        "customerIdentifiersIncluded": { "const": false },
+        "rawCommandOutputIncluded": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" }
+  }
+}

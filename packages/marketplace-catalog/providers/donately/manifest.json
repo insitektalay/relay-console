@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "donately",
+  "name": "Donately",
+  "category": "commerce_payments",
+  "description": "Donately is an online fundraising platform for donation forms, campaign pages, peer-to-peer fundraising, recurring giving, donor contacts and integrations.",
+  "agentUseSummary": "Add a Donately account ID and API token, choose which agents may use the connection, and run all 38 operations in the official API v2 reference. Relay pins the 2022-12-15 version and exact account; Safe runs 20 reads directly and requires approval for 18 mutations.",
+  "provider": {
+    "websiteUrl": "https://donately.com/",
+    "docsUrl": "https://developer.donate.ly/api/",
+    "developerConsoleUrl": "https://dashboard.donately.com/",
+    "termsUrl": "https://donately.com/terms-of-service",
+    "privacyUrl": "https://donately.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_account_id_and_api_token", "http_basic_token", "fixed_account_header", "api_version_2022_12_15", "fixed_donately_api_origin"],
+    "credentialRequirements": [
+      { "key": "DONATELY_ACCOUNT_ID", "label": "Donately account ID", "secret": false, "required": true, "helpText": "Copy the act_-prefixed account ID. Relay binds every request to it with the Donately-Account header." },
+      { "key": "DONATELY_API_TOKEN", "label": "Donately API token", "secret": true, "required": true, "helpText": "Copy the API token from Dashboard, Settings, API. Relay encrypts it and uses it only as the username in HTTP Basic authentication to api.donately.com." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "donately_read", "label": "Read fundraising data", "description": "Use all 20 documented Donately API v2 reads.", "defaultSelected": true },
+    { "id": "donately_manage", "label": "Manage fundraising data", "description": "Use all 18 documented Donately API v2 mutations.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "donately_read", "label": "Read Donately", "description": "Read account, campaign, donation, subscription, person, fundraiser, form and webhook data." }],
+    "approvalRequired": [{ "id": "donately_manage", "label": "Manage Donately", "description": "Create, update, refund, charge, resend, default or delete authorized Donately resources; Safe mode requires approval." }],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "donately_safe", "label": "Safe", "description": "All 20 reads run directly; all 18 mutations require approval.", "defaultSelected": true, "allowedActions": ["donately_read"], "approvalRequiredActions": ["donately_manage"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All 38 documented API v2 operations run without Relay per-action approval; account binding, fixed routes, audits, bounds and provider limits still apply.", "defaultSelected": false, "allowedActions": ["donately_read", "donately_manage"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts all 38 documented Donately API v2 operations with fixed account/version headers and server-side Basic authentication." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts all 38 documented Donately API v2 operations with fixed account/version headers and server-side Basic authentication." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Live acceptance requires an authorized Donately account, its act_-prefixed account ID, API token and representative fundraising records; this code-only worker has none of them.",
+    "nextAction": "An authorized administrator stores the account ID and API token through Relay Console, then validates current-account binding, representative reads and approved reversible mutations, token replacement, token deletion, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    { "url": "https://developer.donate.ly/api/", "checkedAt": "2026-07-17", "supports": "Donately documents the fixed API v2 origin, token-as-Basic-username authentication, account scoping, date-version header and 38 current account/campaign/donation/subscription/person/fundraiser/form/webhook operations." },
+    { "url": "https://developer.donate.ly/", "checkedAt": "2026-07-17", "supports": "Donately's official developer hub identifies its API reference as the complete REST API documentation for authentication, endpoints, filtering and pagination." },
+    { "url": "https://donately.com/privacy-policy", "checkedAt": "2026-07-17", "supports": "Donately's privacy policy expressly covers use of api.donately.com and personal information processed through the platform API." }
+  ]
+}

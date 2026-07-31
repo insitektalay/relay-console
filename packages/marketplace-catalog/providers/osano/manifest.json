@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "osano",
+  "name": "Osano",
+  "category": "developer",
+  "description": "Osano is a privacy-management platform for cookie consent, unified consent, subject-rights workflows, data discovery, assessments, vendor management, and privacy compliance operations.",
+  "agentUseSummary": "Add a customer-owned API key for a dedicated least-privilege Osano user. Selected agents can list only bounded, minimized Cookie Consent configuration metadata. Relay blocks domains, detailed settings, privacy-subject data, publishing, and every mutation.",
+  "provider": {"websiteUrl": "https://www.osano.com/", "docsUrl": "https://developers.osano.com/customer-rest-api", "developerConsoleUrl": null, "termsUrl": "https://www.osano.com/legal/terms-of-service", "privacyUrl": "https://www.osano.com/legal/privacy"},
+  "authentication": {"model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null},
+  "connection": {"types": ["api_key", "customer_owned", "fixed_origin"], "credentialRequirements": [{"name": "OSANO_API_KEY", "label": "Osano API key", "required": true, "secret": true, "helpText": "A customer-owned per-user API key belonging to a dedicated least-privilege Osano user."}], "callbackPath": null, "webhookRequirements": []},
+  "capabilities": [{"id": "consent_configuration_read", "label": "Read consent configurations", "description": "List a bounded, minimized directory of Cookie Consent configurations visible to the API key.", "defaultSelected": true}],
+  "actions": {"allowed": [{"id": "osano_read", "label": "List consent configurations", "description": "List up to 20 minimized Cookie Consent configuration records."}], "approvalRequired": [], "blocked": [{"id": "osano_manage", "label": "Access privacy subjects or change Osano", "description": "Domains, detailed configuration, discoveries, rules, subject-rights requests, messages, consents, subjects, assessments, connectors, webhooks, publishing, and every mutation are unavailable."}]},
+  "approvalProfiles": [{"id": "osano_safe", "label": "Safe", "description": "One bounded configuration-directory read runs directly; privacy-subject data, detailed settings, and all mutations remain blocked.", "defaultSelected": true, "allowedActions": ["osano_read"], "approvalRequiredActions": [], "blockedActions": ["osano_manage"]}],
+  "riskLevel": "critical",
+  "runtimeSupport": [{"format": "openclaw", "installSupport": "installable", "description": "Railway exposes only a fixed-origin bounded Cookie Consent configuration directory."}, {"format": "hermes", "installSupport": "installable", "description": "Railway exposes only a fixed-origin bounded Cookie Consent configuration directory."}],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {"status": "blocked", "blocker": "No customer has supplied an API key for a dedicated least-privilege Osano user, and non-production credential lifecycle acceptance has not been completed.", "nextAction": "An Osano administrator creates a dedicated least-privilege user permitted only to read Cookie Consent configurations, generates a per-user API key, stores it through Relay's encrypted credential flow, then validates bounded reads, rotation, expiry/revocation, disconnect, rate limiting, and post-disconnect denial in non-production."},
+  "evidence": [
+    {"url": "https://developers.osano.com/customer-rest-api", "checkedAt": "2026-07-17", "supports": "Osano documents fixed api.osano.com v1 endpoints, per-user API keys in x-osano-api-key, pagination, list limits, Cookie Consent configuration reads and writes, discoveries/rules, data discovery, and Subject Rights APIs."},
+    {"url": "https://developers.osano.com/uc/core-api/openapi", "checkedAt": "2026-07-17", "supports": "Osano documents a separate Unified Consent API with subject identifiers, consent profiles, consent actions, two API-key types, and mutations; Relay excludes this privacy-subject surface."},
+    {"url": "https://developers.osano.com/cmp/javascript-api/developer-documentation-consent-javascript-api", "checkedAt": "2026-07-17", "supports": "Osano warns that disrupting CMP behavior can cause noncompliance and terminate contractual protections, supporting Relay's exclusion of browser-side consent manipulation."}
+  ]
+}

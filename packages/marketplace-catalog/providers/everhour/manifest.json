@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "everhour",
+  "name": "Everhour",
+  "category": "work_management",
+  "description": "Everhour is time-tracking, project-budgeting, billing, invoicing, expense, and resource-planning software for teams. Organizations use it to record time and attendance, monitor estimates and budgets, plan workloads and time off, understand project profitability, create invoices, manage expenses, and report on how work is delivered.",
+  "agentUseSummary": "Add your Everhour API key, then choose which agents can read or manage the connected team's time, projects, billing, expenses, invoices, and resource plans under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://everhour.com/",
+    "docsUrl": "https://everhour.docs.apiary.io/",
+    "developerConsoleUrl": "https://app.everhour.com/#/account/profile",
+    "termsUrl": "https://everhour.com/terms/",
+    "privacyUrl": "https://everhour.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "profile_bound_full_account_authority"],
+    "credentialRequirements": [
+      {
+        "key": "EVERHOUR_API_KEY",
+        "label": "Everhour API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Copy the API key from the bottom of your Everhour profile. Relay encrypts it and sends it only to api.everhour.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "everhour_read",
+      "label": "Read time and project data",
+      "description": "Use all 40 pinned official reads for time, projects, tasks, clients, billing, planning, people, reports, and settings."
+    },
+    {
+      "id": "everhour_manage",
+      "label": "Manage time and projects",
+      "description": "Use all 63 pinned official mutations for time, timers, timecards, timesheets, projects, tasks, clients, invoices, expenses, planning, and webhooks."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "everhour_read",
+        "label": "Read Everhour",
+        "description": "Run one exact selected Everhour GET operation from the pinned official API contract."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "everhour_manage",
+        "label": "Manage Everhour",
+        "description": "Run one exact selected Everhour mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "everhour_safe",
+      "label": "Safe",
+      "description": "All 40 bounded reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["everhour_read"],
+      "approvalRequiredActions": ["everhour_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 103 selected and key-authorized operations run without Relay per-action approval; ownership, exact routes, bounds, audits, redaction, rate limits, and Everhour permissions still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["everhour_read", "everhour_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 103 pinned Everhour API operations through the encrypted customer-key connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 103 pinned Everhour API operations through the encrypted customer-key connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Everhour API key or representative connected team is available in this workspace.",
+    "nextAction": "Copy the API key from the bottom of an authorized Everhour user's profile, save it through Relay Console, then verify current-user and team identity, all bounded reads, Safe approvals, Dangerous mutations, binary attachment bounds, rate limits, agent assignment, key replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://jsapi.apiary.io/apis/everhour.apib",
+      "checkedAt": "2026-07-15",
+      "supports": "Everhour's official API Blueprint has SHA-256 2fbce1aaa145ffcf8556d55556ecb06452fa15a1830889f00986b17d532af6b6 and defines 103 operations: 40 reads and 63 mutations."
+    },
+    {
+      "url": "https://everhour.docs.apiary.io/",
+      "checkedAt": "2026-07-15",
+      "supports": "Everhour documents only profile API-key authentication through X-Api-Key, fixed api.everhour.com hosting, JSON requests and responses except downloads, optional X-Accept-Version 1.2, and approximately 20 requests per 10 seconds per key."
+    },
+    {
+      "url": "https://everhour.com/features",
+      "checkedAt": "2026-07-15",
+      "supports": "Everhour describes time tracking, estimates, budgets, billing, reports, invoicing, expenses, attendance, time off, and resource planning as core product capabilities."
+    },
+    {
+      "url": "https://everhour.com/pricing",
+      "checkedAt": "2026-07-15",
+      "supports": "Everhour offers a free plan and paid team plans; Relay uses the customer's own account and profile key and does not purchase provider access."
+    }
+  ]
+}

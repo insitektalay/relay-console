@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "friendbuy",
+  "name": "Friendbuy",
+  "category": "marketing",
+  "description": "Friendbuy is a referral and loyalty platform for customer acquisition, personalized referral links, purchases, signups, rewards, campaigns, analytics, and privacy workflows.",
+  "agentUseSummary": "Friendbuy cannot yet be connected through Relay. Its Merchant API requires customer-specific access and secret keys provisioned by Friendbuy Support, exchanges them for a twenty-minute bearer token, and publishes no granular permission scopes; representative account, credential, and lifecycle acceptance is required first.",
+  "provider": {
+    "websiteUrl": "https://www.friendbuy.com/",
+    "docsUrl": "https://developers.friendbuy.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.friendbuy.com/terms-of-service",
+    "privacyUrl": "https://www.friendbuy.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://mapi.fbot.me/v1/authorization",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "support_provisioned_customer_key",
+      "support_provisioned_customer_secret",
+      "credential_exchange",
+      "twenty_minute_bearer_token",
+      "exact_merchant_binding",
+      "no_granular_scopes"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "FRIENDBUY_ACCESS_KEY",
+        "label": "Friendbuy access key",
+        "required": true,
+        "secret": false,
+        "helpText": "Customer-specific Merchant API access key issued by Friendbuy Support."
+      },
+      {
+        "name": "FRIENDBUY_SECRET_KEY",
+        "label": "Friendbuy secret key",
+        "required": true,
+        "secret": true,
+        "helpText": "Support-issued Merchant API secret stored only in Railway's encrypted credential boundary."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "friendbuy_credentials",
+        "label": "Collect Friendbuy credentials",
+        "description": "Relay does not collect support-issued merchant credentials before representative account and lifecycle acceptance."
+      },
+      {
+        "id": "friendbuy_token_exchange",
+        "label": "Exchange for a bearer token",
+        "description": "No live authorization exchange occurs before credentials, expiry, retry, and denial behavior are accepted."
+      },
+      {
+        "id": "friendbuy_data",
+        "label": "Read Friendbuy data",
+        "description": "Customers, email captures, purchases, referrals, campaigns, rewards, analytics, and privacy records remain unavailable."
+      },
+      {
+        "id": "friendbuy_mutations_raw",
+        "label": "Mutate or use raw Friendbuy APIs",
+        "description": "Customer, purchase, signup, event, referral-link, privacy deletion, arbitrary endpoints, pagination, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "friendbuy_unavailable",
+      "label": "Unavailable",
+      "description": "No Friendbuy action is enabled before support-provisioned credential and representative authority acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "friendbuy_credentials",
+        "friendbuy_token_exchange",
+        "friendbuy_data",
+        "friendbuy_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Friendbuy wrappers are mounted until a representative merchant establishes the frozen support-issued credential contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Friendbuy wrappers are mounted until a representative merchant establishes the frozen support-issued credential contract."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Friendbuy instructs merchants to contact Support for a private access key and secret, then exchange that pair for a bearer token expiring after twenty minutes. The published Merchant API has no resource scopes and spans customer creation, purchases, signups, events, referral links, analytics, GDPR/CCPA retrieval and deletion, while public documentation does not establish credential rotation or revocation.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should obtain authorization from a representative Friendbuy merchant, have its Customer Success Manager or Support provision dedicated Merchant API credentials without exposing them in reports, store them in Railway, and return exact-account binding, key rotation and revocation, token expiry and retry, schema, quota, privacy-redaction, denial, and disconnect evidence before implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.friendbuy.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Friendbuy documents a Merchant API whose access and secret keys are obtained from Support and exchanged at /v1/authorization for a bearer token expiring after twenty minutes; the surface includes customer, purchase, signup, referral-link, analytics, and GDPR/CCPA operations."
+    },
+    {
+      "url": "https://support.friendbuy.com/article/t6w72g24rx-how-to-generate-personalized-urls-purls-through-our-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Friendbuy states private API keys must be obtained from the customer's Customer Success Manager or Support before the bearer-token exchange."
+    },
+    {
+      "url": "https://support.friendbuy.com/article/rksqao78ka-how-to-leverage-the-friendbuy-x-data-grail-integration",
+      "checkedAt": "2026-07-17",
+      "supports": "Friendbuy documents API-backed privacy access and deletion workflows, confirming the merchant authority includes sensitive personal data and destructive privacy operations."
+    }
+  ]
+}

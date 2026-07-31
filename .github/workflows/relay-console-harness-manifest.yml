@@ -1,0 +1,62 @@
+name: Relay Console Harness Manifest
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_manifest:
+        description: Repository-relative payload or existing envelope to sign
+        required: true
+        default: relay-console/src/main/services/resources/harness-release-manifest.json
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  sign:
+    name: Validate and sign immutable harness manifest
+    runs-on: macos-15
+    environment: harness-release-signing
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Enforce workflow security policy
+        run: node scripts/workflow-security-gate.mjs
+
+      - name: Reject an unsafe manifest input path
+        env:
+          SOURCE_MANIFEST: ${{ inputs.source_manifest }}
+        run: |
+          case "$SOURCE_MANIFEST" in
+            relay-console/src/main/services/resources/*.json) ;;
+            *) echo "Manifest input must stay in the Relay Console release resource directory." >&2; exit 1 ;;
+          esac
+          test -f "$SOURCE_MANIFEST"
+
+      - name: Sign with the protected release key
+        env:
+          SOURCE_MANIFEST: ${{ inputs.source_manifest }}
+          RELAY_HARNESS_RELEASE_SIGNING_KEY_PEM_BASE64: ${{ secrets.RELAY_HARNESS_RELEASE_SIGNING_KEY_PEM_BASE64 }}
+        run: >-
+          node relay-console/scripts/sign-harness-release-manifest.mjs
+          "$SOURCE_MANIFEST"
+          "$RUNNER_TEMP/harness-release-manifest.json"
+
+      - name: Verify the signed envelope with production code
+        working-directory: relay-console
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile --ignore-scripts
+          cp "$RUNNER_TEMP/harness-release-manifest.json" src/main/services/resources/harness-release-manifest.json
+          pnpm vitest run tests/unit/harness-artifact-security.test.ts
+
+      - name: Publish signed manifest as a workflow artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: signed-harness-release-manifest
+          path: ${{ runner.temp }}/harness-release-manifest.json
+          if-no-files-found: error
+          retention-days: 30

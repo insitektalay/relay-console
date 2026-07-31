@@ -1,0 +1,189 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mailchimp-surveys",
+  "name": "Mailchimp Surveys",
+  "category": "communication",
+  "description": "Mailchimp Surveys is a hosted feedback product inside Mailchimp for collecting responses from contacts and public participants. Teams use it to publish audience-linked surveys, distribute them on the web or by email, and analyze question and respondent reports.",
+  "agentUseSummary": "Connect one Mailchimp account through Relay-owned OAuth, bind the metadata-derived data center and exact account, and let agents read survey catalog and aggregate reports or approval-gate detailed respondent data and publish/distribution changes. The connector implements only the 12 pinned official survey endpoints; survey authoring and broader Mailchimp APIs remain unavailable.",
+  "provider": {
+    "websiteUrl": "https://mailchimp.com/features/surveys/",
+    "docsUrl": "https://mailchimp.com/developer/marketing/api/reporting-surveys/list-survey-reports/",
+    "developerConsoleUrl": "https://admin.mailchimp.com/account/oauth2/",
+    "termsUrl": "https://mailchimp.com/legal/terms/",
+    "privacyUrl": "https://www.intuit.com/privacy/statement/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://login.mailchimp.com/oauth2/authorize",
+    "tokenUrl": "https://login.mailchimp.com/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth_application",
+      "provider_metadata_data_center_binding",
+      "exact_account_binding",
+      "broad_read_write_provider_token",
+      "non_expiring_provider_token"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/mailchimp-surveys/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "catalog",
+      "label": "Survey catalog",
+      "description": "Read surveys attached to a known audience.",
+      "defaultSelected": true
+    },
+    {
+      "id": "reports",
+      "label": "Aggregate reports",
+      "description": "Read survey and question-level aggregate reporting.",
+      "defaultSelected": true
+    },
+    {
+      "id": "responses",
+      "label": "Answers and responses",
+      "description": "Read bounded detailed respondent answers and responses.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Publish and distribute",
+      "description": "Publish or unpublish a survey and create a linked email campaign.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "mailchimp_surveys_catalog_read",
+        "label": "Read surveys",
+        "description": "Read one survey or one fixed page of surveys for an audience."
+      },
+      {
+        "id": "mailchimp_surveys_reports_read",
+        "label": "Read aggregate survey reports",
+        "description": "Read bounded survey and question-level aggregate reports."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "mailchimp_surveys_responses_read",
+        "label": "Read survey answers and responses",
+        "description": "Detailed respondent answers and responses require approval in Safe mode."
+      },
+      {
+        "id": "mailchimp_surveys_manage",
+        "label": "Publish or distribute a survey",
+        "description": "Publishing, unpublishing, or creating an email campaign requires approval in Safe mode."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "mailchimp_surveys_authoring",
+        "label": "Author surveys",
+        "description": "The official Marketing API does not expose survey creation or question editing; those remain Mailchimp UI operations."
+      },
+      {
+        "id": "mailchimp_surveys_broader_api",
+        "label": "Use broader Mailchimp APIs",
+        "description": "Contacts, campaigns beyond survey campaign creation, commerce, exports, batches, arbitrary paths, and non-survey APIs are outside this connector."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "mailchimp_surveys_safe",
+      "label": "Safe",
+      "defaultSelected": true,
+      "description": "Survey catalog and aggregate reports run directly; detailed response data and mutations require approval.",
+      "allowedActions": [
+        "mailchimp_surveys_catalog_read",
+        "mailchimp_surveys_reports_read"
+      ],
+      "approvalRequiredActions": [
+        "mailchimp_surveys_responses_read",
+        "mailchimp_surveys_manage"
+      ],
+      "blockedActions": [
+        "mailchimp_surveys_authoring",
+        "mailchimp_surveys_broader_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "defaultSelected": false,
+      "description": "All selected pinned survey operations run without Relay per-action approval while OAuth authority, exact account/data-center binding, response bounds, audit, redaction, and the authoring/broader-API blocks remain enforced.",
+      "allowedActions": [
+        "mailchimp_surveys_catalog_read",
+        "mailchimp_surveys_reports_read",
+        "mailchimp_surveys_responses_read",
+        "mailchimp_surveys_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mailchimp_surveys_authoring",
+        "mailchimp_surveys_broader_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the pinned survey tools and attaches the encrypted, account-bound OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the pinned survey tools and attaches the encrypted, account-bound OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Mailchimp requires Relay to register an OAuth application with the exact Railway callback and configure its client credentials; this worker may not perform provider-console or Railway setup.",
+    "nextAction": "Register the exact Mailchimp Surveys Railway callback, configure staging client credentials, and run the documented staging acceptance matrix."
+  },
+  "evidence": [
+    {
+      "url": "https://mailchimp.com/help/create-a-survey/",
+      "checkedAt": "2026-07-17",
+      "supports": "Hosted surveys are audience-linked Mailchimp products for public or contact feedback; authoring is performed in the Mailchimp UI."
+    },
+    {
+      "url": "https://mailchimp.com/developer/marketing/api/list-surveys/get-information-about-all-surveys-for-a-list/",
+      "checkedAt": "2026-07-17",
+      "supports": "The Marketing API exposes survey list and detail plus publish, unpublish, and create-email actions for an audience."
+    },
+    {
+      "url": "https://mailchimp.com/developer/marketing/api/reporting-surveys/list-survey-reports/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official API exposes overall hosted-survey reports."
+    },
+    {
+      "url": "https://mailchimp.com/developer/marketing/api/reporting-surveys-questions/list-survey-question-reports/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official API exposes question-level reports and answer collections."
+    },
+    {
+      "url": "https://mailchimp.com/developer/marketing/api/reporting-surveys-responses/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official API exposes response lists and individual detailed survey responses."
+    },
+    {
+      "url": "https://mailchimp.com/developer/marketing/guides/access-user-data-oauth-2/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mailchimp integrations use authorization-code OAuth, metadata-derived data-center routing, and non-expiring provider tokens without refresh tokens."
+    }
+  ]
+}

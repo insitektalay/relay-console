@@ -1,0 +1,164 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "supabase-self-hosted",
+  "name": "Supabase Self-Hosted",
+  "category": "developer_tools",
+  "description": "Supabase Self-Hosted packages Postgres, a PostgREST Data API, authentication, storage, realtime, functions, and operational services for customer-operated infrastructure. Its exposed database schemas can contain arbitrary tables, columns, rows, identities, and sensitive application data.",
+  "agentUseSummary": "Relay calls one fixed PostgREST table query for one preselected row and projects only conventional id and status columns. It accepts only a new-format publishable key mapped to anon, requires minimum column grants and an RLS SELECT policy matching exactly that row, and blocks secret or service-role keys, broader data access, other services, administration, and mutations.",
+  "provider": {
+    "websiteUrl": "https://supabase.com/",
+    "docsUrl": "https://supabase.com/docs/guides/self-hosting",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://supabase.com/terms",
+    "privacyUrl": "https://supabase.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [
+      "anon SELECT on selected table id and status only",
+      "RLS policy matching selected row only"
+    ],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_operated_supabase",
+      "public_https_postgrest_data_api",
+      "publishable_anon_key",
+      "selected_table_and_row"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SUPABASE_SELF_HOSTED_BASE_URL",
+        "label": "Supabase HTTPS project base URL",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "SUPABASE_SELF_HOSTED_PUBLISHABLE_KEY",
+        "label": "Self-hosted publishable API key",
+        "required": true,
+        "secret": true,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "SUPABASE_SELF_HOSTED_TABLE",
+        "label": "Selected public table",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "SUPABASE_SELF_HOSTED_ROW_ID",
+        "label": "Selected row ID",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "supabase_self_hosted_selected_row_state_get",
+      "label": "Read selected row state",
+      "description": "Read one selected row's ID and status.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "supabase_self_hosted_selected_row_state_get",
+        "label": "Read selected row state",
+        "description": "Use one fixed PostgREST request for the selected table and row and return only ID and status."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "supabase_self_hosted_private_data",
+        "label": "Expose row data or identities",
+        "description": "Columns other than id and status, other rows, auth identities, storage objects, function output, logs, and secrets are excluded from Relay output."
+      },
+      {
+        "id": "supabase_self_hosted_mutation",
+        "label": "Mutate Supabase",
+        "description": "Rows, tables, schemas, SQL, RLS policies, auth, storage, functions, realtime, settings, and every write or administrative action are blocked."
+      },
+      {
+        "id": "supabase_self_hosted_broad_access",
+        "label": "Use broad or RLS-bypassing access",
+        "description": "Secret keys, service-role keys, database credentials, arbitrary PostgREST queries, other tables or rows, GraphQL, and management endpoints are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "supabase_self_hosted_selected_row_state_read",
+      "label": "Selected Row State Read",
+      "description": "Read one selected row's ID and status; other data, resources, administration, RLS bypass, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["supabase_self_hosted_selected_row_state_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "supabase_self_hosted_private_data",
+        "supabase_self_hosted_mutation",
+        "supabase_self_hosted_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-row state reader backed by Railway's bounded Supabase adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-row state reader backed by Railway's bounded Supabase adapter."
+    }
+  ],
+  "availability": "preview",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An authorized public HTTPS Supabase Self-Hosted staging project must enable new publishable keys and provide a selected public table with conventional id and status columns, anon SELECT grants limited to those columns, an enabled RLS SELECT policy matching one exact row, and Fairfax validation.",
+    "nextAction": "In the provider-console lane, configure the least-privilege grants and RLS policy, enter the project URL, publishable key, table, and row ID through Relay, then validate exact-row binding, fixed-column projection, secret and service-role key rejection, broader query and adjacent-service denial, mutation denial, redirect and private-DNS denial, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://supabase.com/docs/guides/self-hosting",
+      "checkedAt": "2026-07-18",
+      "supports": "Official self-hosting documentation defines customer responsibility for operating and securing the single-project Supabase stack."
+    },
+    {
+      "url": "https://supabase.com/docs/guides/self-hosting/self-hosted-auth-keys",
+      "checkedAt": "2026-07-18",
+      "supports": "Official self-hosted authentication documentation defines new publishable and secret key formats, publishable-to-anon gateway routing, PostgREST request headers, and coexistence with legacy keys."
+    },
+    {
+      "url": "https://supabase.com/docs/guides/api/securing-your-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Official Data API security documentation defines minimum Postgres grants and RLS as complementary controls for table and row access."
+    },
+    {
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security",
+      "checkedAt": "2026-07-18",
+      "supports": "Official RLS documentation defines anon policies, per-row SELECT predicates, and the RLS-bypassing authority of service keys, supporting Relay's publishable-only boundary."
+    },
+    {
+      "url": "https://supabase.com/docs/guides/database/postgres/column-level-security",
+      "checkedAt": "2026-07-18",
+      "supports": "Official column-level security documentation defines column grants and explicit field selection for restricting exposed columns."
+    }
+  ]
+}

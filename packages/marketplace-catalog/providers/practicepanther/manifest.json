@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "practicepanther",
+  "name": "PracticePanther",
+  "category": "crm_support",
+  "description": "PracticePanther is cloud legal practice-management software for contacts, matters, tasks, calendars, documents, time and expense tracking, billing, payments, trust accounting, intake, workflows, and client communications.",
+  "agentUseSummary": "Connect through a provider-approved Relay-owned confidential OAuth application. Agents can run one approval-gated authority check that calls the documented OData time-entry count endpoint, validates only that an integer response was returned, discards the count, and returns no user, firm, client, matter, time, financial, or communication data.",
+  "provider": {
+    "websiteUrl": "https://www.practicepanther.com/",
+    "docsUrl": "https://support.practicepanther.com/en/articles/479897-practicepanther-api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.practicepanther.com/terms/",
+    "privacyUrl": "https://www.practicepanther.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.practicepanther.com/oauth/authorize",
+    "tokenUrl": "https://app.practicepanther.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "authorization_code",
+      "provider_registered_https_redirect",
+      "scope_less_provider_contract",
+      "rotating_refresh_token",
+      "case_by_case_api_approval"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/practicepanther/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "connection_authority_read",
+      "label": "Verify connection authority",
+      "description": "Verify that the OAuth grant can call one documented OData count endpoint while returning no count, identity, firm, client, matter, time-entry, financial, or communication data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "practicepanther_connection_authority_get",
+        "label": "Verify PracticePanther connection authority",
+        "description": "Call only the fixed TimeEntry count endpoint, validate a non-negative integer in memory, discard it, and return authorization, API version, and redaction status."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "practicepanther_identity_contact_or_matter_data",
+        "label": "Access identity, contacts, or matters",
+        "description": "User and firm identity, contacts, companies, clients, matters, relationships, custom fields, tags, and related legal-practice records are blocked."
+      },
+      {
+        "id": "practicepanther_time_document_task_calendar_or_communication_data",
+        "label": "Access time, documents, tasks, calendars, or communications",
+        "description": "Time and expense entries, documents, folders, tasks, events, calendars, notes, emails, messages, intake, portal activity, and workflows are blocked."
+      },
+      {
+        "id": "practicepanther_billing_payment_write_or_administer",
+        "label": "Access financial data, write, or administer PracticePanther",
+        "description": "Invoices, billing, payments, trust accounts, accounting, creates, updates, deletes, uploads, users, OAuth applications, settings, and administration are blocked."
+      },
+      {
+        "id": "practicepanther_raw_odata_pagination_or_bulk",
+        "label": "Use raw OData, pagination, or bulk access",
+        "description": "Arbitrary endpoints, methods, identifiers, OData filters/order/select/expand, queries, bodies, pagination, polling, retries, raw responses, browser sessions, bulk, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "practicepanther_safe",
+      "label": "Safe",
+      "description": "The identity-free authority check requires approval; identity, legal-practice records, time data, communications, financial data, writes, administration, raw OData, pagination, and bulk remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["practicepanther_connection_authority_get"],
+      "blockedActions": [
+        "practicepanther_identity_contact_or_matter_data",
+        "practicepanther_time_document_task_calendar_or_communication_data",
+        "practicepanther_billing_payment_write_or_administer",
+        "practicepanther_raw_odata_pagination_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same authority check runs directly; connection ownership, provider authorization, credential secrecy, fixed endpoint, redaction, auditing, response bounds, and provider limits remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["practicepanther_connection_authority_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "practicepanther_identity_contact_or_matter_data",
+        "practicepanther_time_document_task_calendar_or_communication_data",
+        "practicepanther_billing_payment_write_or_administer",
+        "practicepanther_raw_odata_pagination_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one fixed identity-free PracticePanther authority wrapper and injects OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the same fixed identity-free PracticePanther authority wrapper."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "PracticePanther approves API access case by case and must issue a client ID/secret and register Relay's exact HTTPS redirect; provider approval, customer consent, refresh rotation, security/privacy review, and live acceptance remain required.",
+    "nextAction": "Use the separate provider-console task to request PracticePanther API access, register the exact Railway callback, store the issued client credentials, complete consent, and validate authorization-code exchange, refresh-token rotation, redaction, rate handling, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.practicepanther.com/en/articles/479897-practicepanther-api",
+      "checkedAt": "2026-07-18",
+      "supports": "PracticePanther documents REST/JSON and OData APIs, confidential OAuth 2.0 authorization code, required state and HTTPS registered redirect, client ID/secret token exchange, refresh tokens normally valid for 60 days or until used, and the exact TimeEntry $count example."
+    },
+    {
+      "url": "https://support.practicepanther.com/en/articles/480086-api-access",
+      "checkedAt": "2026-07-18",
+      "supports": "PracticePanther states that API access is authorized case by case and requires a support request."
+    },
+    {
+      "url": "https://app.practicepanther.com/swagger/ui/index",
+      "checkedAt": "2026-07-18",
+      "supports": "The provider-hosted Swagger UI is the official complete API reference for the broader resource models and methods intentionally excluded from Relay V1."
+    },
+    {
+      "url": "https://www.practicepanther.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Current first-party product positioning for PracticePanther as legal practice-management software."
+    }
+  ],
+  "securityNotes": [
+    "Relay requests no scopes because the provider's published OAuth contract documents none; it does not invent a scope parameter.",
+    "The sole request is GET https://app.practicepanther.com/api/TimeEntry/$count. The non-negative integer is validated only in memory and discarded; no time-entry count, identity, firm, client, matter, or financial data is returned or persisted.",
+    "Requests reject redirects, time out after 20 seconds, cap responses at 64 KB, accept no runtime input, do not paginate or retry automatically, and preserve 401, 403, 404, 429, and provider-unavailable outcomes.",
+    "Contacts, matters, tasks, events, time/expense entries, documents, invoices, payments, trust data, communications, intake, writes, administration, raw OData, pagination, bulk, and exports are unavailable.",
+    "Access and rotating refresh tokens remain encrypted server-side; refresh must return a replacement refresh token before Relay replaces the prior pair, and disconnect deletes Relay's grant because the public docs provide no revocation endpoint."
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "7shifts",
+  "name": "7shifts",
+  "category": "work_management",
+  "description": "7shifts is a restaurant team-management platform built for operators and hourly employees. Restaurants use it for scheduling, time clocks, labor compliance, team communication, tasks, manager log books, hiring, onboarding, payroll, tips, sales and labor reporting, and employee engagement.",
+  "agentUseSummary": "Connect a restaurant company through 7shifts, then choose which agents can read or manage its workforce and operations under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.7shifts.com/",
+    "docsUrl": "https://developers.7shifts.com/reference",
+    "developerConsoleUrl": "https://developers.7shifts.com/docs/oauth-authentication",
+    "termsUrl": "https://www.7shifts.com/terms-of-use/",
+    "privacyUrl": "https://www.7shifts.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "v1_access",
+      "companies:read",
+      "companies:write",
+      "departments:read",
+      "departments:write",
+      "locations:read",
+      "locations:write",
+      "roles:read",
+      "roles:write",
+      "users:read",
+      "users:write",
+      "sales:read",
+      "sales:write",
+      "shifts:read",
+      "shifts:write",
+      "time_punches:read",
+      "time_punches:write",
+      "events:read",
+      "events:write"
+    ],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://app.7shifts.com/generate_token",
+    "tokenUrl": "https://app.7shifts.com/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/7shifts/callback",
+    "webhookRequirements": [
+      {
+        "event": "authorization.revoked",
+        "purpose": "Remove a connection after a 7shifts admin revokes the Connected App."
+      }
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "seven_shifts_read",
+      "label": "Read 7shifts",
+      "description": "Use all 68 current public read operations for companies, locations, departments, roles, users, shifts, time punches, sales, events, webhooks, tasks, log books, payroll, tips, engagement, and reports."
+    },
+    {
+      "id": "seven_shifts_manage",
+      "label": "Manage 7shifts",
+      "description": "Use all 84 current public mutation operations, excluding OAuth token issuance and provider-restricted partner trial-company creation."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "seven_shifts_read",
+        "label": "Read 7shifts",
+        "description": "Run one exact selected GET operation."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "seven_shifts_manage",
+        "label": "Manage 7shifts",
+        "description": "Create, change, or delete restaurant data."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "seven_shifts_safe",
+      "label": "Safe",
+      "description": "All 68 reads run directly; all 84 mutations require confirmation.",
+      "defaultSelected": true,
+      "allowedActions": ["seven_shifts_read"],
+      "approvalRequiredActions": ["seven_shifts_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All selected operations run without per-action Relay confirmation, within the company authority granted by its 7shifts admin.",
+      "defaultSelected": false,
+      "allowedActions": ["seven_shifts_read", "seven_shifts_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts 152 pinned public operations through the encrypted Relay-owned OAuth connection."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts 152 pinned public operations through the encrypted Relay-owned OAuth connection."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "7shifts has not yet approved Relay Console as a technology partner or issued its OAuth client ID and secret.",
+    "nextAction": "Email integrations@7shifts.com with Relay Console's technical contact, company name, logo, and callback https://api.relayconsole.work/api/v1/marketplace/oauth/7shifts/callback. After approval, store SEVEN_SHIFTS_CLIENT_ID and SEVEN_SHIFTS_CLIENT_SECRET in Railway, deploy, grant a test company as its admin, then verify token renewal, company binding, all tool families, revocation, agent assignment, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.7shifts.com/docs/oauth-authentication",
+      "checkedAt": "2026-07-15",
+      "supports": "7shifts requires partners to use an approved OAuth client, documents company-admin grant callbacks with guid and company_id, one-hour client-credentials tokens, x-company-guid, and authorization.revoked."
+    },
+    {
+      "url": "https://developers.7shifts.com/reference/authentication",
+      "checkedAt": "2026-07-15",
+      "supports": "7shifts states that partners must use OAuth Clients and that current authentication methods provide admin-level authority."
+    },
+    {
+      "url": "https://developers.7shifts.com/llms.txt",
+      "checkedAt": "2026-07-15",
+      "supports": "Official OpenAPI fragments pin 152 public agent operations after excluding OAuth token issuance and provider-restricted partner trial-company creation; source composite SHA-256 a1c6e8daea9bb6150522fc0698d1cb4a163281a5311a120bdc1371c0924f73e5."
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "wrike",
+  "name": "Wrike",
+  "category": "work_management",
+  "description": "Wrike is a collaborative work-management platform for planning projects, tasks, workflows, resources, approvals, time, and cross-team work. Teams use it to organize portfolios, automate processes, coordinate work, track progress, and report on delivery.",
+  "agentUseSummary": "Connect one Wrike account through OAuth, then let agents read bounded projects and tasks or use the complete account-authorized Wrike API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.wrike.com/",
+    "docsUrl": "https://developers.wrike.com/docs/overview",
+    "developerConsoleUrl": "https://www.wrike.com/frontend/apps/index.html#/api",
+    "termsUrl": "https://www.wrike.com/security/terms/",
+    "privacyUrl": "https://www.wrike.com/security/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["wsReadWrite"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.wrike.com/oauth2/authorize/v4",
+    "tokenUrl": "https://login.wrike.com/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_app_oauth",
+      "exact_account_and_user_binding",
+      "expiring_access_token",
+      "single_use_rotating_refresh_token",
+      "provider_returned_regional_api_origin"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/wrike/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "project_read",
+      "label": "Read projects",
+      "description": "Read bounded folder and project summaries from the connected Wrike account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "task_read",
+      "label": "Read tasks",
+      "description": "Read bounded task summaries from the connected Wrike account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Wrike API",
+      "description": "Use the complete documented Wrike API surface allowed by the connected user and account.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "wrike_project_list",
+        "label": "List projects",
+        "description": "List at most twenty-five project or folder summaries."
+      },
+      {
+        "id": "wrike_task_list",
+        "label": "List tasks",
+        "description": "List at most twenty-five recently updated task summaries."
+      },
+      {
+        "id": "wrike_task_get",
+        "label": "Read a task",
+        "description": "Read one task summary by Wrike task ID."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "wrike_full_api",
+        "label": "Use full Wrike API",
+        "description": "Use any documented Wrike API operation authorized by the connection; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "wrike_safe",
+      "label": "Safe",
+      "description": "Bounded project and task reads run directly; every other Wrike API operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "wrike_project_list",
+        "wrike_task_list",
+        "wrike_task_get"
+      ],
+      "approvalRequiredActions": ["wrike_full_api"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Wrike operation runs without Relay per-action approval; account binding, secret isolation, request bounds, audits, provider permissions, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "wrike_project_list",
+        "wrike_task_list",
+        "wrike_task_get",
+        "wrike_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Wrike wrappers and attaches encrypted OAuth tokens only to the exact provider-returned regional Wrike API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Wrike wrappers and attaches encrypted OAuth tokens only to the exact provider-returned regional Wrike API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "Wrike requires a phone number to complete the Relay provider account before its API Apps console can be reached; no phone number was supplied or invented.",
+    "nextAction": "In the provider-console task, complete provider account phone verification, register Relay's exact callback and wsReadWrite scope, add staging credentials, then verify authorization, regional host binding, rotating refresh, Safe approval, Dangerous mutation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.wrike.com/docs/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Wrike documents API v4, OAuth scopes, regional API hosts, HTTP methods, and the workspace API surface."
+    },
+    {
+      "url": "https://developers.wrike.com/docs/oauth-20-authorization",
+      "checkedAt": "2026-07-17",
+      "supports": "Wrike documents authorization-code OAuth, one-hour access tokens, single-use rotating refresh tokens, and the token-returned regional host."
+    },
+    {
+      "url": "https://developers.wrike.com/reference/getfoldersempty",
+      "checkedAt": "2026-07-17",
+      "supports": "Wrike documents bounded folder and project listing under wsReadOnly or wsReadWrite."
+    },
+    {
+      "url": "https://developers.wrike.com/reference/gettasksempty",
+      "checkedAt": "2026-07-17",
+      "supports": "Wrike documents task listing and task reads under workspace scopes."
+    },
+    {
+      "url": "https://developers.wrike.com/docs/errors-api-reference-v4",
+      "checkedAt": "2026-07-17",
+      "supports": "Wrike documents validation, authorization, rate-limit, and provider failure status behavior."
+    }
+  ]
+}

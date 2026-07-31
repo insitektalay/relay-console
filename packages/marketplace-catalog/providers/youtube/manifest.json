@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "youtube",
+  "name": "YouTube",
+  "category": "content_creative",
+  "description": "YouTube hosts creator channels, playlists, uploads, and video metadata and statistics through the YouTube Data API v3.",
+  "agentUseSummary": "Connect one creator channel through Relay-owned Google OAuth with the exact youtube.readonly scope. Four Data API v3 wrappers read the connected channel and uploads playlist, the first twenty-five owned playlists, the first twenty-five items in an explicit playlist, or at most twenty-five explicit videos. Relay blocks search, history, Watch Later, page tokens, automatic pagination, broad exports, all mutations, advanced YouTube services, raw tools, service accounts, and content-owner access.",
+  "provider": { "websiteUrl": "https://www.youtube.com/", "docsUrl": "https://developers.google.com/youtube/v3", "developerConsoleUrl": "https://console.cloud.google.com/apis/library/youtube.googleapis.com", "termsUrl": "https://developers.google.com/youtube/terms/api-services-terms-of-service", "privacyUrl": "https://policies.google.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["https://www.googleapis.com/auth/youtube.readonly"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth", "tokenUrl": "https://oauth2.googleapis.com/token" },
+  "connection": { "types": ["relay_owned_global_oauth", "connected_creator_channel_binding", "expiring_access_token", "offline_refresh_token", "provider_revocation"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/youtube/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "channel_summary", "label": "Summarize connected channel", "description": "Read the connected creator channel and uploads playlist.", "defaultSelected": true },
+    { "id": "playlists_list", "label": "List owned playlists", "description": "Read at most twenty-five playlists owned by the connected creator.", "defaultSelected": true },
+    { "id": "playlist_items_list", "label": "List playlist items", "description": "Read at most twenty-five items from one explicit playlist.", "defaultSelected": true },
+    { "id": "videos_list", "label": "Inspect videos", "description": "Read at most twenty-five explicit video records.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "youtube_channels_list_mine", "label": "Get connected YouTube channel", "description": "Read the connected creator channel and its uploads playlist." },
+      { "id": "youtube_playlists_list_mine", "label": "List owned YouTube playlists", "description": "Read the first twenty-five playlists owned by the connected creator." },
+      { "id": "youtube_playlist_items_list", "label": "List YouTube playlist items", "description": "Read the first twenty-five items from one explicit playlist." },
+      { "id": "youtube_videos_list", "label": "Get YouTube videos", "description": "Read at most twenty-five explicit video records." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "youtube_search_history_export", "label": "Search or export YouTube activity", "description": "Search, history, Watch Later, broad exports, page tokens, and automatic pagination are blocked." },
+      { "id": "youtube_content_mutation", "label": "Mutate YouTube content", "description": "Uploads and video, playlist, comment, caption, rating, and subscription mutations are blocked." },
+      { "id": "youtube_advanced_services", "label": "Use advanced YouTube services", "description": "Live, Analytics, Reporting, membership, partner, and content-owner services are blocked." },
+      { "id": "youtube_raw_service_account_access", "label": "Use raw or service-account access", "description": "Raw tools, service accounts, delegation, batching, retries, polling, and undocumented APIs are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "youtube_read_only", "label": "Read only", "description": "Four connected-channel reads run automatically with a twenty-five item cap while search, history, writes, advanced services, raw access, and pagination remain blocked.", "defaultSelected": true, "allowedActions": ["youtube_channels_list_mine", "youtube_playlists_list_mine", "youtube_playlist_items_list", "youtube_videos_list"], "approvalRequiredActions": [], "blockedActions": ["youtube_search_history_export", "youtube_content_mutation", "youtube_advanced_services", "youtube_raw_service_account_access"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The exact scope, connected channel, twenty-five item cap, attribution, first-page-only, redaction, and no-write boundaries remain enforced.", "defaultSelected": false, "allowedActions": ["youtube_channels_list_mine", "youtube_playlists_list_mine", "youtube_playlist_items_list", "youtube_videos_list"], "approvalRequiredActions": [], "blockedActions": ["youtube_search_history_export", "youtube_content_mutation", "youtube_advanced_services", "youtube_raw_service_account_access"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts four bounded connected-channel YouTube reads and attaches encrypted OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts four bounded connected-channel YouTube reads and attaches encrypted OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "provider_review_pending", "blocker": "Relay must enable YouTube Data API v3, configure and verify the exact youtube.readonly scope and OAuth consent screen, configure Railway staging credentials, and authorize an acceptance creator channel. Those provider-console and environment actions are outside this worker task.", "nextAction": "In the provider-console task, configure the canonical Railway callback, Data API access, exact scope, verification, and staging credentials, then verify connected-channel binding, four wrappers, attribution, field redaction, refresh, rotation, revocation, disconnect, and quota/error mapping." },
+  "evidence": [
+    { "url": "https://developers.google.com/youtube/v3/docs/channels/list", "checkedAt": "2026-07-17", "supports": "Google documents the authorized mine=true channel read, contentDetails uploads playlist, one-unit quota cost, and page tokens Relay does not follow." },
+    { "url": "https://developers.google.com/youtube/v3/docs/playlists/list", "checkedAt": "2026-07-17", "supports": "Google documents mine=true owned-playlist reads, a fifty-item provider maximum Relay narrows to twenty-five, and one-unit quota cost." },
+    { "url": "https://developers.google.com/youtube/v3/docs/playlistItems/list", "checkedAt": "2026-07-17", "supports": "Google documents explicit playlistId reads, playlist item metadata, first-page pagination, and inaccessible history and Watch Later behavior." },
+    { "url": "https://developers.google.com/youtube/v3/docs/videos/list", "checkedAt": "2026-07-17", "supports": "Google documents explicit comma-separated video IDs, semantic video parts, and a one-unit quota cost." }
+  ]
+}

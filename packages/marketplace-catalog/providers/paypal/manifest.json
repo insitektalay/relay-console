@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "paypal",
+  "name": "PayPal",
+  "category": "commerce_payments",
+  "description": "PayPal is an online payments platform for consumers, merchants, and commerce businesses. Businesses use it to accept payments, manage checkout orders, review transaction activity, issue refunds, send payouts, handle disputes, and support related payment operations.",
+  "agentUseSummary": "Connect a PayPal REST app owned by your business, choose sandbox or live mode, then let agents inspect bounded, privacy-redacted transaction history and exact order or capture status through four read-only tools. V1 never creates, approves, authorizes, captures, refunds, pays out, disputes, invoices, subscribes, vaults, onboards sellers, changes account settings, exposes payer contact data, or calls arbitrary PayPal APIs.",
+  "provider": {
+    "websiteUrl": "https://www.paypal.com/",
+    "docsUrl": "https://developer.paypal.com/api/rest/authentication/",
+    "developerConsoleUrl": "https://developer.paypal.com/dashboard/applications/",
+    "termsUrl": "https://www.paypal.com/legalhub/paypal/useragreement-full",
+    "privacyUrl": "https://www.paypal.com/privacy-center/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["https://uri.paypal.com/services/reporting/search/read", "https://uri.paypal.com/services/payments/payment/authcapture"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api-m.paypal.com/v1/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_client_credentials"],
+    "credentialRequirements": [
+      { "name": "PAYPAL_CLIENT_ID", "label": "PayPal client ID", "required": true, "secret": false, "helpText": "Copy the client ID from a REST app owned by the PayPal business account you want agents to read." },
+      { "name": "PAYPAL_CLIENT_SECRET", "label": "PayPal client secret", "required": true, "secret": true, "helpText": "Copy the matching REST app secret. Relay encrypts it and never exposes it to agents or clients after saving." },
+      { "name": "PAYPAL_ENVIRONMENT", "label": "PayPal environment", "required": true, "secret": false, "helpText": "Choose sandbox for test data or live for the business account's real PayPal data." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "transaction_read", "label": "Read transaction activity", "description": "List up to twenty-five redacted transactions in an explicit period of no more than thirty-one days, or find one exact transaction ID.", "defaultSelected": true },
+    { "id": "payment_status_read", "label": "Read payment status", "description": "Inspect one exact PayPal checkout order or captured payment without changing financial state.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "paypal_transaction_list", "label": "List transactions", "description": "Read up to twenty-five privacy-redacted transaction summaries within an explicit period of no more than thirty-one days." },
+      { "id": "paypal_transaction_get", "label": "Find transaction", "description": "Find privacy-redacted records for one exact PayPal transaction ID within an explicit date range." },
+      { "id": "paypal_order_get", "label": "Read order status", "description": "Read one exact checkout order with payer contact and shipping data removed." },
+      { "id": "paypal_capture_get", "label": "Read capture status", "description": "Read one exact captured payment with private payer and seller-receivable details removed." }
+    ],
+    "blocked": [
+      { "id": "paypal_financial_mutation", "label": "Move or change money", "description": "Creating, approving, authorizing, capturing, voiding, refunding, or paying out funds is outside V1." },
+      { "id": "paypal_private_data", "label": "Read private customer data", "description": "Payer identity, email, phone, addresses, shipping details, notes, cart contents, and full raw transaction records are outside V1." },
+      { "id": "paypal_broader_admin", "label": "Administer PayPal", "description": "Disputes, invoices, subscriptions, vaults, webhooks, seller onboarding, partner features, account settings, and broader administration are outside V1." },
+      { "id": "paypal_raw_api", "label": "Use arbitrary PayPal APIs", "description": "Arbitrary paths, headers, fields, automatic pagination, partner assertions, and raw PayPal API access are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "paypal_safe",
+      "label": "Safe",
+      "description": "Every PayPal financial-status read requires matching approval because even redacted transaction and payment status is sensitive.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["paypal_transaction_list", "paypal_transaction_get", "paypal_order_get", "paypal_capture_get"],
+      "blockedActions": ["paypal_financial_mutation", "paypal_private_data", "paypal_broader_admin", "paypal_raw_api"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected read-only PayPal V1 tools run without Relay per-action approval; connection ownership, selected capabilities, exact environment binding, date and result bounds, audits, redaction, credential protection, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["paypal_transaction_list", "paypal_transaction_get", "paypal_order_get", "paypal_capture_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["paypal_financial_mutation", "paypal_private_data", "paypal_broader_admin", "paypal_raw_api"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts four exact PayPal read wrappers and derives short-lived access tokens from the encrypted merchant-owned REST app credentials server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts four exact PayPal read wrappers and derives short-lived access tokens from the encrypted merchant-owned REST app credentials server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No representative customer PayPal REST app credentials and authorized sandbox or live business account were available for staging acceptance.",
+    "nextAction": "A PayPal business administrator creates a dedicated REST app, enables Transaction Search and the payment-read permissions needed by V1, enters its client ID and secret with the correct environment, then verifies all four redacted reads, Safe approval binding, Dangerous execution, credential rotation, disconnect, and post-disconnect denial in staging. One-click delegated merchant onboarding remains unavailable unless Relay Console is separately approved as a PayPal Commerce Platform partner."
+  },
+  "evidence": [
+    { "url": "https://developer.paypal.com/api/rest/authentication/", "checkedAt": "2026-07-17", "supports": "PayPal REST API access uses merchant REST-app client ID and secret credentials exchanged through the OAuth 2.0 client-credentials grant for a short-lived bearer token." },
+    { "url": "https://developer.paypal.com/docs/log-in-with-paypal/", "checkedAt": "2026-07-17", "supports": "Log in with PayPal is an OAuth 2.0 and OpenID Connect identity flow for sharing non-financial user information; it is not generic authorization to operate a merchant's financial REST APIs." },
+    { "url": "https://developer.paypal.com/docs/multiparty/", "checkedAt": "2026-07-17", "supports": "Acting for third-party merchants through seller onboarding is a PayPal platform product that requires PayPal partner enablement and live approval, so Relay cannot truthfully present it as immediately available public OAuth." },
+    { "url": "https://developer.paypal.com/docs/api/transaction-search/v1/", "checkedAt": "2026-07-17", "supports": "Transaction Search returns account transaction history with an explicit maximum date range of thirty-one days; third-party use requires the PayPal partner network, while a merchant may use its own REST-app credentials." },
+    { "url": "https://developer.paypal.com/docs/api/orders/v2/", "checkedAt": "2026-07-17", "supports": "Orders v2 supports exact order retrieval as well as financial mutations; Relay V1 implements only exact retrieval and removes payer and shipping data." },
+    { "url": "https://developer.paypal.com/docs/api/payments/v2/", "checkedAt": "2026-07-17", "supports": "Payments v2 supports exact authorization, capture, and refund retrieval plus capture, void, and refund mutations; Relay V1 implements only exact capture retrieval with a reduced response." }
+  ]
+}

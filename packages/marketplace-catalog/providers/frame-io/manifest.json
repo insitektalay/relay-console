@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "frame-io",
+  "name": "Frame.io",
+  "category": "content_creative",
+  "description": "Frame.io is Adobe's cloud platform for organizing, reviewing, approving, and delivering video and other creative work. Production teams use it to manage projects and media, collect frame-accurate feedback, share work securely, track metadata, and automate creative workflows.",
+  "agentUseSummary": "Connect a Frame.io V4 account once through Relay-owned Adobe OAuth, then let agents use every account- and role-authorized API operation under Safe or Dangerous policy.",
+  "provider": { "websiteUrl": "https://frame.io/", "docsUrl": "https://developer.adobe.com/frameio/", "developerConsoleUrl": "https://developer.adobe.com/console", "termsUrl": "https://www.adobe.com/legal/terms.html", "privacyUrl": "https://www.adobe.com/privacy/policy.html" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["openid", "profile", "offline_access"], "pkce": false, "refreshTokens": true, "authorizationUrl": "https://ims-na1.adobelogin.com/ims/authorize/v2", "tokenUrl": "https://ims-na1.adobelogin.com/ims/token/v3" },
+  "connection": { "types": ["relay_owned_oauth"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/frame-io/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "projects_read", "label": "Browse creative work", "description": "Read the connected user, accounts, workspaces, projects, folders, files, version stacks, comments, shares, metadata, and search results." },
+    { "id": "collaboration_write", "label": "Manage reviews and media", "description": "Create, update, move, copy, upload, share, comment on, and delete Frame.io resources permitted by the connected user." },
+    { "id": "workflow_automation", "label": "Automate workflows", "description": "Manage webhooks, custom actions, permissions, groups, metadata, collections, and other account-authorized workflow resources." },
+    { "id": "administration", "label": "Use the complete Frame.io V4 API", "description": "Use every stable current Frame.io V4 operation permitted by the connected account, project roles, plan, and Adobe application." }
+  ],
+  "actions": { "allowed": [
+    { "id": "frame_io_get_me", "label": "Read connected user", "description": "Read the connected Frame.io user." },
+    { "id": "frame_io_list_accounts", "label": "List accounts", "description": "List accounts available to the connected user." },
+    { "id": "frame_io_list_workspaces", "label": "List workspaces", "description": "List a bounded page of workspaces in one account." },
+    { "id": "frame_io_list_projects", "label": "List projects", "description": "List a bounded page of projects in one workspace." },
+    { "id": "frame_io_list_folder_children", "label": "Browse folder", "description": "List a bounded page of files, folders, and version stacks in a folder." },
+    { "id": "frame_io_get_file", "label": "Read file", "description": "Read one exact media file." },
+    { "id": "frame_io_list_comments", "label": "List comments", "description": "List a bounded page of review comments on one file." },
+    { "id": "frame_io_search", "label": "Search creative work", "description": "Run a bounded search in one Frame.io account." }
+  ], "approvalRequired": [{ "id": "frame_io_full_api", "label": "Use full Frame.io V4 API", "description": "Use any stable current Frame.io V4 operation; Safe mode requires approval." }], "blocked": [] },
+  "approvalProfiles": [
+    { "id": "frame_io_safe", "label": "Safe", "description": "Bounded account, workspace, project, folder, file, comment, and search reads run directly; every other Frame.io operation requires approval.", "defaultSelected": true, "allowedActions": ["frame_io_get_me", "frame_io_list_accounts", "frame_io_list_workspaces", "frame_io_list_projects", "frame_io_list_folder_children", "frame_io_get_file", "frame_io_list_comments", "frame_io_search"], "approvalRequiredActions": ["frame_io_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected OAuth- and role-authorized stable Frame.io V4 operation runs without Relay per-action approval; fixed origin, bounds, audits, redaction, ownership, rate limits, and provider enforcement still apply.", "defaultSelected": false, "allowedActions": ["frame_io_get_me", "frame_io_list_accounts", "frame_io_list_workspaces", "frame_io_list_projects", "frame_io_list_folder_children", "frame_io_get_file", "frame_io_list_comments", "frame_io_search", "frame_io_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Frame.io tools through the authenticated server-side connector." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Frame.io tools through the authenticated server-side connector." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": { "status": "blocked", "blocker": "Relay's Adobe Developer Console project, Frame.io V4 API OAuth Web App credential, beta users or production approval, and Railway client credentials are not configured.", "nextAction": "Sign in to Adobe Developer Console, create a project with the Frame.io V4 API and OAuth Web App credential, register https://api.relayconsole.work/api/v1/marketplace/oauth/frame-io/callback, add beta users and obtain production approval where required, then set FRAME_IO_CLIENT_ID and FRAME_IO_CLIENT_SECRET in Railway." },
+  "evidence": [
+    { "url": "https://developer.adobe.com/frameio/guides/Authentication/", "checkedAt": "2026-07-14", "supports": "Frame.io V4 supports three-legged Adobe IMS user OAuth; Web App credentials are confidential clients and V4 access is authorized by the connected user's Frame.io roles." },
+    { "url": "https://developer.adobe.com/developer-console/docs/guides/authentication/UserAuthentication/ims", "checkedAt": "2026-07-14", "supports": "Adobe documents authorize/v2, token/v3, confidential-client Basic authentication, offline_access refresh tokens, 24-hour access tokens, 14-day rotating refresh tokens, and the IMS revoke endpoint." },
+    { "url": "https://developer.adobe.com/frameio/guides/", "checkedAt": "2026-07-14", "supports": "Frame.io documents the V4 resource hierarchy, stable /v4 API origin, cursor pagination, per-operation rate limits, projects, files, folders, comments, shares, search, uploads, metadata, and workflow resources." },
+    { "url": "https://api.frame.io/v4/openapi.json", "checkedAt": "2026-07-14", "supports": "The official OpenAPI contract defines the current stable V4 endpoint surface, OAuth scopes, schemas, page-size maximum of 100, and fixed https://api.frame.io server." },
+    { "url": "https://developer.adobe.com/developer-console/docs/guides/authentication/UserAuthentication/", "checkedAt": "2026-07-14", "supports": "Adobe user OAuth credentials begin in development mode with an explicit beta-user allowlist and may require Adobe production approval before any Adobe user can connect." }
+  ]
+}

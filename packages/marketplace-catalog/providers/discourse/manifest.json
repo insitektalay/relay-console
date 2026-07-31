@@ -1,0 +1,301 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "discourse",
+  "name": "Discourse",
+  "category": "communication_collaboration",
+  "description": "Discourse is an open-source discussion and community platform for structured topics, replies, categories, tags, groups, moderation, messaging, and knowledge sharing.",
+  "agentUseSummary": "Connect a dedicated customer-owned API key, one exact API username, and one exact public HTTPS Discourse site. Agents can inspect reduced site, actor, Category, Tag, Group, member, and latest Topic metadata and make exact existing-username Group membership changes. Content, messaging, moderation, lifecycle, structural administration, bulk operations, private identity, and arbitrary API access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.discourse.org/",
+    "docsUrl": "https://docs.discourse.org/",
+    "developerConsoleUrl": "https://meta.discourse.org/t/create-and-configure-an-api-key/230124",
+    "termsUrl": "https://www.discourse.org/legal",
+    "privacyUrl": "https://www.discourse.org/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "self_hosted_or_managed_site"],
+    "credentialRequirements": [
+      {
+        "name": "DISCOURSE_BASE_URL",
+        "label": "Discourse site URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the public HTTPS origin of the exact Discourse site, without a path."
+      },
+      {
+        "name": "DISCOURSE_API_KEY",
+        "label": "Discourse API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated single-user, least-privilege API key in Admin → Advanced → API Keys. Relay encrypts it and never exposes it to agents or clients after saving."
+      },
+      {
+        "name": "DISCOURSE_API_USERNAME",
+        "label": "Discourse API username",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact username associated with the dedicated API key. Relay fixes this value in every Api-Username header."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "catalog_read",
+      "label": "Read site structure",
+      "description": "Inspect reduced site, actor, Category, Tag, and Tag Group metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "group_read",
+      "label": "Read groups",
+      "description": "Inspect reduced Group metadata and bounded member identity.",
+      "defaultSelected": true
+    },
+    {
+      "id": "topic_metadata_read",
+      "label": "Read topic metadata",
+      "description": "Inspect bounded latest Topic lifecycle and engagement metadata without content.",
+      "defaultSelected": true
+    },
+    {
+      "id": "group_membership_write",
+      "label": "Change Group membership",
+      "description": "Add or remove one exact existing username from one exact Group.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "discourse_site_get",
+        "label": "Read site",
+        "description": "Read reduced identity and locale metadata for the configured Discourse site."
+      },
+      {
+        "id": "discourse_actor_get",
+        "label": "Read connected actor",
+        "description": "Read reduced identity and authority metadata for the exactly configured API username."
+      },
+      {
+        "id": "discourse_category_list",
+        "label": "List categories",
+        "description": "List up to twenty-five reduced Category summaries."
+      },
+      {
+        "id": "discourse_tag_list",
+        "label": "List tags",
+        "description": "List up to twenty-five reduced Tag summaries."
+      },
+      {
+        "id": "discourse_tag_group_list",
+        "label": "List tag groups",
+        "description": "List up to twenty-five reduced Tag Group summaries."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "discourse_group_list",
+        "label": "List groups",
+        "description": "List up to twenty-five reduced Group summaries without biographies, email settings, or raw records."
+      },
+      {
+        "id": "discourse_group_get",
+        "label": "Read group",
+        "description": "Read one exact reduced Group summary without biographies or email settings."
+      },
+      {
+        "id": "discourse_group_member_list",
+        "label": "List group members",
+        "description": "List up to twenty-five reduced member identity summaries for one exact Group."
+      },
+      {
+        "id": "discourse_topic_list",
+        "label": "List topic metadata",
+        "description": "List up to twenty-five latest Topic metadata summaries without post bodies, excerpts, media, or URLs."
+      },
+      {
+        "id": "discourse_group_member_add",
+        "label": "Add group member",
+        "description": "Add one exact existing username to one exact Group."
+      },
+      {
+        "id": "discourse_group_member_remove",
+        "label": "Remove group member",
+        "description": "Remove one exact username from one exact Group."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "discourse_content",
+        "label": "Read or write content",
+        "description": "Post bodies, excerpts, cooked HTML, drafts, private messages, chat, uploads, files, media, polls, events, forms, and arbitrary rich content are outside V1."
+      },
+      {
+        "id": "discourse_user_lifecycle",
+        "label": "Manage user lifecycle",
+        "description": "Creating, inviting, activating, approving, updating, anonymizing, suspending, silencing, deleting, impersonating, or changing trust and staff roles is outside V1."
+      },
+      {
+        "id": "discourse_structure_admin",
+        "label": "Administer site structure",
+        "description": "Creating, updating, deleting, reordering, or configuring Categories, Groups, Tags, Tag Groups, badges, themes, plugins, webhooks, settings, and site state is outside V1."
+      },
+      {
+        "id": "discourse_moderation",
+        "label": "Moderate community content",
+        "description": "Flagging, reviewing, deleting, moving, closing, pinning, archiving, hiding, locking, or otherwise moderating Topics, Posts, users, and reviewables is outside V1."
+      },
+      {
+        "id": "discourse_communication",
+        "label": "Communicate or notify",
+        "description": "Creating Topics or Posts, private messaging, chat, email, invitations, notifications, broadcasts, and outbound webhooks are outside V1."
+      },
+      {
+        "id": "discourse_bulk_or_analytics",
+        "label": "Run bulk or analytics actions",
+        "description": "Automatic pagination, bulk loops, polling, exports, backups, logs, Data Explorer, analytics, IP data, email lookups, and staff audit data are outside V1."
+      },
+      {
+        "id": "discourse_private_identity",
+        "label": "Read broader identity data",
+        "description": "Emails, secondary emails, IP addresses, avatars, profile fields, custom fields, timezones, last-seen activity, user statistics, and raw user or member records are outside V1."
+      },
+      {
+        "id": "discourse_raw_api",
+        "label": "Use arbitrary Discourse APIs",
+        "description": "Arbitrary endpoints, methods, parameters, headers, bodies, alternate origins, API usernames, raw responses, plugins, GraphQL, CLI, and direct database access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "discourse_safe",
+      "label": "Safe",
+      "description": "Reduced site, connected-actor, Category, Tag, and Tag Group catalog reads run directly. Group metadata, member identity, Topic metadata, and all Group membership changes require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "discourse_site_get",
+        "discourse_actor_get",
+        "discourse_category_list",
+        "discourse_tag_list",
+        "discourse_tag_group_list"
+      ],
+      "approvalRequiredActions": [
+        "discourse_group_list",
+        "discourse_group_get",
+        "discourse_group_member_list",
+        "discourse_topic_list",
+        "discourse_group_member_add",
+        "discourse_group_member_remove"
+      ],
+      "blockedActions": [
+        "discourse_content",
+        "discourse_user_lifecycle",
+        "discourse_structure_admin",
+        "discourse_moderation",
+        "discourse_communication",
+        "discourse_bulk_or_analytics",
+        "discourse_private_identity",
+        "discourse_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All selected bounded Discourse V1 tools run without Relay per-action approval; encrypted credentials, exact site and API-username binding, provider authority, bounds, audits, privacy reduction, redirect denial, and system blocks still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "discourse_site_get",
+        "discourse_actor_get",
+        "discourse_category_list",
+        "discourse_tag_list",
+        "discourse_tag_group_list",
+        "discourse_group_list",
+        "discourse_group_get",
+        "discourse_group_member_list",
+        "discourse_topic_list",
+        "discourse_group_member_add",
+        "discourse_group_member_remove"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "discourse_content",
+        "discourse_user_lifecycle",
+        "discourse_structure_admin",
+        "discourse_moderation",
+        "discourse_communication",
+        "discourse_bulk_or_analytics",
+        "discourse_private_identity",
+        "discourse_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts eleven exact bounded Discourse REST wrappers and keeps the customer-owned API key encrypted outside agent context."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts eleven exact bounded Discourse REST wrappers and keeps the customer-owned API key encrypted outside agent context."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No representative Discourse site, dedicated API key, API username, or staging Group/member fixtures were available for live acceptance.",
+    "nextAction": "A Discourse administrator creates a dedicated single-user least-privilege API key, enters the exact public HTTPS site origin and associated username in Relay, and verifies exact site and actor binding, supported scopes, reduced Category/Tag/Group/member/Topic projections, Safe approval binding, Dangerous execution, representative existing-username Group add/remove cycles, rate limits, key revocation, disconnect, and post-disconnect denial in staging."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.discourse.org/",
+      "checkedAt": "2026-07-18",
+      "supports": "The official generated REST reference documents header authentication, site, Category, Tag, Tag Group, Group, Group member, latest Topic, and exact Group membership endpoints and schemas used by Relay's typed wrappers."
+    },
+    {
+      "url": "https://meta.discourse.org/t/discourse-rest-api-documentation/22706",
+      "checkedAt": "2026-07-18",
+      "supports": "Discourse requires Api-Key and Api-Username HTTP headers and no longer supports general API credentials in query parameters or request bodies."
+    },
+    {
+      "url": "https://meta.discourse.org/t/create-and-configure-an-api-key/230124",
+      "checkedAt": "2026-07-18",
+      "supports": "Administrators create API keys with a description, All Users or Single User binding, and Global, Read-only, or Granular scope; keys are displayed once, permissions cannot exceed the associated user, and unused keys can be revoked automatically."
+    },
+    {
+      "url": "https://meta.discourse.org/t/use-scoped-api-keys/164998",
+      "checkedAt": "2026-07-18",
+      "supports": "Discourse supports route- and parameter-constrained API-key scopes, while endpoints absent from selected granular scopes fail closed."
+    },
+    {
+      "url": "https://github.com/discourse/discourse_api_docs",
+      "checkedAt": "2026-07-18",
+      "supports": "Discourse publishes its generated OpenAPI source under the official discourse organization and derives it from core request specifications."
+    },
+    {
+      "url": "https://www.discourse.org/legal",
+      "checkedAt": "2026-07-18",
+      "supports": "Discourse's legal portal governs hosted service terms while open-source installations remain subject to their own operator policies and licenses."
+    },
+    {
+      "url": "https://www.discourse.org/privacy",
+      "checkedAt": "2026-07-18",
+      "supports": "Discourse's privacy notice distinguishes hosted customer processing from each forum operator's privacy practices and describes the sensitivity of account, post, private-message, and activity data."
+    }
+  ]
+}

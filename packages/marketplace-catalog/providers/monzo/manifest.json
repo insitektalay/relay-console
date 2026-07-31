@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "monzo",
+  "name": "Monzo",
+  "category": "commerce_payments",
+  "description": "Monzo is a digital bank built around mobile current accounts, cards, savings, borrowing, and money management. Personal customers use it to spend, receive money, organize funds in Pots, review transactions, budget, and manage everyday banking from the Monzo app.",
+  "agentUseSummary": "Monzo is visible as a regulated-access review preview only. Relay will not collect a Monzo email login, magic link, card PIN, app approval, browser session, developer token, or banking credential, and no agent action is callable until Relay has a lawful public distribution route approved for customer account access.",
+  "provider": {
+    "websiteUrl": "https://monzo.com/",
+    "docsUrl": "https://docs.monzo.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://monzo.com/help/legal-stuff/terms-conditions",
+    "privacyUrl": "https://monzo.com/help/legal-stuff/privacy-notice"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "monzo_open_banking_aisp_authorisation_required",
+      "regulated_dynamic_client_registration_and_mtls_required",
+      "personal_account_read_contract_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "approved_personal_account_read",
+      "label": "Read approved personal account data",
+      "description": "After regulatory and provider approval, expose only bounded non-mutating summaries for the connected customer's authorized accounts, balances, recent transaction lifecycle, and Pots under the exact approved AISP contract.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "monzo_connect_without_authorised_distribution",
+        "label": "Connect without authorized distribution",
+        "description": "Monzo states that its general Developer API is not suitable for public applications, and Relay has no approved public Developer API client, authorized AISP status, registered Open Banking software statement, mutual-TLS credentials, or accepted customer-access contract."
+      },
+      {
+        "id": "monzo_collect_customer_credentials",
+        "label": "Collect customer credentials",
+        "description": "Relay will not ask customers for a Monzo email login, magic link, card PIN, biometric or app approval, password, browser session, bearer token, refresh token, developer-playground token, card detail, identity document, or banking credential as a substitute for provider-approved authorization."
+      },
+      {
+        "id": "monzo_api_actions_before_approval",
+        "label": "Run Monzo API actions",
+        "description": "No account, balance, transaction, Pot, direct-debit, standing-order, webhook, identity, card, savings, borrowing, or payment API action can run while regulated access review is pending."
+      },
+      {
+        "id": "monzo_money_movement_blocked",
+        "label": "Money movement unavailable",
+        "description": "Payment initiation, Pot deposits or withdrawals, transfers, transaction annotation, webhook mutation, card controls, borrowing, savings mutations, and every other financial or account mutation remain outside Relay's planned read-only V1 even after approval."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "monzo_regulated_access_review",
+      "label": "Regulated access review pending",
+      "description": "Agent actions remain unavailable until Relay has an authorized Monzo customer-access route and engineering implements and validates the exact bounded read-only contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "monzo_connect_without_authorised_distribution",
+        "monzo_collect_customer_credentials",
+        "monzo_api_actions_before_approval",
+        "monzo_money_movement_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No OpenClaw tools are callable until regulated Monzo access is approved and Relay implements the contracted read-only Railway broker."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Hermes tools are callable until regulated Monzo access is approved and Relay implements the contracted read-only Railway broker."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Monzo's general Developer API explicitly is not suitable for public applications and permits only the developer's own account or a small explicitly allowed user set. Customer-wide account information instead uses Monzo Open Banking for authorized Account Information Service Providers, including regulated Third Party Provider status, dynamic client registration, software and organization identity, mutual TLS, appropriate certificates, consent, and production onboarding. Relay has none of that approved authority or infrastructure for Monzo.",
+    "nextAction": "An authorized Relay business, legal, compliance, and security owner must establish a lawful distributable route for Monzo customer account information: either obtain and maintain the regulatory status and Monzo Open Banking registration required of an AISP, or secure another written Monzo-approved public authorization contract. The owner must document supported customers and jurisdictions, exact read permissions and consent lifetime, dynamic client registration, software statement and organization identity, mutual-TLS certificate lifecycle, redirect and token contracts, sandbox and production onboarding, data minimization and retention, rate limits, revocation, disconnect, and incident obligations. Engineering can then implement a fixed-origin Railway broker exposing only bounded account, balance, recent transaction-lifecycle, and Pot summaries. Payment initiation and every mutation remain excluded."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.monzo.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Monzo explicitly says its Developer API is not suitable for public applications and may connect only the developer's own account or a small explicitly allowed user set; it documents OAuth, in-app strong customer authentication, accounts, balances, transactions, Pots, webhooks, and mutating financial surfaces."
+    },
+    {
+      "url": "https://docs.monzo.com/open-banking",
+      "checkedAt": "2026-07-18",
+      "supports": "Monzo's customer-wide Account Information Services API is for authorized Account Information Service Providers and uses Open Banking OAuth/OIDC, dynamic client registration, mutual TLS, regulated organization and software identity, certificates, and customer consent."
+    },
+    {
+      "url": "https://monzo.com/current-account/personal",
+      "checkedAt": "2026-07-18",
+      "supports": "Monzo describes its personal current account as a mobile banking product for spending, savings, Pots, cards, and everyday money management."
+    },
+    {
+      "url": "https://monzo.com/help/opening-an-account/how-to-open-a-Monzo-Personal-Account",
+      "checkedAt": "2026-07-18",
+      "supports": "Monzo explains that a personal account is managed through its mobile app and requires provider-run identity and eligibility checks, reinforcing that Relay must not collect or reproduce customer onboarding credentials."
+    }
+  ]
+}

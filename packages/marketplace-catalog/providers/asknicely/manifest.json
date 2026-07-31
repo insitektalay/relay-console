@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "asknicely",
+  "name": "AskNicely",
+  "category": "work_management",
+  "description": "AskNicely is a customer-experience platform for collecting NPS, CSAT, and other feedback, coaching frontline teams, tracking service performance, and driving reviews and referrals.",
+  "agentUseSummary": "Add one tenant subdomain and dedicated customer-owned API key, then let selected agents read bounded feedback responses and aggregate NPS, sent-volume, and historical statistics. Relay pins the tenant's asknice.ly API v1 host and does not expose arbitrary custom-field filters, response exports, contacts, survey sends, templates, imports, or writes.",
+  "provider": {
+    "websiteUrl": "https://www.asknicely.com/",
+    "docsUrl": "https://asknicely.asknice.ly/help/apidocs/auth",
+    "developerConsoleUrl": "https://asknicely.asknice.ly/help/apidocs/auth",
+    "termsUrl": "https://www.asknicely.com/terms",
+    "privacyUrl": "https://www.asknicely.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "exact_tenant_subdomain"],
+    "credentialRequirements": [
+      {
+        "key": "ASKNICELY_SUBDOMAIN",
+        "label": "AskNicely tenant subdomain",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter only the tenant prefix from {tenant}.asknice.ly; Relay constructs and pins the official HTTPS API host."
+      },
+      {
+        "key": "ASKNICELY_API_KEY",
+        "label": "AskNicely API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a dedicated customer-owned API key; Relay sends it only in the documented X-apikey header."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "asknicely_read",
+      "label": "Read feedback and statistics",
+      "description": "Use four pinned API v1 reads for at most 25 responses, NPS, sent-volume statistics, and historical statistics without arbitrary custom-field filters.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "asknicely_read",
+        "label": "Read AskNicely",
+        "description": "Read bounded responses and aggregate feedback statistics from one configured tenant."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "asknicely_manage",
+        "label": "Change AskNicely",
+        "description": "Survey sending, contacts, templates, deactivation, imports, responses, and all other mutations are outside Relay's V1 contract."
+      },
+      {
+        "id": "asknicely_broad_filter_export",
+        "label": "Filter or export broadly",
+        "description": "Arbitrary custom-field filters, CSV output, asynchronous exports, and download URLs are blocked."
+      },
+      {
+        "id": "asknicely_arbitrary_api",
+        "label": "Use another API path",
+        "description": "Requests are pinned to four bounded JSON API v1 reads on the configured tenant."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "asknicely_safe",
+      "label": "Safe",
+      "description": "Four bounded reads run directly. Custom-field filters, exports, contacts, survey sends, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["asknicely_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "asknicely_manage",
+        "asknicely_broad_filter_export",
+        "asknicely_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with four pinned API v1 operations through the encrypted tenant-bound key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with four pinned API v1 operations through the encrypted tenant-bound key."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned AskNicely tenant, dedicated API key, representative feedback, or safe statistics fixture is available in this workspace.",
+    "nextAction": "An AskNicely administrator provisions a dedicated API key, saves the tenant subdomain and key through Relay Console, then verifies tenant binding, all four reads, response bounds, filter and export denial, agent assignment, key replacement, disconnect, provider-side rotation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://asknicely.asknice.ly/help/apidocs/auth",
+      "checkedAt": "2026-07-17",
+      "supports": "AskNicely's official live API quick start documents tenant-specific API v1 URLs and X-apikey header authentication."
+    },
+    {
+      "url": "https://asknicely.asknice.ly/help/apidocs/responses",
+      "checkedAt": "2026-07-17",
+      "supports": "The official response guide documents JSON and CSV response feeds, page size and number, timestamp filtering, custom-field filters, published filtering, and asynchronous download behavior."
+    },
+    {
+      "url": "https://asknicely.asknice.ly/help/apidocs/getnps",
+      "checkedAt": "2026-07-17",
+      "supports": "The official guide documents the GET NPS endpoint, day window, and optional custom-field filters."
+    },
+    {
+      "url": "https://asknicely.asknice.ly/help/apidocs/sentstats",
+      "checkedAt": "2026-07-17",
+      "supports": "The official guide documents sent-volume statistics by bounded day window."
+    }
+  ]
+}

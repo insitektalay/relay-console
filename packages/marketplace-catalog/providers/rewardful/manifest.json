@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "rewardful",
+  "name": "Rewardful",
+  "category": "commerce_payments",
+  "description": "Rewardful is an affiliate and referral management platform for subscription businesses using Stripe. Teams use it to run campaigns, attribute referrals and conversions, manage affiliates, calculate commissions, and organize payouts.",
+  "agentUseSummary": "Add a dedicated customer-owned Rewardful API secret, then let selected agents read bounded, minimized campaign, affiliate, referral, commission, and payout summaries. Relay removes affiliate identity, customer, Stripe, PayPal, and Wise fields and does not mount expansions, SSO links, webhooks, arbitrary endpoints, or mutations.",
+  "provider": {
+    "websiteUrl": "https://www.rewardful.com/",
+    "docsUrl": "https://developers.rewardful.com/rest-api/overview",
+    "developerConsoleUrl": "https://app.getrewardful.com/company/edit",
+    "termsUrl": "https://www.rewardful.com/terms",
+    "privacyUrl": "https://www.rewardful.com/privacy"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_secret", "http_basic_secret_username"],
+    "credentialRequirements": [
+      {
+        "key": "REWARDFUL_API_SECRET",
+        "label": "Rewardful API secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a dedicated customer-owned API secret; Relay encrypts it and sends it only as the Basic Auth username to api.getrewardful.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "rewardful_read",
+      "label": "Read affiliate-program summaries",
+      "description": "Use five pinned REST API reads for bounded campaign, affiliate, referral, commission, and payout summaries with identity and payment fields removed.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "rewardful_read",
+        "label": "Read Rewardful",
+        "description": "Read bounded, minimized campaign, affiliate, referral, commission, and payout summaries."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "rewardful_manage",
+        "label": "Change Rewardful",
+        "description": "Affiliate, campaign, link, commission, payout, webhook, and all other mutations are outside Relay's V1 contract."
+      },
+      {
+        "id": "rewardful_identity_or_payment_data",
+        "label": "Read identity or payment details",
+        "description": "Affiliate names and email addresses, customer details, Stripe identifiers, payout addresses, sale expansions, and SSO links are blocked."
+      },
+      {
+        "id": "rewardful_arbitrary_api",
+        "label": "Use another API operation",
+        "description": "Requests are pinned to five bounded collection GET operations; arbitrary paths and filters are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "rewardful_safe",
+      "label": "Safe",
+      "description": "Five bounded, minimized reporting reads run directly. Identity filters, expansions, SSO links, webhooks, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["rewardful_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "rewardful_manage",
+        "rewardful_identity_or_payment_data",
+        "rewardful_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with five pinned API v1 reporting operations through the encrypted customer API secret."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with five pinned API v1 reporting operations through the encrypted customer API secret."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Rewardful account, dedicated API secret, representative campaigns, affiliates, referrals, commissions, or payout fixtures are available in this workspace.",
+    "nextAction": "An account administrator creates or rotates a dedicated API secret in Company Settings, saves it through Relay Console, then verifies Basic authentication, all five bounded reads, field minimization, filter validation, agent assignment, secret replacement, disconnect, provider-side rotation, rate-limit handling, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.rewardful.com/rest-api/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Rewardful documents REST API v1, HTTPS Basic authentication with the API secret as username and no password, UUID resource IDs, paginated collections, expansions, errors, and a typical rate limit of 45 requests per 30 seconds."
+    },
+    {
+      "url": "https://developers.rewardful.com/rest-api/campaigns/list-campaigns",
+      "checkedAt": "2026-07-17",
+      "supports": "The official campaign reference documents GET /v1/campaigns and campaign reporting fields."
+    },
+    {
+      "url": "https://developers.rewardful.com/rest-api/affiliates/list",
+      "checkedAt": "2026-07-17",
+      "supports": "The official affiliate reference documents bounded pagination, identity and customer filters, and campaign, link, and commission-stat expansions; Relay exposes pagination only and minimizes identities."
+    },
+    {
+      "url": "https://developers.rewardful.com/rest-api/referrals/list",
+      "checkedAt": "2026-07-17",
+      "supports": "The official referral reference documents bounded pagination, affiliate and conversion-state filters, identity filters, timestamp filters, and affiliate expansion; Relay exposes only affiliate and state filters."
+    },
+    {
+      "url": "https://developers.rewardful.com/rest-api/commissions/list",
+      "checkedAt": "2026-07-17",
+      "supports": "The official commission reference documents bounded pagination, affiliate and state filters, and sale and campaign expansions; Relay exposes no expansion or sale data."
+    },
+    {
+      "url": "https://developers.rewardful.com/rest-api/payouts/list-payouts",
+      "checkedAt": "2026-07-17",
+      "supports": "The official payout reference documents affiliate and state filters plus affiliate and commission expansions; Relay exposes no expansion or payout-recipient details."
+    }
+  ]
+}

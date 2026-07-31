@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "cvent",
+  "name": "Cvent",
+  "category": "communication",
+  "description": "Cvent is a meetings, events and hospitality technology platform spanning event management, registration, marketing, mobile experiences, virtual and hybrid delivery, onsite operations, surveys, analytics and venue sourcing. Organizations use it to plan and operate complex event programs from invitation through reporting.",
+  "agentUseSummary": "Connect a customer-owned Cvent REST API client with exactly event/events:read and select the matching US or EMEA origin, then let agents list bounded event summaries or inspect one exact event without attendee or registration data.",
+  "provider": { "websiteUrl": "https://www.cvent.com/", "docsUrl": "https://developers.cvent.com/docs/rest-api/overview", "developerConsoleUrl": "https://developers.cvent.com/", "termsUrl": "https://www.cvent.com/en/terms-use", "privacyUrl": "https://www.cvent.com/en/cvent-global-privacy-policy" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": ["event/events:read"], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": "https://api-platform.cvent.com/ea/oauth2/token", "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_oauth_client", "client_credentials", "one_hour_access_token", "exact_read_scope", "explicit_us_or_emea_region", "encrypted_client_secret", "local_disconnect"],
+    "credentialRequirements": [
+      { "name": "CVENT_CLIENT_ID", "label": "Cvent API client ID", "required": true, "secret": false, "helpText": "Create a customer-owned Cvent REST API client with only event/events:read." },
+      { "name": "CVENT_CLIENT_SECRET", "label": "Cvent API client secret", "required": true, "secret": true, "helpText": "Store the customer-owned secret encrypted." },
+      { "name": "CVENT_REGION", "label": "Cvent region", "required": true, "secret": false, "helpText": "Select US or EMEA to pin the matching documented API origin." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [{ "id": "event_read", "label": "Read event metadata", "description": "List bounded Cvent event summaries and inspect one exact event under event/events:read.", "defaultSelected": true }],
+  "actions": {
+    "allowed": [
+      { "id": "cvent_events_list", "label": "List events", "description": "List at most twenty-five Cvent event summaries from one page." },
+      { "id": "cvent_event_get", "label": "Read an event", "description": "Read one exact Cvent event metadata summary." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "cvent_people_data", "label": "Block people data", "description": "Contacts, attendees, registrations, admission items, speakers, exhibitors, travel, payments, surveys and custom fields are not exposed." },
+      { "id": "cvent_mutations", "label": "Block mutations", "description": "Event, contact, attendee, session, webhook, registration and hospitality writes are not exposed." },
+      { "id": "cvent_raw_api", "label": "Block raw API", "description": "Arbitrary resources, filters, continuation tokens, bulk operations and raw responses are not exposed." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "cvent_safe", "label": "Safe", "description": "Bounded event metadata reads run directly; people, registration, payments, writes, bulk and raw access remain blocked.", "defaultSelected": true, "allowedActions": ["cvent_events_list", "cvent_event_get"], "approvalRequiredActions": [], "blockedActions": ["cvent_people_data", "cvent_mutations", "cvent_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The same selected read surface runs without Relay per-action approval; client ownership, exact scope, region pinning, bounds and redaction still apply.", "defaultSelected": false, "allowedActions": ["cvent_events_list", "cvent_event_get"], "approvalRequiredActions": [], "blockedActions": ["cvent_people_data", "cvent_mutations", "cvent_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts two typed Cvent event reads and exchanges the encrypted customer client only at its fixed regional token endpoint." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts two typed Cvent event reads and exchanges the encrypted customer client only at its fixed regional token endpoint." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A customer Cvent REST API client with event/events:read, a client secret and the correct US or EMEA region are required for live acceptance.",
+    "nextAction": "In the separate provider-console task, create the customer API client with only event/events:read, select its documented region, store the secret encrypted, validate token issuance and both reads, revoke the client provider-side on disconnect, and confirm post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developers.cvent.com/docs/rest-api/overview", "checkedAt": "2026-07-17", "supports": "Cvent documents its Platform REST API, OAuth 2.0 client credentials, regional API hosts and short-lived bearer tokens." },
+    { "url": "https://developers.cvent.com/docs/rest-api/reference/reference", "checkedAt": "2026-07-17", "supports": "Cvent's reference documents event/events:read and bounded event list and exact event resources under /ea/events." },
+    { "url": "https://www.cvent.com/", "checkedAt": "2026-07-17", "supports": "Cvent describes its event, meetings and hospitality platform spanning registration, marketing, onsite, virtual, analytics and venue workflows." }
+  ]
+}

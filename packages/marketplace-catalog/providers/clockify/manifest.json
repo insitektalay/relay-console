@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "clockify",
+  "name": "Clockify",
+  "category": "work_management",
+  "description": "Clockify is time-tracking and timesheet software for teams, freelancers and organizations. People use it to run timers, record work across projects, review reports and costs, plan capacity, manage attendance and turn approved time into invoices or payroll inputs.",
+  "agentUseSummary": "Add the user's personal Clockify API key once, then choose which agents can read bounded profile, workspace, project and time-entry data or use the broader documented regular and reports APIs under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://clockify.me/",
+    "docsUrl": "https://docs.clockify.me/",
+    "developerConsoleUrl": "https://app.clockify.me/user/settings",
+    "termsUrl": "https://cake.com/terms-of-use/",
+    "privacyUrl": "https://cake.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_personal_api_key",
+      "x_api_key_header",
+      "exact_user_and_api_origin_binding",
+      "global_regional_or_subdomain_clockify_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "CLOCKIFY_API_KEY",
+        "label": "Clockify API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Copy the personal API key from Clockify Profile settings. Relay encrypts it and sends it only to the configured Clockify API origin in the documented X-Api-Key header."
+      },
+      {
+        "key": "CLOCKIFY_API_BASE_URL",
+        "label": "Clockify API base URL",
+        "secret": false,
+        "required": false,
+        "helpText": "Leave blank for https://api.clockify.me/api/v1. For a regional or subdomain workspace, paste its documented HTTPS /api/v1 base URL and generate a matching key in Clockify."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "time_tracking_read",
+      "label": "Read time-tracking data",
+      "description": "Read bounded profile, workspace, project and current-user time-entry data from the connected Clockify account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Clockify API",
+      "description": "Use the documented Clockify regular and reports API surfaces allowed by the connected user's personal API key.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "clockify_profile_get",
+        "label": "Read profile",
+        "description": "Read the connected Clockify user ID, name, timezone and active workspace."
+      },
+      {
+        "id": "clockify_workspace_list",
+        "label": "List workspaces",
+        "description": "List at most twenty-five Clockify workspaces available to the connected user."
+      },
+      {
+        "id": "clockify_project_list",
+        "label": "List projects",
+        "description": "List at most twenty-five active projects in one exact Clockify workspace."
+      },
+      {
+        "id": "clockify_time_entry_list",
+        "label": "List time entries",
+        "description": "List at most twenty-five current-user time entries from an explicit window no longer than ninety days."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "clockify_full_api",
+        "label": "Use full Clockify API",
+        "description": "Use a documented Clockify regular or reports API operation authorized by the personal API key; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "clockify_safe",
+      "label": "Safe",
+      "description": "Bounded profile, workspace, project and current-user time-entry reads run directly; every other Clockify API operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "clockify_profile_get",
+        "clockify_workspace_list",
+        "clockify_project_list",
+        "clockify_time_entry_list"
+      ],
+      "approvalRequiredActions": ["clockify_full_api"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected API-key-authorized Clockify operation runs without Relay per-action approval; secret isolation, fixed routing, bounds, audits, user authority and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "clockify_profile_get",
+        "clockify_workspace_list",
+        "clockify_project_list",
+        "clockify_time_entry_list",
+        "clockify_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts bounded Clockify reads and fixed-origin regular and reports API wrappers while keeping the personal key encrypted on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts bounded Clockify reads and fixed-origin regular and reports API wrappers while keeping the personal key encrypted on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Clockify account, personal API key or representative workspace is available to this code-only worker.",
+    "nextAction": "A Clockify user copies the personal API key from Profile settings, confirms the correct global, regional or subdomain API base URL, saves both through Relay Console, and verifies user binding, bounded reads, Safe approval, one permitted Dangerous mutation, credential replacement, disconnect, key reset and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.clockify.me/",
+      "checkedAt": "2026-07-17",
+      "supports": "Clockify documents API authentication with a personal X-Api-Key or an add-on token, global and regional API origins, regular and reports surfaces, pagination and the current-user endpoint. The public API reference does not publish a delegated third-party OAuth application flow."
+    },
+    {
+      "url": "https://clockify.me/",
+      "checkedAt": "2026-07-17",
+      "supports": "Clockify presents the product as time-tracking and timesheet software covering timers, projects, reports, budgets, planning, attendance, payroll, expenses, approvals and invoicing."
+    }
+  ]
+}

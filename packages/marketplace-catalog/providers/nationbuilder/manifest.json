@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "nationbuilder",
+  "name": "NationBuilder",
+  "category": "crm_support",
+  "description": "NationBuilder is an organizing and community platform for people, fundraising, advocacy, events, memberships, websites, petitions, paths, surveys and voter engagement.",
+  "agentUseSummary": "Connect one exact nation through Relay-owned OAuth with PKCE and rotating V2 tokens, then run all 190 current official V2 operations through pinned routes. Safe runs 82 reads directly and requires approval for 108 mutations.",
+  "provider": {
+    "websiteUrl": "https://nationbuilder.com/",
+    "docsUrl": "https://nationbuilder.com/api/v2/reference",
+    "developerConsoleUrl": "https://nationbuilder.com/",
+    "termsUrl": "https://nationbuilder.com/terms_of_use",
+    "privacyUrl": "https://nationbuilder.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["default"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://{nation}.nationbuilder.com/oauth/authorize",
+    "tokenUrl": "https://{nation}.nationbuilder.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "oauth2",
+      "authorization_code",
+      "pkce",
+      "rotating_refresh_token",
+      "exact_nation_subdomain",
+      "complete_openapi_v2"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "NATIONBUILDER_CLIENT_ID",
+        "label": "NationBuilder OAuth client ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Railway-held Relay Console client ID issued after NationBuilder developer certification and app registration."
+      },
+      {
+        "key": "NATIONBUILDER_CLIENT_SECRET",
+        "label": "NationBuilder OAuth client secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Railway-held Relay Console client secret; never sent to agents, browsers or clients."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/nationbuilder/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "nationbuilder_read",
+      "label": "Read organizing and community data",
+      "description": "Use all 82 current official V2 API reads.",
+      "defaultSelected": true
+    },
+    {
+      "id": "nationbuilder_manage",
+      "label": "Manage organizing and community data",
+      "description": "Use all 108 current official V2 API mutations.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "nationbuilder_read",
+        "label": "Read NationBuilder",
+        "description": "Read authorized people, donations, events, lists, memberships, paths, petitions, surveys, voters and organizing data."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "nationbuilder_manage",
+        "label": "Manage NationBuilder",
+        "description": "Create, update, archive or delete authorized NationBuilder records; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "nationbuilder_safe",
+      "label": "Safe",
+      "description": "All 82 reads run directly; all 108 mutations require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["nationbuilder_read"],
+      "approvalRequiredActions": ["nationbuilder_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 190 pinned V2 operations run without Relay per-action approval; nation binding, user permissions, rotating OAuth, fixed routes, audits, bounds and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["nationbuilder_read", "nationbuilder_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts all 190 current official V2 operations with exact-nation server-side OAuth."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts all 190 current official V2 operations with exact-nation server-side OAuth."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Live acceptance requires NationBuilder Certified Developer access or an eligible Enterprise/Network nation, a registered Relay OAuth app, exact Railway callback configuration, V2 token migration and representative nation data.",
+    "nextAction": "An authorized owner completes certification and app registration, configures the Railway-held client pair and callback, then validates exact-nation authorization, rotating refresh, reads, approved reversible mutations, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://nationbuilder.com/api/v2/reference",
+      "checkedAt": "2026-07-18",
+      "supports": "The official released OpenAPI reference documents 190 V2 JSON:API operations: 82 GET reads and 108 POST, PATCH or DELETE mutations."
+    },
+    {
+      "url": "https://support.nationbuilder.com/en/articles/9903805-api-authentication-guide",
+      "checkedAt": "2026-07-18",
+      "supports": "NationBuilder documents nation-subdomain OAuth authorization code, optional PKCE, 24-hour V2 access tokens and single-use rotating refresh tokens."
+    },
+    {
+      "url": "https://support.nationbuilder.com/en/articles/9869235-access-token-migration-guide",
+      "checkedAt": "2026-07-18",
+      "supports": "Current V2 endpoints require current OAuth tokens and production applications must implement refresh before migration."
+    }
+  ]
+}

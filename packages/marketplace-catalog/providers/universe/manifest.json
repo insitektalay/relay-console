@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "universe",
+  "name": "Universe",
+  "category": "communication",
+  "description": "Universe is a ticketing and event-management platform for publishing event listings, selling tickets, managing guests and teams, checking attendees in and integrating event, sales and registration data.",
+  "agentUseSummary": "Universe is visible as an OAuth provider-review preview. Relay will enable a bounded connection after Universe approves the app for durable refresh tokens and confirms the production data contract.",
+  "provider": { "websiteUrl": "https://www.universe.com/", "docsUrl": "https://developers.universe.com/", "developerConsoleUrl": "https://www.universe.com/oauth/applications", "termsUrl": "https://www.universe.com/terms", "privacyUrl": "https://www.universe.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["public"], "pkce": false, "refreshTokens": true, "authorizationUrl": "https://www.universe.com/oauth/authorize", "tokenUrl": "https://www.universe.com/oauth/token", "revocationUrl": null },
+  "connection": { "types": ["relay_owned_oauth", "provider_approval_required", "fixed_universe_authority"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/universe/callback", "webhookRequirements": [] },
+  "capabilities": [{ "id": "event_platform_access", "label": "Access authorized event data", "description": "After approval, expose bounded event-management capabilities within the consenting Universe user's or team's authority.", "defaultSelected": true }],
+  "actions": { "allowed": [], "approvalRequired": [], "blocked": [
+    { "id": "universe_connect_before_approval", "label": "Connect before provider approval", "description": "Relay has not received Universe approval for durable refresh tokens and the production callback." },
+    { "id": "universe_short_lived_distribution", "label": "Distribute a non-approved monthly grant", "description": "Relay will not ship a connection that forces users through OAuth again every thirty days because the app cannot refresh." },
+    { "id": "universe_people_and_sales_data", "label": "Access people and sales data before contract review", "description": "Guests, buyers, tickets, sales, check-ins and webhook payloads remain unavailable until the approved contract is reviewed and bounded." },
+    { "id": "universe_runtime_actions_before_approval", "label": "Run Universe agent actions before approval", "description": "No REST, GraphQL, mutation, webhook or raw action is callable while provider review is pending." }
+  ] },
+  "approvalProfiles": [{ "id": "universe_provider_review", "label": "Provider review pending", "description": "Connection, installation and agent actions remain unavailable until Universe approves durable refresh for Relay and its exact production callback.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": [], "blockedActions": ["universe_connect_before_approval", "universe_short_lived_distribution", "universe_people_and_sales_data", "universe_runtime_actions_before_approval"] }],
+  "riskLevel": "high",
+  "runtimeSupport": [{ "format": "openclaw", "installSupport": "preview_only", "description": "No OpenClaw tools are callable until Universe approves Relay's durable OAuth application and production callback." }, { "format": "hermes", "installSupport": "preview_only", "description": "No Hermes tools are callable until Universe approves Relay's durable OAuth application and production callback." }],
+  "availability": "provider_review_pending",
+  "providerSetup": { "status": "review_pending", "blocker": "Universe documents that non-approved apps receive a 30-day access token without a refresh token, while approved apps receive refresh tokens and can request indefinite refresh. Relay has not obtained that approval for its production callback.", "nextAction": "In the separate provider-console task, create the Relay Universe OAuth application with https://api.relayconsole.work/api/v1/marketplace/oauth/universe/callback, request approval and indefinite refresh, then review the approved REST/GraphQL data contract before implementing bounded tools and live consent validation." },
+  "evidence": [
+    { "url": "https://developers.universe.com/docs/authorizing-with-oauth", "checkedAt": "2026-07-17", "supports": "Universe documents the authorization-code grant at its fixed authorization and token endpoints, the public scope, confidential client secret, bearer tokens and 30-day expiry." },
+    { "url": "https://developers.universe.com/docs/2-create-an-oauth-application", "checkedAt": "2026-07-17", "supports": "Universe states that non-approved apps have 30-day access without refresh, approved apps receive refresh tokens, and indefinite refresh requires contacting Universe." },
+    { "url": "https://developers.universe.com/docs/who-can-use-the-api", "checkedAt": "2026-07-17", "supports": "Universe permits third-party applications to access a user's data only after the user grants permission through OAuth." },
+    { "url": "https://developers.universe.com/docs/what-data-is-available", "checkedAt": "2026-07-17", "supports": "Universe describes event, attendee, sales, discount, access-key and check-in data and operations, which require a bounded post-approval product contract." }
+  ]
+}

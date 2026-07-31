@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "acoustic-campaign",
+  "name": "Acoustic Campaign",
+  "category": "communication",
+  "description": "Acoustic Campaign provides email, SMS, push, automation, contacts, programs, events, and relational marketing-data APIs.",
+  "agentUseSummary": "Connect customer-owned pod-bound OAuth credentials. Relay pins three REST operations: one exact program read runs directly, while one exact database-contact read and one one-contact profile update require approval. Writes require recorded contact authorization and consent/subscription fields remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.acoustic.com/products/campaign/",
+    "docsUrl": "https://developer.goacoustic.com/acoustic-campaign/reference/rest-api-overview",
+    "developerConsoleUrl": "https://developer.goacoustic.com/acoustic-campaign/",
+    "termsUrl": "https://www.acoustic.com/legal/",
+    "privacyUrl": "https://www.acoustic.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api-campaign-{pod}.goacoustic.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_id",
+      "customer_owned_client_secret",
+      "customer_owned_refresh_token",
+      "enumerated_pod_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ACOUSTIC_CAMPAIGN_CLIENT_ID",
+        "label": "Acoustic Campaign client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use a dedicated customer-owned application bound to a least-privilege user."
+      },
+      {
+        "name": "ACOUSTIC_CAMPAIGN_CLIENT_SECRET",
+        "label": "Acoustic Campaign client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay exchanges this only at the selected fixed pod token endpoint."
+      },
+      {
+        "name": "ACOUSTIC_CAMPAIGN_REFRESH_TOKEN",
+        "label": "Acoustic Campaign refresh token",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the refresh token for the dedicated least-privilege application user."
+      },
+      {
+        "name": "ACOUSTIC_CAMPAIGN_POD",
+        "label": "Acoustic Campaign pod",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the documented account pod: 1-9 or B."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/acoustic-campaign/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read program",
+      "description": "Use one exact program-configuration read.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read contact",
+      "description": "Use one exact database-contact lookup with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage one contact",
+      "description": "Update allowlisted profile fields for one authorized contact with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "acoustic_campaign_structural_read",
+        "label": "Read Acoustic Campaign program",
+        "description": "Read one exact program configuration."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "acoustic_campaign_sensitive_read",
+        "label": "Read Acoustic Campaign contact",
+        "description": "Read one exact database contact."
+      },
+      {
+        "id": "acoustic_campaign_manage",
+        "label": "Manage Acoustic Campaign contact",
+        "description": "Update allowlisted profile fields for one authorized contact."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "acoustic_campaign_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth credentials, access tokens, authorization headers, and credential-bearing fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "acoustic_campaign_bulk_transfer",
+        "label": "Run bulk transfers",
+        "description": "Database/list enumeration, contact collections, imports, exports, relational-table loads, and unbounded transfers are excluded."
+      },
+      {
+        "id": "acoustic_campaign_send_admin",
+        "label": "Send or administer messaging",
+        "description": "Email, SMS, push, in-app, programs, campaigns, content, events, lists, databases, deletes, consent, and subscription-state changes remain provider-side."
+      },
+      {
+        "id": "acoustic_campaign_unbounded_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only three pinned REST routes run on an enumerated pod origin; arbitrary paths, pods, queries, headers, profile structures, and oversized results are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "acoustic_campaign_safe",
+      "label": "Safe",
+      "description": "Exact program reads run directly; exact contact reads and one-contact profile updates require approval, and writes require contact authorization while consent/subscription fields remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["acoustic_campaign_structural_read"],
+      "approvalRequiredActions": [
+        "acoustic_campaign_sensitive_read",
+        "acoustic_campaign_manage"
+      ],
+      "blockedActions": [
+        "acoustic_campaign_secret_exposure",
+        "acoustic_campaign_bulk_transfer",
+        "acoustic_campaign_send_admin",
+        "acoustic_campaign_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected operations run without Relay per-action approval; contact authorization, fixed pod routing, field/response bounds, audits, and bulk/send/admin/consent blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "acoustic_campaign_structural_read",
+        "acoustic_campaign_sensitive_read",
+        "acoustic_campaign_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "acoustic_campaign_secret_exposure",
+        "acoustic_campaign_bulk_transfer",
+        "acoustic_campaign_send_admin",
+        "acoustic_campaign_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges customer OAuth credentials only at the selected fixed pod and mounts three pinned REST operations."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges customer OAuth credentials only at the selected fixed pod and mounts three pinned REST operations."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Acoustic Campaign requires a customer-owned least-privilege application, user-bound refresh token, pod, programs, databases, and contacts. No console, application, account access, credentials, token, program, database, contact, consent, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create a dedicated staging application outside this worker, bind a least-privilege user, configure the client credentials, refresh token, and pod in Railway staging, and verify token exchange, program/contact reads, approval and contact-authorization denial/allow, consent-field blocking, response bounds, token/user revocation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.goacoustic.com/acoustic-campaign/reference/getting-started-with-oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Acoustic documents customer client credentials, user-bound refresh tokens, enumerated pod token endpoints, four-hour access tokens, and bearer-authenticated XML/REST endpoints."
+    },
+    {
+      "url": "https://developer.goacoustic.com/acoustic-campaign/reference/rest-api-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Acoustic's current REST overview documents pod binding and the program, contact, channel, send, event, and administration API families used to define the narrow selected boundary."
+    },
+    {
+      "url": "https://developer.goacoustic.com/acoustic-campaign/reference/rest-api-response-codes",
+      "checkedAt": "2026-07-17",
+      "supports": "Acoustic documents the exact database/contact REST path, profile field validation, authorization responses, and program read behavior."
+    },
+    {
+      "url": "https://www.acoustic.com/privacy-policy/",
+      "checkedAt": "2026-07-17",
+      "supports": "Acoustic publishes privacy and data-handling terms relevant to customer contact data."
+    }
+  ]
+}

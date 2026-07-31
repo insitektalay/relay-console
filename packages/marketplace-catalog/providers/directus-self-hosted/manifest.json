@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "directus-self-hosted",
+  "name": "Directus Self-Hosted",
+  "category": "knowledge_documents",
+  "description": "Directus Self-Hosted is a data platform and headless CMS that exposes database collections through REST, GraphQL, realtime, automation, files, and administrative APIs. It supports arbitrary schemas, items, fields, relations, assets, revisions, versions, users, roles, policies, flows, extensions, and project settings.",
+  "agentUseSummary": "Relay calls the core individual-item REST endpoint for one preselected collection and item with a fixed id and status projection. Directus policies can restrict items and fields, so Relay requires a dedicated non-admin static-token user whose only permission is reading that exact item and those two fields, then blocks all broader queries, system resources, and mutations.",
+  "provider": {
+    "websiteUrl": "https://directus.io/",
+    "docsUrl": "https://directus.io/docs/api/items",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://directus.io/terms",
+    "privacyUrl": "https://directus.io/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [
+      "selected collection and item read",
+      "id and status fields only"
+    ],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_operated_directus",
+      "public_https_core_rest_api",
+      "dedicated_selected_item_static_token",
+      "selected_collection_and_item"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "DIRECTUS_SELF_HOSTED_BASE_URL",
+        "label": "Directus HTTPS instance base URL",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "DIRECTUS_SELF_HOSTED_STATIC_TOKEN",
+        "label": "Dedicated selected-item read token",
+        "required": true,
+        "secret": true,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "DIRECTUS_SELF_HOSTED_COLLECTION",
+        "label": "Selected collection",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "DIRECTUS_SELF_HOSTED_ITEM_KEY",
+        "label": "Selected item key",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "directus_self_hosted_selected_item_state_get",
+      "label": "Read selected item state",
+      "description": "Read one selected item's ID and status.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "directus_self_hosted_selected_item_state_get",
+        "label": "Read selected item state",
+        "description": "Use the core individual-item REST endpoint for one selected collection and item and return only ID and status."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "directus_self_hosted_private_content",
+        "label": "Expose content or identities",
+        "description": "Titles, bodies, custom fields, relations, files, revisions, versions, users, and identities are excluded from Relay output."
+      },
+      {
+        "id": "directus_self_hosted_mutation",
+        "label": "Mutate Directus",
+        "description": "Items, collections, fields, files, users, roles, policies, permissions, flows, settings, schema, and every write or share action are blocked."
+      },
+      {
+        "id": "directus_self_hosted_broad_access",
+        "label": "Use broad Directus access",
+        "description": "Item lists, other item keys, other collections, arbitrary fields or filters, GraphQL, realtime, assets, system endpoints, extensions, redirects, and administration are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "directus_self_hosted_selected_item_state_read",
+      "label": "Selected Item State Read",
+      "description": "Read one selected item's ID and status; content, identities, other resources, administration, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["directus_self_hosted_selected_item_state_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "directus_self_hosted_private_content",
+        "directus_self_hosted_mutation",
+        "directus_self_hosted_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-item state reader backed by Railway's bounded Directus adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-item state reader backed by Railway's bounded Directus adapter."
+    }
+  ],
+  "availability": "preview",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An authorized public HTTPS Directus staging instance must provide a dedicated non-admin static-token user whose only policy grants read access to id and status on one selected collection with a filter matching one exact item key, plus Fairfax validation.",
+    "nextAction": "In the provider-console lane, configure the least-privilege policy and dedicated user, enter the instance URL, token, collection, and item key through Relay, then validate exact-item binding, fixed-field projection, content redaction, broader query and system-route denial, mutation denial, redirect and private-DNS denial, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://directus.io/docs/api/items",
+      "checkedAt": "2026-07-18",
+      "supports": "Official Directus item API documentation defines individual item reads, collection and primary-key routing, field projection, arbitrary item schemas, and adjacent mutation endpoints."
+    },
+    {
+      "url": "https://directus.io/docs/guides/auth/tokens-cookies",
+      "checkedAt": "2026-07-18",
+      "supports": "Official authentication documentation defines server-to-server static tokens, bearer authorization headers, private-by-default data, and the security tradeoff of non-expiring tokens."
+    },
+    {
+      "url": "https://directus.io/docs/user-guide/user-management/permissions",
+      "checkedAt": "2026-07-18",
+      "supports": "Official permission documentation defines default-deny custom access, per-collection CRUDS controls, exact item filters, and field allowlists, supporting Relay's selected-item id-and-status-only policy."
+    },
+    {
+      "url": "https://directus.io/docs/guides/auth/access-control",
+      "checkedAt": "2026-07-18",
+      "supports": "Official access-control documentation defines non-admin roles, additive policies, and unrestricted administrator authority, supporting Relay's dedicated non-admin policy requirement."
+    }
+  ]
+}

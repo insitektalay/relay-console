@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "tapfiliate",
+  "name": "Tapfiliate",
+  "category": "marketing",
+  "description": "Tapfiliate is an affiliate and referral platform for advertisers, affiliates, programs, links, clicks, conversions, commissions, payouts, customers, reporting, and webhooks.",
+  "agentUseSummary": "Tapfiliate cannot yet be connected through Relay. Its v1.6 REST API requires the live account's static API key in an X-Api-Key header, publishes no granular permission scopes, and warns that the key can approve commissions; representative account, key-lifecycle, and least-authority acceptance is required first.",
+  "provider": {
+    "websiteUrl": "https://tapfiliate.com/",
+    "docsUrl": "https://tapfiliate.com/docs/rest/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://tapfiliate.com/terms/",
+    "privacyUrl": "https://tapfiliate.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_account_api_key",
+      "x_api_key_header",
+      "exact_account_binding",
+      "exact_program_binding",
+      "live_account_required",
+      "no_granular_key_scopes",
+      "commission_approval_authority"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "TAPFILIATE_API_KEY",
+        "label": "Tapfiliate API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Static live-account API key stored only in Railway's encrypted credential boundary."
+      },
+      {
+        "name": "TAPFILIATE_ACCOUNT_ID",
+        "label": "Tapfiliate Account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Exact advertiser account identifier used to verify connection ownership."
+      },
+      {
+        "name": "TAPFILIATE_PROGRAM_ID",
+        "label": "Tapfiliate Program ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Exact program identifier accepted for the initial connection boundary."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "tapfiliate_credentials",
+        "label": "Collect a Tapfiliate API key",
+        "description": "Relay does not collect the account-wide key before representative ownership, program, lifecycle, and authority acceptance."
+      },
+      {
+        "id": "tapfiliate_data",
+        "label": "Read Tapfiliate data",
+        "description": "Affiliates, customers, programs, clicks, conversions, commissions, payouts, reports, and account data remain unavailable."
+      },
+      {
+        "id": "tapfiliate_financial_writes",
+        "label": "Change commissions or payouts",
+        "description": "Commission approval, conversion changes, balances, payment creation and registration, affiliate program membership, and payout operations are blocked."
+      },
+      {
+        "id": "tapfiliate_mutations_raw",
+        "label": "Track, mutate, or use raw APIs",
+        "description": "Clicks, conversions, customers, affiliates, notes, groups, webhooks, arbitrary endpoints, pagination, bulk operations, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "tapfiliate_unavailable",
+      "label": "Unavailable",
+      "description": "No Tapfiliate action is enabled before representative account key and authority acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "tapfiliate_credentials",
+        "tapfiliate_data",
+        "tapfiliate_financial_writes",
+        "tapfiliate_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Tapfiliate wrappers are mounted until a representative advertiser establishes the frozen account-key contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Tapfiliate wrappers are mounted until a representative advertiser establishes the frozen account-key contract."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Tapfiliate requires a live advertiser account to retrieve a static API key from Profile Settings. The v1.6 key is sent in every X-Api-Key header, has no published granular scopes, and can approve commissions while the API spans affiliates, customers, programs, clicks, conversions, commissions, payouts, and account administration; public documentation does not establish dedicated-key rotation or revocation.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should obtain authorization from a representative live Tapfiliate advertiser, provision or retrieve a dedicated API key without exposing it in reports, record the exact Account ID and Program ID, store the key in Railway, and return ownership, key rotation and revocation, program binding, schemas, quotas, privacy and financial redaction, denial, pagination, and disconnect evidence before connector implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://tapfiliate.com/docs/rest/",
+      "checkedAt": "2026-07-17",
+      "supports": "Tapfiliate documents v1.6 HTTPS requests authenticated by the account API key in X-Api-Key, warns that the key can approve commissions, defaults lists to 25 records, and exposes broad affiliate, program, conversion, commission, customer, and mutation endpoints."
+    },
+    {
+      "url": "https://support.tapfiliate.com/en/articles/12682358-how-to-integrate-with-tapfiliate-via-the-rest-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Tapfiliate requires a live account with API-key access from Profile Settings and documents API creation of clicks and conversions containing referral, customer, product, amount, commission, IP, user-agent, and metadata fields."
+    },
+    {
+      "url": "https://support.tapfiliate.com/en/articles/13342050-automated-payouts-using-rest-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Tapfiliate documents API-backed balance retrieval, payment processing, and payment registration, confirming the same account API reaches financial workflows."
+    },
+    {
+      "url": "https://support.tapfiliate.com/en/articles/1704796-faq-can-i-use-tapfiliate-to-run-programs-for-others",
+      "checkedAt": "2026-07-17",
+      "supports": "Tapfiliate states there is one merchant login per account, programs share centralized commissions and payments, and agencies may use the API for client reporting, requiring exact account and program bounds."
+    }
+  ]
+}

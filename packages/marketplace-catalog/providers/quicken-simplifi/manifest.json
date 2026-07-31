@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "quicken-simplifi",
+  "name": "Quicken Simplifi",
+  "category": "commerce_payments",
+  "description": "Quicken Simplifi is a subscription personal-finance application for connected accounts, transactions, spending plans, cash-flow projections, savings goals, bills, investments, reports, and net worth.",
+  "agentUseSummary": "Quicken Simplifi cannot currently be connected as an autonomous Relay provider. Simplifi is an interactive subscription product, and its documented OAuth/API connections authorize banks to send data into Simplifi rather than exposing a public Simplifi member API. Quicken publishes no Relay-usable remote MCP endpoint, member OAuth scopes, stable tool schemas, service credentials, or revocation contract. Relay will not reuse sessions, capture credentials, infer private endpoints, or convert a bank-to-Simplifi feed or shared Space into autonomous authority.",
+  "provider": {
+    "websiteUrl": "https://www.quicken.com/products/simplifi/",
+    "docsUrl": "https://support.simplifi.quicken.com/en/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.quicken.com/simplifi/terms/acceptable-use",
+    "privacyUrl": "https://www.quicken.com/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "interactive_subscription_account",
+      "provider_managed_bank_aggregation",
+      "bank_to_simplifi_oauth_ingestion_only",
+      "no_public_member_api_or_mcp_contract"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "quicken_simplifi_unsupported_connection",
+        "label": "Connect Quicken Simplifi through an unsupported session",
+        "description": "Relay will not reuse a Quicken browser session, capture Quicken or bank credentials or tokens, automate sign-in or consent, or reinterpret bank-to-Simplifi OAuth as member-account authority."
+      },
+      {
+        "id": "quicken_simplifi_private_financial_data",
+        "label": "Access private Simplifi financial data",
+        "description": "Accounts, transactions, balances, payees, categories, tags, income, bills, subscriptions, spending plans, cash flow, goals, investments, holdings, reports, net worth, rules, and shared Spaces are blocked without a supported least-privilege member API."
+      },
+      {
+        "id": "quicken_simplifi_financial_writes",
+        "label": "Change financial records or plans",
+        "description": "Creating, editing, deleting, categorizing, splitting, or reconciling transactions; changing accounts, budgets, recurring items, goals, watchlists, rules, investments, or shared access; and subscription or billing changes are blocked."
+      },
+      {
+        "id": "quicken_simplifi_account_linking",
+        "label": "Link financial institutions",
+        "description": "Adding, reauthorizing, refreshing, disconnecting, or changing bank and investment connections, credentials, linked accounts, aggregation settings, or institution consent is blocked."
+      },
+      {
+        "id": "quicken_simplifi_unsupported_automation",
+        "label": "Use unsupported Simplifi automation",
+        "description": "Dashboard scraping, private endpoint discovery, UI automation, shared-credential use, raw session pass-through, and reverse engineering are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "quicken_simplifi_unavailable",
+      "label": "Unavailable",
+      "description": "No Simplifi action can be enabled without a supported public member authorization and tool contract designed for third-party autonomous use.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "quicken_simplifi_unsupported_connection",
+        "quicken_simplifi_private_financial_data",
+        "quicken_simplifi_financial_writes",
+        "quicken_simplifi_account_linking",
+        "quicken_simplifi_unsupported_automation"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "Simplifi publishes no member-account API/MCP authorization or bounded tool contract that Relay can distribute as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "Simplifi publishes no member-account API/MCP authorization or bounded tool contract that Relay can distribute as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Quicken Simplifi is an interactive subscription application holding aggregated financial accounts, transactions, budgets, cash-flow data, investments, and shared financial Spaces. Its documented OAuth/API connections are provider-managed bank-to-Simplifi ingestion, not a public member API, and Quicken publishes no Relay-usable endpoint, stable schemas, member scopes, service credentials, or autonomous authorization boundary.",
+    "nextAction": "Do not expose Connect, request Quicken or bank credentials, reuse sessions, scrape Simplifi, link institutions, or publish runtime tools. Reconsider only if Quicken publishes a supported third-party member API or remote MCP contract with versioned schemas, least-privilege scopes, revocation, exact Space and account binding, audit semantics, retention controls, and explicit confirmation for every write, institution-linking, sharing, subscription, or billing action."
+  },
+  "evidence": [
+    {
+      "url": "https://support.simplifi.quicken.com/en/articles/4284318-getting-started-in-quicken-simplifi",
+      "checkedAt": "2026-07-17",
+      "supports": "Quicken documents Simplifi's connected and manual accounts, transactions, net worth, spending plans, savings goals, bills and income, planning tools, investments, watchlists, reports, refresh behavior, rules, categories, and tags inside the interactive app."
+    },
+    {
+      "url": "https://support.simplifi.quicken.com/en/articles/6997452-new-and-improved-way-to-connect-to-your-financial-institution-oauth-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Simplifi's OAuth API documentation describes user interaction with bank-hosted consent so financial institutions can send account data into Simplifi; it does not expose a Simplifi member API, external scopes, or third-party tool contract."
+    },
+    {
+      "url": "https://support.simplifi.quicken.com/en/articles/5687989-how-does-quicken-simplifi-connect-to-my-bank",
+      "checkedAt": "2026-07-17",
+      "supports": "Quicken describes one-way provider-managed aggregation into Simplifi, including nightly retrieval and encrypted credential storage by its aggregation partner, rather than a public interface for agents to read Simplifi data."
+    },
+    {
+      "url": "https://www.quicken.com/simplifi/terms/acceptable-use",
+      "checkedAt": "2026-07-17",
+      "supports": "Quicken prohibits non-public access, shared credentials, scraping, crawling, reverse engineering, bypassing authentication, impersonation, and account creation or service management outside publicly supported interfaces."
+    }
+  ]
+}

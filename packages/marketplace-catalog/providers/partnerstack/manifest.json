@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "partnerstack",
+  "name": "PartnerStack",
+  "category": "marketing",
+  "description": "PartnerStack is a partner-ecosystem platform for affiliate, referral, reseller, and channel programs, including partnerships, customers, transactions, commissions, payouts, and marketplace listings.",
+  "agentUseSummary": "PartnerStack cannot yet be connected through Relay. Its partner-facing API requires a user-generated static bearer API key without published granular resource scopes and exposes commercial, customer, commission, transaction, and payout records; representative credential, account-role, and lifecycle acceptance is required first.",
+  "provider": {
+    "websiteUrl": "https://partnerstack.com/",
+    "docsUrl": "https://docs.partnerstack.com/docs/partner-api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://partnerstack.com/terms-of-service",
+    "privacyUrl": "https://partnerstack.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_generated_partner_api_key",
+      "bearer_authentication",
+      "exact_partner_user_binding",
+      "regenerable_and_deletable_key",
+      "no_published_granular_scopes",
+      "partner_api_v2"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PARTNERSTACK_PARTNER_API_KEY",
+        "label": "PartnerStack Partner API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Dedicated partner-user API key stored only in Railway's encrypted credential boundary."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "partnerstack_credentials",
+        "label": "Collect a PartnerStack API key",
+        "description": "Relay does not collect a partner-user bearer key before representative ownership, role, lifecycle, and privacy acceptance."
+      },
+      {
+        "id": "partnerstack_partner_data",
+        "label": "Read partner data",
+        "description": "Actions, customers, marketplace listings, partnerships, payouts, rewards, commissions, and transactions remain unavailable."
+      },
+      {
+        "id": "partnerstack_company_api",
+        "label": "Access company program administration",
+        "description": "Company-side Basic Auth keys, partner and customer creation, transactions, rewards, groups, program settings, and administration are blocked."
+      },
+      {
+        "id": "partnerstack_mutations_raw",
+        "label": "Mutate or use raw PartnerStack APIs",
+        "description": "Partnership updates, postbacks, conversion recording, arbitrary endpoints, unbounded pagination, raw errors, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "partnerstack_unavailable",
+      "label": "Unavailable",
+      "description": "No PartnerStack action is enabled before representative partner-user credential and authority acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "partnerstack_credentials",
+        "partnerstack_partner_data",
+        "partnerstack_company_api",
+        "partnerstack_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No PartnerStack wrappers are mounted until a representative partner establishes the frozen key and role contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No PartnerStack wrappers are mounted until a representative partner establishes the frozen key and role contract."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "PartnerStack partners create static bearer API keys under their profile's API tab. The Partner API exposes actions, customers, marketplace listings, partnerships, payouts, commissions, rewards, and transactions but publishes no granular key scopes; PartnerStack also has a distinct company-side API with separate broad Basic credentials, so exact user role and product boundary must be proven.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should obtain authorization from a representative PartnerStack partner, create a dedicated Partner API key without exposing it in reports, store it in Railway, and return exact-user and account binding, role separation from the company API, regeneration and deletion behavior, schemas, quotas, privacy-redaction, financial-data handling, denial, and disconnect evidence before connector implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.partnerstack.com/reference/partner-api-authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "PartnerStack documents partner-user API keys revealed from Settings > API and supplied as bearer tokens to the v2 Partner API."
+    },
+    {
+      "url": "https://support.partnerstack.com/hc/en-us/articles/31444178237587-Using-the-Partner-API-and-Postbacks",
+      "checkedAt": "2026-07-17",
+      "supports": "PartnerStack states partners can create, reveal, rename, regenerate, and delete API keys and use them to list actions, customers, marketplace listings, partnerships, payouts, commissions, and transactions."
+    },
+    {
+      "url": "https://docs.partnerstack.com/v1.0/docs/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "PartnerStack separately documents production and test public/secret Basic credentials for company instances, with authority to create customers, partners, transactions, and rewards, confirming the need to freeze an exact role boundary."
+    }
+  ]
+}

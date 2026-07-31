@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mention",
+  "name": "Mention",
+  "category": "communication",
+  "description": "Mention is a media-monitoring and social-listening platform for tracking brands, competitors, topics, and conversations across online sources. Its alerts organize monitoring queries, mentions, collaboration, and reporting for customer accounts.",
+  "agentUseSummary": "Add a customer-created Mention app access token and bind it to one exact account, then let agents inspect identity-redacted account status and bounded alert structure.",
+  "provider": {
+    "websiteUrl": "https://mention.com/",
+    "docsUrl": "https://dev.mention.com/current/src/index.html",
+    "developerConsoleUrl": "https://web.mention.com/",
+    "termsUrl": "https://mention.com/en/terms-and-conditions/",
+    "privacyUrl": "https://mention.com/en/terms-and-conditions/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_bearer_token", "exact_account_binding"],
+    "credentialRequirements": [
+      {
+        "name": "MENTION_ACCESS_TOKEN",
+        "label": "Mention access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated app token for your own Mention account. Relay encrypts it and sends it only as a Bearer header to https://api.mention.net."
+      },
+      {
+        "name": "MENTION_ACCOUNT_ID",
+        "label": "Mention account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Paste one exact account ID from Mention's official account API."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "alert_structure_read",
+      "label": "Read account and alert structure",
+      "description": "Read bounded identity- and content-redacted account status and alert structure for one exact Mention account.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "mention_account_status_get",
+        "label": "Get Mention account status",
+        "description": "Read the exact bound account ID, language, and time zone without name, email, avatar, biography, social profiles, notification settings, or other identity."
+      },
+      {
+        "id": "mention_alert_structure_list",
+        "label": "List Mention alert structure",
+        "description": "List at most twenty-five alert IDs, query types, and index versions for the exact account without names, keywords, descriptions, shares, users, content, or statistics."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "mention_identity_or_alert_configuration",
+        "label": "Access identity or alert configuration",
+        "description": "Names, emails, avatars, biographies, social profiles, notification settings, alert names, keywords, queries, descriptions, shares, users, roles, permissions, sources, countries, languages, and configuration are blocked."
+      },
+      {
+        "id": "mention_content_authors_or_analytics",
+        "label": "Access Mention Content, authors, or analytics",
+        "description": "Mentions, snippets, titles, descriptions, URLs, media, authors, influence, metadata, tasks, logs, tags, folders, statistics, charts, dashboards, and reports remain blocked."
+      },
+      {
+        "id": "mention_write_publish_or_administer",
+        "label": "Write, publish, or administer Mention",
+        "description": "Creating or changing alerts, mentions, tasks, tags, folders, posts, replies, social accounts, users, groups, clients, apps, tokens, subscriptions, or administration remains blocked."
+      },
+      {
+        "id": "mention_raw_api_stream_or_bulk",
+        "label": "Use raw API, streams, or bulk access",
+        "description": "Arbitrary paths, methods, queries, bodies, stream hosts, cursors, pagination, polling, bulk operations, exports, browser sessions, and undocumented endpoints remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "mention_safe",
+      "label": "Safe",
+      "description": "Both bounded reads require approval; identity, alert configuration, Mention Content, authors, analytics, streams, writes, raw APIs, pagination, bulk, and export remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "mention_account_status_get",
+        "mention_alert_structure_list"
+      ],
+      "blockedActions": [
+        "mention_identity_or_alert_configuration",
+        "mention_content_authors_or_analytics",
+        "mention_write_publish_or_administer",
+        "mention_raw_api_stream_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same two bounded reads run directly; exact account binding, fixed GET routes, redaction, response caps, audits, API-version pinning, and provider rate responses remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "mention_account_status_get",
+        "mention_alert_structure_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mention_identity_or_alert_configuration",
+        "mention_content_authors_or_analytics",
+        "mention_write_publish_or_administer",
+        "mention_raw_api_stream_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives two bounded Mention reads with exact account binding and identity/content redaction."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same two bounded Mention reads with exact account binding and identity/content redaction."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Mention's own-account API flow requires the customer to create an app and use its full-account access token. Relay restricts that broad token to two fixed read-only routes.",
+    "nextAction": "The customer creates a dedicated Mention app token, supplies one exact account ID, and completes a live read-only connection check."
+  },
+  "evidence": [
+    {
+      "url": "https://dev.mention.com/current/src/index.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Mention documents Bearer authentication, app-issued full-account tokens for the customer's own account, the fixed api.mention.net endpoint, API version headers, and resource-specific rate limiting with HTTP 429."
+    },
+    {
+      "url": "https://dev.mention.com/current/src/account/GetAccount.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Official reference documents GET /accounts/{account_id}; Relay returns only the bound ID, safe language code, and time zone."
+    },
+    {
+      "url": "https://dev.mention.com/current/src/account/alert/GetAlerts.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Official reference documents GET /accounts/{account_id}/alerts, a limit parameter, cursor pagination, and sensitive alert/query/share fields; Relay pins limit 25 and returns only ID, query type, and index version."
+    },
+    {
+      "url": "https://mention.com/en/terms-and-conditions/",
+      "checkedAt": "2026-07-18",
+      "supports": "Mention's terms restrict Mention Content to the supplied Services and describe account, API-token, connected-profile, and personal-data handling obligations."
+    }
+  ],
+  "securityNotes": [
+    "The customer token and exact account ID are encrypted as secret references; the bearer token is sent only in an Authorization header to https://api.mention.net and never in URLs, prompts, logs, catalog records, or results.",
+    "Mention states that an own-account app token gives full account access; Relay therefore allowlists only GET /api/accounts/{boundAccountId} and GET /api/accounts/{boundAccountId}/alerts?limit=25.",
+    "Every request pins Accept-Version 1.19, rejects redirects, caps responses at 1 MB, and returns at most twenty-five alerts without following provider cursors.",
+    "Names, emails, avatars, social profiles, alert names, queries, keywords, descriptions, shares, users, Mention Content, authors, URLs, analytics, publishing, writes, streams, and administration are excluded.",
+    "Relay preserves provider HTTP 429 responses and does not invent a single local quota because Mention documents resource- and method-specific limits rather than one universal ceiling."
+  ]
+}

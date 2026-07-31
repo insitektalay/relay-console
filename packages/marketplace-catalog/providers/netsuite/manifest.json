@@ -1,0 +1,228 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "netsuite",
+  "name": "NetSuite",
+  "category": "commerce_payments",
+  "description": "Oracle NetSuite is a cloud business management suite spanning enterprise resource planning, financial management, inventory, order management, procurement, projects, customer relationship management, human resources, analytics, and commerce. Organizations use its shared record system to coordinate operational and financial processes across business units.",
+  "agentUseSummary": "Connect one exact NetSuite account with customer-owned Token-Based Authentication credentials for a dedicated least-privilege integration role, then let agents use two approval-gated bounded reads for accounting-period status. Relay pins the exact SuiteTalk origin copied from Company URLs, signs every request with HMAC-SHA256, fixes the accountingperiod record and eight returned fields, caps listing at offset zero and twenty-five results, and excludes people, transactions, balances, banking, tax, payroll, reports, writes, arbitrary records or queries, pagination, downloads, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.netsuite.com/",
+    "docsUrl": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/chapter_1540391670.html",
+    "developerConsoleUrl": "https://system.netsuite.com/app/common/integration/integrlist.nl",
+    "termsUrl": "https://www.oracle.com/contracts/netsuite/",
+    "privacyUrl": "https://www.oracle.com/legal/privacy/services-privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth1",
+    "relayOwned": false,
+    "scopes": [
+      "rest_web_services",
+      "log_in_using_access_tokens",
+      "accounting_period_read"
+    ],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_token_based_authentication",
+      "exact_account_realm_binding",
+      "exact_company_urls_suitetalk_origin",
+      "dedicated_least_privilege_integration_role",
+      "hmac_sha256_oauth1_request_signing"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "NETSUITE_ACCOUNT_ID",
+        "label": "NetSuite account ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter the exact production, sandbox, or Release Preview account ID used as the TBA realm."
+      },
+      {
+        "key": "NETSUITE_SUITETALK_ORIGIN",
+        "label": "SuiteTalk origin",
+        "secret": false,
+        "required": true,
+        "helpText": "Copy the exact HTTPS SuiteTalk (SOAP and REST) origin from Company Information > Company URLs; do not construct or customize it."
+      },
+      {
+        "key": "NETSUITE_CONSUMER_KEY",
+        "label": "TBA consumer key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use the consumer key from a customer-owned integration record enabled only for Token-Based Authentication."
+      },
+      {
+        "key": "NETSUITE_CONSUMER_SECRET",
+        "label": "TBA consumer secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Store the one-time-visible matching consumer secret through Relay's encrypted credential boundary."
+      },
+      {
+        "key": "NETSUITE_TOKEN_ID",
+        "label": "TBA token ID",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a token issued to the dedicated least-privilege integration user and role."
+      },
+      {
+        "key": "NETSUITE_TOKEN_SECRET",
+        "label": "TBA token secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Store the one-time-visible matching token secret through Relay's encrypted credential boundary."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "accounting_period_read",
+      "label": "Read accounting periods",
+      "description": "List bounded accounting-period status summaries or inspect one exact period without transactions, balances, subsidiaries, books, calendars, notes, or relationships.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "netsuite_accounting_period_list",
+        "label": "List accounting periods",
+        "description": "List at most twenty-five bounded accounting-period status summaries from fixed offset zero."
+      },
+      {
+        "id": "netsuite_accounting_period_get",
+        "label": "Read accounting period",
+        "description": "Read one exact bounded accounting-period status summary by positive internal ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "netsuite_record_mutation",
+        "label": "Change NetSuite data",
+        "description": "Creating, updating, deleting, transforming, approving, posting, closing, reopening, locking, importing, or bulk-changing NetSuite records is outside V1."
+      },
+      {
+        "id": "netsuite_private_business_data",
+        "label": "Read private business data",
+        "description": "Customers, contacts, vendors, employees, users, communications, addresses, notes, files, custom fields, relationships, and transaction details are outside V1."
+      },
+      {
+        "id": "netsuite_financial_and_broader_product",
+        "label": "Access financial or broader NetSuite data",
+        "description": "Accounts, balances, journals, invoices, payments, banking, tax, payroll, expenses, orders, inventory, projects, CRM, commerce, analytics, reports, administration, and SuiteApps are outside V1."
+      },
+      {
+        "id": "netsuite_raw_api",
+        "label": "Call arbitrary NetSuite APIs",
+        "description": "Other origins, REST records, fields, filters, queries, SuiteQL, RESTlets, SOAP, SuiteScript, metadata, actions, transformations, and request options are outside V1."
+      },
+      {
+        "id": "netsuite_bulk_export",
+        "label": "Export NetSuite data",
+        "description": "Automatic pagination, crawling, synchronization, report execution, downloads, imports, asynchronous jobs, batch operations, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "netsuite_safe",
+      "label": "Safe",
+      "description": "Both private accounting-period reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "netsuite_accounting_period_list",
+        "netsuite_accounting_period_get"
+      ],
+      "blockedActions": [
+        "netsuite_record_mutation",
+        "netsuite_private_business_data",
+        "netsuite_financial_and_broader_product",
+        "netsuite_raw_api",
+        "netsuite_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both selected read-only tools run without Relay per-action approval while exact account, SuiteTalk origin, role, record type, fields, offset, limits, audits, redaction, provider permissions, and TBA secret isolation remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "netsuite_accounting_period_list",
+        "netsuite_accounting_period_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "netsuite_record_mutation",
+        "netsuite_private_business_data",
+        "netsuite_financial_and_broader_product",
+        "netsuite_raw_api",
+        "netsuite_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded approval-gated NetSuite accounting-period reads and signs requests with encrypted TBA secrets only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded approval-gated NetSuite accounting-period reads and signs requests with encrypted TBA secrets only on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No eligible NetSuite account, accepted SuiteCloud Terms of Service, enabled REST Web Services and Token-Based Authentication features, dedicated least-privilege integration user and role, integration record, TBA token pair, or exact SuiteTalk Company URL is available in this workspace. Oracle warns that no new TBA integrations can be created beginning with NetSuite 2027.1, so live acceptance must also record the customer's migration plan to OAuth 2.0.",
+    "nextAction": "In the provider-console task, use an eligible NetSuite account before 2027.1, accept the SuiteCloud Terms, enable REST Web Services and Token-Based Authentication, create a dedicated least-privilege integration user and role with only REST Web Services, Log in using Access Tokens, and accounting-period read authority, create and enable a customer-owned TBA integration record and token, copy the exact SuiteTalk URL from Company URLs, store all six values through Relay, then validate account/origin/role binding, HMAC-SHA256 reads, approvals, permission denial, token revocation, disconnect, post-disconnect denial, and the OAuth 2.0 migration plan."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/chapter_1540391670.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Oracle documents SuiteTalk REST Web Services as the REST interface for records, metadata, queries, CRUD, actions, transformations, datasets, and SuiteQL; Relay exposes only two fixed accounting-period reads."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_0818065706.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Oracle documents accountingperiod as the REST record ID and identifies bounded status fields including period name, dates, closed, adjustment, inactive, and posting state."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/article_5085602973.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Oracle requires REST Web Services enablement, acceptance of SuiteCloud Terms, and role permissions for REST Web Services and access tokens."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_1534941295.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Oracle specifies the REST Web Services OAuth 1.0 authorization header with account realm, consumer key, token, nonce, timestamp, HMAC-SHA256, version, and signature, and warns that new TBA integrations end in 2027.1."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_1498251763.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Oracle requires the exact account-specific SuiteTalk URL shown under Company Information > Company URLs and documents sandbox and Release Preview account-domain normalization."
+    },
+    {
+      "url": "https://www.oracle.com/contracts/netsuite/",
+      "checkedAt": "2026-07-18",
+      "supports": "Oracle publishes the agreements, service descriptions, supplemental terms, and delivery policies governing NetSuite Cloud Services."
+    },
+    {
+      "url": "https://www.oracle.com/legal/privacy/services-privacy-policy/",
+      "checkedAt": "2026-07-18",
+      "supports": "Oracle's services privacy policy covers personal information processed on behalf of cloud customers; Relay excludes people and private business data from V1."
+    }
+  ]
+}

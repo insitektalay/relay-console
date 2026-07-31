@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "marketplace-freeze-source-audit.schema.json",
+  "title": "Marketplace freeze source audit",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "policyVersion", "capturedAt", "source", "releaseBase",
+    "divergenceBaseRevision", "changes", "providers", "review", "privacy"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.marketplace-freeze-source-audit.v1" },
+    "policyVersion": { "const": "relay.marketplace-freeze-path-policy.v1" },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "branch", "revision", "treeSHA1", "clean"],
+      "properties": {
+        "repository": { "type": "string", "pattern": "^[a-z0-9_.-]+/[a-z0-9_.-]+$" },
+        "branch": { "type": "string", "minLength": 1 },
+        "revision": { "$ref": "#/$defs/commit" },
+        "treeSHA1": { "$ref": "#/$defs/commit" },
+        "clean": { "const": true }
+      }
+    },
+    "releaseBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch", "revision", "clean"],
+      "properties": {
+        "branch": { "type": "string", "minLength": 1 },
+        "revision": { "$ref": "#/$defs/commit" },
+        "clean": { "const": true }
+      }
+    },
+    "divergenceBaseRevision": { "$ref": "#/$defs/commit" },
+    "changes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "automatic", "reviewRequired", "prohibited"],
+      "properties": {
+        "total": { "$ref": "#/$defs/pathEvidence" },
+        "automatic": { "$ref": "#/$defs/pathEvidence" },
+        "reviewRequired": { "$ref": "#/$defs/pathEvidence" },
+        "prohibited": { "$ref": "#/$defs/pathEvidence" }
+      }
+    },
+    "providers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifestCount", "manifestSHA256"],
+      "properties": {
+        "manifestCount": { "type": "integer", "minimum": 1 },
+        "manifestSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reviewer", "reviewerRole", "rationale"],
+      "properties": {
+        "status": { "enum": ["not-required", "pending", "approved"] },
+        "reviewer": { "type": ["string", "null"] },
+        "reviewerRole": { "type": ["string", "null"] },
+        "rationale": { "type": ["string", "null"] }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["localPathsIncluded", "secretValuesIncluded", "fileContentsIncluded"],
+      "properties": {
+        "localPathsIncluded": { "const": false },
+        "secretValuesIncluded": { "const": false },
+        "fileContentsIncluded": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "pathEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "sha256"],
+      "properties": {
+        "count": { "type": "integer", "minimum": 0 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

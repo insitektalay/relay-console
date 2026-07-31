@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "signeasy",
+  "name": "Signeasy",
+  "category": "knowledge_documents",
+  "description": "Signeasy sends and tracks electronic-signature envelopes.",
+  "agentUseSummary": "Connect one Signeasy user through Relay-owned OAuth with exactly rs:read and offline_access and the documented API audience. Relay exposes two fixed pending-envelope metadata reads and blocks people, files, downloads, signing links, audit content, writes, broader scopes, raw access, pagination, polling, retries, and exports.",
+  "provider": {
+    "websiteUrl": "https://signeasy.com/api",
+    "docsUrl": "https://docs.signeasy.com/",
+    "developerConsoleUrl": "https://developer.signeasy.com/dashboard",
+    "termsUrl": "https://signeasy.com/terms",
+    "privacyUrl": "https://signeasy.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["rs:read", "offline_access"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.signeasy.com/authorize",
+    "tokenUrl": "https://auth.signeasy.com/oauth/token",
+    "revocationUrl": "https://auth.signeasy.com/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth",
+      "confidential_authorization_code",
+      "rotating_refresh_token",
+      "fixed_api_audience",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/signeasy/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "envelope_list",
+      "label": "List envelopes",
+      "description": "Read a bounded first page of pending-envelope lifecycle metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "envelope_get",
+      "label": "Inspect envelope metadata",
+      "description": "Read lifecycle metadata for one explicit pending envelope.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "signeasy_envelope_list",
+        "label": "List envelope summaries",
+        "description": "List up to 25 first-page pending-envelope lifecycle summaries."
+      },
+      {
+        "id": "signeasy_envelope_get",
+        "label": "Inspect an envelope",
+        "description": "Inspect lifecycle metadata for one explicit pending envelope ID."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "signeasy_private_content",
+        "label": "Access private envelope content",
+        "description": "Files, downloads, originals, signed documents, user profiles, recipients, signers, messages, fields, signing URLs, certificates, and audit data are blocked."
+      },
+      {
+        "id": "signeasy_mutation",
+        "label": "Mutate or sign envelopes",
+        "description": "Creating, sending, signing, reminding, voiding, deleting, uploading, and updating are blocked."
+      },
+      {
+        "id": "signeasy_broader_authority",
+        "label": "Use broader authority",
+        "description": "files:read, user:read, create/update/signing-url scopes, templates, webhooks, embedded signing, and administration are blocked."
+      },
+      {
+        "id": "signeasy_raw_bulk",
+        "label": "Use raw or bulk APIs",
+        "description": "Raw paths, arbitrary queries, pagination, polling, automatic retries, batch access, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "signeasy_read_only",
+      "label": "Read-only envelope lifecycle",
+      "description": "Two bounded envelope reads run automatically with exactly rs:read and offline_access.",
+      "defaultSelected": true,
+      "allowedActions": ["signeasy_envelope_list", "signeasy_envelope_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "signeasy_private_content",
+        "signeasy_mutation",
+        "signeasy_broader_authority",
+        "signeasy_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Exact scopes, audience, fixed paths, strict projection, result cap, and read-only boundary remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["signeasy_envelope_list", "signeasy_envelope_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "signeasy_private_content",
+        "signeasy_mutation",
+        "signeasy_broader_authority",
+        "signeasy_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded pending-envelope reads and attaches the exact read-scoped token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded pending-envelope reads and attaches the exact read-scoped token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Relay's live Signeasy OAuth app, paid live API plan, client credentials, and exact callback/scopes are not configured. No provider-console, credential, consent, Railway, or live acceptance work is authorized in this worker task.",
+    "nextAction": "An authorized owner provisions a live app and suitable plan, configures the exact Railway callback, rs:read plus offline_access, stores credentials through Railway's secret process, deploys separately, and runs live connect, envelope redaction, rotating refresh, revoke/disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.signeasy.com/docs/authorization-code-flow",
+      "checkedAt": "2026-07-17",
+      "supports": "Signeasy documents authorization-code OAuth, the fixed audience, access/rotating refresh tokens, refresh exchange, and JSON refresh-token revocation."
+    },
+    {
+      "url": "https://docs.signeasy.com/docs/scopes",
+      "checkedAt": "2026-07-17",
+      "supports": "Signeasy documents rs:read for pending signature requests and offline_access for refresh tokens, separately from file, user, mutation, signing-link, template, and webhook authority."
+    },
+    {
+      "url": "https://docs.signeasy.com/reference/list-request-signature-without-markers",
+      "checkedAt": "2026-07-17",
+      "supports": "Signeasy documents GET /v3/rs/ for listing envelopes."
+    },
+    {
+      "url": "https://docs.signeasy.com/reference/fetch-request-signature-without-markers-deatails",
+      "checkedAt": "2026-07-17",
+      "supports": "Signeasy documents GET /v3/rs/{rs_id} for one explicit envelope."
+    }
+  ]
+}

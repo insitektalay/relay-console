@@ -1,0 +1,135 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "when-i-work",
+  "name": "When I Work",
+  "category": "work_management",
+  "description": "When I Work is workforce-management software for shift-based teams. Workplaces use it to build and publish schedules, manage staff and locations, track availability and time off, coordinate shift swaps, record attendance and breaks, communicate with teams, and prepare payroll data.",
+  "agentUseSummary": "When I Work has an open API, but Relay cannot offer Connect until When I Work approves Relay through its technology-partner programme and supplies an authorized third-party authentication contract. The published customer-implementation flow requires a private developer key plus a user's When I Work password, so Relay will not assume that flow is authorized for a multi-customer product or collect credentials before approval.",
+  "provider": {
+    "websiteUrl": "https://wheniwork.com/",
+    "docsUrl": "https://apidocs.wheniwork.com/external/index.html",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://wheniwork.com/terms",
+    "privacyUrl": "https://wheniwork.com/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.login.wheniwork.com/login",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["provider_partnership_required"],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": [
+      "When I Work requires a customer-owned TLS domain endpoint and signs webhook payloads with an HMAC-SHA256 signing secret generated in the workplace settings."
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "workforce_read",
+      "label": "Read workforce operations",
+      "description": "After provider approval, read the complete current primary API surface for workplaces, users, schedules, shifts, sites, positions, availability, time off, requests, times, breaks, payroll data, and related workforce records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "workforce_manage",
+      "label": "Manage workforce operations",
+      "description": "After provider approval, use the complete current primary API mutation surface for schedules, shifts, staff, attendance, availability, requests, imports, and workplace settings under the connected user's role.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "when_i_work_connect_before_approval",
+        "label": "Connect before provider approval",
+        "description": "When I Work directs third-party products serving multiple customers through its technology-partner programme; Relay has not received an approved developer key or third-party authentication contract."
+      },
+      {
+        "id": "when_i_work_collect_unapproved_credentials",
+        "label": "Collect unapproved credentials",
+        "description": "Relay will not ask users for a private developer key or collect a When I Work password under a customer-implementation flow that has not been approved for Relay's multi-customer product."
+      },
+      {
+        "id": "when_i_work_api_actions_before_approval",
+        "label": "Run When I Work API actions",
+        "description": "No read or mutation can run until When I Work approves Relay's integration, authentication lifecycle, workplace context selection, and permitted API services."
+      },
+      {
+        "id": "when_i_work_private_or_dev_service",
+        "label": "Use private or development services",
+        "description": "Relay will use only provider-approved production origins and operations; documentation that points at whenidev.net or private application services is not production authority."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "when_i_work_provider_review",
+      "label": "Provider review pending",
+      "description": "Agent actions remain unavailable until When I Work approves Relay and confirms the production authentication and API-service contract for a third-party integration.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "when_i_work_connect_before_approval",
+        "when_i_work_collect_unapproved_credentials",
+        "when_i_work_api_actions_before_approval",
+        "when_i_work_private_or_dev_service"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "The planned Railway connector can mount the provider-approved production workforce API after technology-partner approval; no OpenClaw tools are callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "The planned Railway connector can mount the provider-approved production workforce API after technology-partner approval; no Hermes tools are callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "When I Work publishes an open primary API, but its official access guide distinguishes a customer's own implementation from a third-party company building integrations for customers and directs the latter through its partnership programme. The only public login flow requires a private developer key plus the user's email and password, then issues a seven-day bearer token. Relay has no approved technology-partner agreement, developer key, permitted password-exchange design, production service-origin list, representative workplace, or authorized test account.",
+    "nextAction": "Apply through https://wheniwork.com/partners as a Technology Partner and obtain written approval, an integration developer key, the approved end-user authentication and token-refresh contract, permitted production API services, rate limits, webhook terms, and a test workplace. Then implement the Railway broker and complete current approved operation surface, expose a simple provider-approved Connect flow in all three clients, deploy from backend/, and verify workplace selection, token rotation, reads, Safe denial, approved or Dangerous mutations, redaction, rate limiting, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.wheniwork.com/articles/getting-access-to-the-when-i-work-api-computer/",
+      "checkedAt": "2026-07-15",
+      "supports": "When I Work describes an open API, requires admin-level access for customer API-key requests, directs third-party companies serving customers to its partnership programme, and documents login using a private developer key plus a user's email and password followed by seven-day token rotation."
+    },
+    {
+      "url": "https://apidocs.wheniwork.com/external/monolith/docs-master.json",
+      "checkedAt": "2026-07-15",
+      "supports": "The official OpenAPI 3.1 primary-service document, SHA-256 c83a58975483319956cfb5df4a2f2cb7cf0ddddebf07f4ff6559ada6cb5cdfe8, currently defines 115 non-deprecated production operations: 46 reads and 69 mutations across 21 workforce domains at api.wheniwork.com."
+    },
+    {
+      "url": "https://wheniwork.com/partners",
+      "checkedAt": "2026-07-15",
+      "supports": "When I Work offers a Technology Partner programme for products that integrate their software with When I Work and requires prospective partners to submit its form for review."
+    },
+    {
+      "url": "https://help.wheniwork.com/articles/webhooks-reference/",
+      "checkedAt": "2026-07-15",
+      "supports": "When I Work documents workplace-configured TLS webhook endpoints, HMAC-SHA256 signing secrets, event subscriptions, batching, and retry behavior."
+    },
+    {
+      "url": "https://wheniwork.com/features/employee-scheduling-software",
+      "checkedAt": "2026-07-15",
+      "supports": "When I Work describes employee scheduling, availability, time off, shift trading, task lists, multi-location staffing, labor controls, time tracking, and team communication."
+    }
+  ]
+}

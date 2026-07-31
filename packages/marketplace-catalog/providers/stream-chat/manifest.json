@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "stream-chat",
+  "name": "Stream Chat",
+  "category": "communication",
+  "description": "Stream Chat is an embedded messaging platform for customer-owned applications, providing users, channels, messages, moderation, roles, permissions, and real-time chat SDKs.",
+  "agentUseSummary": "Stream Chat cannot currently be connected as a Relay-owned account integration because server access requires a customer application's dashboard API key and full-access API secret, not delegated OAuth. User JWTs identify users inside that customer's application and are minted only after the customer's own backend authenticates them; they are not delegated account authority.",
+  "provider": {
+    "websiteUrl": "https://getstream.io/chat/",
+    "docsUrl": "https://getstream.io/chat/docs/node/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://getstream.io/legal/terms/",
+    "privacyUrl": "https://getstream.io/legal/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "delegated_account_oauth_not_available",
+      "customer_application_key_and_secret_only",
+      "server_secret_has_full_application_access",
+      "user_jwts_are_not_account_authority",
+      "upstream_per_installation_revocation_not_available"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "stream_chat_connect_account",
+        "label": "Connect a Stream account",
+        "description": "Stream Chat does not publish a distributable delegated account OAuth, consent, callback, refresh, or per-installation revocation lifecycle for Relay."
+      },
+      {
+        "id": "stream_chat_api_secret",
+        "label": "Custody an application secret",
+        "description": "The dashboard API secret gives server-side code full access to the customer's Stream application and must not be represented as a Relay-owned OAuth grant."
+      },
+      {
+        "id": "stream_chat_user_token_relabel",
+        "label": "Relabel a user JWT as OAuth",
+        "description": "User JWTs are minted by the customer's backend after its own user authentication and authorize only that identity under application permissions."
+      },
+      {
+        "id": "stream_chat_data_and_mutations",
+        "label": "Access Stream Chat data",
+        "description": "Users, channels, messages, members, roles, permissions, moderation, files, exports, settings, and every application read/write remain unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "stream_chat_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled without a supported delegated account contract or a separately approved user-owned application-secret product decision.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "stream_chat_connect_account",
+        "stream_chat_api_secret",
+        "stream_chat_user_token_relabel",
+        "stream_chat_data_and_mutations"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No supported delegated Stream Chat account contract is available to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No supported delegated Stream Chat account contract is available to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Stream Chat documents customer application API key/secret server access and in-application user JWTs rather than delegated account OAuth. Valid server credentials bypass client permissions and allow the complete application API.",
+    "nextAction": "Do not request Stream credentials or show Connect. Reconsider only after Stream publishes a distributable delegated account contract, or after a separate product/security decision approves a user-owned key/secret integration for one named application with explicit rotation and revocation operations."
+  },
+  "evidence": [
+    {
+      "url": "https://getstream.io/chat/docs/node/",
+      "checkedAt": "2026-07-17",
+      "supports": "Stream documents dashboard API key/secret server initialization, states that the secret provides full Chat API access, and describes customer backends minting user tokens."
+    },
+    {
+      "url": "https://getstream.io/chat/docs/go-golang/tokens-and-authentication/",
+      "checkedAt": "2026-07-17",
+      "supports": "Stream documents user JWT generation with the application secret after the customer's own authentication flow, not delegated account OAuth."
+    },
+    {
+      "url": "https://getstream.io/chat/docs/node/user_permissions/",
+      "checkedAt": "2026-07-17",
+      "supports": "Stream states that permission checks apply to client calls and that valid server-side API key/secret access allows everything."
+    },
+    {
+      "url": "https://support.getstream.io/hc/en-us/articles/360061669873-How-do-the-Chat-Client-Server-Stream-API-communicate-with-each-other",
+      "checkedAt": "2026-07-17",
+      "supports": "Stream explains that the application secret enables server access, must never be exposed client-side, and can perform user, channel, admin, and moderation operations."
+    }
+  ]
+}

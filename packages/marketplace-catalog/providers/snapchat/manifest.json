@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "snapchat",
+  "name": "Snapchat",
+  "category": "social_media",
+  "description": "Snapchat is a visual messaging and camera platform. Its consumer developer surface provides reviewed OAuth identity through Login Kit and user-controlled sharing through Creative Kit, but not third-party access to private Snaps, chats, friends, contacts, Memories, or Stories.",
+  "agentUseSummary": "Snapchat cannot yet be connected through Relay. The supported consumer account boundary is reviewed Login Kit OAuth for an app-specific user ID, display name, and optional Bitmoji avatar; it explicitly excludes messages, shared content, and contacts. Relay will not imply broader Snapchat access, and even the identity-only integration remains disabled until Snap approves Relay's application and representative consent passes acceptance.",
+  "provider": {
+    "websiteUrl": "https://www.snapchat.com/",
+    "docsUrl": "https://developers.snap.com/snap-kit/login-kit/overview",
+    "developerConsoleUrl": "https://developers.snap.com/",
+    "termsUrl": "https://www.snap.com/terms/developer",
+    "privacyUrl": "https://values.snap.com/privacy/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://auth.snapchat.com/oauth2/api/user.external_id",
+      "https://auth.snapchat.com/oauth2/api/user.display_name",
+      "https://auth.snapchat.com/oauth2/api/user.bitmoji.avatar"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.snapchat.com/accounts/oauth2/auth",
+    "tokenUrl": "https://accounts.snapchat.com/accounts/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_snap_kit_app",
+      "login_kit_oauth",
+      "authorization_code_with_s256_pkce",
+      "server_side_refresh_token",
+      "app_specific_identity_only",
+      "snap_app_review_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/snapchat/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "identity_read",
+      "label": "Read Snapchat identity",
+      "description": "After Snap approval, read the authorized user's app-specific external ID and display name, plus the Bitmoji avatar only when the user grants that toggleable scope.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "snapchat_connect_before_review",
+        "label": "Connect before Snap review",
+        "description": "Relay has no Snap-approved production application, registered callback, client credentials, or representative consent evidence."
+      },
+      {
+        "id": "snapchat_identity_before_review",
+        "label": "Read Snapchat identity",
+        "description": "External ID, display name, Bitmoji avatar, OAuth tokens, and authorization state remain unavailable before application review and acceptance."
+      },
+      {
+        "id": "snapchat_private_data",
+        "label": "Access private Snapchat data",
+        "description": "Snaps, chats, shared content, friends, contacts, Stories, Memories, location, activity, audiences, and other personal data are outside Login Kit and remain blocked."
+      },
+      {
+        "id": "snapchat_publish_automatically",
+        "label": "Publish to Snapchat automatically",
+        "description": "Creative Kit opens Snapchat's camera or preview for the person to control sharing; Relay will not turn that user interface into an unattended agent mutation or claim direct posting authority."
+      },
+      {
+        "id": "snapchat_raw_private_automation",
+        "label": "Use raw, private, or automated Snapchat interfaces",
+        "description": "Marketing and Public Profile APIs, arbitrary endpoints, scraping, browser or device automation, session capture, unofficial APIs, and credential collection are outside this consumer provider and blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "snapchat_provider_review",
+      "label": "Provider review pending",
+      "description": "No Snapchat action is enabled until Snap approves Relay's identity-only Login Kit integration and its OAuth, optional-scope, token, data-deletion, and revocation contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "snapchat_connect_before_review",
+        "snapchat_identity_before_review",
+        "snapchat_private_data",
+        "snapchat_publish_automatically",
+        "snapchat_raw_private_automation"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount a bounded Snapchat identity tool after Snap review; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount a bounded Snapchat identity tool after Snap review; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Snap Login Kit supports OAuth identity only: an app-specific external ID, display name, and optional user-toggleable Bitmoji avatar. It explicitly does not provide private messages, shared content, or contacts. Snap reviews every Snap Kit app before production and requires complete application and integration descriptions, a privacy policy, an integration video, correct Kit selection, and compliance review. This worker cannot create the application, capture its client secret, submit review materials, or run representative consent.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should create Relay's Snap Kit application, enable only Login Kit, register https://api.relayconsole.work/api/v1/marketplace/oauth/snapchat/callback, configure the minimum identity scopes, provide Relay's privacy and deletion disclosures plus the required integration recording, and submit for Snap review. After approval, verify S256 state and PKCE, partial Bitmoji consent, app-specific identity, access-token expiry, refresh and revocation, data deletion, disconnect, and post-disconnect denial before Connect is enabled. Keep Marketing API and allowlisted Public Profile API as separate future business-provider evaluations."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.snap.com/snap-kit/login-kit/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Snap documents Login Kit OAuth for authentication and limited identity, recommends authorization code with S256 PKCE, supports server-side refresh tokens, lists external ID, display name and optional Bitmoji scopes, and explicitly excludes private messages, shared content and contacts."
+    },
+    {
+      "url": "https://developers.snap.com/snap-kit/app-review/submission-and-review",
+      "checkedAt": "2026-07-17",
+      "supports": "Snap reviews every Snap Kit application before production and requires a clear use case, correct Kit, privacy policy, integration video, brand compliance, and re-review after material changes."
+    },
+    {
+      "url": "https://developers.snap.com/snap-kit/creative-kit/web",
+      "checkedAt": "2026-07-17",
+      "supports": "Snap's web sharing surface is a Creative Kit share button that hands content to Snapchat's user interface; it is not an unattended server-side publish API."
+    },
+    {
+      "url": "https://developers.snap.com/marketing-api/Public-Profile-API/GetStarted",
+      "checkedAt": "2026-07-17",
+      "supports": "Snap's separate Public Profile API requires a Business organization, OAuth app, Snap contact, and explicit allowlisting, so it is not silently included in the consumer Snapchat identity provider."
+    }
+  ]
+}

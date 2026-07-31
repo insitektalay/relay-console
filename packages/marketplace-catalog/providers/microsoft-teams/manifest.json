@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-teams",
+  "name": "Microsoft Teams",
+  "category": "communication",
+  "description": "Microsoft Teams organizes workplace collaboration into teams and channels backed by Microsoft 365 and Microsoft Graph.",
+  "agentUseSummary": "Connect one work or school account through Relay-owned Microsoft OAuth with OIDC, offline refresh, PKCE, and only delegated Team.ReadBasic.All plus Channel.ReadBasic.All. Four wrappers read up to twenty-five directly joined teams, one explicit team, up to twenty-five visible channels in one explicit team, or one explicit channel. Relay blocks messages and chats, rosters and directory data, files and meetings, writes, application and admin authority, metered APIs, exports, raw endpoints, automatic pagination, and retries.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-teams/",
+    "docsUrl": "https://learn.microsoft.com/graph/teams-concept-overview",
+    "developerConsoleUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+    "termsUrl": "https://www.microsoft.com/licensing/terms/product/ForOnlineServices/all",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "openid",
+      "profile",
+      "offline_access",
+      "https://graph.microsoft.com/Team.ReadBasic.All",
+      "https://graph.microsoft.com/Channel.ReadBasic.All"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "delegated_work_school_user",
+      "direct_team_memberships_only",
+      "visible_channel_metadata_only",
+      "expiring_access_token",
+      "offline_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-teams/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "joined_teams_list", "label": "List joined teams", "description": "Read directly joined team metadata.", "defaultSelected": true },
+    { "id": "team_get", "label": "Inspect a team", "description": "Read one explicit team's useful metadata.", "defaultSelected": true },
+    { "id": "channels_list", "label": "List visible channels", "description": "Read visible channel metadata in one explicit team.", "defaultSelected": true },
+    { "id": "channel_get", "label": "Inspect a channel", "description": "Read one explicit channel's useful metadata.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "microsoft_teams_joined_teams_list", "label": "List joined teams", "description": "Read up to twenty-five teams where the signed-in work user is a direct member." },
+      { "id": "microsoft_teams_team_get", "label": "Get team", "description": "Read useful metadata for one explicit prior-result team." },
+      { "id": "microsoft_teams_channels_list", "label": "List team channels", "description": "Read up to twenty-five channels visible to the signed-in user in one explicit team." },
+      { "id": "microsoft_teams_channel_get", "label": "Get team channel", "description": "Read useful metadata for one explicit prior-result channel in one explicit team." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "microsoft_teams_messages_chats", "label": "Read messages or chats", "description": "Channel messages, replies, private chats, bodies, senders, reactions, search, subscriptions, and metered export APIs are blocked." },
+      { "id": "microsoft_teams_members_directory", "label": "Read members or directory", "description": "Members, owners, rosters, profiles, email addresses, users, groups, and directory data are blocked." },
+      { "id": "microsoft_teams_files_meetings_calls", "label": "Access other Teams workloads", "description": "Files, tabs, apps, meetings, calls, recordings, transcripts, calendars, and other Microsoft Graph workloads are blocked." },
+      { "id": "microsoft_teams_writes_admin", "label": "Mutate or administer Teams", "description": "Team/channel/message mutations, sends, application permissions, RSC, admin scopes, tenant enumeration, and consent management are blocked." },
+      { "id": "microsoft_teams_export_raw_pagination", "label": "Export or use raw Graph", "description": "Exports, delta, arbitrary queries, raw endpoints, beta Graph, automatic pagination, polling, retries, and CLI or MCP passthrough are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_teams_read_only",
+      "label": "Read only",
+      "description": "Four delegated work-account team/channel metadata reads run automatically; messages, rosters, other workloads, writes, admin authority, metered APIs, raw access, and pagination remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["microsoft_teams_joined_teams_list", "microsoft_teams_team_get", "microsoft_teams_channels_list", "microsoft_teams_channel_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["microsoft_teams_messages_chats", "microsoft_teams_members_directory", "microsoft_teams_files_meetings_calls", "microsoft_teams_writes_admin", "microsoft_teams_export_raw_pagination"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The exact delegated scopes, work-account boundary, four typed metadata reads, first-page-only behavior, privacy exclusions, and no-write invariants remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["microsoft_teams_joined_teams_list", "microsoft_teams_team_get", "microsoft_teams_channels_list", "microsoft_teams_channel_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["microsoft_teams_messages_chats", "microsoft_teams_members_directory", "microsoft_teams_files_meetings_calls", "microsoft_teams_writes_admin", "microsoft_teams_export_raw_pagination"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts four bounded delegated Microsoft Teams metadata reads and attaches encrypted OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts four bounded delegated Microsoft Teams metadata reads and attaches encrypted OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay must configure a production multi-tenant Entra confidential web application for work and school accounts, register the canonical Railway callback, configure the exact delegated OIDC/offline/Team.ReadBasic.All/Channel.ReadBasic.All consent, configure Railway staging credentials, and authorize acceptance work. Those provider-console and environment actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the canonical callback and exact delegated scopes, complete publisher verification and tenant acceptance, then verify account binding, all four wrappers, refresh, rotation, revocation, disconnect, consent denial, throttling/error mapping, privacy exclusions, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow", "checkedAt": "2026-07-17", "supports": "Microsoft documents authorization-code OAuth with PKCE, OIDC scopes, and offline_access for refresh tokens." },
+    { "url": "https://learn.microsoft.com/en-us/graph/api/user-list-joinedteams?view=graph-rest-1.0", "checkedAt": "2026-07-17", "supports": "Microsoft documents directly joined work-account teams, delegated Team.ReadBasic.All, and the fixed /me/joinedTeams endpoint without OData query support." },
+    { "url": "https://learn.microsoft.com/en-us/graph/api/team-get?view=graph-rest-1.0", "checkedAt": "2026-07-17", "supports": "Microsoft documents explicit team metadata reads and delegated Team.ReadBasic.All as least privileged." },
+    { "url": "https://learn.microsoft.com/en-us/graph/api/channel-list?view=graph-rest-1.0", "checkedAt": "2026-07-17", "supports": "Microsoft documents visible channel metadata, delegated Channel.ReadBasic.All, selected fields, and next links Relay does not follow." },
+    { "url": "https://learn.microsoft.com/en-us/graph/api/channel-get?view=graph-rest-1.0", "checkedAt": "2026-07-17", "supports": "Microsoft documents explicit channel metadata reads and delegated Channel.ReadBasic.All for work or school accounts." }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "savvycal",
+  "name": "SavvyCal",
+  "category": "work_management",
+  "description": "SavvyCal is a scheduling platform for sharing personalized booking links, comparing calendars, coordinating meeting polls, and collecting payments for appointments. Individuals and teams use it to manage availability, automate meeting workflows, and book events without back-and-forth email.",
+  "agentUseSummary": "Connect one SavvyCal account, then choose which agents can read or manage its authorized scheduling data under Safe or Dangerous policy.",
+  "provider": { "websiteUrl": "https://savvycal.com/", "docsUrl": "https://developers.savvycal.com/", "developerConsoleUrl": "https://savvycal.com/settings/developers", "termsUrl": "https://savvycal.com/terms", "privacyUrl": "https://savvycal.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": [], "pkce": false, "refreshTokens": true, "authorizationUrl": "https://savvycal.com/oauth/authorize", "tokenUrl": "https://savvycal.com/oauth/token" },
+  "connection": { "types": ["relay_owned_oauth"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/savvycal/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "schedule_read", "label": "Read scheduling data", "description": "Read the connected account, events, scheduling links, available slots, time zones, webhooks, workflows, and workflow rules.", "defaultSelected": true },
+    { "id": "schedule_manage", "label": "Manage scheduling", "description": "Book and cancel events; create, update, duplicate, toggle, and delete scheduling links; and create or delete webhooks.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "savvycal_api_read", "label": "Read SavvyCal", "description": "Read bounded authorized SavvyCal scheduling data." }],
+    "approvalRequired": [{ "id": "savvycal_api_manage", "label": "Manage SavvyCal", "description": "Book or cancel events and change scheduling links or webhooks." }],
+    "blocked": [
+      { "id": "savvycal_secret_exposure", "label": "Expose credentials", "description": "OAuth credentials never enter agent-visible requests or results." },
+      { "id": "savvycal_unofficial_origin", "label": "Use another API origin", "description": "Every request stays on SavvyCal's documented API origin." },
+      { "id": "savvycal_unsupported_endpoint", "label": "Call another endpoint", "description": "Relay permits only SavvyCal's documented public REST endpoints." },
+      { "id": "savvycal_unbounded_transfer", "label": "Run an unbounded transfer", "description": "Relay bounds queries, request bodies, responses, redirects, nesting, and execution time." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "savvycal_safe", "label": "Safe", "description": "Reads run directly. Every booking, cancellation, scheduling-link change, or webhook change requires approval.", "defaultSelected": true, "allowedActions": ["savvycal_api_read"], "approvalRequiredActions": ["savvycal_api_manage"], "blockedActions": ["savvycal_secret_exposure", "savvycal_unofficial_origin", "savvycal_unsupported_endpoint", "savvycal_unbounded_transfer"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected operation authorized by the connected SavvyCal user runs without Relay per-action approval. Provider authority, exact routes, bounds, credential protection, and audits still apply.", "defaultSelected": false, "allowedActions": ["savvycal_api_read", "savvycal_api_manage"], "approvalRequiredActions": [], "blockedActions": ["savvycal_secret_exposure", "savvycal_unofficial_origin", "savvycal_unsupported_endpoint", "savvycal_unbounded_transfer"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts account-bound SavvyCal REST tools and attaches refreshed OAuth credentials server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts account-bound SavvyCal REST tools and attaches refreshed OAuth credentials server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "blocked", "blocker": "Relay's SavvyCal OAuth application and production client credentials are not configured yet.", "nextAction": "Create the Relay Console app under SavvyCal Settings > Developers, set https://api.relayconsole.work/api/v1/marketplace/oauth/savvycal/callback, store SAVVYCAL_CLIENT_ID and SAVVYCAL_CLIENT_SECRET in Railway, deploy, and run live connect, refresh, read, Safe approval, Dangerous mutation, disconnect, and post-disconnect denial checks." },
+  "evidence": [
+    { "url": "https://developers.savvycal.com/authentication", "checkedAt": "2026-07-15", "supports": "SavvyCal documents OAuth 2.0 app registration, authorization and token endpoints, two-hour access tokens, long-lived refresh tokens, personal tokens, and GET /v1/me." },
+    { "url": "https://developers.savvycal.com/api/list-events", "checkedAt": "2026-07-15", "supports": "SavvyCal documents its public v1 event, link, slot, time-zone, webhook, workflow, and workflow-rule resources." },
+    { "url": "https://developers.savvycal.com/webhooks", "checkedAt": "2026-07-15", "supports": "SavvyCal documents webhook registration through the app or API and HMAC signature verification." },
+    { "url": "https://savvycal.com/", "checkedAt": "2026-07-15", "supports": "SavvyCal describes personalized scheduling links, calendar overlays, polls, payments, and team scheduling workflows." }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "knowledgeowl", "name": "KnowledgeOwl", "category": "knowledge_documents",
+  "description": "Articles, versions, categories, files, agents, readers, access controls, comments, snippets, tags, synonyms, webhooks, and remote-login resources through KnowledgeOwl's External API.",
+  "agentUseSummary": "Enter a customer-owned knowledge base ID and API key once, then let agents use the complete key-authorized External API under Safe or Dangerously skip permissions.",
+  "provider": { "websiteUrl": "https://www.knowledgeowl.com/", "docsUrl": "https://support.knowledgeowl.com/help/api-endpoint-reference", "developerConsoleUrl": "https://app.knowledgeowl.com/", "termsUrl": "https://www.knowledgeowl.com/terms", "privacyUrl": "https://www.knowledgeowl.com/privacy-policy" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": { "types": ["customer_owned_api_key", "api_connector"], "credentialRequirements": [
+    { "name": "KNOWLEDGEOWL_PROJECT_ID", "label": "KnowledgeOwl knowledge base ID", "required": true, "secret": false, "helpText": "Copy the project ID shown after /articles/id/ in the KnowledgeOwl admin URL." },
+    { "name": "KNOWLEDGEOWL_API_KEY", "label": "KnowledgeOwl API key", "required": true, "secret": true, "helpText": "A Full Admin creates a dedicated key under Account > API and limits its allowed HTTP methods." }
+  ], "callbackPath": null, "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "knowledge_read", "label": "Read knowledge", "description": "List and read bounded articles and categories in the configured knowledge base.", "defaultSelected": true },
+    { "id": "knowledge_write", "label": "Maintain knowledge", "description": "Create, update, version, upload, organize, and delete content permitted by the key.", "defaultSelected": true },
+    { "id": "people_admin", "label": "Manage people and access", "description": "Manage agents, readers, roles, teams, and reader filters permitted by the key.", "defaultSelected": true },
+    { "id": "administration", "label": "Manage knowledge-base resources", "description": "Manage filters, snippets, synonyms, tags, webhooks, files, comments, and remote-login resources.", "defaultSelected": true }
+  ],
+  "actions": { "allowed": [
+    { "id": "knowledgeowl_list_articles", "label": "List articles", "description": "List one bounded page of articles in the connected knowledge base." },
+    { "id": "knowledgeowl_get_article", "label": "Read article", "description": "Read one article from the connected knowledge base." },
+    { "id": "knowledgeowl_list_categories", "label": "List categories", "description": "List one bounded page of categories in the connected knowledge base." }
+  ], "approvalRequired": [
+    { "id": "knowledgeowl_upload_file", "label": "Upload file", "description": "Upload one bounded file to the connected knowledge base; Safe mode requires approval." },
+    { "id": "knowledgeowl_full_api", "label": "Use full External API", "description": "Use any current documented External API operation; Safe mode requires approval." }
+  ], "blocked": [] },
+  "approvalProfiles": [
+    { "id": "knowledgeowl_safe", "label": "Safe", "description": "Bounded article and category reads run directly; uploads and every other External API operation require approval.", "defaultSelected": true, "allowedActions": ["knowledgeowl_list_articles", "knowledgeowl_get_article", "knowledgeowl_list_categories"], "approvalRequiredActions": ["knowledgeowl_upload_file", "knowledgeowl_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected API-key-authorized operation runs without Relay per-action approval; ownership, fixed origin, project binding, bounds, audits, redaction, key method permissions, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["knowledgeowl_list_articles", "knowledgeowl_get_article", "knowledgeowl_list_categories", "knowledgeowl_upload_file", "knowledgeowl_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high", "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts typed wrappers and injects the encrypted customer key server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts typed wrappers and injects the encrypted customer key server-side." }
+  ], "availability": "available",
+  "providerSetup": { "status": "customer_action_required", "blocker": "No customer KnowledgeOwl account, project ID, API key, or signed-in provider session was available.", "nextAction": "A customer Full Admin creates a dedicated method-limited API key, enters the knowledge base ID and key, then Relay runs health, bounded reads, Safe denial plus approval, Dangerous mutation, key revocation, and disconnect checks." },
+  "evidence": [
+    { "url": "https://support.knowledgeowl.com/help/use-api", "checkedAt": "2026-07-13", "supports": "The API is plan-gated, HTTPS-only, uses a Full-Admin-created customer API key as the Basic username with a dummy password, supports method restrictions, and recommends fewer than 1,500 requests per five minutes." },
+    { "url": "https://support.knowledgeowl.com/help/api-endpoint-reference", "checkedAt": "2026-07-13", "supports": "The official endpoint reference links the current OpenAPI specification covering articles, versions, categories, files, agents, readers, access controls, comments, snippets, tags, synonyms, webhooks, and remote-login resources." },
+    { "url": "https://support.knowledgeowl.com/help/api-cookbook-curl", "checkedAt": "2026-07-13", "supports": "The official cookbook documents multipart file creation and replacement with project_id, status, name, and file fields." }
+  ]
+}

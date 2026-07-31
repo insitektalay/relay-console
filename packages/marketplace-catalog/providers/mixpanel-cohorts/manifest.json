@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mixpanel-cohorts",
+  "name": "Mixpanel Cohorts",
+  "category": "crm_support",
+  "description": "Mixpanel Cohorts groups product users by behavioral and profile criteria for analysis, comparison, and activation.",
+  "agentUseSummary": "Connect a dedicated project-scoped service account, select the US, EU, or India Query API region, and bind one project and workspace. Relay exposes one approval-gated read for saved cohort metadata and current counts; cohort members and profiles remain blocked.",
+  "provider": {
+    "websiteUrl": "https://mixpanel.com/",
+    "docsUrl": "https://developer.mixpanel.com/reference/cohorts-list",
+    "developerConsoleUrl": "https://mixpanel.com/",
+    "termsUrl": "https://mixpanel.com/legal/terms-of-use/",
+    "privacyUrl": "https://mixpanel.com/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_service_account",
+      "basic_authentication",
+      "enumerated_regional_origin",
+      "exact_project_workspace_binding",
+      "fixed_query_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MIXPANEL_COHORTS_SERVICE_ACCOUNT_USERNAME",
+        "label": "Mixpanel service-account username",
+        "required": true,
+        "secret": false,
+        "helpText": "Use a dedicated project-scoped read-only service account."
+      },
+      {
+        "name": "MIXPANEL_COHORTS_SERVICE_ACCOUNT_SECRET",
+        "label": "Mixpanel service-account secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay sends this only in Basic auth to the selected fixed Query API origin."
+      },
+      {
+        "name": "MIXPANEL_COHORTS_REGION",
+        "label": "Mixpanel region",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter exactly us, eu, or in."
+      },
+      {
+        "name": "MIXPANEL_COHORTS_PROJECT_ID",
+        "label": "Mixpanel project ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one non-production project."
+      },
+      {
+        "name": "MIXPANEL_COHORTS_WORKSPACE_ID",
+        "label": "Mixpanel workspace ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one non-production workspace."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read saved cohorts",
+      "description": "Read saved cohort metadata and current counts with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "mixpanel_cohorts_sensitive_read",
+        "label": "Read saved Mixpanel cohorts",
+        "description": "Read saved cohort names, descriptions, visibility, creation time, and current counts."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "mixpanel_cohorts_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Service-account credentials, Basic authorization headers, project/workspace routing, and credential-bearing fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "mixpanel_cohorts_member_export",
+        "label": "Read cohort members",
+        "description": "Profiles, distinct IDs, identities, properties, events, cohort members, Engage queries, exports, and raw data are excluded."
+      },
+      {
+        "id": "mixpanel_cohorts_mutation",
+        "label": "Mutate Mixpanel",
+        "description": "Cohort creation/updates/deletes, profile/event/group changes, imports, reports, boards, annotations, flags, service accounts, and project administration remain provider-side."
+      },
+      {
+        "id": "mixpanel_cohorts_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only the official saved-cohort list POST runs on an enumerated US, EU, or India Query API origin with stored project/workspace binding; arbitrary input, routes, regions, auth modes, and oversized results are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "mixpanel_cohorts_safe",
+      "label": "Safe",
+      "description": "The single cohort metadata/count read requires approval; exact project/workspace/region binding, response bounds, audits, and member/export/mutation blocks remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["mixpanel_cohorts_sensitive_read"],
+      "blockedActions": [
+        "mixpanel_cohorts_secret_exposure",
+        "mixpanel_cohorts_member_export",
+        "mixpanel_cohorts_mutation",
+        "mixpanel_cohorts_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected cohort metadata/count read runs without Relay per-action approval; exact project/workspace/region binding, response bounds, audits, and member/export/mutation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["mixpanel_cohorts_sensitive_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mixpanel_cohorts_secret_exposure",
+        "mixpanel_cohorts_member_export",
+        "mixpanel_cohorts_mutation",
+        "mixpanel_cohorts_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches encrypted service-account Basic auth server-side and mounts one project/workspace-bound cohort metadata read."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches encrypted service-account Basic auth server-side and mounts one project/workspace-bound cohort metadata read."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Mixpanel requires a customer organization, a dedicated service account assigned read-only access to one project/workspace, and the correct US, EU, or India residency. No console, account, service account, credential, project, workspace, cohort, profile, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create a dedicated read-only staging service account outside this worker, configure its username, secret, region, project and workspace in Railway staging, then verify exact binding, cohort metadata/count read, approval/access denial, 1 MB response bound, 60-query/hour and five-concurrent limits, credential revocation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.mixpanel.com/openapi/query.openapi.yaml",
+      "checkedAt": "2026-07-18",
+      "supports": "Mixpanel's official Query OpenAPI pins US/EU/India server origins, Basic service-account/project-secret auth, POST /cohorts/list, required project_id, optional workspace_id, response fields, and rate/concurrency limits."
+    },
+    {
+      "url": "https://developer.mixpanel.com/reference/cohorts-list",
+      "checkedAt": "2026-07-18",
+      "supports": "Mixpanel's current saved-cohort reference documents cohort names, IDs, counts, descriptions, creation dates and visibility, and directs member retrieval to the separate Engage profile endpoint excluded by Relay."
+    },
+    {
+      "url": "https://docs.mixpanel.com/docs/users/cohorts",
+      "checkedAt": "2026-07-18",
+      "supports": "Mixpanel documents cohorts as computed behavioral/profile groups used across analysis and activation, establishing the sensitivity and provider-side mutation boundary."
+    }
+  ]
+}

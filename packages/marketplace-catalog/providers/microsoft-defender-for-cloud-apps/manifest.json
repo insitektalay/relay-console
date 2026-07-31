@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-defender-for-cloud-apps",
+  "name": "Microsoft Defender for Cloud Apps",
+  "category": "developer",
+  "description": "Microsoft Defender for Cloud Apps is a cloud access security broker and SaaS security platform for discovering cloud use, investigating activities and alerts, governing applications, and applying threat and information-protection controls.",
+  "agentUseSummary": "Microsoft's supported API exposes tenant-wide security activities, alerts, entities, discovery data, files, IP ranges, and remediation. Relay mounts no connection or runtime tools until it supports customer-tenant application-context onboarding, strict tenant API-origin binding, and a reviewed minimized security-data contract.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/en-us/security/business/siem-and-xdr/microsoft-defender-cloud-apps",
+    "docsUrl": "https://learn.microsoft.com/en-us/defender-cloud-apps/api-introduction",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_tenant_application_context_required",
+      "tenant_security_data",
+      "no_new_relay_connection"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "microsoft_defender_for_cloud_apps_connect",
+        "label": "Connect Defender for Cloud Apps",
+        "description": "Relay does not yet provision the customer-tenant application context and tenant API-origin binding required for this privileged security API."
+      },
+      {
+        "id": "microsoft_defender_for_cloud_apps_read",
+        "label": "Read cloud security data",
+        "description": "Activities, alerts, entities, discovery reports, files, OAuth-app governance, IP ranges, and security configuration remain unavailable."
+      },
+      {
+        "id": "microsoft_defender_for_cloud_apps_manage",
+        "label": "Change Defender for Cloud Apps",
+        "description": "Alert disposition, subnet changes, discovery uploads, block scripts, governance actions, and every mutation remain unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_defender_for_cloud_apps_unavailable",
+      "label": "Unavailable",
+      "description": "No agent action can be enabled until Relay supports customer-tenant application-context consent, tenant API-origin binding, and a bounded security-data contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_defender_for_cloud_apps_connect",
+        "microsoft_defender_for_cloud_apps_read",
+        "microsoft_defender_for_cloud_apps_manage"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Defender for Cloud Apps connection or tools are mounted pending customer-tenant application-context onboarding and tenant API-origin binding."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Defender for Cloud Apps connection or tools are mounted pending customer-tenant application-context onboarding and tenant API-origin binding."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Microsoft recommends application context for unattended Defender for Cloud Apps integrations. That flow requires a customer-tenant Entra enterprise application, administrator-approved security permissions, a customer tenant ID, and a tenant-specific API origin discovered in the Defender portal. Relay does not yet have a customer-tenant application-context provisioning and origin-binding contract, and the documented user-context sample uses the password grant that Microsoft explicitly does not recommend for production.",
+    "nextAction": "Keep Defender for Cloud Apps unavailable until Relay implements reviewed customer-tenant application-context onboarding, administrator consent verification, strict allowlisting of the discovered tenant API origin, encrypted tenant binding, and a bounded redacted read contract with disconnect and post-disconnect denial tests."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/defender-cloud-apps/api-introduction",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents tenant-specific API origins, activities, alerts, entities, files, discovery and subnet operations, a 100-item response maximum, and a 30-request-per-minute tenant throttle."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/defender-cloud-apps/api-authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents OAuth access and recommends application context for background services and daemons."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/defender-cloud-apps/api-authentication-application",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents customer-tenant administrator consent, application permissions, client-credential tokens, and per-tenant approval for multi-tenant applications."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/defender-cloud-apps/api-authentication-user",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents delegated Investigation.read with administrator consent, but its user-context token sample uses username/password and explicitly recommends more secure production authentication flows."
+    }
+  ]
+}

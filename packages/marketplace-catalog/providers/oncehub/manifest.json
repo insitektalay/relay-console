@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "oncehub",
+  "name": "OnceHub",
+  "category": "work_management",
+  "description": "OnceHub is an appointment-scheduling platform for businesses that coordinate bookings, calendars, availability, contacts, teams, and customer conversations. Teams use it to publish booking experiences, route meetings to the right people, and manage the full scheduling lifecycle.",
+  "agentUseSummary": "Add your OnceHub API key, then choose which agents can read scheduling data or manage authorized bookings, contacts, users, availability, one-time links, and webhooks under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://oncehub.com/",
+    "docsUrl": "https://developers.oncehub.com/",
+    "developerConsoleUrl": "https://app.oncehub.com/",
+    "termsUrl": "https://oncehub.com/legal/terms/",
+    "privacyUrl": "https://oncehub.com/legal/privacy/"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      { "name": "ONCEHUB_API_KEY", "label": "OnceHub API key", "required": true, "secret": true, "helpText": "Create an API key in OnceHub under Account Integrations → APIs & Webhooks → API Keys, then copy it here. OnceHub displays it only once." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "schedule_read", "label": "Read scheduling data", "description": "Read every documented non-mutating v2 operation for bookings, booking calendars, availability, classic booking pages, event types, master pages, notifications, users, teams, contacts, and webhooks.", "defaultSelected": true },
+    { "id": "schedule_manage", "label": "Manage scheduling", "description": "Use every documented mutating v2 operation for bookings, scheduling, one-time links, users, availability, contacts, and webhooks.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "oncehub_api_read", "label": "Read OnceHub", "description": "Read bounded authorized scheduling data through documented v2 endpoints." }],
+    "approvalRequired": [{ "id": "oncehub_api_manage", "label": "Manage OnceHub", "description": "Schedule, cancel, reschedule, reassign, or mark bookings as no-shows; create one-time links; and manage users, availability, contacts, and webhooks." }],
+    "blocked": [
+      { "id": "oncehub_secret_exposure", "label": "Expose credentials", "description": "The customer API key never enters agent-visible requests or results." },
+      { "id": "oncehub_unofficial_origin", "label": "Use another API origin", "description": "Every request stays on OnceHub's documented v2 API origin." },
+      { "id": "oncehub_unsupported_endpoint", "label": "Call another endpoint", "description": "Relay permits only operations in OnceHub's current Booking Calendars and Booking Pages OpenAPI documents." },
+      { "id": "oncehub_unbounded_transfer", "label": "Run an unbounded transfer", "description": "Relay bounds queries, request bodies, responses, redirects, nesting, and execution time." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "oncehub_safe", "label": "Safe", "description": "Reads run directly. Every booking, one-time-link, user, availability, contact, or webhook change requires approval.", "defaultSelected": true, "allowedActions": ["oncehub_api_read"], "approvalRequiredActions": ["oncehub_api_manage"], "blockedActions": ["oncehub_secret_exposure", "oncehub_unofficial_origin", "oncehub_unsupported_endpoint", "oncehub_unbounded_transfer"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every documented operation authorized by the customer's OnceHub API key runs without Relay per-action approval. Credential authority, fixed routes, bounds, provider limits, redaction, and audits still apply.", "defaultSelected": false, "allowedActions": ["oncehub_api_read", "oncehub_api_manage"], "approvalRequiredActions": [], "blockedActions": ["oncehub_secret_exposure", "oncehub_unofficial_origin", "oncehub_unsupported_endpoint", "oncehub_unbounded_transfer"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts the complete current OnceHub v2 Booking Calendars and classic Booking Pages operation surface through fixed-origin bounded tools." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts the complete current OnceHub v2 Booking Calendars and classic Booking Pages operation surface through fixed-origin bounded tools." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer-owned OnceHub API key is required for live verification. OnceHub documents API-key authentication for its server-side APIs rather than a third-party OAuth application flow.",
+    "nextAction": "Have the OnceHub account owner create an API key under Account Integrations → APIs & Webhooks → API Keys, connect it in Relay Console, then verify reads, Safe approval, Dangerous mutations, redaction, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developers.oncehub.com/docs/overview/authentication/", "checkedAt": "2026-07-15", "supports": "OnceHub documents customer-created API keys, the API-Key request header, server-side-only handling, key validation, rotation guidance, and its API-key management path." },
+    { "url": "https://developers.oncehub.com/booking-calendars-api.yaml", "checkedAt": "2026-07-15", "supports": "OnceHub's current Booking Calendars OpenAPI document defines the fixed https://api.oncehub.com/v2 origin and complete booking, calendar, availability, notification, user, team, contact, and webhook operation surface." },
+    { "url": "https://developers.oncehub.com/booking-pages-api.yaml", "checkedAt": "2026-07-15", "supports": "OnceHub's supported classic Booking Pages OpenAPI document adds booking-page, event-type, master-page, and one-time-link operations to the shared v2 surface." },
+    { "url": "https://developers.oncehub.com/docs/overview/introduction/", "checkedAt": "2026-07-15", "supports": "OnceHub identifies Booking Calendars as its recommended current API and Booking Pages as its supported classic API." }
+  ]
+}

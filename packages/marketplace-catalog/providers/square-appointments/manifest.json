@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "square-appointments",
+  "name": "Square Appointments",
+  "category": "work_management",
+  "description": "Square Appointments is an appointment-scheduling platform for service businesses that coordinate availability, staff, locations, customers, and bookings. Businesses use it to offer online booking, manage calendars, and keep appointment operations connected to their Square account.",
+  "agentUseSummary": "Connect one Square seller account, then choose which agents can read or manage its authorized appointment data under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://squareup.com/appointments",
+    "docsUrl": "https://developer.squareup.com/docs/bookings-api/what-it-does",
+    "developerConsoleUrl": "https://developer.squareup.com/apps",
+    "termsUrl": "https://squareup.com/legal/general/ua",
+    "privacyUrl": "https://squareup.com/legal/general/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["APPOINTMENTS_READ", "APPOINTMENTS_WRITE", "APPOINTMENTS_ALL_READ", "APPOINTMENTS_ALL_WRITE", "APPOINTMENTS_BUSINESS_SETTINGS_READ"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://connect.squareup.com/oauth2/authorize",
+    "tokenUrl": "https://connect.squareup.com/oauth2/token",
+    "revocationUrl": "https://connect.squareup.com/oauth2/revoke"
+  },
+  "connection": { "types": ["relay_owned_oauth"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/square-appointments/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "schedule_read", "label": "Read appointments", "description": "Read bookings, availability, business, location and team-member booking profiles, and booking custom attributes.", "defaultSelected": true },
+    { "id": "schedule_manage", "label": "Manage appointments", "description": "Create, update, or cancel bookings and create, update, upsert, or delete booking custom attributes.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "square_appointments_api_read", "label": "Read Square Appointments", "description": "Read bounded authorized Square appointment data." }],
+    "approvalRequired": [{ "id": "square_appointments_api_manage", "label": "Manage Square Appointments", "description": "Change bookings or booking custom attributes." }],
+    "blocked": [
+      { "id": "square_appointments_secret_exposure", "label": "Expose credentials", "description": "OAuth credentials never enter agent-visible requests or results." },
+      { "id": "square_appointments_unofficial_origin", "label": "Use another API origin", "description": "Every request stays on Square's production Connect API origin." },
+      { "id": "square_appointments_unsupported_endpoint", "label": "Call another endpoint", "description": "Relay permits only the documented Bookings and Booking Custom Attributes routes." },
+      { "id": "square_appointments_unbounded_transfer", "label": "Run an unbounded transfer", "description": "Relay bounds queries, request bodies, responses, redirects, nesting, and execution time." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "square_appointments_safe", "label": "Safe", "description": "Bookings, availability, profiles, and custom-attribute reads run directly. Every booking or custom-attribute change requires approval.", "defaultSelected": true, "allowedActions": ["square_appointments_api_read"], "approvalRequiredActions": ["square_appointments_api_manage"], "blockedActions": ["square_appointments_secret_exposure", "square_appointments_unofficial_origin", "square_appointments_unsupported_endpoint", "square_appointments_unbounded_transfer"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected operation authorized by the connected Square seller runs without Relay per-action approval. Seller authority, exact routes, request bounds, credential protection, Square limits, and audits still apply.", "defaultSelected": false, "allowedActions": ["square_appointments_api_read", "square_appointments_api_manage"], "approvalRequiredActions": [], "blockedActions": ["square_appointments_secret_exposure", "square_appointments_unofficial_origin", "square_appointments_unsupported_endpoint", "square_appointments_unbounded_transfer"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts seller-bound Square Appointments tools and attaches OAuth credentials server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts seller-bound Square Appointments tools and attaches OAuth credentials server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's production Square application and OAuth credentials are not configured yet.",
+    "nextAction": "Create or configure the Relay Console application in the Square Developer Console, set https://api.relayconsole.work/api/v1/marketplace/oauth/square-appointments/callback, enable the required Appointments permissions, store SQUARE_APPOINTMENTS_CLIENT_ID and SQUARE_APPOINTMENTS_CLIENT_SECRET in Railway, deploy, and run live connect, read, Safe approval, Dangerous mutation, refresh, disconnect, and post-disconnect denial checks."
+  },
+  "evidence": [
+    { "url": "https://developer.squareup.com/docs/oauth-api/overview", "checkedAt": "2026-07-15", "supports": "Square documents a confidential server OAuth code flow with a registered HTTPS redirect URL, production authorize and token endpoints, 30-day access tokens, and non-expiring refresh tokens." },
+    { "url": "https://developer.squareup.com/reference/square/bookings-api", "checkedAt": "2026-07-15", "supports": "Square API version 2026-05-20 documents booking list, retrieve, create, update and cancel operations plus availability and booking-profile operations." },
+    { "url": "https://developer.squareup.com/reference/square/booking-custom-attributes-api", "checkedAt": "2026-07-15", "supports": "Square documents the complete booking custom-attribute definition, bulk, list, retrieve, upsert, and delete surface." },
+    { "url": "https://developer.squareup.com/reference/square/oauth-api", "checkedAt": "2026-07-15", "supports": "Square documents production authorization, token, token-status, and revocation endpoints for seller-authorized applications." }
+  ]
+}

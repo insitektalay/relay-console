@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "givebutter",
+  "name": "Givebutter",
+  "category": "crm_support",
+  "description": "Givebutter is an all-in-one nonprofit fundraising, donor-management and engagement platform. Organizations use it to run donation forms, campaigns, events and auctions, manage supporters and households, communicate with donors, process transactions and track payouts.",
+  "agentUseSummary": "Add an administrator-created Givebutter API key, choose the agents and capabilities that may use it, and select Safe or Dangerously skip permissions. Relay exposes every operation in the current public API through fixed-origin, pinned-operation wrappers while keeping the key encrypted.",
+  "provider": {
+    "websiteUrl": "https://givebutter.com/",
+    "docsUrl": "https://docs.givebutter.com/api-reference/authentication",
+    "developerConsoleUrl": "https://dashboard.givebutter.com/",
+    "termsUrl": "https://givebutter.com/terms",
+    "privacyUrl": "https://givebutter.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "bearer_header",
+      "administrator_generated",
+      "exact_givebutter_account",
+      "fixed_givebutter_api_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "GIVEBUTTER_API_KEY",
+        "label": "Givebutter API key",
+        "secret": true,
+        "required": true,
+        "helpText": "An account administrator creates an API key under Settings, Developers, API. Relay encrypts it and sends it only to api.givebutter.com in the Bearer authorization header."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "givebutter_read",
+      "label": "Read fundraising and CRM data",
+      "description": "Use all pinned read operations in Givebutter's public API for the authorized account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "givebutter_manage",
+      "label": "Manage fundraising and CRM data",
+      "description": "Use all pinned mutations in Givebutter's public API for the authorized account.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "givebutter_read",
+        "label": "Read Givebutter",
+        "description": "Read authorized account, campaign, contact, activity, fund, household, message, payout, recurring-plan, ticket, transaction and webhook data."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "givebutter_manage",
+        "label": "Manage Givebutter",
+        "description": "Create, update, archive, restore, associate, tag or delete authorized Givebutter records; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "givebutter_safe",
+      "label": "Safe",
+      "description": "All semantic reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["givebutter_read"],
+      "approvalRequiredActions": ["givebutter_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected and API-key-authorized public API operation runs without Relay per-action approval; connection ownership, exact routes, bounds, audits, redaction and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["givebutter_read", "givebutter_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts pinned Givebutter public API operations while keeping the administrator-created key encrypted on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts pinned Givebutter public API operations while keeping the administrator-created key encrypted on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Givebutter administrator account, API key or representative fundraising data is available to this code-only worker.",
+    "nextAction": "A Givebutter administrator creates a dedicated API key under Settings, Developers, API, stores it through Relay Console, and verifies account binding, representative reads, one approved Safe mutation, one permitted Dangerous mutation, credential replacement, key deletion, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.givebutter.com/api-reference/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Givebutter documents customer-generated Bearer API keys, HTTPS-only requests, the fixed api.givebutter.com v1 origin, authorization failures and account-bound permission errors."
+    },
+    {
+      "url": "https://docs.givebutter.com/api-reference/api.json",
+      "checkedAt": "2026-07-17",
+      "supports": "Givebutter's official OpenAPI document defines the complete public API used by Relay's 61 pinned account, campaign, contact, activity, fund, household, message, payout, recurring-plan, ticket, transaction and webhook operations."
+    },
+    {
+      "url": "https://givebutter.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Givebutter presents the product as nonprofit fundraising and donor-management software spanning donation forms, campaigns, events, auctions, CRM, engagement, transactions and payouts."
+    }
+  ]
+}

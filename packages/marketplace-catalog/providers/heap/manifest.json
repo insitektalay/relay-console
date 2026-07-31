@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "heap",
+  "name": "Heap",
+  "category": "developer",
+  "description": "Heap is a digital insights platform for autocaptured product analytics, Events, users, sessions, Pageviews, Segments, Journeys, Session Replay, dashboards, and behavioral analysis.",
+  "agentUseSummary": "Heap cannot currently be connected as a native Relay agent provider because Heap publishes no self-service customer-account analytics read API or delegated OAuth contract. Its public APIs ingest data or perform account-wide user deletion, while analytics querying requires a separately licensed Heap Connect warehouse and its Segments Sync integration requires a provider relationship.",
+  "provider": {
+    "websiteUrl": "https://www.heap.io/",
+    "docsUrl": "https://developers.heap.io/reference",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.heap.io/terms-of-service",
+    "privacyUrl": "https://www.heap.io/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "native_analytics_read_api_not_available",
+      "destructive_user_deletion_api_excluded",
+      "ingestion_apis_excluded",
+      "heap_connect_warehouse_required",
+      "provider_relationship_required_for_segments_sync"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "heap_connect_account",
+        "label": "Connect a Heap account",
+        "description": "Heap does not publish a supported self-service customer-account OAuth or native analytics-read credential contract for public third-party applications."
+      },
+      {
+        "id": "heap_analytics_read",
+        "label": "Read Heap analytics",
+        "description": "Heap publishes no bounded native API for reading account analytics, charts, dashboards, Events, users, sessions, Pageviews, or aggregate reports."
+      },
+      {
+        "id": "heap_ingestion",
+        "label": "Ingest Heap data",
+        "description": "Client- and server-side tracking, identity, and property APIs write customer data into Heap and must not be represented as analytics reads."
+      },
+      {
+        "id": "heap_user_deletion",
+        "label": "Delete Heap users",
+        "description": "Heap's authenticated User Deletion API performs destructive account-wide deletion across environments and is excluded from this Marketplace provider."
+      },
+      {
+        "id": "heap_external_data_access",
+        "label": "Bypass Heap through external data access",
+        "description": "Relay will not invent warehouse credentials, query customer Heap Connect data, or receive Segments Sync data without separately approved authority, schemas, privacy controls, and a supported provider relationship."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "heap_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled without a supported customer-account analytics read contract or a separately approved Heap Connect or partner integration model.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "heap_connect_account",
+        "heap_analytics_read",
+        "heap_ingestion",
+        "heap_user_deletion",
+        "heap_external_data_access"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No supported native Heap analytics read contract is available to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No supported native Heap analytics read contract is available to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Heap's published APIs are ingestion-oriented or destructive User Deletion; analytics reads require customer Heap Connect warehouse access, and Segments Sync requires a separately established Heap provider relationship rather than a self-service public account API.",
+    "nextAction": "Do not request Heap credentials or show Connect. Reconsider Heap only after it publishes a distributable customer-account analytics read/OAuth contract, or after Relay separately approves a warehouse or provider-partner model with explicit authority, schema, privacy, and operational controls."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.heap.io/reference/user-deletion",
+      "checkedAt": "2026-07-17",
+      "supports": "Heap documents its authenticated public API key flow for destructive User Deletion across all account environments, not analytics reads."
+    },
+    {
+      "url": "https://developers.heap.io/reference/client-side-apis-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Heap documents client-side APIs for sending Events and properties and managing identity, with server-side equivalents for ingestion."
+    },
+    {
+      "url": "https://developers.heap.io/reference/track-1",
+      "checkedAt": "2026-07-17",
+      "supports": "Heap's server-side Track endpoint writes custom Events into a specified environment and does not expose analytics reads."
+    },
+    {
+      "url": "https://help.heap.io/hc/en-us/articles/37271926900241-Heap-Connect-Overview-Setup",
+      "checkedAt": "2026-07-17",
+      "supports": "Heap directs direct analytics querying and custom analysis to separately configured Heap Connect destinations such as BigQuery, Redshift, Snowflake, and S3."
+    },
+    {
+      "url": "https://developers.heap.io/docs/creating-a-new-heap-integration-partners",
+      "checkedAt": "2026-07-17",
+      "supports": "Heap's Segments Sync partner integration requires a Heap Partner Manager, Developers Hub access, a Heap test account, customer beta coordination, and an outbound webhook/OAuth implementation."
+    }
+  ]
+}

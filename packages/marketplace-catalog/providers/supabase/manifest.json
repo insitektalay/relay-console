@@ -1,0 +1,208 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "supabase",
+  "name": "Supabase",
+  "category": "developer",
+  "description": "Supabase is a hosted application platform for Postgres, Auth, Storage, Functions, Realtime, and project infrastructure.",
+  "agentUseSummary": "Connect one exact Supabase Organization and selected Project through Relay's published confidential OAuth App with S256 PKCE and only app-configured organizations:read and projects:read, then inspect the Organization, its bounded offset-zero Project page, and the selected Project. Relay V1 excludes database details and data, keys, secrets, config, user/product data, writes, administration, PATs, raw APIs, and pagination.",
+  "provider": {
+    "websiteUrl": "https://supabase.com/",
+    "docsUrl": "https://supabase.com/docs/reference/api/introduction",
+    "developerConsoleUrl": "https://supabase.com/dashboard/account/oauth-apps",
+    "termsUrl": "https://supabase.com/terms",
+    "privacyUrl": "https://supabase.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["organizations:read", "projects:read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.supabase.com/v1/oauth/authorize",
+    "tokenUrl": "https://api.supabase.com/v1/oauth/token",
+    "revocationUrl": "https://api.supabase.com/v1/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_published_confidential_oauth_app",
+      "app_configured_exact_read_scopes",
+      "s256_pkce",
+      "rotating_refresh_token",
+      "exact_organization",
+      "exact_project",
+      "provider_revocable"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SUPABASE_CLIENT_ID",
+        "label": "Supabase OAuth App client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Relay-owned published OAuth App client ID configured only on Railway."
+      },
+      {
+        "name": "SUPABASE_CLIENT_SECRET",
+        "label": "Supabase OAuth App client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay-owned confidential OAuth App secret configured only on Railway."
+      },
+      {
+        "name": "SUPABASE_ORGANIZATION_SLUG",
+        "label": "Selected Organization slug",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind the connection to one exact Organization slug before authorization."
+      },
+      {
+        "name": "SUPABASE_PROJECT_REF",
+        "label": "Selected Project ref",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind one exact twenty-letter Project ref in the selected Organization."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/supabase/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "organization_read",
+      "label": "Read selected Organization",
+      "description": "Inspect one exact Organization and its first bounded Project page.",
+      "defaultSelected": true
+    },
+    {
+      "id": "project_read",
+      "label": "Read selected Project",
+      "description": "Inspect one exact Organization-bound Project without database details.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "supabase_organization_get",
+        "label": "Read selected Organization",
+        "description": "Read one exact selected Supabase Organization without members or entitlements."
+      },
+      {
+        "id": "supabase_organization_project_list",
+        "label": "List Organization Projects",
+        "description": "List at most twenty-five Projects at offset zero for the exact selected Organization."
+      },
+      {
+        "id": "supabase_project_get",
+        "label": "Read selected Project",
+        "description": "Read one exact selected Organization-bound Project without database details or configuration."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "supabase_write",
+        "label": "Change Supabase",
+        "description": "Project, Organization, database, Auth, Storage, Function, domain, secret, branch, network, billing, and configuration mutations are outside V1."
+      },
+      {
+        "id": "supabase_sensitive_read",
+        "label": "Read sensitive Supabase data",
+        "description": "Database details or data, API keys, passwords, connection strings, secrets, configs, Auth users, Storage objects, Function bodies, logs, and analytics are outside V1."
+      },
+      {
+        "id": "supabase_admin",
+        "label": "Administer Supabase",
+        "description": "Members, roles, entitlements, billing, OAuth Apps, access tokens, and administration are outside V1."
+      },
+      {
+        "id": "supabase_raw_api",
+        "label": "Use raw Supabase API",
+        "description": "PATs, fine-grained tokens, project Auth OAuth, arbitrary Management API paths or queries, raw MCP, page offsets, and automatic pagination are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "supabase_safe",
+      "label": "Safe",
+      "description": "All three bounded Supabase reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "supabase_organization_get",
+        "supabase_organization_project_list",
+        "supabase_project_get"
+      ],
+      "blockedActions": [
+        "supabase_write",
+        "supabase_sensitive_read",
+        "supabase_admin",
+        "supabase_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only tools run without Relay per-action approval while exact Organization/Project binding, PKCE, fixed requests, bounds, redaction, audit, rotating refresh, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "supabase_organization_get",
+        "supabase_organization_project_list",
+        "supabase_project_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "supabase_write",
+        "supabase_sensitive_read",
+        "supabase_admin",
+        "supabase_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three fixed Supabase Management API read wrappers and attaches refreshed OAuth access tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three fixed Supabase Management API read wrappers and attaches refreshed OAuth access tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay's published confidential Supabase OAuth App, exact Railway callback, app-configured organizations:read and projects:read, and staging credentials require provider-console completion and authorized staging acceptance.",
+    "nextAction": "Publish the confidential Supabase OAuth App with Relay's exact Railway callback, configure only organizations:read and projects:read and staging credentials, then validate S256 PKCE, Organization/Project binding, pair rotation, revoke, denial, and all three bounded reads."
+  },
+  "evidence": [
+    {
+      "url": "https://supabase.com/docs/guides/integrations/build-a-supabase-oauth-integration",
+      "checkedAt": "2026-07-17",
+      "supports": "Supabase documents published OAuth Apps, exact redirects, CSRF state, recommended S256 PKCE, confidential Basic-auth token exchange, access/refresh tokens, refresh, and Management API use."
+    },
+    {
+      "url": "https://supabase.com/docs/guides/integrations/build-a-supabase-oauth-integration/oauth-scopes",
+      "checkedAt": "2026-07-17",
+      "supports": "Supabase documents OAuth App-configured scopes, deprecates request-time scope, and identifies Organizations Read and Projects Read as the narrow metadata grants."
+    },
+    {
+      "url": "https://supabase.com/docs/reference/api/getting-started",
+      "checkedAt": "2026-07-17",
+      "supports": "Supabase documents exact Organization and Project reads, the offset/limit Organization Project list, and projects:read requirements."
+    },
+    {
+      "url": "https://supabase.com/docs/reference/api/introduction",
+      "checkedAt": "2026-07-17",
+      "supports": "Supabase documents HTTPS Bearer Management API access, per-user per-Organization/Project rate limits, Project response fields, and 401/403/429 behavior."
+    },
+    {
+      "url": "https://supabase.com/docs/reference/api/introduction#revoke-oauth-app-authorization",
+      "checkedAt": "2026-07-17",
+      "supports": "Supabase documents provider-side OAuth App authorization and token revocation with client ID, client secret, and refresh token."
+    }
+  ]
+}

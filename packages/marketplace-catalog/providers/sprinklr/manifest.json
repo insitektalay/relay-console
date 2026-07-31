@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sprinklr",
+  "name": "Sprinklr",
+  "category": "communication",
+  "description": "Sprinklr is a unified customer-experience platform for social media management, customer care, listening, marketing, research, and digital engagement. Its governance model applies customer roles and workspace access across a broad set of REST APIs.",
+  "agentUseSummary": "Add a customer-owned Sprinklr API key, OAuth access token, exact environment, and primary workspace binding, then let agents verify identity-redacted governance status through one fixed endpoint.",
+  "provider": {
+    "websiteUrl": "https://www.sprinklr.com/",
+    "docsUrl": "https://dev.sprinklr.com/api-overview",
+    "developerConsoleUrl": "https://dev.sprinklr.com/",
+    "termsUrl": "https://www.sprinklr.com/sprinklr-platform-terms/",
+    "privacyUrl": "https://www.sprinklr.com/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_oauth_application",
+      "customer_supplied_access_token",
+      "environment_specific_authority",
+      "exact_primary_workspace_binding"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SPRINKLR_API_KEY",
+        "label": "Sprinklr API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the API key from the customer's Sprinklr Developer application. Relay encrypts it and sends it only in the Key header."
+      },
+      {
+        "name": "SPRINKLR_ACCESS_TOKEN",
+        "label": "Sprinklr OAuth access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Supply the current customer-authorized bearer token. Relay encrypts it and never exposes it to agents."
+      },
+      {
+        "name": "SPRINKLR_ENVIRONMENT",
+        "label": "Sprinklr environment",
+        "required": true,
+        "secret": false,
+        "helpText": "Use production for app.sprinklr.com or the exact prodN environment for the customer instance."
+      },
+      {
+        "name": "SPRINKLR_WORKSPACE_ID",
+        "label": "Sprinklr primary workspace ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Paste the exact positive-decimal primary workspace ID returned by Sprinklr's Me API."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/sprinklr/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "governance_status_read",
+      "label": "Read governance status",
+      "description": "Verify that the customer token resolves in its exact environment and primary workspace while returning only a safe user-role type and binding booleans.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "sprinklr_governance_status_get",
+        "label": "Get Sprinklr governance status",
+        "description": "Verify the exact primary workspace binding and return only a safe user type plus customer/workspace binding booleans, excluding names, emails, IDs, properties, and broader platform data."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "sprinklr_identity_or_governance_detail",
+        "label": "Access identity or governance detail",
+        "description": "Names, emails, user IDs, customer IDs, workspace IDs beyond the exact bound value, properties, roles, permissions, teams, clients, users, and governance configuration are blocked."
+      },
+      {
+        "id": "sprinklr_content_profiles_or_analytics",
+        "label": "Access content, profiles, or analytics",
+        "description": "Social accounts, profiles, messages, cases, comments, assets, campaigns, dashboards, listening, reporting, research, customer-care data, content, authors, URLs, media, and analytics remain blocked."
+      },
+      {
+        "id": "sprinklr_publish_write_or_administer",
+        "label": "Publish, write, or administer Sprinklr",
+        "description": "Drafting, scheduling, publishing, messaging, engagement, case changes, profile changes, imports, exports, webhooks, credentials, user management, and administration remain blocked."
+      },
+      {
+        "id": "sprinklr_raw_api_or_bulk",
+        "label": "Use raw API or bulk access",
+        "description": "Arbitrary environments, paths, methods, queries, bodies, workspace overrides, pagination, polling, raw responses, bulk operations, browser sessions, and undocumented endpoints remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sprinklr_safe",
+      "label": "Safe",
+      "description": "The bounded governance-status read requires approval; identity, content, profiles, analytics, publishing, writes, administration, raw APIs, pagination, bulk, and export remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["sprinklr_governance_status_get"],
+      "blockedActions": [
+        "sprinklr_identity_or_governance_detail",
+        "sprinklr_content_profiles_or_analytics",
+        "sprinklr_publish_write_or_administer",
+        "sprinklr_raw_api_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same bounded read runs directly; exact environment/workspace binding, fixed endpoint, redaction, response caps, audits, and provider governance remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["sprinklr_governance_status_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sprinklr_identity_or_governance_detail",
+        "sprinklr_content_profiles_or_analytics",
+        "sprinklr_publish_write_or_administer",
+        "sprinklr_raw_api_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives one fixed Sprinklr governance-status wrapper with exact environment/workspace binding and identity redaction."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same fixed Sprinklr governance-status wrapper with exact environment/workspace binding and identity redaction."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Sprinklr API access requires an Enterprise entitlement, a developer application/API key, a platform user with Generate Token permission, environment/workspace authorization, and a current OAuth token.",
+    "nextAction": "The customer creates or selects its own Sprinklr application, authorizes the exact environment/workspace, supplies the current API key and access token, and completes a live read-only check."
+  },
+  "evidence": [
+    {
+      "url": "https://dev.sprinklr.com/api-overview",
+      "checkedAt": "2026-07-18",
+      "supports": "Sprinklr documents REST/JSON APIs, OAuth 2.0, mandatory Bearer and API-key headers, environment-specific authorities, and user-level governance."
+    },
+    {
+      "url": "https://dev.sprinklr.com/getting-started",
+      "checkedAt": "2026-07-18",
+      "supports": "Official setup documents customer application registration, environment-specific API keys/tokens, workspace selection, the fixed GET /api/v2/me call, and its identity-rich response."
+    },
+    {
+      "url": "https://dev.sprinklr.com/docs/prod/1/routes/api/v2/me/get",
+      "checkedAt": "2026-07-18",
+      "supports": "Official API reference documents GET /api/v2/me with Bearer authentication; Relay returns only safe governance status and verifies the exact workspace binding."
+    },
+    {
+      "url": "https://www.sprinklr.com/help/articles/platform-modules/the-sprinklr-apis/633c5c2359534970b26f96ae",
+      "checkedAt": "2026-07-18",
+      "supports": "Sprinklr states that API use requires an Enterprise license, a Sprinklr seat or authorizing user, the correct instance environment, a developer application, API key, and OAuth authorization."
+    },
+    {
+      "url": "https://www.sprinklr.com/sprinklr-platform-terms/",
+      "checkedAt": "2026-07-18",
+      "supports": "Platform terms restrict licensed modules to customer internal use, require compliance with connected-service rules, and prohibit API redistribution; Relay exposes no raw or redistributable Sprinklr API surface."
+    }
+  ],
+  "securityNotes": [
+    "The customer API key and OAuth access token are encrypted as secret references and sent only in Key and Authorization headers to the fixed api3.sprinklr.com host.",
+    "Relay accepts only production or a syntactically safe prodN environment, verifies the exact positive-decimal primary workspace returned by /api/v2/me, and never follows environment or workspace values from provider content.",
+    "The connector allowlists only GET /api/v2/me, rejects redirects, caps responses at 1 MB, and returns only userType, primaryWorkspaceConfirmed, and customerBound.",
+    "Names, emails, user/customer IDs, properties, roles, permissions, social profiles, content, messages, cases, listening, analytics, reporting, publishing, writes, administration, arbitrary APIs, pagination, bulk, and export are excluded.",
+    "Provider 401/403/429 and server errors are surfaced safely; OAuth application creation, consent, token capture, refresh-token rotation, and provider-console work remain customer/external acceptance steps."
+  ]
+}

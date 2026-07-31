@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "chorus-ai",
+  "name": "Chorus.ai",
+  "category": "crm_support",
+  "description": "Chorus by ZoomInfo is a conversation intelligence platform for recording, analyzing, and coaching from customer interactions. Revenue teams use it to review meetings and calls, understand engagement patterns, share moments, and improve sales execution.",
+  "agentUseSummary": "Add a dedicated user-bound Chorus.ai API token, then let selected agents read up to 25 minimized engagement summaries in a date range capped at 31 days. Relay does not expose participants, transcripts, recordings, trackers, emails, users, moments, exports, integrations, pagination tokens, arbitrary API access, or writes.",
+  "provider": {
+    "websiteUrl": "https://www.zoominfo.com/products/chorus",
+    "docsUrl": "https://api-docs.chorus.ai/",
+    "developerConsoleUrl": "https://chorus.ai/",
+    "termsUrl": "https://www.zoominfo.com/about-zoominfo/terms-conditions",
+    "privacyUrl": "https://www.zoominfo.com/about-zoominfo/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_token",
+      "user_bound_authority",
+      "role_and_data_control_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "CHORUS_AI_API_TOKEN",
+        "label": "Chorus.ai API token",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a dedicated user-bound token whose Chorus role and data controls grant only the intended recordings; Relay encrypts it server-side."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "chorus_ai_read",
+      "label": "Read engagement summaries",
+      "description": "Use one pinned GET /v3/engagements request for up to 25 minimized summaries in a date range capped at 31 days.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "chorus_ai_read",
+        "label": "Read Chorus.ai engagement summaries",
+        "description": "Read up to 25 minimized engagement summaries within a validated date range of at most 31 days."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "chorus_ai_manage",
+        "label": "Change Chorus.ai",
+        "description": "Uploads, recording deletion, users, playlists, moments, scorecards, integrations, exports, and every mutation are outside Relay's V1 contract."
+      },
+      {
+        "id": "chorus_ai_sensitive_data",
+        "label": "Read conversation content or people",
+        "description": "Participants, owner identity, transcripts, utterances, recordings, media, trackers, emails, meeting URLs, and custom data are blocked."
+      },
+      {
+        "id": "chorus_ai_arbitrary_api",
+        "label": "Use arbitrary API requests",
+        "description": "Continuation-key paging, ranges over 31 days, arbitrary filters, custom routes, and raw API access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "chorus_ai_safe",
+      "label": "Safe",
+      "description": "Bounded engagement-summary reads run directly. Participants, transcripts, recordings, trackers, email, users, paging, exports, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["chorus_ai_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "chorus_ai_manage",
+        "chorus_ai_sensitive_data",
+        "chorus_ai_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed engagement-summary tool through the encrypted customer-owned Chorus.ai API token."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed engagement-summary tool through the encrypted customer-owned Chorus.ai API token."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Chorus organization, dedicated least-privilege user, API-enabled role, user-bound token, representative non-private engagement fixtures, or data-access-control matrix is available in this workspace.",
+    "nextAction": "A Chorus administrator grants API access to a dedicated least-privilege role, configures its recording data controls, creates a user-bound token, saves it through Relay Console, then verifies the bounded metadata read, private-recording exclusion, role and data-control enforcement, date validation, minimization, agent assignment, token rotation, disconnect, rate errors, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api-docs.chorus.ai/",
+      "checkedAt": "2026-07-17",
+      "supports": "Chorus documents a REST API authenticated by user-bound API tokens, role-gated token creation, user traceability, exclusion of private recordings, enforcement of the token user's data controls and action permissions, and a broad read/write surface that Relay narrows."
+    },
+    {
+      "url": "https://api-docs.chorus.ai/#conversations",
+      "checkedAt": "2026-07-17",
+      "supports": "The official collection documents GET /v3/engagements with min_date, max_date, tracker, identity, duration, compliance, type, and continuation-key inputs alongside destructive and upload operations; Relay exposes only dates and forces trackers off."
+    },
+    {
+      "url": "https://api-docs.chorus.ai/#playlists",
+      "checkedAt": "2026-07-17",
+      "supports": "The official collection documents bounded page sizes for playlist reads and broad playlist mutations, illustrating the wider content surface that Relay does not mount."
+    }
+  ]
+}

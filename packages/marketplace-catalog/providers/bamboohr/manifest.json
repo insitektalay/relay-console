@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "bamboohr",
+  "name": "BambooHR",
+  "category": "developer",
+  "description": "BambooHR is a human-resources platform for company, employee, payroll, benefits, recruiting, time, and workforce operations.",
+  "agentUseSummary": "Connect one exact BambooHR Company Domain and selected Job Location through Relay's Marketplace OAuth Application with exactly field, meta, and offline_access. Agents can list a bounded first page of Job Locations, inspect the selected Location with address details removed, and list bounded Country Options. Relay excludes every employee record, report, dataset, company contact, address detail, write, raw API, broader scope, and pagination.",
+  "provider": {
+    "websiteUrl": "https://www.bamboohr.com/",
+    "docsUrl": "https://documentation.bamboohr.com/docs/getting-started",
+    "developerConsoleUrl": "https://partners.bamboohr.com/",
+    "termsUrl": "https://www.bamboohr.com/terms-of-service/",
+    "privacyUrl": "https://www.bamboohr.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["field", "meta", "offline_access"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://{companyDomain}.bamboohr.com/authorize.php",
+    "tokenUrl": "https://{companyDomain}.bamboohr.com/token.php?request=token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_marketplace_oauth_application",
+      "exact_field_meta_offline_access_scopes",
+      "exact_company_domain",
+      "exact_selected_location",
+      "employee_data_excluded"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "BAMBOOHR_CLIENT_ID",
+        "label": "BambooHR OAuth Application client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Relay-owned Marketplace OAuth Application client ID configured only on Railway."
+      },
+      {
+        "name": "BAMBOOHR_CLIENT_SECRET",
+        "label": "BambooHR OAuth Application client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay-owned confidential OAuth Application secret configured only on Railway."
+      },
+      {
+        "name": "BAMBOOHR_COMPANY_DOMAIN",
+        "label": "Company Domain",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact subdomain before .bamboohr.com for one company."
+      },
+      {
+        "name": "BAMBOOHR_LOCATION_ID",
+        "label": "Selected Job Location ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind one exact Job Location ID before authorization."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/bamboohr/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "location_read",
+      "label": "Read Job Locations",
+      "description": "List bounded Job Location metadata and inspect one exact selected Location.",
+      "defaultSelected": true
+    },
+    {
+      "id": "country_read",
+      "label": "Read Country Options",
+      "description": "List a bounded Country Option catalog without employee data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "bamboohr_location_list",
+        "label": "List Job Locations",
+        "description": "List at most twenty-five Job Locations from page zero."
+      },
+      {
+        "id": "bamboohr_location_get",
+        "label": "Read selected Job Location",
+        "description": "Read one exact selected Job Location with address details removed."
+      },
+      {
+        "id": "bamboohr_country_list",
+        "label": "List Country Options",
+        "description": "List at most twenty-five Country Options without employee records."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "bamboohr_employee_data",
+        "label": "Read employee data",
+        "description": "Employees, directories, photos, contacts, demographics, dependents, compensation, benefits, leave, payroll, recruiting, time, and files are outside V1."
+      },
+      {
+        "id": "bamboohr_sensitive_read",
+        "label": "Read sensitive BambooHR data",
+        "description": "Reports, datasets, field catalogs, custom fields, users, address details, company profile/contact data, credentials, and security data are outside V1."
+      },
+      {
+        "id": "bamboohr_write",
+        "label": "Change BambooHR",
+        "description": "Location, employee, company, payroll, recruiting, time, file, and every other mutation are outside V1."
+      },
+      {
+        "id": "bamboohr_raw_api",
+        "label": "Use raw BambooHR API",
+        "description": "API keys, arbitrary hosts, paths, queries, expands, filters, page numbers, pagination, raw responses, and broader OAuth scopes are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "bamboohr_safe",
+      "label": "Safe",
+      "description": "All three bounded non-employee metadata reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "bamboohr_location_list",
+        "bamboohr_location_get",
+        "bamboohr_country_list"
+      ],
+      "blockedActions": [
+        "bamboohr_employee_data",
+        "bamboohr_sensitive_read",
+        "bamboohr_write",
+        "bamboohr_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three selected read-only tools run without per-action approval while exact company and Location binding, scope checks, bounds, redaction, and audit remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "bamboohr_location_list",
+        "bamboohr_location_get",
+        "bamboohr_country_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "bamboohr_employee_data",
+        "bamboohr_sensitive_read",
+        "bamboohr_write",
+        "bamboohr_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three fixed non-employee BambooHR metadata wrappers and attaches refreshed OAuth access tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three fixed non-employee BambooHR metadata wrappers and attaches refreshed OAuth access tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay's BambooHR OAuth Application, Marketplace coordination, exact Railway callback, and authorized staging credentials require provider-console completion.",
+    "nextAction": "Complete the BambooHR developer and Marketplace setup with exactly field, meta, and offline_access, then validate company/Location binding, refresh, denial, and the three bounded reads in authorized staging."
+  },
+  "evidence": [
+    {
+      "url": "https://documentation.bamboohr.com/docs/getting-started",
+      "checkedAt": "2026-07-17",
+      "supports": "BambooHR documents Developer Portal OAuth Applications, exact redirects, per-company authorize/token endpoints, one-hour Bearer tokens, offline_access refresh tokens, and Company Domain binding."
+    },
+    {
+      "url": "https://documentation.bamboohr.com/reference/get-locations",
+      "checkedAt": "2026-07-17",
+      "supports": "BambooHR documents the paginated Job Location list, page/pageSize/select controls, field scope, and bounded safe metadata fields."
+    },
+    {
+      "url": "https://documentation.bamboohr.com/reference/get-location",
+      "checkedAt": "2026-07-17",
+      "supports": "BambooHR documents exact Job Location reads with field scope; Relay strips the returned street, locality, postcode, state, and country details."
+    },
+    {
+      "url": "https://documentation.bamboohr.com/reference/get-countries-options",
+      "checkedAt": "2026-07-17",
+      "supports": "BambooHR documents the Country Option catalog, id/name/isoCode output, and current field plus meta OAuth scope requirements."
+    }
+  ]
+}

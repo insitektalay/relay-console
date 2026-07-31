@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "demio",
+  "name": "Demio",
+  "category": "communication",
+  "description": "Demio is a browser-based webinar platform for live, automated, and on-demand events with registration, engagement, recordings, analytics, and marketing integrations.",
+  "agentUseSummary": "Connect owner-generated Demio account credentials through Railway's encrypted store, then retrieve only an aggregate count from the fixed event inventory endpoint.",
+  "provider": {
+    "websiteUrl": "https://www.demio.com",
+    "docsUrl": "https://publicdemioapi.docs.apiary.io/",
+    "developerConsoleUrl": "https://my.demio.com/settings/api",
+    "termsUrl": "https://www.demio.com/terms",
+    "privacyUrl": "https://www.demio.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "account_owner_api_key",
+      "account_owner_api_secret",
+      "encrypted_account_binding"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "DEMIO_API_KEY",
+        "label": "Demio API key",
+        "required": true,
+        "secret": true
+      },
+      {
+        "name": "DEMIO_API_SECRET",
+        "label": "Demio API secret",
+        "required": true,
+        "secret": true
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "event_inventory_count",
+      "label": "Count event inventory",
+      "description": "Inspect only aggregate counts from the fixed Demio event inventory endpoint.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "demio_event_inventory_count",
+        "label": "Count event inventory",
+        "description": "Read the fixed Demio event list and return only aggregate inventory counts."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "demio_event_identity_content",
+        "label": "Event identity and content",
+        "description": "Event and session IDs, names, descriptions, dates, registration and room links, presenters, custom fields, branding, and raw records are not returned."
+      },
+      {
+        "id": "demio_people_engagement",
+        "label": "People and engagement",
+        "description": "Registrants, attendees, contact details, join links, attendance, chat, polls, handouts, questions, responses, and analytics are not exposed."
+      },
+      {
+        "id": "demio_media_communications",
+        "label": "Media and communications",
+        "description": "Recordings, replay links, transcripts, slides, videos, emails, reminders, integrations, webhooks, and communications are not exposed."
+      },
+      {
+        "id": "demio_mutation_raw",
+        "label": "Changes and raw API",
+        "description": "Registration, event and session changes, automation, integrations, and every other mutation plus arbitrary paths, IDs, filters, pages, origins, bodies, headers, credentials, and raw responses are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "demio_safe",
+      "label": "Safe",
+      "description": "Every account-wide aggregate event inventory read requires matching Relay approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["demio_event_inventory_count"],
+      "blockedActions": [
+        "demio_event_identity_content",
+        "demio_people_engagement",
+        "demio_media_communications",
+        "demio_mutation_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected aggregate reads run without Relay per-action approval while account binding, the fixed origin and endpoint, response cap, content exclusion, audits, encrypted credentials, and Demio quotas remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["demio_event_inventory_count"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "demio_event_identity_content",
+        "demio_people_engagement",
+        "demio_media_communications",
+        "demio_mutation_raw"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware Demio aggregate event inventory tool using encrypted account credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware Demio aggregate event inventory tool using encrypted account credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A Demio account owner must generate a dedicated API key and secret, provide them through the approved secure setup path, confirm account API eligibility and quota, and complete Railway staging acceptance.",
+    "nextAction": "Generate dedicated owner credentials, store them only through Railway's encrypted connector setup, exercise Safe denial/approval and Dangerous aggregate reads, verify credential rotation and local disconnect, deploy through the integration lane, and run live acceptance without exposing event records."
+  },
+  "evidence": [
+    {
+      "url": "https://help.demio.com/en/articles/4544025-api-limitations",
+      "checkedAt": "2026-07-18",
+      "supports": "Demio documents its public API, 180-request-per-minute limit, daily quotas, account API usage tracking, suspension policy, and official Apiary reference."
+    },
+    {
+      "url": "https://publicdemioapi.docs.apiary.io/",
+      "checkedAt": "2026-07-18",
+      "supports": "Demio's official linked Apiary project is the public versioned API reference used for the fixed event-list contract."
+    },
+    {
+      "url": "https://help.demio.com/en/articles/13676999-how-can-i-retrieve-participants-from-a-session-in-demio-using-the-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Demio documents separate event/session and participant retrieval surfaces and date_id session identifiers; Relay excludes these identity and people endpoints."
+    }
+  ]
+}

@@ -1,0 +1,210 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "eloqua",
+  "name": "Eloqua",
+  "category": "marketing_analytics",
+  "description": "Oracle Eloqua Marketing Automation is an enterprise platform for campaigns, contacts, emails, forms, lead scoring, segmentation, and marketing measurement. Organizations use it to design and operate cross-channel B2B marketing programs.",
+  "agentUseSummary": "Connect one Eloqua site through a customer-owned AppCloud OAuth app and a dedicated least-privilege user. Eloqua exposes only a non-granular full OAuth scope, so Relay compensates by site and pod binding, fixed selected-resource paths, minimal depth, and redacted projections for one contact and one campaign; all broader access and mutations are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.oracle.com/cx/marketing/automation/eloqua-marketing-automation/",
+    "docsUrl": "https://docs.oracle.com/en/cloud/saas/marketing/eloqua-rest-api/Authentication.html",
+    "developerConsoleUrl": "https://login.eloqua.com/",
+    "termsUrl": "https://www.oracle.com/legal/terms.html",
+    "privacyUrl": "https://www.oracle.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": ["full"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.eloqua.com/auth/oauth2/authorize",
+    "tokenUrl": "https://login.eloqua.com/auth/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_appcloud_oauth_app",
+      "bound_site",
+      "provider_discovered_pod",
+      "selected_contact",
+      "selected_campaign"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ELOQUA_SITE_NAME",
+        "label": "Eloqua site name",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact Eloqua site/company name; Relay verifies it against the authenticated /id response before using the discovered pod."
+      },
+      {
+        "name": "ELOQUA_CLIENT_ID",
+        "label": "Eloqua AppCloud app client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "A customer-owned AppCloud app configured with Relay's exact callback URL."
+      },
+      {
+        "name": "ELOQUA_CLIENT_SECRET",
+        "label": "Eloqua AppCloud app client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay encrypts this customer secret and sends it only to login.eloqua.com."
+      },
+      {
+        "name": "ELOQUA_REFRESH_TOKEN",
+        "label": "Eloqua OAuth refresh token",
+        "required": true,
+        "secret": true,
+        "helpText": "A customer-owned app refresh grant for a dedicated least-privilege Eloqua user."
+      },
+      {
+        "name": "ELOQUA_CONTACT_ID",
+        "label": "Selected contact ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one contact whose ID and timestamps Relay may read."
+      },
+      {
+        "name": "ELOQUA_CAMPAIGN_ID",
+        "label": "Selected campaign ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one campaign whose bounded summary Relay may read."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/eloqua/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "eloqua_contact_summary_get",
+      "label": "Read selected contact summary",
+      "description": "Read only the ID and timestamps for one selected contact without identity, address, activity, preference, score, account, or custom fields.",
+      "defaultSelected": true
+    },
+    {
+      "id": "eloqua_campaign_summary_get",
+      "label": "Read selected campaign summary",
+      "description": "Read bounded organizational metadata for one selected campaign.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "eloqua_contact_summary_get",
+        "label": "Read selected contact summary",
+        "description": "Read the selected contact's ID and timestamps at minimal depth while discarding all personal and marketing fields."
+      },
+      {
+        "id": "eloqua_campaign_summary_get",
+        "label": "Read selected campaign summary",
+        "description": "Read the selected campaign's ID, name, current status, and timestamps at minimal depth while discarding costs, folders, users, elements, fields, and related assets."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "eloqua_private_data",
+        "label": "Expose private marketing data",
+        "description": "Contact identity, address, preference, activity, account, custom, scoring, and field values plus campaign descriptions, costs, users, elements, fields, and raw responses are excluded."
+      },
+      {
+        "id": "eloqua_mutation",
+        "label": "Mutate Eloqua state",
+        "description": "Contact changes, campaigns, sends, forms, emails, assets, imports, exports, administration, and every other mutation are blocked."
+      },
+      {
+        "id": "eloqua_broad_access",
+        "label": "Use broad Eloqua access",
+        "description": "Other sites, contacts, campaigns, pods, assets, lists, searches, pages, depths, Bulk API, arbitrary paths, redirects, downloads, and exports are blocked despite Eloqua's non-granular full OAuth scope."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "eloqua_read_only",
+      "label": "Read Only",
+      "description": "Read one selected contact and campaign through a site-bound customer OAuth grant; private data, broader access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "eloqua_contact_summary_get",
+        "eloqua_campaign_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "eloqua_private_data",
+        "eloqua_mutation",
+        "eloqua_broad_access"
+      ]
+    },
+    {
+      "id": "eloqua_no_access",
+      "label": "No Access",
+      "description": "Expose no Eloqua actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "eloqua_contact_summary_get",
+        "eloqua_campaign_summary_get",
+        "eloqua_private_data",
+        "eloqua_mutation",
+        "eloqua_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway refreshes encrypted customer-owned Eloqua OAuth credentials server-side and mounts exactly two site-bound projected reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway refreshes encrypted customer-owned Eloqua OAuth credentials server-side and mounts exactly two site-bound projected reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "An Eloqua subscription, dedicated least-privilege user with Advanced Users - Marketing access for pod discovery, customer-owned AppCloud OAuth app, refresh grant, exact site name, and staging contact/campaign IDs are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "An authorized Eloqua administrator must create a customer-owned AppCloud app with the exact Railway callback, grant a dedicated staging user only the minimum site permissions required for /id and the two selected reads, capture the full-scope refresh grant in the provider-console lane, connect the exact site/resource IDs, then validate site/pod binding, both projections, LBAC and insufficient-permission denial, refresh, revocation by app removal, replacement, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/marketing/eloqua-rest-api/Authentication.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Oracle documents Basic and OAuth 2.0 authentication and recommends OAuth 2.0 for Eloqua REST APIs."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/marketing/eloqua-rest-api/Authentication_Auth.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Oracle documents customer AppCloud app registration, authorization-code and refresh-token exchange at login.eloqua.com, HTTP Basic client authentication, and Eloqua's non-granular full OAuth scope."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/marketing/eloqua-rest-api/DeterminingBaseURL.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Oracle documents authenticated /id discovery, returned site identity and pod-specific REST origins, caching, site moves, and the Advanced Users - Marketing minimum permission."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/marketing/eloqua-rest-api/op-api-rest-2.0-data-contact-id-get.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Oracle documents selected-contact retrieval and minimal request depth; Relay projects only ID and timestamps from the response."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/marketing/eloqua-rest-api/op-api-rest-2.0-assets-campaign-id-get.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Oracle documents selected-campaign retrieval, minimal request depth, and the campaign metadata used for Relay's bounded projection."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/marketing/eloqua-rest-api/APIRequests_HTTPStatusCodes.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Oracle documents Eloqua authentication, authorization, validation, not-found, rate-limit, and availability status codes used for safe error mapping."
+    }
+  ]
+}

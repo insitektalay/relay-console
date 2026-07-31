@@ -1,0 +1,166 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "homebrew",
+  "name": "Homebrew",
+  "category": "developer",
+  "description": "Homebrew is a package manager for macOS and Linux formulae, casks, taps, packages, applications, and services.",
+  "agentUseSummary": "Select one public formula token and one public cask token. Relay fixes the Formulae API origin, exposes only bounded lifecycle metadata for those two items, and blocks source and artifact details, lists, search, local inventory, installs, upgrades, taps, services, downloads, child processes, filesystem writes, host control, and every other package mutation.",
+  "provider": {
+    "websiteUrl": "https://brew.sh/",
+    "docsUrl": "https://formulae.brew.sh/docs/api/",
+    "developerConsoleUrl": null,
+    "termsUrl": null,
+    "privacyUrl": null
+  },
+  "authentication": {
+    "model": "none",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "public_formulae_json_api",
+      "fixed_formulae_origin",
+      "selected_formula",
+      "selected_cask"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "HOMEBREW_FORMULA_TOKEN",
+        "label": "Selected formula token",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact public formula token whose bounded lifecycle metadata Relay may read."
+      },
+      {
+        "name": "HOMEBREW_CASK_TOKEN",
+        "label": "Selected cask token",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact public cask token whose bounded lifecycle metadata Relay may read."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "homebrew_formula_summary_get",
+      "label": "Read selected formula summary",
+      "description": "Read the selected formula token, full name, tap, stable version, revision, and deprecation/disablement state without source, bottle, dependency, analytics, or installation details.",
+      "defaultSelected": true
+    },
+    {
+      "id": "homebrew_cask_summary_get",
+      "label": "Read selected cask summary",
+      "description": "Read the selected cask token, full token, tap, version, auto-update flag, and deprecation/disablement state without download, checksum, artifact, caveat, dependency, conflict, or installation details.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "homebrew_formula_summary_get",
+        "label": "Read selected formula summary",
+        "description": "Read bounded lifecycle metadata for one preselected Homebrew formula."
+      },
+      {
+        "id": "homebrew_cask_summary_get",
+        "label": "Read selected cask summary",
+        "description": "Read bounded lifecycle metadata for one preselected Homebrew cask."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "homebrew_source_artifact_details",
+        "label": "Expose source or artifact details",
+        "description": "Homepages, source and bottle URLs, checksums, artifacts, caveats, dependencies, conflicts, analytics, and local installation state are excluded."
+      },
+      {
+        "id": "homebrew_mutation",
+        "label": "Mutate packages or the host",
+        "description": "Installs, upgrades, uninstalls, taps, services, cleanup, configuration, downloads, filesystem writes, child processes, and every other host mutation are blocked."
+      },
+      {
+        "id": "homebrew_broad_access",
+        "label": "Use broad Homebrew access",
+        "description": "Other formulae and casks, lists, search, arbitrary paths or queries, bulk access, local inventory, and redirects are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "homebrew_read_only",
+      "label": "Read Only",
+      "description": "Read two selected public Formulae API summaries; package operations, host access, source and artifact details, and broader access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "homebrew_formula_summary_get",
+        "homebrew_cask_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "homebrew_source_artifact_details",
+        "homebrew_mutation",
+        "homebrew_broad_access"
+      ]
+    },
+    {
+      "id": "homebrew_no_access",
+      "label": "No Access",
+      "description": "Expose no Homebrew actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "homebrew_formula_summary_get",
+        "homebrew_cask_summary_get",
+        "homebrew_source_artifact_details",
+        "homebrew_mutation",
+        "homebrew_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the two nonsecret selected tokens and mounts exactly two fixed-origin projected public reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the two nonsecret selected tokens and mounts exactly two fixed-origin projected public reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "Enable the no-auth connection with exact public formula and cask tokens; no provider login, API key, callback, consent, purchase, or provider review is required."
+  },
+  "evidence": [
+    {
+      "url": "https://formulae.brew.sh/docs/api/",
+      "checkedAt": "2026-07-18",
+      "supports": "Homebrew documents the public Formulae JSON API, its formula and cask resources, and per-item JSON endpoints at formulae.brew.sh."
+    },
+    {
+      "url": "https://docs.brew.sh/Querying-Brew",
+      "checkedAt": "2026-07-18",
+      "supports": "Homebrew documents formulae.brew.sh as a query surface that returns brew info JSON without requiring Homebrew to be installed locally."
+    },
+    {
+      "url": "https://docs.brew.sh/Formula-Cookbook",
+      "checkedAt": "2026-07-18",
+      "supports": "Homebrew documents Formulae API JSON as official package metadata used by current Homebrew versions."
+    }
+  ]
+}

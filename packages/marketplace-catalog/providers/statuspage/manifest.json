@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "statuspage",
+  "name": "Statuspage",
+  "category": "developer",
+  "description": "Statuspage is Atlassian's incident-communication service for publishing service health, component status, incidents, and planned maintenance. Organizations use public, private, or audience-specific pages to keep customers and internal stakeholders informed during operational events.",
+  "agentUseSummary": "Bind one launched public paid Statuspage by its exact page ID, then let agents read current status, component health, public incident lifecycles, and scheduled maintenance without any provider credential. Relay V1 excludes private, trial, and audience-specific pages, management keys, subscriber data, update bodies, mutations, arbitrary hosts or paths, pagination, and raw responses.",
+  "provider": {
+    "websiteUrl": "https://www.atlassian.com/software/statuspage",
+    "docsUrl": "https://support.atlassian.com/statuspage/docs/what-are-the-different-apis-under-statuspage/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "none",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false
+  },
+  "connection": {
+    "types": ["credentialless_public_status_api", "exact_public_page_id", "fixed_statuspage_io_origin"],
+    "credentialRequirements": [
+      {
+        "name": "STATUSPAGE_PUBLIC_PAGE_ID",
+        "label": "Statuspage public page ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the 8–32 character page ID for one launched public paid Statuspage; Relay derives the fixed page-id.statuspage.io Status API origin."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "public_status_read",
+      "label": "Read public service status",
+      "description": "Read bounded current status, components, incidents, and scheduled maintenance from one exact public paid Statuspage.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "statuspage_read_summary", "label": "Read current summary", "description": "Read the bound public page's current status, components, unresolved incidents, and active or upcoming maintenance." },
+      { "id": "statuspage_list_incidents", "label": "List incidents", "description": "List at most twenty-five bounded public incident lifecycle summaries." },
+      { "id": "statuspage_list_scheduled_maintenances", "label": "List scheduled maintenance", "description": "List at most twenty-five bounded public scheduled-maintenance summaries." }
+    ],
+    "blocked": [
+      { "id": "statuspage_manage", "label": "Manage Statuspage", "description": "Management API keys and page, component, incident, maintenance, metric, template, and configuration changes are outside V1." },
+      { "id": "statuspage_subscriber", "label": "Manage subscribers", "description": "Subscriber records, subscriptions, notification destinations, and resends are outside V1." },
+      { "id": "statuspage_private_page", "label": "Read private pages", "description": "Private, audience-specific, and trial pages that require a full-control organization key are outside V1." },
+      { "id": "statuspage_raw_api", "label": "Use raw Statuspage API", "description": "Arbitrary hosts, paths, page discovery, management endpoints, update bodies, pagination, and raw responses are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "statuspage_safe",
+      "label": "Safe",
+      "description": "All three bounded public-status reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["statuspage_read_summary", "statuspage_list_incidents", "statuspage_list_scheduled_maintenances"],
+      "blockedActions": ["statuspage_manage", "statuspage_subscriber", "statuspage_private_page", "statuspage_raw_api"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected public read-only tools run without Relay per-action approval while exact-page binding, response limits, redaction, audit, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["statuspage_read_summary", "statuspage_list_incidents", "statuspage_list_scheduled_maintenances"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["statuspage_manage", "statuspage_subscriber", "statuspage_private_page", "statuspage_raw_api"]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three fixed credentialless public Status API read wrappers bound to one exact page ID." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three fixed credentialless public Status API read wrappers bound to one exact page ID." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "Enter one launched public paid Statuspage page ID, then verify the current summary, incident filters, maintenance filters, exact-host binding, unavailable-page handling, and disconnect denial in the authorized staging acceptance lane."
+  },
+  "evidence": [
+    { "url": "https://support.atlassian.com/statuspage/docs/what-are-the-different-apis-under-statuspage/", "checkedAt": "2026-07-17", "supports": "Statuspage separates a full read/write Manage API from the page-level Status API; launched public paid pages expose the Status API without a key, while private and trial pages require a full-control key and no read-only key exists." },
+    { "url": "https://metastatuspage.com/api", "checkedAt": "2026-07-17", "supports": "The provider-generated public Status API documentation defines summary, component, incident, and scheduled-maintenance JSON endpoints and the exact page-ID client binding used by Relay." },
+    { "url": "https://support.atlassian.com/statuspage/docs/read-the-statuspage-user-guide/", "checkedAt": "2026-07-17", "supports": "Public pages are intended for external customer communication and can be viewed without authentication; private and audience-specific pages have distinct access controls and are excluded." }
+  ]
+}

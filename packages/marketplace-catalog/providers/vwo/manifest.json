@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "vwo",
+  "name": "VWO",
+  "category": "crm_support",
+  "description": "VWO is an experimentation and digital-experience platform for web and feature tests, rollouts, personalization, analytics, visitor insights, push engagement, campaigns, projects, and environments.",
+  "agentUseSummary": "Add a customer-owned VWO Enterprise API token with the least available permission level, then let selected agents list up to 100 current-account project IDs and names. Relay pins one project route and blocks environments, campaigns, features, websites, visitors, results, segments, notifications, arbitrary API access, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://vwo.com/",
+    "docsUrl": "https://developers.vwo.com/reference",
+    "developerConsoleUrl": "https://app.vwo.com/#/developers/tokens",
+    "termsUrl": "https://vwo.com/terms/",
+    "privacyUrl": "https://vwo.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_token",
+      "enterprise_plan_required",
+      "selected_permission_level_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "VWO_API_TOKEN",
+        "label": "VWO API token",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a customer-owned Enterprise API token with the least available permission level; Relay encrypts it server-side."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "vwo_read",
+      "label": "List projects",
+      "description": "Use only GET /api/v2/accounts/current/projects and return minimized project IDs and names.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "vwo_read",
+        "label": "List VWO projects",
+        "description": "List up to 100 current-account project IDs and names without environments, campaigns, features, visitors, results, or writes."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "vwo_manage",
+        "label": "Change VWO",
+        "description": "Project, environment, campaign, feature, website, segment, notification, and every other mutation are blocked."
+      },
+      {
+        "id": "vwo_sensitive_or_result_data",
+        "label": "Read visitor or result data",
+        "description": "Visitors, subscribers, segments, campaign results, analytics, insights, settings files, account details, and notification data are blocked."
+      },
+      {
+        "id": "vwo_arbitrary_api",
+        "label": "Use arbitrary API access",
+        "description": "Environments, campaigns, features, websites, labels, filters, arbitrary routes, and custom arguments are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "vwo_safe",
+      "label": "Safe",
+      "description": "One minimized current-account project-directory read runs directly. Environments, campaigns, features, visitors, results, arbitrary API access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["vwo_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "vwo_manage",
+        "vwo_sensitive_or_result_data",
+        "vwo_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized project-directory tool through the encrypted customer-owned VWO API token."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized project-directory tool through the encrypted customer-owned VWO API token."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer VWO Enterprise account, least-privilege API token, representative project fixture, account hierarchy and permission matrix, or token-rotation procedure is available in this workspace.",
+    "nextAction": "A VWO administrator creates or rotates an Enterprise API token with the least available permission level, saves it through Relay Console, then verifies minimized current-account project listing, account hierarchy boundaries, agent assignment, token replacement, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.vwo.com/hc/en-us/articles/360020559993-How-to-Access-VWO-API",
+      "checkedAt": "2026-07-17",
+      "supports": "VWO documents Enterprise-only API access, account-generated API tokens, selectable permission levels, campaign lifecycle and report capabilities, and the need to choose permissions appropriate to the use case."
+    },
+    {
+      "url": "https://developers.vwo.com/reference/get-all-projects-in-an-account-sub-account",
+      "checkedAt": "2026-07-17",
+      "supports": "The official reference documents authenticated GET /api/v2/accounts/{account_id}/projects for account and sub-account project discovery."
+    },
+    {
+      "url": "https://developers.vwo.com/reference/update-bulk-custom-widgets",
+      "checkedAt": "2026-07-17",
+      "supports": "VWO's reference explicitly identifies the case-sensitive token request header as the VWO API authentication token and documents application/json response negotiation."
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-to-do",
+  "name": "Microsoft To Do",
+  "category": "work_management",
+  "description": "Microsoft To Do is a personal task management product for Microsoft accounts and Microsoft 365. People use it to organize task lists, track priorities and dates, set reminders, and manage everyday work across devices.",
+  "agentUseSummary": "Connect Microsoft To Do through Relay-owned Microsoft OAuth for personal or work accounts, then let agents inspect bounded task-list and privacy-scrubbed task metadata through four fixed Graph wrappers. Relay excludes bodies, categories, checklists, linked resources, attachments, shared-task expansion, collaborator identities, writes, application or other-user access, delta, extensions, exports, pagination, beta APIs, and raw Graph access.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-365/microsoft-to-do-list-app",
+    "docsUrl": "https://learn.microsoft.com/graph/todo-concept-overview",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "profile", "offline_access", "Tasks.Read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "microsoft_delegated_personal_or_work_user",
+      "signed_in_user_todo_authority",
+      "encrypted_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-to-do/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "task_lists",
+      "label": "Read task lists",
+      "description": "Review bounded task-list metadata for the signed-in Microsoft account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "task_metadata",
+      "label": "Read task metadata",
+      "description": "Review bounded, privacy-scrubbed tasks in one explicit task list.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "microsoft_todo_task_lists_list",
+        "label": "List task lists",
+        "description": "List at most twenty-five bounded task lists for the signed-in Microsoft account."
+      },
+      {
+        "id": "microsoft_todo_task_list_get",
+        "label": "Read task-list metadata",
+        "description": "Read bounded metadata for one explicit prior-result Microsoft To Do task list."
+      },
+      {
+        "id": "microsoft_todo_tasks_list",
+        "label": "List tasks",
+        "description": "List at most twenty-five privacy-scrubbed tasks from one explicit prior-result task list."
+      },
+      {
+        "id": "microsoft_todo_task_get",
+        "label": "Read task metadata",
+        "description": "Read privacy-scrubbed metadata for one explicit prior-result task without body or related content."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "microsoft_todo_private_content",
+        "label": "Read task bodies or related content",
+        "description": "Bodies, categories, checklist items, linked resources, attachments, source links, and related content are outside V1."
+      },
+      {
+        "id": "microsoft_todo_shared_expansion",
+        "label": "Expand shared tasks or collaborators",
+        "description": "Shared-task expansion, collaborator identities, people, groups, and directory access are outside V1."
+      },
+      {
+        "id": "microsoft_todo_mutation",
+        "label": "Change To Do resources",
+        "description": "Create, update, complete, move, reorder, and delete operations are outside V1."
+      },
+      {
+        "id": "microsoft_todo_application_raw",
+        "label": "Use broad or raw access",
+        "description": "Application permissions, other-user access, delta, extensions, exports, automatic pagination, beta APIs, and raw Graph access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_todo_safe",
+      "label": "Safe",
+      "description": "Four bounded delegated reads run automatically; private content, shared expansion, writes, application access, delta, pagination, beta, and raw Graph remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "microsoft_todo_task_lists_list",
+        "microsoft_todo_task_list_get",
+        "microsoft_todo_tasks_list",
+        "microsoft_todo_task_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_todo_private_content",
+        "microsoft_todo_shared_expansion",
+        "microsoft_todo_mutation",
+        "microsoft_todo_application_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four delegated reads run without Relay per-action approval; exact scope, signed-in-user authority, limits, audit, redaction, and Microsoft controls still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "microsoft_todo_task_lists_list",
+        "microsoft_todo_task_list_get",
+        "microsoft_todo_tasks_list",
+        "microsoft_todo_task_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_todo_private_content",
+        "microsoft_todo_shared_expansion",
+        "microsoft_todo_mutation",
+        "microsoft_todo_application_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded Microsoft To Do read wrappers and attaches encrypted Microsoft tokens only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded Microsoft To Do read wrappers and attaches encrypted Microsoft tokens only on Railway."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_setup_pending",
+    "blocker": "Relay still needs its Entra application registration for personal and organizational accounts, delegated Tasks.Read configuration, exact Railway callback, staging credentials, personal and work test accounts, and Microsoft acceptance. Those provider-console and live-consent actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the Relay-owned Entra application and exact callback, store its credentials on Railway staging, then verify personal- and work-account consent, exact scope, PKCE/state, refresh rotation, signed-in-user binding, all four reads, privacy exclusions, throttling, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/graph/auth-v2-user",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph delegated authorization uses the v2 authorization-code flow, supports PKCE, and uses offline_access when a refresh token is required."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/permissions-reference#tasksread",
+      "checkedAt": "2026-07-17",
+      "supports": "Delegated Tasks.Read permits reading the signed-in user's tasks and is available to personal and organizational Microsoft accounts."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/todo-list-lists",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /me/todo/lists lists the signed-in user's task lists with least-privileged delegated Tasks.Read."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/todotasklist-get",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides an exact signed-in-user task-list metadata read under delegated Tasks.Read."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/todotasklist-list-tasks",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides a fixed task-list tasks endpoint under delegated Tasks.Read."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/todotask-get",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides an exact task read for the signed-in user under delegated Tasks.Read."
+    }
+  ]
+}

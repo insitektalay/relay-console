@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "atlassian-compass",
+  "name": "Atlassian Compass",
+  "category": "developer_tools",
+  "description": "Atlassian Compass is a developer experience platform and software catalog for tracking services, applications, libraries, ownership, health, scorecards, metrics, events, and dependencies. Engineering organizations use it to understand their software landscape and improve operational standards.",
+  "agentUseSummary": "Connect one Compass Cloud site through Relay-owned Atlassian OAuth, then let agents read explicit catalog components and create bounded components under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "atlassian-compass",
+    "sourceUrl": "https://www.atlassian.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://www.atlassian.com/software/compass",
+    "docsUrl": "https://developer.atlassian.com/cloud/compass/integrations/get-started-integrating-with-Compass/",
+    "developerConsoleUrl": "https://developer.atlassian.com/console/myapps/",
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "offline_access",
+      "read:me",
+      "read:component:compass",
+      "write:component:compass"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.atlassian.com/authorize",
+    "tokenUrl": "https://auth.atlassian.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "single_atlassian_site", "fixed_graphql_documents"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/atlassian-compass/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "component_read",
+      "label": "Read Compass components",
+      "description": "Read one authorized software catalog component by immutable component ID.",
+      "defaultSelected": true
+    },
+    {
+      "id": "component_create",
+      "label": "Create Compass components",
+      "description": "Create one bounded catalog component in the connected Compass site.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "atlassian_compass_component_read",
+        "label": "Read a Compass component",
+        "description": "Read one explicit Compass component by its immutable Atlassian resource identifier."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "atlassian_compass_component_create",
+        "label": "Create a Compass component",
+        "description": "Create one bounded Compass catalog component; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "atlassian_compass_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth credentials and authorization headers never enter agent-visible requests or results."
+      },
+      {
+        "id": "atlassian_compass_other_site",
+        "label": "Access another site",
+        "description": "Every GraphQL operation remains bound to the single Atlassian site selected during OAuth."
+      },
+      {
+        "id": "atlassian_compass_raw_graphql",
+        "label": "Run arbitrary GraphQL",
+        "description": "Relay exposes only fixed component-read and component-create documents with bounded variables."
+      },
+      {
+        "id": "atlassian_compass_api_token_rest",
+        "label": "Use API-token-only REST ingestion",
+        "description": "Relay does not collect personal API tokens or expose Compass REST routes that reject OAuth 2.0 applications."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "atlassian_compass_safe",
+      "label": "Safe",
+      "description": "Explicit component reads run directly; each component creation requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["atlassian_compass_component_read"],
+      "approvalRequiredActions": ["atlassian_compass_component_create"],
+      "blockedActions": [
+        "atlassian_compass_secret_exposure",
+        "atlassian_compass_other_site",
+        "atlassian_compass_raw_graphql",
+        "atlassian_compass_api_token_rest"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected component creation runs without Relay per-action approval; site binding, OAuth scopes, fixed documents, bounds, redaction, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "atlassian_compass_component_read",
+        "atlassian_compass_component_create"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "atlassian_compass_secret_exposure",
+        "atlassian_compass_other_site",
+        "atlassian_compass_raw_graphql",
+        "atlassian_compass_api_token_rest"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts site-bound fixed Compass GraphQL component tools and refreshes OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts site-bound fixed Compass GraphQL component tools and refreshes OAuth tokens server-side."
+    }
+  ],
+  "availability": "beta_available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's distributable Atlassian OAuth 2.0 integration is not configured with the Compass component scopes, callback, and Railway credentials, and no authorized Compass site is available for live acceptance.",
+    "nextAction": "The provider-console owner adds read:component:compass and write:component:compass plus offline_access and read:me to Relay's shared distributable Atlassian 3LO app, registers https://api.relayconsole.work/api/v1/marketplace/oauth/atlassian-compass/callback, stores ATLASSIAN_COMPASS_CLIENT_ID and ATLASSIAN_COMPASS_CLIENT_SECRET in Railway, deploys through the integration lane, then verifies connect, site binding, read, Safe approval, Dangerous create, refresh, disconnect, and post-disconnect denial on a test Compass site."
+  },
+  "evidence": [
+    {
+      "url": "https://www.atlassian.com/software/compass",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian describes Compass as a developer experience platform and software catalog for component ownership, health, scorecards, metrics, events, dependencies, and standards."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/compass/integrations/get-started-integrating-with-Compass/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents the Compass GraphQL API, OAuth 2.0 and Forge authorization, granular scopes, and component queries and mutations."
+    },
+    {
+      "url": "https://developer.atlassian.com/platform/forge/manifest-reference/scopes-product-compass/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian publishes read:component:compass and write:component:compass as the granular scopes for reading and creating or updating Compass components."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/compass/components/create-components-using-the-api/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents createComponent with cloudId and CreateCompassComponentInput, component type identifiers, optional owner teams, and the GraphQL mutation result contract."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/compass/rest/v2/intro/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian states that Compass REST ingestion routes use Basic authentication with an API token and that Forge and OAuth 2.0 apps cannot access the documented REST metrics, events, dependencies, attachments, and API-spec routes."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/jira/platform/oauth-2-3lo-apps/",
+      "checkedAt": "2026-07-18",
+      "supports": "Atlassian documents distributable OAuth 2.0 authorization-code apps, exact callbacks, accessible-resources site discovery, offline refresh tokens, sharing requirements, and the prohibition on Marketplace apps collecting user API tokens or asking customers to create individual 3LO apps."
+    }
+  ]
+}

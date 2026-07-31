@@ -1,0 +1,183 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sprout-social",
+  "name": "Sprout Social",
+  "category": "communication",
+  "description": "Sprout Social is a social media management platform for publishing, engagement, customer care, listening, and performance reporting across owned network profiles. Teams use it to coordinate social workflows and understand audience and content performance.",
+  "agentUseSummary": "Add a customer-owned machine-to-machine OAuth client from an API-enabled Sprout account, then let agents inspect bounded customer IDs, identity-redacted profile structure, and group IDs through three approval-gated tools.",
+  "provider": {
+    "websiteUrl": "https://sproutsocial.com/",
+    "docsUrl": "https://api.sproutsocial.com/docs/",
+    "developerConsoleUrl": "https://app.sproutsocial.com/app/settings/api-settings",
+    "termsUrl": "https://sproutsocial.com/terms/",
+    "privacyUrl": "https://sproutsocial.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["organization_id"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://identity.sproutsocial.com/oauth2/84e39c75-d770-45d9-90a9-7b79e3037d2c/v1/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_credentials",
+      "oauth2_client_credentials",
+      "short_lived_jwt_access_token",
+      "fixed_api_and_identity_origins",
+      "provider_managed_credential_revocation"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SPROUT_SOCIAL_CLIENT_ID",
+        "label": "Sprout Social OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Create a machine-to-machine OAuth client under Global Features > API in the customer-owned Sprout account."
+      },
+      {
+        "name": "SPROUT_SOCIAL_CLIENT_SECRET",
+        "label": "Sprout Social OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the matching customer-owned secret. Relay encrypts it and never exposes it to agents."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "social_structure_read",
+      "label": "Read social account structure",
+      "description": "Read bounded Sprout customer, profile, and group structure metadata without customer names, network-native identity, user data, or social content.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "sprout_social_customer_id_list",
+        "label": "List Sprout customer IDs",
+        "description": "List at most 25 accessible Sprout customer IDs without customer names."
+      },
+      {
+        "id": "sprout_social_profile_structure_list",
+        "label": "List Sprout profile structure",
+        "description": "List at most 25 profile IDs, network types, and group counts for one exact customer without profile or network-native identity."
+      },
+      {
+        "id": "sprout_social_group_id_list",
+        "label": "List Sprout group IDs",
+        "description": "List at most 25 group IDs for one exact customer without group names."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "sprout_social_identity_private",
+        "label": "Read Sprout or network identity",
+        "description": "Customer, profile, group, user, team, queue, topic, and network-native names, IDs, descriptions, addresses, and membership are outside V1."
+      },
+      {
+        "id": "sprout_social_content_or_analytics",
+        "label": "Read social content or analytics",
+        "description": "Posts, messages, cases, listening, analytics, demographics, tags, and reporting data are outside V1."
+      },
+      {
+        "id": "sprout_social_publish_or_media",
+        "label": "Publish or upload media",
+        "description": "Publishing posts, draft creation, media upload, and all mutations are outside V1."
+      },
+      {
+        "id": "sprout_social_raw_api",
+        "label": "Use arbitrary Sprout APIs",
+        "description": "Arbitrary paths, bodies, filters, pagination, raw responses, X data, bulk access, and exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sprout_social_safe",
+      "label": "Safe",
+      "description": "All three structure reads require approval; identity, content, analytics, listening, cases, publishing, media, writes, arbitrary APIs, pagination, and export remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "sprout_social_customer_id_list",
+        "sprout_social_profile_structure_list",
+        "sprout_social_group_id_list"
+      ],
+      "blockedActions": [
+        "sprout_social_identity_private",
+        "sprout_social_content_or_analytics",
+        "sprout_social_publish_or_media",
+        "sprout_social_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three metadata reads run directly; exact customer IDs, fixed origins, redaction, bounds, audits, and the provider's 60-per-minute and 250,000-per-month quotas remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "sprout_social_customer_id_list",
+        "sprout_social_profile_structure_list",
+        "sprout_social_group_id_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sprout_social_identity_private",
+        "sprout_social_content_or_analytics",
+        "sprout_social_publish_or_media",
+        "sprout_social_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges encrypted customer-owned credentials for a short-lived JWT and mounts only three redacted metadata reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges encrypted customer-owned credentials for a short-lived JWT and mounts only three redacted metadata reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Sprout API access requires an appropriate plan, Account Owner-granted API Permissions, accepted Analytics API Terms, and a customer-owned machine-to-machine OAuth client. No approved customer credentials are available for live acceptance.",
+    "nextAction": "An eligible Sprout Account Owner must grant API Permissions, accept the API terms, create a machine-to-machine OAuth client, and connect its client ID and secret. Then validate token exchange, redaction, exact-customer denial, quotas, credential replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.sproutsocial.com/docs/",
+      "checkedAt": "2026-07-18",
+      "supports": "Official customer-managed machine-to-machine OAuth, fixed identity and API origins, organization_id scope, short-lived JWT access, customer and metadata endpoints, response structure, and quotas of 60 requests per minute and 250,000 per month."
+    },
+    {
+      "url": "https://support.sproutsocial.com/hc/en-us/articles/360045006152-Sprout-Public-API",
+      "checkedAt": "2026-07-18",
+      "supports": "Current plan and Account Owner permission requirements, API-token management, supported data and publishing surfaces, and exclusions."
+    },
+    {
+      "url": "https://support.sproutsocial.com/hc/en-us/articles/38272064706317-How-to-access-create-find-and-manage-my-Sprout-Social-API-Token",
+      "checkedAt": "2026-07-18",
+      "supports": "Advanced-plan API access, API Permissions entitlement, provider-managed credential invalidation, and security guidance."
+    }
+  ],
+  "securityNotes": [
+    "Relay uses the provider-recommended customer-owned machine-to-machine OAuth flow and requests only organization_id.",
+    "Customer names, profile names, native names and IDs, addresses, group names, users, teams, queues, topics, descriptions, membership, social content, and analytics are stripped or never requested.",
+    "Requests use only the documented identity token URL and https://api.sproutsocial.com, reject redirects, validate exact positive-decimal customer IDs, cap responses at 1 MB, and return at most 25 resources.",
+    "Posts, messages, cases, listening, analytics, demographics, tags, reports, publishing, media uploads, writes, arbitrary paths, request bodies, filters, pagination, raw APIs, X data, bulk, and exports are unavailable.",
+    "Sprout limits clients to 60 requests per minute and 250,000 requests per month. Relay propagates 429 responses; credential invalidation remains provider-managed."
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mindbody",
+  "name": "Mindbody",
+  "category": "work_management",
+  "description": "Mindbody is business-management software for fitness, beauty, and wellness organizations. Businesses use it to manage schedules, classes, appointments, clients, staff, memberships, sales, payments, payroll, and online booking.",
+  "agentUseSummary": "Add an approved customer-owned Mindbody developer API key, activated site ID, and staff user token, then choose which agents can use the complete current Public API business surface under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.mindbodyonline.com/business",
+    "docsUrl": "https://developers.mindbodyonline.com/ui/documentation/public-api",
+    "developerConsoleUrl": "https://developers.mindbodyonline.com/",
+    "termsUrl": "https://www.mindbodyonline.com/legal/terms-of-service",
+    "privacyUrl": "https://www.mindbodyonline.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_developer_api_key_and_staff_token"],
+    "credentialRequirements": [
+      {
+        "name": "MINDBODY_API_KEY",
+        "label": "Mindbody API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create this in the customer's approved Mindbody Developer Portal account. API usage and billing remain with that account."
+      },
+      {
+        "name": "MINDBODY_SITE_ID",
+        "label": "Mindbody site ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the activated business site ID. Use -99 only for Mindbody's developer sandbox."
+      },
+      {
+        "name": "MINDBODY_STAFF_TOKEN",
+        "label": "Mindbody staff token",
+        "required": true,
+        "secret": true,
+        "helpText": "Provide a staff user token with the permissions needed for the selected business operations. This is not the staff member's password."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "business_read",
+      "label": "Read Mindbody business data",
+      "description": "Read the complete current Public API V6 surface for sites, scheduling, classes, appointments, clients, staff, enrollments, payroll, sales, products, services, and Pick a Spot.",
+      "defaultSelected": true
+    },
+    {
+      "id": "business_manage",
+      "label": "Manage Mindbody business data",
+      "description": "Run every current Public API V6 business mutation for schedules, appointments, classes, clients, staff, enrollments, sales, products, services, and reservations.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "mindbody_api_read",
+        "label": "Read Mindbody",
+        "description": "Run one bounded GET operation from Mindbody's complete current Public API V6 business surface."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "mindbody_api_manage",
+        "label": "Manage Mindbody",
+        "description": "Run one documented Public API V6 mutation for the activated Mindbody site."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "mindbody_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer-owned API key and staff token never enter agent-visible requests or results."
+      },
+      {
+        "id": "mindbody_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every request stays on Mindbody's documented Public API origin and V6 path."
+      },
+      {
+        "id": "mindbody_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only the 145 current business operations in the official Public API SDK; user-token issuance, renewal, and revocation remain connection lifecycle operations."
+      },
+      {
+        "id": "mindbody_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds query fields, request bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "mindbody_safe",
+      "label": "Safe",
+      "description": "Documented GET operations run directly. Every class, appointment, client, staff, enrollment, sale, product, service, schedule, or reservation mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["mindbody_api_read"],
+      "approvalRequiredActions": ["mindbody_api_manage"],
+      "blockedActions": [
+        "mindbody_secret_exposure",
+        "mindbody_unofficial_origin",
+        "mindbody_unsupported_endpoint",
+        "mindbody_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every documented business operation authorized by the connected Mindbody staff token runs without Relay per-action approval. Provider-granted site authority, exact routes, bounds, credential protection, provider limits, billing, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["mindbody_api_read", "mindbody_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mindbody_secret_exposure",
+        "mindbody_unofficial_origin",
+        "mindbody_unsupported_endpoint",
+        "mindbody_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 145 current Public API V6 business operations through fixed-origin, default-site-aware, bounded tools while keeping authentication lifecycle out of agent control."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 145 current Public API V6 business operations through fixed-origin, default-site-aware, bounded tools while keeping authentication lifecycle out of agent control."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Mindbody requires a developer account, go-live review, site-specific activation, and developer-billed API usage. No approved customer-owned developer account, activated site, API key, staff token, representative data, or authorized live test account is available.",
+    "nextAction": "The customer must create a Mindbody developer account, test in the sandbox, request go-live approval, activate the target business site, and connect its API key, default site ID, and staff token. Then verify default and provider-authorized site selection, reads, Safe approval, Dangerous mutations, redaction, credential rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.mindbodyonline.com/ui/documentation/public-api",
+      "checkedAt": "2026-07-15",
+      "supports": "Mindbody's current Public API V6 onboarding requires a developer account, sandbox testing, go-live review, site-specific activation, API-key authentication, and staff authorization for protected business operations."
+    },
+    {
+      "url": "https://developers.mindbodyonline.com/",
+      "checkedAt": "2026-07-15",
+      "supports": "Mindbody publishes developer-billed site-access pricing, a free sandbox and low-volume allowance, and the requirement to request production credentials and launch approval."
+    },
+    {
+      "url": "https://developers.mindbodyonline.com/Resources/ApiReleaseNotes",
+      "checkedAt": "2026-07-15",
+      "supports": "Mindbody identifies Public API V6 as current, documents June 2026 changes, and links the current authentication and endpoint documentation."
+    },
+    {
+      "url": "https://github.com/mindbody/Mindbody-API-SDKs/tree/main/PublicAPI",
+      "checkedAt": "2026-07-15",
+      "supports": "Mindbody's official generated Public API SDK enumerates 148 V6 operations: 145 business operations plus three staff-token lifecycle operations reserved to the connection boundary."
+    }
+  ]
+}

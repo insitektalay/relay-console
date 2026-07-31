@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "billing-release-evidence.schema.json",
+  "title": "Relay Console release-bound billing evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "releaseId", "capturedAt", "candidate",
+    "releaseBinding", "artifacts", "repository", "results", "privacy"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.billing-release-evidence.v1" },
+    "releaseId": { "type": "string", "minLength": 1 },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCommit", "manifestSHA256"],
+      "properties": {
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "manifestSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "releaseBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceBranch", "railwayDeploymentId", "vercelDeploymentId",
+        "railwayTopologySHA256", "railwayConfigurationSHA256",
+        "remoteEvidenceSHA256"
+      ],
+      "properties": {
+        "sourceBranch": { "type": "string", "pattern": "^release/.+" },
+        "railwayDeploymentId": { "type": "string", "minLength": 1 },
+        "vercelDeploymentId": { "type": "string", "minLength": 1 },
+        "railwayTopologySHA256": { "$ref": "#/$defs/sha256" },
+        "railwayConfigurationSHA256": { "$ref": "#/$defs/sha256" },
+        "remoteEvidenceSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iOSDistributionSHA256"],
+      "properties": {
+        "iOSDistributionSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "executedAt", "status", "testFileCount", "testSuiteCount",
+        "passedTestSuiteCount", "testCount", "passedTestCount",
+        "sourceEvidenceSHA256", "backendCIRunId", "backendCIRunURL"
+      ],
+      "properties": {
+        "executedAt": { "type": "string", "format": "date-time" },
+        "status": { "const": "passed" },
+        "testFileCount": { "const": 6 },
+        "testSuiteCount": { "type": "integer", "minimum": 1 },
+        "passedTestSuiteCount": { "type": "integer", "minimum": 1 },
+        "testCount": { "type": "integer", "minimum": 1 },
+        "passedTestCount": { "type": "integer", "minimum": 1 },
+        "sourceEvidenceSHA256": { "$ref": "#/$defs/sha256" },
+        "backendCIRunId": { "type": "integer", "minimum": 1 },
+        "backendCIRunURL": {
+          "type": "string",
+          "pattern": "^https://github\\.com/"
+        }
+      }
+    },
+    "results": { "$ref": "billing-release-results.schema.json" },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "credentialsIncluded", "secretValuesIncluded",
+        "customerContentIncluded", "customerIdentifiersIncluded",
+        "paymentIdentifiersIncluded", "rawCommandOutputIncluded"
+      ],
+      "properties": {
+        "credentialsIncluded": { "const": false },
+        "secretValuesIncluded": { "const": false },
+        "customerContentIncluded": { "const": false },
+        "customerIdentifiersIncluded": { "const": false },
+        "paymentIdentifiersIncluded": { "const": false },
+        "rawCommandOutputIncluded": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" }
+  }
+}

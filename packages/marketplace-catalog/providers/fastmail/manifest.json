@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "fastmail",
+  "name": "Fastmail",
+  "category": "communication",
+  "description": "Fastmail is a privacy-focused email, calendar, contacts, and file service built on open standards including JMAP, IMAP, CalDAV, CardDAV, and WebDAV.",
+  "agentUseSummary": "Fastmail cannot yet be connected through Relay. Its official hosted MCP offers user-selected read-only, write, and send access, but Fastmail does not publicly document the exact tool schemas or a machine-verifiable binding for the selected access level; capturing those details requires a signed-in consent session owned by the provider-acceptance lane.",
+  "provider": {
+    "websiteUrl": "https://www.fastmail.com/",
+    "docsUrl": "https://www.fastmail.com/dev/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.fastmail.com/about/terms/",
+    "privacyUrl": "https://www.fastmail.com/about/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "provider_hosted_remote_mcp",
+      "user_selected_read_write_send_access",
+      "authenticated_schema_discovery_required",
+      "native_jmap_requires_registered_oauth_client",
+      "native_jmap_mail_scope_combines_read_and_manage"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "fastmail_remote_mcp",
+        "label": "Connect Fastmail MCP",
+        "description": "Relay cannot pin typed wrappers or prove the selected read/write/send authority until the provider-acceptance lane completes authorized schema and OAuth inspection."
+      },
+      {
+        "id": "fastmail_raw_mcp",
+        "label": "Expose raw MCP tools",
+        "description": "Dynamic tool discovery, arbitrary MCP calls, silent schema additions, and unbounded provider output are not permitted."
+      },
+      {
+        "id": "fastmail_native_jmap",
+        "label": "Use native JMAP OAuth",
+        "description": "Distributed native JMAP clients require manual Fastmail registration, and the published mail scope permits both reading and managing mail rather than read-only access."
+      },
+      {
+        "id": "fastmail_personal_credentials",
+        "label": "Collect personal API credentials",
+        "description": "Fastmail API tokens and app passwords are personal-integration credentials and are not silently substituted for the selected one-click hosted-OAuth route."
+      },
+      {
+        "id": "fastmail_data_and_mutations",
+        "label": "Access Fastmail data",
+        "description": "Mail, calendars, contacts, files, Masked Email, searches, drafts, sends, moves, flags, deletions, raw protocols, and every other read or write remain unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "fastmail_unavailable",
+      "label": "Unavailable",
+      "description": "No Fastmail action is enabled until authenticated provider acceptance establishes the exact hosted-MCP contract and authority boundary.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "fastmail_remote_mcp",
+        "fastmail_raw_mcp",
+        "fastmail_native_jmap",
+        "fastmail_personal_credentials",
+        "fastmail_data_and_mutations"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "Relay does not mount the raw Fastmail MCP and cannot pin wrappers before authorized schema acceptance."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "Relay does not mount the raw Fastmail MCP and cannot pin wrappers before authorized schema acceptance."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Fastmail documents a hosted OAuth MCP and user-selected read-only/write/send tiers, but its public materials do not publish the exact tool names, schemas, bounds, schema-version behavior, or a machine-readable access-tier claim. Those facts are only observable after signed-in authorization, which this worker is prohibited from running.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should use a representative Fastmail account to authorize the official MCP at the read-only tier, capture authorization metadata and live tool schemas without executing data tools, verify the access tier survives refresh and reconnect, and hand the frozen contract back for typed wrapper implementation. Do not expose Connect before that review."
+  },
+  "evidence": [
+    {
+      "url": "https://www.fastmail.com/blog/an-mcp-server-for-fastmail/",
+      "checkedAt": "2026-07-17",
+      "supports": "Fastmail documents its official hosted MCP at https://api.fastmail.com/mcp, browser OAuth, and user-selectable read-only, write, and send access levels for mail, calendar, and contacts."
+    },
+    {
+      "url": "https://www.fastmail.com/dev/",
+      "checkedAt": "2026-07-17",
+      "supports": "Fastmail documents native JMAP, personal API tokens, manual distributed-client OAuth registration, S256 PKCE, rotating refresh tokens, revocation, and a mail scope that covers reading and managing mail."
+    },
+    {
+      "url": "https://www.fastmail.com/policies/api-developer-policy/",
+      "checkedAt": "2026-07-17",
+      "supports": "Fastmail requires minimal authority, appropriate user consent, secure data handling, deletion after removal, and compliance with its API policies."
+    }
+  ]
+}

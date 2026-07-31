@@ -1,0 +1,199 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-analytics",
+  "name": "Google Analytics",
+  "category": "developer",
+  "description": "Google Analytics measures aggregate website and app activity through GA4 properties. Product, growth, and marketing teams use it to understand acquisition channels, engagement, events, key events, and revenue.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth with the exact analytics.readonly scope and bind one numeric GA4 property during authorization. Agents can use two wrappers: read bounded safe metadata for that property and run one fixed aggregate channel overview for 30daysAgo through yesterday, ordered by sessions and limited to twenty-five rows. Relay V1 blocks account, property, stream, and hierarchy discovery; arbitrary, realtime, batch, pivot, funnel, access, metadata, and compatibility reports; audience exports; user identifiers; demographic, interest, page, search, geography, custom-dimension, and event-parameter detail; administration and user access; Measurement Protocol and imports; deletion; exports; pagination; raw tools; service accounts; delegation; retries; and polling.",
+  "provider": {
+    "websiteUrl": "https://analytics.google.com/",
+    "docsUrl": "https://developers.google.com/analytics",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/library",
+    "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["https://www.googleapis.com/auth/analytics.readonly"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "exact_ga4_property_oauth_binding",
+      "expiring_access_token",
+      "offline_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-analytics/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "property_get",
+      "label": "Read GA4 property metadata",
+      "description": "Read bounded safe metadata for the one GA4 property bound during OAuth.",
+      "defaultSelected": true
+    },
+    {
+      "id": "overview_report",
+      "label": "Read aggregate GA4 overview",
+      "description": "Read at most twenty-five channel-group rows from one fixed thirty-day aggregate report.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "google_analytics_property_get",
+        "label": "Get GA4 property",
+        "description": "Read safe metadata for the explicit connection-bound GA4 property."
+      },
+      {
+        "id": "google_analytics_overview_report",
+        "label": "Get GA4 overview",
+        "description": "Run the fixed thirty-day aggregate channel overview for the explicit property."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "google_analytics_property_discovery",
+        "label": "Discover Analytics properties",
+        "description": "Account, property, data-stream, and hierarchy discovery are blocked in V1."
+      },
+      {
+        "id": "google_analytics_arbitrary_realtime_advanced_reports",
+        "label": "Run arbitrary or advanced Analytics reports",
+        "description": "Custom, realtime, batch, pivot, funnel, access, metadata, and compatibility reports are blocked."
+      },
+      {
+        "id": "google_analytics_audience_user_detail",
+        "label": "Access audience or user-level Analytics data",
+        "description": "Audience exports and user, demographic, interest, page, search, geography, custom-dimension, and event-parameter detail are excluded."
+      },
+      {
+        "id": "google_analytics_admin_mutation",
+        "label": "Mutate Analytics administration",
+        "description": "Property, stream, link, filter, event, dimension, metric, and settings mutations are blocked."
+      },
+      {
+        "id": "google_analytics_user_management",
+        "label": "Manage Analytics users",
+        "description": "Account and property user-access bindings are excluded."
+      },
+      {
+        "id": "google_analytics_measurement_protocol_write",
+        "label": "Write Analytics events",
+        "description": "Measurement Protocol and data-import writes are blocked."
+      },
+      {
+        "id": "google_analytics_property_delete",
+        "label": "Delete Analytics resources",
+        "description": "Deleting, trashing, and restoring Analytics resources are blocked."
+      },
+      {
+        "id": "google_analytics_export_all",
+        "label": "Export Analytics data",
+        "description": "Audience or report tasks, recurring exports, broad downloads, and automatic pagination are blocked."
+      },
+      {
+        "id": "google_analytics_raw_delegation",
+        "label": "Use raw or delegated Analytics access",
+        "description": "Raw tools, service accounts, delegation, automatic retries, and polling are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "google_analytics_safe",
+      "label": "Safe",
+      "description": "Only one explicit-property metadata read and one fixed aggregate overview run automatically; discovery, granular detail, advanced reports, exports, administration, and writes remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "google_analytics_property_get",
+        "google_analytics_overview_report"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_analytics_property_discovery",
+        "google_analytics_arbitrary_realtime_advanced_reports",
+        "google_analytics_audience_user_detail",
+        "google_analytics_admin_mutation",
+        "google_analytics_user_management",
+        "google_analytics_measurement_protocol_write",
+        "google_analytics_property_delete",
+        "google_analytics_export_all",
+        "google_analytics_raw_delegation"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both selected read-only wrappers run automatically while exact scope, bound property, fixed report, aggregate fields, row limit, redaction, and no-pagination boundaries remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "google_analytics_property_get",
+        "google_analytics_overview_report"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_analytics_property_discovery",
+        "google_analytics_arbitrary_realtime_advanced_reports",
+        "google_analytics_audience_user_detail",
+        "google_analytics_admin_mutation",
+        "google_analytics_user_management",
+        "google_analytics_measurement_protocol_write",
+        "google_analytics_property_delete",
+        "google_analytics_export_all",
+        "google_analytics_raw_delegation"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two explicit-property Google Analytics wrappers and attaches encrypted OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two explicit-property Google Analytics wrappers and attaches encrypted OAuth tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay must configure its Google Cloud confidential web client, enable the Google Analytics Admin and Data APIs, publish and verify the exact analytics.readonly OAuth consent with canonical domains and policy links, configure Railway staging credentials, and authorize an acceptance account with access to a GA4 property. Those provider-console and environment actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the canonical Railway callback and exact read-only scope, enable both APIs, complete Google review, configure staging credentials, then verify explicit-property binding, both wrappers, the fixed 30daysAgo-to-yesterday report, 25-row bound, aggregate field redaction, Safe and Dangerous policy, refresh, rotation, revocation, disconnect, quota/error mapping, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/analytics/devguides/config/admin/v1/rest/v1beta/properties/get",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents the Admin API properties.get endpoint, properties/{property_id} resource format, empty request body, and analytics.readonly authorization scope."
+    },
+    {
+      "url": "https://developers.google.com/analytics/devguides/reporting/data/v1/rest/v1beta/properties/runReport",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents the Data API v1beta runReport endpoint, property path binding, read-only scope, date ranges, dimensions, metrics, ordering, string row limit, empty-row behavior, quota response, and offset pagination Relay does not follow."
+    },
+    {
+      "url": "https://developers.google.com/analytics/devguides/reporting/data/v1/api-schema",
+      "checkedAt": "2026-07-17",
+      "supports": "Google's current Data API schema documents session channel groups and the selected aggregate active-user, session, engagement, event, key-event, and revenue metrics."
+    },
+    {
+      "url": "https://developers.google.com/analytics/devguides/reporting/data/v1/quotas",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents Data API token quotas and advanced reporting surfaces; Relay makes one bounded provider request and returns no raw quota object."
+    }
+  ]
+}

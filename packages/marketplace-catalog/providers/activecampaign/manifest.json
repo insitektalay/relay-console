@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "activecampaign",
+  "name": "ActiveCampaign",
+  "category": "communication",
+  "description": "ActiveCampaign is a marketing automation and CRM platform for contacts, lists, campaigns, automations, deals, forms, messaging, and customer lifecycle workflows.",
+  "agentUseSummary": "Enter the current user's account-specific ActiveCampaign API URL and unique API token. Relay validates the exact official origin and token-bound user, then exposes only the binding summary, twenty-five List lifecycle summaries, and twenty-five Campaign lifecycle summaries; contacts, user identity, content, audiences, reports, arbitrary queries, pagination, broader APIs, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.activecampaign.com/",
+    "docsUrl": "https://developers.activecampaign.com/reference/overview",
+    "developerConsoleUrl": "https://help.activecampaign.com/hc/en-us/articles/207317590-Getting-started-with-the-API",
+    "termsUrl": "https://www.activecampaign.com/legal/terms-of-service",
+    "privacyUrl": "https://www.activecampaign.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_user_api_key",
+      "customer_supplied_account_api_origin",
+      "exact_token_bound_user_validation",
+      "broad_user_permission_inheritance",
+      "manual_provider_key_rotation"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ACTIVECAMPAIGN_API_URL",
+        "label": "ActiveCampaign API URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Copy the exact HTTPS API URL from Settings > Developer; Relay accepts only an official account-specific api-us1.com origin."
+      },
+      {
+        "name": "ACTIVECAMPAIGN_API_TOKEN",
+        "label": "ActiveCampaign API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the current user's unique API key from Settings > Developer. Rotating it invalidates this connection."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_binding",
+      "label": "Account binding",
+      "description": "Validate the exact account origin and token-bound user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "list_metadata",
+      "label": "List metadata",
+      "description": "List bounded List lifecycle summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "campaign_metadata",
+      "label": "Campaign metadata",
+      "description": "List bounded Campaign lifecycle summaries.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "activecampaign_account_binding_get",
+        "label": "Read account binding",
+        "description": "Validate the exact API origin and token-bound user ID without returning user identity fields."
+      },
+      {
+        "id": "activecampaign_list_list_recent",
+        "label": "List recent lists",
+        "description": "Read one fixed page of twenty-five List lifecycle summaries."
+      },
+      {
+        "id": "activecampaign_campaign_list_recent",
+        "label": "List recent campaigns",
+        "description": "Read one fixed page of twenty-five Campaign lifecycle summaries."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "activecampaign_contact_private",
+        "label": "Access contacts or identity",
+        "description": "Contacts, email addresses, phone numbers, user identity fields, custom fields, tags, scores, consent, and contact activity are outside V1."
+      },
+      {
+        "id": "activecampaign_campaign_content",
+        "label": "Access campaign content or reports",
+        "description": "Campaign names, messages, content, audiences, recipients, links, opens, clicks, replies, bounces, and reports are outside V1."
+      },
+      {
+        "id": "activecampaign_mutation",
+        "label": "Change or send ActiveCampaign data",
+        "description": "Creating, editing, importing, sending, scheduling, automating, or deleting ActiveCampaign resources is outside V1."
+      },
+      {
+        "id": "activecampaign_broader_api",
+        "label": "Access broader ActiveCampaign APIs",
+        "description": "Deals, automations, events, ecommerce, forms, messages, webhooks, administration, and custom objects are outside V1."
+      },
+      {
+        "id": "activecampaign_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary origins, paths, filters, orders, pages, limits, automatic pagination, crawling, synchronization, exports, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "activecampaign_safe",
+      "label": "Safe",
+      "description": "Three bounded metadata-only reads run automatically; identity, contacts, content, reports, broader APIs, raw requests, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "activecampaign_account_binding_get",
+        "activecampaign_list_list_recent",
+        "activecampaign_campaign_list_recent"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "activecampaign_contact_private",
+        "activecampaign_campaign_content",
+        "activecampaign_mutation",
+        "activecampaign_broader_api",
+        "activecampaign_raw_query"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact-origin and token-user binding, fixed requests, page limits, audit, redaction, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "activecampaign_account_binding_get",
+        "activecampaign_list_list_recent",
+        "activecampaign_campaign_list_recent"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "activecampaign_contact_private",
+        "activecampaign_campaign_content",
+        "activecampaign_mutation",
+        "activecampaign_broader_api",
+        "activecampaign_raw_query"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded ActiveCampaign metadata wrappers and attaches the encrypted user API token and validated official account origin server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded ActiveCampaign metadata wrappers and attaches the encrypted user API token and validated official account origin server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer copies their account-specific API URL and current user's unique API key from ActiveCampaign Settings > Developer. Use a dedicated least-privilege user where the account plan supports one, then verify the user binding and representative List and Campaign lifecycle reads."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.activecampaign.com/reference/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "ActiveCampaign documents account-specific HTTPS API URLs, a user-specific API key in the Api-Token header, and /api/3/users/me as the authentication example."
+    },
+    {
+      "url": "https://developers.activecampaign.com/reference/retrieve-all-lists",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /api/3/lists returns List metadata and accepts a bounded result limit; Relay fixes page one and strips sender, analytics, address, link, and relationship fields."
+    },
+    {
+      "url": "https://developers.activecampaign.com/reference/list-all-campaigns",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /api/3/campaigns supports send-date ordering and returns Campaign lifecycle fields; Relay fixes page one and strips names, messages, audiences, delivery metrics, reports, links, and relationships."
+    },
+    {
+      "url": "https://developers.activecampaign.com/reference/pagination",
+      "checkedAt": "2026-07-17",
+      "supports": "ActiveCampaign documents limit and offset pagination with typical maximum pages of 100; Relay fixes limit 25 and offset 0 and never follows pagination."
+    }
+  ]
+}

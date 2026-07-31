@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "odoo",
+  "name": "Odoo",
+  "category": "work_management",
+  "description": "Odoo is an integrated business software suite spanning customer relationship management, sales, accounting, inventory, manufacturing, purchasing, projects, time tracking, human resources, marketing, websites, eCommerce, and service operations. Organizations use its modular applications on a shared database to coordinate business processes and reporting across teams.",
+  "agentUseSummary": "Connect one Odoo Online 19 database on a Custom plan with a short-lived API key for a dedicated least-privilege bot user, then let agents use three approval-gated bounded reads for current-user and Project summaries. Relay derives and pins the database.odoo.com origin, uses only three fixed JSON-2 model methods and seven fixed Project fields, caps listing at offset zero and twenty-five results, and excludes contacts, customers, employees, tasks, messages, descriptions, timesheets, finance, broader applications, writes, arbitrary models or domains, pagination, downloads, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.odoo.com/",
+    "docsUrl": "https://www.odoo.com/documentation/19.0/developer/reference/external_api.html",
+    "developerConsoleUrl": "https://www.odoo.com/my/databases",
+    "termsUrl": "https://www.odoo.com/documentation/latest/odoo_enterprise_agreement.pdf",
+    "privacyUrl": "https://www.odoo.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["rpc"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_user_api_key",
+      "odoo_online_19_custom_plan",
+      "exact_database_subdomain_binding",
+      "x_odoo_database_binding",
+      "rpc_scope",
+      "dedicated_bot_user_permission_inheritance",
+      "maximum_three_month_key_rotation"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "ODOO_DATABASE",
+        "label": "Odoo Online database",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter only the database label before .odoo.com. V1 supports Odoo Online 19 Custom plans and derives the exact origin from this value."
+      },
+      {
+        "key": "ODOO_API_KEY",
+        "label": "Odoo API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Generate a key with RPC access for a dedicated least-privilege bot user under Preferences > Account Security. Odoo keys expire within three months and must be rotated."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "user_read",
+      "label": "Read current user",
+      "description": "Read bounded identity metadata for the exact API-key-bound user without name, login, email, company, groups, or permissions.",
+      "defaultSelected": true
+    },
+    {
+      "id": "project_read",
+      "label": "Read projects",
+      "description": "List bounded Odoo Project summaries or inspect one exact Project without customers, users, tasks, messages, descriptions, activities, timesheets, custom fields, or relationships.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "odoo_user_get",
+        "label": "Read current user",
+        "description": "Read bounded identity metadata for the exact API-key-bound Odoo user."
+      },
+      {
+        "id": "odoo_project_list",
+        "label": "List projects",
+        "description": "List at most twenty-five bounded Project summaries from fixed offset zero."
+      },
+      {
+        "id": "odoo_project_get",
+        "label": "Read project",
+        "description": "Read one exact bounded Project summary by positive numeric ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "odoo_record_mutation",
+        "label": "Change Odoo data",
+        "description": "Creating, updating, assigning, archiving, completing, deleting, importing, sending, posting, approving, or bulk-changing Odoo records is outside V1."
+      },
+      {
+        "id": "odoo_private_business_data",
+        "label": "Read private business data",
+        "description": "Contacts, customers, vendors, employees, users beyond the bound identity, emails, phones, addresses, descriptions, tasks, messages, attachments, followers, activities, timesheets, custom fields, and relationships are outside V1."
+      },
+      {
+        "id": "odoo_financial_and_broader_product",
+        "label": "Access financial or broader Odoo data",
+        "description": "CRM, sales, accounting, invoices, payments, expenses, inventory, purchase, manufacturing, HR, payroll, recruitment, marketing, websites, eCommerce, helpdesk, documents, administration, and installed apps are outside V1."
+      },
+      {
+        "id": "odoo_raw_api",
+        "label": "Call arbitrary Odoo APIs",
+        "description": "Custom origins, databases, models, methods, fields, domains, contexts, orders, offsets, limits, payloads, legacy RPC, raw JSON-2, and dynamic documentation are outside V1."
+      },
+      {
+        "id": "odoo_bulk_export",
+        "label": "Export Odoo data",
+        "description": "Automatic pagination, crawling, synchronization, report generation, downloads, imports, database operations, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "odoo_safe",
+      "label": "Safe",
+      "description": "All three bounded private user and Project reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "odoo_user_get",
+        "odoo_project_list",
+        "odoo_project_get"
+      ],
+      "blockedActions": [
+        "odoo_record_mutation",
+        "odoo_private_business_data",
+        "odoo_financial_and_broader_product",
+        "odoo_raw_api",
+        "odoo_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only tools run without Relay per-action approval while exact database, user, and resource binding, fixed origin, models, methods, fields, limits, audits, redaction, provider rights, and key isolation remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "odoo_user_get",
+        "odoo_project_list",
+        "odoo_project_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "odoo_record_mutation",
+        "odoo_private_business_data",
+        "odoo_financial_and_broader_product",
+        "odoo_raw_api",
+        "odoo_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded approval-gated Odoo user and Project reads and attaches the encrypted API key only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded approval-gated Odoo user and Project reads and attaches the encrypted API key only on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No eligible Odoo Online 19 Custom-plan database, dedicated least-privilege bot user, or API key is available in this workspace; Odoo.sh, self-hosted, custom-domain, Standard, and One App Free deployments are outside V1.",
+    "nextAction": "In the provider-console task, verify an Odoo Online 19 Custom-plan database, create a dedicated Project-read bot user with no password login and only required record rights, generate an RPC API key, store the database label and key through Relay, then validate exact origin/database/user binding, bounded Project reads, approvals, permission denial, key expiry and rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.odoo.com/documentation/19.0/developer/reference/external_api.html",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Odoo 19 JSON-2 guide documents fixed model/method POST paths, bearer API keys, X-Odoo-Database, success and safe error forms, current-user context lookup, Custom-plan-only access, standard user rights, dedicated bot users, RPC scope, and API-key expiry and rotation within three months."
+    },
+    {
+      "url": "https://www.odoo.com/documentation/19.0/applications/general/users.html",
+      "checkedAt": "2026-07-18",
+      "supports": "The official user guide documents database-bound users, application-specific access rights, record restrictions, and multi-company configuration; Relay requires a dedicated least-privilege bot and inherits provider enforcement."
+    },
+    {
+      "url": "https://www.odoo.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Odoo publishes an integrated suite spanning finance, sales, websites, supply chain, HR, marketing, projects, services, and productivity."
+    },
+    {
+      "url": "https://www.odoo.com/documentation/latest/odoo_enterprise_agreement.pdf",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Enterprise agreement covers Odoo Online, Odoo.sh, and self-hosting subscriptions; Relay V1 deliberately supports only the fixed-origin Odoo Online 19 Custom-plan route."
+    },
+    {
+      "url": "https://www.odoo.com/privacy",
+      "checkedAt": "2026-07-18",
+      "supports": "The official privacy policy recognizes that customer databases can contain contacts, employees, messages, media, and other personal business information controlled by the customer; Relay excludes those data classes from V1 results."
+    }
+  ]
+}

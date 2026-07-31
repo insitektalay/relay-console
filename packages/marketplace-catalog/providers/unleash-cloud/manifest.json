@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "unleash-cloud",
+  "name": "Unleash Cloud",
+  "category": "developer",
+  "description": "Unleash Cloud provides feature flags, activation strategies, environments, segments, variants, dependencies, and release controls.",
+  "agentUseSummary": "Connect a backend token scoped to one non-production project and environment on an allowlisted Unleash Cloud instance. Relay approval-gates bounded feature metadata reads while enabled states, evaluation configuration, contexts, payloads, dependencies, Admin APIs, and mutations remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.getunleash.io/",
+    "docsUrl": "https://docs.getunleash.io/api",
+    "developerConsoleUrl": "https://app.unleash-hosted.com/",
+    "termsUrl": "https://www.getunleash.io/terms-of-service",
+    "privacyUrl": "https://www.getunleash.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["backend", "single_project", "single_environment"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_backend_token",
+      "single_project_scope",
+      "single_environment_scope",
+      "allowlisted_cloud_instance",
+      "client_api_only"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "UNLEASH_CLOUD_BACKEND_TOKEN",
+        "label": "Unleash Cloud backend token",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated backend token scoped to one project and one non-production environment."
+      },
+      {
+        "name": "UNLEASH_CLOUD_INSTANCE_URL",
+        "label": "Unleash Cloud instance URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact hosted instance URL, such as https://us.app.unleash-hosted.com/instance-id."
+      },
+      {
+        "name": "UNLEASH_CLOUD_PROJECT_ID",
+        "label": "Unleash Cloud project ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Record the single project encoded in the backend token."
+      },
+      {
+        "name": "UNLEASH_CLOUD_ENVIRONMENT",
+        "label": "Unleash Cloud environment",
+        "required": true,
+        "secret": false,
+        "helpText": "Record the single non-production environment encoded in the backend token."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read feature metadata",
+      "description": "Read bounded project and environment-scoped feature metadata with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "unleash_cloud_sensitive_read",
+        "label": "Read Unleash Cloud features",
+        "description": "Read bounded project and environment-scoped feature metadata."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "unleash_cloud_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Backend tokens and authorization headers never enter agent-visible inputs or results."
+      },
+      {
+        "id": "unleash_cloud_private_data",
+        "label": "Read evaluation configuration",
+        "description": "Enabled states, strategies, constraints, context values, segments, variants, payloads, dependencies, evaluation inputs, and raw token scope are excluded."
+      },
+      {
+        "id": "unleash_cloud_mutation",
+        "label": "Mutate Unleash",
+        "description": "Feature, environment, strategy, segment, project, token, service account, and every other mutation remain provider-side."
+      },
+      {
+        "id": "unleash_cloud_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only Client API feature list and exact GETs run on an allowlisted Unleash Cloud instance with stored project/environment binding; Admin, Frontend, Edge, arbitrary paths, queries, evaluation, and self-hosted origins are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "unleash_cloud_safe",
+      "label": "Safe",
+      "description": "Both metadata reads require approval; backend-token scope, hosted-instance allowlist, project/environment binding, bounds, redaction, audits, and evaluation/mutation blocks remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["unleash_cloud_sensitive_read"],
+      "blockedActions": [
+        "unleash_cloud_secret_exposure",
+        "unleash_cloud_private_data",
+        "unleash_cloud_mutation",
+        "unleash_cloud_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected metadata read runs without Relay approval; backend-token scope, hosted-instance allowlist, project/environment binding, bounds, redaction, audits, and evaluation/mutation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["unleash_cloud_sensitive_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "unleash_cloud_secret_exposure",
+        "unleash_cloud_private_data",
+        "unleash_cloud_mutation",
+        "unleash_cloud_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted scoped backend token server-side and mounts two approval-gated metadata reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted scoped backend token server-side and mounts two approval-gated metadata reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Unleash Cloud requires a customer instance and dedicated backend token scoped to one non-production project and environment. This worker may not create or configure them.",
+    "nextAction": "Create the scoped staging token outside this worker, configure token, hosted instance URL, project, and environment in Railway staging, then verify binding, reads, redaction, approvals, bounds, revocation, disconnect, and denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.getunleash.io/api",
+      "checkedAt": "2026-07-18",
+      "supports": "Unleash's official API overview documents the Client API, Authorization header, backend token secrecy and project/environment scope, service boundaries, and hosted OpenAPI access."
+    },
+    {
+      "url": "https://docs.getunleash.io/api/get-all-client-features",
+      "checkedAt": "2026-07-18",
+      "supports": "Unleash's official Client API reference pins feature list response fields including states, strategies, variants, segments, and query data that Relay strips."
+    },
+    {
+      "url": "https://docs.getunleash.io/api/get-client-feature",
+      "checkedAt": "2026-07-18",
+      "supports": "Unleash's official exact feature reference pins the safe feature-name route, backend-token authentication, and response fields."
+    },
+    {
+      "url": "https://docs.getunleash.io/get-started/quickstart",
+      "checkedAt": "2026-07-18",
+      "supports": "Unleash documents Cloud instance URLs such as https://us.app.unleash-hosted.com/instance-id, supporting the hosted-origin allowlist."
+    }
+  ]
+}

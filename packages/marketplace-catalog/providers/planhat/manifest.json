@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "planhat",
+  "name": "Planhat",
+  "category": "developer",
+  "description": "Planhat is a customer platform for lifecycle management, health, engagement, revenue, projects, outcomes, reporting, automation, and customer data.",
+  "agentUseSummary": "Connect one exact Planhat API environment with a customer-owned Private App token, then let agents list only bounded projected custom-field metadata under approval. Relay excludes formulas, options, filters, references, values, customer records, engagement, writes, bulk operations, and raw MCP access.",
+  "provider": {
+    "websiteUrl": "https://www.planhat.com/",
+    "docsUrl": "https://www.planhat.com/developers/api/custom-field",
+    "developerConsoleUrl": "https://help.planhat.com/en/articles/13635288-how-to-set-up-private-apps-service-accounts-and-api-access-tokens-in-planhat",
+    "termsUrl": "https://www.planhat.com/terms",
+    "privacyUrl": "https://www.planhat.com/privacy"
+  },
+  "authentication": {
+    "model": "customer_owned_api_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_private_app_token",
+      "exact_environment_scope",
+      "planhat_origin_binding",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PLANHAT_API_TOKEN",
+        "label": "Planhat API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated least-privilege Private App token and store it only through Relay's encrypted flow."
+      },
+      {
+        "name": "PLANHAT_API_ORIGIN",
+        "label": "Planhat API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact HTTPS planhat.com API origin for the tenant cluster."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "custom_field_metadata",
+      "label": "List custom-field metadata",
+      "description": "List at most 100 field IDs, names, types, parent models, and low-risk flags without formulas, options, filters, references, values, or records.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "planhat_custom_fields_list",
+        "label": "List custom-field metadata",
+        "description": "List bounded projected custom-field metadata from one exact Planhat environment."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "planhat_customer_user_data",
+        "label": "Access customer or user data",
+        "description": "Companies, end users, users, health, revenue, metrics, NPS, and record values are blocked."
+      },
+      {
+        "id": "planhat_private_schema_logic",
+        "label": "Access private schema logic",
+        "description": "Formulas, list values, filters, references, number formats, custom values, and full definitions are blocked."
+      },
+      {
+        "id": "planhat_engagement_mutation",
+        "label": "Access engagement or mutate data",
+        "description": "Projects, tasks, notes, conversations, issues, tickets, campaigns, activities, creates, updates, deletes, and bulk upserts are blocked."
+      },
+      {
+        "id": "planhat_raw_mcp_bulk",
+        "label": "Use raw, MCP, or bulk access",
+        "description": "Raw paths, arbitrary origins, remote MCP tools, model discovery, later pages, exports, retries, and response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "planhat_custom_field_metadata_safe",
+      "label": "Safe",
+      "description": "The bounded field-metadata read requires approval; customer data, private logic, engagement, writes, MCP, bulk, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["planhat_custom_fields_list"],
+      "blockedActions": [
+        "planhat_customer_user_data",
+        "planhat_private_schema_logic",
+        "planhat_engagement_mutation",
+        "planhat_raw_mcp_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded metadata read runs without Relay per-action approval; exact origin/path/query binding, projection, caps, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["planhat_custom_fields_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "planhat_customer_user_data",
+        "planhat_private_schema_logic",
+        "planhat_engagement_mutation",
+        "planhat_raw_mcp_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned token to one exact Planhat origin and a projected custom-field metadata wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned token to one exact Planhat origin and a projected custom-field metadata wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Planhat administrator must create a dedicated Private App token with only custom-field view permission, record the exact API origin, and store both through Relay. No app, OAuth client, token, credential capture, consent, live request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized administrator creates the least-privilege token, stores it with the exact origin through Relay, then verifies health, one approved metadata list, throttling, token rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.planhat.com/developers/api/custom-field",
+      "checkedAt": "2026-07-17",
+      "supports": "Planhat documents GET /customfields with limit, offset, sort, and select, plus field IDs, names, types, parent models, flags, formulas, list values, filters, and references. Relay fixes offset zero and projects only identity and low-risk flags."
+    },
+    {
+      "url": "https://www.planhat.com/developers/api/authentication-limits",
+      "checkedAt": "2026-07-17",
+      "supports": "Planhat documents Bearer API-token authentication and API limits. Relay encrypts the token, makes one bounded request, and does not retry automatically."
+    },
+    {
+      "url": "https://www.planhat.com/developers/ai/mcp-server/",
+      "checkedAt": "2026-07-17",
+      "supports": "Planhat publishes a broad remote MCP server at /v1/mcp with permissioned model operations. Relay deliberately blocks raw MCP and selects only the narrower fixed REST metadata operation."
+    }
+  ]
+}

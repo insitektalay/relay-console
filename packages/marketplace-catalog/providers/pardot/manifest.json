@@ -1,0 +1,217 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "pardot",
+  "name": "Pardot",
+  "category": "marketing_analytics",
+  "description": "Salesforce Account Engagement, formerly Pardot, is a B2B marketing automation platform for prospects, campaigns, scoring, forms, email, and sales alignment. Organizations use it to manage marketing journeys and connect engagement activity with Salesforce CRM.",
+  "agentUseSummary": "Connect one Account Engagement business unit with a customer-owned Salesforce external client app and encrypted OAuth refresh credentials limited to pardot_api and offline refresh access. Relay exposes only the selected prospect's ID and timestamps plus bounded metadata for one selected campaign; contact data, scores, activities, other assets, bulk access, exports, and mutations are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.salesforce.com/marketing/b2b-automation/",
+    "docsUrl": "https://developer.salesforce.com/docs/marketing/pardot/guide/authentication.html",
+    "developerConsoleUrl": "https://login.salesforce.com/",
+    "termsUrl": "https://www.salesforce.com/company/legal/agreements/",
+    "privacyUrl": "https://www.salesforce.com/company/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": ["pardot_api", "refresh_token"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.salesforce.com/services/oauth2/authorize",
+    "tokenUrl": "https://login.salesforce.com/services/oauth2/token",
+    "revocationUrl": "https://login.salesforce.com/services/oauth2/revoke"
+  },
+  "connection": {
+    "types": [
+      "customer_owned_salesforce_oauth_app",
+      "bound_environment",
+      "bound_business_unit",
+      "selected_prospect",
+      "selected_campaign"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PARDOT_ENVIRONMENT",
+        "label": "Account Engagement environment",
+        "required": true,
+        "secret": false,
+        "helpText": "Exactly production, sandbox, or developer; Relay pins the matching Salesforce token and Account Engagement API origins."
+      },
+      {
+        "name": "PARDOT_CLIENT_ID",
+        "label": "Salesforce external client app ID",
+        "required": true,
+        "secret": false,
+        "helpText": "A customer-owned external client app configured only for Account Engagement API and offline refresh access."
+      },
+      {
+        "name": "PARDOT_CLIENT_SECRET",
+        "label": "Salesforce external client app secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay encrypts this customer secret and sends it only to the selected Salesforce token origin."
+      },
+      {
+        "name": "PARDOT_REFRESH_TOKEN",
+        "label": "Salesforce OAuth refresh token",
+        "required": true,
+        "secret": true,
+        "helpText": "A refresh token issued to an SSO-enabled Account Engagement user for the customer-owned app."
+      },
+      {
+        "name": "PARDOT_BUSINESS_UNIT_ID",
+        "label": "Account Engagement business unit ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact 18-character 0Uv business unit ID sent on every API request."
+      },
+      {
+        "name": "PARDOT_PROSPECT_ID",
+        "label": "Selected prospect ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one prospect whose ID and timestamps Relay may read."
+      },
+      {
+        "name": "PARDOT_CAMPAIGN_ID",
+        "label": "Selected campaign ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one campaign whose bounded summary Relay may read."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/pardot/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "pardot_prospect_summary_get",
+      "label": "Read selected prospect summary",
+      "description": "Read only the ID and timestamps for one selected prospect without contact, activity, score, assignment, or custom fields.",
+      "defaultSelected": true
+    },
+    {
+      "id": "pardot_campaign_summary_get",
+      "label": "Read selected campaign summary",
+      "description": "Read bounded organizational metadata for one selected campaign.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "pardot_prospect_summary_get",
+        "label": "Read selected prospect summary",
+        "description": "Read the selected prospect's ID and timestamps while discarding all personal and marketing fields."
+      },
+      {
+        "id": "pardot_campaign_summary_get",
+        "label": "Read selected campaign summary",
+        "description": "Read the selected campaign's ID, name, deletion state, and timestamps while discarding cost, folder, user, CRM, and related fields."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "pardot_private_data",
+        "label": "Expose private marketing data",
+        "description": "Prospect contact, preference, score, activity, custom, assignment, and CRM fields plus campaign cost, folders, users, raw responses, and tokens are excluded."
+      },
+      {
+        "id": "pardot_mutation",
+        "label": "Mutate Account Engagement state",
+        "description": "Prospect changes, campaigns, tags, sends, assets, imports, exports, administration, and every other mutation are blocked."
+      },
+      {
+        "id": "pardot_broad_access",
+        "label": "Use broad Account Engagement access",
+        "description": "Other environments, business units, prospects, campaigns, objects, lists, searches, pages, versions, bulk APIs, arbitrary paths, redirects, downloads, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "pardot_read_only",
+      "label": "Read Only",
+      "description": "Read one selected prospect and campaign through a business-unit-bound customer OAuth grant; private data, broader access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "pardot_prospect_summary_get",
+        "pardot_campaign_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "pardot_private_data",
+        "pardot_mutation",
+        "pardot_broad_access"
+      ]
+    },
+    {
+      "id": "pardot_no_access",
+      "label": "No Access",
+      "description": "Expose no Account Engagement actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "pardot_prospect_summary_get",
+        "pardot_campaign_summary_get",
+        "pardot_private_data",
+        "pardot_mutation",
+        "pardot_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway refreshes encrypted customer-owned Salesforce OAuth credentials server-side and mounts exactly two business-unit-bound projected reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway refreshes encrypted customer-owned Salesforce OAuth credentials server-side and mounts exactly two business-unit-bound projected reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A Salesforce organization with Account Engagement, an SSO-enabled user, customer-owned external client app, OAuth refresh grant, exact business unit, environment, and staging object IDs are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "An authorized Salesforce administrator must create a customer-owned external client app with only Manage Pardot services and offline refresh access, grant it to an SSO-enabled staging user, capture the refresh grant in the provider-console lane, connect the exact business unit/environment/object IDs, then validate both projections, wrong-unit and wrong-host denial, refresh, revocation, replacement, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.salesforce.com/docs/marketing/pardot/guide/authentication.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents Salesforce OAuth with pardot_api, SSO-enabled users, exact 18-character 0Uv business unit IDs, bearer and business-unit headers, and production, sandbox, and developer domains."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/marketing/pardot/guide/getting-started.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents customer external client apps, Manage Pardot services scope, optional refresh scope, exact callback requirements, sensitive client credentials, and environment-specific API hosts."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/marketing/pardot/guide/version5overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents Version 5 selected-object GET paths, required explicit fields, supported HTTP verbs, response caching, and bounded query conventions."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/marketing/pardot/guide/prospect-v5",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents selected Prospect reads, explicit fields, view abilities, and the sensitive prospect field set excluded by Relay."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/marketing/pardot/guide/campaign-v5",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents selected Campaign reads, required view ability, and campaign fields used for the bounded projection."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/marketing/pardot/guide/error-codes",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents invalid OAuth, missing business-unit headers, wrong environment hosts, object-not-found responses, timeouts, and rate limits."
+    }
+  ]
+}

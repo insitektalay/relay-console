@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "usertesting",
+  "name": "UserTesting",
+  "category": "work_management",
+  "description": "UserTesting is a human-insights platform for surveys, interaction tests, moderated research, participant sessions, UX metrics, videos, and transcripts.",
+  "agentUseSummary": "Add customer-owned API client credentials, then let selected agents read at most 25 completed-session summaries and aggregate QXscores for one exact modern test. Relay does not expose participant IDs or demographics, task responses, transcripts, videos, signed URLs, legacy APIs, or writes.",
+  "provider": {
+    "websiteUrl": "https://www.usertesting.com/",
+    "docsUrl": "https://developer.usertesting.com/docs/getting-started",
+    "developerConsoleUrl": "https://developer.usertesting.com/docs/authorization",
+    "termsUrl": "https://www.usertesting.com/terms-of-use",
+    "privacyUrl": "https://www.usertesting.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": ["studies:read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://auth.usertesting.com/oauth2/aus1p3vtd8vtm4Bxv0h8/v1/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_client_credentials", "studies_read_scope"],
+    "credentialRequirements": [
+      { "key": "USERTESTING_CLIENT_ID", "label": "UserTesting API client ID", "secret": true, "required": true, "helpText": "The client ID issued by UserTesting support for an API-enabled workspace member." },
+      { "key": "USERTESTING_CLIENT_SECRET", "label": "UserTesting API client secret", "secret": true, "required": true, "helpText": "The matching client secret; Relay requests only the studies:read scope." }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/usertesting/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "usertesting_read", "label": "Read test results", "description": "Use two pinned Results API v2 reads for at most 25 completed-session summaries and aggregate QXscores, without participant details or media.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "usertesting_read", "label": "Read UserTesting results", "description": "Read bounded completed-session summaries and aggregate QXscores for one exact modern test." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "usertesting_manage", "label": "Change UserTesting", "description": "Studies, sessions, audiences, clips, highlights, and every mutation are outside Relay's V1 contract." },
+      { "id": "usertesting_sensitive_results", "label": "Read participant or media details", "description": "Participant IDs and demographics, task-level responses, transcripts, videos, clips, highlights, and temporary signed URLs are blocked." },
+      { "id": "usertesting_arbitrary_api", "label": "Call arbitrary UserTesting APIs", "description": "Legacy v1, detailed v3, media, transcript, arbitrary path, method, body, and query access are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "usertesting_safe", "label": "Safe", "description": "Two minimized Results API reads run directly. Participant IDs and demographics, task-level responses, transcripts, videos, signed URLs, legacy APIs, and every mutation remain blocked.", "defaultSelected": true, "allowedActions": ["usertesting_read"], "approvalRequiredActions": [], "blockedActions": ["usertesting_manage", "usertesting_sensitive_results", "usertesting_arbitrary_api"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts one read tool with two pinned Results API operations through encrypted customer client credentials." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts one read tool with two pinned Results API operations through encrypted customer client credentials." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned UserTesting Advanced-or-higher workspace, API-enabled member credentials, representative modern test, or safe results fixture is available in this workspace.",
+    "nextAction": "A workspace member obtains client credentials from UserTesting support and stores them through Relay Console, then verifies token issuance, both minimized reads, agent assignment, credential replacement, disconnect, provider-side rotation, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developer.usertesting.com/docs/authorization", "checkedAt": "2026-07-17", "supports": "UserTesting documents support-issued client credentials, the fixed token endpoint, studies:read scope, one-hour access tokens, and Bearer authorization." },
+    { "url": "https://developer.usertesting.com/docs/getting-started", "checkedAt": "2026-07-17", "supports": "UserTesting documents the Results API host, completed-session summary pagination, detailed and media endpoints, transcripts, and aggregate QXscores." },
+    { "url": "https://help.usertesting.com/hc/en-us/articles/34758547616797-Results-API-FAQs", "checkedAt": "2026-07-17", "supports": "UserTesting documents that Results API endpoints are GET-only, return completed sessions, expose sensitive participant and media data on broader endpoints, and are limited to 10 requests per minute." }
+  ]
+}

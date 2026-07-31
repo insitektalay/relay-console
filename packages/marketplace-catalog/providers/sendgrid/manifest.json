@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sendgrid",
+  "name": "SendGrid",
+  "category": "communication",
+  "description": "Transactional and marketing email delivery, verified senders, templates, statistics, and account administration through the Twilio SendGrid v3 API.",
+  "agentUseSummary": "Connect a customer-owned SendGrid API key once, select capabilities, and let agents inspect delivery state, send mail, or use the full supported v3 API under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://sendgrid.com/",
+    "docsUrl": "https://www.twilio.com/docs/sendgrid/api-reference",
+    "developerConsoleUrl": "https://app.sendgrid.com/settings/api_keys",
+    "termsUrl": "https://www.twilio.com/en-us/legal/tos",
+    "privacyUrl": "https://www.twilio.com/en-us/legal/privacy"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["user_owned_api_key"],
+    "credentialRequirements": [
+      { "name": "SENDGRID_API_KEY", "label": "SendGrid API key", "required": true, "secret": true, "helpText": "Create your own Custom Access key with only the permissions the agent needs." },
+      { "name": "SENDGRID_REGION", "label": "SendGrid region", "required": true, "secret": false, "helpText": "Enter GLOBAL or EU for the account or regional subuser." },
+      { "name": "SENDGRID_SENDER_BOUNDARY", "label": "Sender boundary", "required": true, "secret": false, "helpText": "Enter an exact verified sender email or authenticated domain." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "profile", "label": "Account profile", "description": "Read bounded SendGrid account profile metadata.", "defaultSelected": true },
+    { "id": "sender_identities", "label": "Sender identities", "description": "List verified sender identities.", "defaultSelected": true },
+    { "id": "stats", "label": "Delivery statistics", "description": "Read bounded delivery statistics.", "defaultSelected": true },
+    { "id": "send", "label": "Send mail", "description": "Send transactional or template email through the configured sender boundary.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full SendGrid v3 API", "description": "Use the provider-supported SendGrid v3 API within the API key's permissions and configured region.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "sendgrid_read_profile", "label": "Read profile", "description": "Read bounded account profile metadata." },
+      { "id": "sendgrid_read_senders", "label": "Read sender identities", "description": "List verified sender identities." },
+      { "id": "sendgrid_read_stats", "label": "Read statistics", "description": "Read bounded delivery statistics." }
+    ],
+    "approvalRequired": [
+      { "id": "sendgrid_send_mail", "label": "Send mail", "description": "Sending mail requires approval in Safe mode." },
+      { "id": "sendgrid_full_api", "label": "Use full SendGrid API", "description": "Every other SendGrid v3 operation requires approval in Safe mode." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "sendgrid_safe", "label": "Safe", "description": "Bounded reads run directly; sends and all other v3 operations require approval.", "defaultSelected": true, "allowedActions": ["sendgrid_read_profile", "sendgrid_read_senders", "sendgrid_read_stats"], "approvalRequiredActions": ["sendgrid_send_mail", "sendgrid_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The agent may use every selected SendGrid capability without Relay per-action approvals; provider scopes, connection ownership, sender binding, secret isolation, audit evidence, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["sendgrid_read_profile", "sendgrid_read_senders", "sendgrid_read_stats", "sendgrid_send_mail", "sendgrid_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected SendGrid tools and proxies the customer key server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected SendGrid tools and proxies the customer key server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "not_required", "blocker": null, "nextAction": "The customer enters their own SendGrid key, region, and verified sender boundary in Relay Console." },
+  "evidence": [
+    { "url": "https://www.twilio.com/docs/sendgrid/api-reference/how-to-use-the-sendgrid-v3-api/authentication", "checkedAt": "2026-07-13", "supports": "SendGrid v3 uses customer-created Bearer API keys rather than delegated customer OAuth." },
+    { "url": "https://www.twilio.com/docs/sendgrid/api-reference/api-key-permissions", "checkedAt": "2026-07-13", "supports": "SendGrid API keys can be assigned granular permissions that define the provider-enforced authority ceiling." },
+    { "url": "https://www.twilio.com/docs/sendgrid/api-reference/mail-send", "checkedAt": "2026-07-13", "supports": "The Mail Send API supports global and EU origins, verified senders, transactional/templates payloads, at most 1,000 recipients, and a 30 MB request limit." },
+    { "url": "https://www.twilio.com/docs/sendgrid/api-reference", "checkedAt": "2026-07-13", "supports": "The official v3 reference covers sending, scheduled sends, senders/domains, templates, statistics, suppressions, marketing, contacts, subusers, API keys, security, and other account operations." }
+  ]
+}

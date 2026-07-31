@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "liveagent",
+  "name": "LiveAgent",
+  "category": "crm_support",
+  "description": "LiveAgent is a customer-support platform for ticketing, live chat, call center workflows, knowledge bases, customer portals, service routing, automation, and reporting.",
+  "agentUseSummary": "Enter one customer-owned LiveAgent account domain and API v3 key, then let selected agents use content-free ticket operations or approved documented API v3 requests under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.liveagent.com/",
+    "docsUrl": "https://support.liveagent.com/docs/api/v3/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.liveagent.com/terms-and-conditions/",
+    "privacyUrl": "https://www.liveagent.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "LIVEAGENT_DOMAIN",
+        "label": "LiveAgent account domain",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact ladesk.com or liveagent.com hostname for your LiveAgent account."
+      },
+      {
+        "name": "LIVEAGENT_API_KEY",
+        "label": "LiveAgent API v3 key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create an API v3 key with only the ticket read permissions needed for bounded reads; broader operations require corresponding provider permissions."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ticket_metadata_read",
+      "label": "Read ticket operations",
+      "description": "List and inspect bounded ticket operational metadata without subjects, messages, notes, contacts, names, email addresses, phone numbers, custom fields, tags, attachments, or raw records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "LiveAgent API v3",
+      "description": "Use documented API v3 paths and methods allowed by the connected LiveAgent API key.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "liveagent_ticket_list",
+        "label": "List ticket metadata",
+        "description": "List one fixed first page of content-free LiveAgent ticket summaries."
+      },
+      {
+        "id": "liveagent_ticket_get",
+        "label": "Read ticket metadata",
+        "description": "Read one exact LiveAgent ticket through Relay's content-free operational projection."
+      },
+      {
+        "id": "liveagent_full_api",
+        "label": "Use API v3",
+        "description": "Use a documented LiveAgent API v3 operation authorized by the connected API key; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "liveagent_safe",
+      "label": "Safe",
+      "description": "Content-free ticket reads and every broader API v3 operation require approval; account-domain binding, secret isolation, provider permissions, and bounds remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "liveagent_ticket_list",
+        "liveagent_ticket_get",
+        "liveagent_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected key-authorized operations run without Relay per-action approval; account-domain binding, secret isolation, bounds, audits, provider permissions, and LiveAgent limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "liveagent_ticket_list",
+        "liveagent_ticket_get",
+        "liveagent_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted API key only to the validated LiveAgent account API v3 origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted API key only to the validated LiveAgent account API v3 origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer LiveAgent account domain and API v3 key with selected permissions are required for live acceptance.",
+    "nextAction": "A customer creates a minimally permitted API v3 key, enters the account domain and key in Relay, and verifies bounded reads, Safe approval, Dangerous broader-operation behavior, key rotation/invalidation, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.liveagent.com/741982-API-key",
+      "checkedAt": "2026-07-18",
+      "supports": "LiveAgent's official API-key guide documents API v3 keys, per-key permissions, the apikey request header, and the tenant /api/v3/tickets endpoint."
+    },
+    {
+      "url": "https://support.liveagent.com/567924-Documentation",
+      "checkedAt": "2026-07-18",
+      "supports": "LiveAgent's official documentation guide locates API v3 documentation under each YOURDOMAIN.ladesk.com tenant and requires a generated API v3 key with matching permissions."
+    },
+    {
+      "url": "https://support.liveagent.com/170916-Limitation-of-API-to-retrieve-tickets-since-version-551",
+      "checkedAt": "2026-07-18",
+      "supports": "LiveAgent documents limits for API v3 ticket retrieval and recommends narrower filters; Relay independently caps its bounded ticket-list wrapper at 25 records and one page."
+    }
+  ]
+}

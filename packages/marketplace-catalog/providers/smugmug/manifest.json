@@ -1,0 +1,212 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "smugmug",
+  "name": "SmugMug",
+  "category": "content_management",
+  "description": "SmugMug is a photography business platform for client galleries, albums, photo delivery, proofing, print and download sales, websites, and account organization. Photographers use it to preserve, present, share, and sell photos and videos through branded online experiences.",
+  "agentUseSummary": "Connect SmugMug with Relay-owned OAuth 1.0a Full/Modify authority, then let agents discover the provider's self-documenting API v2 resources, read one bounded page, manage one canonical resource, or upload one bounded photo or video. Safe mode runs descriptions and reads directly while approval-gating mutations and uploads; Dangerous mode removes Relay per-action approval without weakening signed authority, fixed origins, canonical URI validation, bounds, audits, or redaction.",
+  "provider": {
+    "websiteUrl": "https://www.smugmug.com/",
+    "docsUrl": "https://api.smugmug.com/api/v2/doc",
+    "developerConsoleUrl": "https://api.smugmug.com/api/developer/apply",
+    "termsUrl": "https://api.smugmug.com/api/v2/doc/pages/termsandconditions.html",
+    "privacyUrl": "https://www.smugmug.com/about/privacy-flickr"
+  },
+  "authentication": {
+    "model": "oauth1",
+    "relayOwned": true,
+    "scopes": [
+      "Full",
+      "Modify"
+    ],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://api.smugmug.com/services/oauth/1.0a/authorize",
+    "tokenUrl": "https://api.smugmug.com/services/oauth/1.0a/getAccessToken",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth1",
+      "full_access",
+      "modify_permission",
+      "self_documenting_hypermedia_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SMUGMUG_API_KEY",
+        "label": "SmugMug API key",
+        "required": true,
+        "secret": false,
+        "helpText": "Relay-owned application key issued after registering an active subscriber account and accepting SmugMug API terms."
+      },
+      {
+        "name": "SMUGMUG_API_SECRET",
+        "label": "SmugMug API secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay-owned application secret held only by Railway and used to sign OAuth 1.0a requests."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/smugmug/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "smugmug_describe",
+      "label": "Discover API resources",
+      "description": "Inspect supported methods, parameters, fields, and relationships for one canonical SmugMug API v2 URI.",
+      "defaultSelected": true,
+      "platformCapability": "smugmug_describe"
+    },
+    {
+      "id": "smugmug_read",
+      "label": "Read SmugMug resources",
+      "description": "Read bounded users, profiles, nodes, folders, albums, images, and every related resource exposed by the API v2 hypermedia contract.",
+      "defaultSelected": true,
+      "platformCapability": "smugmug_read"
+    },
+    {
+      "id": "smugmug_manage",
+      "label": "Manage SmugMug resources",
+      "description": "Create, edit, organize, and delete resources through canonical API v2 URIs.",
+      "defaultSelected": true,
+      "platformCapability": "smugmug_manage"
+    },
+    {
+      "id": "smugmug_upload",
+      "label": "Upload photos and videos",
+      "description": "Upload one bounded photo or video to an explicit album through the official Uploader API.",
+      "defaultSelected": true,
+      "platformCapability": "smugmug_upload"
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "smugmug_describe",
+        "label": "Describe SmugMug resources",
+        "description": "Use the provider's self-documenting OPTIONS contract for one canonical API URI."
+      },
+      {
+        "id": "smugmug_read",
+        "label": "Read SmugMug",
+        "description": "Read one bounded page from any canonical API v2 resource exposed by the connected account."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "smugmug_manage",
+        "label": "Manage SmugMug",
+        "description": "Create, update, or delete one API v2 resource; Safe mode requires approval."
+      },
+      {
+        "id": "smugmug_upload",
+        "label": "Upload SmugMug media",
+        "description": "Upload one bounded photo or video into one explicit album; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "smugmug_secret_exposure",
+        "label": "Expose SmugMug secrets",
+        "description": "Consumer credentials, OAuth token pairs, cookies, and signed authorization headers are never exposed."
+      },
+      {
+        "id": "smugmug_unofficial_interface",
+        "label": "Use unofficial SmugMug interfaces",
+        "description": "Legacy APIs removed by SmugMug, private application calls, scraping, browser automation, arbitrary origins, and non-canonical paths are blocked."
+      },
+      {
+        "id": "smugmug_unbounded_transfer",
+        "label": "Transfer unbounded content",
+        "description": "Each request is bounded to one canonical resource, JSON bodies to 2 MB, responses to 5 MB, and uploads to 25 MB."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "smugmug_safe",
+      "label": "Safe",
+      "description": "Self-description and bounded reads run directly; every resource mutation and upload requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "smugmug_describe",
+        "smugmug_read"
+      ],
+      "approvalRequiredActions": [
+        "smugmug_manage",
+        "smugmug_upload"
+      ],
+      "blockedActions": [
+        "smugmug_secret_exposure",
+        "smugmug_unofficial_interface",
+        "smugmug_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized API v2 operation and bounded upload runs without Relay per-action approval; ownership, Full/Modify authority, fixed origins, canonical URIs, bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "smugmug_describe",
+        "smugmug_read",
+        "smugmug_manage",
+        "smugmug_upload"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "smugmug_secret_exposure",
+        "smugmug_unofficial_interface",
+        "smugmug_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "OpenClaw receives typed describe, read, manage, and upload wrappers; OAuth key and token secrets remain attached only by Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Hermes receives the same bounded wrappers, selected capabilities, approval profile, and cloud-owned connection authority."
+    }
+  ],
+  "availability": "provider_setup_required",
+  "providerSetup": {
+    "status": "external_setup_required",
+    "blocker": "SmugMug requires an active paid subscriber account, authenticated developer registration, API terms acceptance, and a distinct key/secret for the Relay application. The provider console was not opened and no account, key, or secret was created or captured in this worker task.",
+    "nextAction": "The provider-console acceptance owner should register Relay as a SmugMug API v2 application using callback `https://api.relayconsole.work/api/v1/marketplace/oauth/smugmug/callback`, store the issued key and secret as `SMUGMUG_API_KEY` and `SMUGMUG_API_SECRET` in the approved Railway environment, then run staging Full/Modify consent, authuser, OPTIONS, read, mutation, upload, and disconnect acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://api.smugmug.com/api/v2/doc",
+      "checkedAt": "2026-07-17",
+      "supports": "SmugMug describes API v2 as a REST, discoverable, self-documenting integration surface available to current subscribers, with live resource browsers and user, profile, image, upload, node, album, album-image, and folder references."
+    },
+    {
+      "url": "https://api.smugmug.com/api/v2/doc/tutorial/authorization.html",
+      "checkedAt": "2026-07-17",
+      "supports": "SmugMug documents OAuth 1.0a HMAC-SHA1, five-minute single-use request tokens, non-expiring access tokens, exact request/authorization/access-token endpoints, and Full/Public plus Read/Add/Modify permission tiers."
+    },
+    {
+      "url": "https://api.smugmug.com/api/v2/doc/tutorial/oauth/web.html",
+      "checkedAt": "2026-07-17",
+      "supports": "The official web-app example demonstrates Full/Modify authorization, callback verifier exchange, signed canonical URI calls, and `/api/v2!authuser` account verification."
+    },
+    {
+      "url": "https://api.smugmug.com/api/v2/doc/reference/upload.html",
+      "checkedAt": "2026-07-17",
+      "supports": "SmugMug documents the separate HTTPS Uploader API, OAuth Authorization-header signing, required album URI, response type and version headers, and optional media metadata."
+    },
+    {
+      "url": "https://api.smugmug.com/api/developer/apply",
+      "checkedAt": "2026-07-17",
+      "supports": "SmugMug requires an authenticated account and API terms acceptance to apply for an application-specific API key; API versions 1.3.0 and earlier were removed in 2025."
+    }
+  ]
+}

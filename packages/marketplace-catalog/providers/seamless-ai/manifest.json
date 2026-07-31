@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "seamless-ai",
+  "name": "Seamless.AI",
+  "category": "crm_support",
+  "description": "Seamless.AI is a B2B sales intelligence platform for finding and enriching company and professional contact data. Revenue teams use it to research accounts, build prospecting workflows and support outbound sales operations.",
+  "agentUseSummary": "Connect a dedicated customer-owned Seamless.AI API key with Public API v1 access. Agents can search at most five companies by one explicit name or domain and receive reduced company-only data; contact data, research, outreach, lists, campaigns, provider-hosted MCP, bulk and raw access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://seamless.ai/",
+    "docsUrl": "https://docs.seamless.ai/introduction",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://seamless.ai/policies/public-api-terms-of-use",
+    "privacyUrl": "https://seamless.ai/policies/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["public_api_v1"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "public_api_v1_only",
+      "manual_provider_rotation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SEAMLESS_API_KEY",
+        "label": "Seamless.AI API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated key with Public API v1 access. Relay encrypts it and permits only one fixed bounded company-search endpoint."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "company_search",
+      "label": "Search companies",
+      "description": "Search by one explicit company name or root domain, capped at five reduced company-only results without starting research.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "seamless_company_search",
+        "label": "Search companies",
+        "description": "Search for at most five companies by one explicit name or root domain and return reduced company-only data without starting research or exposing contacts."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "seamless_people_contact_data",
+        "label": "Block people and contact data",
+        "description": "Contact search, personal and professional contact details, profiles, saved contacts and people enrichment are unavailable."
+      },
+      {
+        "id": "seamless_research_outreach_campaigns",
+        "label": "Block research and outreach",
+        "description": "Credit-consuming research, lists, exports, CRM sync, email, calls, tasks, templates, campaigns, saved searches and outreach are unavailable."
+      },
+      {
+        "id": "seamless_mcp_admin_bulk_raw",
+        "label": "Block MCP, administration, bulk, and raw access",
+        "description": "Provider-hosted MCP, resources, API-key management, arbitrary endpoints, webhooks, bulk input, retries, pagination, browser sessions and unrestricted tools are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "seamless_safe",
+      "label": "Safe",
+      "description": "One bounded company-only search runs automatically. People data, research, outreach, campaigns, MCP, administration, bulk and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["seamless_company_search"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "seamless_people_contact_data",
+        "seamless_research_outreach_campaigns",
+        "seamless_mcp_admin_bulk_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same bounded company-only search runs without approval; the broad API key never expands Relay's fixed endpoint, input or output contract.",
+      "defaultSelected": false,
+      "allowedActions": ["seamless_company_search"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "seamless_people_contact_data",
+        "seamless_research_outreach_campaigns",
+        "seamless_mcp_admin_bulk_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly one bounded company-only search while Railway alone holds the customer API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly one bounded company-only search while Railway alone holds the customer API key."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer Seamless.AI account, a dedicated key with Public API v1 access, current API-terms/privacy review, a lawful B2B purpose, Railway staging entry, live schema validation and credential-lifecycle testing remain for a separate authorized provider task.",
+    "nextAction": "An authorized provider task must confirm the customer's permitted B2B purpose and privacy obligations, create a dedicated Public API v1 key in Seamless.AI, store it in Railway staging, and validate only the fixed company-search endpoint with one name or domain, the five-result cap, reduced company-only output, no contact fields, no research job or credit consumption, no pagination/retry/MCP, rate-limit handling, encrypted-copy deletion, provider-side key rotation and post-rotation denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.seamless.ai/introduction",
+      "checkedAt": "2026-07-18",
+      "supports": "Seamless.AI documents its REST API for company/contact search and research, API-key or OAuth authentication, polling/webhooks and a separate provider-hosted MCP surface."
+    },
+    {
+      "url": "https://docs.seamless.ai/authentication/api-keys",
+      "checkedAt": "2026-07-18",
+      "supports": "Seamless.AI documents customer-created API keys in Public API settings, the Token header and the fixed production origin https://api.seamless.ai/api/client/v1."
+    },
+    {
+      "url": "https://docs.seamless.ai/searchcompanies",
+      "checkedAt": "2026-07-18",
+      "supports": "Seamless.AI documents POST /search/companies, explicit company-name/domain filters, match modes, pagination and the response schema. Relay narrows this to one filter, at most five first-page results and reduced company-only fields."
+    },
+    {
+      "url": "https://docs.seamless.ai/rate-limits-and-credits",
+      "checkedAt": "2026-07-18",
+      "supports": "Seamless.AI documents organization-level rate limits, quota and credit headers, 429 handling, and that research endpoints consume credits while search does not start research jobs. Relay never retries or starts research."
+    },
+    {
+      "url": "https://docs.seamless.ai/mcp/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Seamless.AI documents a broad OAuth 2.1 or API-key MCP server with MCP scope. Relay blocks the entire provider-hosted MCP surface rather than mounting its contact, research, campaign or outreach tools."
+    },
+    {
+      "url": "https://seamless.ai/policies/public-api-terms-of-use",
+      "checkedAt": "2026-07-18",
+      "supports": "Seamless.AI's current public API terms authorize compliant developer applications but prohibit substitutes, unauthorized harvesting/caching, spam, bulk scraping, resale and excessive use, and impose consent, privacy, retention and security duties."
+    },
+    {
+      "url": "https://seamless.ai/policies/privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "Seamless.AI's current privacy policy describes professional contact and company data, linked accounts, marketing uses, rights requests, security, retention and international transfers. Relay's V1 returns no individual contact data."
+    }
+  ]
+}

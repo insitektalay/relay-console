@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "custify",
+  "name": "Custify",
+  "category": "developer",
+  "description": "Custify is a customer-success platform for company and person profiles, health, lifecycle management, engagement, retention, expansion, and reporting.",
+  "agentUseSummary": "Connect one exact Custify API environment with a customer-owned key, then let agents list only bounded projected segment identity metadata under approval. Relay excludes goals, tags, membership, customer records, values, engagement content, writes, deletes, bulk, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.custify.com/",
+    "docsUrl": "https://docs.custify.com/",
+    "developerConsoleUrl": "https://docs.custify.com/",
+    "termsUrl": "https://www.custify.com/terms",
+    "privacyUrl": "https://www.custify.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "customer_owned_api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_api_key",
+      "exact_environment_scope",
+      "custify_origin_binding",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CUSTIFY_API_KEY",
+        "label": "Custify API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated key and store it only through Relay's encrypted flow."
+      },
+      {
+        "name": "CUSTIFY_API_ORIGIN",
+        "label": "Custify API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact HTTPS custify.com API origin shown in Settings → Developers → API Key."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "segment_inventory",
+      "label": "List segments",
+      "description": "List at most 50 segment IDs, names, types, and timestamps without goals, tags, membership, or customer data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "custify_segments_list",
+        "label": "List segments",
+        "description": "List bounded projected segment identity metadata from one exact Custify environment."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "custify_customer_person_data",
+        "label": "Access customer or person data",
+        "description": "Companies, people, attributes, health, lifecycle, revenue, NPS, tickets, files, and customer values are blocked."
+      },
+      {
+        "id": "custify_private_engagement_data",
+        "label": "Access private engagement data",
+        "description": "Segment goals, tags, memberships, notes, tasks, comments, playbooks, events, surveys, and content are blocked."
+      },
+      {
+        "id": "custify_mutation_delete",
+        "label": "Mutate or delete Custify data",
+        "description": "Creates, updates, deletes, imports, event tracking, scores, deals, replies, uploads, and administration are blocked."
+      },
+      {
+        "id": "custify_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, arbitrary origins, filters, sorting, pagination beyond page one, exports, retries, and response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "custify_segment_inventory_safe",
+      "label": "Safe",
+      "description": "The bounded segment read requires approval; customer, engagement, mutation, bulk, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["custify_segments_list"],
+      "blockedActions": [
+        "custify_customer_person_data",
+        "custify_private_engagement_data",
+        "custify_mutation_delete",
+        "custify_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded segment read runs without Relay per-action approval; exact origin/path/query binding, projection, caps, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["custify_segments_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "custify_customer_person_data",
+        "custify_private_engagement_data",
+        "custify_mutation_delete",
+        "custify_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned API key to one exact Custify origin and a projected segment wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned API key to one exact Custify origin and a projected segment wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Custify administrator must create a dedicated API key, record the exact API origin, and store both through Relay. No account or key creation, credential capture, live request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized administrator creates the key, stores it with the exact origin through Relay, then verifies health, one approved segment list, throttling, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.custify.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Custify documents Bearer API-key authentication, customer-specific API origins, full read/write authority, and GET /segment with type, itemsPerPage, and page inputs. Relay fixes page one and projects only segment identity metadata."
+    },
+    {
+      "url": "https://docs.custify.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Custify's segment response includes IDs, names, goals, tags, type, and timestamps. Relay omits goals and tags and blocks membership and customer records."
+    },
+    {
+      "url": "https://www.custify.com/terms",
+      "checkedAt": "2026-07-17",
+      "supports": "Custify identifies docs.custify.com as its technical documentation. Relay follows only the documented endpoint and does not automate private product surfaces."
+    }
+  ]
+}

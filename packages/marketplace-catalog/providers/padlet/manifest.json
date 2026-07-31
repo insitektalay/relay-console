@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "padlet",
+  "name": "Padlet",
+  "category": "content_creative",
+  "description": "Padlet is a visual collaboration platform for collecting, organizing, and sharing ideas in creative work and education. People use boards for posts and discussions, while digital sandboxes support whiteboards, lessons, activities, media, and interactive projects.",
+  "agentUseSummary": "Enter a personal access token from the user's own paid Padlet account, then let agents use every documented Public API operation under Safe or Dangerous policy; the token applies only to the user's individual quota and authorized boards.",
+  "provider": {
+    "websiteUrl": "https://padlet.com/",
+    "docsUrl": "https://docs.padlet.dev/reference",
+    "developerConsoleUrl": "https://padlet.com/dashboard/settings/developers",
+    "termsUrl": "https://legal.padlet.com/terms",
+    "privacyUrl": "https://legal.padlet.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "PADLET_API_KEY",
+        "label": "Padlet personal access token",
+        "required": true,
+        "secret": true,
+        "helpText": "In Padlet, open Settings > Personal account > Developer, generate the API key, and paste it here. A paid individual account is required."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "account_read", "label": "Read account", "description": "Read the connected user's profile, boards, organizations, and organization membership data." },
+    { "id": "board_read", "label": "Read boards", "description": "Read administered boards, posts, sections, comments, attachments, and AI board creation status." },
+    { "id": "content_write", "label": "Add board content", "description": "Create posts, comments, and reactions where the connected Padlet user has permission." },
+    { "id": "ai_board_create", "label": "Create AI boards", "description": "Create AI recipe boards from bounded instructions and monitor their completion." }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "padlet_get_current_user", "label": "Read current user", "description": "Read the connected user's profile, boards, and organizations." },
+      { "id": "padlet_get_board", "label": "Read board", "description": "Read one administered board with selected posts, sections, and comments." },
+      { "id": "padlet_get_organization", "label": "Read organization", "description": "Read one administered organization and optionally its users." },
+      { "id": "padlet_get_user_in_organization", "label": "Read organization member", "description": "Read one user's information and boards in an administered organization." },
+      { "id": "padlet_get_post_attachment_data", "label": "Read post attachment", "description": "Read attachment metadata for one accessible post." },
+      { "id": "padlet_get_ai_recipe_board_status", "label": "Read AI board status", "description": "Read the status of one AI recipe board creation request." }
+    ],
+    "approvalRequired": [
+      { "id": "padlet_create_post", "label": "Create post", "description": "Create one post on an administered board; Safe mode requires approval." },
+      { "id": "padlet_create_comment", "label": "Create comment", "description": "Create one comment on an accessible post; Safe mode requires approval." },
+      { "id": "padlet_create_reaction", "label": "Create reaction", "description": "Create one reaction on a supported post; Safe mode requires approval." },
+      { "id": "padlet_create_ai_recipe_board", "label": "Create AI recipe board", "description": "Ask Padlet to generate one board from bounded instructions; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "padlet_safe",
+      "label": "Safe",
+      "description": "Bounded profile, organization, board, attachment, and status reads run directly; every post, comment, reaction, and AI board creation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["padlet_get_current_user", "padlet_get_board", "padlet_get_organization", "padlet_get_user_in_organization", "padlet_get_post_attachment_data", "padlet_get_ai_recipe_board_status"],
+      "approvalRequiredActions": ["padlet_create_post", "padlet_create_comment", "padlet_create_reaction", "padlet_create_ai_recipe_board"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected token-authorized Padlet operation runs without Relay per-action approval; ownership, fixed origin, bounds, audits, redaction, administrator access, personal quota, subscription, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["padlet_get_current_user", "padlet_get_board", "padlet_get_organization", "padlet_get_user_in_organization", "padlet_get_post_attachment_data", "padlet_get_ai_recipe_board_status", "padlet_create_post", "padlet_create_comment", "padlet_create_reaction", "padlet_create_ai_recipe_board"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Padlet tools through the authenticated server-side connector." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Padlet tools through the authenticated server-side connector." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer Padlet personal access token from an eligible paid individual account is available for production acceptance.",
+    "nextAction": "A subscribed user generates the API key under Settings > Personal account > Developer, connects it in Relay Console, then runs current-user health, bounded reads, Safe write denial plus approval, Dangerous writes, redaction, token rotation, disconnect, and post-disconnect denial checks."
+  },
+  "evidence": [
+    {
+      "url": "https://padlet.help/l/en/article/3933026qoo-public-api",
+      "checkedAt": "2026-07-14",
+      "supports": "Padlet documents its Public API, paid-subscription requirement, personal access token generation, individual-account quota boundary, and support for posts, comments, reactions, and post retrieval."
+    },
+    {
+      "url": "https://docs.padlet.dev/reference/authentication",
+      "checkedAt": "2026-07-14",
+      "supports": "Padlet authenticates every Public API request with a customer-generated key in the X-API-KEY header and limits board access to padlets where the user is an administrator."
+    },
+    {
+      "url": "https://docs.padlet.dev/llms.txt",
+      "checkedAt": "2026-07-14",
+      "supports": "Padlet's current machine-readable documentation indexes ten endpoints covering user, organization, board, post, attachment, comment, reaction, and AI recipe board operations."
+    },
+    {
+      "url": "https://docs.padlet.dev/reference/error-handling",
+      "checkedAt": "2026-07-14",
+      "supports": "Padlet documents JSON API error codes, authorization and subscription failures, and a limit of 250 requests per minute per IP."
+    },
+    {
+      "url": "https://padlet.com/",
+      "checkedAt": "2026-07-14",
+      "supports": "Padlet describes visual collaboration through boards that collect and share ideas and sandboxes used for whiteboards, lessons, and activities."
+    }
+  ]
+}

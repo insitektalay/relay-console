@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "jira-service-management",
+  "name": "Jira Service Management",
+  "category": "crm_support",
+  "description": "Jira Service Management is Atlassian's service management platform for IT support, customer service, and operations teams. It organizes service desks, request portals, queues, approvals, SLAs, incidents, changes, assets, knowledge articles, customers, and organizations.",
+  "agentUseSummary": "Connect one Jira Service Management Cloud site through Relay-owned Atlassian OAuth, then let agents read or manage its authorized service work under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.atlassian.com/software/jira/service-management",
+    "docsUrl": "https://developer.atlassian.com/cloud/jira/service-desk/rest/intro/",
+    "developerConsoleUrl": "https://developer.atlassian.com/console/myapps/",
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "offline_access",
+      "read:me",
+      "read:jira-work",
+      "manage:jira-project",
+      "read:servicedesk-request",
+      "write:servicedesk-request",
+      "manage:servicedesk-customer",
+      "read:knowledgebase:jira-service-management",
+      "read:request.attachment:jira-service-management",
+      "read:request.comment:jira-service-management",
+      "read:requesttype:jira-service-management",
+      "write:requesttype:jira-service-management",
+      "read:user:jira"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.atlassian.com/authorize",
+    "tokenUrl": "https://auth.atlassian.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/jira-service-management/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "service_management_read",
+      "label": "Read service work",
+      "description": "Read authorized service desks, requests, request types, queues, approvals, SLAs, knowledge articles, customers, and organizations.",
+      "defaultSelected": true
+    },
+    {
+      "id": "service_management_manage",
+      "label": "Manage service work",
+      "description": "Create and manage authorized requests, comments, attachments, approvals, transitions, participants, subscriptions, feedback, customers, organizations, and request types.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "jsm_read",
+        "label": "Read service work",
+        "description": "Read bounded Jira Service Management resources from the connected site."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "jsm_manage",
+        "label": "Manage service work",
+        "description": "Create, update, transition, approve, attach, administer, or delete Jira Service Management resources."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "jsm_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth credentials never enter agent-visible requests or results."
+      },
+      {
+        "id": "jsm_other_site",
+        "label": "Access another site",
+        "description": "Every request remains pinned to the Jira Cloud site selected during sign-in."
+      },
+      {
+        "id": "jsm_other_product",
+        "label": "Call another Atlassian product API",
+        "description": "Relay permits only the documented Jira Service Management Cloud REST boundary."
+      },
+      {
+        "id": "jsm_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds queries, uploads, request bodies, responses, redirects, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "jira_service_management_safe",
+      "label": "Safe",
+      "description": "Reads run directly. Every request creation, update, transition, approval, upload, customer change, organization change, and delete requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["jsm_read"],
+      "approvalRequiredActions": ["jsm_manage"],
+      "blockedActions": [
+        "jsm_secret_exposure",
+        "jsm_other_site",
+        "jsm_other_product",
+        "jsm_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Jira Service Management action authorized by the connected account runs without Relay per-action approval. Site binding, credential protection, request bounds, audits, and Atlassian permissions still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["jsm_read", "jsm_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "jsm_secret_exposure",
+        "jsm_other_site",
+        "jsm_other_product",
+        "jsm_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts site-bound Jira Service Management REST tools and attaches refreshed OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts site-bound Jira Service Management REST tools and attaches refreshed OAuth tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Atlassian developer-console OAuth 2.0 integration and Railway Jira Service Management client credentials are not configured yet.",
+    "nextAction": "Create or update the Relay Console Atlassian 3LO integration, add the Jira Service Management scopes, enable resource-level grants and sharing, register https://api.relayconsole.work/api/v1/marketplace/oauth/jira-service-management/callback, store JIRA_SERVICE_MANAGEMENT_CLIENT_ID and JIRA_SERVICE_MANAGEMENT_CLIENT_SECRET in Railway, deploy, and run live connect, read, Safe approval, Dangerous mutation, refresh, disconnect, and post-disconnect denial checks."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.atlassian.com/cloud/jira/platform/oauth-2-3lo-apps/",
+      "checkedAt": "2026-07-15",
+      "supports": "Atlassian documents confidential authorization code exchange, exact callbacks, resource-level grants, accessible-resources site discovery, cloud-ID routing, sharing, and rotating offline refresh tokens."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/jira/service-desk/scopes-for-oauth-2-3LO-and-forge-apps/",
+      "checkedAt": "2026-07-15",
+      "supports": "Atlassian publishes classic and granular OAuth scopes for Jira Service Management requests, customers, knowledge, attachments, comments, users, and request types."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/jira/service-desk/rest/intro/",
+      "checkedAt": "2026-07-15",
+      "supports": "The current Jira Service Management Cloud REST API covers assets workspaces, customers, product information, knowledge bases, organizations, requests, request types, and service desks."
+    },
+    {
+      "url": "https://dac-static.atlassian.com/cloud/jira/service-desk/swagger.v3.json?_v=1.8516.54",
+      "checkedAt": "2026-07-15",
+      "supports": "Atlassian's current OpenAPI document exposes 74 public operations under the fixed /rest/servicedeskapi boundary."
+    }
+  ]
+}

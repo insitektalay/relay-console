@@ -1,0 +1,194 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "later",
+  "name": "Later",
+  "category": "communication",
+  "description": "Later provides social media management and influencer marketing products. Its public Reporting API exposes Later Influence campaign performance, creator, platform, post, and time-series analytics for contracted instances.",
+  "agentUseSummary": "Add customer-owned Later Influence Reporting API credentials, then let agents inspect bounded, identity- and content-free instance and campaign performance through three approval-gated server-side tools.",
+  "provider": {
+    "websiteUrl": "https://later.com/",
+    "docsUrl": "https://docs.reporting.api.later.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://later.com/terms/",
+    "privacyUrl": "https://later.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://reporting.api.later.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_credentials",
+      "server_side_json_token_exchange",
+      "twelve_hour_jwt_access_token",
+      "contract_bound_instance_scope",
+      "fixed_reporting_api_origin",
+      "provider_managed_credential_revocation"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "LATER_CLIENT_ID",
+        "label": "Later Reporting API client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the client ID issued for the customer-owned Later Influence Reporting API contract."
+      },
+      {
+        "name": "LATER_CLIENT_SECRET",
+        "label": "Later Reporting API client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay encrypts the matching client secret and uses it only in trusted server-side token exchange."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "influence_analytics_read",
+      "label": "Read bounded influence analytics",
+      "description": "Read Later Influence instance IDs and fixed aggregate or campaign-level engagement, impression, and reach metrics without identity, content, financial, affiliate, or conversion data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "later_instance_id_list",
+        "label": "List Later Influence instance IDs",
+        "description": "List at most 25 instance IDs bound to the Reporting API client without names or cursors."
+      },
+      {
+        "id": "later_instance_performance_get",
+        "label": "Get aggregate Later Influence performance",
+        "description": "Read aggregate engagements, impressions, and reach for an exact date window of at most 31 inclusive days."
+      },
+      {
+        "id": "later_campaign_performance_list",
+        "label": "List Later Influence campaign performance",
+        "description": "List at most 25 campaign IDs with engagements, impressions, and reach for one exact token-bound instance and date window of at most 31 inclusive days."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "later_identity_or_content",
+        "label": "Read creator identity or social content",
+        "description": "Creator names, handles, audience data, post text, URLs, media, campaign names, and other identity or content are outside V1."
+      },
+      {
+        "id": "later_financial_or_conversion",
+        "label": "Read financial or conversion analytics",
+        "description": "Cost, spend, ROI, paid-media, tracking-link, affiliate, sales, and conversion metrics are outside V1."
+      },
+      {
+        "id": "later_social_management",
+        "label": "Manage Later Social",
+        "description": "Scheduling, publishing, media-library, Link in Bio, Inbox, social-profile, team, and account operations are outside the documented Reporting API and V1."
+      },
+      {
+        "id": "later_raw_or_bulk",
+        "label": "Use arbitrary Later APIs",
+        "description": "Arbitrary paths, metrics, filters, sorting, cursors, pagination, raw responses, broad sync, and export are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "later_safe",
+      "label": "Safe",
+      "description": "All three reporting reads require approval; identity, content, financial/conversion analytics, social management, arbitrary APIs, pagination, and export remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "later_instance_id_list",
+        "later_instance_performance_get",
+        "later_campaign_performance_list"
+      ],
+      "blockedActions": [
+        "later_identity_or_content",
+        "later_financial_or_conversion",
+        "later_social_management",
+        "later_raw_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three reporting reads run directly; fixed origin and metrics, exact instance validation, redaction, first-page and date bounds, audits, and the provider's 120-request-per-minute-per-IP limit remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "later_instance_id_list",
+        "later_instance_performance_get",
+        "later_campaign_performance_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "later_identity_or_content",
+        "later_financial_or_conversion",
+        "later_social_management",
+        "later_raw_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges encrypted customer-owned credentials for a 12-hour JWT and mounts only three bounded, redacted Reporting API reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges encrypted customer-owned credentials for a 12-hour JWT and mounts only three bounded, redacted Reporting API reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Later Influence access and Reporting API client credentials must be issued through the customer's Later account team. No approved customer credentials are available for live acceptance.",
+    "nextAction": "An eligible customer must request Reporting API access, connect the issued client ID and secret, and then validate token exchange, token-bound instance scope, metric redaction, date and page bounds, rate limiting, credential replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.reporting.api.later.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Later Influence Reporting API surface: instance, campaign, platform, creator, post, time-series, paid-media, conversion, filtering, and cursor-pagination analytics."
+    },
+    {
+      "url": "https://docs.reporting.api.later.com/getting-started",
+      "checkedAt": "2026-07-18",
+      "supports": "Customer-issued clientId/clientSecret prerequisites, JSON token exchange at the fixed reporting origin, JWT bearer transport, and v2 instance and campaign-performance routes."
+    },
+    {
+      "url": "https://docs.reporting.api.later.com/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Trusted server-side use only, confidential credential handling, 12-hour JWT expiry, re-authentication, and credential-bound instance scope."
+    },
+    {
+      "url": "https://docs.reporting.api.later.com/querying",
+      "checkedAt": "2026-07-18",
+      "supports": "Required performance dates, metric parameters, cursor pagination, previous-day freshness, eventual consistency, and instance/campaign hierarchy."
+    },
+    {
+      "url": "https://docs.reporting.api.later.com/errors",
+      "checkedAt": "2026-07-18",
+      "supports": "Problem-detail errors, 401/403 handling, and the 120-requests-per-minute-per-IP rate limit."
+    }
+  ],
+  "securityNotes": [
+    "Relay uses customer-owned Reporting API credentials only on trusted server-side infrastructure; neither credential nor the short-lived JWT is exposed to browser or agent code.",
+    "The connector returns only token-bound instance IDs and fixed engagements, impressions, and reach metrics; creator identity, campaign names, social content, financial, paid-media, affiliate, tracking, sales, and conversion data are stripped or never requested.",
+    "Requests use only https://reporting.api.later.com, reject redirects, cap responses at 1 MB, validate instance IDs, pin performance_date and fixed metrics, limit date windows to 31 inclusive days, and return only the first 25 resources without exposing cursors.",
+    "Later Social scheduling, publishing, media, Inbox, Link in Bio, social-profile and account operations; arbitrary paths, filters, sorting, metrics, pagination, raw APIs, broad sync, and export are unavailable.",
+    "The Reporting API is normally current through the previous day and eventually consistent. Relay labels that freshness and propagates the provider's 120-request-per-minute-per-IP limit."
+  ]
+}

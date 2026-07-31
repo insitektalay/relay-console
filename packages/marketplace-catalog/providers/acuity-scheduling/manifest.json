@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "acuity-scheduling",
+  "name": "Acuity Scheduling",
+  "category": "work_management",
+  "description": "Acuity Scheduling is an online appointment-booking platform for businesses that manage calendars, availability, intake forms, payments, packages, and client appointments. Teams use it to let customers self-schedule services while keeping booking operations and client records organized.",
+  "agentUseSummary": "Connect one Acuity Scheduling account, then choose which agents can read or manage its authorized scheduling data under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://acuityscheduling.com/",
+    "docsUrl": "https://developers.acuityscheduling.com/",
+    "developerConsoleUrl": "https://acuityscheduling.com/oauth2/clients",
+    "termsUrl": "https://www.squarespace.com/terms-of-service",
+    "privacyUrl": "https://www.squarespace.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["api-v1"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://acuityscheduling.com/oauth2/authorize",
+    "tokenUrl": "https://acuityscheduling.com/oauth2/token"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/acuity-scheduling/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "schedule_read", "label": "Read scheduling data", "description": "Read appointments, availability, clients, calendars, appointment types, forms, products, orders, webhooks, and account metadata.", "defaultSelected": true },
+    { "id": "schedule_manage", "label": "Manage scheduling", "description": "Book, update, reschedule, cancel, or mark appointments as no-shows; create or remove blocked time; update clients; and manage webhooks.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "acuity_scheduling_api_read", "label": "Read Acuity Scheduling", "description": "Read bounded authorized Acuity Scheduling data." }],
+    "approvalRequired": [{ "id": "acuity_scheduling_api_manage", "label": "Manage Acuity Scheduling", "description": "Change appointments, blocked time, clients, or webhooks." }],
+    "blocked": [
+      { "id": "acuity_scheduling_secret_exposure", "label": "Expose credentials", "description": "OAuth credentials never enter agent-visible requests or results." },
+      { "id": "acuity_scheduling_unofficial_origin", "label": "Use another API origin", "description": "Every request stays on Acuity Scheduling's documented API origin." },
+      { "id": "acuity_scheduling_unsupported_endpoint", "label": "Call another endpoint", "description": "Relay permits only Acuity Scheduling's documented public API routes." },
+      { "id": "acuity_scheduling_unbounded_transfer", "label": "Run an unbounded transfer", "description": "Relay bounds queries, request bodies, responses, redirects, nesting, and execution time." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "acuity_scheduling_safe", "label": "Safe", "description": "Reads run directly. Every appointment, blocked-time, client, or webhook change requires approval.", "defaultSelected": true, "allowedActions": ["acuity_scheduling_api_read"], "approvalRequiredActions": ["acuity_scheduling_api_manage"], "blockedActions": ["acuity_scheduling_secret_exposure", "acuity_scheduling_unofficial_origin", "acuity_scheduling_unsupported_endpoint", "acuity_scheduling_unbounded_transfer"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected operation authorized by the connected Acuity Scheduling account runs without Relay per-action approval. Provider authority, exact routes, bounds, credential protection, and audits still apply.", "defaultSelected": false, "allowedActions": ["acuity_scheduling_api_read", "acuity_scheduling_api_manage"], "approvalRequiredActions": [], "blockedActions": ["acuity_scheduling_secret_exposure", "acuity_scheduling_unofficial_origin", "acuity_scheduling_unsupported_endpoint", "acuity_scheduling_unbounded_transfer"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts account-bound Acuity Scheduling REST tools and attaches OAuth credentials server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts account-bound Acuity Scheduling REST tools and attaches OAuth credentials server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Acuity Scheduling OAuth application and production client credentials are not configured yet.",
+    "nextAction": "Register the Relay Console OAuth client at Acuity Scheduling, set https://api.relayconsole.work/api/v1/marketplace/oauth/acuity-scheduling/callback, store ACUITY_SCHEDULING_CLIENT_ID and ACUITY_SCHEDULING_CLIENT_SECRET in Railway, deploy, and run live connect, read, Safe approval, Dangerous mutation, disconnect, and post-disconnect denial checks."
+  },
+  "evidence": [
+    { "url": "https://developers.acuityscheduling.com/docs/oauth2", "checkedAt": "2026-07-15", "supports": "Acuity documents its OAuth authorization-code flow for multi-account applications, api-v1 scope, exact authorization and token endpoints, GET /api/v1/me, and upstream disconnect endpoint." },
+    { "url": "https://developers.acuityscheduling.com/reference", "checkedAt": "2026-07-15", "supports": "Acuity documents appointments, availability, calendars, forms, clients, blocked time, certificates, products, orders, and webhooks under its public API v1 origin." },
+    { "url": "https://developers.acuityscheduling.com/docs/webhooks", "checkedAt": "2026-07-15", "supports": "Acuity documents dynamic webhooks for appointment and order events and a limit of 25 registered webhooks." },
+    { "url": "https://developers.acuityscheduling.com/reference/api-errors", "checkedAt": "2026-07-15", "supports": "Acuity documents API validation errors and limits of 10 requests per second and 20 concurrent connections per IP." }
+  ]
+}

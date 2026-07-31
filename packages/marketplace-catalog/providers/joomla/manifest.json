@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "joomla",
+  "name": "Joomla",
+  "category": "knowledge_documents",
+  "description": "Joomla is an open-source content management system for websites and digital publishing. It supports articles, media, categories, tags, users, permissions, templates, extensions, workflows, and core Web Services APIs.",
+  "agentUseSummary": "Relay reads only the ID, publication state, and created and modified timestamps for one preselected Joomla article through a fixed core Web Services GET. Joomla's item endpoint returns a larger article representation upstream, so Relay explicitly discards content, identities, categories, tags, media, metadata, custom fields, relationships, and every non-lifecycle field before returning data.",
+  "provider": {
+    "websiteUrl": "https://www.joomla.org/",
+    "docsUrl": "https://manual.joomla.org/docs/4.4/general-concepts/webservices/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.joomla.org/about-joomla/legal-notices.html",
+    "privacyUrl": "https://www.joomla.org/privacy-policy.html"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["core.login.api"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_operated_joomla",
+      "public_https_core_webservices",
+      "dedicated_read_only_api_user",
+      "selected_article_id"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "JOOMLA_SITE_BASE_URL",
+        "label": "Joomla HTTPS site base URL",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "JOOMLA_API_TOKEN",
+        "label": "Dedicated read-only Joomla API token",
+        "required": true,
+        "secret": true,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "JOOMLA_ARTICLE_ID",
+        "label": "Selected article ID",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "joomla_selected_article_lifecycle_get",
+      "label": "Read selected article lifecycle",
+      "description": "Read one selected article's ID, publication state, and lifecycle timestamps.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "joomla_selected_article_lifecycle_get",
+        "label": "Read selected article lifecycle",
+        "description": "Use one fixed core Web Services individual-article GET and return only its lifecycle projection."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "joomla_private_content",
+        "label": "Expose content or private site data",
+        "description": "Titles, article text, aliases, notes, authors, categories, tags, images, metadata, custom fields, access rules, URLs, identities, and private site data are excluded from Relay output."
+      },
+      {
+        "id": "joomla_mutation",
+        "label": "Mutate Joomla",
+        "description": "Articles, categories, media, users, configuration, extensions, templates, permissions, and every POST, PATCH, DELETE, upload, or other mutation are blocked."
+      },
+      {
+        "id": "joomla_broad_access",
+        "label": "Use broad Joomla access",
+        "description": "Article collections, other article IDs, categories, fields, content history, users, menus, modules, templates, extensions, arbitrary routes or queries, redirects, and administration are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "joomla_selected_article_lifecycle_read",
+      "label": "Selected Article Lifecycle Read",
+      "description": "Read one selected article's lifecycle projection; content, identities, other resources, administration, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["joomla_selected_article_lifecycle_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "joomla_private_content",
+        "joomla_mutation",
+        "joomla_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-article lifecycle reader backed by Railway's bounded Joomla adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-article lifecycle reader backed by Railway's bounded Joomla adapter."
+    }
+  ],
+  "availability": "preview",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An authorized staging site must provide its exact public HTTPS Joomla URL, a dedicated non-Super-User API account with Web Services Login and only the minimum selected-article view access, one article ID, and Fairfax validation.",
+    "nextAction": "In the provider-console lane, configure the least-privilege staging account and API token, enter the site URL and selected article ID through Relay, then validate exact-resource binding, content-field redaction, redirect and private-DNS denial, insufficient-access denial, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://manual.joomla.org/docs/4.4/general-concepts/webservices/",
+      "checkedAt": "2026-07-18",
+      "supports": "Official Joomla documentation defines the HTTPS /api/index.php/v1 base, X-Joomla-Token authentication, Web Services Login permission, and GET /content/articles/{id} for one specific article."
+    },
+    {
+      "url": "https://github.com/joomla/joomla-cms/blob/5.4-dev/plugins/webservices/content/src/Extension/Content.php",
+      "checkedAt": "2026-07-18",
+      "supports": "Official core source registers CRUD routes at v1/content/articles, allowing Relay to fix execution to only the individual-resource GET route."
+    },
+    {
+      "url": "https://github.com/joomla/joomla-cms/blob/5.4-dev/api/components/com_content/src/View/Articles/JsonapiView.php",
+      "checkedAt": "2026-07-18",
+      "supports": "Official core source enumerates the article item representation, including content and identity-bearing fields as well as state, created, and modified; this supports Relay's explicit post-response lifecycle projection and redaction requirement."
+    }
+  ]
+}

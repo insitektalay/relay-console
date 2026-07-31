@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "podium",
+  "name": "Podium",
+  "category": "marketing",
+  "description": "Podium is a customer communication and reputation platform for reviews, messaging, contacts, campaigns, feedback, appointments, payments, and multi-location organizations.",
+  "agentUseSummary": "Podium cannot yet be connected through Relay. Podium publishes granular confidential OAuth with review and location scopes plus refresh tokens, but Relay's production developer app, exact callback, approved permission set, credentials, and representative account acceptance do not exist and may only be created by the external provider-setup lane.",
+  "provider": {
+    "websiteUrl": "https://www.podium.com/",
+    "docsUrl": "https://docs.podium.com/",
+    "developerConsoleUrl": "https://developer.podium.com/",
+    "termsUrl": "https://www.podium.com/terms-and-conditions/",
+    "privacyUrl": "https://www.podium.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["read_organizations", "read_locations", "read_reviews", "write_reviews"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.podium.com/oauth/authorize",
+    "tokenUrl": "https://api.podium.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth",
+      "space_delimited_granular_scopes",
+      "ten_hour_access_token",
+      "refresh_token",
+      "location_and_user_permission_binding"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PODIUM_CLIENT_ID",
+        "label": "Podium client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held production Podium developer-app client ID."
+      },
+      {
+        "name": "PODIUM_CLIENT_SECRET",
+        "label": "Podium client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-encrypted confidential client secret; never returned to clients or agents."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/podium/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "podium_oauth_connection",
+        "label": "Connect a Podium account",
+        "description": "Connect remains hidden until Relay's production app, exact callback, credentials, and approved scope bundle exist."
+      },
+      {
+        "id": "podium_review_reads",
+        "label": "Read reviews and locations",
+        "description": "Organizations, locations, review lists, individual reviews, summaries, and responses remain unavailable before connector implementation and acceptance."
+      },
+      {
+        "id": "podium_review_writes",
+        "label": "Manage review responses",
+        "description": "Creating or updating review responses and other review mutations remain unavailable and would require Relay approval gates."
+      },
+      {
+        "id": "podium_other_products_raw",
+        "label": "Access other Podium products or raw APIs",
+        "description": "Messages, contacts, campaigns, feedback, appointments, payments, users, webhooks, arbitrary endpoints, pagination, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "podium_unavailable",
+      "label": "Unavailable",
+      "description": "No Podium action is enabled before production app setup and connector acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "podium_oauth_connection",
+        "podium_review_reads",
+        "podium_review_writes",
+        "podium_other_products_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Podium wrappers are mounted before production app and representative OAuth acceptance."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Podium wrappers are mounted before production app and representative OAuth acceptance."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "relay_action_required",
+    "blocker": "Podium requires Relay to create a production developer app, register the exact HTTPS callback, select its permission scopes, receive a client ID and secret, and complete authorization with a representative entitled location. This worker may not open the developer portal, create the app, capture credentials, or run consent.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should create the Podium app with only read_organizations, read_locations, read_reviews, and write_reviews, register the Railway callback, configure credentials in Railway, and return OAuth plus representative review-schema evidence before a bounded review connector is implemented or shown."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.podium.com/docs/oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Podium documents developer-portal app creation, confidential authorization-code OAuth, exact HTTPS redirect matching, state, bearer tokens, ten-hour access tokens, and refresh tokens."
+    },
+    {
+      "url": "https://docs.podium.com/docs/oauth-scopes",
+      "checkedAt": "2026-07-17",
+      "supports": "Podium publishes granular read_organizations, read_locations, read_reviews, and write_reviews scopes and requires the authorizing user to hold matching product permissions."
+    },
+    {
+      "url": "https://docs.podium.com/reference/reviewget-1",
+      "checkedAt": "2026-07-17",
+      "supports": "Podium documents a v4 single-review read requiring read_reviews."
+    },
+    {
+      "url": "https://docs.podium.com/reference/the-review-object",
+      "checkedAt": "2026-07-17",
+      "supports": "Podium documents useful review identity, author, rating, body, source, timestamps, location, response, attribution, recommendation, and response-needed fields."
+    }
+  ]
+}

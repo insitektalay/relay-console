@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "airtable-forms",
+  "name": "Airtable Forms",
+  "category": "work_management",
+  "description": "Airtable Forms provides standalone and interface-based forms backed by Airtable tables, with sharing, prefills, conditional fields, submission workflows, and automations.",
+  "agentUseSummary": "Connect a resource-restricted Airtable OAuth grant, then let selected agents list minimized form-view metadata for one explicit base. Relay does not expose personal owner IDs, visible fields, share links, submissions, records, interfaces, automations, or mutations.",
+  "provider": {
+    "websiteUrl": "https://www.airtable.com/platform/forms",
+    "docsUrl": "https://airtable.com/developers/web/api/list-views",
+    "developerConsoleUrl": "https://airtable.com/create/oauth",
+    "termsUrl": "https://www.airtable.com/company/terms-of-service",
+    "privacyUrl": "https://www.airtable.com/company/privacy"
+  },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["workspacesAndBases:read"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://airtable.com/oauth2/v1/authorize", "tokenUrl": "https://airtable.com/oauth2/v1/token", "revocationUrl": null },
+  "connection": {
+    "types": ["relay_owned_oauth", "resource_restricted", "view_metadata_only"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/airtable-forms/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "airtable_forms_read", "label": "Read form metadata", "description": "Use the pinned List views GET and return only minimized form views for one granted base.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "airtable_forms_read", "label": "List Airtable forms", "description": "List minimized form-view metadata for one explicitly granted base." }],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "airtable_forms_manage", "label": "Change Airtable forms", "description": "Form creation, configuration, publication, sharing, prefills, submissions, records, interfaces, automations, and every mutation remain blocked." },
+      { "id": "airtable_forms_sensitive_data", "label": "Read form data", "description": "Personal view owners, visible fields, share links, prefills, submitted records, attachment URLs, collaborators, interface configuration, and automation runs are blocked." },
+      { "id": "airtable_forms_arbitrary_api", "label": "Call arbitrary Airtable APIs", "description": "Arbitrary bases, paths, include parameters, scopes, methods, request bodies, record APIs, and automatic pagination are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "airtable_forms_safe", "label": "Safe", "description": "One minimized form-view index runs directly. User IDs, visible fields, share links, submissions, records, arbitrary APIs, and every mutation remain blocked.", "defaultSelected": true, "allowedActions": ["airtable_forms_read"], "approvalRequiredActions": [], "blockedActions": ["airtable_forms_manage", "airtable_forms_sensitive_data", "airtable_forms_arbitrary_api"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts one form-view metadata read through a resource-restricted OAuth grant." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts one form-view metadata read through a resource-restricted OAuth grant." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No Relay-owned Airtable Forms OAuth integration, Railway client credentials, customer authorization, granted base, representative form view, or safe fixture is available in this workspace.",
+    "nextAction": "Register the Airtable Forms OAuth integration with only `workspacesAndBases:read`, configure the exact Relay callback and Railway client credentials, then verify PKCE, resource selection, the minimized form index, assignment, refresh rotation, disconnect, manual provider revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://airtable.com/developers/web/api/list-views", "checkedAt": "2026-07-17", "supports": "Airtable documents an all-plan GET endpoint returning base view IDs, names, types, optional personal owner IDs, and optional visible grid fields using PAT or OAuth with `workspacesAndBases:read`." },
+    { "url": "https://airtable.com/developers/web/api/scopes", "checkedAt": "2026-07-17", "supports": "Airtable documents `workspacesAndBases:read` for metadata about workspaces, bases, views, interfaces, blocks, and collaborators; Relay pins the single List views route." },
+    { "url": "https://support.airtable.com/docs/building-and-sharing-forms-in-airtable", "checkedAt": "2026-07-17", "supports": "Airtable documents standalone forms, sharing, embedding, prefills, access controls, conditional fields, submission records, a 50-form-per-base limit, and configuration performed in the product UI rather than Relay's API contract." },
+    { "url": "https://support.airtable.com/docs/third-party-integrations-via-oauth-overview", "checkedAt": "2026-07-17", "supports": "Airtable documents user-selected base and workspace resource grants, revocation, and third-party OAuth access constrained by user permissions." }
+  ]
+}

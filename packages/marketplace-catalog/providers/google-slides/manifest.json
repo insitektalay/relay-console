@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "google-slides", "name": "Google Slides", "category": "content_creative",
+  "description": "Google Slides is Google's collaborative presentation editor for building and reviewing slide decks. Individuals and teams use it for proposals, reports, lessons, and live presentations.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth, explicitly choose presentations for Relay, then let agents use five bounded tools for presentation and page reads, local update preparation, exact text replacement, and single-slide creation. Relay V1 uses only drive.file and excludes Drive discovery, destructive or arbitrary batches, media, advanced objects, design controls, sharing, export, publishing, automatic pagination, and raw API or MCP access.",
+  "provider": { "websiteUrl": "https://workspace.google.com/products/slides/", "docsUrl": "https://developers.google.com/workspace/slides/api/guides/authorizing", "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials", "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy", "privacyUrl": "https://policies.google.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["openid", "email", "https://www.googleapis.com/auth/drive.file"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth", "tokenUrl": "https://oauth2.googleapis.com/token" },
+  "connection": { "types": ["relay_owned_global_oauth", "exact_google_account_binding", "app_visible_presentation_corpus", "expiring_access_token", "offline_refresh_token", "provider_revocation"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/google-slides/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "presentation_read", "label": "Read presentations", "description": "Read bounded semantic text and metadata from explicit app-visible presentations.", "defaultSelected": true },
+    { "id": "presentation_draft", "label": "Prepare updates", "description": "Validate and hash allowlisted presentation updates locally.", "defaultSelected": true },
+    { "id": "presentation_write", "label": "Replace text and create slides", "description": "Apply atomic text replacement or create one allowlisted slide after policy checks.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_slides_presentation_get", "label": "Read presentation", "description": "Read bounded semantic text and metadata from one app-visible presentation." },
+      { "id": "google_slides_page_get", "label": "Read presentation page", "description": "Read bounded semantic text from one exact slide page." },
+      { "id": "google_slides_update_prepare", "label": "Prepare presentation update", "description": "Validate and hash one allowlisted update locally." }
+    ],
+    "approvalRequired": [
+      { "id": "google_slides_text_replace", "label": "Replace presentation text", "description": "Atomically replace bounded exact text in one presentation." },
+      { "id": "google_slides_slide_create", "label": "Create presentation slide", "description": "Create one slide using an allowlisted predefined layout." }
+    ],
+    "blocked": [
+      { "id": "google_slides_discovery", "label": "Discover presentations", "description": "Whole-Drive listing, search, shared-drive crawling, and automatic pagination are outside V1." },
+      { "id": "google_slides_destructive", "label": "Delete, reorder, or duplicate objects", "description": "Deleting, moving, reordering, or duplicating slides and page elements is outside V1." },
+      { "id": "google_slides_arbitrary", "label": "Run arbitrary batch updates", "description": "Only typed text replacement and single-slide creation wrappers are exposed." },
+      { "id": "google_slides_advanced", "label": "Use media, advanced objects, or design controls", "description": "Thumbnails, images, video, charts, tables, formatting, themes, masters, layouts, and speaker notes are outside V1." },
+      { "id": "google_slides_external_raw", "label": "Share, export, publish, or run raw operations", "description": "Permissions, sharing, export, publishing, domain delegation, and raw API or MCP access are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "google_slides_safe", "label": "Safe", "description": "Bounded exact-presentation reads and local preparation run automatically; text replacement and slide creation require matching approval.", "defaultSelected": true, "allowedActions": ["google_slides_presentation_get", "google_slides_page_get", "google_slides_update_prepare"], "approvalRequiredActions": ["google_slides_text_replace", "google_slides_slide_create"], "blockedActions": ["google_slides_discovery", "google_slides_destructive", "google_slides_arbitrary", "google_slides_advanced", "google_slides_external_raw"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All five selected tools run without Relay per-action approval while drive.file, explicit IDs, atomic request limits, account binding, audit, redaction, refresh, revocation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["google_slides_presentation_get", "google_slides_page_get", "google_slides_update_prepare", "google_slides_text_replace", "google_slides_slide_create"], "approvalRequiredActions": [], "blockedActions": ["google_slides_discovery", "google_slides_destructive", "google_slides_arbitrary", "google_slides_advanced", "google_slides_external_raw"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts five bounded Google Slides wrappers and attaches encrypted OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts five bounded Google Slides wrappers and attaches encrypted OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "provider_review_pending", "blocker": "Relay must configure its Google Cloud project and confidential web client, enable Slides and Drive APIs and explicit presentation selection, publish the OAuth consent screen with verified relayconsole.work domains and policy links, complete Google's verification required for the production app, configure Railway staging credentials, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.", "nextAction": "In the provider-console task, configure the canonical Railway callback and exact scopes, complete Google's brand and verification workflow, configure staging credentials, then verify account binding, app-visible presentation enforcement, all five tools, Safe and Dangerous policy, refresh, rotation, revocation, disconnect, quota/error mapping, and post-disconnect denial." },
+  "evidence": [
+    { "url": "https://developers.google.com/workspace/slides/api/guides/authorizing", "checkedAt": "2026-07-17", "supports": "Google documents drive.file as the recommended non-sensitive per-file scope for Slides API authorization." },
+    { "url": "https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations/get", "checkedAt": "2026-07-17", "supports": "presentations.get reads one exact presentation from the fixed Slides API endpoint." },
+    { "url": "https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations.pages/get", "checkedAt": "2026-07-17", "supports": "presentations.pages.get reads one exact page in a presentation." },
+    { "url": "https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations/batchUpdate", "checkedAt": "2026-07-17", "supports": "presentations.batchUpdate applies ordered atomic requests and supports revision write control." }
+  ]
+}

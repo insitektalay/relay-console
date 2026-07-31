@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-play-console",
+  "name": "Google Play Console",
+  "category": "developer",
+  "description": "Google Play Console and its Developer APIs manage Android application releases, store listings, reviews, app quality, purchases, subscriptions, orders, recovery actions, users, and permissions.",
+  "agentUseSummary": "Google Play Console cannot yet be connected through Relay. Google supports an OAuth web-server flow using one broad androidpublisher scope, while actual authority is constrained by the signed-in Play Console user's account and app permissions. Relay exposes no app, reporting, review, release, monetization, refund, recovery, user, or permission action until its OAuth client is verified and representative least-privilege acceptance passes.",
+  "provider": {
+    "websiteUrl": "https://play.google.com/console/",
+    "docsUrl": "https://developers.google.com/android-publisher/getting_started",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/library/androidpublisher.googleapis.com",
+    "termsUrl": "https://play.google.com/about/developer-distribution-agreement.html",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://www.googleapis.com/auth/androidpublisher"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token",
+    "revocationUrl": "https://oauth2.googleapis.com/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_google_cloud_project",
+      "oauth2_web_server_user_flow",
+      "single_broad_androidpublisher_scope",
+      "play_console_user_and_app_permissions",
+      "developer_id_and_package_boundaries",
+      "android_publisher_api",
+      "play_developer_reporting_api",
+      "oauth_verification_and_representative_acceptance_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-play-console/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "apps_and_quality_read",
+      "label": "Read apps and quality reports",
+      "description": "After provider acceptance, read selected app metadata, tracks, releases, reviews, vitals, crashes, ANRs, anomalies, issues, and bounded financial or purchase state allowed by the Play user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "reviews_reply",
+      "label": "Reply to reviews",
+      "description": "After acceptance, draft and explicitly confirm a reply to a selected Play Store review under the user's app permissions.",
+      "defaultSelected": false
+    },
+    {
+      "id": "release_and_listing_manage",
+      "label": "Manage releases and listings",
+      "description": "After critical release acceptance, validate and commit a bounded edit to a selected package, track, artifact, country set, listing, image, or data-safety declaration.",
+      "defaultSelected": false
+    },
+    {
+      "id": "monetization_and_orders_manage",
+      "label": "Manage products and orders",
+      "description": "After financial acceptance, manage selected products, subscriptions, purchases, orders, refunds, cancellations, deferrals, revocations, and external transactions with explicit confirmation.",
+      "defaultSelected": false
+    },
+    {
+      "id": "developer_access_manage",
+      "label": "Manage developer access",
+      "description": "After administrative acceptance, manage a specifically identified Play Console user or app grant with owner-level confirmation and expiry controls.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "google_play_connect_before_review",
+        "label": "Connect before OAuth review",
+        "description": "Relay has no verified production OAuth client, accepted branding and redirect, or representative Play Console permission evidence."
+      },
+      {
+        "id": "google_play_reads_before_acceptance",
+        "label": "Read Play Console data",
+        "description": "Apps, releases, reviews, device data, vitals, users, permissions, purchases, financial data, orders, and tokens remain unavailable before acceptance."
+      },
+      {
+        "id": "google_play_release_mutations",
+        "label": "Change or publish apps",
+        "description": "Uploading artifacts, changing listings or data safety, editing tracks, committing releases, rollout changes, recovery deployment, and production publication are blocked."
+      },
+      {
+        "id": "google_play_commerce_mutations",
+        "label": "Change monetization or orders",
+        "description": "Product, subscription, price, purchase, acknowledgement, consumption, cancellation, deferral, revocation, refund, and external-transaction mutations are blocked."
+      },
+      {
+        "id": "google_play_access_and_raw_bypass",
+        "label": "Change access or bypass boundaries",
+        "description": "User or grant administration, owner-only actions, arbitrary endpoints, raw financial or user data, cross-developer access, session capture, and private-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "google_play_provider_review",
+      "label": "Provider review pending",
+      "description": "No Play Console action is enabled until Google accepts Relay's OAuth client and the complete user-permission, app, report, review, edit, release, monetization, order, access, token and revocation contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_play_connect_before_review",
+        "google_play_reads_before_acceptance",
+        "google_play_release_mutations",
+        "google_play_commerce_mutations",
+        "google_play_access_and_raw_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount approved bounded Play Console tools after OAuth and permission acceptance; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount approved bounded Play Console tools after OAuth and permission acceptance; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Google documents OAuth clients for web applications acting on behalf of an individual Play Console user, using the OAuth 2.0 web-server flow, offline refresh tokens and the broad https://www.googleapis.com/auth/androidpublisher scope. The user's effective actions are constrained by Play Console Users and permissions at account and app level. The API surface spans app edits and production commits, artifacts, listings, data safety, releases, recovery deployment, reviews and replies, purchases, subscriptions, prices, orders and refunds, users and grants; the separate Reporting API exposes sensitive app-quality and error data. Relay has no production OAuth client, verified consent screen, representative developer account, accepted permission mapping, or provider credentials, and this worker cannot create any of them or run consent.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should enable Android Publisher and Play Developer Reporting APIs in Relay's Google project, configure and verify the OAuth consent screen, and register https://api.relayconsole.work/api/v1/marketplace/oauth/google-play-console/callback. Test with a dedicated least-privilege Play Console user whose access is limited to one non-production package; never use an owner or admin for routine reads. Acceptance must map every tool to Play permissions, developer ID and package, verify partial account access, refresh and revocation, financial redaction, review PII, reporting pagination, edit validation and commit, artifact hash and track targeting, staged rollout, production confirmation, data-safety integrity, purchase-token secrecy, idempotent refunds and cancellations, access expiry, audit, disconnect, and post-revocation denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/android-publisher/getting_started",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents Cloud-project API enablement and supports OAuth clients acting on behalf of individual Play Console users, with actions limited by the user's Play Console permissions; service accounts are the alternative for server automation."
+    },
+    {
+      "url": "https://developers.google.com/android-publisher/authorization",
+      "checkedAt": "2026-07-17",
+      "supports": "Google specifies the OAuth 2.0 web-server authorization-code flow, androidpublisher scope, offline access, refresh tokens and Bearer authorization for the Android Publisher API."
+    },
+    {
+      "url": "https://developers.google.com/android-publisher/api-ref/rest",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents a wide Android Publisher surface covering app edits and commits, releases, artifacts, listings, data safety, reviews, purchases, subscriptions, orders, refunds, users, grants and recovery actions."
+    },
+    {
+      "url": "https://developers.google.com/play/developer/reporting/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Google requires API enablement and Play Console permissions for Developer Reporting API access and recommends securely managed service-account credentials for automated use."
+    },
+    {
+      "url": "https://support.google.com/googleplay/android-developer/answer/10019561",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents granular account and app permissions, including sensitive review, financial, order, release, listing, user-management and admin authority, plus owner-only actions."
+    }
+  ]
+}

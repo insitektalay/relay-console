@@ -1,0 +1,163 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "productboard",
+  "name": "Productboard",
+  "category": "work_management",
+  "description": "Productboard is a customer-focused product management platform for deciding what to build next. Product teams collect feedback and insights, organize feature ideas and product hierarchies, prioritize work against objectives and customer value, plan releases, and share roadmaps.",
+  "agentUseSummary": "Connect one Productboard workspace, then choose which agents can read or manage its authorized product work under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.productboard.com/",
+    "docsUrl": "https://developer.productboard.com/reference/introduction",
+    "developerConsoleUrl": "https://app.productboard.com/oauth2/applications",
+    "termsUrl": "https://www.productboard.com/legal/terms-of-service/",
+    "privacyUrl": "https://www.productboard.com/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "entities:read",
+      "entities:write",
+      "entities:delete",
+      "notes:read",
+      "notes:write",
+      "notes:delete",
+      "analytics:read",
+      "members:pii:read"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.productboard.com/oauth2/authorize",
+    "tokenUrl": "https://app.productboard.com/oauth2/token",
+    "revocationUrl": "https://app.productboard.com/oauth2/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/productboard/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "product_management_read",
+      "label": "Read product work",
+      "description": "Read product hierarchies, objectives, releases, notes, teams, members, integrations, webhooks, and analytics.",
+      "defaultSelected": true
+    },
+    {
+      "id": "product_management_manage",
+      "label": "Manage product work",
+      "description": "Create, update, and delete authorized product records, feedback, integrations, and webhooks.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "productboard_read",
+        "label": "Read Productboard",
+        "description": "Read bounded Productboard resources from the connected workspace."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "productboard_manage",
+        "label": "Manage Productboard",
+        "description": "Create, update, or delete Productboard records and integration resources."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "productboard_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth credentials never enter agent-visible requests or results."
+      },
+      {
+        "id": "productboard_other_workspace",
+        "label": "Access another workspace",
+        "description": "Every request uses the Productboard workspace selected during sign-in."
+      },
+      {
+        "id": "productboard_unsupported_api",
+        "label": "Call an unsupported API",
+        "description": "Relay permits only documented Productboard REST v2 routes."
+      },
+      {
+        "id": "productboard_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds queries, request bodies, responses, redirects, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "productboard_safe",
+      "label": "Safe",
+      "description": "Reads run directly. Every create, update, delete, integration change, or webhook change requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["productboard_read"],
+      "approvalRequiredActions": ["productboard_manage"],
+      "blockedActions": [
+        "productboard_secret_exposure",
+        "productboard_other_workspace",
+        "productboard_unsupported_api",
+        "productboard_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Productboard action authorized by the connected account runs without Relay per-action approval. Workspace binding, provider permissions, request bounds, credential protection, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["productboard_read", "productboard_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "productboard_secret_exposure",
+        "productboard_other_workspace",
+        "productboard_unsupported_api",
+        "productboard_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts workspace-bound Productboard REST v2 tools and attaches refreshed OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts workspace-bound Productboard REST v2 tools and attaches refreshed OAuth tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Productboard OAuth application and production client credentials are not configured yet.",
+    "nextAction": "Register Relay Console at https://app.productboard.com/oauth2/applications, set https://api.relayconsole.work/api/v1/marketplace/oauth/productboard/callback, enable the required scopes, store PRODUCTBOARD_CLIENT_ID and PRODUCTBOARD_CLIENT_SECRET in Railway, deploy, and run live connect, read, Safe approval, Dangerous mutation, refresh, disconnect, and post-disconnect denial checks with an admin maker account."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.productboard.com/reference/oauth-authorization-code",
+      "checkedAt": "2026-07-15",
+      "supports": "Productboard documents public integrations using confidential OAuth authorization code, exact redirects, workspace selection, consent, rotating refresh tokens, token inspection, and revocation; an admin maker authorizes each workspace."
+    },
+    {
+      "url": "https://developer.productboard.com/reference/authentication",
+      "checkedAt": "2026-07-15",
+      "supports": "Productboard identifies OAuth authorization code as the authentication model for third-party integrations serving multiple users."
+    },
+    {
+      "url": "https://developer.productboard.com/reference/introduction",
+      "checkedAt": "2026-07-15",
+      "supports": "Productboard REST API v2 covers notes, entities, teams, members, Jira integrations, plugin integrations, webhooks, and analytics with cursor pagination and access-token rate limits."
+    },
+    {
+      "url": "https://support.productboard.com/hc/en-us/articles/360058147693-What-is-Productboard",
+      "checkedAt": "2026-07-15",
+      "supports": "Productboard describes a customer-focused product management system for understanding needs, prioritizing work, planning roadmaps, and validating ideas."
+    }
+  ]
+}

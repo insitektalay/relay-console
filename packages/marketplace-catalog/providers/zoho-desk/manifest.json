@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoho-desk",
+  "name": "Zoho Desk",
+  "category": "crm_support",
+  "description": "Zoho Desk is customer-service software for ticketing, agent workflows, departments, products, knowledge bases, automation, analytics, and administration.",
+  "agentUseSummary": "Connect the consent-selected Zoho Desk organization through Relay-owned Multi-DC offline OAuth. Agents may list at most twenty-five recently modified privacy-redacted ticket summaries or read one exact positive-numeric-ID ticket. Relay pins the organization, Accounts and Desk API data centers, tickets/basic read scopes, v1 endpoints, first page, limit, sort, returned fields, refresh, revocation, and approval boundary while excluding contacts, agents, descriptions, threads, comments, attachments, custom fields, broader support data, searches, writes, pagination, bulk APIs, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.zoho.com/desk/",
+    "docsUrl": "https://desk.zoho.com/DeskAPIDocument",
+    "developerConsoleUrl": "https://api-console.zoho.com/",
+    "termsUrl": "https://www.zoho.com/terms.html",
+    "privacyUrl": "https://www.zoho.com/privacy.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["Desk.tickets.READ", "Desk.basic.READ"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.zoho.com/oauth/v2/auth",
+    "tokenUrl": "https://accounts.zoho.com/oauth/v2/token",
+    "revocationUrl": "https://accounts.zoho.com/oauth/v2/token/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_application",
+      "railway_callback_only",
+      "multi_dc_regional_authority",
+      "consent_bound_organization",
+      "offline_refresh_token_storage"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/zoho-desk/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ticket_read",
+      "label": "Read tickets",
+      "description": "List bounded privacy-redacted ticket summaries or inspect one exact ticket in the consent-bound Zoho Desk organization.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "zoho_desk_ticket_list",
+        "label": "List tickets",
+        "description": "List at most twenty-five recently modified privacy-redacted ticket summaries from the consent-bound Zoho Desk organization."
+      },
+      {
+        "id": "zoho_desk_ticket_get",
+        "label": "Read ticket",
+        "description": "Read one exact privacy-redacted Zoho Desk ticket summary by positive numeric ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "zoho_desk_ticket_mutation",
+        "label": "Change tickets",
+        "description": "Creating, updating, assigning, moving, merging, commenting on, closing, restoring, or deleting tickets is outside V1."
+      },
+      {
+        "id": "zoho_desk_private_support_data",
+        "label": "Read private support content",
+        "description": "Contacts, accounts, agents, email, phone, descriptions, threads, comments, attachments, tasks, time entries, followers, tags, and custom fields are outside V1."
+      },
+      {
+        "id": "zoho_desk_broader_support",
+        "label": "Access broader support data",
+        "description": "Departments, products, teams, contracts, calls, events, knowledge-base articles, community, layouts, settings, analytics, and administration are outside V1."
+      },
+      {
+        "id": "zoho_desk_raw_search",
+        "label": "Run arbitrary searches or API calls",
+        "description": "Other products, organizations, regions, scopes, endpoints, methods, fields, includes, filters, searches, query parameters, versions, and raw requests are outside V1."
+      },
+      {
+        "id": "zoho_desk_bulk_export",
+        "label": "Export support data",
+        "description": "Automatic pagination, deep offsets, synchronization, notifications, bulk APIs, downloads, imports, and exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zoho_desk_safe",
+      "label": "Safe",
+      "description": "Both bounded private ticket reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["zoho_desk_ticket_list", "zoho_desk_ticket_get"],
+      "blockedActions": ["zoho_desk_ticket_mutation", "zoho_desk_private_support_data", "zoho_desk_broader_support", "zoho_desk_raw_search", "zoho_desk_bulk_export"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both selected read-only tools run without Relay per-action approval while exact organization, regional origin, scopes, static requests, limits, audit, redaction, refresh, revocation, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["zoho_desk_ticket_list", "zoho_desk_ticket_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["zoho_desk_ticket_mutation", "zoho_desk_private_support_data", "zoho_desk_broader_support", "zoho_desk_raw_search", "zoho_desk_bulk_export"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts two bounded approval-gated Zoho Desk ticket reads and keeps OAuth credentials on Railway." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts two bounded approval-gated Zoho Desk ticket reads and keeps OAuth credentials on Railway." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No Relay-owned Zoho server-based application callback registration for Zoho Desk, enabled Multi-DC coverage, Railway client credentials, organization-bound tickets/basic offline consent, refresh token, or live acceptance evidence is available in this workspace.",
+    "nextAction": "In the provider-console task, add Relay's exact Zoho Desk Railway callback to the Relay-owned server app, enable shared Multi-DC credentials for every supported Desk region, configure the Railway client credentials, grant only Desk.tickets.READ and Desk.basic.READ with offline consent and organization binding, then validate callback state, Accounts/api_domain matching, exact accessible organization, both bounded reads, Safe approval, representative Dangerous reads, permission denial, refresh, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://desk.zoho.com/DeskAPIDocument", "checkedAt": "2026-07-18", "supports": "Zoho Desk documents OAuth scopes, organization binding, regional api_domain endpoints, GET tickets and exact ticket reads, from/limit pagination, mandatory orgId behavior, and API limits." },
+    { "url": "https://www.zoho.com/accounts/protocol/oauth/web-server-applications.html", "checkedAt": "2026-07-18", "supports": "Zoho documents confidential server-based authorization-code applications, offline access, refresh tokens, and callback requirements." },
+    { "url": "https://www.zoho.com/accounts/protocol/oauth/multi-dc.html", "checkedAt": "2026-07-18", "supports": "Zoho documents Multi-DC enablement, callback location/accounts-server values, regional token exchange, and api_domain binding." }
+  ]
+}

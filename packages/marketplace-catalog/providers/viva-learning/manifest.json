@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "viva-learning",
+  "name": "Viva Learning",
+  "category": "knowledge_documents",
+  "description": "Microsoft Viva Learning is an employee learning hub in Microsoft Teams for discovering, sharing, recommending, assigning, and tracking learning from organizational and partner content sources.",
+  "agentUseSummary": "Connect through Relay-owned Microsoft OAuth and let selected agents list only the tenant's registered learning providers. Relay blocks learner records, course activities, assignments, recommendations, content ingestion, provider administration, synchronization, and mutations in V1.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/en-us/microsoft-viva/learning",
+    "docsUrl": "https://learn.microsoft.com/en-us/graph/api/employeeexperience-list-learningproviders?view=graph-rest-1.0",
+    "developerConsoleUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["offline_access", "LearningProvider.Read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "tenant_provider_directory"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/viva-learning/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [{
+    "id": "viva_learning_read",
+    "label": "Read learning providers",
+    "description": "List a bounded, minimized tenant learning-provider directory.",
+    "defaultSelected": true
+  }],
+  "actions": {
+    "allowed": [{
+      "id": "viva_learning_read",
+      "label": "List Viva Learning providers",
+      "description": "List up to 50 registered learning providers with only ID, display name, and course-activity-sync status."
+    }],
+    "approvalRequired": [],
+    "blocked": [{
+      "id": "viva_learning_manage",
+      "label": "Access learning records or change Viva Learning",
+      "description": "Course activities, assignments, recommendations, learner history, content metadata, provider registration, ingestion, synchronization, deletion, and all mutations are unavailable."
+    }]
+  },
+  "approvalProfiles": [{
+    "id": "viva_learning_safe",
+    "label": "Safe",
+    "description": "One bounded provider-directory read runs directly. Learning records, content ingestion, administration, and every mutation remain blocked.",
+    "defaultSelected": true,
+    "allowedActions": ["viva_learning_read"],
+    "approvalRequiredActions": [],
+    "blockedActions": ["viva_learning_manage"]
+  }],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {"format": "openclaw", "installSupport": "installable", "description": "Railway mounts one fixed, bounded Microsoft Graph learning-provider directory wrapper through Relay-owned Microsoft OAuth."},
+    {"format": "hermes", "installSupport": "installable", "description": "Railway mounts one fixed, bounded Microsoft Graph learning-provider directory wrapper through Relay-owned Microsoft OAuth."}
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's multi-tenant Entra application has not been configured and accepted for the exact Viva Learning callback and delegated LearningProvider.Read permission, which requires administrator consent, and no licensed organizational tenant has completed non-production acceptance.",
+    "nextAction": "The provider-console owner updates Relay's verified multi-tenant Entra application, adds the exact callback and delegated LearningProvider.Read permission, completes administrator consent in a licensed tenant, stores the Microsoft client ID and secret in Railway, then validates OAuth, refresh, the bounded provider-directory read, disconnect, and post-disconnect denial in non-production."
+  },
+  "evidence": [
+    {"url": "https://learn.microsoft.com/en-us/graph/api/resources/viva-learning-api-overview?view=graph-rest-1.0", "checkedAt": "2026-07-17", "supports": "Microsoft documents the stable employee learning API for provider, content, and course-activity integration with Viva Learning."},
+    {"url": "https://learn.microsoft.com/en-us/graph/api/employeeexperience-list-learningproviders?view=graph-rest-1.0", "checkedAt": "2026-07-17", "supports": "Microsoft documents the v1.0 tenant learning-provider list endpoint and delegated LearningProvider.Read as its least-privileged permission."},
+    {"url": "https://learn.microsoft.com/en-us/graph/permissions-reference#learningproviderread", "checkedAt": "2026-07-17", "supports": "Microsoft documents LearningProvider.Read as delegated-only and requiring administrator consent."},
+    {"url": "https://learn.microsoft.com/en-us/graph/api/learningcourseactivity-list?view=graph-rest-1.0", "checkedAt": "2026-07-17", "supports": "Microsoft documents separate permissions for learner course activities, which Relay does not request or expose in V1."}
+  ]
+}

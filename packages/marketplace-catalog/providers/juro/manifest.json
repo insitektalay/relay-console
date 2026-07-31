@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "juro",
+  "name": "Juro",
+  "category": "knowledge_documents",
+  "description": "Juro is a contract lifecycle management platform for creating, approving, negotiating, signing, and managing contracts.",
+  "agentUseSummary": "Bind a dedicated customer-owned Juro API key to one exact production or sandbox environment after the customer confirms API terms and required user consent. Agents may list bounded redacted template lifecycle summaries or inspect one explicit template. Relay blocks private template structure, links, people, contracts, writes, webhooks, administration, raw access, and key material.",
+  "provider": {
+    "websiteUrl": "https://juro.com/",
+    "docsUrl": "https://api-docs.juro.com/",
+    "developerConsoleUrl": "https://app.juro.com/api",
+    "termsUrl": "https://juro.com/terms/api-terms",
+    "privacyUrl": "https://juro.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "x_api_key_header",
+      "exact_environment_binding",
+      "customer_managed_user_consent",
+      "eligible_api_plan",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "JURO_API_ORIGIN",
+        "label": "Juro API environment",
+        "required": true,
+        "secret": false,
+        "helpText": "Use exactly https://api.juro.com for production or https://api-sandbox.juro.io for Juro sandbox."
+      },
+      {
+        "name": "JURO_API_KEY",
+        "label": "Juro API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated customer-owned key after confirming Juro API terms, user consent, and eligible plan authority."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "template_metadata_list",
+      "label": "List template metadata",
+      "description": "List bounded redacted template lifecycle summaries without private template structure.",
+      "defaultSelected": true
+    },
+    {
+      "id": "template_metadata_read",
+      "label": "Inspect template metadata",
+      "description": "Read one explicit template's redacted lifecycle metadata without fields, people, links, or content.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "juro_templates_list",
+        "label": "List template metadata",
+        "description": "List at most 50 redacted template lifecycle summaries."
+      },
+      {
+        "id": "juro_template_get",
+        "label": "Inspect template metadata",
+        "description": "Inspect redacted lifecycle metadata for one explicit template."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "juro_private_template_data",
+        "label": "Access private template data",
+        "description": "Draft and sharing links, internal URLs, fields, values, choices, questions, signing sides, signatures, approvers, approval state, tables, and document content are blocked."
+      },
+      {
+        "id": "juro_contract_access",
+        "label": "Access or mutate contracts",
+        "description": "Contract listing, reads, creation, upload, updates, deletion, signing, sending, PDFs, events, webhooks, and every contract workflow action are blocked."
+      },
+      {
+        "id": "juro_account_access",
+        "label": "Access account configuration",
+        "description": "Users, teams, workspaces, integrations, API-key generation, credentials, billing, and account administration are blocked."
+      },
+      {
+        "id": "juro_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, arbitrary queries, contract sync, pagination, filters, polling, retries, batches, exports, downloads, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "juro_read_only",
+      "label": "Read-only template lifecycle",
+      "description": "Two fixed privacy-redacted template metadata reads run automatically through a customer-owned broad API key.",
+      "defaultSelected": true,
+      "allowedActions": ["juro_templates_list", "juro_template_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "juro_private_template_data",
+        "juro_contract_access",
+        "juro_account_access",
+        "juro_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Customer ownership, customer-managed consent, exact environment, fixed read routes, strict projection, key secrecy, result bounds, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["juro_templates_list", "juro_template_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "juro_private_template_data",
+        "juro_contract_access",
+        "juro_account_access",
+        "juro_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway confines the broad customer key to health and two fixed strictly projected template metadata reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway confines the broad customer key to health and two fixed strictly projected template metadata reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Juro exposes a broad customer API key rather than delegated scopes. Its API terms require the customer to have authority, secure the key, and obtain required Juro-user consent; production REST API access is plan-controlled and sandbox access requires Juro. No account, plan confirmation, consent, key, live provider session, Railway change, or production acceptance is available in this worker task.",
+    "nextAction": "An authorized customer confirms Juro API terms, obtains required user consent, enables API access on an eligible plan, requests sandbox if desired, generates a dedicated key, and stores the exact origin and key through Relay's encrypted connection flow. They then separately validate health, bounded redacted template listing, explicit template reads, quota behavior, rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api-docs.juro.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Juro documents the production and sandbox origins, x-api-key authentication, health route, template list and get routes, quotas, and broader contract, upload, signing, webhook, and private template surfaces that Relay blocks."
+    },
+    {
+      "url": "https://juro.com/terms/api-terms",
+      "checkedAt": "2026-07-17",
+      "supports": "Juro requires use of the API key it provides, key security, customer authority, Juro-user consent, confidentiality, documented usage, and restrictions on permanent copies and public disclosure of private information."
+    },
+    {
+      "url": "https://juro.com/integrations/api",
+      "checkedAt": "2026-07-17",
+      "supports": "Juro describes REST API and webhook access, sandbox-first testing, customized contract workflows, and Enterprise-plan availability."
+    }
+  ]
+}

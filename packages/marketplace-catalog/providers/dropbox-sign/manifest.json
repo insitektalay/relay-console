@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "dropbox-sign",
+  "name": "Dropbox Sign",
+  "aliases": ["hellosign", "hello-sign"],
+  "category": "knowledge_documents",
+  "description": "Dropbox Sign is an electronic-signature platform for preparing, sending, signing, and tracking agreements online. Businesses use it to add signature workflows to documents and applications while monitoring request progress and completion.",
+  "agentUseSummary": "Connect one eligible Dropbox Sign account through Relay-owned, user-charged OAuth, then let agents read approval-gated, bounded Signature Request metadata and aggregate signature statuses without exposing participant identity or document content.",
+  "provider": {
+    "websiteUrl": "https://sign.dropbox.com/",
+    "docsUrl": "https://developers.hellosign.com/docs/guides/o-auth/overview/",
+    "developerConsoleUrl": "https://app.hellosign.com/home/myAccount#api",
+    "termsUrl": "https://sign.dropbox.com/about/terms",
+    "privacyUrl": "https://www.dropbox.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["account_access", "signature_request_access"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.hellosign.com/oauth/authorize",
+    "tokenUrl": "https://app.hellosign.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_user_charged_oauth_app",
+      "confidential_authorization_code",
+      "token_returned_exact_account_binding",
+      "provider_authoritative_access_expiry",
+      "serialized_complete_token_pair_replacement",
+      "local_disconnect_only",
+      "fixed_dropbox_sign_api_origin"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/dropbox-sign/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "signature_request_read",
+      "label": "Read signature request status",
+      "description": "Read bounded app-visible Signature Request metadata and identity-free signature-status counts for one exact account.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "dropbox_sign_signature_request_list",
+        "label": "List signature requests",
+        "description": "List the first twenty-five Signature Request summaries visible to Relay's Dropbox Sign API App."
+      },
+      {
+        "id": "dropbox_sign_signature_request_list_awaiting",
+        "label": "List requests awaiting my signature",
+        "description": "List the first twenty-five app-visible Signature Requests awaiting the connected user's signature."
+      },
+      {
+        "id": "dropbox_sign_signature_request_get",
+        "label": "Read a signature request",
+        "description": "Read one exact Dropbox Sign Signature Request summary and aggregate status counts without participant identity."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "dropbox_sign_safe",
+      "label": "Safe",
+      "description": "Every bounded Dropbox Sign read requires approval; participant identity, documents, signing URLs, response data, downloads, templates, administration and writes are outside Relay's V1 surface.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "dropbox_sign_signature_request_list",
+        "dropbox_sign_signature_request_list_awaiting",
+        "dropbox_sign_signature_request_get"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three selected bounded Dropbox Sign reads run without Relay per-action approval; exact-account binding, redaction, first-page bounds, audits, provider scopes and quotas still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "dropbox_sign_signature_request_list",
+        "dropbox_sign_signature_request_list_awaiting",
+        "dropbox_sign_signature_request_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed Dropbox Sign read wrappers and attaches the encrypted OAuth token only to the fixed API v3 origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed Dropbox Sign read wrappers and attaches the encrypted OAuth token only to the fixed API v3 origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A Relay-owned user-charged Dropbox Sign OAuth API App, production approval, eligible test plans, staging credentials, and live consent validation still require the separate provider-console task.",
+    "nextAction": "In the provider-console task, create the user-charged Dropbox Sign OAuth API App with Relay's exact HTTPS callback and exact two scopes, obtain production approval, store staging client credentials, then verify token-returned account binding against GET /v3/account, provider-authoritative expiry, serialized complete token-pair replacement, all three bounded app-visible reads, local disconnect, and post-disconnect denial. Do not claim PKCE, refresh-token rotation, or upstream revocation because the cited provider contract does not document them."
+  },
+  "evidence": [
+    {
+      "url": "https://sign.dropbox.com/dropbox-sign-rebrand-faqs",
+      "checkedAt": "2026-07-17",
+      "supports": "Dropbox officially states that HelloSign is now Dropbox Sign and HelloSign API is now Dropbox Sign API, while existing integrations continue to work with only the displayed name changing. HelloSign therefore resolves to the canonical Dropbox Sign provider rather than a second connection."
+    },
+    {
+      "url": "https://developers.hellosign.com/docs/guides/o-auth/overview/",
+      "checkedAt": "2026-07-17",
+      "supports": "Dropbox Sign documents API App OAuth, user-charged billing, production approval, exact callbacks and the account_access and signature_request_access scopes."
+    },
+    {
+      "url": "https://developers.hellosign.com/docs/guides/o-auth/walkthrough/",
+      "checkedAt": "2026-07-17",
+      "supports": "Dropbox Sign documents its Authorization Code flow, app authorization and token exchange without a provider PKCE contract."
+    },
+    {
+      "url": "https://developers.hellosign.com/api/reference/operation/oauthTokenGenerate/",
+      "checkedAt": "2026-07-17",
+      "supports": "The token response documents access token, refresh token, account ID and provider expires_in fields used by Relay's exact-account and expiry boundary."
+    },
+    {
+      "url": "https://developers.hellosign.com/api/account/get/",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /v3/account validates the exact token-returned account and supplies the bounded plan, lock, and locale metadata used for connection health."
+    },
+    {
+      "url": "https://developers.hellosign.com/api/signature-request/list/",
+      "checkedAt": "2026-07-17",
+      "supports": "Dropbox Sign documents first-page Signature Request listing, page size, fixed awaiting-my-signature search, API-App visibility, pagination metadata and request fields."
+    },
+    {
+      "url": "https://developers.hellosign.com/api/signature-request/get/",
+      "checkedAt": "2026-07-17",
+      "supports": "Dropbox Sign documents reading one exact Signature Request; Relay returns only bounded request metadata and identity-free aggregate status counts."
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "snov-io",
+  "name": "Snov.io",
+  "category": "crm_support",
+  "description": "Snov.io is a sales platform for finding and verifying business contacts, managing prospects, and running multichannel outreach.",
+  "agentUseSummary": "Connect customer-owned Snov.io API client credentials. Agents can start verification for one explicit email and read one reduced task result; Safe mode asks before the one-credit start. Discovery, enrichment, prospects, campaigns, mailboxes, warm-up, CRM, administration, bulk and raw access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://snov.io/",
+    "docsUrl": "https://snov.io/api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://snov.io/t_and_c",
+    "privacyUrl": "https://snov.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "client_credentials",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.snov.io/v1/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_credentials",
+      "server_side_one_hour_bearer_exchange",
+      "manual_provider_rotation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SNOV_CLIENT_ID",
+        "label": "Snov.io API User ID",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the API User ID from the Snov.io account API settings for a dedicated customer-owned integration."
+      },
+      {
+        "name": "SNOV_CLIENT_SECRET",
+        "label": "Snov.io API Secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay encrypts the API Secret and exchanges it server-side for one-hour bearer tokens. Rotate the secret in Snov.io after disconnect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "email_verification_start",
+      "label": "Start one email verification",
+      "description": "Submit one explicit email under credit-aware policy and receive only a task hash.",
+      "defaultSelected": true
+    },
+    {
+      "id": "email_verification_result_read",
+      "label": "Read one verification result",
+      "description": "Read one task's reduced deliverability status and technical checks without returning the email.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "snov_email_verification_result_get",
+        "label": "Read one verification result",
+        "description": "Read reduced technical status for one exact Snov.io task hash without returning the submitted email."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "snov_email_verification_start",
+        "label": "Start one email verification",
+        "description": "Spend one Snov.io credit to submit one explicit email for verification without a webhook or bulk request."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "snov_discovery_finder_enrichment",
+        "label": "Block discovery and enrichment",
+        "description": "Domain Search, Email Finder, company/person/LinkedIn enrichment, prospect discovery, sources, exports and bulk contact data are unavailable."
+      },
+      {
+        "id": "snov_prospects_campaigns_messages",
+        "label": "Block prospects and outreach",
+        "description": "Prospects, lists, do-not-email mutations, campaigns, sequences, recipients, content, sending, replies, opens, clicks and LinkedIn automation are unavailable."
+      },
+      {
+        "id": "snov_mailboxes_warmup_crm_admin_raw",
+        "label": "Block connected resources and raw access",
+        "description": "Email accounts, SMTP/IMAP credentials, warm-up, deliverability, CRM, webhooks, team/admin, arbitrary API, browser sessions, bulk, retries and pagination are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "snov_safe",
+      "label": "Safe",
+      "description": "Result reads run automatically; each one-credit email-verification start requires approval. Discovery, enrichment, outreach, connected resources, administration, bulk and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["snov_email_verification_result_get"],
+      "approvalRequiredActions": ["snov_email_verification_start"],
+      "blockedActions": [
+        "snov_discovery_finder_enrichment",
+        "snov_prospects_campaigns_messages",
+        "snov_mailboxes_warmup_crm_admin_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both bounded actions run without Relay per-action approval; credit charging, one-email bounds, legal/privacy handling, provider limits and output reduction still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "snov_email_verification_start",
+        "snov_email_verification_result_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "snov_discovery_finder_enrichment",
+        "snov_prospects_campaigns_messages",
+        "snov_mailboxes_warmup_crm_admin_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly two bounded verification actions while Railway alone holds the customer client credentials and ephemeral bearer tokens."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts exactly two bounded verification actions while Railway alone holds the customer client credentials and ephemeral bearer tokens."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A representative paid Sales Suite account or provider-granted free API test access, dedicated API User ID and Secret, current terms/privacy/DPA review, a lawful purpose for submitted business emails, Railway staging entry, live response validation, credit accounting and credential-lifecycle testing remain for separate authorized tasks.",
+    "nextAction": "An authorized provider task must obtain eligible API access, create or identify dedicated client credentials, confirm the customer's lawful purpose for each email, store the credentials in Railway staging, and validate only token exchange plus single-email verification start/result, Safe approval, Dangerous behavior, one-credit accounting, reduced output, hidden-by-owner handling, in-progress tasks, 60-request-per-minute behavior, no retry/pagination/webhooks, encrypted-copy deletion, provider-side rotation and post-rotation denial."
+  },
+  "evidence": [
+    {
+      "url": "https://snov.io/api#authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Snov.io documents customer API User ID and API Secret client-credentials exchange, one-hour bearer tokens, Authorization headers and the 60-request-per-minute API limit."
+    },
+    {
+      "url": "https://snov.io/api#email-verifier",
+      "checkedAt": "2026-07-18",
+      "supports": "Snov.io documents asynchronous Email Verifier start/result endpoints, up to ten emails, optional webhooks, task hashes, in-progress/completed state, reduced check fields and hidden-by-owner status. Relay narrows this to one email and no webhook."
+    },
+    {
+      "url": "https://snov.io/knowledgebase/how-to-enrich-your-data-via-snov-io-api/",
+      "checkedAt": "2026-07-18",
+      "supports": "Snov.io documents one credit per email checked by the verifier and the legal/privacy-significant hidden-by-owner result."
+    },
+    {
+      "url": "https://snov.io/knowledgebase/how-to-use-snov-io-api/",
+      "checkedAt": "2026-07-18",
+      "supports": "Snov.io documents API plan eligibility, free test-access review, token lifetime and the broad API categories Relay blocks."
+    },
+    {
+      "url": "https://snov.io/t_and_c",
+      "checkedAt": "2026-07-18",
+      "supports": "Snov.io's current terms govern subscription credits, customer data and legal obligations for platform use."
+    },
+    {
+      "url": "https://snov.io/privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "Snov.io documents controller, joint-controller and processor roles, prospect/email verification data, client-determined legal grounds, retention and data-subject claim/deletion rights."
+    }
+  ]
+}

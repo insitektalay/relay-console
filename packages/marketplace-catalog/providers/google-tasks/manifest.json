@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-tasks",
+  "name": "Google Tasks",
+  "category": "work_management",
+  "description": "Google Tasks is Google's personal task-list service for tracking work across Google products. Individuals use it to organize to-dos, due dates, notes, and completion status.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth, then let agents use five bounded wrappers for first-page TaskList and Task reads, local update preparation, top-level task creation, and ETag-protected safe patches. Relay V1 excludes deletion, clearing, move and parent changes, TaskList administration, assigned-task mutation and context, automatic pagination, delegated access, and raw API or MCP tools.",
+  "provider": { "websiteUrl": "https://tasks.google.com/", "docsUrl": "https://developers.google.com/workspace/tasks/auth", "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials", "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy", "privacyUrl": "https://policies.google.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["openid", "email", "https://www.googleapis.com/auth/tasks"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth", "tokenUrl": "https://oauth2.googleapis.com/token" },
+  "connection": { "types": ["relay_owned_global_oauth", "exact_google_account_binding", "expiring_access_token", "offline_refresh_token", "provider_revocation"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/google-tasks/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "task_read", "label": "Read task lists and tasks", "description": "Read bounded first-page TaskList and Task summaries.", "defaultSelected": true },
+    { "id": "task_draft", "label": "Prepare task changes", "description": "Validate and hash non-destructive task changes locally.", "defaultSelected": true },
+    { "id": "task_write", "label": "Create and patch tasks", "description": "Create top-level tasks and safely patch unassigned tasks after policy checks.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_tasks_tasklists_list", "label": "List task lists", "description": "Return at most twenty TaskList summaries from the first page." },
+      { "id": "google_tasks_tasks_list", "label": "List tasks", "description": "Return at most one hundred non-deleted tasks from one explicit TaskList." },
+      { "id": "google_tasks_update_prepare", "label": "Prepare task update", "description": "Validate and hash one task creation or safe patch locally." }
+    ],
+    "approvalRequired": [
+      { "id": "google_tasks_task_create", "label": "Create task", "description": "Create one top-level Task with bounded fields." },
+      { "id": "google_tasks_task_patch", "label": "Patch task", "description": "Safely patch allowlisted fields after assigned-task and ETag checks." }
+    ],
+    "blocked": [
+      { "id": "google_tasks_delete_clear", "label": "Delete or clear tasks", "description": "Task and TaskList deletion and completed-task clearing are blocked in V1." },
+      { "id": "google_tasks_move_parent", "label": "Move or reparent tasks", "description": "Move, reorder, indent, parent, and sibling-position changes are blocked in V1." },
+      { "id": "google_tasks_tasklist_admin", "label": "Administer task lists", "description": "Creating, updating, renaming, and deleting TaskLists is blocked in V1." },
+      { "id": "google_tasks_assigned_context", "label": "Mutate assigned tasks or expose assignment context", "description": "Docs or Chat assigned tasks cannot be mutated, and assignment context is not returned." },
+      { "id": "google_tasks_raw", "label": "Run broad, delegated, or raw operations", "description": "Automatic pagination, service accounts, domain delegation, raw API calls, and raw MCP tools are blocked in V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "google_tasks_safe", "label": "Safe", "description": "Bounded first-page reads and local preparation run automatically; task creation and safe patching require matching approval.", "defaultSelected": true, "allowedActions": ["google_tasks_tasklists_list", "google_tasks_tasks_list", "google_tasks_update_prepare"], "approvalRequiredActions": ["google_tasks_task_create", "google_tasks_task_patch"], "blockedActions": ["google_tasks_delete_clear", "google_tasks_move_parent", "google_tasks_tasklist_admin", "google_tasks_assigned_context", "google_tasks_raw"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All five selected tools run without Relay per-action approval while exact scope, non-destructive boundaries, assigned-task preflight, ETags, limits, audit, redaction, refresh, revocation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["google_tasks_tasklists_list", "google_tasks_tasks_list", "google_tasks_update_prepare", "google_tasks_task_create", "google_tasks_task_patch"], "approvalRequiredActions": [], "blockedActions": ["google_tasks_delete_clear", "google_tasks_move_parent", "google_tasks_tasklist_admin", "google_tasks_assigned_context", "google_tasks_raw"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [{ "format": "openclaw", "installSupport": "installable", "description": "Relay mounts five bounded non-destructive Google Tasks wrappers and attaches encrypted OAuth tokens server-side." }, { "format": "hermes", "installSupport": "installable", "description": "Relay mounts five bounded non-destructive Google Tasks wrappers and attaches encrypted OAuth tokens server-side." }],
+  "availability": "available",
+  "providerSetup": { "status": "provider_review_pending", "blocker": "Relay must configure its Google Cloud project and confidential web client, enable Tasks API, publish its OAuth consent screen with verified relayconsole.work domains and policy links, complete Google's applicable verification for the Tasks scope, configure Railway staging credentials, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.", "nextAction": "In the provider-console task, configure the canonical Railway callback and exact scopes, complete Google verification, configure staging credentials, then verify all five tools, assigned-task denial, ETags, Safe and Dangerous policy, refresh, rotation, revocation, disconnect, quota/error mapping, and post-disconnect denial." },
+  "evidence": [
+    { "url": "https://developers.google.com/workspace/tasks/auth", "checkedAt": "2026-07-17", "supports": "Google documents OAuth authorization and the read/write Tasks scope used by the bounded connector." },
+    { "url": "https://developers.google.com/workspace/tasks/reference/rest/v1/tasklists/list", "checkedAt": "2026-07-17", "supports": "TaskLists.list supports bounded maxResults and page tokens; Relay reads one page only." },
+    { "url": "https://developers.google.com/workspace/tasks/reference/rest/v1/tasks/list", "checkedAt": "2026-07-17", "supports": "Tasks.list supports bounded results and explicit completed, deleted, and hidden filters." },
+    { "url": "https://developers.google.com/workspace/tasks/reference/rest/v1/tasks/insert", "checkedAt": "2026-07-17", "supports": "Tasks.insert creates a Task in one explicit TaskList." },
+    { "url": "https://developers.google.com/workspace/tasks/reference/rest/v1/tasks/patch", "checkedAt": "2026-07-17", "supports": "Tasks.patch updates one exact Task; Relay restricts the patch body and adds ETag concurrency control." }
+  ]
+}

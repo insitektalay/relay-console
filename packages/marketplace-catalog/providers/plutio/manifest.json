@@ -1,0 +1,183 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "plutio",
+  "name": "Plutio",
+  "category": "work_management",
+  "description": "Plutio is an all-in-one business management platform for projects, tasks, clients, proposals, contracts, invoices, scheduling, time tracking, forms, files, conversations, and dashboards. Freelancers and small teams use one workspace to manage client work from the first inquiry through delivery and payment.",
+  "agentUseSummary": "Add a dedicated Plutio API client and workspace subdomain, then choose which agents can use all 219 operations in API version 1.11 under Safe or Dangerous policy. Safe mode runs 40 bounded reads directly and requires approval for all 179 mutations because Plutio does not publish per-client read-only API scopes.",
+  "provider": {
+    "websiteUrl": "https://www.plutio.com/",
+    "docsUrl": "https://docs.plutio.com/",
+    "developerConsoleUrl": "https://app.plutio.com/",
+    "termsUrl": "https://www.plutio.com/legal/terms-of-service",
+    "privacyUrl": "https://www.plutio.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "client_credentials",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.plutio.com/v1.11/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_credentials",
+      "oauth2_client_credentials",
+      "workspace_subdomain",
+      "fixed_versioned_rest_api",
+      "workspace_and_role_permissions",
+      "no_per_client_read_only_scope"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PLUTIO_CLIENT_ID",
+        "label": "Plutio client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Create a dedicated API client in Plutio Settings > API manager."
+      },
+      {
+        "name": "PLUTIO_CLIENT_SECRET",
+        "label": "Plutio client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Store the dedicated client secret only in Relay's encrypted credential boundary."
+      },
+      {
+        "name": "PLUTIO_BUSINESS_SUBDOMAIN",
+        "label": "Plutio workspace subdomain",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter only the first part of the workspace domain, such as studio from studio.plutio.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "plutio_read",
+      "label": "Read business operations",
+      "description": "Use all 40 documented version 1.11 reads across workspace, people, projects, scheduling, finance, documents, forms, content, files, messaging, dashboards, and system data.",
+      "defaultSelected": true
+    },
+    {
+      "id": "plutio_manage",
+      "label": "Manage business operations",
+      "description": "Use all 179 documented version 1.11 mutations to create, update, move, copy, archive, email, share, bulk-edit, or delete authorized records.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "plutio_read",
+        "label": "Read Plutio",
+        "description": "Run one pinned documented GET operation with bounded filtering, pagination, response size, and workspace authority."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "plutio_manage",
+        "label": "Manage Plutio",
+        "description": "Run one pinned documented mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "plutio_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Client credentials and derived access tokens never enter agent-visible requests or results."
+      },
+      {
+        "id": "plutio_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every token and data request stays on Plutio's fixed versioned HTTPS API origin."
+      },
+      {
+        "id": "plutio_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only the 219 operations published in Plutio API version 1.11."
+      },
+      {
+        "id": "plutio_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds pagination, query values, request bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "plutio_safe",
+      "label": "Safe",
+      "description": "All 40 bounded reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["plutio_read"],
+      "approvalRequiredActions": ["plutio_manage"],
+      "blockedActions": [
+        "plutio_secret_exposure",
+        "plutio_unofficial_origin",
+        "plutio_unsupported_endpoint",
+        "plutio_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 219 selected and client-authorized operations run without Relay per-action approval; workspace binding, exact routes, bounds, audits, redaction, rate limits, and Plutio role permissions still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["plutio_read", "plutio_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "plutio_secret_exposure",
+        "plutio_unofficial_origin",
+        "plutio_unsupported_endpoint",
+        "plutio_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected bounded Plutio tools and derives short-lived access tokens from encrypted customer credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected bounded Plutio tools and derives short-lived access tokens from encrypted customer credentials."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No representative Plutio owner or co-owner has created a dedicated API client, selected the intended workspace, supplied its client ID, client secret, and exact business subdomain, or established the role behind that client for acceptance. Plutio scopes client credentials by workspace but does not offer per-client read-only REST access, so live permission, denial, mutation, deletion, token-expiry, and disconnect behavior must be verified before release.",
+    "nextAction": "The exclusive provider-console acceptance task should authorize a representative owner or co-owner to create a dedicated Relay API client, enable only the intended workspace, capture its client ID, secret, and business subdomain without exposing them in evidence, store them in Railway, and verify bounded reads, Safe approval denial, an approved reversible mutation, role restrictions, 72-hour token renewal, 1,000-request hourly limits, client deletion, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.plutio.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Plutio publishes API version 1.11 with 219 current operations across workspace, people, projects, time tracking, scheduling, finance, documents, forms, content, files, messaging, dashboards, and system resources; the API is REST/JSON, uses skip/limit pagination, and permits 1,000 requests per hour per API key."
+    },
+    {
+      "url": "https://www.plutio.com/help/api-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Plutio documents OAuth2 client_credentials token exchange, 72-hour access tokens, the required bearer and business headers, workspace subdomain routing, and role-based 403 responses."
+    },
+    {
+      "url": "https://www.plutio.com/help/api-client-management",
+      "checkedAt": "2026-07-17",
+      "supports": "Owners or co-owners create API clients, clients can be bound to selected workspaces, deleting one client revokes it independently, and webhook method selections do not constrain REST authority or provide per-client read-only access."
+    },
+    {
+      "url": "https://www.plutio.com/help/webhook-integration",
+      "checkedAt": "2026-07-17",
+      "supports": "Plutio separately documents outbound create, edit, and remove webhooks and retries failed deliveries up to ten times; webhook event selection is not used as REST authorization."
+    }
+  ]
+}

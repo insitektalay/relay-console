@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "proposify",
+  "name": "Proposify",
+  "category": "knowledge_documents",
+  "description": "Proposify is a proposal, quote, contract, and electronic-signature platform for organizing sales documents from creation through close. Revenue teams use it to manage reusable content, control approvals, deliver buyer-facing proposals, track engagement, and capture legally binding signatures.",
+  "agentUseSummary": "Connect the customer's sole Proposify Connect confidential client with exactly read_documents authority, then let agents inspect privacy-redacted lifecycle metadata for one explicit V3 document UUID. Relay exchanges short-lived client-credentials tokens server-side and blocks people, content, clients, signatures, links, writes, events, administration, broader scopes, and raw access.",
+  "provider": {
+    "websiteUrl": "https://www.proposify.com/",
+    "docsUrl": "https://apidocs.proposify.com/",
+    "developerConsoleUrl": "https://legacy-support.proposify.com/hc/en-us/articles/25763629409947-Get-API-Credentials",
+    "termsUrl": "https://www.proposify.com/terms",
+    "privacyUrl": "https://www.proposify.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["read_documents"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://connect.proposify.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_credentials",
+      "exact_read_documents_scope",
+      "short_lived_bearer_token",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PROPOSIFY_CLIENT_ID",
+        "label": "Proposify Connect client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Generate the sole customer-owned API connection in Proposify Connect settings."
+      },
+      {
+        "name": "PROPOSIFY_CLIENT_SECRET",
+        "label": "Proposify Connect client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the generated confidential client secret and store it only in Relay's encrypted boundary."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "document_metadata_read",
+      "label": "Inspect document metadata",
+      "description": "Read one explicit V3 document's redacted lifecycle metadata with exactly read_documents authority.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "proposify_document_get",
+        "label": "Inspect document metadata",
+        "description": "Inspect privacy-redacted lifecycle metadata for one explicit Proposify V3 document UUID."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "proposify_private_content",
+        "label": "Access private proposal content",
+        "description": "Document bodies, sections, fees, signatures, recipients, contacts, companies, users, client data, PDFs, links, and custom fields are blocked."
+      },
+      {
+        "id": "proposify_mutation",
+        "label": "Mutate or send documents",
+        "description": "Creation, section changes, updates, sending, signing, approval, won/lost transitions, deletion, and downloads are blocked."
+      },
+      {
+        "id": "proposify_broader_authority",
+        "label": "Use broader OAuth authority",
+        "description": "Events, legacy documents, templates, companies, users, admin/client management, credential rotation, and scopes beyond read_documents are blocked."
+      },
+      {
+        "id": "proposify_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, arbitrary queries, pagination, polling, retries, batches, exports, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "proposify_read_only",
+      "label": "Read-only document lifecycle",
+      "description": "One fixed privacy-redacted V3 document metadata lookup runs automatically with exactly read_documents authority.",
+      "defaultSelected": true,
+      "allowedActions": ["proposify_document_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "proposify_private_content",
+        "proposify_mutation",
+        "proposify_broader_authority",
+        "proposify_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Exact scope, customer-owned client boundary, fixed token and document routes, strict projection, and read-only behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["proposify_document_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "proposify_private_content",
+        "proposify_mutation",
+        "proposify_broader_authority",
+        "proposify_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges the customer-owned confidential client for short-lived exact-scope tokens and mounts one fixed redacted V3 document lookup."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges the customer-owned confidential client for short-lived exact-scope tokens and mounts one fixed redacted V3 document lookup."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Proposify Connect API access requires the Business Plan, an account administrator, and the account's sole API connection with a confidential client ID and secret. No eligible account, credentials, signed-in session, Railway change, or live acceptance is available in this worker task.",
+    "nextAction": "An authorized Proposify administrator confirms the Business Plan, creates or updates the sole Connect API client, limits it to read_documents, stores the client ID and secret through Relay's encrypted connection flow, then separately validates token exchange, redacted V3 document lookup, credential rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://apidocs.proposify.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Proposify documents the fixed https://connect.proposify.com origin, authorization-code, refresh-token, and client-credentials token grants, Bearer tokens, and GET /v3/document/{uuid}; Relay selects only the client-credentials read path."
+    },
+    {
+      "url": "https://support.proposify.com/hc/en-us/articles/29556148207643-Build-Your-First-Integration",
+      "checkedAt": "2026-07-17",
+      "supports": "Proposify's official integration tutorial identifies read_documents as the scope for reading document details and separately identifies prismatic for event access; Relay requests only read_documents."
+    },
+    {
+      "url": "https://legacy-support.proposify.com/hc/en-us/articles/25763629409947-Get-API-Credentials",
+      "checkedAt": "2026-07-17",
+      "supports": "Proposify documents admin creation of one API connection per account, generated client ID and secret, configurable redirect URIs, and credential rotation with a one-hour grace period."
+    },
+    {
+      "url": "https://support.proposify.com/hc/en-us/articles/38070378522011-Proposify-API",
+      "checkedAt": "2026-07-17",
+      "supports": "Proposify states that Connect API access is available on its Business Plan."
+    }
+  ]
+}

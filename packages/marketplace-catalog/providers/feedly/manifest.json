@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "feedly",
+  "name": "Feedly",
+  "category": "knowledge_documents",
+  "description": "Team intelligence folders, AI Feeds, boards, articles, search, annotations, webhooks, and Enterprise intelligence workflows through Feedly's customer-token API.",
+  "agentUseSummary": "Connect a customer-owned Feedly Enterprise API token, then let agents run bounded intelligence reads or the complete selected v3 API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://feedly.com/",
+    "docsUrl": "https://developers.feedly.com/reference/introduction",
+    "developerConsoleUrl": "https://feedly.com/i/team/api",
+    "termsUrl": "https://developers.feedly.com/reference/feedly-api-terms-of-service",
+    "privacyUrl": "https://feedly.com/legal/privacy"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [{ "name": "FEEDLY_ACCESS_TOKEN", "label": "Feedly Enterprise API access token", "required": true, "secret": true, "helpText": "Generate this in your own Enterprise team's API self-service page. Railway encrypts it and attaches it only to fixed-origin api.feedly.com requests." }],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "intelligence_read", "label": "Read intelligence", "description": "Read the profile, team folders, and bounded pages from selected AI Feed, folder, or board streams.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full Feedly API", "description": "Use the complete documented v3 API authorized by the customer's Enterprise token.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "feedly_read_profile", "label": "Read profile", "description": "Read the authenticated Feedly profile." },
+      { "id": "feedly_list_team_folders", "label": "List team folders", "description": "List the authenticated team's folders." },
+      { "id": "feedly_collect_articles", "label": "Collect articles", "description": "Collect a bounded page from a selected Feedly stream." }
+    ],
+    "approvalRequired": [{ "id": "feedly_full_api", "label": "Use full Feedly API", "description": "Use any documented Feedly v3 operation; Safe mode requires approval." }],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "feedly_safe", "label": "Safe", "description": "Bounded profile, folder, and article reads run directly; every other operation requires approval.", "defaultSelected": true, "allowedActions": ["feedly_read_profile", "feedly_list_team_folders", "feedly_collect_articles"], "approvalRequiredActions": ["feedly_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected token-authorized operation runs without Relay per-action approval; ownership, token authority, fixed origin, bounds, audits, provider terms, and rate limits still apply.", "defaultSelected": false, "allowedActions": ["feedly_read_profile", "feedly_list_team_folders", "feedly_collect_articles", "feedly_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Feedly tools and proxies the customer token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Feedly tools and proxies the customer token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "not_required", "blocker": null, "nextAction": "A Feedly Enterprise admin enables the API add-on and generates a customer-owned token; the user enters it in Relay and selects capabilities plus Safe or Dangerous policy per agent install." },
+  "evidence": [
+    { "url": "https://developers.feedly.com/reference/authorization", "checkedAt": "2026-07-13", "supports": "Current API access uses customer-generated bearer tokens, is available only to Enterprise clients, requires account admin rights, and includes up to 100,000 requests per month." },
+    { "url": "https://developers.feedly.com/reference/introduction", "checkedAt": "2026-07-13", "supports": "The current REST API uses HTTPS at api.feedly.com, JSON, GET/POST/DELETE operations, and bounded continuation pagination." },
+    { "url": "https://developers.feedly.com/reference/collect-articles", "checkedAt": "2026-07-13", "supports": "Authenticated collection from AI Feed, folder, or board stream IDs supports counts from 1 to 100 and continuation pagination." },
+    { "url": "https://developers.feedly.com/reference/feedly-api-terms-of-service", "checkedAt": "2026-07-13", "supports": "Mutations, OPML use, and bulk import/export require explicit user action or permission; developer keys are non-transferable and publisher monetization must be preserved." }
+  ]
+}

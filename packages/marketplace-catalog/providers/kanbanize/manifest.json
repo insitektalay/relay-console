@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "kanbanize",
+  "name": "Kanbanize (now Businessmap)",
+  "category": "project_management",
+  "description": "Kanbanize is the former name of Businessmap, an enterprise work-management platform for connecting strategy, portfolios, outcomes and team delivery. Organizations use the current Businessmap product to visualize workflows, manage boards and cards, coordinate dependencies and improve flow across teams.",
+  "agentUseSummary": "Kanbanize is not a separate Relay account provider. It is a legacy Businessmap name for the same software, tenant, users, API keys, permissions and API lifecycle, so connection and runtime actions must resolve to the canonical Businessmap provider instead of creating duplicate state.",
+  "provider": {
+    "websiteUrl": "https://businessmap.io/",
+    "docsUrl": "https://businessmap.io/api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://businessmap.io/terms-of-use",
+    "privacyUrl": "https://businessmap.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "legacy_businessmap_brand_alias",
+      "canonical_businessmap_provider_only",
+      "same_businessmap_tenant_user_api_key_and_permissions"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "kanbanize_separate_connect",
+        "label": "Connect Kanbanize separately",
+        "description": "Kanbanize and Businessmap are the same software and account authority; there is no second tenant, user, API key or revocation lifecycle to connect."
+      },
+      {
+        "id": "kanbanize_duplicate_tools",
+        "label": "Mount duplicate Kanbanize tools",
+        "description": "Businessmap's canonical connector must own supported board and card tools, approval policy, bounds, redaction and audit records once."
+      },
+      {
+        "id": "kanbanize_legacy_origin_split",
+        "label": "Split legacy and current origins",
+        "description": "Legacy kanbanize.com subdomains remain part of Businessmap's account routing and cannot create a second provider identity or fallback authority."
+      },
+      {
+        "id": "kanbanize_permission_bypass",
+        "label": "Bypass Businessmap permissions",
+        "description": "API v2 actions inherit the canonical Businessmap user's board roles and action permissions; a legacy label cannot weaken them."
+      },
+      {
+        "id": "kanbanize_raw_api",
+        "label": "Run arbitrary legacy API calls",
+        "description": "No raw Kanbanize or Businessmap REST or MCP surface is mounted through this alias."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "kanbanize_canonical_businessmap",
+      "label": "Use Businessmap",
+      "description": "No separate Kanbanize actions are enabled. Connect the canonical Businessmap provider and apply its selected capabilities, account binding and Safe or Dangerous profile.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "kanbanize_separate_connect",
+        "kanbanize_duplicate_tools",
+        "kanbanize_legacy_origin_split",
+        "kanbanize_permission_bypass",
+        "kanbanize_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No separate Kanbanize tools are mounted; OpenClaw must use the canonical Businessmap connector for supported account-bound actions."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No separate Kanbanize tools are mounted; Hermes must use the canonical Businessmap connector for supported account-bound actions."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Businessmap officially rebranded the Kanbanize software without changing existing subscribers' product, pricing or user experience. Current Businessmap integrations still use the same customer subdomain and per-user API key authority, including legacy kanbanize.com account origins. Publishing Kanbanize separately would duplicate connection state, credentials, agent selection, permission policy, rotation, disconnect and audit semantics for one account.",
+    "nextAction": "Do not show a separate Kanbanize Connect action or request another API key. Implement and validate one canonical Businessmap connection, preserve Kanbanize as a discovery alias, and route supported legacy-name references through the Businessmap provider's exact tenant, credentials, capabilities and policy."
+  },
+  "evidence": [
+    {
+      "url": "https://businessmap.io/blog/kanbanize-rebranding-to-businessmap",
+      "checkedAt": "2026-07-18",
+      "supports": "Businessmap's official rebrand announcement identifies Kanbanize as the former software name and states that existing software subscribers would be unaffected in pricing and user experience."
+    },
+    {
+      "url": "https://businessmap.io/product-demo-kanbanize-by-businessmap",
+      "checkedAt": "2026-07-18",
+      "supports": "The current official product page labels the Businessmap Software Platform as formerly Kanbanize."
+    },
+    {
+      "url": "https://businessmap.io/api",
+      "checkedAt": "2026-07-18",
+      "supports": "Businessmap documents one current API v2 product surface authenticated with the customer's API key."
+    },
+    {
+      "url": "https://knowledgebase.businessmap.io/hc/en-us/articles/7734756669970-Businessmap-Integrations-Using-Power-Automate",
+      "checkedAt": "2026-07-18",
+      "supports": "Businessmap's integration guidance uses one account subdomain and one user API key, and explicitly describes the legacy subdomain as `{subdomain}.kanbanize.com`."
+    },
+    {
+      "url": "https://knowledgebase.businessmap.io/hc/en-us/articles/115002891005-How-to-Manage-User-Roles-and-Permissions",
+      "checkedAt": "2026-07-18",
+      "supports": "Businessmap states that API v2 access inherits the user's board roles and permissions."
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "metricool",
+  "name": "Metricool",
+  "category": "communication",
+  "description": "Metricool is a social media management platform for planning, publishing, analytics, reporting, advertising, and inbox workflows.",
+  "agentUseSummary": "Add a customer-owned Metricool API token and bind it to one exact numeric user and brand, then let agents inspect bounded identity-redacted brand references and connected network types.",
+  "provider": {
+    "websiteUrl": "https://metricool.com/",
+    "docsUrl": "https://app.metricool.com/resources/apidocs/index.html",
+    "developerConsoleUrl": "https://app.metricool.com/",
+    "termsUrl": "https://metricool.com/legal-terms/",
+    "privacyUrl": "https://metricool.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "exact_user_brand_binding"],
+    "credentialRequirements": [
+      {
+        "name": "METRICOOL_USER_TOKEN",
+        "label": "Metricool user token",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the token from Account Settings > API on an Advanced or Custom plan. Relay encrypts it and sends it only as X-Mc-Auth to https://app.metricool.com."
+      },
+      {
+        "name": "METRICOOL_USER_ID",
+        "label": "Metricool user ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Paste the exact numeric userId documented by Metricool for the customer account."
+      },
+      {
+        "name": "METRICOOL_BLOG_ID",
+        "label": "Metricool brand ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Paste one exact numeric blogId for the brand this Relay connection may inspect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "brand_structure_read",
+      "label": "Read brand structure",
+      "description": "Read bounded identity-redacted brand references and connected network types for one exact Metricool user and brand.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "metricool_brand_list",
+        "label": "List Metricool brand references",
+        "description": "List at most twenty-five numeric brand IDs without names, URLs, owners, collaborators, or connected-account identity."
+      },
+      {
+        "id": "metricool_connected_network_list",
+        "label": "List connected network types",
+        "description": "List at most twenty-five network type keys and connection booleans for the exact bound brand without profile identity or content."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "metricool_identity_or_content",
+        "label": "Access private identity or social content",
+        "description": "Brand names, URLs, owners, collaborators, profile IDs, handles, messages, posts, media, comments, and other social content are outside Relay's bounded connector."
+      },
+      {
+        "id": "metricool_analytics_ads_or_competitors",
+        "label": "Access broader analytics, ads, or competitors",
+        "description": "Analytics, reports, advertising, competitors, hashtags, SmartLinks, and performance dashboards remain blocked."
+      },
+      {
+        "id": "metricool_publish_inbox_or_admin",
+        "label": "Publish, use inbox, or administer Metricool",
+        "description": "Drafting, scheduling, publishing, editing, deleting, replying, moderation, connections, users, teams, billing, webhooks, and administration remain blocked."
+      },
+      {
+        "id": "metricool_raw_api_or_bulk",
+        "label": "Use raw API or bulk access",
+        "description": "Arbitrary paths, methods, queries, bodies, pagination, bulk operations, exports, browser sessions, and undocumented endpoints remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "metricool_safe",
+      "label": "Safe",
+      "description": "Both bounded identity-redacted reads require approval; all identity, content, analytics, advertising, competitors, inbox, publishing, writes, raw API, pagination, bulk, and export surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "metricool_brand_list",
+        "metricool_connected_network_list"
+      ],
+      "blockedActions": [
+        "metricool_identity_or_content",
+        "metricool_analytics_ads_or_competitors",
+        "metricool_publish_inbox_or_admin",
+        "metricool_raw_api_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same two bounded reads run directly; exact user/brand binding, fixed GET paths, identity redaction, response caps, audits, and Relay's local request ceiling remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "metricool_brand_list",
+        "metricool_connected_network_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "metricool_identity_or_content",
+        "metricool_analytics_ads_or_competitors",
+        "metricool_publish_inbox_or_admin",
+        "metricool_raw_api_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives two bounded Metricool read tools with exact user/brand binding and identity redaction."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same two bounded Metricool read tools with exact user/brand binding and identity redaction."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Metricool API access requires an Advanced or Custom plan plus a customer-owned API token, exact numeric userId and one exact numeric blogId.",
+    "nextAction": "The customer copies the token from Account Settings > API, supplies the exact user and brand IDs, and completes a live read-only connection check."
+  },
+  "evidence": [
+    {
+      "url": "https://help.metricool.com/api-access-export-your-metricool-data-to-other-tools-and-automate-tasks-x8ln5",
+      "checkedAt": "2026-07-18",
+      "supports": "Metricool documents customer API access for Advanced and Custom plans, a token copied from Account Settings > API, and use for data export and task automation."
+    },
+    {
+      "url": "https://app.metricool.com/resources/apidocs/index.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Official API documentation fixes the base at https://app.metricool.com/api and requires X-Mc-Auth userToken, userId and blogId on calls."
+    },
+    {
+      "url": "https://app.metricool.com/api/swagger.json",
+      "checkedAt": "2026-07-18",
+      "supports": "Official OpenAPI documents GET /admin/simpleProfiles for account brands and GET /admin/blog/profiles for the bound brand's profile summary."
+    },
+    {
+      "url": "https://help.metricool.com/common-questions-and-errors-when-using-the-api-8x9nq",
+      "checkedAt": "2026-07-18",
+      "supports": "Metricool confirms X-Mc-Auth plus userId/blogId, identifies simpleProfiles as the brand-discovery endpoint, and permits custom-header HTTP integrations."
+    }
+  ],
+  "securityNotes": [
+    "The customer token is encrypted as a secret reference and is sent only in X-Mc-Auth to the fixed https://app.metricool.com origin.",
+    "Every request is bound server-side to the stored numeric userId and one exact numeric blogId; tools accept no alternate IDs, paths, methods, queries, or bodies.",
+    "Responses are capped at 1 MB and twenty-five items; redirects, arbitrary pagination, raw responses, and exports are blocked.",
+    "Brand names, URLs, owners, collaborators, profile IDs, handles, messages, posts, media, comments, and other identity or content fields are excluded.",
+    "Analytics, reports, advertising, competitors, SmartLinks, inbox, scheduling, publishing, connections, users, teams, billing, webhooks, and all writes remain blocked.",
+    "Relay enforces a conservative local ceiling of sixty Metricool requests per minute in addition to provider controls."
+  ]
+}

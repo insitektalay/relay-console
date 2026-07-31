@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "strapi-self-hosted",
+  "name": "Strapi Self-Hosted",
+  "category": "knowledge_documents",
+  "description": "Strapi Self-Hosted is an open-source headless CMS that generates Content APIs from custom collection and single types. It supports documents, components, dynamic zones, media, relations, localization, Draft & Publish, users, roles, API tokens, plugins, releases, REST, GraphQL, and administrative APIs.",
+  "agentUseSummary": "Relay calls one Strapi 5 collection type's findOne route for a preselected documentId, fixes status to published, requests only lifecycle timestamps, and returns only document ID and those timestamps. Relay requires a dedicated expiring custom API token with only findOne permission on that content type and blocks lists, arbitrary fields, population, drafts, other content types, uploads, administration, and mutations.",
+  "provider": {
+    "websiteUrl": "https://strapi.io/",
+    "docsUrl": "https://docs.strapi.io/cms/api/rest",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://strapi.io/terms",
+    "privacyUrl": "https://strapi.io/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["selected content-type findOne only", "published only"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_operated_strapi_5",
+      "public_https_core_content_api",
+      "dedicated_custom_find_one_token",
+      "selected_content_type_and_document"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "STRAPI_SELF_HOSTED_BASE_URL",
+        "label": "Strapi HTTPS project base URL",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "STRAPI_SELF_HOSTED_API_TOKEN",
+        "label": "Dedicated custom findOne API token",
+        "required": true,
+        "secret": true,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "STRAPI_SELF_HOSTED_CONTENT_TYPE_ROUTE",
+        "label": "Selected content-type plural route",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "STRAPI_SELF_HOSTED_DOCUMENT_ID",
+        "label": "Selected document ID",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "strapi_self_hosted_selected_document_lifecycle_get",
+      "label": "Read selected document lifecycle",
+      "description": "Read one selected published document's ID and lifecycle timestamps.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "strapi_self_hosted_selected_document_lifecycle_get",
+        "label": "Read selected document lifecycle",
+        "description": "Use one Strapi 5 findOne route for the selected published document and return only document ID and lifecycle timestamps."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "strapi_self_hosted_private_content",
+        "label": "Expose content or identities",
+        "description": "Titles, slugs, bodies, custom fields, components, dynamic zones, media, relations, locales, users, and identities are excluded from Relay output."
+      },
+      {
+        "id": "strapi_self_hosted_mutation",
+        "label": "Mutate Strapi",
+        "description": "Documents, content types, components, media, users, roles, tokens, settings, plugins, releases, drafts, and every create, update, delete, publish, or unpublish action are blocked."
+      },
+      {
+        "id": "strapi_self_hosted_broad_access",
+        "label": "Use broad Strapi access",
+        "description": "Document lists, other document IDs, other content types, arbitrary fields, filters, population, drafts, locales, GraphQL, uploads, custom routes, redirects, and administration are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "strapi_self_hosted_selected_document_lifecycle_read",
+      "label": "Selected Document Lifecycle Read",
+      "description": "Read one selected published document's lifecycle projection; content, identities, other resources, administration, drafts, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["strapi_self_hosted_selected_document_lifecycle_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "strapi_self_hosted_private_content",
+        "strapi_self_hosted_mutation",
+        "strapi_self_hosted_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-document lifecycle reader backed by Railway's bounded Strapi adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-document lifecycle reader backed by Railway's bounded Strapi adapter."
+    }
+  ],
+  "availability": "preview",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An authorized public HTTPS Strapi 5 staging project must provide a dedicated expiring custom API token whose only permission is findOne for one selected collection type, one published documentId, and Fairfax validation.",
+    "nextAction": "In the provider-console lane, create the expiring custom findOne-only token, enter the project URL, content-type plural route, and documentId through Relay, then validate exact-document binding, published-only and fixed-field enforcement, output redaction, list/draft/other-route and mutation denial, redirect and private-DNS denial, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.strapi.io/cms/api/rest",
+      "checkedAt": "2026-07-18",
+      "supports": "Official Strapi 5 REST documentation defines collection-type findOne routes addressed by documentId, flattened response data, system lifecycle fields, and adjacent CRUD operations."
+    },
+    {
+      "url": "https://docs.strapi.io/cms/api/rest/populate-select",
+      "checkedAt": "2026-07-18",
+      "supports": "Official REST parameter documentation defines fields array selection and non-population by default, supporting Relay's fixed lifecycle-only projection."
+    },
+    {
+      "url": "https://docs.strapi.io/cms/api/rest/status",
+      "checkedAt": "2026-07-18",
+      "supports": "Official status documentation defines published and draft document variants and the status parameter, supporting Relay's fixed published-only request."
+    },
+    {
+      "url": "https://docs.strapi.io/cms/features/api-tokens",
+      "checkedAt": "2026-07-18",
+      "supports": "Official API token documentation defines bearer authentication, custom per-content-type permissions, token duration, read-only and full-access alternatives, and one-time token display, supporting Relay's expiring custom findOne-only requirement."
+    }
+  ]
+}

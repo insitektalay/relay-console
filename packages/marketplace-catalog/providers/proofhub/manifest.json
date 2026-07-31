@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "proofhub",
+  "name": "ProofHub",
+  "category": "work_management",
+  "description": "ProofHub is an all-in-one project-management and team-collaboration platform. Teams use it to organize projects, tasks, boards, Gantt plans, discussions, files, notes, time, forms, announcements, calendars, proofing, and reports in one workspace.",
+  "agentUseSummary": "Add your ProofHub account name and API key once, then select which agents can read or manage the work available to that ProofHub user under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.proofhub.com/",
+    "docsUrl": "https://github.com/ProofHub/api_v3",
+    "developerConsoleUrl": "https://help.proofhub.com/swift/others/how-to-access-your-api-key",
+    "termsUrl": "https://www.proofhub.com/terms",
+    "privacyUrl": "https://www.proofhub.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "PROOFHUB_ACCOUNT",
+        "label": "ProofHub account name",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the first part of your ProofHub URL. For example, enter acme for https://acme.proofhub.com."
+      },
+      {
+        "name": "PROOFHUB_API_KEY",
+        "label": "ProofHub API key",
+        "required": true,
+        "secret": true,
+        "helpText": "In ProofHub, open your profile menu > API access and copy or reset the key. API access requires an eligible plan."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "work_read",
+      "label": "Read projects and collaboration",
+      "description": "Read authorized projects, categories, groups, people, roles, discussions, comments, task lists, tasks, files, events, milestones, notebooks, notes, folders, time, forms, announcements, labels, and related ProofHub data.",
+      "defaultSelected": true
+    },
+    {
+      "id": "work_manage",
+      "label": "Manage projects and collaboration",
+      "description": "Create, update, move, copy, upload, attach, complete, reopen, and delete resources through ProofHub's documented API, subject to the connected user's authority.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "proofhub_api_read",
+        "label": "Read ProofHub",
+        "description": "Run one bounded GET request against ProofHub's documented API v3."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "proofhub_api_manage",
+        "label": "Manage ProofHub",
+        "description": "Run one bounded POST, PUT, or DELETE request, including documented uploads; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "proofhub_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The API key never enters agent-visible requests, URLs, or results."
+      },
+      {
+        "id": "proofhub_unofficial_origin",
+        "label": "Use another origin",
+        "description": "Every request is pinned to the validated customer subdomain under proofhub.com."
+      },
+      {
+        "id": "proofhub_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds paths, query values, JSON bodies, uploads, redirects, results, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "proofhub_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly. Every write, upload, invitation, deletion, or administrative operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["proofhub_api_read"],
+      "approvalRequiredActions": ["proofhub_api_manage"],
+      "blockedActions": ["proofhub_secret_exposure", "proofhub_unofficial_origin", "proofhub_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected key-authorized ProofHub operation runs without Relay per-action approval. Connection ownership, provider authority, fixed account routing, request bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["proofhub_api_read", "proofhub_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["proofhub_secret_exposure", "proofhub_unofficial_origin", "proofhub_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded read and manage tools and attaches the encrypted key only at the validated ProofHub account origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded read and manage tools and attaches the encrypted key only at the validated ProofHub account origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A ProofHub customer on an API-enabled plan must supply their account subdomain and user API key. ProofHub documents user-generated API keys rather than a distributable Relay-owned OAuth application.",
+    "nextAction": "Copy the account name from the ProofHub URL, generate or copy the key under profile > API access, connect both in Relay Console, then run health, read, Safe manage approval, Dangerous manage, upload, disconnect, and post-disconnect denial checks."
+  },
+  "evidence": [
+    {
+      "url": "https://help.proofhub.com/swift/others/how-to-access-your-api-key",
+      "checkedAt": "2026-07-15",
+      "supports": "ProofHub's current help center tells users to open profile > API access to copy or reset their own API key and links to the official API v3 repository."
+    },
+    {
+      "url": "https://github.com/ProofHub/api_v3",
+      "checkedAt": "2026-07-15",
+      "supports": "ProofHub documents customer-subdomain HTTPS API v3 URLs, X-API-KEY authentication, mandatory application identification, JSON reads and writes, file uploads, and a rate limit of 25 calls per 10 seconds per account and IP."
+    },
+    {
+      "url": "https://www.proofhub.com/pricing",
+      "checkedAt": "2026-07-15",
+      "supports": "ProofHub's current pricing comparison lists API Access on the Ultimate Control plan rather than the Essential plan."
+    },
+    {
+      "url": "https://www.proofhub.com/features",
+      "checkedAt": "2026-07-15",
+      "supports": "ProofHub describes project and task management, discussions, files, notes, time tracking, collaboration, proofing, reporting, mobile access, integrations, and API access as product capabilities."
+    }
+  ]
+}

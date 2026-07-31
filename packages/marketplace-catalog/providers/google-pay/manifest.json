@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-pay",
+  "name": "Google Pay",
+  "category": "commerce_payments",
+  "description": "Google Pay API is a merchant checkout component that lets a shopper choose a saved payment method and returns a token for the merchant's payment processor. It is not a general Google Pay wallet, balance, transaction-history, or money-movement account API.",
+  "agentUseSummary": "Google Pay cannot yet be connected through Relay. A production implementation belongs inside an approved merchant checkout and requires a merchant identity, registered domain or app, supported gateway or PCI-qualified direct integration, transaction and currency rules, processor handling, user-present payment sheet, and production review. Relay has no approved merchant, processor, checkout, catalog, amount, refund, dispute, or payment-authority contract.",
+  "provider": {
+    "websiteUrl": "https://pay.google.com/",
+    "docsUrl": "https://developers.google.com/pay/api/web/overview",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://payments.developers.google.com/terms/sellertos",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "approved_merchant_checkout_required",
+      "registered_domain_or_application_required",
+      "supported_payment_gateway_or_pci_direct_integration_required",
+      "user_present_payment_sheet_required",
+      "exact_catalog_amount_processor_and_payment_contract_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "google_pay_connect",
+        "label": "Connect Google Pay",
+        "description": "An approved merchant, registered domain or app, production merchant ID, processor or gateway, and checkout implementation are required."
+      },
+      {
+        "id": "google_pay_payment_sheet",
+        "label": "Present Google Pay checkout",
+        "description": "Readiness checks, payment sheets, shipping and billing collection, dynamic pricing, offers, and payment authorization remain unavailable."
+      },
+      {
+        "id": "google_pay_tokens_or_charges",
+        "label": "Handle payment tokens or charges",
+        "description": "Receiving, decrypting, storing, forwarding, charging, capturing, refunding, disputing, or otherwise handling payment credentials and transactions is blocked."
+      },
+      {
+        "id": "google_pay_wallet_or_account_data",
+        "label": "Access Google Pay account data",
+        "description": "Wallet contents, cards, balances, contacts, transaction history, statements, transfers, and unrelated Google account data are unavailable."
+      },
+      {
+        "id": "google_pay_private_or_credential_access",
+        "label": "Use private or credential-based access",
+        "description": "Browser automation, password or session capture, payment-sheet automation, unapproved merchant IDs, raw card data, and private interfaces are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "google_pay_unavailable",
+      "label": "Unavailable",
+      "description": "No Google Pay action is enabled without one exact merchant, processor, checkout, catalog, currency, amount, fulfillment, refund, dispute, and payment-control contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "google_pay_connect",
+        "google_pay_payment_sheet",
+        "google_pay_tokens_or_charges",
+        "google_pay_wallet_or_account_data",
+        "google_pay_private_or_credential_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Google Pay tools are mounted before merchant, processor, checkout, user-presence, monetary, and payment-compliance controls are approved."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Google Pay tools are mounted before merchant, processor, checkout, user-presence, monetary, and payment-compliance controls are approved."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Google Pay API is a user-present merchant checkout interface, not an agent-facing wallet or transaction API. A shopper selects a card in Google's payment sheet and the merchant receives a chargeable gateway token or encrypted direct-integration payload to send to its processor. Production requires terms compliance, a registered merchant and domain or app, supported gateway credentials or PCI DSS-qualified direct decryption infrastructure, brand and UX compliance, testing, and Google review. Direct integration is limited to actual merchants and places payment credentials on validated infrastructure. An autonomous generic tool would bypass the intended checkout context and combine pricing, order, identity, payment-token, processor, fulfillment, refund, and dispute authority.",
+    "nextAction": "Product, commerce, payments, finance, legal, privacy, security, PCI, fraud, support, and merchant owners must select one first-party checkout and freeze the legal merchant, domain or app, catalog, countries, currencies, pricing source, taxes, shipping, processor or gateway, tokenization mode, user-presence rule, amount and velocity limits, authorization and capture, fulfillment, refunds, disputes, reconciliation, retention, audit, and incident duties. The merchant must then complete processor onboarding and Google production review. Only after that may Relay support a customer-facing checkout surface with server-verified orders and amounts; no unattended agent payment action should be mounted."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/pay/api/web/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Google Pay is a merchant checkout in which a user selects a payment method and a token is returned to the merchant backend for processor execution."
+    },
+    {
+      "url": "https://developers.google.com/pay/api/web/reference/request-objects",
+      "checkedAt": "2026-07-17",
+      "supports": "Requests specify merchant, transaction, currency, card networks, addresses, shipping, callbacks, and gateway or direct tokenization parameters."
+    },
+    {
+      "url": "https://developers.google.com/pay/api/web/reference/response-objects",
+      "checkedAt": "2026-07-17",
+      "supports": "A user-approved payment returns gateway or encrypted direct tokenization data plus card and optional address information for merchant processing."
+    },
+    {
+      "url": "https://developers.google.com/pay/api/web/support/troubleshooting",
+      "checkedAt": "2026-07-17",
+      "supports": "Production requires a recognized merchant profile, registered domain, supported gateway configuration, and Google production access."
+    },
+    {
+      "url": "https://developers.google.com/pay/api/web/guides/resources/payment-data-cryptography",
+      "checkedAt": "2026-07-17",
+      "supports": "Direct merchants receive signed and encrypted payment credentials and must implement secure cryptographic processing."
+    }
+  ]
+}

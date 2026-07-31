@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "vrbo",
+  "name": "Vrbo",
+  "category": "commerce",
+  "description": "Vrbo is Expedia Group's vacation-rental marketplace; approved partners can integrate either traveler-facing Vrbo inventory through Rapid or host property operations through lodging-supply connectivity APIs.",
+  "agentUseSummary": "Vrbo cannot yet be connected through Relay. Expedia Group documents two distinct partner products: Rapid for approved travel sellers to search and book Vrbo inventory, and lodging-supply connectivity for property-management partners. Neither is a delegated personal Vrbo-account API. Product and commercial owners must select a partner role, payer, support model, and certification path before Relay can request access.",
+  "provider": {
+    "websiteUrl": "https://www.vrbo.com/",
+    "docsUrl": "https://developers.expediagroup.com/rapid/lodging/vacation-rentals/about-vacation-rentals-api",
+    "developerConsoleUrl": "https://developers.expediagroup.com/",
+    "termsUrl": "https://www.vrbo.com/legal/terms-and-conditions",
+    "privacyUrl": "https://www.vrbo.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "rapid_travel_seller_candidate",
+      "vrbo_supply_connectivity_candidate",
+      "expedia_group_partner_contract_required",
+      "partner_credentials_and_profile_enablement",
+      "b2b_or_b2c_launch_certification",
+      "no_delegated_personal_vrbo_account_api",
+      "product_commercial_and_support_decision_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "vrbo_connect_before_product_decision",
+        "label": "Connect Vrbo",
+        "description": "Connect remains unavailable until Relay selects and Expedia Group accepts a traveler-distribution or property-supply partner role."
+      },
+      {
+        "id": "vrbo_inventory_or_property_reads",
+        "label": "Read Vrbo data",
+        "description": "Properties, content, location, availability, rates, reviews, reservations, travelers, owners, payments, messages, reports, and regulatory data remain unavailable."
+      },
+      {
+        "id": "vrbo_traveler_booking_mutations",
+        "label": "Book or service stays",
+        "description": "Price checks, booking, payment collection, itinerary retrieval, cancellation, refunds, support escalation, and traveler notifications are blocked before Rapid approval and launch certification."
+      },
+      {
+        "id": "vrbo_supply_mutations",
+        "label": "Manage properties and reservations",
+        "description": "Onboarding properties, changing content, rates, availability, fees, policies, reservations, refunds, and payouts is blocked before supply-partner approval."
+      },
+      {
+        "id": "vrbo_private_or_raw_interfaces",
+        "label": "Use private or raw Vrbo interfaces",
+        "description": "Private APIs, scraping, browser or device automation, cookie or credential capture, arbitrary requests, and endpoints inferred from Vrbo applications are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "vrbo_unavailable",
+      "label": "Unavailable",
+      "description": "No Vrbo action is enabled until the partner role is frozen, Expedia Group approves the commercial integration, and the complete content, booking, payment, support, property, reservation, notification, and credential contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "vrbo_connect_before_product_decision",
+        "vrbo_inventory_or_property_reads",
+        "vrbo_traveler_booking_mutations",
+        "vrbo_supply_mutations",
+        "vrbo_private_or_raw_interfaces"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Vrbo wrapper is mounted before the Rapid-versus-supply partner, payment, support and certification boundary is frozen."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Vrbo wrapper is mounted before the Rapid-versus-supply partner, payment, support and certification boundary is frozen."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Expedia Group's current documentation exposes Vrbo through partner products, not a generic user's Vrbo account. Rapid can provide approved partners with Vrbo geography, content, reviews, availability, price check, booking, itinerary, eligible cancellation and notifications, with profile enablement, launch requirements, payment and traveler-support obligations. Lodging Supply APIs instead serve connectivity providers managing property and reservation data, require partner credentials and separate Vrbo tokens for Vrbo supplier IDs, and can expose sensitive property, reservation, regulatory and financial data. These products have different principals, funds flows, support duties and data contracts.",
+    "nextAction": "Product, commercial, finance, legal and support owners should select either a Rapid travel-seller integration or a lodging-supply connectivity integration; a personal-account connector must remain unavailable. The exclusive partner task must obtain Expedia Group acceptance and credentials for the selected role and freeze certification, merchant-of-record, PCI, payment, refund, traveler support, content freshness, privacy, notification, credential and audit requirements. Representative acceptance must verify exact inventory eligibility, obfuscated versus booked addresses, pricing and policy display, booking idempotency, payment schedules and deposits, cancellations, support handoff, property and reservation separation, credential rotation, and post-revocation denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.expediagroup.com/rapid/lodging/vacation-rentals/about-vacation-rentals-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Expedia Group documents Vrbo on Rapid for partner inventory, content, reviews, availability, price checks, bookings, itineraries, eligible cancellations and notifications, with explicit payment and feature limitations."
+    },
+    {
+      "url": "https://developers.expediagroup.com/rapid/lodging/vacation-rentals/vrbo-integration-guide",
+      "checkedAt": "2026-07-17",
+      "supports": "Expedia Group requires partner-profile enablement for Vrbo supply, limits pre-booking address exposure, requires privacy-preserving geography handling, and documents Vrbo-specific schema and integration rules."
+    },
+    {
+      "url": "https://developers.expediagroup.com/rapid/setup/launch-requirements/lodging-launch-reqs",
+      "checkedAt": "2026-07-17",
+      "supports": "Expedia Group publishes mandatory B2B and B2C lodging launch requirements covering policy display, traveler experience, payments, PCI evidence and booking behavior."
+    },
+    {
+      "url": "https://developers.expediagroup.com/supply/lodging/docs/property_mgmt_apis/property_status/getting_started/api_intro/",
+      "checkedAt": "2026-07-17",
+      "supports": "Expedia Group's separate lodging-supply GraphQL API is for connectivity partners, requires partner credentials and OAuth2 client tokens, and requires a separate Vrbo token for properties onboarded directly to Vrbo."
+    },
+    {
+      "url": "https://developers.expediagroup.com/rapid/lodging/vacation-rentals/vrbo-support",
+      "checkedAt": "2026-07-17",
+      "supports": "Expedia Group assigns Vrbo-specific terms, relocation, escalation, credit, payment-schedule and agent-support obligations to partners making Vrbo bookings through Rapid."
+    }
+  ]
+}

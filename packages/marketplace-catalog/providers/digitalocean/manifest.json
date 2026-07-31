@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "digitalocean",
+  "name": "DigitalOcean",
+  "category": "developer",
+  "description": "DigitalOcean is a cloud platform for deploying and operating infrastructure and applications. Teams use Projects to organize resources such as Droplets and App Platform apps.",
+  "agentUseSummary": "Connect one exact DigitalOcean Team, Project, and selected Droplet or App through Relay's confidential OAuth client with only the seven current required granular read scopes, then let agents list bounded Projects and Project resources and inspect the selected resource after membership verification. Relay V1 excludes credentials, environment values, user data, logs, console, source, sensitive products, writes, administration, arbitrary REST, alias scopes, and pagination.",
+  "provider": {
+    "websiteUrl": "https://www.digitalocean.com/",
+    "docsUrl": "https://docs.digitalocean.com/reference/api/",
+    "developerConsoleUrl": "https://cloud.digitalocean.com/account/api/applications",
+    "termsUrl": "https://www.digitalocean.com/legal/terms-of-service-agreement",
+    "privacyUrl": "https://www.digitalocean.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["project:read", "droplet:read", "app:read", "regions:read", "sizes:read", "actions:read", "image:read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://cloud.digitalocean.com/v1/oauth/authorize",
+    "tokenUrl": "https://cloud.digitalocean.com/v1/oauth/token",
+    "revocationUrl": "https://cloud.digitalocean.com/v1/oauth/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_confidential_oauth", "exact_granular_required_read_scopes", "thirty_day_access_token", "single_use_rotating_refresh_token", "exact_team", "exact_project", "bounded_selected_droplet_or_app", "provider_revocable"],
+    "credentialRequirements": [
+      { "name": "DIGITALOCEAN_CLIENT_ID", "label": "DigitalOcean OAuth client ID", "required": true, "secret": false, "helpText": "Relay-owned confidential OAuth client ID configured only on Railway." },
+      { "name": "DIGITALOCEAN_CLIENT_SECRET", "label": "DigitalOcean OAuth client secret", "required": true, "secret": true, "helpText": "Relay-owned confidential OAuth client secret configured only on Railway." },
+      { "name": "DIGITALOCEAN_TEAM_ID", "label": "DigitalOcean Team UUID", "required": true, "secret": false, "helpText": "Bind the connection to one exact Team UUID before authorization." },
+      { "name": "DIGITALOCEAN_PROJECT_ID", "label": "DigitalOcean Project UUID", "required": true, "secret": false, "helpText": "Bind the connection to one exact selected Project UUID before authorization." },
+      { "name": "DIGITALOCEAN_RESOURCE_URN", "label": "DigitalOcean selected resource URN", "required": true, "secret": false, "helpText": "Bind one do:droplet:<numeric-id> or do:app:<uuid> resource in the Project's first twenty-five resources." }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/digitalocean/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "project_read", "label": "Read Projects", "description": "List bounded Projects, inspect one selected Project, and list its bounded resources.", "defaultSelected": true },
+    { "id": "selected_resource_read", "label": "Read selected resource", "description": "Inspect one selected Droplet or App after bounded Project-membership verification.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "digitalocean_project_list", "label": "List Projects", "description": "List at most twenty-five Projects from the first page of the exact OAuth Team." },
+      { "id": "digitalocean_project_get", "label": "Read selected Project", "description": "Read one exact selected Project after Team-binding verification." },
+      { "id": "digitalocean_project_resource_list", "label": "List Project resources", "description": "List at most twenty-five supported resources from the selected Project's first page." },
+      { "id": "digitalocean_selected_resource_get", "label": "Read selected resource", "description": "Read one selected Droplet or App only after bounded Project-membership verification." }
+    ],
+    "blocked": [
+      { "id": "digitalocean_write", "label": "Change DigitalOcean resources", "description": "Creation, update, assignment, action, deployment, restart, scale, transfer, and deletion are outside V1." },
+      { "id": "digitalocean_sensitive_read", "label": "Read sensitive data", "description": "Credentials, environment values, user data, logs, console, source and repository metadata, registries, databases, Kubernetes credentials, Spaces, and secrets are outside V1." },
+      { "id": "digitalocean_admin", "label": "Administer DigitalOcean", "description": "Team members, roles, billing, invoices, OAuth applications, tokens, SSH keys, domains, certificates, and administration are outside V1." },
+      { "id": "digitalocean_raw_api", "label": "Use raw DigitalOcean API", "description": "Arbitrary REST, hosts, paths, queries, cursors, pagination, aliases such as api:read, and raw responses are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "digitalocean_safe", "label": "Safe", "description": "All four bounded DigitalOcean reads require matching approval.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["digitalocean_project_list", "digitalocean_project_get", "digitalocean_project_resource_list", "digitalocean_selected_resource_get"], "blockedActions": ["digitalocean_write", "digitalocean_sensitive_read", "digitalocean_admin", "digitalocean_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All four selected read-only tools run without Relay per-action approval while exact Team/Project/resource binding, fixed requests, limits, redaction, audit, serialized refresh, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["digitalocean_project_list", "digitalocean_project_get", "digitalocean_project_resource_list", "digitalocean_selected_resource_get"], "approvalRequiredActions": [], "blockedActions": ["digitalocean_write", "digitalocean_sensitive_read", "digitalocean_admin", "digitalocean_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts four fixed DigitalOcean read wrappers and attaches refreshed OAuth access tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts four fixed DigitalOcean read wrappers and attaches refreshed OAuth access tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay's confidential DigitalOcean OAuth application, exact Railway callback, seven required granular read scopes, and staging client credentials require provider-console completion and authorized staging acceptance.",
+    "nextAction": "Register the confidential OAuth application with Relay's exact Railway callback, configure all seven required read scopes and staging credentials, then validate Team/Project/resource binding, refresh-pair rotation, revoke, denial, and all four bounded reads."
+  },
+  "evidence": [
+    { "url": "https://docs.digitalocean.com/reference/api/oauth/", "checkedAt": "2026-07-17", "supports": "DigitalOcean documents confidential authorization-code OAuth, CSRF state, 30-day access tokens, single-use rotating refresh tokens, Team identity in the grant, fixed endpoints, and revocation." },
+    { "url": "https://docs.digitalocean.com/reference/api/scopes/project/read/", "checkedAt": "2026-07-17", "supports": "DigitalOcean documents project:read as the Project read scope and distinguishes associated resource scopes from global expanding aliases." },
+    { "url": "https://docs.digitalocean.com/reference/api/scopes/droplet/read/", "checkedAt": "2026-07-17", "supports": "DigitalOcean documents droplet:read and its required regions:read, sizes:read, actions:read, and image:read dependencies." },
+    { "url": "https://docs.digitalocean.com/reference/api/scopes/app/read/", "checkedAt": "2026-07-17", "supports": "DigitalOcean documents app:read and its required regions:read, sizes:read, and actions:read dependencies." },
+    { "url": "https://docs.digitalocean.com/products/projects/reference/api/project-resources/", "checkedAt": "2026-07-17", "supports": "DigitalOcean documents first-page Project resource listing, resource URNs, per_page/page bounds, and resource-scope filtering." }
+  ]
+}

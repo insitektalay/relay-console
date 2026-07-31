@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "rescuetime",
+  "name": "RescueTime",
+  "category": "work_management",
+  "description": "RescueTime automatically records time spent in applications and websites so people and teams can understand work patterns, distractions, and focus. Its Focus and Timesheets products add goals, alerts, distraction blocking, projects, clients, tasks, offline time, timesheets, and productivity reporting.",
+  "agentUseSummary": "Connect RescueTime once, then choose which agents can read analytics and account resources or manage authorized focus sessions, time entries, projects, tasks, goals, alerts, notifications, and preferences under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.rescuetime.com/",
+    "docsUrl": "https://www.rescuetime.com/api-docs",
+    "developerConsoleUrl": "https://www.rescuetime.com/rtx/developers",
+    "termsUrl": "https://www.rescuetime.com/rtx/tos",
+    "privacyUrl": "https://www.rescuetime.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "time_data",
+      "category_data",
+      "productivity_data",
+      "alert_data",
+      "highlight_data",
+      "focustime_data"
+    ],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.rescuetime.com/oauth/authorize",
+    "tokenUrl": "https://www.rescuetime.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["oauth_connector", "user_bound_rescuetime_account"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/rescuetime/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "rescuetime_read",
+      "label": "Read time, productivity, and account data",
+      "description": "Use all 66 pinned official reads across analytics, users, accounts, organizations, tracked time, focus, projects, tasks, calendars, classifications, alerts, goals, notifications, preferences, devices, and events."
+    },
+    {
+      "id": "rescuetime_manage",
+      "label": "Manage RescueTime",
+      "description": "Use all 80 pinned official mutations for authorized profile settings, time, focus, projects, tasks, clients, timesheets, alerts, goals, notifications, preferences, devices, and events."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "rescuetime_read",
+        "label": "Read RescueTime",
+        "description": "Run one exact selected RescueTime GET operation from the pinned official API contract."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "rescuetime_manage",
+        "label": "Manage RescueTime",
+        "description": "Run one exact selected RescueTime mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "rescuetime_safe",
+      "label": "Safe",
+      "description": "All 66 bounded reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["rescuetime_read"],
+      "approvalRequiredActions": ["rescuetime_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 146 selected and provider-authorized operations run without Relay per-action approval; ownership, OAuth authority, exact routes, bounds, audits, redaction, provider limits, plan limits, and RescueTime permissions still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["rescuetime_read", "rescuetime_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 146 pinned RescueTime Resource and Analytic API operations through the authenticated server-side connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 146 pinned RescueTime Resource and Analytic API operations through the authenticated server-side connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "RescueTime must approve and create Relay Console's OAuth application; the production callback, Railway client credentials, and a representative authorized account are not configured.",
+    "nextAction": "Contact RescueTime to approve Relay Console as an OAuth application, register https://api.relayconsole.work/api/v1/marketplace/oauth/rescuetime/callback exactly, store RESCUETIME_CLIENT_ID and RESCUETIME_CLIENT_SECRET on Railway, deploy, then verify authorization, six-scope consent, user binding, analytics and Resource API access, Safe approvals, Dangerous mutations, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.rescuetime.com/article/463-api-overview",
+      "checkedAt": "2026-07-15",
+      "supports": "RescueTime documents two current APIs, shared bearer authentication, personal API keys, and provider-approved OAuth 2.0 applications for products serving other users."
+    },
+    {
+      "url": "https://www.rescuetime.com/rtx/developers",
+      "checkedAt": "2026-07-15",
+      "supports": "RescueTime documents confidential authorization-code OAuth, JSON token exchange, six analytics scopes, Bearer access tokens, analytics reads, highlights and offline-time writes, and Focus Session controls."
+    },
+    {
+      "url": "https://www.rescuetime.com/api-docs",
+      "checkedAt": "2026-07-15",
+      "supports": "The official Resource API reference documents 133 exact resource operations. Together with 13 documented Analytic API operations, Relay pins 146 operations: 66 reads and 80 mutations."
+    },
+    {
+      "url": "https://www.rescuetime.com/",
+      "checkedAt": "2026-07-15",
+      "supports": "RescueTime describes automatic application and website time tracking, productivity insights, goals, alerts, Focus Sessions, distraction blocking, projects, clients, tasks, and automated timesheets."
+    }
+  ]
+}

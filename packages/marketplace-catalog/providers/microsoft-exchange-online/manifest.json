@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-exchange-online",
+  "name": "Microsoft Exchange Online",
+  "category": "communication",
+  "description": "Exchange Online is Microsoft's hosted email and calendaring service, spanning user and shared mailbox content, transport and recipient settings, tenant administration, security, compliance, and automation interfaces.",
+  "agentUseSummary": "Exchange Online cannot yet be connected through Relay because the provider name does not identify one coherent product boundary. User mailbox work belongs to Microsoft Graph and overlaps Relay's Outlook providers, while tenant administration uses Exchange Online PowerShell, application RBAC, high-privilege Entra consent, and certificate or managed-identity credentials. Relay exposes neither surface until product owners select one exact use case.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-365/exchange/exchange-online",
+    "docsUrl": "https://learn.microsoft.com/exchange/exchange-online",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/licensing/terms/productoffering/Microsoft365/all",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "product_boundary_unresolved",
+      "mailbox_data_via_microsoft_graph_delegated_or_application_permissions",
+      "tenant_administration_via_exchange_online_powershell",
+      "exchange_application_rbac_and_mailbox_scoping",
+      "entra_app_registration_and_admin_consent",
+      "app_only_certificate_or_managed_identity_for_unattended_admin",
+      "ews_legacy_surface_not_selected",
+      "outlook_provider_overlap"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "mailbox_data_candidate",
+      "label": "Mailbox data candidate",
+      "description": "If product selects mailbox workflows, route narrowly bounded user or shared mailbox mail, calendar, contacts, and settings through Microsoft Graph and the dedicated Outlook provider records.",
+      "defaultSelected": false
+    },
+    {
+      "id": "exchange_tenant_read_candidate",
+      "label": "Exchange administration candidate",
+      "description": "If product selects tenant administration, define a separate read-only Exchange Online PowerShell and application-RBAC surface for exact recipient, transport, configuration, and reporting cmdlets.",
+      "defaultSelected": false
+    },
+    {
+      "id": "exchange_tenant_manage_candidate",
+      "label": "Exchange mutation candidate",
+      "description": "If separately approved, allow only explicitly enumerated administrative changes with tenant, object, cmdlet, RBAC role, before-state, and confirmation controls.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "exchange_connect_before_product_decision",
+        "label": "Connect before the product boundary is selected",
+        "description": "Relay has no decision between mailbox Graph access, Exchange tenant administration, or a narrower named scenario and therefore no valid auth or consent contract."
+      },
+      {
+        "id": "exchange_mailbox_reads_and_mutations",
+        "label": "Access mailbox data",
+        "description": "Mail, folders, attachments, calendars, contacts, settings, shared mailboxes, sending, replying, forwarding, moving, deleting, and MIME access remain blocked."
+      },
+      {
+        "id": "exchange_tenant_admin_reads_and_mutations",
+        "label": "Administer Exchange Online",
+        "description": "Recipients, mailboxes, groups, permissions, transport, connectors, domains, policies, retention, auditing, compliance, protection, migration, organization, and PowerShell cmdlets remain blocked."
+      },
+      {
+        "id": "exchange_identity_role_and_scope_mutations",
+        "label": "Change identity or role authority",
+        "description": "Entra app registration, admin consent, Exchange.ManageAsApp, certificates, managed identities, directory roles, application RBAC, mailbox scoping, and service-principal changes are blocked."
+      },
+      {
+        "id": "exchange_legacy_raw_and_console_bypass",
+        "label": "Use legacy or private interfaces",
+        "description": "Basic authentication, usernames or passwords, legacy EWS as a default path, POP, IMAP, SMTP AUTH, arbitrary PowerShell, raw tokens, private endpoints, and admin-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "exchange_unavailable",
+      "label": "Product decision required",
+      "description": "No Exchange Online action is enabled until product owners select an exact mailbox or tenant-administration boundary and its complete identity, consent, RBAC, data, mutation, audit, revocation, and disconnect contract passes representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "exchange_connect_before_product_decision",
+        "exchange_mailbox_reads_and_mutations",
+        "exchange_tenant_admin_reads_and_mutations",
+        "exchange_identity_role_and_scope_mutations",
+        "exchange_legacy_raw_and_console_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Exchange Online wrapper is mounted before the mailbox-versus-tenant-administration boundary is selected and accepted."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Exchange Online wrapper is mounted before the mailbox-versus-tenant-administration boundary is selected and accepted."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Microsoft Graph provides delegated and application access to primary and shared Exchange Online mailboxes and overlaps the dedicated Outlook Mail, Calendar, and Contacts provider boundaries. Exchange tenant administration is a materially different high-privilege surface exposed through Exchange Online PowerShell. Unattended administration requires an Entra application, Office 365 Exchange Online Exchange.ManageAsApp application permission, admin consent, certificate or managed identity, and Exchange or directory RBAC; modern Exchange application RBAC should scope application access. EWS receives no new features, Microsoft recommends Graph for new mailbox applications, and Basic authentication is disabled. The current provider title does not say which surface Relay should own.",
+    "nextAction": "Product and security owners must choose one exact boundary. For mailbox workflows, remove this duplicate record or turn it into a handoff to the dedicated Outlook providers using Microsoft Graph delegated permissions. For tenant administration, define a separate enterprise-admin connector with an enumerated read-only cmdlet allowlist, tenant-only Entra application, Exchange application RBAC management scope, certificate or managed identity custody, mandatory admin consent, and no generic PowerShell. Acceptance must cover sovereign clouds, tenant binding, recipient and mailbox PII, shared mailboxes, role assignments, transport and connector changes, retention and compliance, audit logs, throttling, long-running commands, certificate rollover, emergency revocation, disconnect, and cross-tenant denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/graph/api/resources/mail-api-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph accesses primary and shared Exchange Online mailboxes with delegated or application mail permissions, overlapping Relay's Outlook product records."
+    },
+    {
+      "url": "https://learn.microsoft.com/powershell/exchange/app-only-auth-powershell-v2",
+      "checkedAt": "2026-07-17",
+      "supports": "Unattended Exchange Online PowerShell requires Entra app onboarding, Exchange.ManageAsApp application permission, admin consent, certificate or managed identity, and assigned roles."
+    },
+    {
+      "url": "https://learn.microsoft.com/exchange/permissions-exo/application-access-policies",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft identifies Application Access Policies as legacy and directs new mailbox application scoping to Role Based Access Control for Applications."
+    },
+    {
+      "url": "https://learn.microsoft.com/exchange/clients-and-mobile-in-exchange-online/deprecation-of-basic-authentication-exchange-online",
+      "checkedAt": "2026-07-17",
+      "supports": "Basic authentication is disabled for Exchange Online protocols, EWS receives no new features, and Microsoft recommends OAuth and Microsoft Graph migration."
+    },
+    {
+      "url": "https://learn.microsoft.com/exchange/client-developer/exchange-web-services/authentication-and-ews-in-exchange",
+      "checkedAt": "2026-07-17",
+      "supports": "Exchange Online EWS requires OAuth and Microsoft recommends OAuth for new applications, while legacy basic authentication is unsupported."
+    }
+  ]
+}

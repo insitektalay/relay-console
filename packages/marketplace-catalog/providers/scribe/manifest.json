@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "scribe",
+  "name": "Scribe",
+  "category": "knowledge_documents",
+  "description": "Scribe is a process-documentation platform that turns captured work into step-by-step guides with screenshots. Organizations use it to publish SOPs, organize knowledge, explore business workflows, and identify process improvements.",
+  "agentUseSummary": "Connect once through Scribe OAuth, then let agents search and retrieve permitted documents, workflows, and optimization insights through Scribe's hosted MCP.",
+  "provider": {
+    "websiteUrl": "https://scribehow.com/",
+    "docsUrl": "https://support.scribehow.com/hc/en-us/articles/35221245251485-Scribe-MCP-Server",
+    "developerConsoleUrl": "https://mcp.scribe.com/.well-known/oauth-authorization-server",
+    "termsUrl": "https://scribehow.com/terms-of-service",
+    "privacyUrl": "https://scribehow.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://mcp.scribe.com/authorize",
+    "tokenUrl": "https://mcp.scribe.com/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/scribe/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "knowledge_read", "label": "Search and read process knowledge", "description": "Search and retrieve permitted Scribe documents, pages, teams, and screenshots.", "defaultSelected": true },
+    { "id": "workflow_insights", "label": "Explore workflows and insights", "description": "Explore permitted workflow hierarchies, execution history, friction points, and optimization recommendations.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "scribe_mcp_read", "label": "Read Scribe knowledge", "description": "Use one live-discovered, non-mutating Scribe MCP tool with bounded arguments." }],
+    "approvalRequired": [],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "scribe_safe", "label": "Safe", "description": "Live-discovered non-mutating document, workflow, and insight reads run directly; mutating or destructive tools fail closed.", "defaultSelected": true, "allowedActions": ["scribe_mcp_read"], "approvalRequiredActions": [], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected OAuth-authorized capability published by Scribe's current read-only MCP runs without Relay per-action approval; ownership, provider permissions, live schemas, bounds, audits, redaction, and rate limits still apply.", "defaultSelected": false, "allowedActions": ["scribe_mcp_read"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "medium",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts the bounded live-schema wrapper and proxies Scribe OAuth to its hosted MCP." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts the bounded live-schema wrapper and proxies Scribe OAuth to its hosted MCP." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay's dynamically registered confidential PKCE client and exact Railway callback are configured, but no signed-in Enterprise Scribe user was available for production OAuth and MCP acceptance.",
+    "nextAction": "An eligible Scribe user clicks Connect, approves the MCP connection, then Relay verifies refresh, health, bounded document search and retrieval, workflow insights, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://support.scribehow.com/hc/en-us/articles/35221245251485-Scribe-MCP-Server", "checkedAt": "2026-07-14", "supports": "Scribe documents its hosted MCP at https://mcp.scribe.com/mcp, automatic OAuth, refresh, provider-permission enforcement, document search and retrieval, workflows, insights, cross-source search, expiring screenshot URLs, rate limits, and an organization admin kill switch." },
+    { "url": "https://mcp.scribe.com/.well-known/oauth-authorization-server", "checkedAt": "2026-07-14", "supports": "Scribe publishes authorization, token, and dynamic-registration endpoints with authorization-code, refresh-token, S256 PKCE, and confidential client authentication support." },
+    { "url": "https://support.scribehow.com/hc/en-us/articles/28945604097181-Implementing-the-enterprise-search-API", "checkedAt": "2026-07-14", "supports": "Scribe's separate Enterprise Grid/Global Search API is customer-key and read-only; Relay prefers the official one-click hosted MCP OAuth route instead of requiring this paid-plan key." },
+    { "url": "https://public-api.scribehow.com/schema/swagger/", "checkedAt": "2026-07-14", "supports": "Scribe's public OpenAPI describes read-only search, list, retrieve, and team-bound document access, supporting the current non-mutating classification." }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "iterable",
+  "name": "Iterable",
+  "category": "communication",
+  "description": "Iterable is a cross-channel customer communication platform for email, SMS, push, in-app, commerce events, journeys, campaigns, experiments, and audience data.",
+  "agentUseSummary": "Connect a dedicated customer-owned server-side API key and exact US or EU data-center enum. Relay pins 39 current REST operations: 15 structural reads run directly, eight user/metrics reads and 16 engagement mutations require approval, and destructive administration plus exports/bulk transfer remain blocked.",
+  "provider": {
+    "websiteUrl": "https://iterable.com/",
+    "docsUrl": "https://support.iterable.com/hc/en-us/articles/41044692130196-Getting-Started-with-Iterable-s-API",
+    "developerConsoleUrl": "https://app.iterable.com/",
+    "termsUrl": "https://iterable.com/trust/terms/",
+    "privacyUrl": "https://iterable.com/trust/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_server_side_api_key",
+      "api_key_header",
+      "exact_project_binding",
+      "us_or_eu_data_center_enum",
+      "fixed_rest_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ITERABLE_SERVER_API_KEY",
+        "label": "Iterable server-side API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated server-side key for the exact Iterable project; a read-only key is insufficient for manage tools."
+      },
+      {
+        "name": "ITERABLE_REGION",
+        "label": "Iterable data center",
+        "required": true,
+        "secret": false,
+        "helpText": "Set to us for USDC or eu for EDC; Relay maps this enum to a fixed Iterable origin."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read project structure",
+      "description": "Use 15 bounded project metadata reads.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read users and metrics",
+      "description": "Use eight bounded user, event, membership, message, and metrics reads with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage engagement",
+      "description": "Use 16 event, commerce, user, subscription, message, cancellation, and journey mutations with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "iterable_structural_read",
+        "label": "Read Iterable structure",
+        "description": "Read bounded campaign, channel, experiment, journey, list, message-type, snippet, template, field, and webhook metadata."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "iterable_sensitive_read",
+        "label": "Read Iterable users and metrics",
+        "description": "Read bounded campaign/experiment metrics and user, event, list-membership, and sent-message data."
+      },
+      {
+        "id": "iterable_manage",
+        "label": "Manage Iterable engagement",
+        "description": "Track events and commerce, update users and subscriptions, send or cancel messages, and trigger journeys."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "iterable_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Server/client API keys, JWTs, authorization headers, and secrets never enter agent-visible inputs or results."
+      },
+      {
+        "id": "iterable_destructive_admin",
+        "label": "Delete or forget data",
+        "description": "User forgetting/deletion, catalog/list/template/metadata deletion, key management, and other destructive administration are not agent-facing."
+      },
+      {
+        "id": "iterable_exports_bulk",
+        "label": "Export or bulk-transfer data",
+        "description": "CSV/JSON exports, export jobs/files, bulk user/event/template operations, and unbounded pagination are excluded."
+      },
+      {
+        "id": "iterable_unbounded_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only 39 pinned REST operations run on the configured US or EU origin; arbitrary paths, origins, headers, and query/body API keys are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "iterable_safe",
+      "label": "Safe",
+      "description": "Fifteen structural reads run directly; eight user/metrics reads and all 16 mutations require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["iterable_structural_read"],
+      "approvalRequiredActions": ["iterable_sensitive_read", "iterable_manage"],
+      "blockedActions": [
+        "iterable_secret_exposure",
+        "iterable_destructive_admin",
+        "iterable_exports_bulk",
+        "iterable_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 39 selected and project-authorized operations run without Relay per-action approval; fixed data-center routing, bounds, audits, and secret/destructive/export blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "iterable_structural_read",
+        "iterable_sensitive_read",
+        "iterable_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "iterable_secret_exposure",
+        "iterable_destructive_admin",
+        "iterable_exports_bulk",
+        "iterable_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected pinned Iterable tools, injects the encrypted project key server-side, and maps the stored region enum to a fixed US or EU origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected pinned Iterable tools, injects the encrypted project key server-side, and maps the stored region enum to a fixed US or EU origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Live acceptance requires a customer-owned Iterable project and dedicated server-side API key in its correct data center. No provider console, account, API key, JWT, consent, send, or deployment is allowed in this worker.",
+    "nextAction": "Create a least-privilege staging key outside this worker, store the key and us/eu region in Railway staging, and verify project binding, safe and sensitive reads, approval denial/approval, event and consent behavior, each messaging channel, cancellation, journey trigger, pagination bounds, rate limits, key disable/delete, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.iterable.com/hc/en-us/articles/41044692130196-Getting-Started-with-Iterable-s-API",
+      "checkedAt": "2026-07-17",
+      "supports": "Iterable documents TLS 1.2, Api-Key header authentication, separate fixed USDC and EDC base URLs, live interactive references, response handling, and endpoint-specific rate limits."
+    },
+    {
+      "url": "https://support.iterable.com/hc/en-us/articles/360043464871-API-Keys",
+      "checkedAt": "2026-07-17",
+      "supports": "Iterable documents project/data-center-bound key types, server-side versus client-side permissions, read-only endpoint access, header-only API key use, and key disable/delete lifecycle."
+    },
+    {
+      "url": "https://api.iterable.com/api-docs",
+      "checkedAt": "2026-07-17",
+      "supports": "The live USDC Swagger 2.0 document publishes 129 paths and the exact routes selected for Relay's 39-operation allowlist."
+    },
+    {
+      "url": "https://support.iterable.com/hc/en-us/articles/39629320560148-API-Response-Codes",
+      "checkedAt": "2026-07-17",
+      "supports": "Iterable documents safe handling for invalid keys, insufficient privileges, validation, conflict, rate-limit, and provider failures."
+    }
+  ]
+}

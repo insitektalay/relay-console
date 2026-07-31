@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "vwo-testing",
+  "name": "VWO Testing",
+  "category": "developer",
+  "description": "VWO Testing and Feature Management support feature flags, experiments, campaigns, rollouts, environments, targeting rules, and optimization workflows.",
+  "agentUseSummary": "Connect a restricted personal API token bound to one non-production workspace. Relay approval-gates bounded feature flag metadata reads while environment states, rules, targeting, variations, values, SDK keys, campaigns, evaluation, tracking, and mutations remain blocked.",
+  "provider": {
+    "websiteUrl": "https://vwo.com/",
+    "docsUrl": "https://developers.vwo.com/reference/fme-get-all-feature-flags-of-a-workspace",
+    "developerConsoleUrl": "https://app.vwo.com/",
+    "termsUrl": "https://vwo.com/terms/",
+    "privacyUrl": "https://vwo.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["workspace_read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_personal_api_token",
+      "restricted_workspace_user",
+      "exact_workspace_binding",
+      "fixed_vwo_feature_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "VWO_TESTING_PERSONAL_API_TOKEN",
+        "label": "VWO Testing personal API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated VWO user restricted to read the selected workspace."
+      },
+      {
+        "name": "VWO_TESTING_ACCOUNT_ID",
+        "label": "VWO Testing workspace ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one non-production numeric workspace."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read feature flag metadata",
+      "description": "Read bounded workspace feature flag metadata with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "vwo_testing_sensitive_read",
+        "label": "Read VWO Testing feature flags",
+        "description": "Read bounded workspace feature flag metadata."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "vwo_testing_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Personal API tokens, SDK keys, and authorization headers never enter agent-visible inputs or results."
+      },
+      {
+        "id": "vwo_testing_private_data",
+        "label": "Read targeting or evaluation data",
+        "description": "Environment states, rules, targeting, segments, audiences, variations, variable values, SDK keys, users, campaigns, results, and tracking data are excluded."
+      },
+      {
+        "id": "vwo_testing_mutation",
+        "label": "Mutate VWO",
+        "description": "Feature flag, rule, environment, campaign, project, audience, variation, token, and every other mutation remain provider-side."
+      },
+      {
+        "id": "vwo_testing_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only first-page workspace feature flag list and exact GETs run on app.vwo.com with stored workspace binding; campaign management, arbitrary paths, queries, pagination, evaluation, tracking, and alternate origins are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "vwo_testing_safe",
+      "label": "Safe",
+      "description": "Both metadata reads require approval; restricted authority, fixed VWO/workspace routes, bounds, redaction, audits, and evaluation/tracking/mutation blocks remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["vwo_testing_sensitive_read"],
+      "blockedActions": [
+        "vwo_testing_secret_exposure",
+        "vwo_testing_private_data",
+        "vwo_testing_mutation",
+        "vwo_testing_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected metadata read runs without Relay approval; restricted authority, fixed VWO/workspace routes, bounds, redaction, audits, and evaluation/tracking/mutation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["vwo_testing_sensitive_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "vwo_testing_secret_exposure",
+        "vwo_testing_private_data",
+        "vwo_testing_mutation",
+        "vwo_testing_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted restricted token server-side and mounts two approval-gated metadata reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted restricted token server-side and mounts two approval-gated metadata reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "VWO Testing requires a customer account, restricted user/personal API token, and one workspace. This worker may not create or configure them.",
+    "nextAction": "Create the restricted staging user/token outside this worker, configure token and workspace ID in Railway staging, then verify binding, reads, redaction, approvals, bounds, revocation, disconnect, and denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.vwo.com/reference/fme-get-all-feature-flags-of-a-workspace",
+      "checkedAt": "2026-07-18",
+      "supports": "VWO's official Feature Management reference pins the workspace feature list, account binding, limit/offset controls, token authentication, and separate mutation operations."
+    },
+    {
+      "url": "https://developers.vwo.com/reference/fme-get-details-of-a-specific-feature-flag",
+      "checkedAt": "2026-07-18",
+      "supports": "VWO's official reference pins exact feature flag reads by ID inside a fixed workspace."
+    },
+    {
+      "url": "https://developers.vwo.com/docs/rest-apis-overview",
+      "checkedAt": "2026-07-18",
+      "supports": "VWO documents REST control of A/B, feature test, and feature rollout resources, which Relay deliberately does not mutate or evaluate."
+    }
+  ]
+}

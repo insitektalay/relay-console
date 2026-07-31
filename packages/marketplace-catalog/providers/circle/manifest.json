@@ -1,0 +1,292 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "circle",
+  "name": "Circle",
+  "category": "communication_collaboration",
+  "description": "Circle is a hosted community platform for discussions, memberships, courses, events, chat, live sessions, access groups, and creator-led programs.",
+  "agentUseSummary": "Connect a dedicated customer-owned Circle Admin API v2 token. Agents can inspect reduced Community, Space, Access Group, Post, and member metadata and make exact Space or Access Group membership changes. Post and comment bodies, chat, courses, forms, invitations, member lifecycle, structural administration, bulk actions, Headless member impersonation, and arbitrary API access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://circle.so/",
+    "docsUrl": "https://api.circle.so/apis/admin-api",
+    "developerConsoleUrl": "https://app.circle.so/settings/developers",
+    "termsUrl": "https://circle.so/terms",
+    "privacyUrl": "https://circle.so/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_admin_token", "paid_provider_plan"],
+    "credentialRequirements": [
+      {
+        "name": "CIRCLE_ADMIN_V2_API_TOKEN",
+        "label": "Circle Admin API v2 token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated Admin V2 token in the community's Developers → Tokens page. Relay encrypts it and never exposes it to agents or clients after saving."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "catalog_read",
+      "label": "Read community structure",
+      "description": "Inspect reduced Community, Space, and Access Group metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "content_metadata_read",
+      "label": "Read post metadata",
+      "description": "Inspect bounded Post lifecycle and engagement metadata without content bodies.",
+      "defaultSelected": true
+    },
+    {
+      "id": "member_read",
+      "label": "Read member access",
+      "description": "Inspect reduced member identity, activity, and Access Group assignments.",
+      "defaultSelected": true
+    },
+    {
+      "id": "membership_write",
+      "label": "Change exact membership",
+      "description": "Add or remove one exact member email from one exact Space or Access Group.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "circle_community_get",
+        "label": "Read community",
+        "description": "Read reduced Community identity and feature metadata."
+      },
+      {
+        "id": "circle_space_list",
+        "label": "List spaces",
+        "description": "List up to twenty-five reduced Space summaries."
+      },
+      {
+        "id": "circle_space_get",
+        "label": "Read space",
+        "description": "Read one exact reduced Space summary."
+      },
+      {
+        "id": "circle_access_group_list",
+        "label": "List access groups",
+        "description": "List up to twenty-five Access Group summaries."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "circle_post_list",
+        "label": "List post metadata",
+        "description": "List up to twenty-five Post metadata summaries in one exact Space without body content or email addresses."
+      },
+      {
+        "id": "circle_post_get",
+        "label": "Read post metadata",
+        "description": "Read one exact Post metadata summary without body content or email addresses."
+      },
+      {
+        "id": "circle_member_list",
+        "label": "List members",
+        "description": "List up to twenty-five reduced member identity and activity summaries."
+      },
+      {
+        "id": "circle_member_get",
+        "label": "Read member",
+        "description": "Read one exact reduced member identity and activity summary."
+      },
+      {
+        "id": "circle_member_access_group_list",
+        "label": "List member access groups",
+        "description": "List Access Groups for one exact member."
+      },
+      {
+        "id": "circle_space_member_add",
+        "label": "Add space member",
+        "description": "Add one exact member email to one exact Space."
+      },
+      {
+        "id": "circle_space_member_remove",
+        "label": "Remove space member",
+        "description": "Remove one exact member email from one exact Space."
+      },
+      {
+        "id": "circle_access_group_member_add",
+        "label": "Add access-group member",
+        "description": "Add one exact member email to one exact Access Group."
+      },
+      {
+        "id": "circle_access_group_member_remove",
+        "label": "Remove access-group member",
+        "description": "Remove one exact member email from one exact Access Group."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "circle_content_body",
+        "label": "Read or write content bodies",
+        "description": "Post and comment bodies, course lessons, form submissions, chat messages, live transcripts, files, embeds, and arbitrary rich text are outside V1."
+      },
+      {
+        "id": "circle_member_lifecycle",
+        "label": "Manage member lifecycle",
+        "description": "Inviting, creating, updating, banning, deactivating, deleting, impersonating, or changing member profiles and tags is outside V1."
+      },
+      {
+        "id": "circle_structure_admin",
+        "label": "Administer community structure",
+        "description": "Creating, updating, deleting, archiving, or duplicating Communities, Spaces, Space Groups, Access Groups, courses, events, forms, topics, and settings is outside V1."
+      },
+      {
+        "id": "circle_bulk_or_notifications",
+        "label": "Run bulk or notification actions",
+        "description": "Bulk membership changes, automatic pagination, polling, broadcasts, notifications, invitation links, and workflow-like loops are outside V1."
+      },
+      {
+        "id": "circle_private_member_data",
+        "label": "Read broader member data",
+        "description": "Profile fields, SSO identifiers, tags, gamification details, avatars, profile URLs, invitation state, and raw member records are outside V1."
+      },
+      {
+        "id": "circle_raw_api",
+        "label": "Use arbitrary Circle APIs",
+        "description": "Arbitrary endpoints, methods, query parameters, headers, bodies, origins, Headless tokens, member impersonation, and raw responses are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "circle_safe",
+      "label": "Safe",
+      "description": "Reduced Community, Space, and Access Group catalog reads run directly. Post metadata, member identity and access, and all membership changes require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "circle_community_get",
+        "circle_space_list",
+        "circle_space_get",
+        "circle_access_group_list"
+      ],
+      "approvalRequiredActions": [
+        "circle_post_list",
+        "circle_post_get",
+        "circle_member_list",
+        "circle_member_get",
+        "circle_member_access_group_list",
+        "circle_space_member_add",
+        "circle_space_member_remove",
+        "circle_access_group_member_add",
+        "circle_access_group_member_remove"
+      ],
+      "blockedActions": [
+        "circle_content_body",
+        "circle_member_lifecycle",
+        "circle_structure_admin",
+        "circle_bulk_or_notifications",
+        "circle_private_member_data",
+        "circle_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All selected bounded Circle V1 tools run without Relay per-action approval; encrypted token storage, fixed Admin v2 origin, provider authority, bounds, audits, privacy reduction, and system blocks still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "circle_community_get",
+        "circle_space_list",
+        "circle_space_get",
+        "circle_access_group_list",
+        "circle_post_list",
+        "circle_post_get",
+        "circle_member_list",
+        "circle_member_get",
+        "circle_member_access_group_list",
+        "circle_space_member_add",
+        "circle_space_member_remove",
+        "circle_access_group_member_add",
+        "circle_access_group_member_remove"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "circle_content_body",
+        "circle_member_lifecycle",
+        "circle_structure_admin",
+        "circle_bulk_or_notifications",
+        "circle_private_member_data",
+        "circle_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts thirteen exact bounded Circle Admin API v2 wrappers and keeps the customer-owned admin token encrypted outside agent context."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts thirteen exact bounded Circle Admin API v2 wrappers and keeps the customer-owned admin token encrypted outside agent context."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No eligible representative Circle community, dedicated Admin API v2 token, or staging member and Space fixtures were available for live acceptance.",
+    "nextAction": "A Circle administrator on Business or above creates a dedicated Admin V2 token, enters it in Relay, and verifies exact Community binding, reduced Space and Access Group reads, Post-body and broader-member-field exclusion, Safe approval binding, Dangerous execution, representative Space and Access Group add/remove cycles, quotas, token rotation, disconnect, and post-disconnect denial in staging."
+  },
+  "evidence": [
+    {
+      "url": "https://api.circle.so/",
+      "checkedAt": "2026-07-18",
+      "supports": "Circle's Admin API is available on Business and above and is intended for admin-authenticated automations and administrative integrations."
+    },
+    {
+      "url": "https://api.circle.so/apis/admin-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Circle recommends Admin API v2 for new work, documents bounded pagination, and states that new endpoints and updates target v2."
+    },
+    {
+      "url": "https://api.circle.so/apis/admin-api/quick-start",
+      "checkedAt": "2026-07-18",
+      "supports": "Community admins create type-specific Admin V2 tokens and send them in the Authorization header to fixed app.circle.so Admin v2 routes."
+    },
+    {
+      "url": "https://api-headless.circle.so/api/admin/v2/swagger.yaml",
+      "checkedAt": "2026-07-18",
+      "supports": "The official OpenAPI document defines Community, Space, Post, Community Member, Access Group, Space Member, and Access Group Member endpoints and schemas used by the typed wrappers."
+    },
+    {
+      "url": "https://api.circle.so/get-started/concepts/spaces-and-space-groups",
+      "checkedAt": "2026-07-18",
+      "supports": "Spaces are Circle's content and access-gating containers, with public, private, and secret access levels and multiple content types."
+    },
+    {
+      "url": "https://api.circle.so/apis/admin-api/usage-and-limits",
+      "checkedAt": "2026-07-18",
+      "supports": "Circle documents plan-specific monthly Admin API quotas and rate limiting; Relay never automatically paginates or polls."
+    },
+    {
+      "url": "https://circle.so/terms",
+      "checkedAt": "2026-07-18",
+      "supports": "Circle's platform terms govern customer and member use and prohibit abusive automated access."
+    },
+    {
+      "url": "https://circle.so/privacy",
+      "checkedAt": "2026-07-18",
+      "supports": "Circle's privacy notice explains Creator and Member data handling and the privacy sensitivity of Community content and member information."
+    }
+  ]
+}

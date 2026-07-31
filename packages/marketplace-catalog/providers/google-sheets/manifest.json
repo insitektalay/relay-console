@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-sheets",
+  "name": "Google Sheets",
+  "category": "knowledge_documents",
+  "description": "Google Sheets is Google's collaborative spreadsheet product for organizing, calculating, and reviewing tabular data. Individuals and teams use it for plans, trackers, analysis, and shared operational records.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth, explicitly choose spreadsheets for Relay, then let agents use five bounded tools for metadata, explicit A1-range reads, local value preparation, range updates, and row appends. Relay V1 uses only drive.file and excludes Drive discovery, clearing, structural or formatting changes, advanced objects, sharing, export, scripts, automatic pagination, and raw API or MCP access.",
+  "provider": { "websiteUrl": "https://workspace.google.com/products/sheets/", "docsUrl": "https://developers.google.com/workspace/sheets/api/scopes", "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials", "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy", "privacyUrl": "https://policies.google.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["openid", "email", "https://www.googleapis.com/auth/drive.file"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth", "tokenUrl": "https://oauth2.googleapis.com/token" },
+  "connection": { "types": ["relay_owned_global_oauth", "exact_google_account_binding", "app_visible_spreadsheet_corpus", "expiring_access_token", "offline_refresh_token", "provider_revocation"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/google-sheets/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "spreadsheet_read", "label": "Read spreadsheets", "description": "Read metadata and bounded values from explicit app-visible spreadsheets.", "defaultSelected": true },
+    { "id": "spreadsheet_draft", "label": "Prepare values", "description": "Validate and hash bounded value changes locally.", "defaultSelected": true },
+    { "id": "spreadsheet_write", "label": "Update and append values", "description": "Update explicit ranges or append bounded rows after policy checks.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_sheets_spreadsheet_get", "label": "Read spreadsheet metadata", "description": "Read bounded metadata for one explicit app-visible spreadsheet." },
+      { "id": "google_sheets_values_get", "label": "Read spreadsheet values", "description": "Read at most 5,000 cells from one explicit A1 range." },
+      { "id": "google_sheets_values_prepare", "label": "Prepare spreadsheet values", "description": "Validate and hash one bounded update or append locally." }
+    ],
+    "approvalRequired": [
+      { "id": "google_sheets_values_update", "label": "Update spreadsheet values", "description": "Update one explicit bounded A1 range." },
+      { "id": "google_sheets_values_append", "label": "Append spreadsheet values", "description": "Append bounded rows to one explicit logical-table range." }
+    ],
+    "blocked": [
+      { "id": "google_sheets_discovery", "label": "Discover spreadsheets", "description": "Whole-Drive listing, search, shared-drive crawling, and automatic pagination are outside V1." },
+      { "id": "google_sheets_structure", "label": "Clear or change spreadsheet structure", "description": "Clear, add, delete, copy, move, resize, or rename sheet operations are outside V1." },
+      { "id": "google_sheets_advanced", "label": "Change formatting or advanced objects", "description": "Formatting, charts, pivots, filters, protected ranges, named ranges, and external data are outside V1." },
+      { "id": "google_sheets_external_raw", "label": "Share, export, script, or run raw operations", "description": "Permissions, sharing, export, macros, Apps Script, domain delegation, and raw API or MCP access are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "google_sheets_safe", "label": "Safe", "description": "Bounded exact-spreadsheet reads and local preparation run automatically; updates and appends require matching approval.", "defaultSelected": true, "allowedActions": ["google_sheets_spreadsheet_get", "google_sheets_values_get", "google_sheets_values_prepare"], "approvalRequiredActions": ["google_sheets_values_update", "google_sheets_values_append"], "blockedActions": ["google_sheets_discovery", "google_sheets_structure", "google_sheets_advanced", "google_sheets_external_raw"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All five selected tools run without Relay per-action approval while drive.file, explicit IDs and ranges, account binding, value limits, audit, redaction, refresh, revocation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["google_sheets_spreadsheet_get", "google_sheets_values_get", "google_sheets_values_prepare", "google_sheets_values_update", "google_sheets_values_append"], "approvalRequiredActions": [], "blockedActions": ["google_sheets_discovery", "google_sheets_structure", "google_sheets_advanced", "google_sheets_external_raw"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts five bounded Google Sheets wrappers and attaches encrypted OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts five bounded Google Sheets wrappers and attaches encrypted OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay must configure its Google Cloud project and confidential web client, enable Sheets and Drive APIs and explicit spreadsheet selection, publish the OAuth consent screen with verified relayconsole.work domains and policy links, complete Google's verification required for the production app, configure Railway staging credentials, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the canonical Railway callback and exact scopes, complete Google's brand and verification workflow, configure staging credentials, then verify account binding, app-visible spreadsheet enforcement, all five tools, Safe and Dangerous policy, token refresh and rotation, revocation, disconnect, quota/error mapping, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developers.google.com/workspace/sheets/api/scopes", "checkedAt": "2026-07-17", "supports": "Google documents drive.file as the recommended non-sensitive per-file authorization scope for Sheets API access." },
+    { "url": "https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/get", "checkedAt": "2026-07-17", "supports": "spreadsheets.get reads one exact spreadsheet and supports field selection with grid data excluded." },
+    { "url": "https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/get", "checkedAt": "2026-07-17", "supports": "spreadsheets.values.get reads one explicit A1 range using the fixed Sheets API endpoint." },
+    { "url": "https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/update", "checkedAt": "2026-07-17", "supports": "spreadsheets.values.update writes values to one explicit range with a declared input interpretation." },
+    { "url": "https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/append", "checkedAt": "2026-07-17", "supports": "spreadsheets.values.append appends values after the detected logical table and supports INSERT_ROWS." }
+  ]
+}

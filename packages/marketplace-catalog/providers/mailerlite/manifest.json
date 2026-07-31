@@ -1,0 +1,174 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mailerlite",
+  "name": "MailerLite",
+  "category": "marketing_analytics",
+  "description": "MailerLite is an email marketing platform for subscribers, groups, segments, campaigns, automations, forms, landing pages, and ecommerce messaging. Organizations use it to grow audiences and operate email marketing programs.",
+  "agentUseSummary": "Connect one MailerLite account with an encrypted customer-generated API token owned by a dedicated least-privilege user. Relay exposes only one selected subscriber's ID and timestamps plus bounded metadata for one selected campaign, pins the 2026-07-17 API version, and blocks subscriber identity, engagement, other resources, sending, automation, exports, and mutations.",
+  "provider": {
+    "websiteUrl": "https://www.mailerlite.com/",
+    "docsUrl": "https://developers.mailerlite.com/getting-started",
+    "developerConsoleUrl": "https://dashboard.mailerlite.com/integrations/api",
+    "termsUrl": "https://www.mailerlite.com/legal/terms-of-service",
+    "privacyUrl": "https://www.mailerlite.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_token",
+    "relayOwned": false,
+    "scopes": ["account_user_permissions"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_token",
+      "dedicated_least_privilege_user",
+      "selected_numeric_subscriber_id",
+      "selected_campaign",
+      "pinned_api_version_2026_07_17"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MAILERLITE_API_TOKEN",
+        "label": "MailerLite API token",
+        "required": true,
+        "secret": true,
+        "helpText": "A customer-generated token from a dedicated least-privilege MailerLite user; Relay encrypts it and sends it only to connect.mailerlite.com."
+      },
+      {
+        "name": "MAILERLITE_SUBSCRIBER_ID",
+        "label": "Selected numeric subscriber ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The numeric subscriber ID whose ID and timestamps Relay may read; email selectors are rejected."
+      },
+      {
+        "name": "MAILERLITE_CAMPAIGN_ID",
+        "label": "Selected campaign ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one campaign whose bounded summary Relay may read."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "mailerlite_subscriber_summary_get",
+      "label": "Read selected subscriber summary",
+      "description": "Read only the ID and timestamps for one selected subscriber without identity, contact, consent, status, engagement, IP, group, or custom fields.",
+      "defaultSelected": true
+    },
+    {
+      "id": "mailerlite_campaign_summary_get",
+      "label": "Read selected campaign summary",
+      "description": "Read bounded organizational metadata for one selected campaign.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "mailerlite_subscriber_summary_get",
+        "label": "Read selected subscriber summary",
+        "description": "Read the selected subscriber's ID and timestamps while discarding all personal, preference, and engagement fields."
+      },
+      {
+        "id": "mailerlite_campaign_summary_get",
+        "label": "Read selected campaign summary",
+        "description": "Read the selected campaign's ID, name, type, status, and timestamps while discarding content, sender, recipients, filters, settings, reports, and related resources."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "mailerlite_private_data",
+        "label": "Expose private marketing data",
+        "description": "Subscriber identity, contact, consent, status, engagement, IP, group, and custom fields plus campaign recipients, content, sender, filters, settings, reports, and raw responses are excluded."
+      },
+      {
+        "id": "mailerlite_mutation",
+        "label": "Mutate MailerLite state",
+        "description": "Subscriber changes, imports, groups, segments, campaigns, sends, automations, forms, webhooks, ecommerce data, and every other mutation are blocked."
+      },
+      {
+        "id": "mailerlite_broad_access",
+        "label": "Use broad MailerLite access",
+        "description": "Other subscribers, campaigns, groups, segments, fields, automations, forms, lists, searches, pages, activities, arbitrary paths, redirects, downloads, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "mailerlite_read_only",
+      "label": "Read Only",
+      "description": "Read one selected subscriber and campaign through an encrypted customer token; private data, broader access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "mailerlite_subscriber_summary_get",
+        "mailerlite_campaign_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mailerlite_private_data",
+        "mailerlite_mutation",
+        "mailerlite_broad_access"
+      ]
+    },
+    {
+      "id": "mailerlite_no_access",
+      "label": "No Access",
+      "description": "Expose no MailerLite actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mailerlite_subscriber_summary_get",
+        "mailerlite_campaign_summary_get",
+        "mailerlite_private_data",
+        "mailerlite_mutation",
+        "mailerlite_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted customer token server-side and mounts exactly two version-pinned projected reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted customer token server-side and mounts exactly two version-pinned projected reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A new MailerLite account, dedicated least-privilege user, customer-generated API token, numeric staging subscriber ID, and campaign ID are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "An authorized MailerLite administrator must create a dedicated staging user with only the minimum account permissions for the two reads, generate and immediately capture its API token in the provider-console lane, connect the numeric subscriber and campaign IDs, then validate both redacted reads, email-selector denial, version pinning, insufficient-permission and rate errors, token replacement, user-removal revocation, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.mailerlite.com/getting-started",
+      "checkedAt": "2026-07-17",
+      "supports": "MailerLite documents the connect.mailerlite.com/api origin, customer-generated bearer API tokens, user-bound token lifecycle, immediate one-time secret capture, date-based X-Version pinning, 120 requests per minute, and standard error codes."
+    },
+    {
+      "url": "https://developers.mailerlite.com/api/subscribers",
+      "checkedAt": "2026-07-17",
+      "supports": "MailerLite documents selected subscriber reads by numeric ID or email and the sensitive identity, preference, engagement, group, IP, and custom fields excluded by Relay; Relay accepts numeric IDs only."
+    },
+    {
+      "url": "https://developers.mailerlite.com/api/campaigns",
+      "checkedAt": "2026-07-17",
+      "supports": "MailerLite documents selected campaign reads and the campaign metadata used for Relay's bounded projection, plus the content, sender, targeting, report, and recipient data Relay excludes."
+    }
+  ]
+}

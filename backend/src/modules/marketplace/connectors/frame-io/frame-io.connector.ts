@@ -1,0 +1,46 @@
+import { action, capability } from "../../catalog/marketplace-catalog.types";
+import type { MarketplaceConnectorManifest } from "../types";
+
+const reads = [
+  action("frame_io_get_me", "Read connected user", "Read the connected Frame.io user."),
+  action("frame_io_list_accounts", "List accounts", "List accounts available to the connected user."),
+  action("frame_io_list_workspaces", "List workspaces", "List a bounded page of workspaces in one account."),
+  action("frame_io_list_projects", "List projects", "List a bounded page of projects in one workspace."),
+  action("frame_io_list_folder_children", "Browse folder", "List a bounded page of files, folders, and version stacks in a folder."),
+  action("frame_io_get_file", "Read file", "Read one exact media file."),
+  action("frame_io_list_comments", "List comments", "List a bounded page of review comments on one file."),
+  action("frame_io_search", "Search creative work", "Run a bounded search in one Frame.io account."),
+];
+const full = [action("frame_io_full_api", "Use full Frame.io V4 API", "Use any stable current Frame.io V4 operation; Safe mode requires approval.")];
+export const FRAME_IO_SCOPES = ["openid", "profile", "offline_access"] as const;
+
+export const FRAME_IO_CONNECTOR_MANIFEST: MarketplaceConnectorManifest = {
+  slug: "frame-io", name: "Frame.io", connectorType: "native_clawchat",
+  providerDocsUrl: "https://developer.adobe.com/frameio/", providerWebsiteUrl: "https://frame.io/",
+  capabilities: [
+    { ...capability("projects_read", "Browse creative work", "Read the connected user, accounts, workspaces, projects, folders, files, version stacks, comments, shares, metadata, and search results.", true), platformCapability: "frame_io_projects_read" },
+    { ...capability("collaboration_write", "Manage reviews and media", "Create, update, move, copy, upload, share, comment on, and delete Frame.io resources permitted by the connected user.", true), platformCapability: "frame_io_collaboration_write" },
+    { ...capability("workflow_automation", "Automate workflows", "Manage webhooks, custom actions, permissions, groups, metadata, collections, and other account-authorized workflow resources.", true), platformCapability: "frame_io_workflow_automation" },
+    { ...capability("administration", "Use the complete Frame.io V4 API", "Use every stable current Frame.io V4 operation permitted by the connected account, project roles, plan, and Adobe application.", true), platformCapability: "frame_io_administration" },
+  ],
+  auth: { type: "oauth2_authorization_code", oauth: { authorizationUrl: "https://ims-na1.adobelogin.com/ims/authorize/v2", tokenUrl: "https://ims-na1.adobelogin.com/ims/token/v3", userInfoUrl: "https://api.frame.io/v4/me", requiredScopes: [...FRAME_IO_SCOPES], optionalScopes: [], pkce: false, supportsRefresh: true }, credentialSchema: [
+    { name: "FRAME_IO_CLIENT_ID", label: "Frame.io OAuth client ID", required: true, secret: false, storedIn: "metadata", helpText: "Relay-owned Adobe OAuth Web App client ID configured on Railway." },
+    { name: "FRAME_IO_CLIENT_SECRET", label: "Frame.io OAuth client secret", required: true, secret: true, storedIn: "encrypted_secret", helpText: "Relay-owned Adobe OAuth Web App secret stored only in Railway secret variables." },
+  ] },
+  tools: [
+    { name: "frameIo.getMe", functionName: "frame_io_get_me", aliases: ["frameIo.getMe", "frame_io_get_me"], capability: "projects_read", platformCapability: "frame_io_projects_read", action: "read", approvalRequired: false, description: "Read the connected Frame.io user.", inputSchema: { type: "object", properties: {}, additionalProperties: false } },
+    { name: "frameIo.listAccounts", functionName: "frame_io_list_accounts", aliases: ["frameIo.listAccounts", "frame_io_list_accounts"], capability: "projects_read", platformCapability: "frame_io_projects_read", action: "read", approvalRequired: false, description: "List accounts available to the connected user.", inputSchema: { type: "object", properties: { pageSize: { type: "number", minimum: 1, maximum: 100 }, after: { type: "string", maxLength: 2000 } }, additionalProperties: false } },
+    { name: "frameIo.listWorkspaces", functionName: "frame_io_list_workspaces", aliases: ["frameIo.listWorkspaces", "frame_io_list_workspaces"], capability: "projects_read", platformCapability: "frame_io_projects_read", action: "read", approvalRequired: false, description: "List a bounded page of workspaces.", inputSchema: { type: "object", properties: { accountId: { type: "string", maxLength: 200 }, pageSize: { type: "number", minimum: 1, maximum: 100 }, after: { type: "string", maxLength: 2000 } }, required: ["accountId"], additionalProperties: false } },
+    { name: "frameIo.listProjects", functionName: "frame_io_list_projects", aliases: ["frameIo.listProjects", "frame_io_list_projects"], capability: "projects_read", platformCapability: "frame_io_projects_read", action: "read", approvalRequired: false, description: "List a bounded page of projects.", inputSchema: { type: "object", properties: { accountId: { type: "string", maxLength: 200 }, workspaceId: { type: "string", maxLength: 200 }, pageSize: { type: "number", minimum: 1, maximum: 100 }, after: { type: "string", maxLength: 2000 } }, required: ["accountId", "workspaceId"], additionalProperties: false } },
+    { name: "frameIo.listFolderChildren", functionName: "frame_io_list_folder_children", aliases: ["frameIo.listFolderChildren", "frame_io_list_folder_children"], capability: "projects_read", platformCapability: "frame_io_projects_read", action: "read", approvalRequired: false, description: "List a bounded page of folder children.", inputSchema: { type: "object", properties: { accountId: { type: "string", maxLength: 200 }, folderId: { type: "string", maxLength: 200 }, pageSize: { type: "number", minimum: 1, maximum: 100 }, after: { type: "string", maxLength: 2000 } }, required: ["accountId", "folderId"], additionalProperties: false } },
+    { name: "frameIo.getFile", functionName: "frame_io_get_file", aliases: ["frameIo.getFile", "frame_io_get_file"], capability: "projects_read", platformCapability: "frame_io_projects_read", action: "read", approvalRequired: false, description: "Read one exact file.", inputSchema: { type: "object", properties: { accountId: { type: "string", maxLength: 200 }, fileId: { type: "string", maxLength: 200 } }, required: ["accountId", "fileId"], additionalProperties: false } },
+    { name: "frameIo.listComments", functionName: "frame_io_list_comments", aliases: ["frameIo.listComments", "frame_io_list_comments"], capability: "projects_read", platformCapability: "frame_io_projects_read", action: "read", approvalRequired: false, description: "List a bounded page of comments on one file.", inputSchema: { type: "object", properties: { accountId: { type: "string", maxLength: 200 }, fileId: { type: "string", maxLength: 200 }, pageSize: { type: "number", minimum: 1, maximum: 100 }, after: { type: "string", maxLength: 2000 } }, required: ["accountId", "fileId"], additionalProperties: false } },
+    { name: "frameIo.search", functionName: "frame_io_search", aliases: ["frameIo.search", "frame_io_search"], capability: "projects_read", platformCapability: "frame_io_projects_read", action: "read", approvalRequired: false, description: "Search a bounded set of creative work.", inputSchema: { type: "object", properties: { accountId: { type: "string", maxLength: 200 }, query: { type: "string", minLength: 1, maxLength: 1000 }, engine: { type: "string", enum: ["lexical", "nlp"] }, pageSize: { type: "number", minimum: 1, maximum: 100 }, after: { type: "string", maxLength: 2000 } }, required: ["accountId", "query"], additionalProperties: false } },
+    { name: "frameIo.request", functionName: "frame_io_request", aliases: ["frameIo.request", "frame_io_request", "frame_io_full_api"], capability: "administration", platformCapability: "frame_io_administration", action: "admin", approvalRequired: true, description: "Call an exact stable current Frame.io V4 operation on the fixed Frame.io API origin.", inputSchema: { type: "object", properties: { method: { type: "string", enum: ["GET", "POST", "PUT", "PATCH", "DELETE"] }, path: { type: "string", pattern: "^/v4/" }, query: { type: "object" }, json: { type: "object" }, approvalId: { type: "string" } }, required: ["method", "path"], additionalProperties: false } },
+  ],
+  approvalProfiles: [
+    { id: "frame_io_safe", label: "Safe", description: "Bounded account, workspace, project, folder, file, comment, and search reads run directly; every other Frame.io operation requires approval.", defaultSelected: true, allowedActions: reads, approvalRequiredActions: full, blockedActions: [] },
+    { id: "dangerously_skip_permissions", label: "Dangerously skip permissions", description: "Every selected OAuth- and role-authorized stable Frame.io V4 operation runs without Relay per-action approval; fixed origin, bounds, audits, redaction, ownership, rate limits, and provider enforcement still apply.", defaultSelected: false, allowedActions: [...reads, ...full], approvalRequiredActions: [], blockedActions: [] },
+  ],
+  healthChecks: [{ id: "connected_user", label: "Frame.io OAuth token and connected-user validation" }],
+};

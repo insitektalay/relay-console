@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "crazy-egg",
+  "name": "Crazy Egg",
+  "category": "developer",
+  "description": "Crazy Egg is a digital experience analytics platform for web analytics, heatmaps, session recordings, surveys, calls to action, A/B tests, and conversion analysis. Teams use it to understand website behavior, diagnose friction, and improve customer journeys.",
+  "agentUseSummary": "Connect one exact Crazy Egg site with a customer-owned Conversion Tracking Site API Key, then let agents record only real, bounded conversion events through the provider's single documented write endpoint. Relay excludes analytics reads, visitors, sessions, recordings, heatmaps, tests, broader mutations, synthetic events, dashboard automation, and raw access.",
+  "provider": {
+    "websiteUrl": "https://www.crazyegg.com/",
+    "docsUrl": "https://support.crazyegg.com/knowledge-base/conversion-tracking-api/",
+    "developerConsoleUrl": "https://app.crazyegg.com/",
+    "termsUrl": "https://www.crazyegg.com/terms",
+    "privacyUrl": "https://www.crazyegg.com/privacy"
+  },
+  "authentication": {
+    "model": "customer_owned_site_api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_site_api_key",
+      "conversion_tracking_write_only",
+      "exact_fixed_endpoint",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CRAZY_EGG_SITE_API_KEY",
+        "label": "Crazy Egg Conversion Tracking site API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Have an authorized administrator enable Conversion Tracking for one site, generate its dedicated Site API Key, and store it only through Relay's encrypted flow."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "conversion_record",
+      "label": "Record conversions",
+      "description": "Record 1 to 25 real conversion events with required goal and user identifiers plus bounded documented metadata.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "crazy_egg_conversions_record",
+        "label": "Record conversions",
+        "description": "Write 1 to 25 real customer-authorized conversion events to one exact Crazy Egg site."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "crazy_egg_analytics_read",
+        "label": "Read analytics or recordings",
+        "description": "Web analytics, Live View, visitors, sessions, recordings, heatmaps, snapshots, confetti, overlays, funnels, reports, surveys, CTAs, and A/B test results are blocked because the Conversion Tracking API exposes no read surface."
+      },
+      {
+        "id": "crazy_egg_broader_mutation",
+        "label": "Change broader Crazy Egg state",
+        "description": "Sites, snapshots, recordings, heatmaps, surveys, CTAs, tests, goals, tracking settings, team members, billing, and account administration are blocked."
+      },
+      {
+        "id": "crazy_egg_synthetic_conversion",
+        "label": "Create synthetic conversions",
+        "description": "Health probes, test conversions, fabricated goals, unknown user identifiers, and events without a real customer-authorized source are blocked."
+      },
+      {
+        "id": "crazy_egg_raw_bulk",
+        "label": "Use raw or unsupported access",
+        "description": "Raw paths, custom origins, undocumented fields, more than 25 conversions, payloads over 64 KB, retries, polling, browser automation, private endpoints, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "crazy_egg_conversion_safe",
+      "label": "Safe",
+      "description": "Every bounded conversion write requires approval; reads, broader mutations, synthetic conversions, and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["crazy_egg_conversions_record"],
+      "blockedActions": [
+        "crazy_egg_analytics_read",
+        "crazy_egg_broader_mutation",
+        "crazy_egg_synthetic_conversion",
+        "crazy_egg_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Bounded conversion writes run without Relay per-action approval; exact site-key authority, schema and payload bounds, audits, no retries, and the prohibition on fabricated events remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["crazy_egg_conversions_record"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "crazy_egg_analytics_read",
+        "crazy_egg_broader_mutation",
+        "crazy_egg_synthetic_conversion",
+        "crazy_egg_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway confines one customer-owned site key to the fixed bounded Conversion Tracking write wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway confines one customer-owned site key to the fixed bounded Conversion Tracking write wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Crazy Egg administrator must select one exact site, enable its Conversion Tracking API, generate the Site API Key, and store it through Relay. The API publishes no non-mutating credential-verification endpoint, so Relay will not create a synthetic conversion during health checks. No account, key creation, credential capture, live conversion, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized Crazy Egg administrator enables Conversion Tracking for one site, generates its Site API Key, and stores it through Relay's encrypted flow. They then approve one real conversion from a controlled source, verify the resulting report, exercise provider rate limits, rotate/revoke the key, disconnect, and confirm post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.crazyegg.com/knowledge-base/conversion-tracking-api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Crazy Egg documents a site-specific Conversion Tracking API key, fixed https://track.crazyegg.com/api/v1 endpoint, Authorization key header, POST-only conversion writes, batches of 1 to 25, required goalName and userIdentifier fields, documented optional metadata, and 400/401/429 behavior."
+    },
+    {
+      "url": "https://support.crazyegg.com/knowledge-base/crazy-egg-getting-started-guide/",
+      "checkedAt": "2026-07-17",
+      "supports": "Crazy Egg describes its broader product surface as web analytics, Live View, heatmaps, recordings, surveys, CTAs, A/B tests, and conversions. The public Conversion Tracking API does not document reads or management for those features, so Relay blocks them."
+    },
+    {
+      "url": "https://support.crazyegg.com/knowledge-base/crazy-egg-privacy-data-practices/",
+      "checkedAt": "2026-07-17",
+      "supports": "Crazy Egg documents visitor identifiers, recordings, account/site segregation, role-based access, authentication, audit logs, and US data storage. Relay therefore treats user identifiers and conversion metadata as sensitive inputs and never returns them from the wrapper response or audit metadata."
+    },
+    {
+      "url": "https://support.crazyegg.com/knowledge-base/team-member-permissions/",
+      "checkedAt": "2026-07-17",
+      "supports": "Crazy Egg documents Admin, Member, and Read-only dashboard roles with broad access to sites, snapshots, recordings, tests, billing, and settings. A Conversion Tracking key is not relabeled as dashboard authority; all those surfaces remain blocked."
+    }
+  ]
+}

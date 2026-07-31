@@ -1,0 +1,172 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "amazing-marvin",
+  "name": "Amazing Marvin",
+  "category": "work_management",
+  "description": "Amazing Marvin is a personal productivity and day-planning app built around customizable workflows rather than a single prescribed method. People use it to organize nested projects and tasks, plan days and weeks, schedule events and time blocks, track time and habits, set reminders and goals, and combine optional strategies for procrastination, focus, and motivation.",
+  "agentUseSummary": "Add your Marvin API token and full-access token once, then select which agents can read or manage the account under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://amazingmarvin.com/",
+    "docsUrl": "https://github.com/amazingmarvin/MarvinAPI/wiki/Marvin-API",
+    "developerConsoleUrl": "https://app.amazingmarvin.com/",
+    "termsUrl": "https://amazingmarvin.com/terms",
+    "privacyUrl": "https://amazingmarvin.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "AMAZING_MARVIN_API_TOKEN",
+        "label": "Marvin API token",
+        "required": true,
+        "secret": true,
+        "helpText": "In Marvin, open Strategies > API > View Credentials and copy API_TOKEN."
+      },
+      {
+        "name": "AMAZING_MARVIN_FULL_ACCESS_TOKEN",
+        "label": "Marvin full-access token",
+        "required": true,
+        "secret": true,
+        "helpText": "From the same credentials panel, copy FULL_ACCESS_TOKEN so agents can use the read and manage tools you permit."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "productivity_read",
+      "label": "Read Marvin planning data",
+      "description": "Read authorized tasks, projects, categories, labels, schedules, time tracking, rewards, reminders, goals, habits, profile data, and exact database documents.",
+      "defaultSelected": true
+    },
+    {
+      "id": "productivity_manage",
+      "label": "Manage Marvin planning data",
+      "description": "Create tasks, projects and events; complete, track and time work; manage rewards, reminders and habits; and create, update, or delete exact database documents.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "amazing_marvin_api_read",
+        "label": "Read Amazing Marvin",
+        "description": "Read one exact bounded endpoint from Marvin's official API document."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "amazing_marvin_api_manage",
+        "label": "Manage Amazing Marvin",
+        "description": "Call one exact bounded mutation endpoint; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "amazing_marvin_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Both tokens remain encrypted and never enter agent-visible requests, URLs, or results."
+      },
+      {
+        "id": "amazing_marvin_unofficial_origin",
+        "label": "Use another origin",
+        "description": "Every request is pinned to Marvin's official public HTTPS API origin."
+      },
+      {
+        "id": "amazing_marvin_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only endpoints listed in Marvin's official OpenAPI document."
+      },
+      {
+        "id": "amazing_marvin_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds paths, queries, bodies, redirects, results, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "amazing_marvin_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly. Every creation, completion, tracking, time, reward, reminder, habit, document update, or irreversible deletion requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["amazing_marvin_api_read"],
+      "approvalRequiredActions": ["amazing_marvin_api_manage"],
+      "blockedActions": [
+        "amazing_marvin_secret_exposure",
+        "amazing_marvin_unofficial_origin",
+        "amazing_marvin_unsupported_endpoint",
+        "amazing_marvin_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected token-authorized Marvin operation runs without Relay per-action approval. Connection ownership, provider authority, exact endpoints, request bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "amazing_marvin_api_read",
+        "amazing_marvin_api_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "amazing_marvin_secret_exposure",
+        "amazing_marvin_unofficial_origin",
+        "amazing_marvin_unsupported_endpoint",
+        "amazing_marvin_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts separate exact-endpoint read and manage tools and selects the encrypted limited or full-access token only at Marvin's fixed public API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts separate exact-endpoint read and manage tools and selects the encrypted limited or full-access token only at Marvin's fixed public API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A Marvin customer must supply both tokens from Strategies > API > View Credentials. Marvin's official API documentation says OAuth may be added if users request it, so Relay must not invent an OAuth flow that the provider does not currently offer.",
+    "nextAction": "Copy API_TOKEN and FULL_ACCESS_TOKEN from Marvin, connect them in Relay Console, then verify both-token health, representative reads, Safe manage approval, Dangerous creation and exact-document management, redaction, credential rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://github.com/amazingmarvin/MarvinAPI/blob/master/marvin-api.yaml",
+      "checkedAt": "2026-07-15",
+      "supports": "Marvin's official OpenAPI document pins the public API to serv.amazingmarvin.com/api, defines limited and full-access header tokens, exact endpoints, rate limits, and stability levels."
+    },
+    {
+      "url": "https://github.com/amazingmarvin/MarvinAPI/wiki/Marvin-API",
+      "checkedAt": "2026-07-15",
+      "supports": "The official API guide explains token rotation and states that a proper permissions-based OAuth system is not currently available."
+    },
+    {
+      "url": "https://help.amazingmarvin.com/en/articles/5165191-desktop-local-api-server",
+      "checkedAt": "2026-07-15",
+      "supports": "Marvin describes its public API and a separate optional local server; Relay uses only the public cloud origin because Railway is the shared source of truth."
+    },
+    {
+      "url": "https://help.amazingmarvin.com/en/articles/2550921-get-marvin-on-different-devices-platforms",
+      "checkedAt": "2026-07-15",
+      "supports": "Marvin documents its web, macOS, Windows, Linux, iOS, and Android availability."
+    }
+  ]
+}

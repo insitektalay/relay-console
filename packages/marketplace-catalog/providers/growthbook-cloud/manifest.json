@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "growthbook-cloud",
+  "name": "GrowthBook Cloud",
+  "category": "developer",
+  "description": "GrowthBook Cloud provides feature flags, targeting, gradual rollouts, experiments, metrics, and analysis for product teams.",
+  "agentUseSummary": "Connect a readonly GrowthBook Secret Key bound to one non-production project. Relay approval-gates a first-page feature list and exact feature metadata reads while values, environments, rules, owners, revisions, SDK keys, evaluation, and mutations remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.growthbook.io/",
+    "docsUrl": "https://docs.growthbook.io/api",
+    "developerConsoleUrl": "https://app.growthbook.io/",
+    "termsUrl": "https://www.growthbook.io/terms",
+    "privacyUrl": "https://www.growthbook.io/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["readonly"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_secret_api_key",
+      "readonly_role",
+      "exact_project_binding",
+      "fixed_cloud_rest_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "GROWTHBOOK_CLOUD_READONLY_SECRET_API_KEY",
+        "label": "GrowthBook Cloud read-only secret API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated GrowthBook Secret Key assigned the readonly role."
+      },
+      {
+        "name": "GROWTHBOOK_CLOUD_PROJECT_ID",
+        "label": "GrowthBook Cloud project ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one non-production project identifier."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read feature metadata",
+      "description": "Read bounded project-level feature metadata with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "growthbook_cloud_sensitive_read",
+        "label": "Read GrowthBook Cloud features",
+        "description": "Read bounded project feature metadata."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "growthbook_cloud_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Secret API keys and authorization headers never enter agent-visible inputs or results."
+      },
+      {
+        "id": "growthbook_cloud_private_data",
+        "label": "Read values, targeting, or people",
+        "description": "Default and rule values, environments, conditions, owners, revisions, creators, custom fields, saved groups, holdouts, SDK keys, and evaluation data are excluded."
+      },
+      {
+        "id": "growthbook_cloud_mutation",
+        "label": "Mutate GrowthBook",
+        "description": "Feature, toggle, rollout, environment, project, experiment, metric, member, key, and every other mutation remain provider-side."
+      },
+      {
+        "id": "growthbook_cloud_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only first-page project feature list and exact feature GETs run on api.growthbook.io with revisions disabled; arbitrary paths, queries, pagination, evaluation, and self-hosted origins are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "growthbook_cloud_safe",
+      "label": "Safe",
+      "description": "Both metadata reads require approval; readonly authority, fixed Cloud/project routes, bounds, redaction, audits, and value/evaluation/mutation blocks remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["growthbook_cloud_sensitive_read"],
+      "blockedActions": [
+        "growthbook_cloud_secret_exposure",
+        "growthbook_cloud_private_data",
+        "growthbook_cloud_mutation",
+        "growthbook_cloud_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected metadata read runs without Relay approval; readonly authority, fixed Cloud/project routes, bounds, redaction, audits, and value/evaluation/mutation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["growthbook_cloud_sensitive_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "growthbook_cloud_secret_exposure",
+        "growthbook_cloud_private_data",
+        "growthbook_cloud_mutation",
+        "growthbook_cloud_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted readonly key server-side and mounts two approval-gated metadata reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted readonly key server-side and mounts two approval-gated metadata reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "GrowthBook Cloud requires a customer organization, dedicated readonly Secret Key, and one project. This worker may not create or configure them.",
+    "nextAction": "Create the restricted staging key outside this worker, configure key and project ID in Railway staging, then verify binding, reads, redaction, approvals, bounds, revocation, disconnect, and denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.growthbook.io/api",
+      "checkedAt": "2026-07-18",
+      "supports": "GrowthBook's official generated REST reference pins the Cloud origin, Bearer authentication, readonly Secret Key role, feature list/exact GET routes, pagination and project filters, withRevisions control, response fields, and separate mutations."
+    },
+    {
+      "url": "https://api.growthbook.io/api/v1/openapi.yaml",
+      "checkedAt": "2026-07-18",
+      "supports": "GrowthBook publishes the OpenAPI contract behind its generated API reference for fixed operation and schema evidence."
+    }
+  ]
+}

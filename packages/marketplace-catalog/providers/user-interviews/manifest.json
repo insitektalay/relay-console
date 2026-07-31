@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "user-interviews",
+  "name": "User Interviews",
+  "category": "work_management",
+  "description": "User Interviews is a research-recruitment and participant-management platform for sourcing, screening, scheduling, incentives, Research Hub panels, and research operations.",
+  "agentUseSummary": "Add a support-enabled API key for a customer-owned team administrator, then let selected agents read bounded characteristic definitions and minimized recruit metadata. Relay does not expose participant records, screeners, messages, fraud data, sessions, operational URLs, costs, or any mutations.",
+  "provider": {
+    "websiteUrl": "https://www.userinterviews.com/",
+    "docsUrl": "https://api-docs.userinterviews.com/reference/introduction",
+    "developerConsoleUrl": "https://api-docs.userinterviews.com/docs/authentication",
+    "termsUrl": "https://www.userinterviews.com/researcher-terms",
+    "privacyUrl": "https://www.userinterviews.com/privacy"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_admin_api_key", "v2_api"],
+    "credentialRequirements": [
+      { "key": "USER_INTERVIEWS_API_KEY", "label": "User Interviews API key", "secret": true, "required": true, "helpText": "Use the support-enabled API key assigned to a customer-owned team administrator's researcher account." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "user_interviews_read", "label": "Read recruitment metadata", "description": "Use three pinned v2 GET operations for bounded characteristic definitions and minimized recruit summaries without participant records or operational URLs.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "user_interviews_read", "label": "Read User Interviews", "description": "Read bounded characteristic definitions and minimized recruit metadata without participant records." }],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "user_interviews_manage", "label": "Change User Interviews", "description": "Participants, recruits, sessions, messages, screeners, invitations, launches, pauses, payments, fraud reports, and every mutation remain blocked." },
+      { "id": "user_interviews_participant_data", "label": "Read participant data", "description": "Participant records, identifiers, contact details, characteristics, labels, screener responses, messages, fraud reports, and session details are blocked." },
+      { "id": "user_interviews_arbitrary_api", "label": "Call arbitrary APIs", "description": "Recruit feasibility, costs and balances, private previews, operational URLs, early-access MCP, arbitrary paths, queries, methods, and bodies are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "user_interviews_safe", "label": "Safe", "description": "Three bounded non-participant reads run directly. Participant PII, screeners, messages, fraud data, sessions, operational links, costs, private previews, MCP early access, and every mutation remain blocked.", "defaultSelected": true, "allowedActions": ["user_interviews_read"], "approvalRequiredActions": [], "blockedActions": ["user_interviews_manage", "user_interviews_participant_data", "user_interviews_arbitrary_api"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts one read tool with three pinned v2 operations through the encrypted administrator API key." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts one read tool with three pinned v2 operations through the encrypted administrator API key." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Research Hub or Recruit account, support-enabled administrator API key, representative recruit, or safe fixture is available in this workspace.",
+    "nextAction": "A team administrator requests v2 API access from User Interviews support and stores the issued key through Relay Console, then verifies authentication, the three minimized reads, agent assignment, key replacement, disconnect, provider-side rotation, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://api-docs.userinterviews.com/docs/authentication", "checkedAt": "2026-07-17", "supports": "User Interviews documents support-enabled API keys assigned to administrator researcher accounts, the custom authentication header, and the required v2 Accept header." },
+    { "url": "https://api-docs.userinterviews.com/reference/introduction", "checkedAt": "2026-07-17", "supports": "User Interviews documents separate Hub and Recruit v2 APIs for custom-panel and recruitment workflows." },
+    { "url": "https://api-docs.userinterviews.com/reference/get_api-recruits-1", "checkedAt": "2026-07-17", "supports": "The official schema documents recruit listing and its project, compensation, scheduling, task, webhook, and operational URL fields, supporting Relay's minimization boundary." },
+    { "url": "https://www.userinterviews.com/mcp-integration", "checkedAt": "2026-07-17", "supports": "User Interviews documents a consent-gated early-access MCP with study launch, recruiting, and future participant-session analysis, which Relay excludes from this stable V1 contract." }
+  ]
+}

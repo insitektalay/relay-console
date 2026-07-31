@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "freeagent",
+  "name": "FreeAgent",
+  "category": "commerce_payments",
+  "description": "FreeAgent is online accounting software for UK small businesses, freelancers, landlords, and accountants. It combines invoicing, expenses, banking, tax, payroll, projects, time tracking, and financial reporting in one service.",
+  "agentUseSummary": "Connect one FreeAgent company through the Relay Console OAuth app, then let agents inspect bounded company metadata and privacy-redacted invoice summaries through three read-only tools. V1 excludes accounting writes, customer identity, invoice lines, comments, tax, banking, payments, broader accounting, the separate Practice API, automatic pagination, arbitrary parameters, XML, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.freeagent.com/",
+    "docsUrl": "https://dev.freeagent.com/docs/oauth",
+    "developerConsoleUrl": "https://dev.freeagent.com/",
+    "termsUrl": "https://www.freeagent.com/terms/",
+    "privacyUrl": "https://www.freeagent.com/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.freeagent.com/v2/approve_app",
+    "tokenUrl": "https://api.freeagent.com/v2/token_endpoint",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth_app", "exact_company_binding", "authorizing_user_permission_inheritance"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/freeagent/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "company_read", "label": "Read company", "description": "Read bounded metadata for the exact connected FreeAgent company.", "defaultSelected": true },
+    { "id": "invoice_read", "label": "Read invoices", "description": "List bounded redacted invoice summaries or inspect one exact invoice.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "freeagent_company_get", "label": "Read connected company", "description": "Read bounded metadata for the exact connected company." }],
+    "approvalRequired": [
+      { "id": "freeagent_invoice_list", "label": "List invoices", "description": "List at most twenty-five privacy-redacted invoice summaries." },
+      { "id": "freeagent_invoice_get", "label": "Read invoice", "description": "Read one exact privacy-redacted invoice summary by numeric ID." }
+    ],
+    "blocked": [
+      { "id": "freeagent_invoice_mutation", "label": "Change invoices", "description": "Creating, updating, emailing, transitioning, taking payment for, duplicating, or deleting invoices is outside V1." },
+      { "id": "freeagent_private_accounting", "label": "Read private accounting data", "description": "Customer identity, invoice lines, comments, tax, bank, payment, PDF, email, and timeline data are outside V1." },
+      { "id": "freeagent_broader_accounting", "label": "Access broader accounting", "description": "Contacts, projects, bills, banking, tax, payroll, expenses, users, and files are outside V1." },
+      { "id": "freeagent_practice_api", "label": "Use the Practice API", "description": "The separately registered Accountancy Practice API is outside this company connector." },
+      { "id": "freeagent_raw_api", "label": "Use arbitrary API calls", "description": "Arbitrary paths, parameters, XML, automatic pagination, and raw FreeAgent API access are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "freeagent_safe", "label": "Safe", "description": "Connected-company metadata runs directly; invoice reads require matching approval.", "defaultSelected": true, "allowedActions": ["freeagent_company_get"], "approvalRequiredActions": ["freeagent_invoice_list", "freeagent_invoice_get"], "blockedActions": ["freeagent_invoice_mutation", "freeagent_private_accounting", "freeagent_broader_accounting", "freeagent_practice_api", "freeagent_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while exact-company binding, provider-granted user permissions, bounds, audit, redaction, token refresh, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["freeagent_company_get", "freeagent_invoice_list", "freeagent_invoice_get"], "approvalRequiredActions": [], "blockedActions": ["freeagent_invoice_mutation", "freeagent_private_accounting", "freeagent_broader_accounting", "freeagent_practice_api", "freeagent_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three exact FreeAgent read wrappers and attaches the encrypted company token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three exact FreeAgent read wrappers and attaches the encrypted company token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "relay_action_required",
+    "blocker": "Relay Console needs separate FreeAgent production and sandbox OAuth applications, client credentials, the exact callback, and a representative company user with invoice access before public OAuth can be accepted. This staging/code worker does not open provider consoles or capture credentials.",
+    "nextAction": "In the provider-console task, register or approve the Relay Console FreeAgent application, register https://api.relayconsole.work/api/v1/marketplace/oauth/freeagent/callback, store the matching environment credentials, authorize a representative company user with Estimates and Invoices access, and verify company binding, all three reads, refresh, local disconnect, permission denial, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://dev.freeagent.com/docs/oauth", "checkedAt": "2026-07-17", "supports": "FreeAgent uses app-specific OAuth client credentials, authorization code consent, HTTP Basic token exchange, one-hour access tokens, refresh tokens, exact redirects, and separate sandbox endpoints; it documents no granular production scopes or token revocation endpoint." },
+    { "url": "https://dev.freeagent.com/docs/introduction", "checkedAt": "2026-07-17", "supports": "FreeAgent's company API is HTTPS REST with JSON or XML, requires a User-Agent, and is distinct from the separately registered Accountancy Practice API." },
+    { "url": "https://dev.freeagent.com/docs/company", "checkedAt": "2026-07-17", "supports": "GET /v2/company returns the exact authenticated company and requires at least Time access; V1 retains only ID, name, type, and base currency." },
+    { "url": "https://dev.freeagent.com/docs/invoices", "checkedAt": "2026-07-17", "supports": "Invoice list and exact-ID reads require Estimates and Invoices access and expose documented view and sort filters; V1 fixes sorting and redacts contacts, projects, lines, comments, tax, banking, payments, PDFs, email, and timeline details." },
+    { "url": "https://dev.freeagent.com/docs/rotating_client_secrets", "checkedAt": "2026-07-17", "supports": "FreeAgent recommends secret-manager storage and supports overlapping client-secret rotation; Railway owns and encrypts Relay's app credentials." }
+  ]
+}

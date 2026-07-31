@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "vagaro",
+  "name": "Vagaro",
+  "category": "work_management",
+  "description": "Vagaro is business-management software for salons, spas, fitness studios, and wellness providers. Businesses use it for online booking, calendars, customers, employees, services, payments, marketing, forms, and day-to-day operations.",
+  "agentUseSummary": "Add the client ID, client secret, and regional account code from your approved Vagaro API add-on, then choose which agents can use the complete current public API under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.vagaro.com/",
+    "docsUrl": "https://docs.vagaro.com/public/docs/introduction",
+    "developerConsoleUrl": "https://www.vagaro.com/",
+    "termsUrl": "https://www.vagaro.com/pro/terms",
+    "privacyUrl": "https://www.vagaro.com/pro/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["read access", "write access", "write employee"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.vagaro.com/{region}/api/v2/merchants/generate-access-token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_client_credentials"],
+    "credentialRequirements": [
+      {
+        "name": "VAGARO_CLIENT_ID",
+        "label": "Vagaro client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Copy the client ID from Developer Settings after Vagaro activates APIs & Webhooks for the business."
+      },
+      {
+        "name": "VAGARO_CLIENT_SECRET",
+        "label": "Vagaro client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the client secret from Developer Settings. This is not the user's Vagaro password."
+      },
+      {
+        "name": "VAGARO_REGION",
+        "label": "Vagaro region",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the regional code from the business account URL, such as us04."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "business_read",
+      "label": "Read business and scheduling data",
+      "description": "Read access levels, locations, customers, availability, appointments, employees, services, personal tasks, and cancellation policies through every documented retrieval operation.",
+      "defaultSelected": true
+    },
+    {
+      "id": "business_manage",
+      "label": "Manage business and scheduling data",
+      "description": "Assign employees and manage working hours, locations, customers, appointments, employees, services, and personal tasks through every documented mutation.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "vagaro_api_read",
+        "label": "Read Vagaro",
+        "description": "Run one bounded operation from Vagaro's complete documented retrieval surface."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "vagaro_api_manage",
+        "label": "Manage Vagaro",
+        "description": "Run one documented Vagaro mutation for employees, locations, customers, appointments, services, or personal tasks."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "vagaro_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer-owned client secret and derived access tokens never enter agent-visible requests or results."
+      },
+      {
+        "id": "vagaro_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every token and business request stays on Vagaro's documented fixed API origin and configured regional path."
+      },
+      {
+        "id": "vagaro_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only the 27 current public Vagaro operations represented by the read and manage tools."
+      },
+      {
+        "id": "vagaro_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds query fields, request bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "vagaro_safe",
+      "label": "Safe",
+      "description": "Documented retrieval operations run directly. Every employee, location, customer, appointment, service, or personal-task mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["vagaro_api_read"],
+      "approvalRequiredActions": ["vagaro_api_manage"],
+      "blockedActions": ["vagaro_secret_exposure", "vagaro_unofficial_origin", "vagaro_unsupported_endpoint", "vagaro_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every documented operation authorized by the connected Vagaro business runs without Relay per-action approval. Business authority, exact routes, scope selection, bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["vagaro_api_read", "vagaro_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["vagaro_secret_exposure", "vagaro_unofficial_origin", "vagaro_unsupported_endpoint", "vagaro_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges encrypted customer-owned credentials server-side and mounts all 27 current public Vagaro operations through fixed-origin bounded tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges encrypted customer-owned credentials server-side and mounts all 27 current public Vagaro operations through fixed-origin bounded tools."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Vagaro APIs & Webhooks is a paid add-on available only to eligible Vagaro Payments businesses after a provider request and activation review that can take up to seven business days. No approved business credentials are available for production verification.",
+    "nextAction": "An eligible Vagaro business owner must purchase APIs & Webhooks, submit Vagaro's activation request, and copy the client ID, client secret, and regional account code from Developer Settings. Then connect those credentials and verify token exchange, reads, Safe approval, Dangerous mutations, redaction, credential replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.vagaro.com/hc/en-us/categories/34949493949851-Developer-Features",
+      "checkedAt": "2026-07-15",
+      "supports": "Vagaro's current developer-feature documentation identifies APIs & Webhooks as a paid add-on for eligible Vagaro Payments businesses and links the activation workflow."
+    },
+    {
+      "url": "https://support.vagaro.com/hc/en-us/articles/29521637950875-Set-Up-Webhooks-From-Vagaro",
+      "checkedAt": "2026-07-15",
+      "supports": "Vagaro documents the paid-plan prerequisite, request and review process, activation delay, usage allowance, and supported developer events."
+    },
+    {
+      "url": "https://docs.vagaro.com/public/reference/api-introduction",
+      "checkedAt": "2026-07-15",
+      "supports": "Vagaro's official current API reference documents the fixed api.vagaro.com origin, regional path, customer-owned client credentials, access-token exchange, three scopes, and 27 public business operations."
+    }
+  ]
+}

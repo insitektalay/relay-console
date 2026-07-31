@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "kantata-ox",
+  "name": "Kantata OX",
+  "category": "project_management",
+  "description": "Kantata OX is a professional-services automation platform for managing projects, resources, finances and team collaboration. Professional-services organizations use it to plan delivery, allocate people, track time and expenses, collaborate on work and understand project performance.",
+  "agentUseSummary": "Relay uses a customer-generated Kantata OAuth bearer token only for one fixed metadata-only GET against a preselected project ID. The connector returns project lifecycle state without titles, descriptions, participants, financials or other account data and blocks all other reads, mutations, administration and the duplicate Mavenlink alias.",
+  "provider": {
+    "websiteUrl": "https://www.kantata.com/kantata-ox",
+    "docsUrl": "https://developer.kantata.com/kantata/specification/workspaces",
+    "developerConsoleUrl": "https://app.mavenlink.com/oauth/applications",
+    "termsUrl": "https://www.kantata.com/terms-of-use",
+    "privacyUrl": "https://www.kantata.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://app.mavenlink.com/oauth/authorize",
+    "tokenUrl": "https://app.mavenlink.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_oauth_application",
+      "customer_generated_non_expiring_oauth_bearer_token",
+      "fixed_mavenlink_api_origin",
+      "selected_kantata_workspace"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "KANTATA_OX_OAUTH_TOKEN",
+        "label": "Customer-generated OAuth bearer token",
+        "required": true,
+        "secret": true,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "KANTATA_OX_WORKSPACE_ID",
+        "label": "Selected project ID",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/kantata-ox/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "kantata_ox_selected_workspace_state_get",
+      "label": "Read selected project state",
+      "description": "Read one selected project's ID, stage, archive state and schedule dates.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "kantata_ox_selected_workspace_state_get",
+        "label": "Read selected project state",
+        "description": "Use the fixed individual-workspace route for one selected project and return only bounded lifecycle metadata."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "kantata_ox_private_project_data",
+        "label": "Expose private project data",
+        "description": "Titles, descriptions, posts, tasks, files, custom fields, participants, clients, organizations, financials and identities are excluded from Relay output."
+      },
+      {
+        "id": "kantata_ox_other_resources",
+        "label": "Read broader Kantata OX resources",
+        "description": "Project lists, other projects, users, resources, allocations, time, expenses, invoices, reports, templates, events and account data are blocked."
+      },
+      {
+        "id": "kantata_ox_mutation",
+        "label": "Mutate Kantata OX",
+        "description": "Projects, tasks, posts, files, users, resources, schedules, time, expenses, invoices, permissions, settings and every write or destructive action are blocked."
+      },
+      {
+        "id": "kantata_ox_raw_api",
+        "label": "Run arbitrary Kantata OX calls",
+        "description": "Agents cannot choose API origins, paths, includes, filters, optional fields, pagination, bodies or raw REST operations."
+      },
+      {
+        "id": "kantata_ox_duplicate_mavenlink",
+        "label": "Create a separate Mavenlink connection",
+        "description": "Mavenlink is the former product name and must resolve to this single Kantata OX authority, credential, policy and lifecycle."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "kantata_ox_selected_workspace_state_read",
+      "label": "Selected Project State Read",
+      "description": "Read one selected project's bounded lifecycle state; private content, financials, identities, other resources, administration and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["kantata_ox_selected_workspace_state_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "kantata_ox_private_project_data",
+        "kantata_ox_other_resources",
+        "kantata_ox_mutation",
+        "kantata_ox_raw_api",
+        "kantata_ox_duplicate_mavenlink"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-project state reader backed by Railway's fixed-origin Kantata OX adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-project state reader backed by Railway's fixed-origin Kantata OX adapter."
+    }
+  ],
+  "availability": "preview",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Kantata requires a paid customer account and Account Administrator to register an OAuth application. Kantata publishes no scopes or token expiry/refresh contract; access tokens do not expire and act with the authorizing user's account and project permissions. Relay therefore cannot become the paying application owner or request a broad global app in this lane, and live acceptance requires a customer-owned disposable app, synthetic selected project and careful permission validation.",
+    "nextAction": "In the provider-console acceptance task, use a paid disposable Kantata OX account with synthetic data, register a customer-owned application, generate a separate token for the intended user, bind one synthetic project ID through Relay, and validate the fixed individual-project request, metadata-only output, other-project and broader-route denial, token revocation by deleting the app, disconnect and post-disconnect denial. Never reuse a production administrator token."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.kantata.com/kantata/specification/workspaces",
+      "checkedAt": "2026-07-18",
+      "supports": "Kantata's official OpenAPI documents the fixed api.mavenlink.com origin, authorization-code OAuth, non-expiring bearer tokens, structured result references, individual workspace GET route, archived-project filter, rate-limit behavior and broad adjacent read/write surface."
+    },
+    {
+      "url": "https://knowledge.kantata.com/hc/en-us/articles/202811760-Kantata-API-Overview",
+      "checkedAt": "2026-07-18",
+      "supports": "Kantata's API overview states that the API exposes most of the data model, requires an Account Administrator to register applications, uses OAuth2 tokens and applies rate limits."
+    },
+    {
+      "url": "https://knowledge.kantata.com/hc/en-us/articles/360057953073-How-to-Register-OAuth-Applications-in-Kantata-OX",
+      "checkedAt": "2026-07-18",
+      "supports": "Official registration guidance defines customer account application creation, bearer-token generation and application deletion as the available token invalidation mechanism."
+    },
+    {
+      "url": "https://knowledge.kantata.com/hc/en-us/articles/115002779293-Project-Permissions",
+      "checkedAt": "2026-07-18",
+      "supports": "Official permission documentation defines per-project access levels and additional restrictions for users, supporting exact selected-project authorization validation."
+    },
+    {
+      "url": "https://www.kantata.com/mavenlink",
+      "checkedAt": "2026-07-18",
+      "supports": "Kantata identifies Mavenlink as the former name of Kantata OX, supporting one canonical connection and the separate source-697 discovery alias decision."
+    }
+  ]
+}

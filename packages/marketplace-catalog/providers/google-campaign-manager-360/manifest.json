@@ -1,0 +1,163 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-campaign-manager-360",
+  "name": "Google Campaign Manager 360",
+  "category": "marketing",
+  "description": "Campaign Manager 360 is Google's enterprise ad-management and measurement platform for advertisers, campaigns, placements, ads, creatives, Floodlight, offline conversions, reports, attribution, billing, and trafficking workflows.",
+  "agentUseSummary": "Campaign Manager 360 cannot yet be connected through Relay. Google requires an API-enabled CM360 account, an authorized user profile with product permissions, and a verified OAuth client. Relay exposes no advertiser, campaign, placement, creative, report, billing, Floodlight, or conversion authority until separate reporting, trafficking, and conversion scopes and representative role boundaries pass acceptance.",
+  "provider": {
+    "websiteUrl": "https://campaignmanager.google.com/",
+    "docsUrl": "https://developers.google.com/doubleclick-advertisers/getting_started",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/library/dfareporting.googleapis.com",
+    "termsUrl": "https://developers.google.com/doubleclick-advertisers/terms",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://www.googleapis.com/auth/dfareporting",
+      "https://www.googleapis.com/auth/dfatrafficking",
+      "https://www.googleapis.com/auth/ddmconversions"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token",
+    "revocationUrl": "https://oauth2.googleapis.com/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_google_cloud_project",
+      "oauth2_authenticated_cm360_user",
+      "api_enabled_cm360_account",
+      "user_profile_and_account_permission_boundary",
+      "separate_reporting_trafficking_and_conversion_scopes",
+      "campaign_manager_api_v5",
+      "oauth_verification_and_representative_acceptance_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-campaign-manager-360/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "reporting_read_and_run",
+      "label": "Read and run CM360 reports",
+      "description": "After acceptance with dfareporting only, list accessible profiles and bounded reporting resources, run selected reports, and fetch controlled results.",
+      "defaultSelected": true
+    },
+    {
+      "id": "trafficking_read",
+      "label": "Read trafficking configuration",
+      "description": "After scope upgrade, read selected advertisers, campaigns, placements, ads, creatives, Floodlight, targeting, sites, billing and account metadata allowed by the user profile.",
+      "defaultSelected": false
+    },
+    {
+      "id": "trafficking_manage",
+      "label": "Manage campaigns and creatives",
+      "description": "After critical write acceptance, create or change selected campaign, placement, ad, creative, tag, Floodlight and serving configuration with explicit confirmation.",
+      "defaultSelected": false
+    },
+    {
+      "id": "offline_conversions_manage",
+      "label": "Manage offline conversions",
+      "description": "After privacy and attribution acceptance, insert, update or remove a specifically identified offline conversion with explicit identifier, value, consent and idempotency controls.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "cm360_connect_before_review",
+        "label": "Connect before OAuth and profile review",
+        "description": "Relay has no verified production OAuth client, API-enabled representative CM360 account, or accepted user-profile permission boundary."
+      },
+      {
+        "id": "cm360_reads_before_acceptance",
+        "label": "Read CM360 data",
+        "description": "Profiles, accounts, advertisers, campaigns, placements, ads, creatives, users, reports, billing, tags, Floodlight, conversions and tokens remain unavailable."
+      },
+      {
+        "id": "cm360_trafficking_mutations",
+        "label": "Change trafficking or serving",
+        "description": "Creating, patching, archiving, activating, assigning, tagging, targeting, uploading, scheduling, serving, or deleting campaigns, placements, ads and creatives is blocked."
+      },
+      {
+        "id": "cm360_conversion_and_financial_mutations",
+        "label": "Change conversions or financial state",
+        "description": "Offline conversion insertion or update, identifiers, value and currency, Floodlight changes, billing profiles, costs, invoices and attribution settings are blocked."
+      },
+      {
+        "id": "cm360_access_bulk_and_raw_bypass",
+        "label": "Bypass account or data controls",
+        "description": "Cross-profile access, raw report exports, unbounded path-to-conversion data, device or encrypted-user identifiers, arbitrary endpoints, old versions, and private-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "cm360_provider_review",
+      "label": "Provider and account review pending",
+      "description": "No CM360 action is enabled until Google and a representative account accept Relay's OAuth client, scopes and profile permissions and the complete reporting, trafficking, creative, conversion, identifier, financial, version and revocation contract passes.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "cm360_connect_before_review",
+        "cm360_reads_before_acceptance",
+        "cm360_trafficking_mutations",
+        "cm360_conversion_and_financial_mutations",
+        "cm360_access_bulk_and_raw_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded CM360 tools after OAuth and account-profile acceptance; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded CM360 tools after OAuth and account-profile acceptance; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Google requires a Campaign Manager 360 account with API access enabled, a user profile with appropriate permissions, a Cloud project with the API enabled and OAuth2 authorization by that user. CM360 exposes separate dfareporting, dfatrafficking and ddmconversions scopes, allowing reporting-first consent. API v5 spans accounts, advertisers, billing, campaigns, placements, ads, creatives, sites, tags, Floodlight, reports, attribution and conversions. Offline conversion uploads can carry click IDs, device IDs, encrypted user IDs, match IDs, values and currencies and require specific user-role permissions. This worker cannot create the OAuth client, enable account API access, capture credentials, run consent, obtain a representative user profile, or access or mutate campaigns and conversions.",
+    "nextAction": "The exclusive provider-console and acceptance task should enable CM360 API v5 in Relay's verified Google project and register https://api.relayconsole.work/api/v1/marketplace/oauth/google-campaign-manager-360/callback. Begin with a dedicated user profile limited to reporting and request dfareporting only; trafficking and conversions require separate scope upgrades and user-role permissions. Acceptance must verify profile selection and account isolation, report type, owner, schedule, delivery and export bounds, advertiser and user PII, path-to-conversion row and exposure limits, campaign political-ad declarations, placement tags, creative assets and click-throughs, serving activation, Floodlight configuration, offline-conversion consent and identifier rules, idempotent insert and update, value and currency confirmation, quota handling, version sunset, token revocation, disconnect and cross-profile denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/doubleclick-advertisers/getting_started",
+      "checkedAt": "2026-07-17",
+      "supports": "Google requires a CM360 account with API access enabled, a user profile with appropriate permissions, a Cloud project, API enablement and authorized OAuth credentials."
+    },
+    {
+      "url": "https://developers.google.com/doubleclick-advertisers/authorizing",
+      "checkedAt": "2026-07-17",
+      "supports": "Google requires OAuth2 for an authenticated CM360 user and documents separate dfareporting, dfatrafficking and ddmconversions scopes."
+    },
+    {
+      "url": "https://developers.google.com/doubleclick-advertisers/rest/",
+      "checkedAt": "2026-07-17",
+      "supports": "Campaign Manager 360 API v5 covers account, advertiser, billing, targeting, creative, campaign, conversion, reporting, attribution and dynamic-creative resources."
+    },
+    {
+      "url": "https://developers.google.com/doubleclick-advertisers/rest/v5/reports",
+      "checkedAt": "2026-07-17",
+      "supports": "CM360 reports include standard, reach, path-to-conversion, Floodlight and cross-media types with scheduling, delivery, CSV or Excel output and privacy-sensitive exposure criteria."
+    },
+    {
+      "url": "https://developers.google.com/doubleclick-advertisers/guides/conversions_overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Offline conversion operations require explicit CM360 role permissions and may use click IDs, device IDs, match IDs or encrypted user IDs tied to Floodlight activities."
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "kashflow",
+  "name": "KashFlow",
+  "category": "commerce_payments",
+  "description": "IRIS KashFlow is cloud accounting and bookkeeping software for UK small businesses, with invoicing, purchases, banking, VAT, reporting, payroll connections, inventory, projects, and administration.",
+  "agentUseSummary": "Connect one exact API-enabled KashFlow account through a dedicated least-privilege user and separate API password. Agents may use two approval-gated reads for bounded currency presentation metadata and VAT-registration status. Relay pins the supported HTTPS SOAP endpoint and two exact actions, excludes exchange rates, and blocks business identity, people, accounting records, financial data, broader product surfaces, writes, arbitrary SOAP, the provider's explicitly unstable REST v2 API, pagination, downloads, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.kashflow.com/",
+    "docsUrl": "https://www.kashflow.com/developers/soap-api/",
+    "developerConsoleUrl": "https://securedwebapp.com/",
+    "termsUrl": "https://www.iris.co.uk/terms-and-conditions/",
+    "privacyUrl": "https://www.kashflow.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_soap_credentials",
+      "dedicated_least_privilege_user",
+      "separate_api_password",
+      "account_api_enablement",
+      "optional_railway_egress_ip_allowlist",
+      "fixed_https_soap_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "KASHFLOW_USERNAME",
+        "label": "KashFlow username",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a dedicated least-privilege KashFlow user for the exact intended account."
+      },
+      {
+        "key": "KASHFLOW_API_PASSWORD",
+        "label": "KashFlow separate API password",
+        "secret": true,
+        "required": true,
+        "helpText": "Enable SOAP API access and configure a separate API password instead of the normal web-login password."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_configuration_read",
+      "label": "Read account configuration",
+      "description": "Read only bounded currency presentation metadata and VAT-registration status without exchange rates, business identity, accounting records, or writes.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "kashflow_currency_list",
+        "label": "List configured currencies",
+        "description": "List at most twenty-five bounded currency-code, name, symbol, and display-position summaries configured for the connected KashFlow account."
+      },
+      {
+        "id": "kashflow_vat_registration_get",
+        "label": "Read VAT-registration status",
+        "description": "Read only whether the connected KashFlow account is marked as VAT registered."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "kashflow_record_mutation",
+        "label": "Change KashFlow data",
+        "description": "Creating, updating, deleting, emailing, allocating, importing, or otherwise changing KashFlow records is outside V1."
+      },
+      {
+        "id": "kashflow_private_business_data",
+        "label": "Read private business data",
+        "description": "Company details, users, customers, suppliers, contacts, addresses, communications, notes, files, and custom data are outside V1."
+      },
+      {
+        "id": "kashflow_financial_and_broader_product",
+        "label": "Access financial or broader KashFlow data",
+        "description": "Accounts, balances, ledgers, journals, invoices, quotes, purchases, payments, banking, tax rates or reports, payroll, inventory, products, projects, and administration are outside V1."
+      },
+      {
+        "id": "kashflow_raw_api",
+        "label": "Call arbitrary KashFlow APIs",
+        "description": "Other origins, SOAP methods, REST v2, fields, parameters, methods, XML, WSDL operations, and raw requests are outside V1."
+      },
+      {
+        "id": "kashflow_bulk_export",
+        "label": "Export KashFlow data",
+        "description": "Pagination, polling, crawling, synchronization, attachments, PDFs, CSVs, downloads, imports, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "kashflow_safe",
+      "label": "Safe",
+      "description": "Both private account-configuration reads require approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "kashflow_currency_list",
+        "kashflow_vat_registration_get"
+      ],
+      "blockedActions": [
+        "kashflow_record_mutation",
+        "kashflow_private_business_data",
+        "kashflow_financial_and_broader_product",
+        "kashflow_raw_api",
+        "kashflow_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both selected read-only tools run without Relay per-action approval while the exact account, origin, SOAP action, method, field, limit, redaction, audit, and provider-permission boundaries remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "kashflow_currency_list",
+        "kashflow_vat_registration_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "kashflow_record_mutation",
+        "kashflow_private_business_data",
+        "kashflow_financial_and_broader_product",
+        "kashflow_raw_api",
+        "kashflow_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded approval-gated KashFlow account-configuration reads and keeps SOAP credentials on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded approval-gated KashFlow account-configuration reads and keeps SOAP credentials on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No eligible KashFlow Business account, enabled SOAP API, dedicated least-privilege user, separate API password, optional Railway egress IP allowlist, encrypted connection, or live acceptance evidence is available in this workspace.",
+    "nextAction": "In the provider-console task, select the exact eligible KashFlow account, create a dedicated least-privilege user, enable SOAP API access, configure a separate API password, restrict access to Railway egress IP addresses if a stable egress configuration is available, store both credentials through Relay, then validate the two exact SOAP actions, bounded output, Safe approvals, representative Dangerous reads, permission denial, password rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.kashflow.com/developers/soap-api/introduction/",
+      "checkedAt": "2026-07-18",
+      "supports": "KashFlow documents its supported HTTPS SOAP service endpoint, username/password account authentication, encrypted transport, and optional source-IP authorization."
+    },
+    {
+      "url": "https://www.kashflow.com/developers/enable-api/",
+      "checkedAt": "2026-07-18",
+      "supports": "KashFlow documents SOAP API enablement for eligible Business accounts and optional IP-address restrictions."
+    },
+    {
+      "url": "https://www.kashflow.com/support/kb/enabling-the-api/",
+      "checkedAt": "2026-07-18",
+      "supports": "KashFlow documents use of a separate API password so integrations do not need the normal web-login password."
+    },
+    {
+      "url": "https://www.kashflow.com/developers/soap-api/",
+      "checkedAt": "2026-07-18",
+      "supports": "KashFlow's official SOAP method catalog includes GetCurrencies and isUserVATRegistered; Relay exposes only those two bounded reads."
+    },
+    {
+      "url": "https://www.kashflow.com/developers/rest-api/api-currencies/",
+      "checkedAt": "2026-07-18",
+      "supports": "KashFlow documents currency code, name, symbol, exchange rate, and symbol placement; Relay deliberately strips exchange rates and retains only presentation metadata."
+    },
+    {
+      "url": "https://www.kashflow.com/developers/rest-api/integrations/",
+      "checkedAt": "2026-07-18",
+      "supports": "KashFlow explicitly warns that REST v2 is not ready for public use and may change; Relay excludes it entirely."
+    }
+  ]
+}

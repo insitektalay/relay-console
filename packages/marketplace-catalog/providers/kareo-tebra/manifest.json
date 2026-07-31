@@ -1,0 +1,142 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "kareo-tebra",
+  "name": "Kareo / Tebra",
+  "category": "work_management",
+  "description": "Tebra, formerly Kareo, provides electronic health record, practice-operations, billing, patient-engagement and practice-growth software for independent healthcare practices.",
+  "agentUseSummary": "Tebra publishes a SOAP API for its former Kareo practice-management platform, but Relay cannot expose a customer connection until Tebra approves an API Partner contract and a safe delegated authentication model. The current customer API requires an account-specific customer key in addition to Tebra login credentials, which Relay must not collect or store as a substitute for provider-approved delegation.",
+  "provider": {
+    "websiteUrl": "https://www.tebra.com/",
+    "docsUrl": "https://helpme.tebra.com/Tebra_PM/12_API_and_Integration/01_Get_Started_with_Tebra_API_Integration/Tebra_API_Integration_User_Guide",
+    "developerConsoleUrl": "https://partnerportal.tebra.com/",
+    "termsUrl": "https://www.tebra.com/api-terms-of-use",
+    "privacyUrl": "https://www.tebra.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "provider_partnership_required",
+      "delegated_authentication_contract_required",
+      "healthcare_security_and_distribution_review_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "kareo_tebra_read",
+      "label": "Read authorized practice and healthcare data",
+      "description": "After provider approval, read only the practice, provider, patient, appointment, encounter, claim and transaction resources explicitly authorized for Relay's integration.",
+      "defaultSelected": true
+    },
+    {
+      "id": "kareo_tebra_manage",
+      "label": "Manage authorized practice workflows",
+      "description": "After provider approval, perform only the healthcare and revenue-cycle mutations explicitly authorized for Relay under approval-aware controls.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "kareo_tebra_connect_before_approval",
+        "label": "Connect before Tebra approval",
+        "description": "Relay has no approved Tebra API Partner account, production integration identity, healthcare security review or distribution contract."
+      },
+      {
+        "id": "kareo_tebra_collect_login_credentials",
+        "label": "Collect Tebra login credentials",
+        "description": "Relay does not collect or store a practice user's Tebra username and password, even when paired with the account's non-expiring customer key."
+      },
+      {
+        "id": "kareo_tebra_treat_customer_key_as_delegation",
+        "label": "Treat a customer key as delegated authority",
+        "description": "An account-wide customer key is an additional identifier and does not establish scoped, revocable user consent or a safe multi-customer authorization lifecycle."
+      },
+      {
+        "id": "kareo_tebra_api_actions_before_review",
+        "label": "Run Kareo / Tebra API actions",
+        "description": "No patient, clinical, scheduling, billing, claim, transaction or administrative operation runs before Tebra approves the production authentication and operation contract."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "kareo_tebra_provider_review",
+      "label": "Provider review pending",
+      "description": "All actions remain unavailable until Tebra approves Relay's API Partner participation, delegated authentication lifecycle, healthcare security controls and exact production operation set.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "kareo_tebra_connect_before_approval",
+        "kareo_tebra_collect_login_credentials",
+        "kareo_tebra_treat_customer_key_as_delegation",
+        "kareo_tebra_api_actions_before_review"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No Kareo / Tebra tools are callable in OpenClaw until Tebra approves a safe multi-customer authentication and operation contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Kareo / Tebra tools are callable in Hermes until Tebra approves a safe multi-customer authentication and operation contract."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Tebra documents a SOAP API for third-party access to its former Kareo practice-management platform. Current customer instructions require an account-specific customer key, requested by a System Administrator through Customer Care, in addition to Tebra login credentials; the key is shared by all users on the account and never expires. Multi-customer commercial API use is governed by Tebra's API Integrator Partner program, Partner Account and API terms, including platform and usage fees. Relay has no approved API Partner agreement, production integration identity, BAA/security review, delegated OAuth or other scoped authorization contract, exact permitted operation inventory, customer revocation lifecycle, rate-limit allocation or representative test environment. Collecting ordinary EHR credentials and an account-wide key would create unsafe authority over protected health information and financial workflows.",
+    "nextAction": "Ask Tebra to approve Relay as an API Partner and provide a production authentication design that does not require Relay to collect ordinary practice passwords. Confirm the partner and distribution terms, BAA/security obligations, customer authorization and revocation lifecycle, exact SOAP operations and schemas, practice/user permission binding, rate limits, audit requirements and sandbox data. Then implement Railway-held integration credentials, generate the bounded operation registry from the approved current guide, expose exact client semantics, and validate reads, Safe denial, approved or Dangerous mutations, redaction, rate limits, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://helpme.tebra.com/Tebra_PM/12_API_and_Integration/01_Get_Started_with_Tebra_API_Integration/Tebra_API_Integration_User_Guide",
+      "checkedAt": "2026-07-18",
+      "supports": "Tebra's current guide identifies the former Kareo integration surface as a SOAP API for third-party applications and routes implementation support through Tebra Customer Care."
+    },
+    {
+      "url": "https://helpme.tebra.com/Tebra_PM/01_Configure_System/Customer_Key/Get_Customer_Key",
+      "checkedAt": "2026-07-18",
+      "supports": "Tebra states that the SOAP API requires a customer key in addition to Tebra login credentials; the account-wide key must be requested by a System Administrator, is shared by all account users, and never changes or expires."
+    },
+    {
+      "url": "https://www.tebra.com/tebra-partner-terms-and-conditions",
+      "checkedAt": "2026-07-18",
+      "supports": "Tebra defines API Integrator participation as a Partner program governed by Partner Account and API terms, limits API use to the partner agreement, and publishes developer-platform and usage fees."
+    },
+    {
+      "url": "https://www.tebra.com/api-terms-of-use",
+      "checkedAt": "2026-07-18",
+      "supports": "Tebra's API terms grant a limited, revocable and non-transferable integration license and prohibit exceeding documented access, technical and security boundaries."
+    },
+    {
+      "url": "https://helpme.tebra.com/User_Guides",
+      "checkedAt": "2026-07-18",
+      "supports": "Tebra's current user-guide index describes the API Technical Guide as the supported path for software applications accessing the Tebra SOAP API."
+    },
+    {
+      "url": "https://helpme.tebra.com/Tebra_Release_Notes/Tebra_Release_Notes_Archive/Release_Notes_April_2023",
+      "checkedAt": "2026-07-18",
+      "supports": "Tebra documents endpoint-specific request-frequency limits and requires API users to accept and comply with current API terms."
+    }
+  ]
+}

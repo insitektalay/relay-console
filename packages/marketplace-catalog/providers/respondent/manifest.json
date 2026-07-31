@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "respondent",
+  "name": "Respondent",
+  "category": "work_management",
+  "description": "Respondent is a participant-recruitment platform for research projects, screeners, audience targeting, scheduling, messaging, incentives, and study operations.",
+  "agentUseSummary": "Add production Partner API credentials, then let selected agents read bounded Respondent targeting taxonomies. Relay does not expose projects, participants, screener responses, messages, bookings, financial data, webhooks, or mutations.",
+  "provider": {
+    "websiteUrl": "https://www.respondent.io/",
+    "docsUrl": "https://developers.respondent.io/reference/introduction-1",
+    "developerConsoleUrl": "https://developers.respondent.io/docs/Getting-started/quickstart",
+    "termsUrl": "https://www.respondent.io/terms",
+    "privacyUrl": "https://www.respondent.io/privacy"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_partner_credentials", "production_api"],
+    "credentialRequirements": [
+      { "key": "RESPONDENT_CLIENT_ID", "label": "Respondent Client ID", "secret": true, "required": true, "helpText": "Use the production Client ID issued by Respondent's Partner team." },
+      { "key": "RESPONDENT_CLIENT_SECRET", "label": "Respondent Client Secret", "secret": true, "required": true, "helpText": "Use the matching production Client Secret issued by Respondent's Partner team." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "respondent_read", "label": "Read targeting taxonomies", "description": "Use four pinned production GETs for bounded industries, job titles, skills, and topics.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "respondent_read", "label": "Read Respondent taxonomies", "description": "Read bounded targeting taxonomies without projects, participants, responses, messages, or financial data." }],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "respondent_manage", "label": "Change Respondent", "description": "Projects, screeners, participants, responses, invitations, messages, bookings, payments, webhooks, and every mutation remain blocked." },
+      { "id": "respondent_sensitive_data", "label": "Read sensitive research data", "description": "Projects, participant profiles, screener questions and responses, conversations, messages, bookings, NDAs, balances, payouts, and webhook destinations are blocked." },
+      { "id": "respondent_arbitrary_api", "label": "Call arbitrary APIs", "description": "Staging APIs, arbitrary hosts, paths, queries, methods, request bodies, and unbounded taxonomy reads are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "respondent_safe", "label": "Safe", "description": "Four bounded targeting-taxonomy reads run directly. Projects, participant data, responses, messages, financial data, arbitrary APIs, and every mutation remain blocked.", "defaultSelected": true, "allowedActions": ["respondent_read"], "approvalRequiredActions": [], "blockedActions": ["respondent_manage", "respondent_sensitive_data", "respondent_arbitrary_api"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts one read tool with four pinned production taxonomy operations through encrypted Partner credentials." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts one read tool with four pinned production taxonomy operations through encrypted Partner credentials." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No executed Partner agreement, production organization and team, production Client ID and Client Secret, or safe fixture is available in this workspace.",
+    "nextAction": "An authorized customer completes Respondent's Partner onboarding and production review, stores the issued production credentials through Relay Console, then verifies authentication, the four bounded taxonomy reads, assignment, credential replacement, disconnect, provider-side rotation, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developers.respondent.io/reference/introduction-1", "checkedAt": "2026-07-17", "supports": "Respondent documents production and staging API hosts, Client ID and Client Secret authentication headers, rate limits, and its recruitment-focused Partner API." },
+    { "url": "https://developers.respondent.io/docs/Getting-started/quickstart", "checkedAt": "2026-07-17", "supports": "Respondent requires Partner-team onboarding, staging credentials and review, a finalized agreement, and separately issued production credentials." },
+    { "url": "https://developers.respondent.io/api-reference/openapi.json", "checkedAt": "2026-07-17", "supports": "The official OpenAPI schema documents paginated GET routes for industries, job titles, skills, and topics plus the much broader project, participant, message, payment, and webhook surface Relay excludes." },
+    { "url": "https://developers.respondent.io/docs/Getting-started/requirements-for-production-credentials", "checkedAt": "2026-07-17", "supports": "Production access requires reviewed project, screener, participant-state, messaging, auto-pay, organization, team, and contractual setup, supporting awaiting-provider-setup status." }
+  ]
+}

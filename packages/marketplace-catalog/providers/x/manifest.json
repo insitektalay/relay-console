@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "x",
+  "name": "X",
+  "category": "content_creative",
+  "description": "X is a public conversation platform where people and organizations publish Posts. Relay connects one account through Relay-owned OAuth 2.0 PKCE, lists at most ten recent original Posts, drafts locally, and publishes one approved plain-text Post with AI disclosure.",
+  "agentUseSummary": "Connect one X account with exact tweet.read, users.read, tweet.write, and offline.access scopes. Agents can read bounded account identity, list one page of up to ten own original Posts, draft locally, and publish one approved plain-text non-URL Post with made_with_ai=true; broader reads, engagement, private actions, media, destructive actions, bulk automation, pagination, retries, and raw access are blocked.",
+  "provider": {
+    "websiteUrl": "https://x.com/",
+    "docsUrl": "https://docs.x.com/x-api",
+    "developerConsoleUrl": "https://console.x.com/",
+    "termsUrl": "https://developer.x.com/en/developer-terms/agreement-and-policy",
+    "privacyUrl": "https://x.com/en/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["tweet.read", "users.read", "tweet.write", "offline.access"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://x.com/i/oauth2/authorize",
+    "tokenUrl": "https://api.x.com/2/oauth2/token",
+    "revocationUrl": "https://api.x.com/2/oauth2/revoke"
+  },
+  "connection": {
+    "types": ["oauth2_pkce", "relay_owned_global_oauth", "connected_account"],
+    "credentialRequirements": ["Relay-owned X OAuth client ID configured only on Railway", "Relay-owned X OAuth client secret retained only by Railway"],
+    "callbackPath": "/api/v1/marketplace/oauth/x/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "read_connected_account", "label": "Read connected account", "description": "Read the OAuth-bound account's id, name, and username.", "readOnly": true },
+    { "id": "read_own_posts", "label": "Read own original Posts", "description": "List one page of at most ten recent original Posts from the connected account.", "readOnly": true },
+    { "id": "draft_posts", "label": "Draft Posts locally", "description": "Prepare a bounded plain-text draft without calling X.", "readOnly": true },
+    { "id": "publish_posts", "label": "Publish plain-text Posts", "description": "Publish one approved original plain-text Post with AI disclosure.", "readOnly": false }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "x_account_get", "label": "Get connected X account", "description": "Read the connected account's bounded identity through /2/users/me." },
+      { "id": "x_own_posts_list", "label": "List own original Posts", "description": "List at most ten original Posts for the bound account, excluding replies and reposts." },
+      { "id": "x_post_draft", "label": "Draft X text Post", "description": "Create a local non-URL plain-text draft of at most 280 characters without a provider call." }
+    ],
+    "approvalRequired": [
+      { "id": "x_text_post_create", "label": "Publish X text Post", "description": "Publish one original non-URL plain-text Post with made_with_ai=true after approval." }
+    ],
+    "blocked": [
+      { "id": "x_reply_engagement", "label": "Reply or engage", "description": "Replies, quotes, reposts, likes, and other engagement are blocked." },
+      { "id": "x_arbitrary_reads", "label": "Read arbitrary X activity", "description": "Search, mentions, home or foreign timelines, lookups, analytics, and streams are blocked." },
+      { "id": "x_media_private_admin", "label": "Use media, private, or admin actions", "description": "Media, URLs, polls, DMs, follows, lists, communities, moderation, edit, delete, and account administration are blocked." },
+      { "id": "x_bulk_schedule_raw", "label": "Use broad automation or raw access", "description": "Bulk or scheduled publishing, polling, hidden pagination, automatic ambiguous-write retries, browser automation, and raw API/MCP access are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "x_approval_required", "label": "Approval Required", "description": "Bounded reads and local drafting run automatically; every provider-side publish requires approval.", "defaultSelected": true, "allowedActions": ["x_account_get", "x_own_posts_list", "x_post_draft"], "approvalRequiredActions": ["x_text_post_create"], "blockedActions": ["x_reply_engagement", "x_arbitrary_reads", "x_media_private_admin", "x_bulk_schedule_raw"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The same four actions run without per-action approval; exact scopes, connected-account binding, plain-text/no-URL validation, AI disclosure, audit, and one-request controls still apply.", "defaultSelected": false, "allowedActions": ["x_account_get", "x_own_posts_list", "x_post_draft"], "approvalRequiredActions": ["x_text_post_create"], "blockedActions": ["x_reply_engagement", "x_arbitrary_reads", "x_media_private_admin", "x_bulk_schedule_raw"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "native_wrapper_tools", "description": "Mounts exactly four bounded connected-account, own-Posts, local-draft, and text-publish wrappers." },
+    { "format": "hermes", "installSupport": "native_wrapper_tools", "description": "Mounts exactly four bounded connected-account, own-Posts, local-draft, and text-publish wrappers." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A reviewed production Relay-owned X app, exact Railway callback, funded API credits with a spending limit, Railway environment configuration, and staging acceptance remain pending outside this worker lane.",
+    "nextAction": "Configure the Relay-owned X app and funded credit controls, then validate OAuth, refresh rotation, bound reads, one approved write, ambiguous failures, revocation, and automation-policy compliance through Railway staging.",
+    "requiredProviderArtifacts": ["production X client ID", "production X client secret", "exact Railway callback allowlist", "exact four OAuth scopes", "funded X API credits", "spending limit", "one staging X account"]
+  },
+  "evidence": [
+    { "url": "https://docs.x.com/fundamentals/authentication/oauth-2-0/authorization-code", "checkedAt": "2026-07-17", "supports": "X documents OAuth 2.0 authorization code with PKCE, granular scopes, exact callback matching, and refresh tokens when offline.access is requested." },
+    { "url": "https://docs.x.com/x-api/users/get-posts", "checkedAt": "2026-07-17", "supports": "X documents the bound-user /2/users/{id}/tweets endpoint used for one-page own-Post reads." },
+    { "url": "https://docs.x.com/x-api/posts/create-post", "checkedAt": "2026-07-17", "supports": "X documents POST /2/tweets and the made_with_ai request field." },
+    { "url": "https://docs.x.com/x-api/getting-started/pricing", "checkedAt": "2026-07-17", "supports": "X documents credit-based pay-per-use API billing, per-resource/request charges, and spending limits." }
+  ]
+}

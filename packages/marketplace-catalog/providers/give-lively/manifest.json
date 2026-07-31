@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "give-lively",
+  "name": "Give Lively",
+  "category": "commerce_payments",
+  "description": "Give Lively is a free digital-fundraising platform for eligible nonprofits. Organizations use it to launch campaign pages, donation widgets, text-to-donate and event fundraising, accept one-time and recurring gifts, and access real-time donor data and reports.",
+  "agentUseSummary": "Add the nonprofit's Give Lively Organization ID and Zapier API key, choose which agents may use the connection, and read donation updates from the complete two-endpoint JSON integration. Relay constructs the provider-documented secret-bearing paths only on Railway and never exposes them to agents or audit metadata.",
+  "provider": {
+    "websiteUrl": "https://www.givelively.org/",
+    "docsUrl": "https://www.givelively.org/resources/get-started-with-give-livelys-zapier-integration",
+    "developerConsoleUrl": "https://secure.givelively.org/users/sign_in",
+    "termsUrl": "https://www.givelively.org/terms-of-use",
+    "privacyUrl": "https://www.givelively.org/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_zapier_api_key",
+      "organization_id",
+      "provider_documented_secret_path",
+      "read_only_donation_json_feed",
+      "fixed_secure_givelively_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "GIVE_LIVELY_ORGANIZATION_ID",
+        "label": "Give Lively Organization ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Copy the nonprofit Organization ID from Give Lively's Zapier settings. Relay stores it with the API key and uses it only on the fixed secure.givelively.org JSON routes."
+      },
+      {
+        "key": "GIVE_LIVELY_API_KEY",
+        "label": "Give Lively Zapier API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Generate the API key in Give Lively's Nonprofit Admin Portal under Zapier settings. Relay encrypts it and constructs the provider-documented secret-bearing path only on Railway."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "give_lively_read",
+      "label": "Read donation updates",
+      "description": "Validate one nonprofit's Give Lively integration credentials and read its official donation JSON feed.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "give_lively_read",
+        "label": "Read Give Lively donations",
+        "description": "Validate the connected nonprofit credentials and read the official donation JSON feed with an optional created-or-updated-since timestamp."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "give_lively_safe",
+      "label": "Safe",
+      "description": "Credential validation and bounded donation-feed reads run directly; Give Lively documents no mutation endpoint for this integration.",
+      "defaultSelected": true,
+      "allowedActions": ["give_lively_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same complete read-only integration surface runs without Relay per-action approval; connection ownership, fixed routes, response bounds, audits and secret isolation still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["give_lively_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts Give Lively's complete two-endpoint read-only JSON integration while keeping both path credentials encrypted on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts Give Lively's complete two-endpoint read-only JSON integration while keeping both path credentials encrypted on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Give Lively membership is limited to approved eligible nonprofits, and this code-only worker has no member account, Organization ID, Zapier API key or representative donation data.",
+    "nextAction": "An authorized Give Lively nonprofit administrator enables the Zapier integration, generates a dedicated API key, stores it and the Organization ID through Relay Console, then verifies validation, a bounded recent donation read, key replacement, key deletion, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://www.givelively.org/resources/get-started-with-give-livelys-zapier-integration",
+      "checkedAt": "2026-07-17",
+      "supports": "Give Lively documents a customer-generated Zapier API key and Organization ID plus exactly two secure.givelively.org JSON endpoints: credential validation and a reverse-chronological donation feed with optional start_time_ms filtering."
+    },
+    {
+      "url": "https://www.givelively.org/",
+      "checkedAt": "2026-07-17",
+      "supports": "Give Lively presents its free nonprofit platform as campaign, widget, text-to-donate, event, donation, donor-data and reporting technology for approved organizations."
+    },
+    {
+      "url": "https://www.givelively.org/faqs/what-third-party-services-does-give-lively-integrate-with",
+      "checkedAt": "2026-07-17",
+      "supports": "Give Lively identifies Salesforce, Zapier, PayPal and Double the Donation as its direct third-party integrations and otherwise directs members to CSV export, so Relay does not invent a broader public API or mutation surface."
+    }
+  ]
+}

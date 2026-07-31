@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "groove",
+  "name": "Groove",
+  "category": "crm_support",
+  "description": "Groove is a shared-inbox and customer-support platform for managing email conversations, assignments, knowledge, reporting, and service workflows. Support teams use it to collaborate on customer requests and keep service work organized in one place.",
+  "agentUseSummary": "Enter your Groove API token once, then let agents inspect the connected account, read channels, or use the complete token-authorized GraphQL API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.groovehq.com/",
+    "docsUrl": "https://developer.groovehq.com/graphql/overview/start/",
+    "developerConsoleUrl": "https://app.groovehq.com/",
+    "termsUrl": "https://www.groovehq.com/terms",
+    "privacyUrl": "https://www.groovehq.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_token", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "GROOVE_API_TOKEN",
+        "label": "Groove API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy an API token from Groove Settings > Organization > API. Its access follows the connected Groove account."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_read",
+      "label": "Read account details",
+      "description": "Verify and read the exact Groove account bound to this connection.",
+      "defaultSelected": true
+    },
+    {
+      "id": "channel_read",
+      "label": "Read support channels",
+      "description": "List a bounded page of channels from the connected Groove account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Groove API",
+      "description": "Use the complete current Groove GraphQL API surface authorized by the connected token.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "groove_account_get",
+        "label": "Read account",
+        "description": "Read the identity and state of the connected Groove account."
+      },
+      {
+        "id": "groove_channel_list",
+        "label": "List channels",
+        "description": "List one bounded page of support channels from the connected Groove account."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "groove_full_api",
+        "label": "Use full Groove API",
+        "description": "Run a documented Groove GraphQL query or mutation authorized by the connected token; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "groove_safe",
+      "label": "Safe",
+      "description": "Account and bounded channel reads run directly; every other Groove GraphQL operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["groove_account_get", "groove_channel_list"],
+      "approvalRequiredActions": ["groove_full_api"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected token-authorized Groove operation runs without Relay per-action approval; exact account binding, secret isolation, request bounds, audits, provider authority, and Groove limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "groove_account_get",
+        "groove_channel_list",
+        "groove_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "The backend mounts typed wrappers and attaches the encrypted customer token only to the exact Groove account."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "The backend mounts typed wrappers and attaches the encrypted customer token only to the exact Groove account."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer-owned Groove API token is required for live acceptance.",
+    "nextAction": "A customer enters an API token, then Relay verifies the exact account, bounded reads, Safe approval, Dangerous mutation, token reset, and disconnect behavior."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.groovehq.com/graphql/overview/start/",
+      "checkedAt": "2026-07-17",
+      "supports": "Groove documents the current GraphQL v2 endpoint, bearer authentication, and customer-generated API tokens from Settings > Organization > API."
+    },
+    {
+      "url": "https://developer.groovehq.com/graphql/references/queries",
+      "checkedAt": "2026-07-17",
+      "supports": "Groove documents account, channels, and the broader query surface exposed by the current GraphQL schema."
+    },
+    {
+      "url": "https://developer.groovehq.com/graphql/references/mutations",
+      "checkedAt": "2026-07-17",
+      "supports": "Groove documents the current GraphQL mutation surface authorized by the connected account token."
+    },
+    {
+      "url": "https://doc.groovehq.com/oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Groove's legacy REST v1 OAuth page does not define a complete current refresh, revocation, and account-binding lifecycle, so Relay does not present it as a shared OAuth connection."
+    }
+  ]
+}

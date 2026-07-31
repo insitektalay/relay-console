@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "guru",
+  "name": "Guru",
+  "category": "knowledge_documents",
+  "description": "Trusted Cards, Collections, Knowledge Agents, connected sources, verification workflows, and organization knowledge through Guru OAuth.",
+  "agentUseSummary": "Connect once through Relay-owned Guru OAuth, then let agents search trusted knowledge, ask verified questions, create drafts, suggest updates, and use the complete delegated API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.getguru.com/",
+    "docsUrl": "https://developer.getguru.com/docs/getting-started",
+    "developerConsoleUrl": "https://app.getguru.com/",
+    "termsUrl": "https://www.getguru.com/terms-of-service",
+    "privacyUrl": "https://www.getguru.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["default"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.getguru.com/oauth/authorize",
+    "tokenUrl": "https://api.getguru.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/guru/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "knowledge_read", "label": "Read trusted knowledge", "description": "Read teams, search Cards and connected sources, list Knowledge Agents, and ask verified questions.", "defaultSelected": true },
+    { "id": "knowledge_write", "label": "Create and update knowledge", "description": "Create Card drafts, suggest Card updates, upload supported content, and use the complete delegated Guru API v1 surface.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "guru_list_teams", "label": "List teams", "description": "Verify the connected Guru organization." },
+      { "id": "guru_search_cards", "label": "Search cards", "description": "Search a bounded page of permitted Guru Cards." },
+      { "id": "guru_list_agents", "label": "List Knowledge Agents", "description": "List permitted Guru Knowledge Agents through Guru MCP." },
+      { "id": "guru_ask", "label": "Ask Knowledge Agent", "description": "Ask a bounded question and receive Guru's verified, cited answer." },
+      { "id": "guru_mcp_search", "label": "Search connected knowledge", "description": "Search permitted Guru Cards and connected sources through Guru MCP." }
+    ],
+    "approvalRequired": [
+      { "id": "guru_create_draft", "label": "Create card draft", "description": "Create a Guru Card draft; Safe mode requires approval." },
+      { "id": "guru_update_card", "label": "Suggest card update", "description": "Suggest an update to an existing Guru Card; Safe mode requires approval." },
+      { "id": "guru_upload_file", "label": "Upload file", "description": "Upload one bounded file to a documented Guru API endpoint; Safe mode requires approval." },
+      { "id": "guru_full_api", "label": "Use full Guru API", "description": "Use any documented Guru REST API v1 operation; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "guru_safe", "label": "Safe", "description": "Bounded organization, search, and verified-answer reads run directly; creation, updates, uploads, and every other API operation require approval.", "defaultSelected": true, "allowedActions": ["guru_list_teams", "guru_search_cards", "guru_list_agents", "guru_ask", "guru_mcp_search"], "approvalRequiredActions": ["guru_create_draft", "guru_update_card", "guru_upload_file", "guru_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected OAuth-authorized Guru operation runs without Relay per-action approval; ownership, account binding, fixed origins, bounds, audits, schema validation, and provider permissions still apply.", "defaultSelected": false, "allowedActions": ["guru_list_teams", "guru_search_cards", "guru_list_agents", "guru_ask", "guru_mcp_search", "guru_create_draft", "guru_update_card", "guru_upload_file", "guru_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts typed REST and MCP wrappers and proxies OAuth server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts typed REST and MCP wrappers and proxies OAuth server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Guru Support must enable and approve the Relay Console OAuth client; Relay must then register the exact Railway callback and configure the issued client ID and secret.",
+    "nextAction": "Ask Guru Support to enable Relay Console OAuth, register https://api.relayconsole.work/api/v1/marketplace/oauth/guru/callback with default read/write scope, configure GURU_CLIENT_ID and GURU_CLIENT_SECRET on Railway, then run OAuth, team and MCP health, a bounded search, and an approved or Dangerous-mode mutation."
+  },
+  "evidence": [
+    { "url": "https://developer.getguru.com/docs/oauth2-clients", "checkedAt": "2026-07-13", "supports": "Guru documents confidential OAuth authorization-code clients, default read/write scope, exact redirect URIs, one-hour access tokens, refresh tokens, authorization and token endpoints, and Support enablement." },
+    { "url": "https://developer.getguru.com/docs/getting-started", "checkedAt": "2026-07-13", "supports": "Guru's official REST API uses the fixed https://api.getguru.com/api/v1/ origin and exposes organization knowledge management." },
+    { "url": "https://developer.getguru.com/docs/paging", "checkedAt": "2026-07-13", "supports": "Guru array endpoints use Link-header next-page tokens and Card search pages are bounded to 50 results." },
+    { "url": "https://developer.getguru.com/docs/available-capabilities", "checkedAt": "2026-07-13", "supports": "Guru's official MCP exposes list Knowledge Agents, ask, search, create draft, and update Card capabilities." },
+    { "url": "https://developer.getguru.com/docs/authentication-connection-setup", "checkedAt": "2026-07-13", "supports": "Guru recommends OAuth for user-facing AI integrations and enforces existing RBAC and Agent Center logging." },
+    { "url": "https://developer.getguru.com/docs/connections", "checkedAt": "2026-07-13", "supports": "Guru's fixed Streamable HTTP MCP endpoint is https://mcp.api.getguru.com/mcp and supports OAuth custom clients." }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "nozbe",
+  "name": "Nozbe",
+  "category": "work_management",
+  "description": "Nozbe is a task and project-management platform built around team communication through shared work. Teams use it to organize projects, assign tasks, discuss work in comments, set reminders and recurring tasks, group projects, manage access, and coordinate across multiple workspaces.",
+  "agentUseSummary": "Add a dedicated Nozbe API token once, then select which agents can read or manage the work available to that token under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://nozbe.com/",
+    "docsUrl": "https://nozbe.help/advancedfeatures/api/",
+    "developerConsoleUrl": "https://nozbe.app/",
+    "termsUrl": "https://nozbe.com/terms/",
+    "privacyUrl": "https://nozbe.com/terms/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "NOZBE_API_TOKEN",
+        "label": "Nozbe API token",
+        "required": true,
+        "secret": true,
+        "helpText": "In Nozbe, open Settings > API tokens and create a dedicated space token, or a global token only when all spaces are required."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "work_read",
+      "label": "Read Nozbe work",
+      "description": "Read authorized teams, projects, tasks, task events, comments, reminders, recurrences, project access, sections, tags, groups, assignments, members, users, businesses, and attachments.",
+      "defaultSelected": true
+    },
+    {
+      "id": "work_manage",
+      "label": "Manage Nozbe work",
+      "description": "Create, update, upload, organize, assign, and delete authorized work through Nozbe's documented API.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "nozbe_api_read",
+        "label": "Read Nozbe",
+        "description": "Run one bounded GET request against Nozbe's documented API."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "nozbe_api_manage",
+        "label": "Manage Nozbe",
+        "description": "Run one bounded POST, PUT, or DELETE request; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "nozbe_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The API token never enters agent-visible requests, URLs, or results."
+      },
+      {
+        "id": "nozbe_unofficial_origin",
+        "label": "Use another origin",
+        "description": "Every request is pinned to Nozbe's official HTTPS API origin."
+      },
+      {
+        "id": "nozbe_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds paths, query values, bodies, uploads, redirects, results, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "nozbe_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly. Every write, upload, deletion, membership, assignment, or administrative operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["nozbe_api_read"],
+      "approvalRequiredActions": ["nozbe_api_manage"],
+      "blockedActions": [
+        "nozbe_secret_exposure",
+        "nozbe_unofficial_origin",
+        "nozbe_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected token-authorized Nozbe operation runs without Relay per-action approval. Connection ownership, provider authority, fixed origin, request bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["nozbe_api_read", "nozbe_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "nozbe_secret_exposure",
+        "nozbe_unofficial_origin",
+        "nozbe_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded read and manage tools and attaches the encrypted API token only at Nozbe's fixed API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded read and manage tools and attaches the encrypted API token only at Nozbe's fixed API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A Nozbe customer must generate a dedicated API token. Nozbe's current public REST API documents customer-created tokens rather than a distributable Relay-owned OAuth application.",
+    "nextAction": "Generate a dedicated token in Nozbe Settings > API tokens, connect it in Relay Console, then run credential health, read, Safe manage approval, Dangerous manage and upload, disconnect, and post-disconnect denial checks against representative Nozbe data."
+  },
+  "evidence": [
+    {
+      "url": "https://nozbe.help/advancedfeatures/api/",
+      "checkedAt": "2026-07-15",
+      "supports": "Nozbe documents customer-generated space or global API tokens and the Authorization header format `apikey <API_token>`."
+    },
+    {
+      "url": "https://api4.nozbe.com/v1/api/openapi.yaml",
+      "checkedAt": "2026-07-15",
+      "supports": "Nozbe's current OpenAPI document pins the API to api4.nozbe.com/v1/api and describes teams, projects, tasks, events, comments, attachments, reminders, recurrences, access, sections, tags, groups, members, users, businesses, and CSV import."
+    },
+    {
+      "url": "https://nozbe.com/integrations/",
+      "checkedAt": "2026-07-15",
+      "supports": "Nozbe's integration page directs customers to create tokens for custom integrations and states that integrations are available across Free, Trial, Premium, and Business plans."
+    }
+  ]
+}

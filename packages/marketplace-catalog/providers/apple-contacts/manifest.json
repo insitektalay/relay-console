@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "apple-contacts",
+  "name": "Apple Contacts",
+  "category": "communication",
+  "description": "Apple Contacts is Apple's local and iCloud-backed address book for people, organizations, phone numbers, email addresses, postal addresses, groups, relationships, social profiles, and contact notes.",
+  "agentUseSummary": "Apple Contacts cannot yet be connected through Relay. Apple documents native Contacts-framework access with per-device permission and separately supports account authorization or an app-specific password for compatible third-party iCloud Contacts clients, but it publishes no Relay-ready server API, Contacts OAuth scope, enrollment path, or frozen CardDAV lifecycle contract; the product must choose and validate an authority architecture first.",
+  "provider": {
+    "websiteUrl": "https://www.icloud.com/contacts/",
+    "docsUrl": "https://developer.apple.com/documentation/contacts/accessing-the-contact-store",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.apple.com/legal/internet-services/icloud/",
+    "privacyUrl": "https://www.apple.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "native_contacts_framework_candidate",
+      "per_device_user_permission",
+      "limited_contact_selection_supported",
+      "supported_third_party_account_authorization_candidate",
+      "app_specific_password_fallback_rejected",
+      "no_published_contacts_server_api",
+      "architecture_decision_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "apple_contacts_connection",
+        "label": "Connect Apple Contacts",
+        "description": "Connect remains unavailable until Relay selects and accepts a supported native or delegated server authority model."
+      },
+      {
+        "id": "apple_contacts_credentials",
+        "label": "Collect Apple credentials",
+        "description": "Apple Account passwords, app-specific passwords, verification codes, cookies, session tokens, and private framework material are never collected."
+      },
+      {
+        "id": "apple_contacts_reads",
+        "label": "Read contacts",
+        "description": "People, organizations, names, phone numbers, email and postal addresses, birthdays, relationships, social profiles, groups, containers, and notes remain unavailable."
+      },
+      {
+        "id": "apple_contacts_mutations_raw",
+        "label": "Change contacts or use raw interfaces",
+        "description": "Creating, updating, deleting, grouping, or merging contacts, private CardDAV discovery, scraping, device automation, arbitrary endpoints, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "apple_contacts_unavailable",
+      "label": "Unavailable",
+      "description": "No Apple Contacts action is enabled before a supported authority architecture and representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "apple_contacts_connection",
+        "apple_contacts_credentials",
+        "apple_contacts_reads",
+        "apple_contacts_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Apple Contacts wrapper is mounted before the local-versus-server authority architecture is frozen."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Apple Contacts wrapper is mounted before the local-versus-server authority architecture is frozen."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Apple's Contacts framework runs inside an Apple-platform app, requests explicit user permission, can expose a user-selected limited contact subset, and needs an additional entitlement for notes. Apple's current support guidance also permits compatible third-party apps to authorize iCloud Contacts access, or fall back to a broad app-specific password, but public developer documentation does not identify Contacts scopes, REST or CardDAV endpoints, client registration, token lifecycle, quotas, or server semantics for that supported-app flow.",
+    "nextAction": "The product and security owners should select either a Mac-local Contacts-framework connector using limited-contact selection where possible or a provider-approved server authorization contract. The exclusive acceptance task must then obtain Apple entitlement or enrollment evidence, run consent on a representative account, verify exact contact authority, revocation, schema redaction, notes exclusion, quotas, change history, offline behavior, and disconnect denial, and return the frozen contract before implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.apple.com/documentation/contacts/accessing-the-contact-store",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple documents native Contacts-store access with explicit user authorization and a separate entitlement for reading or writing contact notes."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/contacts/cncontactstore",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple's local CNContactStore can fetch and save contacts, groups, and containers, enumerate all contacts, observe changes, and execute save requests, establishing sensitive local read/write authority."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/contacts/cnauthorizationstatus/authorized",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple supports limiting an app to a subset of contacts selected by the user, a least-authority option that must be considered for a local connector."
+    },
+    {
+      "url": "https://support.apple.com/en-us/121539",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple states compatible third-party apps can request Apple Account authorization for iCloud Contacts and users can revoke the app under Account Data Sharing, without publishing a Contacts developer endpoint contract on that page."
+    },
+    {
+      "url": "https://support.apple.com/en-us/102654",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple documents broad app-specific passwords as a fallback for iCloud Mail, Calendar, and Contacts; they require two-factor authentication and support revocation but are not contact-scoped."
+    }
+  ]
+}

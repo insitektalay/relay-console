@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "productplan",
+  "name": "ProductPlan",
+  "category": "project_management",
+  "description": "ProductPlan is a product intelligence and strategic roadmapping platform for planning, prioritizing and communicating what teams will build and why. Product organizations use shared roadmaps, bars and portfolio views to keep product, engineering, leadership and go-to-market stakeholders aligned around one current plan.",
+  "agentUseSummary": "Connect a dedicated least-authority ProductPlan user's 64-character personal API token. Selected agents can list and inspect bounded roadmaps and bars, create parked bars, update bounded bar metadata and collision-safely delete one exact bar under Safe or Dangerously skip permissions; broader modules, structural changes, arbitrary queries and raw calls remain unavailable.",
+  "icon": { "assetName": "marketplace-logo-productplan.png", "sourceUrl": "https://www.productplan.com/favicon.ico" },
+  "provider": {
+    "websiteUrl": "https://www.productplan.com/",
+    "docsUrl": "https://productplan.readme.io/reference/overview",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.productplan.com/terms-of-service",
+    "privacyUrl": "https://www.productplan.com/privacy-policy"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_personal_api_token", "fixed_productplan_api_v2_origin", "request_local_bearer_token"],
+    "credentialRequirements": [
+      { "name": "PRODUCTPLAN_API_TOKEN", "label": "ProductPlan API token", "required": true, "secret": true, "helpText": "A dedicated ProductPlan personal API token created by the intended least-authority user in Custom Integration settings." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "roadmap_read", "label": "Read roadmaps", "description": "List bounded roadmaps and inspect one exact roadmap.", "defaultSelected": true },
+    { "id": "bar_read", "label": "Read roadmap bars", "description": "List bounded bars in one roadmap and inspect one exact bar.", "defaultSelected": true },
+    { "id": "bar_write", "label": "Manage roadmap bars", "description": "Create parked bars, update bounded bar metadata and collision-safely delete one exact bar.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "productplan_roadmaps_list", "label": "List roadmaps", "description": "List at most twenty bounded roadmap summaries visible to the token user." },
+      { "id": "productplan_roadmap_get", "label": "Read roadmap", "description": "Read bounded metadata for one exact numeric roadmap ID." },
+      { "id": "productplan_bars_list", "label": "List roadmap bars", "description": "List at most twenty bounded bars from one exact roadmap." },
+      { "id": "productplan_bar_get", "label": "Read bar", "description": "Read bounded metadata for one exact numeric bar ID." },
+      { "id": "productplan_bar_create", "label": "Create parked bar", "description": "Create one parked roadmap bar with bounded text and progress fields." },
+      { "id": "productplan_bar_update", "label": "Update bar metadata", "description": "Update bounded title, description or progress on one exact bar." },
+      { "id": "productplan_bar_delete", "label": "Delete bar", "description": "Permanently delete one exact bar only after its current name matches the supplied confirmation." }
+    ],
+    "blocked": [
+      { "id": "productplan_roadmap_structure", "label": "Change roadmap structure", "description": "Lanes, milestones, legends, placement, containers, child bars and roadmap structure are unavailable." },
+      { "id": "productplan_bar_relationships", "label": "Change bar relationships", "description": "Connections, links, comments, custom fields and arbitrary tags are unavailable." },
+      { "id": "productplan_strategy_discovery_launch", "label": "Use broader ProductPlan modules", "description": "Objectives, key results, initiatives, ideas, customers, launches, checklist sections and tasks are outside this bounded roadmap connection." },
+      { "id": "productplan_users_teams_webhooks", "label": "Manage users, teams or webhooks", "description": "Account users, teams, authorization, webhook registration and administrative APIs are unavailable." },
+      { "id": "productplan_raw_api", "label": "Run arbitrary ProductPlan calls", "description": "Agents cannot choose API origins, paths, query predicates, request bodies or raw API operations." },
+      { "id": "productplan_unbounded", "label": "Export ProductPlan data", "description": "Twenty-row lists, one exact resource and 256 KiB responses are the maximum supported surface." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "productplan_safe", "label": "Safe", "description": "Private roadmap reads and every mutation require approval. Fixed origin, token authority, bounds, name-confirmed deletion and audits always apply.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["productplan_roadmaps_list", "productplan_roadmap_get", "productplan_bars_list", "productplan_bar_get", "productplan_bar_create", "productplan_bar_update", "productplan_bar_delete"], "blockedActions": ["productplan_roadmap_structure", "productplan_bar_relationships", "productplan_strategy_discovery_launch", "productplan_users_teams_webhooks", "productplan_raw_api", "productplan_unbounded"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All seven selected ProductPlan actions run without Relay per-action approval; fixed origin, token authority, parked-only creation, deletion confirmation, bounds, redaction and audits still apply.", "defaultSelected": false, "allowedActions": ["productplan_roadmaps_list", "productplan_roadmap_get", "productplan_bars_list", "productplan_bar_get", "productplan_bar_create", "productplan_bar_update", "productplan_bar_delete"], "approvalRequiredActions": [], "blockedActions": ["productplan_roadmap_structure", "productplan_bar_relationships", "productplan_strategy_discovery_launch", "productplan_users_teams_webhooks", "productplan_raw_api", "productplan_unbounded"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway executes seven fixed ProductPlan API V2 roadmap/bar actions at the documented origin with parked-only creation, deletion confirmation, bounds and redaction." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway executes seven fixed ProductPlan API V2 roadmap/bar actions at the documented origin with parked-only creation, deletion confirmation, bounds and redaction." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "blocked", "blocker": "The intended ProductPlan user must have an eligible subscription, appropriate roadmap permissions and create a personal API token in Custom Integration settings through the separate provider-console acceptance task.", "nextAction": "In the provider-console acceptance task, use a synthetic staging workspace, create a dedicated least-authority ProductPlan user and API token, enter it in Relay, verify the seven bounded tools, then rotate or revoke the token." },
+  "evidence": [
+    { "url": "https://support.productplan.com/do-you-have-an-api", "checkedAt": "2026-07-18", "supports": "ProductPlan confirms that its API is available as part of a customer subscription and can access and modify roadmap data." },
+    { "url": "https://productplan.readme.io/reference/authentication", "checkedAt": "2026-07-18", "supports": "The official API V2 reference requires a personal API token mapped to one ProductPlan user, generated in Custom Integration settings and sent as a Bearer credential." },
+    { "url": "https://productplan.readme.io/reference/overview", "checkedAt": "2026-07-18", "supports": "ProductPlan documents API V2 roadmap, bar, strategy, discovery and launch capabilities and identifies the fixed REST resource surface." },
+    { "url": "https://www.productplan.com/solutions/product-roadmaps", "checkedAt": "2026-07-18", "supports": "ProductPlan describes its shared strategic roadmaps, multiple views, portfolio planning and stakeholder-alignment product." }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "local-wordpress-org",
+  "name": "Local WordPress.org",
+  "category": "content_creative",
+  "description": "WordPress.org is the open-source publishing platform that site owners install on infrastructure they control. Local WordPress installations support posts, pages, drafts, themes, plugins, media, users, configuration, and extensibility without requiring a WordPress.com account.",
+  "agentUseSummary": "Bind one exact WordPress installation path on one trusted source host, then let selected agents read bounded site and post metadata or create one draft through the official WP-CLI under Safe or Dangerously skip permissions. Railway remains Relay's backend source of truth while WordPress content executes only on the bound source host.",
+  "icon": {
+    "assetName": "marketplace-logo-local-wordpress-org.png",
+    "sourceUrl": "https://s.w.org/style/images/about/WordPress-logotype-wmark.png"
+  },
+  "provider": {
+    "websiteUrl": "https://wordpress.org/",
+    "docsUrl": "https://developer.wordpress.org/cli/commands/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://wordpress.org/about/license/",
+    "privacyUrl": "https://wordpress.org/about/privacy/"
+  },
+  "authentication": {
+    "model": "none",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["official_wp_cli", "device_local_source_host", "exact_wordpress_installation_path", "no_remote_api_or_tunnel"],
+    "credentialRequirements": [
+      {
+        "name": "LOCAL_WORDPRESS_ORG_SOURCE_HOST_ID",
+        "label": "Source host",
+        "required": true,
+        "secret": false,
+        "helpText": "A connected Hermes or OpenClaw source host with WP-CLI and the intended local WordPress.org installation."
+      },
+      {
+        "name": "LOCAL_WORDPRESS_ORG_SOURCE_HOST_TYPE",
+        "label": "Source host type",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact hermes_bridge, openclaw_bridge, or runtime_host authority."
+      },
+      {
+        "name": "LOCAL_WORDPRESS_ORG_SITE_PATH",
+        "label": "WordPress installation path",
+        "required": true,
+        "secret": true,
+        "helpText": "One exact absolute path containing the intended wp-config.php. Relay stores it encrypted, hashes it in audits, and never exposes it to agents."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "site_read",
+      "label": "Read local site",
+      "description": "Read the home URL, list at most twenty post or page metadata records, and read one exact post or page with bounded content.",
+      "defaultSelected": true
+    },
+    {
+      "id": "draft_create",
+      "label": "Create local drafts",
+      "description": "Create one bounded post or page forced to draft with comments and pings closed.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "local_wordpress_org_site_info", "label": "Read site identity", "description": "Read the home URL for one exact local WordPress installation." },
+      { "id": "local_wordpress_org_list_posts", "label": "List posts or pages", "description": "List at most twenty bounded post or page metadata records for one explicit status." },
+      { "id": "local_wordpress_org_get_post", "label": "Read post or page", "description": "Read one exact post or page with bounded editor content." },
+      { "id": "local_wordpress_org_create_draft", "label": "Create draft", "description": "Create one post or page forced to draft with comments and pings closed." }
+    ],
+    "blocked": [
+      { "id": "local_wordpress_org_publish", "label": "Publish or schedule content", "description": "Publishing, scheduling and changing the status of existing content are unavailable." },
+      { "id": "local_wordpress_org_update_delete", "label": "Update or delete existing content", "description": "Existing posts, pages, media, comments, terms and metadata cannot be changed, trashed or deleted." },
+      { "id": "local_wordpress_org_admin", "label": "Administer WordPress", "description": "Users, roles, passwords, options, plugins, themes, core, databases, cache, cron, multisite, menus, widgets, imports, exports and server administration are unavailable." },
+      { "id": "local_wordpress_org_raw_cli", "label": "Run raw WP-CLI commands", "description": "Agents cannot supply executable names, global flags, command names, arbitrary query arguments, PHP, shell commands or filesystem paths." },
+      { "id": "local_wordpress_org_remote_api", "label": "Expose the local site remotely", "description": "Relay does not start a server, open a tunnel, add an application password, expose loopback traffic or redirect the web app from Railway." },
+      { "id": "local_wordpress_org_unbounded_content", "label": "Transfer unbounded content", "description": "Lists are capped at twenty, one exact post read is capped at 64 KiB, and draft content is capped at 16 KiB." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "local_wordpress_org_safe",
+      "label": "Safe",
+      "description": "Private local site reads and draft creation require approval. Exact source-host and site-path binding, fixed WP-CLI commands, response bounds and audits always apply.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["local_wordpress_org_site_info", "local_wordpress_org_list_posts", "local_wordpress_org_get_post", "local_wordpress_org_create_draft"],
+      "blockedActions": ["local_wordpress_org_publish", "local_wordpress_org_update_delete", "local_wordpress_org_admin", "local_wordpress_org_raw_cli", "local_wordpress_org_remote_api", "local_wordpress_org_unbounded_content"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected operations run without Relay per-action approval; exact source-host and site-path binding, fixed WP-CLI commands, draft-only writes, response bounds and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["local_wordpress_org_site_info", "local_wordpress_org_list_posts", "local_wordpress_org_get_post", "local_wordpress_org_create_draft"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["local_wordpress_org_publish", "local_wordpress_org_update_delete", "local_wordpress_org_admin", "local_wordpress_org_raw_cli", "local_wordpress_org_remote_api", "local_wordpress_org_unbounded_content"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway registers bounded tools and dispatches only to the exact connected OpenClaw source host and WordPress installation path; no remote WordPress API is opened."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway registers bounded tools and dispatches only to the exact connected Hermes source host and WordPress installation path; no remote WordPress API is opened."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer installs the current official WP-CLI on a dedicated trusted source host, uses a least-privilege operating-system account, verifies the exact local WordPress.org installation path and backup, and connects that source host. WP-CLI boots WordPress PHP; --skip-plugins and --skip-themes reduce but do not eliminate site-code execution because must-use plugins can still load."
+  },
+  "evidence": [
+    {
+      "url": "https://wordpress.org/cli/",
+      "checkedAt": "2026-07-18",
+      "supports": "WordPress.org identifies WP-CLI as the command-line interface for WordPress and documents scriptable administration of posts, core, plugins, databases and other site functions."
+    },
+    {
+      "url": "https://developer.wordpress.org/cli/commands/post/list/",
+      "checkedAt": "2026-07-18",
+      "supports": "The official command reference documents post listing with post type, status, query arguments, selected fields, ordering and JSON output. Relay fixes and bounds those arguments."
+    },
+    {
+      "url": "https://developer.wordpress.org/cli/commands/post/get/",
+      "checkedAt": "2026-07-18",
+      "supports": "The official command reference documents reading one exact post with selected fields and JSON output."
+    },
+    {
+      "url": "https://developer.wordpress.org/cli/commands/post/create/",
+      "checkedAt": "2026-07-18",
+      "supports": "The official command reference documents creating a post and returning its ID; Relay fixes status to draft and closes comments and pings."
+    },
+    {
+      "url": "https://developer.wordpress.org/rest-api/",
+      "checkedAt": "2026-07-18",
+      "supports": "WordPress separately documents a remote REST API. This provider intentionally does not enable or expose that transport and is distinct from WordPress.com."
+    },
+    {
+      "url": "https://wordpress.org/about/license/",
+      "checkedAt": "2026-07-18",
+      "supports": "WordPress.org documents WordPress as free software released under the GPL, supporting customer-controlled local installation rather than a provider-hosted account flow."
+    }
+  ]
+}

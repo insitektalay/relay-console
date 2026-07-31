@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "drupal",
+  "name": "Drupal",
+  "category": "knowledge_documents",
+  "description": "Drupal is an open-source content management platform for building and operating websites and digital experiences. Teams use it for structured content, publishing workflows, media, taxonomy, users, permissions, modules, themes, and decoupled applications.",
+  "agentUseSummary": "Relay reads only the UUID, resource type, publication flag, and created and changed timestamps for one preselected anonymously visible Drupal node through a sparse individual-resource core JSON:API GET. It excludes titles, bodies, authors, relationships, files, paths, revisions, custom fields, collections, other entities, authentication, administration, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://www.drupal.org/",
+    "docsUrl": "https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module/fetching-resources-get",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.drupal.org/terms",
+    "privacyUrl": "https://www.drupal.org/privacy"
+  },
+  "authentication": {
+    "model": "custom",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_operated_drupal",
+      "public_https_core_jsonapi",
+      "anonymous_entity_access_only",
+      "selected_node_bundle_and_uuid"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "DRUPAL_SITE_BASE_URL",
+        "label": "Drupal HTTPS site base URL",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "DRUPAL_NODE_BUNDLE",
+        "label": "Selected node bundle machine name",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "DRUPAL_NODE_UUID",
+        "label": "Selected public node UUID",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "drupal_selected_node_lifecycle_get",
+      "label": "Read selected node lifecycle",
+      "description": "Read one selected anonymously visible node's UUID, resource type, publication flag, and lifecycle timestamps.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "drupal_selected_node_lifecycle_get",
+        "label": "Read selected node lifecycle",
+        "description": "Use one fixed individual-resource core JSON:API GET with a sparse status, created, and changed fieldset."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "drupal_private_content",
+        "label": "Expose content or private site data",
+        "description": "Titles, bodies, summaries, authors, relationships, files, paths, revisions, custom fields, unpublished content, users, configuration, and private site data are excluded."
+      },
+      {
+        "id": "drupal_mutation",
+        "label": "Mutate Drupal",
+        "description": "Nodes, media, files, taxonomy, users, configuration, modules, themes, permissions, and every POST, PATCH, DELETE, upload, or other mutation are blocked."
+      },
+      {
+        "id": "drupal_broad_access",
+        "label": "Use broad Drupal access",
+        "description": "Collections, filters, sorts, pagination, includes, relationships, other entity types or nodes, revisions, translations, arbitrary fields, authentication, redirects, non-core APIs, and bulk access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "drupal_public_node_lifecycle_read",
+      "label": "Public Node Lifecycle Read",
+      "description": "Read one selected public node's sparse lifecycle projection; content, identities, relationships, other resources, authentication, administration, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["drupal_selected_node_lifecycle_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "drupal_private_content",
+        "drupal_mutation",
+        "drupal_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-node lifecycle reader backed by Railway's bounded Drupal adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-node lifecycle reader backed by Railway's bounded Drupal adapter."
+    }
+  ],
+  "availability": "preview",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An authorized staging site must enable Drupal core JSON:API, keep anonymous access limited to the selected published node, provide the exact public HTTPS site URL plus bundle and UUID, and complete Fairfax validation. No provider credentials are required or accepted.",
+    "nextAction": "In the provider-console lane, enable core JSON:API in read-only mode on a staging site, audit entity and field access, select one anonymously visible node, enter its exact bundle machine name and UUID through Relay, then validate sparse-field enforcement, exact-resource binding, redirect and private-DNS denial, unpublished or unauthorized denial, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module",
+      "checkedAt": "2026-07-18",
+      "supports": "Drupal core's JSON:API module implements JSON:API for Drupal entities and integrates with Drupal entity, field, authentication, authorization, and response-caching systems."
+    },
+    {
+      "url": "https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module/api-overview",
+      "checkedAt": "2026-07-18",
+      "supports": "Official documentation defines the fixed /jsonapi/{entity_type}/{bundle}/{uuid} path for an individual resource and identifies GET as the retrieval method."
+    },
+    {
+      "url": "https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module/fetching-resources-get",
+      "checkedAt": "2026-07-18",
+      "supports": "Official GET documentation requires the JSON:API Accept header, states that no authentication is required when anonymous users can access content entities, uses UUIDs for individual resources, and documents sparse fields parameters."
+    },
+    {
+      "url": "https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module/security-considerations",
+      "checkedAt": "2026-07-18",
+      "supports": "Drupal documents that JSON:API respects entity and field access, recommends auditing access and exposing only used resources, and provides a read-only mode that is on by default."
+    }
+  ]
+}

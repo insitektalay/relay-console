@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "maze",
+  "name": "Maze",
+  "category": "work_management",
+  "description": "Maze is a continuous product-discovery platform for unmoderated studies, moderated interviews, participant recruitment, research repositories, reports, and insights.",
+  "agentUseSummary": "Connect an authorized Enterprise user to Maze's official read-only hosted MCP, then let selected agents search permitted studies and analyze details, results, task metrics, themes, highlights, responses, and transcripts. Relay blocks every mutation and unverified tool.",
+  "provider": {
+    "websiteUrl": "https://maze.co/",
+    "docsUrl": "https://help.maze.co/articles/3603930517-maze-mcp",
+    "developerConsoleUrl": "https://connect.maze.co/.well-known/oauth-protected-resource/mcp",
+    "termsUrl": "https://maze.co/terms/",
+    "privacyUrl": "https://maze.co/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "profile", "email", "offline_access"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://resolute-time-87.authkit.app/oauth2/authorize",
+    "tokenUrl": "https://resolute-time-87.authkit.app/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_dynamic_oauth", "remote_read_only_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/maze/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "research_read", "label": "Read product research", "description": "Search authorized studies and read study details, results, task metrics, themes, highlights, responses, and transcripts through Maze's official read-only hosted MCP.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "maze_mcp_read", "label": "Read Maze research", "description": "Use one live-discovered, verified non-mutating Maze MCP tool with bounded arguments." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "maze_manage", "label": "Change Maze", "description": "The official Maze MCP is read-only; all mutations and unverified tools remain blocked." },
+      { "id": "maze_unverified_tool", "label": "Call an unverified tool", "description": "Tools with mutating names or descriptions, destructive annotations, false read-only annotations, invalid schemas, or credential-bearing arguments are blocked." },
+      { "id": "maze_arbitrary_endpoint", "label": "Call arbitrary endpoints", "description": "Requests are pinned to the official Maze MCP and discovered provider schemas; arbitrary REST hosts, paths, and methods are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "maze_safe", "label": "Safe", "description": "Live-discovered read-only research tools run directly; mutating names, non-read-only annotations, credentials in arguments, and all writes remain blocked.", "defaultSelected": true, "allowedActions": ["maze_mcp_read"], "approvalRequiredActions": [], "blockedActions": ["maze_manage", "maze_unverified_tool", "maze_arbitrary_endpoint"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts one bounded read wrapper and proxies user OAuth to Maze's official hosted MCP." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts one bounded read wrapper and proxies user OAuth to Maze's official hosted MCP." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Maze MCP is an Enterprise Beta and no authorized customer account, dynamically registered Relay OAuth client, consent grant, live tool schema, or safe research fixture is available in this workspace.",
+    "nextAction": "After an Enterprise administrator enables third-party connectors and Relay's dynamic OAuth client is configured, an authorized user connects through Relay Console and verifies refresh, live read-only tool discovery, bounded research retrieval, workspace isolation, disconnect, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://help.maze.co/articles/3603930517-maze-mcp", "checkedAt": "2026-07-17", "supports": "Maze documents its Enterprise Beta hosted MCP URL, OAuth 2.1 dynamic discovery, user-scoped workspace permissions, research search and retrieval, transcript and response access, and an explicitly read-only capability boundary." },
+    { "url": "https://connect.maze.co/.well-known/oauth-protected-resource/mcp", "checkedAt": "2026-07-17", "supports": "Maze publishes the protected MCP resource and its current OAuth authorization-server issuer, with Bearer header authentication." },
+    { "url": "https://resolute-time-87.authkit.app/.well-known/oauth-authorization-server", "checkedAt": "2026-07-17", "supports": "The current Maze authorization issuer publishes dynamic client registration, authorization-code and refresh-token grants, S256 PKCE, public and confidential client authentication, and supported identity scopes." }
+  ]
+}

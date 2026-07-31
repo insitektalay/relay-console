@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "claygent", "name": "Claygent", "category": "content_creative",
+  "description": "Claygent is Clay's AI-agent builder for judgment-based go-to-market work such as account research, lead scoring, outbound copywriting, and persona classification.",
+  "agentUseSummary": "Add a customer-owned Clay Public API key to validate the exact workspace intended for external Claygent setup. V1 exposes only the stable, bounded GET /public/v0/me authority check. Relay does not execute Claygents because Clay documents no stable Claygent-specific direct API contract; prompts, models, browsing, research, sources, connected providers, outputs, citations, production data, Functions, Workflows Alpha, Routines, MCP/CLI, credit spend, mutations, polling, batch work, and exports remain blocked.",
+  "provider": { "websiteUrl": "https://www.clay.com/claygent", "docsUrl": "https://university.clay.com/docs/claygent-builder", "termsUrl": "https://www.clay.com/terms-of-service", "privacyUrl": "https://privacy.clay.com/" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false },
+  "connection": { "types": ["customer_owned_personal_public_api_key", "workspace_bound", "execution_withheld_pending_stable_provider_contract"], "credentialRequirements": [{ "key": "CLAYGENT_PUBLIC_API_KEY", "label": "Clay Public API key for Claygent", "secret": true, "required": true }], "callbackPath": null, "webhookRequirements": [] },
+  "capabilities": [{ "id": "workspace_read", "label": "Read connected workspace", "description": "Validate the exact API-key-bound Clay workspace before external Claygent setup.", "defaultSelected": true }],
+  "actions": { "allowed": [], "approvalRequired": [{ "id": "claygent_workspace_get", "label": "Read connected workspace", "description": "Validate the exact Clay API-key-bound workspace for future Claygent setup without returning personal identity, agent configuration, prompts, sources, outputs, or GTM data." }], "blocked": [
+    { "id": "claygent_run", "label": "Run Claygent research", "description": "Claygent execution, testing, deployment, prompts, model selection, browsing, research, classification, scoring, copywriting, and credit or Action consumption are outside V1 because no stable Claygent-specific Public API contract is documented." },
+    { "id": "claygent_private_configuration", "label": "Read private Claygent configuration", "description": "Agents, prompts, business context, documents, connected sources, provider connections, production data, outputs, citations, histories, and evaluations are outside V1." },
+    { "id": "claygent_mutation", "label": "Change Claygents", "description": "Building, editing, testing, deploying, sharing, or deleting Claygents, Functions, Workflows, tables, or integrations is outside V1." },
+    { "id": "claygent_raw_surface", "label": "Call arbitrary Clay surfaces", "description": "Routines, Workflows Alpha, Searches, Tables, raw Public API, MCP, CLI, plugin, arbitrary paths, methods, payloads, and undocumented Claygent endpoints are outside V1." },
+    { "id": "claygent_bulk_export", "label": "Export Claygent data", "description": "Batch runs, uploads, webhooks, polling, pagination, crawling, synchronization, downloads, and exports are outside V1." }
+  ] },
+  "approvalProfiles": [
+    { "id": "claygent_safe", "label": "Safe", "description": "The bounded private workspace-binding read requires matching approval; Claygent execution remains blocked.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["claygent_workspace_get"], "blockedActions": ["claygent_run", "claygent_private_configuration", "claygent_mutation", "claygent_raw_surface", "claygent_bulk_export"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The workspace-binding read runs without Relay approval, but Claygent execution and every unstable, private, mutating, credit-consuming, raw, bulk, or export surface remain hard-blocked.", "defaultSelected": false, "allowedActions": ["claygent_workspace_get"], "approvalRequiredActions": [], "blockedActions": ["claygent_run", "claygent_private_configuration", "claygent_mutation", "claygent_raw_surface", "claygent_bulk_export"] }
+  ],
+  "riskLevel": "high", "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts only a bounded workspace-binding read; Claygent execution is withheld pending a stable provider contract." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts only a bounded workspace-binding read; Claygent execution is withheld pending a stable provider contract." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": { "status": "blocked", "blocker": "No customer-owned Clay account/Public API key, configured Claygent, stable Claygent-specific direct API contract, or live acceptance evidence is available in this workspace.", "nextAction": "In the provider-console task, create a dedicated Clay Public API key, validate the intended workspace, build and permission the Claygent externally, and monitor official developer documentation for a stable Claygent-specific direct API. Do not enable Relay execution until its exact identifier, input/output schema, pricing, polling, redaction, and revocation contract can be pinned and accepted." },
+  "evidence": [
+    { "url": "https://university.clay.com/docs/claygent-builder", "checkedAt": "2026-07-18", "supports": "Clay describes Claygent builder, judgment-based GTM use cases, prompts, business context, documents, testing, production-data deployment, and workflow reuse." },
+    { "url": "https://developers.clay.com/", "checkedAt": "2026-07-18", "supports": "Clay documents its open-beta developer platform and API, CLI, MCP, Searches, Routines, and Enterprise Tables; it does not expose a Claygent-specific reference endpoint." },
+    { "url": "https://developers.clay.com/routines", "checkedAt": "2026-07-18", "supports": "Clay documents routines for enrichment, research, scoring, routing, and repeatable GTM work, with custom functions available and Workflows still Alpha." },
+    { "url": "https://university.clay.com/docs/actions-data-credits", "checkedAt": "2026-07-18", "supports": "Clay documents that AI/enrichment work consumes Data Credits or provider spend plus Actions, supporting approval and cost withholding." }
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoom-webinars",
+  "name": "Zoom Webinars",
+  "category": "communication",
+  "description": "Zoom Webinars supports large hosted broadcasts with registration, panelists, engagement, Q&A, polls, livestreaming, recordings, and reporting.",
+  "agentUseSummary": "Connect a customer-owned Server-to-Server OAuth app and one fixed licensed host, then inspect a bounded content-free page of webinar lifecycle metadata.",
+  "provider": {
+    "websiteUrl": "https://www.zoom.com/en/products/webinars/",
+    "docsUrl": "https://developers.zoom.us/docs/api/meetings/",
+    "developerConsoleUrl": "https://marketplace.zoom.us/develop/create",
+    "termsUrl": "https://explore.zoom.us/en/terms/",
+    "privacyUrl": "https://explore.zoom.us/en/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["webinar:read:list_webinars:admin"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://zoom.us/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_server_to_server_oauth",
+      "fixed_host_lifecycle_read"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ZOOM_WEBINARS_ACCOUNT_ID",
+        "label": "Zoom account ID",
+        "required": true,
+        "secret": false
+      },
+      {
+        "name": "ZOOM_WEBINARS_CLIENT_ID",
+        "label": "Zoom Server-to-Server OAuth client ID",
+        "required": true,
+        "secret": false
+      },
+      {
+        "name": "ZOOM_WEBINARS_CLIENT_SECRET",
+        "label": "Zoom Server-to-Server OAuth client secret",
+        "required": true,
+        "secret": true
+      },
+      {
+        "name": "ZOOM_WEBINARS_HOST_ID",
+        "label": "Authorized webinar host ID",
+        "required": true,
+        "secret": false
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "lifecycle_read",
+      "label": "Read webinar lifecycle",
+      "description": "Inspect bounded content-free schedule and type metadata for one configured webinar host.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "zoom_webinars_lifecycle_list",
+        "label": "List webinar lifecycle",
+        "description": "List one bounded page of content-free webinar schedule and type metadata for one configured host."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "zoom_webinars_identity_content",
+        "label": "Identity and content",
+        "description": "Topics, agendas, webinar UUIDs and IDs, host identity, join/start URLs, passwords, invite links, tracking data, custom questions, and raw records are not returned."
+      },
+      {
+        "id": "zoom_webinars_people_engagement",
+        "label": "People and engagement",
+        "description": "Registrants, panelists, participants, absentees, attendance, contacts, Q&A, polls, surveys, chat, feedback, reactions, and engagement analytics are not exposed."
+      },
+      {
+        "id": "zoom_webinars_media_ai",
+        "label": "Media and AI",
+        "description": "Recordings, transcripts, summaries, AI Companion conversations, archives, livestreams, branding assets, local tokens, and real-time media are not exposed."
+      },
+      {
+        "id": "zoom_webinars_mutation_raw",
+        "label": "Changes and raw API",
+        "description": "Creation, update, deletion, status changes, registration, invitations, branding, livestreaming, and arbitrary paths, hosts, filters, cursors, origins, or tokens are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "zoom_webinars_safe",
+      "label": "Safe",
+      "description": "Every host-bound webinar lifecycle read requires matching Relay approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["zoom_webinars_lifecycle_list"],
+      "blockedActions": [
+        "zoom_webinars_identity_content",
+        "zoom_webinars_people_engagement",
+        "zoom_webinars_media_ai",
+        "zoom_webinars_mutation_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected lifecycle reads run without Relay per-action approval while fixed origins, host binding, endpoint, bound, redaction, audit, scope, licensing, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["zoom_webinars_lifecycle_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "zoom_webinars_identity_content",
+        "zoom_webinars_people_engagement",
+        "zoom_webinars_media_ai",
+        "zoom_webinars_mutation_raw"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware fixed-host Zoom Webinars lifecycle tool and obtains short-lived account tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware fixed-host Zoom Webinars lifecycle tool and obtains short-lived account tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer administrator must activate a Server-to-Server OAuth app with only webinar:read:list_webinars:admin, provide encrypted credentials and one licensed host ID, and enable a webinar plan.",
+    "nextAction": "Configure the dedicated customer app, fixed host and Railway credentials, verify licensing and scope, exercise Safe denial/approval and Dangerous reads, verify renewal/revocation, deploy through the integration lane, and run live acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.zoom.us/docs/api/meetings/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom documents GET /v2/users/{userId}/webinars, webinar plan requirements, bounded page_size, and response fields including private topics, agendas, IDs and join URLs that Relay excludes."
+    },
+    {
+      "url": "https://developers.zoom.us/docs/integrations/oauth-scopes-granular/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom maps List webinars to webinar:read:list_webinars:admin and separates registrant, participant, panelist, poll, survey, branding, streaming, token, and mutation scopes."
+    },
+    {
+      "url": "https://developers.zoom.us/changelog/meetings/april-23-2026/",
+      "checkedAt": "2026-07-18",
+      "supports": "Zoom added include_events_webinar and is_events_webinar request fields in April 2026; Relay fixes inclusion off and does not expose caller-selected filtering."
+    }
+  ]
+}

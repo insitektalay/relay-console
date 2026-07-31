@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-bigquery-data-transfer",
+  "name": "Google BigQuery Data Transfer",
+  "category": "developer",
+  "description": "BigQuery Data Transfer Service schedules external data imports and queries into BigQuery and manages data sources, transfer configurations, credentials, runs, logs, resources, schedules, and backfills.",
+  "agentUseSummary": "BigQuery Data Transfer cannot yet be connected through Relay. The API requires the broad cloud-platform scope plus Google Cloud IAM, and each transfer can involve a creator, owner, source credentials, service agent, destination dataset, region, schedule, and recurring jobs. Relay exposes no transfer metadata or control until that complete authority chain passes acceptance.",
+  "provider": {
+    "websiteUrl": "https://cloud.google.com/bigquery/docs/dts-introduction",
+    "docsUrl": "https://cloud.google.com/bigquery/docs/reference/datatransfer/rest",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/library/bigquerydatatransfer.googleapis.com",
+    "termsUrl": "https://cloud.google.com/terms",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token",
+    "revocationUrl": "https://oauth2.googleapis.com/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_google_oauth_client",
+      "oauth2_web_server_user_flow",
+      "bigquery_data_transfer_api_v1",
+      "broad_cloud_platform_scope_and_google_cloud_iam",
+      "exact_project_location_and_dataset_boundary",
+      "transfer_creator_owner_source_and_service_agent_chain",
+      "data_source_specific_credentials_and_permissions",
+      "provider_and_representative_acceptance_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-bigquery-data-transfer/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "transfer_metadata_read",
+      "label": "Read transfer metadata",
+      "description": "After acceptance, list selected data sources, configurations, runs, logs, and resources within one exact project and location using bigquery.transfers.get.",
+      "defaultSelected": true
+    },
+    {
+      "id": "transfer_runs_start",
+      "label": "Start transfer runs",
+      "description": "After write and cost acceptance, start one exact manual run or bounded backfill range with source, destination, region, and date confirmation.",
+      "defaultSelected": false
+    },
+    {
+      "id": "transfer_configs_manage",
+      "label": "Manage transfer configurations",
+      "description": "After administrative acceptance, create, update, disable, or delete selected configurations, schedules, parameters, destinations, encryption settings, and ownership.",
+      "defaultSelected": false
+    },
+    {
+      "id": "transfer_credentials_manage",
+      "label": "Manage transfer ownership and credentials",
+      "description": "After separate identity acceptance, update a selected transfer owner or supported service account without exposing source credentials or expanding source or dataset access.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "bqdt_connect_before_review",
+        "label": "Connect before provider and IAM review",
+        "description": "Relay has no accepted broad cloud-platform OAuth grant, exact project and location, transfer role, source credentials, service-agent boundary, or destination dataset."
+      },
+      {
+        "id": "bqdt_reads_before_acceptance",
+        "label": "Read transfer data",
+        "description": "Sources, configurations, owners, parameters, schedules, destinations, runs, logs, errors, resources, and credentials remain unavailable."
+      },
+      {
+        "id": "bqdt_run_and_backfill_mutations",
+        "label": "Start, delete, or backfill runs",
+        "description": "Manual runs, scheduled runs, historical backfills, reruns, and run deletion are blocked because they can ingest, overwrite, expose, or charge for substantial data."
+      },
+      {
+        "id": "bqdt_config_credential_and_dataset_mutations",
+        "label": "Change configurations or authority",
+        "description": "Creating, updating, disabling, deleting, rescheduling, re-owning, or reauthorizing transfers and changing sources, parameters, regions, datasets, tables, service accounts, encryption, or notification settings is blocked."
+      },
+      {
+        "id": "bqdt_scope_resource_and_consent_bypass",
+        "label": "Bypass scope or resource controls",
+        "description": "Unbounded cloud-platform calls, cross-project or cross-region access, arbitrary source scopes, credential material, service-agent impersonation, raw exports, deprecated authorization parameters, and provider-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "bqdt_provider_review",
+      "label": "Provider, project, and transfer review pending",
+      "description": "No transfer action is enabled until broad OAuth, IAM, the exact project, location and dataset, creator and owner identities, source authorization, service agent, schedule, cost, data handling, revocation, and disconnect contracts pass representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "bqdt_connect_before_review",
+        "bqdt_reads_before_acceptance",
+        "bqdt_run_and_backfill_mutations",
+        "bqdt_config_credential_and_dataset_mutations",
+        "bqdt_scope_resource_and_consent_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount project- and transfer-bounded tools after OAuth, IAM, source, and destination acceptance; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount project- and transfer-bounded tools after OAuth, IAM, source, and destination acceptance; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "BigQuery Data Transfer API methods require the broad cloud-platform OAuth scope and Google Cloud IAM permissions such as bigquery.transfers.get or bigquery.transfers.update. Control-plane authority belongs to a transfer creator, while recurring data-plane runs use a transfer owner's user or service-account credentials to extract source data. A service agent starts jobs and can receive dataset-level data-editor access; source-specific credentials and permissions vary. The API can create, patch, delete, schedule, manually run, backfill, re-own, and inspect transfers across projects and locations. This worker cannot enable the API, create or verify OAuth credentials, grant broad scope or IAM, run consent, provision a service agent, obtain source credentials, inspect datasets, or start transfers.",
+    "nextAction": "The exclusive provider-console and acceptance task should enable BigQuery Data Transfer Service in a dedicated non-production Google Cloud project and register https://api.relayconsole.work/api/v1/marketplace/oauth/google-bigquery-data-transfer/callback on Relay's verified client. Use one exact project, location, destination dataset, source, and dedicated transfer owner. Build a custom metadata-read role containing only required get permissions before considering bigquery.transfers.update. Acceptance must verify the cloud-platform scope cannot reach other Google Cloud APIs through Relay, evaluate inherited IAM and service-agent impersonation, redact parameters and logs, validate regional and dataset boundaries, source-specific consent and revocation, ownership changes, schedule and time zones, duplicate loads, backfill limits, job and storage cost, CMEK, schema and overwrite behavior, run cancellation and deletion, token revocation, disconnect, and cross-project denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://cloud.google.com/bigquery/docs/dts-authentication-authorization",
+      "checkedAt": "2026-07-17",
+      "supports": "Google distinguishes control-plane creator permissions from data-plane owner credentials and service-agent authority, including source-specific user consent and destination dataset writes."
+    },
+    {
+      "url": "https://cloud.google.com/bigquery/docs/reference/datatransfer/rest",
+      "checkedAt": "2026-07-17",
+      "supports": "The API manages data sources, transfer configurations, runs, logs, and resources through bigquerydatatransfer.googleapis.com."
+    },
+    {
+      "url": "https://cloud.google.com/bigquery/docs/reference/datatransfer/rest/v1/projects.locations.transferConfigs/list",
+      "checkedAt": "2026-07-17",
+      "supports": "Even listing transfer configurations requires cloud-platform OAuth scope plus bigquery.transfers.get on the selected project and location."
+    },
+    {
+      "url": "https://cloud.google.com/bigquery/docs/reference/datatransfer/rest/v1/projects.locations.transferConfigs",
+      "checkedAt": "2026-07-17",
+      "supports": "Transfer configuration methods create, patch, delete, list, schedule, and manually start runs, with destination, schedule, source, parameter, owner, and encryption state."
+    },
+    {
+      "url": "https://cloud.google.com/bigquery/docs/working-with-transfers",
+      "checkedAt": "2026-07-17",
+      "supports": "Manual runs and backfills can load historical ranges, are subject to source limits and a 180-day request maximum, and require transfer-management permissions."
+    }
+  ]
+}

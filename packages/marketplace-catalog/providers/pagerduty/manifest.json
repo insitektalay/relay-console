@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "pagerduty",
+  "name": "PagerDuty",
+  "category": "developer",
+  "description": "PagerDuty is an incident-response platform that coordinates alerts, on-call operations, escalations, services, and digital operations. Engineering and operations teams use it to detect urgent issues, organize response ownership, and track incident lifecycle across critical services.",
+  "agentUseSummary": "Connect one PagerDuty account through Relay-owned Scoped OAuth, then let agents list bounded incident lifecycle summaries, inspect one exact incident, and list service ownership summaries. Relay V1 excludes contact and user data, schedules and on-calls, alert bodies, logs, notes, messages, writes, Events ingestion, administration, arbitrary requests, pagination, and bulk export.",
+  "provider": {
+    "websiteUrl": "https://www.pagerduty.com/",
+    "docsUrl": "https://developer.pagerduty.com/api-reference/",
+    "developerConsoleUrl": "https://app.pagerduty.com/developer/applications",
+    "termsUrl": "https://www.pagerduty.com/terms-of-service/",
+    "privacyUrl": "https://www.pagerduty.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "incidents.read", "services.read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://identity.pagerduty.com/oauth/authorize",
+    "tokenUrl": "https://identity.pagerduty.com/oauth/token"
+  },
+  "connection": {
+    "types": ["relay_owned_scoped_oauth", "exact_account_audience", "exact_us_or_eu_region", "expiring_access_token", "rotating_refresh_token", "provider_revocation"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/pagerduty/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "incident_read", "label": "Read incidents", "description": "List and inspect bounded incident lifecycle summaries.", "defaultSelected": true },
+    { "id": "service_read", "label": "Read services", "description": "List bounded service ownership summaries.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "pagerduty_incident_list", "label": "List incidents", "description": "List one bounded page of incident lifecycle summaries." },
+      { "id": "pagerduty_incident_get", "label": "Read incident", "description": "Read one exact incident lifecycle summary." },
+      { "id": "pagerduty_service_list", "label": "List services", "description": "List one bounded page of service ownership summaries." }
+    ],
+    "blocked": [
+      { "id": "pagerduty_incident_write", "label": "Change incident state", "description": "Acknowledging, resolving, reassigning, escalating, merging, adding notes, and other incident changes are outside V1." },
+      { "id": "pagerduty_private_response_data", "label": "Read private response data", "description": "Contacts, users, schedules, on-calls, alert bodies, logs, notes, messages, and response content are outside V1." },
+      { "id": "pagerduty_events_ingest", "label": "Ingest events", "description": "Events API ingestion, trigger, acknowledge, and resolve operations are outside V1." },
+      { "id": "pagerduty_admin", "label": "Administer PagerDuty", "description": "Services, escalation policies, teams, integrations, webhooks, apps, keys, users, billing, and configuration changes are outside V1." },
+      { "id": "pagerduty_raw_api", "label": "Use raw PagerDuty API", "description": "Arbitrary hosts, paths, queries, includes, cursors, pagination, bulk export, MCP, and raw responses are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "pagerduty_safe", "label": "Safe", "description": "All three bounded incident-response reads require matching approval.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["pagerduty_incident_list", "pagerduty_incident_get", "pagerduty_service_list"], "blockedActions": ["pagerduty_incident_write", "pagerduty_private_response_data", "pagerduty_events_ingest", "pagerduty_admin", "pagerduty_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while account authority, exact scopes, fixed requests, limits, redaction, audit, and provider rate limits remain enforced.", "defaultSelected": false, "allowedActions": ["pagerduty_incident_list", "pagerduty_incident_get", "pagerduty_service_list"], "approvalRequiredActions": [], "blockedActions": ["pagerduty_incident_write", "pagerduty_private_response_data", "pagerduty_events_ingest", "pagerduty_admin", "pagerduty_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three bounded PagerDuty read wrappers and attaches encrypted OAuth tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three bounded PagerDuty read wrappers and attaches encrypted OAuth tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay needs a PagerDuty admin-owned confidential Scoped OAuth app, the exact Railway callback, only openid, incidents.read, and services.read, Railway staging credentials, and a representative US or EU account. Those provider-console and environment actions are outside this worker task.",
+    "nextAction": "In the provider-console task, register the Relay app and callback, configure only the three scopes, store its client credentials in Railway staging, then verify exactly one account audience, regional routing, all three reads, token refresh-pair rotation, revocation, permission and rate failures, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developer.pagerduty.com/docs/oauth-functionality", "checkedAt": "2026-07-17", "supports": "PagerDuty apps use OAuth with provider-hosted authorization, scoped delegated authority, expiring access tokens, refresh tokens, and account-region context." },
+    { "url": "https://www.pagerduty.com/blog/insights/build-sophisticated-apps-for-your-pagerduty-environment-using-oauth-2-0-and-api-scopes/", "checkedAt": "2026-07-17", "supports": "Scoped OAuth apps can request services.read and incidents.read, provider errors report missing scopes, tokens expire, and refresh belongs on the backend." },
+    { "url": "https://developer.pagerduty.com/api-reference/9d0b4b12e36f9-list-incidents", "checkedAt": "2026-07-17", "supports": "Incident list and exact incident reads use REST API v2 and expose incident lifecycle, urgency, service, and escalation context with bounded pagination." },
+    { "url": "https://github.com/PagerDuty/api-schema", "checkedAt": "2026-07-17", "supports": "PagerDuty's official OpenAPI schema documents REST v2 Incident and Service structures and US/EU API behavior used by Relay's fixed wrappers." }
+  ]
+}

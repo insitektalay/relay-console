@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "readme",
+  "name": "ReadMe",
+  "category": "knowledge_documents",
+  "description": "Documentation projects, guides, API references, branches, categories, changelogs, recipes, images, search, and API definitions through ReadMe API v2.",
+  "agentUseSummary": "Enter a dedicated customer-owned ReadMe project API key, then let agents search bounded documentation or use the complete selected API v2 surface under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://readme.com/",
+    "docsUrl": "https://docs.readme.com/main/reference/intro-to-the-readme-api",
+    "developerConsoleUrl": "https://dash.readme.com/",
+    "termsUrl": "https://readme.com/terms/",
+    "privacyUrl": "https://readme.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      { "name": "README_API_KEY", "label": "ReadMe project API key", "required": true, "secret": true, "helpText": "Generate a dedicated key under ReadMe Configuration > API Keys. Railway stores it encrypted and sends it only to api.readme.com." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "docs_read", "label": "Read documentation", "description": "Read project metadata, branches, and bounded cross-project search results.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full ReadMe API", "description": "Create, update, publish, organize, and delete documentation, API definitions, changelogs, recipes, images, branches, projects, and API keys through API v2.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "readme_get_project", "label": "Read project", "description": "Verify and describe the connected ReadMe project." },
+      { "id": "readme_list_branches", "label": "List branches", "description": "List a bounded page of documentation versions and branches." },
+      { "id": "readme_search", "label": "Search documentation", "description": "Search a bounded page across the connected project." }
+    ],
+    "approvalRequired": [
+      { "id": "readme_upload_image", "label": "Upload image", "description": "Upload one bounded image to the connected ReadMe project; Safe mode requires approval." },
+      { "id": "readme_full_api", "label": "Use full ReadMe API", "description": "Use any documented ReadMe API v2 operation; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "readme_safe", "label": "Safe", "description": "Bounded project, branch, and search reads run directly; uploads and every other API operation require approval.", "defaultSelected": true, "allowedActions": ["readme_get_project", "readme_list_branches", "readme_search"], "approvalRequiredActions": ["readme_upload_image", "readme_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected API-key-authorized ReadMe operation runs without Relay per-action approval; ownership, fixed origin, bounds, audits, secret non-exposure, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["readme_get_project", "readme_list_branches", "readme_search", "readme_upload_image", "readme_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected tools and proxies the customer-owned API key server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected tools and proxies the customer-owned API key server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A ReadMe project administrator must generate a dedicated customer-owned API key and enter it in Relay Console.",
+    "nextAction": "Generate a dedicated key under Configuration > API Keys, enter it in Relay Console, then run project health, a bounded search, and an approved or Dangerous-mode mutation."
+  },
+  "evidence": [
+    { "url": "https://docs.readme.com/main/reference/intro/authentication", "checkedAt": "2026-07-13", "supports": "ReadMe API v2 uses customer-generated project API keys as Bearer credentials and recommends separate keys for separate integrations." },
+    { "url": "https://docs.readme.com/main/reference/api-upgrade-guide", "checkedAt": "2026-07-13", "supports": "ReadMe identifies https://api.readme.com/v2 as the v2 API origin and documents GET, POST, PATCH, PUT, and DELETE across the complete project-management surface." },
+    { "url": "https://docs.readme.com/main/reference/intro-to-the-readme-api", "checkedAt": "2026-07-13", "supports": "The official API covers keys, references, API definitions, branches, categories, changelogs, custom pages, guides, images, recipes, and search." },
+    { "url": "https://docs.readme.com/main/reference/pagination", "checkedAt": "2026-07-13", "supports": "ReadMe collections default to 10 results and support bounded page sizes up to 100; Relay convenience reads enforce documented limits." },
+    { "url": "https://docs.readme.com/main/docs/readmes-mcp-server", "checkedAt": "2026-07-13", "supports": "ReadMe's official MCP server uses the same customer-owned rdme_ API key for authenticated read/write project management; it does not provide distributable Relay-owned OAuth." }
+  ]
+}

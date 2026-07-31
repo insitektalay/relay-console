@@ -1,0 +1,169 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "amplitude-experiment",
+  "name": "Amplitude Experiment",
+  "category": "developer",
+  "description": "Amplitude Experiment provides feature flags, controlled rollouts, targeting, A/B experiments, variants, deployments, and experiment configuration management.",
+  "agentUseSummary": "Connect a dedicated Amplitude Experiment management API key, region, and one project ID. Relay mounts four approval-gated read-only operations for bounded active flag and experiment lists and exact configuration inspection.",
+  "provider": {
+    "websiteUrl": "https://amplitude.com/amplitude-experiment",
+    "docsUrl": "https://amplitude.com/docs/apis/experiment/experiment-management-api",
+    "developerConsoleUrl": "https://app.amplitude.com/",
+    "termsUrl": "https://amplitude.com/terms",
+    "privacyUrl": "https://amplitude.com/privacy"
+  },
+  "authentication": {
+    "model": "api_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_management_api_key",
+      "enumerated_regional_origin",
+      "exact_project_binding",
+      "fixed_management_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "AMPLITUDE_EXPERIMENT_MANAGEMENT_API_KEY",
+        "label": "Amplitude Experiment management API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated read-only management key; deployment keys are not accepted."
+      },
+      {
+        "name": "AMPLITUDE_EXPERIMENT_REGION",
+        "label": "Amplitude Experiment region",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter exactly us or eu."
+      },
+      {
+        "name": "AMPLITUDE_EXPERIMENT_PROJECT_ID",
+        "label": "Amplitude Experiment project ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one non-production project."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read experiments and flags",
+      "description": "List bounded active configurations or inspect one exact configuration with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "amplitude_experiment_sensitive_read",
+        "label": "Read Amplitude experiment configuration",
+        "description": "List bounded active flags/experiments or inspect one exact configuration."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "amplitude_experiment_secret_exposure",
+        "label": "Expose keys",
+        "description": "Management API keys, deployment keys, authorization headers, and credential-bearing fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "amplitude_experiment_inclusion_data",
+        "label": "Read targeting inclusions",
+        "description": "Variant user/device inclusions, cohort inclusions, identities, evaluation payloads, and assignment data are excluded."
+      },
+      {
+        "id": "amplitude_experiment_mutation",
+        "label": "Mutate experimentation",
+        "description": "Flag, experiment, variant, inclusion, cohort, deployment, version, rollout, target, schedule, run, archive, and project mutations remain provider-side."
+      },
+      {
+        "id": "amplitude_experiment_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only four pinned GET routes run on an enumerated US or EU origin and one stored project; arbitrary paths, projects, regions, cursors, archived resources, queries, and oversized results are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "amplitude_experiment_safe",
+      "label": "Safe",
+      "description": "All selected configuration reads require approval; exact project/region binding, active-only list caps, response bounds, audits, and key/inclusion/mutation blocks remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["amplitude_experiment_sensitive_read"],
+      "blockedActions": [
+        "amplitude_experiment_secret_exposure",
+        "amplitude_experiment_inclusion_data",
+        "amplitude_experiment_mutation",
+        "amplitude_experiment_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected reads run without Relay per-action approval; exact project/region binding, active-only list caps, response bounds, audits, and key/inclusion/mutation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["amplitude_experiment_sensitive_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "amplitude_experiment_secret_exposure",
+        "amplitude_experiment_inclusion_data",
+        "amplitude_experiment_mutation",
+        "amplitude_experiment_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted management key server-side and mounts four bounded project-bound reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted management key server-side and mounts four bounded project-bound reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Amplitude Experiment requires a customer organization/project, a dedicated management API key with access to one non-production project, and the correct US or EU residency. No console, project, key, flag, experiment, deployment, user inclusion, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create a dedicated least-privilege staging management key outside this worker, configure the key, region, and project ID in Railway staging, then verify project/region isolation, all four reads, approval and access denial, active-only/list/response bounds, rate limits, key revocation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://amplitude.com/docs/apis/experiment/experiment-management-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Amplitude documents bearer management API keys distinct from deployment keys, US/EU origins, project rate limits, errors, revocation, and cursor behavior."
+    },
+    {
+      "url": "https://amplitude.com/docs/apis/experiment/experiment-management-api-flags",
+      "checkedAt": "2026-07-18",
+      "supports": "Amplitude documents bounded flag list/get routes, projectId/limit/cursor/includeArchived filters, variants, deployments, targeting, and mutation surfaces excluded by Relay."
+    },
+    {
+      "url": "https://amplitude.com/docs/apis/experiment/experiment-management-api-experiments",
+      "checkedAt": "2026-07-18",
+      "supports": "Amplitude documents bounded experiment list/get routes, active/archive and delivery filters, versions/variants/inclusions, rollout configuration, and mutation surfaces excluded by Relay."
+    },
+    {
+      "url": "https://amplitude.com/docs/apis/keys-and-tokens",
+      "checkedAt": "2026-07-18",
+      "supports": "Amplitude distinguishes management API keys from deployment keys and instructs that server-side deployment keys remain secret."
+    }
+  ]
+}

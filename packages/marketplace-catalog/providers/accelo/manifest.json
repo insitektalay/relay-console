@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "accelo",
+  "name": "Accelo",
+  "category": "project_management",
+  "description": "Accelo is a professional-services automation platform for managing clients, sales, projects, tickets, retainers, schedules, time and billing. Service businesses use it to coordinate client work, plan delivery, automate workflows and track operational and financial performance.",
+  "agentUseSummary": "Relay exchanges a dedicated customer-owned Accelo service application's client credentials only for read(jobs), binds the connection to one validated deployment and preselected project ID, and exposes one metadata-only project-state read. Project titles, clients, contacts, people, activities, tasks, schedules, budgets, rates, contracts, other resources, writes and arbitrary API access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.accelo.com/",
+    "docsUrl": "https://api.accelo.com/docs/",
+    "developerConsoleUrl": "https://api.accelo.com/docs/#registering-your-application",
+    "termsUrl": "https://www.accelo.com/company/terms-of-service",
+    "privacyUrl": "https://www.accelo.com/company/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["read(jobs)"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://{deployment}.api.accelo.com/oauth2/v0/token",
+    "revocationUrl": "https://{deployment}.api.accelo.com/oauth2/v0/revoke"
+  },
+  "connection": {
+    "types": [
+      "customer_owned_service_application",
+      "oauth2_client_credentials",
+      "deployment_bound_accelo_api_v0",
+      "read_jobs_scope",
+      "selected_accelo_project"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ACCELO_DEPLOYMENT",
+        "label": "Accelo deployment prefix",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "ACCELO_CLIENT_ID",
+        "label": "Service application client ID",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "ACCELO_CLIENT_SECRET",
+        "label": "Service application client secret",
+        "required": true,
+        "secret": true,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "ACCELO_JOB_ID",
+        "label": "Selected project ID",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "accelo_selected_project_state_get",
+      "label": "Read selected project state",
+      "description": "Read one selected project's ID, standing, paused days and lifecycle timestamps.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "accelo_selected_project_state_get",
+        "label": "Read selected project state",
+        "description": "Use the fixed individual-job route for one selected project and return only bounded lifecycle metadata."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "accelo_private_project_data",
+        "label": "Expose private project data",
+        "description": "Titles, custom IDs, clients, contacts, managers, activities, tasks, milestones, schedules, attachments, rates, budgets, contracts, custom fields and identities are excluded."
+      },
+      {
+        "id": "accelo_other_resources",
+        "label": "Read broader Accelo resources",
+        "description": "Project lists, other projects, companies, contacts, staff, prospects, tickets, retainers, time, expenses, invoices, quotes, assets and deployment data are blocked."
+      },
+      {
+        "id": "accelo_mutation",
+        "label": "Mutate Accelo",
+        "description": "Projects, clients, contacts, tasks, activities, schedules, financials, progressions, attachments, configuration and every write or destructive action are blocked."
+      },
+      {
+        "id": "accelo_raw_api",
+        "label": "Run arbitrary Accelo calls",
+        "description": "Agents cannot choose deployments, origins, paths, fields, filters, searches, pagination, bodies, token scopes or raw REST operations."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "accelo_selected_project_state_read",
+      "label": "Selected Project State Read",
+      "description": "Read one selected project's bounded lifecycle state; private content, client data, people, financials, other resources, administration and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["accelo_selected_project_state_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "accelo_private_project_data",
+        "accelo_other_resources",
+        "accelo_mutation",
+        "accelo_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-project state reader backed by Railway's deployment-bound Accelo adapter and short-lived read(jobs) tokens."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-project state reader backed by Railway's deployment-bound Accelo adapter and short-lived read(jobs) tokens."
+    }
+  ],
+  "availability": "preview",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Accelo applications are registered inside a customer deployment and produce deployment-bound client credentials. No paid disposable deployment, synthetic project or dedicated service application was available in this lane, and provider-console work is separately owned.",
+    "nextAction": "In the provider-console acceptance task, use a paid disposable Accelo deployment with synthetic data, register a dedicated service application, grant exactly read(jobs), bind its deployment prefix and one synthetic project ID through Relay, then validate token scope/deployment binding, metadata-only output, other-project and broader-resource denial, rate handling, credential rotation, revocation, disconnect and post-disconnect denial. Never reuse production service credentials or request read(all)."
+  },
+  "evidence": [
+    {
+      "url": "https://api.accelo.com/docs/",
+      "checkedAt": "2026-07-18",
+      "supports": "Accelo's official complete REST API reference documents deployment-specific HTTPS origins, service/web/installed application types, OAuth client credentials and authorization code grants, exact read(resource) scopes, token refresh/revocation, response envelopes, 5,000-request hourly deployment limits and broad adjacent read/write resources."
+    },
+    {
+      "url": "https://api.accelo.com/docs/#jobs-projects",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Jobs (Projects) resource documents exact individual-project GET, default lifecycle fields, broader list/search/linked-field routes, financial and identity fields, mutations, progressions, attachments and other adjacent project surfaces."
+    },
+    {
+      "url": "https://help.accelo.com/apis/",
+      "checkedAt": "2026-07-18",
+      "supports": "Accelo's official help center describes the REST API as its full application API with service accounts, user OAuth grants, dozens of object endpoints and GET/POST/PUT/DELETE operations."
+    },
+    {
+      "url": "https://www.accelo.com/company/terms-of-service",
+      "checkedAt": "2026-07-18",
+      "supports": "Accelo's current terms establish paid subscriber authority, authorized user access, customer-data responsibilities and restrictions relevant to a customer-owned least-authority integration."
+    },
+    {
+      "url": "https://www.accelo.com/company/privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "Accelo's current privacy policy describes subscriber and user data handled by the hosted service, reinforcing private-data exclusion from the bounded project-state result."
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "facebook-pages",
+  "name": "Facebook Pages",
+  "category": "content_creative",
+  "description": "Facebook Pages gives businesses, organizations, creators, and public figures a public presence on Facebook. Relay connects one user-selected Page through Relay-owned Meta OAuth, lists at most ten recent Page-authored posts, drafts locally, and publishes one approved plain-text Page post.",
+  "agentUseSummary": "Connect one user-selected Facebook Page with exact pages_show_list, pages_read_engagement, and pages_manage_posts permissions. Agents can read bounded Page identity, list one page of up to ten Page-authored posts, draft locally, and publish one approved plain-text post; visitor feeds, arbitrary Pages, engagement, messages, media, insights, ads, administration, destructive actions, pagination, retries, and raw Graph access are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.facebook.com/pages/",
+    "docsUrl": "https://developers.facebook.com/docs/pages-api/",
+    "developerConsoleUrl": "https://developers.facebook.com/apps/",
+    "termsUrl": "https://developers.facebook.com/terms/",
+    "privacyUrl": "https://www.facebook.com/privacy/policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["pages_show_list", "pages_read_engagement", "pages_manage_posts"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.facebook.com/v25.0/dialog/oauth",
+    "tokenUrl": "https://graph.facebook.com/v25.0/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["oauth2", "relay_owned_global_oauth", "selected_page"],
+    "credentialRequirements": ["Relay-owned Meta app ID configured only on Railway", "Relay-owned Meta app secret retained only by Railway", "Separate encrypted user-token and selected-Page-token references"],
+    "callbackPath": "/api/v1/marketplace/oauth/facebook-pages/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "read_selected_page", "label": "Read selected Page", "description": "Read bounded metadata for the Page immutably selected during connection.", "readOnly": true },
+    { "id": "read_own_posts", "label": "Read Page-authored posts", "description": "List one page of at most ten recent posts authored by the selected Page.", "readOnly": true },
+    { "id": "draft_posts", "label": "Draft Page posts locally", "description": "Prepare a bounded plain-text draft without calling Meta.", "readOnly": true },
+    { "id": "publish_posts", "label": "Publish plain-text Page posts", "description": "Publish one approved plain-text post to the selected Page.", "readOnly": false }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "facebook_pages_page_get", "label": "Get selected Page", "description": "Read bounded metadata for the immutably selected Page." },
+      { "id": "facebook_pages_own_posts_list", "label": "List Page-authored posts", "description": "List at most ten recent posts authored by the selected Page through its /posts edge." },
+      { "id": "facebook_pages_post_draft", "label": "Draft Facebook Page post", "description": "Create one bounded local plain-text draft without calling Meta." }
+    ],
+    "approvalRequired": [
+      { "id": "facebook_pages_text_post_create", "label": "Publish Facebook Page text post", "description": "Publish one plain-text post to the selected Page through its /feed edge after approval." }
+    ],
+    "blocked": [
+      { "id": "facebook_pages_comments_engagement", "label": "Use comments or engagement", "description": "Visitor feeds, comments, replies, reactions, and other engagement are blocked." },
+      { "id": "facebook_pages_messages", "label": "Use Page messages", "description": "Page messaging and private communication are blocked." },
+      { "id": "facebook_pages_media_insights_ads", "label": "Use media or broader Page products", "description": "Media, stories, reels, insights, ads, leads, events, and search are blocked." },
+      { "id": "facebook_pages_admin_mutation", "label": "Use admin, destructive, or broad actions", "description": "Roles, settings, webhooks, edit, delete, scheduling, bulk actions, pagination, automatic ambiguous-write retries, raw Graph access, and browser automation are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "facebook_pages_approval_required", "label": "Approval Required", "description": "Bounded selected-Page reads and local drafting run automatically; every Page publish requires approval.", "defaultSelected": true, "allowedActions": ["facebook_pages_page_get", "facebook_pages_own_posts_list", "facebook_pages_post_draft"], "approvalRequiredActions": ["facebook_pages_text_post_create"], "blockedActions": ["facebook_pages_comments_engagement", "facebook_pages_messages", "facebook_pages_media_insights_ads", "facebook_pages_admin_mutation"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The same four actions run without per-action approval; exact permissions, selected-Page binding, plain-text body, audit, one-page reads, and one-request write controls still apply.", "defaultSelected": false, "allowedActions": ["facebook_pages_page_get", "facebook_pages_own_posts_list", "facebook_pages_post_draft"], "approvalRequiredActions": ["facebook_pages_text_post_create"], "blockedActions": ["facebook_pages_comments_engagement", "facebook_pages_messages", "facebook_pages_media_insights_ads", "facebook_pages_admin_mutation"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "native_wrapper_tools", "description": "Mounts exactly four bounded selected-Page, Page-authored-post, local-draft, and text-publish wrappers." },
+    { "format": "hermes", "installSupport": "native_wrapper_tools", "description": "Mounts exactly four bounded selected-Page, Page-authored-post, local-draft, and text-publish wrappers." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A reviewed production Relay-owned Meta app, exact Railway callback, business verification and App Review/approved access, privacy/terms/data-deletion configuration, Railway token lifecycle, and staging acceptance remain pending outside this worker lane.",
+    "nextAction": "Configure the Relay-owned Meta app and exact callback, obtain approved access for the three permissions, then validate Page enumeration/tasks, immutable selection, token lifecycle, bounded reads, one approved publish, ambiguous failure, and revocation through Railway staging.",
+    "requiredProviderArtifacts": ["production Meta app ID", "production Meta app secret", "exact Railway callback allowlist", "business verification", "App Review for exact permissions", "privacy policy URL", "terms URL", "data deletion instructions", "one staging Page"]
+  },
+  "evidence": [
+    { "url": "https://developers.facebook.com/docs/pages-api/getting-started/", "checkedAt": "2026-07-17", "supports": "Meta documents Page enumeration, Page access tokens, Page tasks, and Pages API setup." },
+    { "url": "https://developers.facebook.com/docs/pages-api/posts/", "checkedAt": "2026-07-17", "supports": "Meta documents Page post reads and creating Page posts through the Graph API." },
+    { "url": "https://developers.facebook.com/docs/permissions/", "checkedAt": "2026-07-17", "supports": "Meta documents the pages_show_list, pages_read_engagement, and pages_manage_posts permissions used by the narrow V1 contract." },
+    { "url": "https://developers.facebook.com/docs/facebook-login/access-tokens/", "checkedAt": "2026-07-17", "supports": "Meta documents user and Page access-token handling and lifecycle considerations." }
+  ]
+}

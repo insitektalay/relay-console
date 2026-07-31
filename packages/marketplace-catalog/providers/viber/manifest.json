@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "viber",
+  "name": "Viber",
+  "category": "communication",
+  "description": "Rakuten Viber is a messaging and calling platform with commercially approved bots, subscriber messaging, webhooks, channels, and partner-delivered Business Messages.",
+  "agentUseSummary": "Viber cannot currently be connected as a Relay-owned account integration because its Bot API uses one admin-visible bot authentication token/application key for every request and webhook signature, not delegated OAuth. Bots require commercial approval, subscriber state is not OAuth consent, and Business Messages require a commercial partner relationship.",
+  "provider": {
+    "websiteUrl": "https://www.viber.com/",
+    "docsUrl": "https://developers.viber.com/docs/api/rest-bot-api/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.viber.com/en/terms/",
+    "privacyUrl": "https://www.viber.com/en/terms/viber-privacy-policy/"
+  },
+  "authentication": { "model": "unsupported", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["delegated_account_oauth_not_available", "commercial_bot_required", "admin_owned_full_bot_token", "subscriber_state_is_not_oauth", "business_messages_partner_required"],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "viber_connect_account", "label": "Connect a Viber account", "description": "Viber publishes no delegated account OAuth, callback, scope, refresh-token, or per-installation revocation contract." },
+      { "id": "viber_bot_token", "label": "Custody a bot application key", "description": "The admin-visible authentication token authorizes every bot API request and signs webhook payloads; it is not a connecting user's delegated grant." },
+      { "id": "viber_commercial_bot", "label": "Operate a commercial bot", "description": "New Viber bots require commercial approval, webhook operations, subscriber/anti-spam controls, and separate terms and billing decisions." },
+      { "id": "viber_business_messages", "label": "Use Business Messages", "description": "Phone-number messaging is available through official commercial partners and is not a self-service Relay account API." },
+      { "id": "viber_data_and_messages", "label": "Access Viber data or messaging", "description": "Account info, subscriber identifiers, profiles, messages, channels, webhooks, broadcasts, files, payments, and every read/write remain unavailable." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "viber_unavailable", "label": "Unavailable", "description": "No agent actions can be enabled without a supported delegated account contract or a separately approved commercial bot/partner product.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": [], "blockedActions": ["viber_connect_account", "viber_bot_token", "viber_commercial_bot", "viber_business_messages", "viber_data_and_messages"] }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "unsupported", "description": "No delegated Viber account contract is available to mount as OpenClaw tools." },
+    { "format": "hermes", "installSupport": "unsupported", "description": "No delegated Viber account contract is available to mount as Hermes tools." }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Viber uses a commercially approved bot's admin-owned application key, a single webhook, and subscriber opt-in rather than delegated account OAuth; Business Messages require an official partner relationship.",
+    "nextAction": "Do not request Viber credentials or show Connect. Reconsider after Viber publishes a distributable delegated account contract, or through a separate commercial bot/partner product decision covering terms, billing, spam, abuse, webhook ownership, and token rotation."
+  },
+  "evidence": [
+    { "url": "https://developers.viber.com/docs/api/rest-bot-api/", "checkedAt": "2026-07-17", "supports": "Viber documents commercial bot approval, one admin-visible authentication token in X-Viber-Auth-Token, one webhook, HMAC callback signatures using that same secret, and subscriber opt-in." },
+    { "url": "https://developers.viber.com/docs/all/", "checkedAt": "2026-07-17", "supports": "Viber documents non-expiring bot application keys, support-assisted replacement, commercial bot terms, and partner-delivered Business Messages rather than OAuth." },
+    { "url": "https://developers.viber.com/docs/general/glossary/", "checkedAt": "2026-07-17", "supports": "Viber defines the authentication token/application key as the bot's secret identifier visible to bot administrators." }
+  ]
+}

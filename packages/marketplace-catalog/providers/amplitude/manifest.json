@@ -1,0 +1,206 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "amplitude",
+  "name": "Amplitude",
+  "category": "developer",
+  "description": "Amplitude is a digital analytics platform for Events, users, sessions, charts, dashboards, Funnels, Retention, Cohorts, experiments, feature flags, and product insights.",
+  "agentUseSummary": "Enter one Analytics Project API/Secret Key pair and allowlisted default or EU Dashboard REST origin. Relay validates the project-bound pair while discarding visible Event data, then exposes only unsegmented daily active/new-user counts and average session length over explicit ranges of at most 31 days; users, identity, event names/properties, raw events, detailed reports, broader APIs, arbitrary queries, exports, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://amplitude.com/",
+    "docsUrl": "https://amplitude.com/docs/apis/analytics/dashboard-rest",
+    "developerConsoleUrl": "https://analytics.amplitude.com/",
+    "termsUrl": "https://amplitude.com/terms",
+    "privacyUrl": "https://amplitude.com/privacy"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_project_api_secret_key_pair",
+      "customer_supplied_data_residency_origin",
+      "exact_project_key_binding",
+      "manual_provider_key_rotation_and_revocation"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "AMPLITUDE_DASHBOARD_REST_ORIGIN",
+        "label": "Amplitude Dashboard REST origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter https://amplitude.com for the default region or https://analytics.eu.amplitude.com for EU data residency. Relay rejects the browser analytics host and every other origin."
+      },
+      {
+        "name": "AMPLITUDE_PROJECT_API_KEY",
+        "label": "Amplitude Project API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Enter the API key for the exact Analytics Project. Do not use an ingestion, Data, Experiment, Management, or organization token."
+      },
+      {
+        "name": "AMPLITUDE_PROJECT_SECRET_KEY",
+        "label": "Amplitude Project Secret key",
+        "required": true,
+        "secret": true,
+        "helpText": "Enter the matching one-time Project Secret key. Rotate or revoke the key pair in Amplitude Project settings."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "project_binding",
+      "label": "Project binding",
+      "description": "Validate one exact Project API/Secret Key pair and Dashboard REST region.",
+      "defaultSelected": true
+    },
+    {
+      "id": "user_aggregates",
+      "label": "User aggregates",
+      "description": "Read bounded unsegmented active/new-user aggregates.",
+      "defaultSelected": true
+    },
+    {
+      "id": "session_aggregates",
+      "label": "Session aggregates",
+      "description": "Read bounded unsegmented average-session aggregates.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "amplitude_project_binding_get",
+        "label": "Read Project-key binding",
+        "description": "Validate the exact Dashboard REST origin and Project API/Secret Key pair while discarding visible Event data."
+      },
+      {
+        "id": "amplitude_daily_users_get",
+        "label": "Read daily active or new users",
+        "description": "Read one unsegmented daily active/new-user aggregate series over an explicit range of at most 31 days."
+      },
+      {
+        "id": "amplitude_average_session_length_get",
+        "label": "Read average session length",
+        "description": "Read one unsegmented daily average-session-length series over an explicit range of at most 31 days."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "amplitude_identity_private",
+        "label": "Access users or identity",
+        "description": "User profiles, identifiers, properties, session replay, cohorts and membership, classified data, and person-level activity are outside V1."
+      },
+      {
+        "id": "amplitude_event_private",
+        "label": "Access events or detailed reports",
+        "description": "Event names/properties, raw events, charts, dashboards, funnels, retention, segmentation, breakdowns, annotations, and raw exports are outside V1."
+      },
+      {
+        "id": "amplitude_mutation",
+        "label": "Change Amplitude data",
+        "description": "Ingesting events, managing charts/cohorts/annotations, experiments, flags, data, users, keys, or any other mutation is outside V1."
+      },
+      {
+        "id": "amplitude_broader_api",
+        "label": "Access broader Amplitude APIs",
+        "description": "Data, Experiment, Management, ingestion, Profile, Privacy, SCIM, cohort-download, and organization APIs are outside V1."
+      },
+      {
+        "id": "amplitude_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary origins, paths, events, properties, segments, groups, formulas, charts, date ranges beyond 31 days, crawling, synchronization, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "amplitude_safe",
+      "label": "Safe",
+      "description": "Three bounded aggregate/binding reads run automatically; users, identity, events, detailed reports, broader APIs, arbitrary queries, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "amplitude_project_binding_get",
+        "amplitude_daily_users_get",
+        "amplitude_average_session_length_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "amplitude_identity_private",
+        "amplitude_event_private",
+        "amplitude_mutation",
+        "amplitude_broader_api",
+        "amplitude_raw_query"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact regional-origin and Project-key binding, fixed unsegmented queries, short date ranges, audit, redaction, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "amplitude_project_binding_get",
+        "amplitude_daily_users_get",
+        "amplitude_average_session_length_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "amplitude_identity_private",
+        "amplitude_event_private",
+        "amplitude_mutation",
+        "amplitude_broader_api",
+        "amplitude_raw_query"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Amplitude aggregate wrappers and attaches the encrypted Project key pair and validated Dashboard REST origin server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Amplitude aggregate wrappers and attaches the encrypted Project key pair and validated Dashboard REST origin server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer generates an Analytics Project API/Secret Key pair for the exact Project, records the one-time Secret Key, supplies the correct default/EU Dashboard REST origin, and rotates or revokes the key pair in Project settings."
+  },
+  "evidence": [
+    {
+      "url": "https://amplitude.com/docs/apis/keys-and-tokens",
+      "checkedAt": "2026-07-17",
+      "supports": "Amplitude documents Project API Keys as project identifiers and Secret Keys as server-side authentication for APIs that read or modify Project data, with rotation/revocation support."
+    },
+    {
+      "url": "https://amplitude.com/docs/apis/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Amplitude documents locating the exact Project API/Secret Keys and authenticating server-side Analytics API requests."
+    },
+    {
+      "url": "https://amplitude.com/docs/apis/analytics/dashboard-rest",
+      "checkedAt": "2026-07-17",
+      "supports": "Amplitude documents exact default/EU Dashboard REST origins, Basic authentication, Project rate limits, active/new-user and average-session endpoints, their date parameters, and aggregate response schemas."
+    },
+    {
+      "url": "https://amplitude.com/docs/apis/analytics/http-v2",
+      "checkedAt": "2026-07-17",
+      "supports": "Amplitude documents separate ingestion hosts and APIs; Relay does not accept ingestion credentials or expose ingestion operations."
+    }
+  ]
+}

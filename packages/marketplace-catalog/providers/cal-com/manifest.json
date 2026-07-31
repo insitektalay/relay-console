@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "cal-com",
+  "name": "Cal.com",
+  "category": "calendar",
+  "description": "Cal.com is open scheduling infrastructure for publishing availability, defining reusable event types and coordinating bookings across personal and team calendars. Individuals and organizations use it to offer scheduling links and manage upcoming meetings.",
+  "agentUseSummary": "Connect one Cal.com user through Relay-owned reviewed OAuth, then let selected agents inspect bounded upcoming Booking summaries and exact Event Type metadata without exposing attendees, locations, conferencing, answers, notes or owner data.",
+  "provider": {
+    "websiteUrl": "https://cal.com/",
+    "docsUrl": "https://cal.com/docs/api-reference/v2/oauth",
+    "developerConsoleUrl": "https://app.cal.com/settings/developer/oauth",
+    "termsUrl": "https://cal.com/terms",
+    "privacyUrl": "https://cal.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["PROFILE_READ", "EVENT_TYPE_READ", "BOOKING_READ"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.cal.com/auth/oauth2/authorize",
+    "tokenUrl": "https://api.cal.com/v2/auth/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_reviewed_oauth_app",
+      "confidential_authorization_code",
+      "exact_user_binding",
+      "thirty_minute_access_token",
+      "refresh_token_replacement_pair",
+      "local_disconnect_only",
+      "fixed_cal_com_api_origin"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/cal-com/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "scheduling_read",
+      "label": "Read scheduling metadata",
+      "description": "Read bounded Booking and Event Type summaries for the exact connected Cal.com user.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "cal_com_booking_list",
+        "label": "List upcoming bookings",
+        "description": "List at most twenty-five upcoming Booking summaries for the exact connected Cal.com user."
+      },
+      {
+        "id": "cal_com_booking_get",
+        "label": "Read a booking",
+        "description": "Read one exact Booking summary without attendee, location, conferencing or private response data."
+      },
+      {
+        "id": "cal_com_event_type_get",
+        "label": "Read an event type",
+        "description": "Read one exact Event Type summary without private notes, booking fields, locations or owner data."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "cal_com_safe",
+      "label": "Safe",
+      "description": "Every bounded Cal.com scheduling read requires approval; people, private meeting data, broader account access and writes are outside Relay's V1 surface.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "cal_com_booking_list",
+        "cal_com_booking_get",
+        "cal_com_event_type_get"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three selected bounded Cal.com reads run without Relay per-action approval; exact user binding, redaction, bounds, audits, provider scopes and Cal.com limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "cal_com_booking_list",
+        "cal_com_booking_get",
+        "cal_com_event_type_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed Cal.com read wrappers and attaches the encrypted OAuth token only to the fixed Cal.com API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed Cal.com read wrappers and attaches the encrypted OAuth token only to the fixed Cal.com API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "Cal.com must review the Relay-owned OAuth client, and staging credentials plus live consent validation require the separate provider-console task.",
+    "nextAction": "In the provider-console task, create the Cal.com OAuth client with Relay's exact HTTPS callback, request only PROFILE_READ EVENT_TYPE_READ BOOKING_READ, complete Cal.com review, store staging credentials, and validate exact-user binding, thirty-minute access-token expiry, refresh replacement, the three bounded redacted reads, local disconnect and post-disconnect denial. Do not claim upstream revocation because the cited OAuth contract does not document a revocation endpoint."
+  },
+  "evidence": [
+    {
+      "url": "https://cal.com/docs/api-reference/v2/oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Cal.com documents reviewed OAuth clients, confidential authorization-code exchange, exact authorization and token endpoints, thirty-minute access tokens, refresh tokens, client-secret rotation and GET /v2/me verification."
+    },
+    {
+      "url": "https://cal.com/docs/api-reference/v2/access-control",
+      "checkedAt": "2026-07-17",
+      "supports": "Cal.com documents endpoint-level OAuth scopes and recommends individual least-privilege scopes rather than broader team or organization access."
+    },
+    {
+      "url": "https://cal.com/docs/api-reference/v2/bookings/get-all-bookings",
+      "checkedAt": "2026-07-17",
+      "supports": "Cal.com documents BOOKING_READ, upcoming-status filtering, bounded limits, cursor pagination and the 2026-05-01 API version; Relay intentionally reads only the first bounded page."
+    },
+    {
+      "url": "https://cal.com/docs/api-reference/v2/bookings/get-a-booking",
+      "checkedAt": "2026-07-17",
+      "supports": "Cal.com documents exact Booking reads and response fields including attendees, locations, meeting URLs, answers and metadata that Relay deliberately strips."
+    },
+    {
+      "url": "https://cal.com/docs/api-reference/v2/event-types/get-an-event-type",
+      "checkedAt": "2026-07-17",
+      "supports": "Cal.com documents exact Event Type reads under EVENT_TYPE_READ and private locations, booking fields, notes and owner fields excluded from Relay's summary."
+    },
+    {
+      "url": "https://cal.com/docs/api-reference/v2/profile/get-my-profile",
+      "checkedAt": "2026-07-17",
+      "supports": "Cal.com documents PROFILE_READ and GET /v2/me, which Relay uses to bind every grant and refresh to the exact numeric user and validated username."
+    }
+  ]
+}

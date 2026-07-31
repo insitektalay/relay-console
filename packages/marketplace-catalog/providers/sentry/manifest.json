@@ -1,0 +1,230 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sentry",
+  "name": "Sentry",
+  "category": "developer",
+  "description": "Sentry is an application monitoring and debugging platform for production Issues, Events, Exceptions, Stacktraces, releases, performance, and operational telemetry.",
+  "agentUseSummary": "Connect with Relay's registered public device OAuth client and exact org:read, project:read, event:read, and event:write scopes. Relay exposes six curated wrappers for bounded Project and Issue triage, redacted Event debugging, local update preparation, and one approval-gated Issue workflow update; sensitive telemetry, broad export, bulk/destructive/admin operations, Seer, arbitrary API access, and raw MCP remain blocked.",
+  "provider": {
+    "websiteUrl": "https://sentry.io/",
+    "docsUrl": "https://docs.sentry.io/api/",
+    "developerConsoleUrl": "https://sentry.io/settings/account/api/applications/",
+    "termsUrl": "https://sentry.io/terms/",
+    "privacyUrl": "https://sentry.io/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["org:read", "project:read", "event:read", "event:write"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": null,
+    "deviceAuthorizationUrl": "https://sentry.io/oauth/device/code/",
+    "verificationUrl": "https://sentry.io/oauth/device/",
+    "tokenUrl": "https://sentry.io/oauth/token/",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_device_oauth",
+      "public_client_no_secret",
+      "organization_scoped_consent",
+      "refresh_token_rotation",
+      "saved_personal_token_migration_only"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "RELAY_SENTRY_OAUTH_CLIENT_ID",
+        "label": "Relay Sentry device OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway must contain the registered public Relay client ID. Device authorization uses no desktop secret or callback."
+      },
+      {
+        "name": "SENTRY_ORGANIZATION",
+        "label": "Consented Sentry Organization",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact Organization selected during consent and enforced by every Relay wrapper."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/sentry/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "issue_triage",
+      "label": "Issue triage",
+      "description": "Read bounded Projects, Issues, and redacted Events.",
+      "defaultSelected": true
+    },
+    {
+      "id": "issue_workflow",
+      "label": "Issue workflow",
+      "description": "Prepare and approval-gate one exact Issue workflow update.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "sentry_projects_list",
+        "label": "List Projects",
+        "description": "List at most 25 redacted Project summaries for the consented Organization."
+      },
+      {
+        "id": "sentry_issues_search",
+        "label": "Search Issues",
+        "description": "Search at most 25 Issues with bounded project, environment, query, period, and sort filters."
+      },
+      {
+        "id": "sentry_issue_read",
+        "label": "Read Issue",
+        "description": "Read one Issue with semantic workflow fields and a redacted latest Event summary."
+      },
+      {
+        "id": "sentry_event_read",
+        "label": "Read Event",
+        "description": "Read one Event with bounded message, Exception, Tag, and Stacktrace summaries."
+      },
+      {
+        "id": "sentry_issue_update_prepare",
+        "label": "Prepare Issue update",
+        "description": "Prepare one exact status, substatus, or priority update locally without changing Sentry."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "sentry_issue_update",
+        "label": "Update Issue workflow",
+        "description": "Apply one previously approved exact status, substatus, or priority update to one Issue."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "sentry_sensitive_export",
+        "label": "Export sensitive telemetry",
+        "description": "Broad Issue/Event export, raw request/user/context/breadcrumb data, attachments, logs, profiles, replays, and source files are outside V1."
+      },
+      {
+        "id": "sentry_bulk_destructive",
+        "label": "Bulk or delete Sentry data",
+        "description": "Bulk mutations and Issue, Event, snapshot, Project, or Organization deletion are outside V1."
+      },
+      {
+        "id": "sentry_artifact_admin",
+        "label": "Change artifacts or administration",
+        "description": "Releases, deploys, source maps, files, alerts, integrations, hooks, teams, members, projects, and organization administration are outside V1."
+      },
+      {
+        "id": "sentry_raw_mcp",
+        "label": "Use raw Sentry MCP or API",
+        "description": "Raw MCP, Seer/AI, arbitrary hosts, paths, queries, pagination, synchronization, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sentry_safe",
+      "label": "Safe",
+      "description": "Four bounded reads and local update preparation run automatically; an exact Issue workflow update requires Relay approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "sentry_projects_list",
+        "sentry_issues_search",
+        "sentry_issue_read",
+        "sentry_event_read",
+        "sentry_issue_update_prepare"
+      ],
+      "approvalRequiredActions": ["sentry_issue_update"],
+      "blockedActions": [
+        "sentry_sensitive_export",
+        "sentry_bulk_destructive",
+        "sentry_artifact_admin",
+        "sentry_raw_mcp"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same six curated wrappers run without per-action approval; bulk, destructive, sensitive, admin, arbitrary, and raw MCP access remain blocked.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "sentry_projects_list",
+        "sentry_issues_search",
+        "sentry_issue_read",
+        "sentry_event_read",
+        "sentry_issue_update_prepare",
+        "sentry_issue_update"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sentry_sensitive_export",
+        "sentry_bulk_destructive",
+        "sentry_artifact_admin",
+        "sentry_raw_mcp"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts six curated Sentry wrappers and attaches refreshed Organization-scoped OAuth access server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts six curated Sentry wrappers and attaches refreshed Organization-scoped OAuth access server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's public Sentry device OAuth client is not yet registered/configured, and no authorized Organization is available for consent, refresh, revocation, semantic-read, or Issue-update acceptance.",
+    "nextAction": "Register the public device client, set RELAY_SENTRY_OAUTH_CLIENT_ID on Railway, then complete one Organization consent, refresh/revocation, six-wrapper Safe/Dangerous acceptance, disconnect, and post-disconnect denial checks."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.sentry.io/api/auth/",
+      "checkedAt": "2026-07-17",
+      "supports": "Sentry documents RFC 8628 device authorization, a registered public client ID, organization-scoped consent, device and token endpoints, polling intervals/errors, access tokens, refresh tokens, and no callback requirement."
+    },
+    {
+      "url": "https://docs.sentry.io/api/permissions/",
+      "checkedAt": "2026-07-17",
+      "supports": "Sentry documents the granular organization, project, and event read/write permission families used by the exact four-scope V1 grant."
+    },
+    {
+      "url": "https://docs.sentry.io/api/organizations/list-an-organizations-projects/",
+      "checkedAt": "2026-07-17",
+      "supports": "Sentry documents Organization-scoped bounded Project listing."
+    },
+    {
+      "url": "https://docs.sentry.io/api/events/list-an-organizations-issues/",
+      "checkedAt": "2026-07-17",
+      "supports": "Sentry documents Organization Issue search with project, environment, query, period, sort, and result-limit filters."
+    },
+    {
+      "url": "https://docs.sentry.io/api/events/retrieve-an-issue/",
+      "checkedAt": "2026-07-17",
+      "supports": "Sentry documents one-Issue retrieval with basic stats and latest Event summary."
+    },
+    {
+      "url": "https://docs.sentry.io/api/events/retrieve-an-event-for-a-project/",
+      "checkedAt": "2026-07-17",
+      "supports": "Sentry documents retrieval of one Project Event for bounded debugging context."
+    },
+    {
+      "url": "https://docs.sentry.io/api/events/update-an-issue/",
+      "checkedAt": "2026-07-17",
+      "supports": "Sentry documents exact individual Issue workflow updates; Relay does not expose the bulk endpoint."
+    },
+    {
+      "url": "https://github.com/getsentry/sentry-mcp",
+      "checkedAt": "2026-07-17",
+      "supports": "Sentry publishes an official MCP implementation; Relay deliberately exposes only its six curated native REST wrappers."
+    }
+  ]
+}

@@ -1,0 +1,254 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "planview-agileplace",
+  "name": "Planview AgilePlace",
+  "category": "project_management",
+  "description": "Planview AgilePlace is an enterprise Kanban and lean work-management product for visualizing flow, coordinating delivery and improving how work moves across teams. Organizations use configurable boards, lanes, cards, connections and analytics to manage work from strategy through execution.",
+  "agentUseSummary": "Connect a customer-owned AgilePlace bearer token and exact tenant hostname. Selected agents can use seven bounded board and card actions under Safe or Dangerously skip permissions; descriptions, identities, attachments, administration, advanced fields, raw API access and bulk operations remain unavailable.",
+  "icon": {
+    "assetName": "marketplace-logo-planview-agileplace.png",
+    "sourceUrl": "https://www.planview.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://www.planview.com/products-solutions/products/agileplace/",
+    "docsUrl": "https://success.planview.com/Planview_AgilePlace/AgilePlace_API",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.planview.com/legal/",
+    "privacyUrl": "https://www.planview.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_bearer_token",
+      "dedicated_least_authority_user",
+      "fixed_tenant_hostname"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PLANVIEW_AGILEPLACE_API_TOKEN",
+        "label": "AgilePlace API token",
+        "required": true,
+        "secret": true,
+        "helpText": "A separate bearer token created by the intended least-authority AgilePlace user and revoked when Relay is disconnected."
+      },
+      {
+        "name": "PLANVIEW_AGILEPLACE_ACCOUNT_HOSTNAME",
+        "label": "AgilePlace account hostname",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact tenant hostname, such as example.leankit.com; Relay rejects every other host."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "board_read",
+      "label": "Read boards",
+      "description": "List bounded visible boards and inspect one exact board.",
+      "defaultSelected": true
+    },
+    {
+      "id": "card_read",
+      "label": "Read cards",
+      "description": "List and inspect bounded card metadata without descriptions or identities.",
+      "defaultSelected": true
+    },
+    {
+      "id": "card_write",
+      "label": "Manage cards",
+      "description": "Create minimal cards and version-check rename or deletion.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "planview_agileplace_boards_list",
+        "label": "List boards",
+        "description": "List at most twenty bounded board summaries visible to the token user."
+      },
+      {
+        "id": "planview_agileplace_board_get",
+        "label": "Read board",
+        "description": "Read bounded metadata for one exact AgilePlace board."
+      },
+      {
+        "id": "planview_agileplace_cards_list",
+        "label": "List cards",
+        "description": "List at most twenty metadata-only cards from one exact board."
+      },
+      {
+        "id": "planview_agileplace_card_get",
+        "label": "Read card",
+        "description": "Read bounded metadata for one exact AgilePlace card."
+      },
+      {
+        "id": "planview_agileplace_card_create",
+        "label": "Create card",
+        "description": "Create one minimal card with a bounded title on one exact board."
+      },
+      {
+        "id": "planview_agileplace_card_update",
+        "label": "Rename card",
+        "description": "Rename one exact card after its title and resource version both match."
+      },
+      {
+        "id": "planview_agileplace_card_delete",
+        "label": "Delete card",
+        "description": "Delete one exact card after its title and resource version both match."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "planview_agileplace_account_admin",
+        "label": "Administer account or users",
+        "description": "Account settings, users, teams, roles, invitations, SSO, SCIM, tokens and billing are unavailable."
+      },
+      {
+        "id": "planview_agileplace_board_admin",
+        "label": "Administer boards",
+        "description": "Board creation, deletion, archival, layout, roles, members, filters, templates and WIP settings are unavailable."
+      },
+      {
+        "id": "planview_agileplace_card_advanced",
+        "label": "Change advanced card data",
+        "description": "Descriptions, assignments, custom fields, links, tags, dates, type, lane, dependencies, connections and task cards are unavailable."
+      },
+      {
+        "id": "planview_agileplace_attachments_comments",
+        "label": "Change attachments or comments",
+        "description": "Attachment content and comment creation, update, deletion or export are unavailable."
+      },
+      {
+        "id": "planview_agileplace_automation_reporting",
+        "label": "Use automation or reporting APIs",
+        "description": "Automations, custom events, planning series, advanced reporting, OData and user provisioning are outside this connection."
+      },
+      {
+        "id": "planview_agileplace_raw_api",
+        "label": "Run arbitrary AgilePlace calls",
+        "description": "Agents cannot choose tenant origins, paths, query parameters, fields, JSON Patch operations or raw REST requests."
+      },
+      {
+        "id": "planview_agileplace_bulk_unbounded",
+        "label": "Run bulk or unbounded operations",
+        "description": "Bulk mutation, cross-board search, exports and responses above twenty rows or 256 KiB are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "planview_agileplace_safe",
+      "label": "Safe",
+      "description": "Private reads and every card mutation require approval. Tenant binding, token-user authority, bounds, field allowlists, version checks and audits always apply.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "planview_agileplace_boards_list",
+        "planview_agileplace_board_get",
+        "planview_agileplace_cards_list",
+        "planview_agileplace_card_get",
+        "planview_agileplace_card_create",
+        "planview_agileplace_card_update",
+        "planview_agileplace_card_delete"
+      ],
+      "blockedActions": [
+        "planview_agileplace_account_admin",
+        "planview_agileplace_board_admin",
+        "planview_agileplace_card_advanced",
+        "planview_agileplace_attachments_comments",
+        "planview_agileplace_automation_reporting",
+        "planview_agileplace_raw_api",
+        "planview_agileplace_bulk_unbounded"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All seven selected AgilePlace actions run without Relay per-action approval; tenant binding, token authority, bounds, field allowlists, version checks, redaction and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "planview_agileplace_boards_list",
+        "planview_agileplace_board_get",
+        "planview_agileplace_cards_list",
+        "planview_agileplace_card_get",
+        "planview_agileplace_card_create",
+        "planview_agileplace_card_update",
+        "planview_agileplace_card_delete"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "planview_agileplace_account_admin",
+        "planview_agileplace_board_admin",
+        "planview_agileplace_card_advanced",
+        "planview_agileplace_attachments_comments",
+        "planview_agileplace_automation_reporting",
+        "planview_agileplace_raw_api",
+        "planview_agileplace_bulk_unbounded"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway executes seven fixed AgilePlace API v2 actions at one validated tenant with bearer authentication, bounds, redaction and resource-version checks."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway executes seven fixed AgilePlace API v2 actions at one validated tenant with bearer authentication, bounds, redaction and resource-version checks."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "AgilePlace API access requires a customer account, a dedicated user with only the intended board roles and a separate non-expiring API token created in that user's My API Tokens profile tab.",
+    "nextAction": "In the provider-console acceptance task, use a synthetic tenant, create a dedicated least-authority user and separate token, connect the exact tenant hostname, verify the seven bounded tools and permission denials, then revoke the token."
+  },
+  "evidence": [
+    {
+      "url": "https://success.planview.com/Planview_AgilePlace/AgilePlace_API/01_v2/01-overview/core-concepts",
+      "checkedAt": "2026-07-18",
+      "supports": "The current official v2 core concepts document fixes the tenant API base at HTTPS /io, supports bearer tokens, and says tokens do not expire and should be revoked when unused."
+    },
+    {
+      "url": "https://success.planview.com/Planview_AgilePlace/AgilePlace_API/01_v2/01-overview/rate-limiting",
+      "checkedAt": "2026-07-18",
+      "supports": "Planview documents response rate-limit headers, 429 Retry-After handling, limited concurrency and incremental bounded reads."
+    },
+    {
+      "url": "https://success.planview.com/Planview_AgilePlace/AgilePlace_API/01_v2/card/list",
+      "checkedAt": "2026-07-18",
+      "supports": "The official card-list reference documents board filtering, offset and limit paging, field selection, search and page metadata."
+    },
+    {
+      "url": "https://success.planview.com/Planview_AgilePlace/AgilePlace_API/01_v2/card/create",
+      "checkedAt": "2026-07-18",
+      "supports": "The official create-card reference documents a minimal board destination and title request."
+    },
+    {
+      "url": "https://success.planview.com/Planview_AgilePlace/AgilePlace_API/01_v2/card/update",
+      "checkedAt": "2026-07-18",
+      "supports": "The official update-card reference documents JSON Patch and optimistic concurrency through the card version."
+    },
+    {
+      "url": "https://www.planview.com/products-solutions/products/agileplace/",
+      "checkedAt": "2026-07-18",
+      "supports": "Planview describes AgilePlace as enterprise Kanban and lean work management for visualizing work, improving flow and coordinating delivery."
+    }
+  ]
+}

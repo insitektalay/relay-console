@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "nimble",
+  "name": "Nimble",
+  "category": "developer",
+  "description": "Nimble is a relationship-focused CRM for contacts, companies, activities, deals, pipelines, messages, enrichment, and workflows.",
+  "agentUseSummary": "Connect a customer-owned Nimble API key, then let agents list only bounded projected contact-field metadata under approval. Relay excludes private presentation and validation logic, choices, actions, CRM/message data, writes, administration, exports, bulk operations, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.nimble.com/",
+    "docsUrl": "https://www.nimble.com/developers/docs/",
+    "developerConsoleUrl": "https://www.nimble.com/developers/docs/",
+    "termsUrl": "https://www.nimble.com/company/terms-of-service/",
+    "privacyUrl": "https://www.nimble.com/company/privacy/"
+  },
+  "authentication": {
+    "model": "customer_owned_api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_bearer_key",
+      "fixed_api_origin",
+      "fixed_contact_field_scope",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "NIMBLE_API_KEY",
+        "label": "Nimble API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated least-privilege API key and store it only through Relay's encrypted flow."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "contact_field_metadata",
+      "label": "List contact-field metadata",
+      "description": "List at most 100 tab/group/field names, contact types, field IDs, modifiers, cardinality, read-only state, and field kinds without private schema logic or CRM records.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "nimble_contact_fields_list",
+        "label": "List contact-field metadata",
+        "description": "List bounded projected contact-field metadata from Nimble."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "nimble_contact_deal_message_data",
+        "label": "Access CRM or message data",
+        "description": "Contacts, companies, tags, notes, activities, deals, pipelines, messages, drafts, and relationship data are blocked."
+      },
+      {
+        "id": "nimble_private_schema_logic",
+        "label": "Access private schema logic",
+        "description": "Presentation settings, validation rules, choices, possible actions, logos, IDs for layout containers, and full metadata are blocked."
+      },
+      {
+        "id": "nimble_mutation_administration",
+        "label": "Mutate or administer Nimble",
+        "description": "Creates, updates, deletes, imports, exports, enrichment, email drafts, fields, groups, tabs, choices, pipelines, and settings changes are blocked."
+      },
+      {
+        "id": "nimble_raw_bulk",
+        "label": "Use raw or bulk API access",
+        "description": "Arbitrary paths, searches, raw responses, bulk access, pagination, redirects, and retries are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "nimble_contact_field_metadata_safe",
+      "label": "Safe",
+      "description": "The bounded field-metadata read requires approval; CRM/message data, private schema logic, writes, administration, bulk, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["nimble_contact_fields_list"],
+      "blockedActions": [
+        "nimble_contact_deal_message_data",
+        "nimble_private_schema_logic",
+        "nimble_mutation_administration",
+        "nimble_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded metadata read runs without Relay per-action approval; fixed origin/path binding, projection, caps, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["nimble_contact_fields_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "nimble_contact_deal_message_data",
+        "nimble_private_schema_logic",
+        "nimble_mutation_administration",
+        "nimble_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned API key to Nimble's fixed API origin and a projected contact-field metadata wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned API key to Nimble's fixed API origin and a projected contact-field metadata wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Nimble administrator must enable API access, provision a dedicated least-privilege API key, and store it through Relay. No account, OAuth app, key, credential capture, consent, live request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized administrator provisions the least-privilege key, stores it through Relay, then verifies health, one approved metadata list, throttling, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.nimble.com/developers/docs/",
+      "checkedAt": "2026-07-17",
+      "supports": "Nimble documents Bearer authentication and GET /api/v1/contacts/fields returning tab, group, and field metadata including IDs, names, contact types, cardinality, read-only state, field types, validation, presentation, choices, and actions. Relay projects only the narrow identity/type subset."
+    },
+    {
+      "url": "https://support.nimble.com/en/articles/502755-nimble-api-access",
+      "checkedAt": "2026-07-17",
+      "supports": "Nimble documents API access with an Authorization Bearer API key and metadata API support. Relay encrypts the key, makes one fixed read, and blocks record and mutation surfaces."
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "cookiebot",
+  "name": "Cookiebot",
+  "category": "work_management",
+  "description": "Cookiebot CMP is Usercentrics' consent management platform for website cookie scanning, consent banners, cookie declarations, and consent documentation. Organizations use it to discover trackers, control prior consent, and monitor aggregate consent behavior.",
+  "agentUseSummary": "Connect one Cookiebot Domain Group and one selected domain with a customer-owned secret data-API key. Agents can inspect a fixed seven-day consent aggregate and redacted cookie-scan counts; visitor data, countries, tracker details, other domains, custom ranges, browser actions, writes, and raw API access are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.cookiebot.com/",
+    "docsUrl": "https://support.cookiebot.com/hc/en-us/sections/360001333773-Cookiebot-API",
+    "developerConsoleUrl": "https://manage.cookiebot.com/",
+    "termsUrl": "https://www.cookiebot.com/en/terms-of-service/",
+    "privacyUrl": "https://www.cookiebot.com/en/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "bound_domain_group",
+      "selected_domain"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "COOKIEBOT_API_KEY",
+        "label": "Cookiebot secret API key",
+        "required": true,
+        "secret": true,
+        "helpText": "The account API key from Cookiebot Manager. Relay encrypts it and uses it only in fixed data-API paths."
+      },
+      {
+        "name": "COOKIEBOT_DOMAIN_GROUP_ID",
+        "label": "Cookiebot Domain Group ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact UUID-form CBID/Domain Group ID Relay may inspect."
+      },
+      {
+        "name": "COOKIEBOT_DOMAIN",
+        "label": "Selected Cookiebot domain",
+        "required": true,
+        "secret": false,
+        "helpText": "The one registered hostname Relay may inspect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "cookiebot_consent_stats_get",
+      "label": "Read recent consent totals",
+      "description": "Read one domain's fixed seven-day consent aggregate without country or visitor data.",
+      "defaultSelected": true
+    },
+    {
+      "id": "cookiebot_cookie_scan_summary_get",
+      "label": "Read cookie scan totals",
+      "description": "Read one domain's aggregate cookie-scan counts without detailed tracker data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "cookiebot_consent_stats_get",
+        "label": "Read recent consent totals",
+        "description": "Read a fixed seven-day aggregate for one selected Cookiebot domain without country or visitor data."
+      },
+      {
+        "id": "cookiebot_cookie_scan_summary_get",
+        "label": "Read cookie scan totals",
+        "description": "Read aggregate cookie-scan counts for one selected domain without cookie names, values, providers, URLs, IPs, or source code."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "cookiebot_private_data",
+        "label": "Expose private consent or cookie data",
+        "description": "API keys, consent IDs, visitor data, country breakdowns, cookie names, values, providers, paths, URLs, IPs, and source code are excluded."
+      },
+      {
+        "id": "cookiebot_mutation",
+        "label": "Mutate Cookiebot state",
+        "description": "Banner actions, consent submission, withdrawal, renewal, settings, domains, scans, scripts, and consent logs are blocked."
+      },
+      {
+        "id": "cookiebot_broad_access",
+        "label": "Use broad Cookiebot access",
+        "description": "Other domain groups or domains, custom ranges, domain paths, raw endpoints, redirects, bulk export, and browser SDK execution are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "cookiebot_read_only",
+      "label": "Read Only",
+      "description": "Read two redacted aggregates for one selected domain; detailed data and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "cookiebot_consent_stats_get",
+        "cookiebot_cookie_scan_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "cookiebot_private_data",
+        "cookiebot_mutation",
+        "cookiebot_broad_access"
+      ]
+    },
+    {
+      "id": "cookiebot_no_access",
+      "label": "No Access",
+      "description": "Expose no Cookiebot actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "cookiebot_consent_stats_get",
+        "cookiebot_cookie_scan_summary_get",
+        "cookiebot_private_data",
+        "cookiebot_mutation",
+        "cookiebot_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted data-API key server-side and mounts exactly two selected-domain aggregate reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted data-API key server-side and mounts exactly two selected-domain aggregate reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A Cookiebot account with a secret data-API key, Domain Group ID, registered staging domain, and consent/scan data is required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "An authorized Cookiebot administrator must connect the encrypted key and one exact Domain Group/domain through Relay, then validate redaction, fixed dates, replacement, disconnect, post-disconnect denial, and both aggregate reads in Fairfax before live use."
+  },
+  "evidence": [
+    {
+      "url": "https://support.cookiebot.com/hc/en-us/sections/360001333773-Cookiebot-API",
+      "checkedAt": "2026-07-17",
+      "supports": "Cookiebot documents data API resources for consent statistics and cookie information."
+    },
+    {
+      "url": "https://support.cookiebot.com/hc/en-us/articles/4405045044882-Extracting-consent-data-via-API",
+      "checkedAt": "2026-07-17",
+      "supports": "Cookiebot documents the secret-key/domain-group/domain consent statistics endpoint, date limits, daily aggregates, and country breakdowns Relay removes."
+    },
+    {
+      "url": "https://support.cookiebot.com/hc/en-us/articles/360006346473-Extracting-cookie-information-via-API",
+      "checkedAt": "2026-07-17",
+      "supports": "Cookiebot documents the cookie information endpoint and detailed names, values, providers, URLs, IPs, and source fields that Relay reduces to counts."
+    },
+    {
+      "url": "https://support.cookiebot.com/hc/en-us/articles/4405643234194-Your-CBID-or-Domain-group-ID-and-where-to-find-it-in-your-Cookiebot-Admin",
+      "checkedAt": "2026-07-17",
+      "supports": "Cookiebot documents the UUID-form public CBID/Domain Group identifier used to bind one configuration."
+    },
+    {
+      "url": "https://www.cookiebot.com/us/developer/",
+      "checkedAt": "2026-07-17",
+      "supports": "Cookiebot documents its browser SDK and consent-changing methods, which Relay does not expose or execute."
+    }
+  ]
+}

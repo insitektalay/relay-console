@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "otter-ai", "name": "Otter.ai", "category": "communication",
+  "description": "Otter.ai is an AI meeting assistant that records, transcribes, summarizes, and organizes conversations. Individuals and teams use it to capture meetings, find decisions and action items, revisit full transcripts, and search knowledge across shared conversations.",
+  "agentUseSummary": "Connect an Otter.ai account once, then let agents identify the user, search authorized meetings, and fetch full transcripts through Otter's hosted OAuth MCP under Safe or Dangerous policy.",
+  "provider": { "websiteUrl": "https://otter.ai/", "docsUrl": "https://help.otter.ai/hc/en-us/articles/35287607569687-Otter-MCP-Server", "developerConsoleUrl": "https://otter.ai/.well-known/oauth-authorization-server", "termsUrl": "https://otter.ai/terms-of-service", "privacyUrl": "https://otter.ai/privacy-policy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["profile:read", "conversations:read"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://otter.ai/oauth2/authorize", "tokenUrl": "https://otter.ai/oauth/token", "revocationUrl": "https://otter.ai/oauth/revoke_token" },
+  "connection": { "types": ["relay_owned_oauth", "remote_mcp"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/otter-ai/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "identity", "label": "Identify the connected user", "description": "Read the name and email of the OAuth-authorized Otter user.", "defaultSelected": true },
+    { "id": "meeting_search", "label": "Search meetings", "description": "Search authorized Otter meetings and return bounded summaries and source references.", "defaultSelected": true },
+    { "id": "transcript_read", "label": "Read transcripts", "description": "Fetch a full transcript for an authorized meeting or conversation.", "defaultSelected": true }
+  ],
+  "actions": { "allowed": [
+    { "id": "otter_get_user_info", "label": "Read user profile", "description": "Read the connected user's name and email." },
+    { "id": "otter_search", "label": "Search meetings", "description": "Search authorized meetings with a bounded query." },
+    { "id": "otter_fetch", "label": "Fetch transcript", "description": "Fetch the transcript for one authorized Otter conversation." }
+  ], "approvalRequired": [], "blocked": [] },
+  "approvalProfiles": [
+    { "id": "otter_ai_safe", "label": "Safe", "description": "Identity, bounded meeting search, and transcript retrieval run directly; Otter's hosted MCP exposes no mutation tools.", "defaultSelected": true, "allowedActions": ["otter_get_user_info", "otter_search", "otter_fetch"], "approvalRequiredActions": [], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected OAuth-authorized Otter MCP operation runs without Relay per-action approval; ownership, OAuth scopes, meeting sharing, exact tool allowlists, live schemas, bounds, audits, redaction, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["otter_get_user_info", "otter_search", "otter_fetch"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "medium",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts three typed Otter wrappers and proxies refreshed OAuth to the hosted MCP." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts three typed Otter wrappers and proxies refreshed OAuth to the hosted MCP." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "configured", "blocker": "Relay's dynamically registered public PKCE client, scopes, and exact Railway callback are configured, but no signed-in Otter user was available to complete production OAuth and MCP acceptance.", "nextAction": "An Otter user clicks Connect, authorizes profile and conversation reads, then Relay verifies refresh, identity, bounded search, transcript fetch, disconnect, upstream revocation, and post-disconnect denial." },
+  "evidence": [
+    { "url": "https://help.otter.ai/hc/en-us/articles/35287607569687-Otter-MCP-Server", "checkedAt": "2026-07-14", "supports": "Otter documents its hosted MCP at https://mcp.otter.ai/mcp, OAuth connection for custom AI tools, granular meeting authorization, and exactly three tools: get user info, search, and fetch." },
+    { "url": "https://mcp.otter.ai/.well-known/oauth-protected-resource", "checkedAt": "2026-07-14", "supports": "Otter publishes the MCP resource, authorization server, Bearer transport, and profile:read plus conversations:read scopes." },
+    { "url": "https://otter.ai/.well-known/oauth-authorization-server", "checkedAt": "2026-07-14", "supports": "Otter publishes authorization, token, revocation, introspection, and dynamic-registration endpoints with authorization-code, refresh-token, S256 PKCE, and public-client support." },
+    { "url": "https://help.otter.ai/hc/en-us/articles/36130822688279-Otter-ai-Public-API", "checkedAt": "2026-07-14", "supports": "Otter's separate REST API is Enterprise-only and uses customer-owned Bearer keys; Relay prefers the supported one-click hosted MCP OAuth route rather than requiring an Enterprise plan." }
+  ]
+}

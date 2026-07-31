@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "coda",
+  "name": "Coda",
+  "category": "knowledge_documents",
+  "description": "Coda is a collaborative workspace that combines documents, relational tables, formulas, views, buttons, and automations. Teams use it to plan projects, track operations, build lightweight workflows, and keep structured information beside written context.",
+  "agentUseSummary": "Add a personal Coda API token once, then choose which agents may find docs and pages, read tables and rows, prepare row changes, and insert or update individual rows under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://coda.io/",
+    "docsUrl": "https://coda.io/developers/apis/v1",
+    "developerConsoleUrl": "https://coda.io/account",
+    "termsUrl": "https://coda.io/terms",
+    "privacyUrl": "https://coda.io/trust/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false
+  },
+  "connection": {
+    "types": ["personal_access_token", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "CODA_API_TOKEN",
+        "label": "Coda API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a personal API token in Coda account settings with only the access you want Relay to use."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "doc_read", "label": "Find docs and pages", "description": "List authorized docs and inspect explicit doc and page metadata.", "defaultSelected": true },
+    { "id": "table_read", "label": "Read tables and rows", "description": "Inspect table structure and read bounded rows from explicit tables or views.", "defaultSelected": true },
+    { "id": "row_draft", "label": "Prepare row changes", "description": "Prepare exact single-row inserts or updates locally before execution.", "defaultSelected": true },
+    { "id": "row_write", "label": "Insert and update rows", "description": "Insert one row or update bounded cells on one explicit row.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "coda_doc_list", "label": "List docs", "description": "List one bounded page of docs visible to the connected Coda user." },
+      { "id": "coda_doc_get", "label": "Read doc", "description": "Read metadata for one explicit doc." },
+      { "id": "coda_page_list", "label": "List pages", "description": "List one bounded page of pages in an explicit doc." },
+      { "id": "coda_table_list", "label": "List tables", "description": "List one bounded page of tables and views in an explicit doc." },
+      { "id": "coda_row_list", "label": "List rows", "description": "List one bounded first page of rows from an explicit table or view." },
+      { "id": "coda_row_get", "label": "Read row", "description": "Read one explicit row from an explicit table or view." },
+      { "id": "coda_mutation_status", "label": "Check change status", "description": "Check one recent Coda asynchronous mutation request." },
+      { "id": "coda_row_prepare", "label": "Prepare row change", "description": "Prepare and hash one row insert or update locally without changing Coda." }
+    ],
+    "approvalRequired": [
+      { "id": "coda_row_insert", "label": "Insert row", "description": "Insert one row into an explicit base table; Safe mode requires approval." },
+      { "id": "coda_row_update", "label": "Update row", "description": "Update bounded cells on one explicit row; Safe mode requires approval." }
+    ],
+    "blocked": [
+      { "id": "coda_destructive", "label": "Delete Coda content", "description": "Deleting docs, pages, page content, rows, or permissions is outside V1." },
+      { "id": "coda_admin", "label": "Change sharing or structure", "description": "Creating docs, pages, folders, permissions, publishing, schema, formulas, controls, automations, and webhooks is outside V1." },
+      { "id": "coda_unbounded", "label": "Run broad or raw API requests", "description": "Automatic pagination, bulk writes, upserts, exports, analytics, agent-supplied row queries, and arbitrary API requests are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "coda_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local drafts run directly; each Coda row write requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["coda_doc_list", "coda_doc_get", "coda_page_list", "coda_table_list", "coda_row_list", "coda_row_get", "coda_mutation_status", "coda_row_prepare"],
+      "approvalRequiredActions": ["coda_row_insert", "coda_row_update"],
+      "blockedActions": ["coda_destructive", "coda_admin", "coda_unbounded"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Coda operation supported by this connector runs without Relay per-action approval; connection ownership, token scope, bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["coda_doc_list", "coda_doc_get", "coda_page_list", "coda_table_list", "coda_row_list", "coda_row_get", "coda_mutation_status", "coda_row_prepare", "coda_row_insert", "coda_row_update"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["coda_destructive", "coda_admin", "coda_unbounded"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts ten typed Coda tools and attaches the user's encrypted API token server-side without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts ten typed Coda tools and attaches the user's encrypted API token server-side without exposing it to the agent." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No customer Coda account or personal API token was supplied for production action verification.",
+    "nextAction": "The user creates a least-privilege token in Coda account settings, connects it in Relay, then Relay runs whoami, bounded reads, Safe denial and approval, Dangerous single-row writes, token revocation, and disconnect checks."
+  },
+  "evidence": [
+    { "url": "https://coda.io/developers/apis/v1", "checkedAt": "2026-07-16", "supports": "The current Superhuman Docs API documents the fixed https://coda.io/apis/v1 origin, bearer-token authentication, bounded list pagination, token-owner permissions, rate limits, asynchronous row mutations, and mutation status." },
+    { "url": "https://help.coda.io/hc/en-us/articles/44722661982989-Connect-to-the-Coda-MCP", "checkedAt": "2026-07-16", "supports": "Coda's current supported-client matrix documents personal access tokens for OpenAI Codex and most custom MCP clients, with user-selected read, write, or read-and-write access." },
+    { "url": "https://coda.io/packs/build/latest/samples/topic/authentication/", "checkedAt": "2026-07-16", "supports": "Coda's official SDK samples document per-user Coda API tokens sent as bearer credentials and stored/applied by the host rather than exposed to extension code." }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "yelp-fusion",
+  "name": "Yelp Fusion",
+  "category": "search_research",
+  "description": "Yelp Fusion, now documented as Yelp Places API, provides local-business search and matching, business details, hours, photos, ratings, prices, transactions, review excerpts, highlights, autocomplete, and related local content.",
+  "agentUseSummary": "Yelp Fusion cannot yet be used through Relay. Yelp offers a self-service private API key and paid plans, but its standard license is narrow, revocable, non-transferable, consumer-facing, and subject to strict attribution, display, launch, caching, and commercial-use rules. Relay needs Yelp's written approval or enterprise license for its multi-client agent presentation and a Relay-owned production app before any business data is exposed.",
+  "provider": {
+    "websiteUrl": "https://www.yelp.com/",
+    "docsUrl": "https://docs.developer.yelp.com/docs/places-intro",
+    "developerConsoleUrl": "https://www.yelp.com/developers/v3/manage_app",
+    "termsUrl": "https://terms.yelp.com/developers/api_terms/20250113_en_us/",
+    "privacyUrl": "https://terms.yelp.com/privacy/en_us/20250129_en_us/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_places_app",
+      "relay_owned_private_api_key",
+      "paid_subscription_or_enterprise_license",
+      "provider_approval_for_agent_presentation",
+      "no_customer_credentials"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "business_search",
+      "label": "Search local businesses",
+      "description": "After licensing acceptance, search and autocomplete Yelp businesses by query, category, location, price, phone, transaction, or other provider-approved filters.",
+      "defaultSelected": true
+    },
+    {
+      "id": "business_details",
+      "label": "Read business details",
+      "description": "After licensing acceptance, read bounded business identity, address, phone, URL, categories, hours, photos, price, rating, transaction, and service-offering fields with required Yelp attribution and links.",
+      "defaultSelected": true
+    },
+    {
+      "id": "review_excerpts",
+      "label": "Read review excerpts",
+      "description": "After licensing acceptance, return only the provider-approved review excerpts or highlights with exact Yelp attribution and retention controls.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "yelp_fusion_connect_before_license",
+        "label": "Use Yelp before licensing approval",
+        "description": "Relay has no accepted commercial or enterprise use contract, production app, paid plan, approved multi-client agent presentation, or configured Railway key."
+      },
+      {
+        "id": "yelp_fusion_search_before_license",
+        "label": "Search Yelp businesses",
+        "description": "Autocomplete, search, match, phone, transaction, event, category and other discovery calls remain unavailable before licensing acceptance."
+      },
+      {
+        "id": "yelp_fusion_content_before_license",
+        "label": "Read Yelp content",
+        "description": "Business details, photos, ratings, prices, hours, review excerpts, highlights, service offerings, engagement metrics, and AI answers remain unavailable before licensing acceptance."
+      },
+      {
+        "id": "yelp_fusion_license_violations",
+        "label": "Store, blend, or misattribute Yelp content",
+        "description": "Storage beyond the approved window, bulk download, database creation, rating aggregation with competitors, missing attribution or Yelp links, redistribution, and unapproved commercial or nonvisual presentation are blocked."
+      },
+      {
+        "id": "yelp_fusion_raw_partner_actions",
+        "label": "Use raw or partner APIs",
+        "description": "Arbitrary endpoints, raw responses, Partner APIs, reservations, ordering, business-owner mutations, conversions, scraped Yelp pages, and customer-supplied API keys are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "yelp_fusion_provider_review",
+      "label": "Provider review pending",
+      "description": "No Yelp action is enabled until Yelp approves Relay's commercial multi-client agent use and exact attribution, display, caching, deletion, quota, and distribution contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "yelp_fusion_connect_before_license",
+        "yelp_fusion_search_before_license",
+        "yelp_fusion_content_before_license",
+        "yelp_fusion_license_violations",
+        "yelp_fusion_raw_partner_actions"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount licensed bounded Yelp Places tools after written provider approval; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount licensed bounded Yelp Places tools after written provider approval; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Yelp Places authenticates with a private app API key and currently uses trial and paid subscription plans. Yelp's standard API terms grant a revocable, non-sublicensable and non-transferable consumer-facing license, prohibit public launch during trial, restrict caching to 24 hours and bulk storage, and impose attribution and display requirements. Yelp directs commercial consumer products to its Enterprise application and requires case-by-case approval for presentation that cannot follow standard visual display requirements. Relay has no written approval for its multi-client agent use, production app, subscription, enterprise terms, or configured key.",
+    "nextAction": "The exclusive provider-console and commercial-acceptance task should submit Relay's exact agent use, clients, pricing, attribution rendering, Yelp-link behavior, result bounds, accessibility and voice behavior, cache and deletion architecture, expected call volume, and prohibition on rating blending to Yelp Places Enterprise or api@yelp.com. After written approval, create the single Relay-owned app, select the approved paid plan, store the private key only in Railway, implement the licensed endpoint allowlist and attribution envelope, and verify quota headers, 429 handling, 24-hour deletion, termination deletion, result redaction, audit evidence, and denial of raw or Partner APIs before enabling the provider."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.developer.yelp.com/docs/places-intro",
+      "checkedAt": "2026-07-17",
+      "supports": "Yelp documents the Places API at api.yelp.com/v3, private-key authentication, self-service app creation, paid plan selection, local business search and details, review excerpts and highlights, and an Enterprise application for commercial consumer products."
+    },
+    {
+      "url": "https://terms.yelp.com/developers/api_terms/20250113_en_us/",
+      "checkedAt": "2026-07-17",
+      "supports": "Yelp's API terms restrict the standard license to revocable, non-sublicensable and non-transferable consumer-facing use, prohibit public trial launches, limit storage to 24 hours except business IDs, prohibit bulk download and competing-rating blends, require destruction on termination, and impose paid quotas and fees."
+    },
+    {
+      "url": "https://terms.yelp.com/developers/display_requirements/",
+      "checkedAt": "2026-07-17",
+      "supports": "Yelp requires conspicuous attribution and Yelp links, prohibits blending Yelp ratings with other sources, and requires explicit case-by-case approval for uses such as nonvisual presentation that cannot satisfy the standard display contract."
+    },
+    {
+      "url": "https://docs.developer.yelp.com/docs/places-rate-limiting",
+      "checkedAt": "2026-07-17",
+      "supports": "Yelp documents QPS and daily limits, 429 responses, a 300-request daily Starter limit, quota headers, and provider review of higher-volume integration mockups."
+    },
+    {
+      "url": "https://docs.developer.yelp.com/docs/getting-started",
+      "checkedAt": "2026-07-17",
+      "supports": "Yelp distinguishes self-service Places from restricted Partner APIs and warns not to call an API without separate rights and credentials."
+    }
+  ]
+}

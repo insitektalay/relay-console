@@ -1,0 +1,174 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "keap-max-classic",
+  "name": "Keap Max Classic",
+  "category": "crm_support",
+  "description": "Keap Max Classic is the legacy Infusionsoft experience for CRM, marketing automation, ecommerce, appointments, tasks, notes, campaigns, and contact management. Keap's REST API exposes Max Classic-specific objects through the Infusionsoft API origin for customers that still run that product line.",
+  "agentUseSummary": "Connect Keap Max Classic through OAuth, then choose which agents can read CRM and commerce data or manage selected records, campaign membership, tags, tasks, notes, products, and related resources under Safe or Dangerous policy. Relay excludes raw XML-RPC, arbitrary URLs, private application endpoints, imports, exports, automatic pagination, provider-console setup, and direct PAT or service-account-key collection.",
+  "provider": {
+    "websiteUrl": "https://keap.com/infusionsoft-is-now-keap",
+    "docsUrl": "https://developer.keap.com/docs/rest/",
+    "developerConsoleUrl": "https://developer.infusionsoft.com/",
+    "termsUrl": "https://keap.com/legal",
+    "privacyUrl": "https://keap.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": ["full"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://signin.infusionsoft.com/app/oauth/authorize",
+    "tokenUrl": "https://api.infusionsoft.com/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_registered_keap_oauth_app",
+      "oauth2_authorization_code",
+      "expiring_access_token",
+      "refresh_token",
+      "fixed_infusionsoft_api_origin",
+      "max_classic_legacy_objects"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/keap-max-classic/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crm_read",
+      "label": "Read CRM and commerce",
+      "description": "Read bounded Keap Max Classic account, contact, company, opportunity, appointment, task, note, campaign, product, order, user, tag, and locale data.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crm_manage",
+      "label": "Manage CRM and automation",
+      "description": "Use documented Keap Max Classic mutations for selected contacts, companies, opportunities, appointments, tasks, notes, products, campaign goals and sequences, tags, and related records.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "keap_max_classic_api_read",
+        "label": "Read Keap Max Classic",
+        "description": "Read one exact documented Keap REST v1 endpoint with bounded query parameters."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "keap_max_classic_api_manage",
+        "label": "Manage Keap Max Classic",
+        "description": "Run one exact documented mutation for CRM, campaign, ecommerce, task, note, tag, or related data."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "keap_max_classic_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth client secrets, access tokens, refresh tokens, personal access tokens, service account keys, and credential-shaped fields never enter agent-visible requests or results."
+      },
+      {
+        "id": "keap_max_classic_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every request stays on Keap's documented https://api.infusionsoft.com origin."
+      },
+      {
+        "id": "keap_max_classic_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only pinned Keap REST v1 routes and blocks raw URLs, private application endpoints, XML-RPC, bulk imports, exports, API-key administration, and arbitrary API access."
+      },
+      {
+        "id": "keap_max_classic_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds pages, page sizes, query fields, arrays, bodies, responses, redirects, nesting, and execution time and never follows pagination automatically."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "keap_max_classic_safe",
+      "label": "Safe",
+      "description": "Documented bounded reads run directly. Every CRM, campaign, ecommerce, automation, communication, and deletion mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["keap_max_classic_api_read"],
+      "approvalRequiredActions": ["keap_max_classic_api_manage"],
+      "blockedActions": [
+        "keap_max_classic_secret_exposure",
+        "keap_max_classic_unofficial_origin",
+        "keap_max_classic_unsupported_endpoint",
+        "keap_max_classic_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every pinned REST operation authorized by the connected Keap user runs without Relay per-action approval. Connection ownership, OAuth grant, Max Classic plan and user authority, exact routes, bounds, redaction, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "keap_max_classic_api_read",
+        "keap_max_classic_api_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "keap_max_classic_secret_exposure",
+        "keap_max_classic_unofficial_origin",
+        "keap_max_classic_unsupported_endpoint",
+        "keap_max_classic_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the bounded Keap Max Classic REST read and management wrappers with encrypted OAuth credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the bounded Keap Max Classic REST read and management wrappers with encrypted OAuth credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay has not created a Keap developer app, configured the exact Relay callback, stored KEAP_MAX_CLASSIC_CLIENT_ID and KEAP_MAX_CLASSIC_CLIENT_SECRET on Railway staging, authorized a representative Max Classic account, or completed live acceptance. Keap's help center says third-party integrations should use OAuth2 rather than service account keys.",
+    "nextAction": "In the provider-console task, create the Keap developer app with https://api.relayconsole.work/api/v1/marketplace/oauth/keap-max-classic/callback, configure staging client credentials, authorize a representative Max Classic account, then verify OAuth state and token exchange, refresh behavior, account profile binding, representative reads, Safe approvals, Dangerous mutations, campaign-goal effects, page and limit bounds, XML-RPC/import/export denial, 429 handling, audit redaction, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.keap.com/docs/rest/",
+      "checkedAt": "2026-07-18",
+      "supports": "Keap publishes REST API documentation for the fixed api.infusionsoft.com origin, OAuth authorization, account profile, contacts, companies, opportunities, tasks, notes, products, orders, campaigns, appointments, users, locales, and Max Classic-specific objects."
+    },
+    {
+      "url": "https://help.infusionsoft.com/hc/en-us/articles/44637898916493-Create-API-Keys-for-Third-Party-Integrations",
+      "checkedAt": "2026-07-18",
+      "supports": "Keap documents Max Classic API settings, personal access tokens, service account keys, fixed PAT/SAK limits, and states that third-party integrations should use OAuth2 access-code flow."
+    },
+    {
+      "url": "https://help.infusionsoft.com/hc/en-us/articles/44732507846797-OAuth-Authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Keap Max Classic help documents the OAuth process through developer.infusionsoft.com and signin.infusionsoft.com for API integrations."
+    },
+    {
+      "url": "https://keap.com/infusionsoft-is-now-keap",
+      "checkedAt": "2026-07-18",
+      "supports": "Keap explains the Infusionsoft rebrand and product line relationship between Keap and the legacy Infusionsoft software."
+    },
+    {
+      "url": "https://keap.com/legal",
+      "checkedAt": "2026-07-18",
+      "supports": "Keap publishes legal terms governing customer use of its services and integrations."
+    },
+    {
+      "url": "https://keap.com/legal/privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "Keap's privacy policy covers personal information handling for its services."
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "unbounce",
+  "name": "Unbounce",
+  "category": "crm_support",
+  "description": "Unbounce is a landing-page and conversion-intelligence platform for pages, pop-ups, sticky bars, forms, leads, experiments, integrations, and campaign workflows.",
+  "agentUseSummary": "Add a customer-owned Unbounce API key, then let selected agents list up to 100 accessible page IDs, names, publication states, and domains. Relay pins API v0.4 and GET /pages?limit=100, strips metadata and integrations, and blocks leads, form fields, users, accounts, clients, domains, page groups, stats, arbitrary API access, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://unbounce.com/",
+    "docsUrl": "https://developer.unbounce.com/",
+    "developerConsoleUrl": "https://app.unbounce.com/",
+    "termsUrl": "https://unbounce.com/terms-of-service/",
+    "privacyUrl": "https://unbounce.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "http_basic_api_key",
+      "account_administrator_authority"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "UNBOUNCE_API_KEY",
+        "label": "Unbounce API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a customer-owned Unbounce API key; Relay encrypts it server-side and uses it only as the HTTP Basic username with an empty password."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "unbounce_read",
+      "label": "List pages",
+      "description": "Use only GET /pages with limit 100 and return minimized page IDs, names, states, and domains.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "unbounce_read",
+        "label": "List Unbounce pages",
+        "description": "List up to 100 accessible page IDs, names, publication states, and domains without leads, form fields, integrations, stats, or writes."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "unbounce_manage",
+        "label": "Change Unbounce",
+        "description": "Publishing, lead creation or deletion, page changes, integration changes, and every other mutation are blocked."
+      },
+      {
+        "id": "unbounce_sensitive_data",
+        "label": "Read leads or user data",
+        "description": "Leads, form submissions, IP addresses, form fields, user profiles, and related personal data are blocked."
+      },
+      {
+        "id": "unbounce_arbitrary_api",
+        "label": "Use arbitrary API access",
+        "description": "Accounts, clients, domains, page groups, stats, metadata links, pagination controls, arbitrary routes, and custom arguments are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "unbounce_safe",
+      "label": "Safe",
+      "description": "One bounded page-directory read runs directly. Leads, form fields, users, accounts, clients, domains, groups, stats, integrations, arbitrary API access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["unbounce_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "unbounce_manage",
+        "unbounce_sensitive_data",
+        "unbounce_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized page-directory tool through the encrypted customer-owned Unbounce API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized page-directory tool through the encrypted customer-owned Unbounce API key."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer Unbounce account, administrator-approved API access, active API key, representative page fixture, account-permission matrix, or key-rotation procedure is available in this workspace.",
+    "nextAction": "An Unbounce administrator requests API access if needed, creates or rotates an API key, saves it through Relay Console, then verifies minimized page listing, the administrator-wide permission boundary, rate limiting, agent assignment, credential replacement, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.unbounce.com/getting_started/",
+      "checkedAt": "2026-07-17",
+      "supports": "Unbounce documents API-key HTTP Basic authentication with the key as username and an empty password, mandatory HTTPS, API v0.4 media type, administrator-equivalent key permissions, a 500 requests-per-minute limit, and conventional status codes."
+    },
+    {
+      "url": "https://developer.unbounce.com/api_reference/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official API reference documents authenticated GET /pages, a limit parameter with maximum 1000, and page fields including id, name, state, domain, integrations, metadata, and related lead routes; Relay selects and minimizes only the page directory."
+    }
+  ]
+}

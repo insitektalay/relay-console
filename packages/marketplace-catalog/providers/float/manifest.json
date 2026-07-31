@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "float",
+  "name": "Float",
+  "category": "work_management",
+  "description": "Float is resource-management and project-planning software for delivery teams. Organizations use it to schedule people, forecast capacity, plan project work, manage time off, track estimates and actual time, monitor utilization, budgets, rates, and profitability, and understand who is working on what.",
+  "agentUseSummary": "Float offers a read-only hosted MCP connection with one-click OAuth and team selection, but it currently accepts only approved client providers and redirect patterns. Relay will enable Connect after Float approves Relay Console and the production callback.",
+  "provider": {
+    "websiteUrl": "https://www.float.com/",
+    "docsUrl": "https://support.float.com/en/articles/12688168-float-mcp-beta",
+    "developerConsoleUrl": "https://mcp.float.com/.well-known/oauth-authorization-server",
+    "termsUrl": "https://www.float.com/terms",
+    "privacyUrl": "https://www.float.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["basic"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://mcp.float.com/authorize",
+    "tokenUrl": "https://mcp.float.com/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp", "provider_approval_required"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/float/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "resource_planning_read",
+      "label": "Read resource plans and schedules",
+      "description": "After provider approval, read the team, people, projects, schedules, allocations, time off, capacity, utilization, logged time, budgets, and other insights exposed by Float's hosted MCP server.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "float_connect_before_approval",
+        "label": "Connect before provider approval",
+        "description": "Float documents an approved-provider and redirect-pattern allowlist; Relay is not yet listed as an approved MCP client provider."
+      },
+      {
+        "id": "float_mcp_read_before_approval",
+        "label": "Read Float before provider approval",
+        "description": "No Float MCP tool is callable until Float approves Relay's production client and exact callback pattern and a representative team completes authorization."
+      },
+      {
+        "id": "float_use_api_key_fallback",
+        "label": "Use a broad API key fallback",
+        "description": "Relay will not replace Float's one-click, team-selected, short-lived read-only OAuth grant with an account-owner API key that can access or change the broader REST API surface."
+      },
+      {
+        "id": "float_mcp_write",
+        "label": "Change Float through MCP",
+        "description": "Float's hosted MCP beta is documented as read-only, so Relay does not advertise or manufacture mutation tools for this connection."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "float_provider_review",
+      "label": "Provider review pending",
+      "description": "Agent reads remain unavailable until Float approves Relay Console as an MCP client provider and permits the production callback. The hosted MCP is read-only, so Safe and Dangerous policy will expose the same provider-supported read surface after approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "float_connect_before_approval",
+        "float_mcp_read_before_approval",
+        "float_use_api_key_fallback",
+        "float_mcp_write"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "After Float approves Relay, Railway can mount bounded read tools from Float's fixed hosted MCP resource; no OpenClaw tools are callable while provider review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "After Float approves Relay, Railway can mount bounded read tools from Float's fixed hosted MCP resource; no Hermes tools are callable while provider review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Float publishes a standards-based OAuth authorization server, dynamic client-registration endpoint, confidential-client token authentication, S256 PKCE, refresh tokens, and a read-only hosted MCP resource. Its product documentation also says only approved providers and redirect URI patterns are accepted, identifies the approved providers, and warns that unknown clients can fail with an invalid_request redirect mismatch. Relay Console and api.relayconsole.work are not currently listed.",
+    "nextAction": "Contact Float support and request approval for Relay Console as a hosted-MCP client provider, including https://api.relayconsole.work/api/v1/marketplace/oauth/float/callback. After approval, dynamically register Relay, store the client ID and secret only in Railway, deploy the bounded read-only MCP broker, and verify team selection, token refresh, all live read tools, result bounds, redaction, disconnect, revocation, and post-disconnect denial with a representative Float Account Owner or Admin."
+  },
+  "evidence": [
+    {
+      "url": "https://support.float.com/en/articles/12688168-float-mcp-beta",
+      "checkedAt": "2026-07-15",
+      "supports": "Float documents its hosted MCP beta at https://mcp.float.com/mcp as read-only, OAuth-authenticated, team-selected, restricted to Account Owners and Admins, rate-limited to 200 requests per minute, and available only to approved providers and redirect URI patterns."
+    },
+    {
+      "url": "https://mcp.float.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-15",
+      "supports": "Float publishes authorization, token, and dynamic-registration endpoints with authorization-code and refresh grants, S256 PKCE, confidential-client authentication, and the basic scope."
+    },
+    {
+      "url": "https://mcp.float.com/.well-known/oauth-protected-resource/mcp",
+      "checkedAt": "2026-07-15",
+      "supports": "Float publishes the exact hosted MCP resource, Bearer authentication, authorization server, and basic scope."
+    },
+    {
+      "url": "https://support.float.com/en/articles/13683370-float-mcp-beta-prompt-guide",
+      "checkedAt": "2026-07-15",
+      "supports": "Float describes the hosted MCP as a read-only interface for capacity, utilization, workload, schedule, project, team, and time-off questions."
+    },
+    {
+      "url": "https://developer.float.com/overview_authentication.html",
+      "checkedAt": "2026-07-15",
+      "supports": "Float's broader REST API uses an account-owner Bearer API key, requires an identifying User-Agent, and applies per-company and burst limits; Relay rejects that broad long-lived credential as a fallback for the hosted read-only OAuth connection."
+    },
+    {
+      "url": "https://developer.float.com/api_reference.html",
+      "checkedAt": "2026-07-15",
+      "supports": "Float's public REST API spans people, departments, roles, time off, clients, projects, phases, tasks, expenses, allocations, logged time, delete logs, and reports, including sensitive workforce and commercial data."
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "onepagecrm",
+  "name": "OnePageCRM",
+  "category": "crm_support",
+  "description": "OnePageCRM is an action-focused customer relationship management platform centered on contacts and their next sales actions. Teams use it to organize companies, deals, follow-up actions, notes, calls, meetings, pipelines, and shared customer context.",
+  "agentUseSummary": "Add the user ID and API key from OnePageCRM API settings, then choose which agents can read bounded CRM data or use the selected core-record operations under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.onepagecrm.com/",
+    "docsUrl": "https://developer.onepagecrm.com/api/reference/",
+    "developerConsoleUrl": "https://developer.onepagecrm.com/api/authentication/",
+    "termsUrl": "https://www.onepagecrm.com/api-use/",
+    "privacyUrl": "https://www.onepagecrm.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_user_id_and_api_key",
+      "http_basic",
+      "exact_user_binding",
+      "connected_user_role_authority",
+      "fixed_onepagecrm_v3_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "ONEPAGECRM_USER_ID",
+        "label": "OnePageCRM user ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Copy the user_id from OnePageCRM's API settings Configuration tab. Relay binds health checks to this exact user."
+      },
+      {
+        "name": "ONEPAGECRM_API_KEY",
+        "label": "OnePageCRM API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the API key paired with that user_id. Relay encrypts it and sends it only to app.onepagecrm.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crm_read",
+      "label": "Read CRM and reference data",
+      "description": "Read contacts, companies, deals, actions, notes, calls, meetings, streams, users, and stable reference configuration.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crm_manage",
+      "label": "Manage core CRM records",
+      "description": "Create supported contact-owned records and manage contacts, companies, deals, actions, notes, calls, and meetings, including selected exact action-state transitions.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "onepagecrm_api_read",
+        "label": "Read OnePageCRM",
+        "description": "Read one selected stable V3 core CRM or reference-data route with bounded query parameters."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "onepagecrm_api_manage",
+        "label": "Manage OnePageCRM",
+        "description": "Create, update, complete, restore, or delete a core CRM record through one exact documented operation."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "onepagecrm_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer user ID and API key never enter agent-visible requests or results."
+      },
+      {
+        "id": "onepagecrm_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every request stays on OnePageCRM's documented https://app.onepagecrm.com API origin."
+      },
+      {
+        "id": "onepagecrm_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay blocks API-key rotation, account and user administration, schema writes, attachments, notifications, webhooks, OQL, raw MCP, arbitrary routes, and undocumented methods."
+      },
+      {
+        "id": "onepagecrm_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay performs one request at a time and bounds pages, per-page limits, queries, arrays, bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "onepagecrm_safe",
+      "label": "Safe",
+      "description": "Selected bounded reads run directly. Every create, update, action-state transition, restoration, and deletion requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["onepagecrm_api_read"],
+      "approvalRequiredActions": ["onepagecrm_api_manage"],
+      "blockedActions": [
+        "onepagecrm_secret_exposure",
+        "onepagecrm_unofficial_origin",
+        "onepagecrm_unsupported_endpoint",
+        "onepagecrm_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected core CRM mutations authorized by the connected OnePageCRM user run without Relay per-action approval. Exact user binding, provider roles, fixed origin, exact routes, bounds, redaction, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["onepagecrm_api_read", "onepagecrm_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "onepagecrm_secret_exposure",
+        "onepagecrm_unofficial_origin",
+        "onepagecrm_unsupported_endpoint",
+        "onepagecrm_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected stable OnePageCRM V3 read and core-record manage routes through fixed-origin bounded tools and encrypted customer credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected stable OnePageCRM V3 read and core-record manage routes through fixed-origin bounded tools and encrypted customer credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No authorized OnePageCRM account, exact user ID and API key pair, representative CRM records, or provider role matrix is available in this code-only worker for live acceptance. The API key grants the authority of its paired account user.",
+    "nextAction": "An authorized OnePageCRM owner should create a dedicated least-privilege user, obtain its user_id and API key from API settings, connect both through Relay, then verify exact-user binding, representative reads, 100-record pagination, Safe approvals, Dangerous core-record mutations and undo behavior, provider permission denial, both documented throttles, audit redaction, key replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.onepagecrm.com/api/reference/",
+      "checkedAt": "2026-07-18",
+      "supports": "OnePageCRM documents the fixed V3 base URL, HTTP Basic and OAuth authentication choices, 165 operations across 27 resources, core CRM entities, JSON envelopes, pagination, errors, webhooks, and the official OpenAPI contract."
+    },
+    {
+      "url": "https://developer.onepagecrm.com/api/authentication/",
+      "checkedAt": "2026-07-18",
+      "supports": "OnePageCRM documents customer user_id plus API key HTTP Basic authentication for scripts and internal tools, and identifies bootstrap as an API-key-only operation."
+    },
+    {
+      "url": "https://developer.onepagecrm.com/getting-started/data-model/",
+      "checkedAt": "2026-07-18",
+      "supports": "OnePageCRM documents the seven core entities, their ownership relationships, exact REST roots, and the contact-centered constraints for deals, actions, notes, calls, and meetings."
+    },
+    {
+      "url": "https://developer.onepagecrm.com/api/rate-limits/",
+      "checkedAt": "2026-07-18",
+      "supports": "OnePageCRM documents concurrent-request 429 responses, request-rate 403 plain-text throttling, no daily quota, retry guidance, and changeable operational thresholds."
+    },
+    {
+      "url": "https://developer.onepagecrm.com/api/errors/",
+      "checkedAt": "2026-07-18",
+      "supports": "OnePageCRM documents HTTP status authority, the JSON error envelope and error names, subscription and permission failures, throttling, validation, conflicts, and service failures."
+    },
+    {
+      "url": "https://developer.onepagecrm.com/oauth/overview/",
+      "checkedAt": "2026-07-18",
+      "supports": "OnePageCRM documents OAuth 2.1 with mandatory S256 PKCE, crm.readonly and crm scopes, token refresh, and closed-beta client registration. Relay defers OAuth until it can register and acceptance-test a confidential client."
+    },
+    {
+      "url": "https://developer.onepagecrm.com/mcp/overview/",
+      "checkedAt": "2026-07-18",
+      "supports": "OnePageCRM documents a hosted OAuth MCP with broad describe, context, OQL query, create, and update tools. Relay does not mount that raw agent surface and instead exposes typed bounded REST operations."
+    },
+    {
+      "url": "https://www.onepagecrm.com/api-use/",
+      "checkedAt": "2026-07-18",
+      "supports": "OnePageCRM's API Use Policy governs API integrations and permits the provider to throttle, deny, or shut integrations that misuse the service."
+    }
+  ]
+}

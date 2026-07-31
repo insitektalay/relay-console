@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "airmeet",
+  "name": "Airmeet",
+  "category": "communication",
+  "description": "Airmeet is an event platform for webinars, virtual conferences, hybrid and in-person events, community experiences and audience networking. Organizers use it to manage event programming, registrations, sessions, speakers, engagement, production and analytics.",
+  "agentUseSummary": "Connect a customer-owned Airmeet access/secret key pair and select the community's documented data region, then let agents list bounded Airmeet or session metadata without people, engagement or recording data.",
+  "provider": {
+    "websiteUrl": "https://www.airmeet.com/",
+    "docsUrl": "https://help.airmeet.com/support/solutions/articles/82000909768-1-event-details-airmeet-public-api",
+    "developerConsoleUrl": "https://www.airmeet.com/",
+    "termsUrl": "https://www.airmeet.com/terms/",
+    "privacyUrl": "https://www.airmeet.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_access_and_secret_key", "thirty_day_access_token_exchange", "explicit_data_region", "encrypted_secrets", "local_disconnect"],
+    "credentialRequirements": [
+      { "name": "AIRMEET_ACCESS_KEY", "label": "Airmeet access key", "required": true, "secret": true, "helpText": "Generate the key pair in the customer's Airmeet community Integrations tab." },
+      { "name": "AIRMEET_SECRET_KEY", "label": "Airmeet secret key", "required": true, "secret": true, "helpText": "Store the paired secret encrypted; Relay sends it only to the selected region's /auth endpoint." },
+      { "name": "AIRMEET_REGION", "label": "Airmeet data region", "required": true, "secret": false, "helpText": "Select default, EU, or US to match the customer's community URL and pin the documented API origin." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "event_read", "label": "Read event and session metadata", "description": "List bounded Airmeet and session summaries without people or engagement data.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "airmeet_events_list", "label": "List Airmeets", "description": "List at most twenty-five Airmeet event summaries from one page." },
+      { "id": "airmeet_sessions_list", "label": "List event sessions", "description": "List at most twenty-five redacted session summaries for one exact Airmeet." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "airmeet_people_data", "label": "Block people data", "description": "Participants, attendees, speakers, hosts, polls, questions, booths, direct-access links, recordings, UTM data and engagement analytics are not exposed." },
+      { "id": "airmeet_mutations", "label": "Block mutations", "description": "Airmeet, session, participant, booth and webhook writes are not exposed." },
+      { "id": "airmeet_raw_api", "label": "Block raw API", "description": "Arbitrary endpoints, datacenter origins, cursors, bulk operations and raw responses are not exposed." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "airmeet_safe", "label": "Safe", "description": "Bounded event and session metadata reads run directly; people, engagement, recordings, writes, bulk and raw access stay blocked.", "defaultSelected": true, "allowedActions": ["airmeet_events_list", "airmeet_sessions_list"], "approvalRequiredActions": [], "blockedActions": ["airmeet_people_data", "airmeet_mutations", "airmeet_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The same selected read surface runs without Relay per-action approval; key ownership, region pinning, bounds, redaction and provider authority still apply.", "defaultSelected": false, "allowedActions": ["airmeet_events_list", "airmeet_sessions_list"], "approvalRequiredActions": [], "blockedActions": ["airmeet_people_data", "airmeet_mutations", "airmeet_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts two typed Airmeet metadata reads and exchanges encrypted customer keys only at the selected fixed regional origin." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts two typed Airmeet metadata reads and exchanges encrypted customer keys only at the selected fixed regional origin." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A customer Airmeet community, eligible API access, a generated access/secret key pair and an explicit matching data region are required for live acceptance.",
+    "nextAction": "In the separate provider-console task, generate the customer key pair under Integrations > API Access Key, select the region that matches the community URL, store both keys encrypted, validate /auth plus the two bounded reads, revoke the pair provider-side on disconnect, and confirm subsequent denial."
+  },
+  "evidence": [
+    { "url": "https://help.airmeet.com/support/solutions/articles/82000909768-1-event-details-airmeet-public-api", "checkedAt": "2026-07-17", "supports": "Airmeet documents default, EU and US API origins, customer-generated access/secret keys, POST /auth, thirty-day access tokens, bounded GET /airmeets and exact-event GET /airmeet/{id}/info session data." },
+    { "url": "https://help.airmeet.com/support/solutions/articles/82000443317-is-airmeet-secure-what-can-you-tell-me-about-security-and-encryption-at-airmeet-", "checkedAt": "2026-07-17", "supports": "Airmeet documents TLS for client-server traffic and encryption at rest, supporting Relay's encrypted-secret and fixed-HTTPS-origin boundary." },
+    { "url": "https://www.airmeet.com/", "checkedAt": "2026-07-17", "supports": "Airmeet presents its product as an event platform for webinars, conferences and audience experiences." }
+  ]
+}

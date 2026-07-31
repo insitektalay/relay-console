@@ -1,0 +1,219 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mixpanel",
+  "name": "Mixpanel",
+  "category": "developer",
+  "description": "Mixpanel is a product analytics platform for Events, Properties, Insights, Funnels, Retention, Cohorts, user journeys, experiments, and behavioral reporting.",
+  "agentUseSummary": "Enter one dedicated Mixpanel Service Account username/secret, exact numeric Project ID, and allowlisted US, EU, or India API origin. Relay validates authentication and Project Annotation authority, then exposes only the binding summary, twenty-five content-free Cohort aggregate/lifecycle summaries, and twenty-five Annotation ID/date summaries over at most 31 days; profiles, identity, raw events, classified data, detailed reports, private content, arbitrary queries, exports, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://mixpanel.com/",
+    "docsUrl": "https://docs.mixpanel.com/reference/authentication",
+    "developerConsoleUrl": "https://mixpanel.com/settings/org#serviceaccounts",
+    "termsUrl": "https://mixpanel.com/legal/terms-of-use/",
+    "privacyUrl": "https://mixpanel.com/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_service_account",
+      "customer_supplied_regional_origin",
+      "exact_project_id_validation",
+      "project_role_permission_inheritance",
+      "provider_managed_expiration_and_revocation"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MIXPANEL_API_ORIGIN",
+        "label": "Mixpanel API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter https://mixpanel.com for US, https://eu.mixpanel.com for EU, or https://in.mixpanel.com for India data residency. Relay rejects every other origin."
+      },
+      {
+        "name": "MIXPANEL_PROJECT_ID",
+        "label": "Mixpanel Project ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact numeric Project ID to which the dedicated Service Account has least-role read access."
+      },
+      {
+        "name": "MIXPANEL_SERVICE_ACCOUNT_USERNAME",
+        "label": "Mixpanel Service Account username",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated Service Account for the exact Project with the least role that can read Cohorts and Annotations."
+      },
+      {
+        "name": "MIXPANEL_SERVICE_ACCOUNT_SECRET",
+        "label": "Mixpanel Service Account secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Record the secret when shown. Prefer an explicit expiration and rotate by replacing or deleting the Service Account."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "project_binding",
+      "label": "Project binding",
+      "description": "Validate one exact Project-authorized Service Account and regional origin.",
+      "defaultSelected": true
+    },
+    {
+      "id": "cohort_metadata",
+      "label": "Cohort aggregates",
+      "description": "List bounded saved Cohort aggregate/lifecycle summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "annotation_metadata",
+      "label": "Annotation metadata",
+      "description": "List bounded Annotation lifecycle metadata over a short explicit range.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "mixpanel_project_binding_get",
+        "label": "Read Project binding",
+        "description": "Validate the exact regional origin, Service Account credentials, and numeric Project ID without returning Service Account identity."
+      },
+      {
+        "id": "mixpanel_cohort_list",
+        "label": "List Cohort aggregates",
+        "description": "Read at most twenty-five saved Cohort aggregate/lifecycle summaries without names, descriptions, definitions, or member profiles."
+      },
+      {
+        "id": "mixpanel_annotation_list",
+        "label": "List Annotation lifecycle metadata",
+        "description": "Read at most twenty-five Annotation IDs/dates in an explicit range of no more than 31 days without descriptions, users, or tags."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "mixpanel_identity_private",
+        "label": "Access profiles or identity",
+        "description": "Profiles, identities, user activity, cohort members, traits, classified data, and person-level exports are outside V1."
+      },
+      {
+        "id": "mixpanel_event_private",
+        "label": "Access events or detailed reports",
+        "description": "Raw events, event/property names and values, report series, funnel steps, retention, breakdowns, JQL, and raw exports are outside V1."
+      },
+      {
+        "id": "mixpanel_content_private",
+        "label": "Access private configuration content",
+        "description": "Cohort names/descriptions/definitions, Annotation descriptions/authors/tags, saved-report names, boards, and workspace content are outside V1."
+      },
+      {
+        "id": "mixpanel_mutation",
+        "label": "Change Mixpanel data",
+        "description": "Ingesting events/profiles, creating, updating, deleting, annotating, administering, or changing Mixpanel resources is outside V1."
+      },
+      {
+        "id": "mixpanel_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary projects, origins, paths, report IDs, queries, expressions, dates beyond 31 days, pagination, crawling, synchronization, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "mixpanel_safe",
+      "label": "Safe",
+      "description": "Three bounded aggregate/lifecycle reads run automatically; profiles, identity, raw events, detailed reports, content, broader queries, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "mixpanel_project_binding_get",
+        "mixpanel_cohort_list",
+        "mixpanel_annotation_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mixpanel_identity_private",
+        "mixpanel_event_private",
+        "mixpanel_content_private",
+        "mixpanel_mutation",
+        "mixpanel_raw_query"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact regional-origin and Project binding, provider roles, fixed limits, short date ranges, audit, redaction, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "mixpanel_project_binding_get",
+        "mixpanel_cohort_list",
+        "mixpanel_annotation_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mixpanel_identity_private",
+        "mixpanel_event_private",
+        "mixpanel_content_private",
+        "mixpanel_mutation",
+        "mixpanel_raw_query"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Mixpanel read wrappers and attaches the encrypted Service Account credentials, exact Project ID, and validated regional origin server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Mixpanel read wrappers and attaches the encrypted Service Account credentials, exact Project ID, and validated regional origin server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer creates a dedicated least-role Service Account for the exact Project, records the one-time secret, preferably sets an expiration, supplies the correct regional origin and Project ID, and deletes or replaces the Service Account for provider-side revocation."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.mixpanel.com/reference/service-accounts",
+      "checkedAt": "2026-07-17",
+      "supports": "Mixpanel recommends Service Accounts, documents HTTP Basic auth, Project/Workspace roles, one-time secrets, optional expiration, and deletion-based revocation."
+    },
+    {
+      "url": "https://docs.mixpanel.com/reference/query-api-authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Mixpanel requires exact project_id with Service Account Query API calls and may filter classified data based on Service Account sensitivity settings."
+    },
+    {
+      "url": "https://docs.mixpanel.com/reference/cohorts-list",
+      "checkedAt": "2026-07-17",
+      "supports": "POST /api/query/cohorts/list returns saved Cohort name, ID, count, description, creation date, Project ID, and visibility; Relay strips names/descriptions and limits output to 25."
+    },
+    {
+      "url": "https://docs.mixpanel.com/reference/list-all-annotations-for-project",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /api/app/projects/{projectId}/annotations uses Service Account auth, supports explicit dates, and returns descriptions, users, and tags; Relay limits 31 days/25 rows and returns only IDs/dates."
+    },
+    {
+      "url": "https://docs.mixpanel.com/reference/rate-limits",
+      "checkedAt": "2026-07-17",
+      "supports": "Mixpanel documents Query API limits of five concurrent queries and 60 queries per hour."
+    }
+  ]
+}

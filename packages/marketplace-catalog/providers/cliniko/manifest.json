@@ -1,0 +1,182 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "cliniko",
+  "name": "Cliniko",
+  "category": "work_management",
+  "description": "Cliniko is practice-management software for healthcare clinics and allied health practitioners. Teams use it for online bookings, schedules, patients, treatment notes, forms, communications, invoices, products, availability, and day-to-day clinic administration.",
+  "agentUseSummary": "Add a dedicated Cliniko API key once, then choose which agents can use the connected user's complete current API authority under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.cliniko.com/",
+    "docsUrl": "https://docs.api.cliniko.com/",
+    "developerConsoleUrl": "https://help.cliniko.com/en/articles/1023957-generate-a-cliniko-api-key",
+    "termsUrl": "https://www.cliniko.com/terms/",
+    "privacyUrl": "https://www.cliniko.com/policies/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false
+  },
+  "connection": {
+    "types": ["customer_owned_api_key"],
+    "credentialRequirements": [
+      {
+        "name": "CLINIKO_API_KEY",
+        "label": "Cliniko API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated key under My info → Manage API keys. Relay uses its shard suffix to select the correct regional API."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "practice_read",
+      "label": "Read practice and clinical data",
+      "description": "Read every current Cliniko resource available to the connected user, including appointments, patients, treatment notes, forms, availability, billing, products, practitioners, and settings.",
+      "defaultSelected": true
+    },
+    {
+      "id": "practice_manage",
+      "label": "Manage practice and clinical records",
+      "description": "Use every current non-deprecated Cliniko mutation for appointments, patients, clinical records, communications, availability, products, pricing, and practice administration.",
+      "defaultSelected": true
+    },
+    {
+      "id": "attachment_upload",
+      "label": "Upload patient attachments",
+      "description": "Upload bounded patient files through Cliniko's provider-issued storage workflow without exposing temporary credentials.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "cliniko_api_read",
+        "label": "Read Cliniko",
+        "description": "Run any of 102 current non-deprecated read operations."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "cliniko_api_manage",
+        "label": "Manage Cliniko",
+        "description": "Run any of 92 current non-deprecated direct mutations."
+      },
+      {
+        "id": "cliniko_attachment_upload",
+        "label": "Upload a patient attachment",
+        "description": "Complete Cliniko's two-operation presigned patient-attachment workflow without exposing temporary storage credentials."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "cliniko_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The API key and temporary attachment-upload fields never enter agent-visible requests or results."
+      },
+      {
+        "id": "cliniko_unofficial_origin",
+        "label": "Call another origin",
+        "description": "Every API request uses the Cliniko shard encoded in the customer's key; attachment upload accepts only Cliniko-issued HTTPS Amazon S3 targets."
+      },
+      {
+        "id": "cliniko_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits all 196 current non-deprecated operations through 194 exact routes and one two-operation attachment workflow."
+      },
+      {
+        "id": "cliniko_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds queries, bodies, files, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "cliniko_safe",
+      "label": "Safe",
+      "description": "All 102 current reads run directly. Every mutation and patient-attachment upload requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["cliniko_api_read"],
+      "approvalRequiredActions": [
+        "cliniko_api_manage",
+        "cliniko_attachment_upload"
+      ],
+      "blockedActions": [
+        "cliniko_secret_exposure",
+        "cliniko_unofficial_origin",
+        "cliniko_unsupported_endpoint",
+        "cliniko_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected operation runs without Relay per-action approval. Cliniko user authority, regional shard binding, exact routes, bounds, credential protection, healthcare-data controls, rate limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "cliniko_api_read",
+        "cliniko_api_manage",
+        "cliniko_attachment_upload"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "cliniko_secret_exposure",
+        "cliniko_unofficial_origin",
+        "cliniko_unsupported_endpoint",
+        "cliniko_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 196 current non-deprecated Cliniko operations through exact shard-bound wrappers and one bounded attachment workflow."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 196 current non-deprecated Cliniko operations through exact shard-bound wrappers and one bounded attachment workflow."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No customer-owned Cliniko account, dedicated user API key, representative clinical data, or authorized live test account is available. An API key inherits the generating user's authority and exposes sensitive healthcare data.",
+    "nextAction": "Have an authorized Cliniko user create a dedicated Relay Console API key under My info, connect it, then verify shard derivation, all read domains, Safe denial and approval, Dangerous mutations, bounded attachment upload, redaction, 200-per-minute handling, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.api.cliniko.com/",
+      "checkedAt": "2026-07-15",
+      "supports": "Cliniko documents per-user API-key Basic authentication, required app user agent, HTTPS-only JSON, sensitive-data handling, and a 200-request-per-minute per-user rate limit."
+    },
+    {
+      "url": "https://docs.api.cliniko.com/_bundle/openapi.json?download=",
+      "checkedAt": "2026-07-15",
+      "supports": "The official current OpenAPI v1 description contains 196 non-deprecated operations: 103 GET operations and 93 mutations."
+    },
+    {
+      "url": "https://docs.api.cliniko.com/guides/urls",
+      "checkedAt": "2026-07-15",
+      "supports": "Cliniko documents regional shard suffixes in API keys and the fixed https://api.{shard}.cliniko.com/v1 authority."
+    },
+    {
+      "url": "https://docs.api.cliniko.com/guides/uploading_patient_attachments",
+      "checkedAt": "2026-07-15",
+      "supports": "Cliniko documents the three-step presigned Amazon S3 patient-attachment workflow and provider-issued temporary fields."
+    },
+    {
+      "url": "https://help.cliniko.com/en/articles/1023957-generate-a-cliniko-api-key",
+      "checkedAt": "2026-07-15",
+      "supports": "Cliniko instructs each user to create a dedicated integration API key and warns that the key grants access to sensitive account data."
+    }
+  ]
+}

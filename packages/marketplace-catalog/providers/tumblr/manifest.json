@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "tumblr",
+  "name": "Tumblr",
+  "category": "content_creative",
+  "description": "Tumblr is a blogging and social platform for publishing multimedia posts to customizable blogs. People and organizations use it to maintain public blogs, follow creative communities, and share text, images, links, and other post formats.",
+  "agentUseSummary": "Connect one Tumblr account through Relay-owned OAuth, then let agents read that account, one selected owned blog, and up to ten recent published posts without exposing tokens or enabling private or write access.",
+  "provider": {
+    "websiteUrl": "https://www.tumblr.com/",
+    "docsUrl": "https://github.com/tumblr/docs/blob/master/api.md",
+    "developerConsoleUrl": "https://www.tumblr.com/oauth/apps",
+    "termsUrl": "https://www.tumblr.com/policy/en/terms-of-service",
+    "privacyUrl": "https://www.tumblr.com/privacy/en"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["basic", "offline_access"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.tumblr.com/oauth2/authorize",
+    "tokenUrl": "https://api.tumblr.com/v2/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth_app", "confidential_authorization_code", "rotating_offline_refresh_token", "exact_account_binding", "selected_owned_blog_binding", "fixed_tumblr_v2_origin"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/tumblr/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "account_read", "label": "Read account", "description": "Read the exact connected Tumblr account and owned-blog summaries.", "defaultSelected": true },
+    { "id": "owned_blog_read", "label": "Read selected blog", "description": "Read one selected owned blog and up to ten recent published posts.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "tumblr_account_get", "label": "Read connected account", "description": "Read the exact OAuth-bound Tumblr account and its owned-blog summaries." },
+      { "id": "tumblr_owned_blog_get", "label": "Read selected owned blog", "description": "Read the exact selected owned blog's useful public profile metadata." },
+      { "id": "tumblr_owned_blog_recent_posts_list", "label": "List recent published posts", "description": "List at most ten recent published posts from the selected owned blog." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "tumblr_private_or_write_actions", "label": "Block private and write actions", "description": "Dashboard, likes, follows, messages, drafts, queue, submissions, private posts, publishing, editing, deletion, reblogs, and engagement are not registered." },
+      { "id": "tumblr_raw_or_bulk_access", "label": "Block raw and bulk access", "description": "Arbitrary blogs, offsets, pagination, media downloads, bulk export, and raw Tumblr API access are unavailable." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "tumblr_safe",
+      "label": "Safe",
+      "description": "The three selected account, owned-blog, and published-post reads run automatically; private, write, raw, and bulk surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["tumblr_account_get", "tumblr_owned_blog_get", "tumblr_owned_blog_recent_posts_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["tumblr_private_or_write_actions", "tumblr_raw_or_bulk_access"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three reads run without Relay per-action approval; exact account/blog ownership, provider authority, bounds, audits, and secret isolation still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["tumblr_account_get", "tumblr_owned_blog_get", "tumblr_owned_blog_recent_posts_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["tumblr_private_or_write_actions", "tumblr_raw_or_bulk_access"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three typed Tumblr wrappers and attaches the encrypted user token only at Railway's fixed Tumblr v2 adapter." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three typed Tumblr wrappers and attaches the encrypted user token only at Railway's fixed Tumblr v2 adapter." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A Tumblr OAuth application with the exact Railway callback, consumer credentials, policy-compliant production registration, and live consent acceptance remains for the separate provider-console task.",
+    "nextAction": "In the provider-console task, register the exact Railway HTTPS callback, store the consumer key and secret in staging, then validate consent, rotating offline refresh, exact account/owned-blog binding, bounded NPF and legacy reads, ownership denial, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://github.com/tumblr/docs/blob/master/api.md", "checkedAt": "2026-07-17", "supports": "Tumblr documents OAuth 2 authorization-code and rotating refresh grants, the basic and offline_access scopes, fixed v2 endpoints, blog UUIDs, NPF reads, required stable User-Agent, and rate limits." },
+    { "url": "https://engineering.tumblr.com/post/666127838922014720/oauth-2-on-the-tumblr-api", "checkedAt": "2026-07-17", "supports": "Tumblr Engineering confirms OAuth 2 support and the authorization and token endpoint families used by Relay." },
+    { "url": "https://www.tumblr.com/docs/api_agreement", "checkedAt": "2026-07-17", "supports": "Tumblr's developer agreement governs application registration, API use, data handling, and provider-console acceptance." }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoho-books",
+  "name": "Zoho Books",
+  "category": "commerce_payments",
+  "description": "Zoho Books is cloud accounting software covering organization settings, contacts, sales, purchases, banking, projects, time, inventory, tax, reports, automation, and administration.",
+  "agentUseSummary": "Connect one exact Zoho Books organization through a customer-owned Multi-DC server app and offline OAuth. Agents may read one approval-gated redacted organization-settings summary. Relay pins the numeric organization, Accounts and API data centers, settings.READ scope, v3 organizations endpoint, and returned fields while excluding people, contact details, addresses, tax identifiers, financial data, broader product surfaces, writes, arbitrary APIs, pagination, downloads, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.zoho.com/books/",
+    "docsUrl": "https://www.zoho.com/books/api/v3/organizations/",
+    "developerConsoleUrl": "https://api-console.zoho.com/",
+    "termsUrl": "https://www.zoho.com/terms.html",
+    "privacyUrl": "https://www.zoho.com/privacy.html"
+  },
+  "authentication": {
+    "model": "oauth2_authorization_code",
+    "relayOwned": false,
+    "scopes": ["ZohoBooks.settings.READ"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.zoho.com/oauth/v2/auth",
+    "tokenUrl": "https://accounts.zoho.com/oauth/v2/token",
+    "revocationUrl": "https://accounts.zoho.com/oauth/v2/token/revoke"
+  },
+  "connection": {
+    "types": ["customer_owned_confidential_oauth_application", "railway_callback_only", "multi_dc_regional_authority", "exact_organization_id_binding", "offline_refresh_token_storage"],
+    "credentialRequirements": [
+      { "key": "ZOHO_BOOKS_CLIENT_ID", "label": "Zoho Books client ID", "secret": false, "required": true, "helpText": "Use a customer-owned Zoho server-based application with Relay's exact Railway callback and Multi-DC enabled." },
+      { "key": "ZOHO_BOOKS_CLIENT_SECRET", "label": "Zoho Books client secret", "secret": true, "required": true, "helpText": "Store the matching customer-owned secret only through Relay's encrypted OAuth boundary." },
+      { "key": "ZOHO_BOOKS_ORGANIZATION_ID", "label": "Zoho Books organization ID", "secret": false, "required": true, "helpText": "Enter the exact numeric organization ID before consent; Relay validates and pins it after authorization." }
+    ],
+    "callbackPath": "/api/v1/marketplace/connectors/zoho-books/oauth/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "organization_settings_read", "label": "Read organization settings", "description": "Read a bounded, redacted identity and locale summary for one exact Zoho Books organization without people, tax identifiers, financial data, or writes.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "zoho_books_organization_get", "label": "Read organization settings", "description": "Read one redacted settings summary for the exact Zoho Books organization selected before consent." }
+    ],
+    "blocked": [
+      { "id": "zoho_books_record_mutation", "label": "Change Zoho Books data", "description": "Creating, updating, deleting, importing, posting, or otherwise changing Zoho Books data is outside V1." },
+      { "id": "zoho_books_private_business_data", "label": "Read private business data", "description": "Contacts, users, email, addresses, tax identifiers, documents, notes, custom fields, and attachments are outside V1." },
+      { "id": "zoho_books_financial_and_broader_product", "label": "Access financial or broader product data", "description": "Accounts, balances, journals, sales, purchases, banking, projects, time, inventory, tax, reports, and automation are outside V1." },
+      { "id": "zoho_books_raw_api", "label": "Call arbitrary Zoho APIs", "description": "Other products, organizations, regions, scopes, endpoints, methods, fields, query parameters, versions, and raw requests are outside V1." },
+      { "id": "zoho_books_bulk_export", "label": "Export Zoho Books data", "description": "Pagination, following links, polling, synchronization, downloads, imports, batch operations, and exports are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "zoho_books_safe", "label": "Safe", "description": "The private organization-settings read requires approval.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["zoho_books_organization_get"], "blockedActions": ["zoho_books_record_mutation", "zoho_books_private_business_data", "zoho_books_financial_and_broader_product", "zoho_books_raw_api", "zoho_books_bulk_export"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The selected read-only tool runs without Relay approval while exact app, organization, scope, region, origin, endpoint, field, redaction, and audit boundaries remain enforced.", "defaultSelected": false, "allowedActions": ["zoho_books_organization_get"], "approvalRequiredActions": [], "blockedActions": ["zoho_books_record_mutation", "zoho_books_private_business_data", "zoho_books_financial_and_broader_product", "zoho_books_raw_api", "zoho_books_bulk_export"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts one bounded approval-gated Zoho Books organization-settings read and keeps OAuth credentials on Railway." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts one bounded approval-gated Zoho Books organization-settings read and keeps OAuth credentials on Railway." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Zoho server-based application, Multi-DC enablement, exact Railway callback registration, client credentials, exact organization ID, settings.READ offline consent, refresh token, or live acceptance evidence is available in this workspace.",
+    "nextAction": "In the provider-console task, create or select a customer-owned Zoho server-based application, enable Multi-DC, register Relay's exact Railway callback, issue its client credentials, enter the exact numeric Books organization ID, grant only ZohoBooks.settings.READ with offline access and consent, store credentials through Relay, then validate callback state, regional Accounts/API binding, exact organization validation, refresh persistence, bounded redaction, Safe approval, representative Dangerous read, permission denial, secret rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://www.zoho.com/books/api/v3/organizations/", "checkedAt": "2026-07-18", "supports": "Zoho documents GET /organizations, its organization fields, the regional Books v3 API origin, and ZohoBooks.settings.READ." },
+    { "url": "https://www.zoho.com/books/api/v4/oauth/", "checkedAt": "2026-07-18", "supports": "Zoho Books documents authorization-code OAuth, Accounts endpoints, offline access, prompt consent, refresh tokens, api_domain, and granular scopes." },
+    { "url": "https://www.zoho.com/accounts/protocol/oauth/multi-dc.html", "checkedAt": "2026-07-18", "supports": "Zoho documents Multi-DC client enablement and the callback location, accounts-server, and token api_domain regional binding." }
+  ]
+}

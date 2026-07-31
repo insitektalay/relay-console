@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "archbee",
+  "name": "Archbee",
+  "category": "knowledge_documents",
+  "description": "Documents, search, imports, spaces, groups, publishing, OpenAPI references, suggested changes, organization exports, display rules, and file uploads through Archbee Public API 1.0.",
+  "agentUseSummary": "Enter a customer-owned DocSpace ID and API key once, then let agents use the complete key-authorized Archbee Public API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.archbee.com/",
+    "docsUrl": "https://www.archbee.com/docs/public-api",
+    "developerConsoleUrl": "https://app.archbee.com/",
+    "termsUrl": "https://www.archbee.com/terms-of-service",
+    "privacyUrl": "https://www.archbee.com/privacy-policy"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      { "name": "ARCHBEE_DOC_SPACE_ID", "label": "Archbee DocSpace ID", "required": true, "secret": false, "helpText": "Copy the DocSpace ID paired with the API key." },
+      { "name": "ARCHBEE_API_KEY", "label": "Archbee API key", "required": true, "secret": true, "helpText": "Create or copy the customer-owned key for the intended Archbee DocSpace." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "knowledge_read", "label": "Read documentation", "description": "Read and search permitted documents in the bound DocSpace.", "defaultSelected": true },
+    { "id": "knowledge_write", "label": "Create and maintain documentation", "description": "Create, update, delete, import, publish, clone, sync, upload, and resolve suggested changes.", "defaultSelected": true },
+    { "id": "organization_admin", "label": "Manage spaces and organization exports", "description": "Create, update, publish, clone, or delete spaces and groups and export authorized organization data.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "archbee_get_document", "label": "Read document", "description": "Read one document in a documented format." },
+      { "id": "archbee_search_documents", "label": "Search documents", "description": "Run bounded non-persistent word search in the connected DocSpace." }
+    ],
+    "approvalRequired": [
+      { "id": "archbee_upload_file", "label": "Upload file", "description": "Upload one bounded supported file; Safe mode requires approval." },
+      { "id": "archbee_full_api", "label": "Use full Public API", "description": "Use any documented Archbee Public API operation; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "archbee_safe", "label": "Safe", "description": "Single-document reads and non-persistent word searches run directly; uploads and every broader or mutating API operation require approval.", "defaultSelected": true, "allowedActions": ["archbee_get_document", "archbee_search_documents"], "approvalRequiredActions": ["archbee_upload_file", "archbee_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected API-key-authorized Archbee operation runs without Relay per-action approval; ownership, fixed origin, bounds, audits, redaction, and provider authority still apply.", "defaultSelected": false, "allowedActions": ["archbee_get_document", "archbee_search_documents", "archbee_upload_file", "archbee_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts typed and full-surface wrappers and injects customer credentials server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts typed and full-surface wrappers and injects customer credentials server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "customer_action_required", "blocker": "No customer Archbee DocSpace ID, API key, or signed-in provider session was available.", "nextAction": "A customer creates or copies a DocSpace API key, enters both values, then Relay runs health, bounded reads, Safe denial plus approval, and Dangerous-mode mutation." },
+  "evidence": [
+    { "url": "https://www.archbee.com/docs/public-api", "checkedAt": "2026-07-13", "supports": "Archbee documents customer-owned API-key setup, base64 bearer construction from DocSpace ID and API key, and its Public API." },
+    { "url": "https://archbee-doc-uploads.s3.amazonaws.com/bNBm7nPJgXjbjLyfbHNh2/BroYllIzdBB8pqmhZsrAh-20260512-110612.json", "checkedAt": "2026-07-13", "supports": "The official OpenAPI 3 specification publishes 17 fixed-origin paths for documents, search, imports, spaces, groups, publishing, API references, suggested changes, organization export and rules, and uploads." },
+    { "url": "https://api.archbee.com/api/public-api/docs/search", "checkedAt": "2026-07-13", "supports": "The documented search operation supports word, AI chat, and AI retrieval modes; Relay's Safe wrapper fixes non-persistent word search." }
+  ]
+}

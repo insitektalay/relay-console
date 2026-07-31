@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "bandcamp", "name": "Bandcamp", "category": "commerce",
+  "description": "Bandcamp is a direct-to-fan music and merchandise platform where artists and labels publish releases, sell digital music and physical goods, manage orders, and review sales reporting.",
+  "agentUseSummary": "Connect an API-approved Bandcamp label or fulfillment-partner user with its individual client ID, secret, and refresh token. Agents can use all 11 documented Account, Sales Report, and Merch Orders operations: six bounded commerce reads run directly, while asynchronous report generation and four shipping/inventory/SKU mutations require approval in Safe mode. Consumer playback, fan collections, publishing, and private endpoints are not part of Bandcamp's API and remain blocked.",
+  "provider": { "websiteUrl": "https://bandcamp.com/", "docsUrl": "https://bandcamp.com/developer", "developerConsoleUrl": null, "termsUrl": "https://bandcamp.com/terms_of_use", "privacyUrl": "https://bandcamp.com/privacy" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": true, "authorizationUrl": null, "tokenUrl": "https://bandcamp.com/oauth_token", "revocationUrl": null },
+  "connection": { "types": ["provider_approved_api_user", "oauth2_client_credentials", "refresh_token", "label_or_fulfillment_partner"], "credentialRequirements": [
+    { "name": "BANDCAMP_CLIENT_ID", "label": "Bandcamp client ID", "required": true, "secret": false, "helpText": "Individual API client ID issued after Bandcamp approves a label or fulfillment-partner use case." },
+    { "name": "BANDCAMP_CLIENT_SECRET", "label": "Bandcamp client secret", "required": true, "secret": true, "helpText": "Individual client secret stored only by Railway." },
+    { "name": "BANDCAMP_REFRESH_TOKEN", "label": "Bandcamp refresh token", "required": true, "secret": true, "helpText": "Initial refresh token obtained once through the approved client-credentials grant and stored only by Railway." }
+  ], "callbackPath": null, "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "bandcamp_read", "label": "Read label and fulfillment commerce", "description": "Read affiliated artists and labels, sales reports, merch details, shipping origins, and order data.", "defaultSelected": true, "platformCapability": "bandcamp_read" },
+    { "id": "bandcamp_manage", "label": "Manage reports, fulfillment, and inventory", "description": "Generate sales reports and update shipping state, quantities, and SKUs through transactional official endpoints.", "defaultSelected": true, "platformCapability": "bandcamp_manage" }
+  ],
+  "actions": { "allowed": [{ "id": "bandcamp_read", "label": "Read Bandcamp commerce", "description": "Read affiliated accounts, sales reports, merchandise, shipping origins, and orders." }], "approvalRequired": [{ "id": "bandcamp_manage", "label": "Manage Bandcamp commerce", "description": "Generate reports or update shipment, inventory, and SKU state; Safe mode requires approval." }], "blocked": [
+    { "id": "bandcamp_secret_exposure", "label": "Expose Bandcamp secrets", "description": "Client credentials, refresh and access tokens, buyer data, and authorization headers are never exposed outside bounded results." },
+    { "id": "bandcamp_consumer_surface", "label": "Use consumer or private interfaces", "description": "Fan playback, catalog publishing, scraping, browser automation, arbitrary endpoints, and unofficial calls are blocked." },
+    { "id": "bandcamp_unbounded_transfer", "label": "Transfer unbounded commerce data", "description": "Each action calls one pinned endpoint with 2 MB request and 10 MB response bounds; broad reports should use asynchronous generation." }
+  ] },
+  "approvalProfiles": [
+    { "id": "bandcamp_safe", "label": "Safe", "description": "Bounded commerce queries run directly; report generation and every fulfillment or inventory mutation requires approval.", "defaultSelected": true, "allowedActions": ["bandcamp_read"], "approvalRequiredActions": ["bandcamp_manage"], "blockedActions": ["bandcamp_secret_exposure", "bandcamp_consumer_surface", "bandcamp_unbounded_transfer"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Selected approved-account mutations run without Relay per-action approval; account authority, pinned endpoints, transaction semantics, bounds, audits, redaction, and provider rules still apply.", "defaultSelected": false, "allowedActions": ["bandcamp_read", "bandcamp_manage"], "approvalRequiredActions": [], "blockedActions": ["bandcamp_secret_exposure", "bandcamp_consumer_surface", "bandcamp_unbounded_transfer"] }
+  ],
+  "riskLevel": "high", "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "native", "description": "OpenClaw receives pinned wrappers for all 11 approved Account, Sales Report, and Merch Orders operations." },
+    { "format": "hermes", "installSupport": "native", "description": "Hermes receives the same bounded wrappers, selected capabilities, approval profile, and cloud-held token authority." }
+  ],
+  "availability": "provider_setup_required", "providerSetup": { "status": "external_setup_required", "blocker": "Bandcamp restricts API access to approved labels and merchandise fulfillment partners. Each API user must have credentials tied to their own Bandcamp login, credential sharing can cause permanent suspension, and an initial client-credentials exchange must create the refresh token. This worker contacted no provider and opened no account or console.", "nextAction": "The acceptance owner should obtain Bandcamp approval for Relay's exact label or fulfillment use case, establish a dedicated API user, obtain its client ID/secret and initial refresh token without sharing them, store all three in the approved Railway connection, then run staging my_bands, sales, merch, shipping, inventory, SKU, refresh, duplicate-grant, and disconnect acceptance." },
+  "evidence": [
+    { "url": "https://bandcamp.com/developer", "checkedAt": "2026-07-17", "supports": "Bandcamp restricts API access to labels and fulfillment partners, requires contact and use-case review, issues per-user client credentials, prohibits credential sharing, and documents one-hour bearer tokens plus refresh tokens." },
+    { "url": "https://bandcamp.com/developer/account", "checkedAt": "2026-07-17", "supports": "The Account API documents the authenticated POST my_bands operation returning accessible labels, bands, and member bands." },
+    { "url": "https://bandcamp.com/developer/sales", "checkedAt": "2026-07-17", "supports": "The Sales Report API documents synchronous v4 JSON reports and asynchronous generate/fetch report operations." },
+    { "url": "https://bandcamp.com/developer/merch", "checkedAt": "2026-07-17", "supports": "The Merch Orders API documents merch, origin, and order queries plus transactional shipped-status, date-range, quantity, and SKU updates." },
+    { "url": "https://get.bandcamp.help/en/articles/15263347-i-run-a-fulfillment-service-how-can-i-connect-with-my-clients-on-bandcamp", "checkedAt": "2026-07-17", "supports": "Bandcamp's current help center documents fulfillment partner accounts, seller invitations, shipping-origin restrictions, and separate API access requests." }
+  ]
+}

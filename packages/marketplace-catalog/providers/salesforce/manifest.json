@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "salesforce",
+  "name": "Salesforce",
+  "category": "crm_support",
+  "description": "Salesforce is a cloud customer relationship management platform for sales, service, marketing, commerce, and analytics teams. Organizations use it to manage customer accounts, opportunities, workflows, support, reporting, and extensible business data.",
+  "agentUseSummary": "Connect one Salesforce organization through Relay Console OAuth, then let agents use three bounded read-only tools for Account and Opportunity summaries. V1 excludes CRM changes, personal records, custom objects, exports, arbitrary SOQL or SOSL, broader APIs, bulk access, pagination, and raw sessions.",
+  "provider": {
+    "websiteUrl": "https://www.salesforce.com/",
+    "docsUrl": "https://help.salesforce.com/s/articleView?id=sf.remoteaccess_oauth_web_server_flow.htm",
+    "developerConsoleUrl": "https://login.salesforce.com/",
+    "termsUrl": "https://www.salesforce.com/company/legal/agreements/",
+    "privacyUrl": "https://www.salesforce.com/company/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["api", "refresh_token"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.salesforce.com/services/oauth2/authorize",
+    "tokenUrl": "https://login.salesforce.com/services/oauth2/token",
+    "revocationUrl": "https://login.salesforce.com/services/oauth2/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_packaged_external_client_app",
+      "exact_organization_binding",
+      "exact_instance_binding",
+      "authorizing_user_permission_inheritance"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/salesforce/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_read",
+      "label": "Read accounts",
+      "description": "List bounded business Account summaries from the exact connected organization.",
+      "defaultSelected": true
+    },
+    {
+      "id": "opportunity_read",
+      "label": "Read opportunities",
+      "description": "List bounded Opportunity summaries or inspect one exact Opportunity.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "salesforce_account_list",
+        "label": "List accounts",
+        "description": "List at most twenty-five bounded business Account summaries."
+      },
+      {
+        "id": "salesforce_opportunity_list",
+        "label": "List opportunities",
+        "description": "List at most twenty-five bounded Opportunity summaries."
+      },
+      {
+        "id": "salesforce_opportunity_get",
+        "label": "Read opportunity",
+        "description": "Read one exact Opportunity by Salesforce record ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "salesforce_mutation",
+        "label": "Change Salesforce records",
+        "description": "Creating, updating, deleting, converting, merging, or transferring records is outside V1."
+      },
+      {
+        "id": "salesforce_personal_records",
+        "label": "Read personal records",
+        "description": "Contacts, Leads, Users, Cases, activities, email, files, and personal fields are outside V1."
+      },
+      {
+        "id": "salesforce_broader_data",
+        "label": "Access broader Salesforce data",
+        "description": "Custom objects, reports, dashboards, analytics, metadata, setup, and other standard objects are outside V1."
+      },
+      {
+        "id": "salesforce_raw_query",
+        "label": "Run arbitrary queries",
+        "description": "Arbitrary SOQL, SOSL, paths, fields, filters, ordering, pagination, and raw API calls are outside V1."
+      },
+      {
+        "id": "salesforce_bulk_or_session",
+        "label": "Export or reuse sessions",
+        "description": "Bulk, composite, export, frontdoor, and session-reuse access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "salesforce_safe",
+      "label": "Safe",
+      "description": "All three bounded reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "salesforce_account_list",
+        "salesforce_opportunity_list",
+        "salesforce_opportunity_get"
+      ],
+      "blockedActions": [
+        "salesforce_mutation",
+        "salesforce_personal_records",
+        "salesforce_broader_data",
+        "salesforce_raw_query",
+        "salesforce_bulk_or_session"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only tools run without Relay per-action approval while exact-organization and instance binding, provider-granted permissions, static queries, limits, audit, redaction, refresh rotation, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "salesforce_account_list",
+        "salesforce_opportunity_list",
+        "salesforce_opportunity_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "salesforce_mutation",
+        "salesforce_personal_records",
+        "salesforce_broader_data",
+        "salesforce_raw_query",
+        "salesforce_bulk_or_session"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded Salesforce read wrappers and attaches the encrypted organization token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded Salesforce read wrappers and attaches the encrypted organization token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Salesforce requires a packaged External Client App for distribution to customer organizations, provider-side OAuth settings, AppExchange security review, and separate production and sandbox credentials before public Relay-owned consent can be accepted. This staging/code worker does not open provider consoles or capture credentials.",
+    "nextAction": "In the provider-console task, create and package Relay Console External Client Apps for production and sandbox, register https://api.relayconsole.work/api/v1/marketplace/oauth/salesforce/callback, enable PKCE, web-server and refresh client-secret requirements, refresh-token rotation, and only api plus refresh_token scopes, complete Salesforce review, store environment-specific credentials, then verify exact organization, user, and instance binding, all three reads, refresh rotation, revocation, permission denial, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.salesforce.com/s/articleView?id=sf.configure_packageable_external_client_apps.htm",
+      "checkedAt": "2026-07-17",
+      "supports": "Only packaged External Client Apps can be deployed to other Salesforce organizations; shared OAuth settings and packaging are controlled from the source organization."
+    },
+    {
+      "url": "https://help.salesforce.com/s/articleView?id=sf.remoteaccess_oauth_web_server_flow.htm",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce supports the web-server authorization-code flow with an exact redirect, client credentials, PKCE, identity and instance binding, access tokens, and optional refresh tokens."
+    },
+    {
+      "url": "https://help.salesforce.com/s/articleView?id=sf.remoteaccess_oauth_tokens_scopes.htm",
+      "checkedAt": "2026-07-17",
+      "supports": "The api scope permits Salesforce API access and refresh_token permits offline refresh; full is broader than this connector requires."
+    },
+    {
+      "url": "https://help.salesforce.com/s/articleView?id=sf.configure_external_client_app_oauth_settings.htm",
+      "checkedAt": "2026-07-17",
+      "supports": "External Client Apps support exact HTTPS callbacks, PKCE, client-secret protection for web and refresh flows, selected scopes, and refresh-token policy."
+    },
+    {
+      "url": "https://help.salesforce.com/s/articleView?id=sf.remoteaccess_revoke_token.htm",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce revokes a refresh or access token by form POST to the connected instance's services/oauth2/revoke endpoint."
+    },
+    {
+      "url": "https://developer.salesforce.com/blogs/2026/06/the-salesforce-developers-guide-to-the-summer-26-release",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce Summer '26 uses API version 67.0."
+    }
+  ]
+}

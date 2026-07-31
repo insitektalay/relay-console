@@ -1,0 +1,215 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "jira",
+  "name": "Jira",
+  "category": "project_management",
+  "description": "Jira is Atlassian's work management platform for planning, tracking, and delivering projects through issues, workflows, boards, backlogs, reports, and product roadmaps. Software and product teams use it to manage epics, sprints, releases, ideas, customer-informed priorities, development activity, deployments, and the configuration that controls how work moves.",
+  "agentUseSummary": "Connect one Jira Cloud site through Relay-owned Atlassian OAuth, then let agents read or manage its authorized Jira platform, Jira Software, and Jira Product Discovery work under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.atlassian.com/software/jira",
+    "docsUrl": "https://developer.atlassian.com/cloud/jira/platform/rest/v3/",
+    "developerConsoleUrl": "https://developer.atlassian.com/console/myapps/",
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "offline_access",
+      "read:me",
+      "read:jira-user",
+      "read:jira-work",
+      "write:jira-work",
+      "manage:jira-project",
+      "manage:jira-configuration",
+      "manage:jira-webhook",
+      "read:board-scope.admin:jira-software",
+      "write:board-scope.admin:jira-software",
+      "delete:board-scope.admin:jira-software",
+      "read:board-scope:jira-software",
+      "write:board-scope:jira-software",
+      "read:epic:jira-software",
+      "write:epic:jira-software",
+      "read:issue:jira-software",
+      "write:issue:jira-software",
+      "read:sprint:jira-software",
+      "write:sprint:jira-software",
+      "delete:sprint:jira-software",
+      "read:source-code:jira-software",
+      "write:source-code:jira-software",
+      "read:feature-flag:jira-software",
+      "write:feature-flag:jira-software",
+      "read:deployment:jira-software",
+      "write:deployment:jira-software",
+      "read:build:jira-software",
+      "write:build:jira-software",
+      "read:remote-link:jira-software",
+      "write:remote-link:jira-software",
+      "read:dev-info:jira",
+      "write:dev-info:jira",
+      "delete:dev-info:jira",
+      "read:feature-flag-info:jira",
+      "write:feature-flag-info:jira",
+      "delete:feature-flag-info:jira",
+      "read:deployment-info:jira",
+      "write:deployment-info:jira",
+      "delete:deployment-info:jira",
+      "read:build-info:jira",
+      "write:build-info:jira",
+      "delete:build-info:jira",
+      "read:remote-link-info:jira",
+      "write:remote-link-info:jira",
+      "delete:remote-link-info:jira"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.atlassian.com/authorize",
+    "tokenUrl": "https://auth.atlassian.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/jira/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "jira_read",
+      "label": "Read Jira work",
+      "description": "Read authorized issues, projects, boards, backlogs, sprints, reports, development activity, and Product Discovery ideas.",
+      "defaultSelected": true
+    },
+    {
+      "id": "jira_manage",
+      "label": "Manage Jira work",
+      "description": "Create, update, transition, administer, and delete authorized Jira platform, Jira Software, and Product Discovery work.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "jira_read",
+        "label": "Read Jira work",
+        "description": "Read bounded Jira platform and Jira Software resources from the connected site."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "jira_manage",
+        "label": "Manage Jira work",
+        "description": "Create, update, transition, administer, upload, or delete Jira resources."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "jira_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth credentials never enter agent-visible requests or results."
+      },
+      {
+        "id": "jira_other_site",
+        "label": "Access another Jira site",
+        "description": "Every request remains pinned to the Jira Cloud site selected during sign-in."
+      },
+      {
+        "id": "jira_unsupported_api",
+        "label": "Call an unsupported API",
+        "description": "Relay permits only documented Jira platform and Jira Software Cloud REST routes."
+      },
+      {
+        "id": "jira_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds queries, uploads, request bodies, responses, redirects, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "jira_safe",
+      "label": "Safe",
+      "description": "Reads run directly. Every create, update, transition, administration, upload, and delete request requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["jira_read"],
+      "approvalRequiredActions": ["jira_manage"],
+      "blockedActions": [
+        "jira_secret_exposure",
+        "jira_other_site",
+        "jira_unsupported_api",
+        "jira_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Jira action authorized by the connected account runs without Relay per-action approval. Site binding, credential protection, request bounds, audits, and Atlassian permissions still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["jira_read", "jira_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "jira_secret_exposure",
+        "jira_other_site",
+        "jira_unsupported_api",
+        "jira_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts site-bound Jira REST tools and attaches refreshed OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts site-bound Jira REST tools and attaches refreshed OAuth tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Atlassian developer-console OAuth 2.0 integration and Railway Jira client credentials are not configured yet.",
+    "nextAction": "Create or update the Relay Console Atlassian 3LO integration, add Jira platform and Jira Software scopes, enable resource-level grants and sharing, register https://api.relayconsole.work/api/v1/marketplace/oauth/jira/callback, store JIRA_CLIENT_ID and JIRA_CLIENT_SECRET in Railway, deploy, and run live connect, Jira Software and Product Discovery reads, Safe approval, Dangerous mutation, refresh, disconnect, and post-disconnect denial checks."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.atlassian.com/cloud/jira/platform/oauth-2-3lo-apps/",
+      "checkedAt": "2026-07-15",
+      "supports": "Atlassian documents confidential authorization code exchange, exact callbacks, resource-level grants, accessible-resources site discovery, cloud-ID routing, sharing, and rotating offline refresh tokens."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/jira/platform/scopes-for-oauth-2-3LO-and-forge-apps/",
+      "checkedAt": "2026-07-15",
+      "supports": "Atlassian recommends classic Jira platform scopes for user, work, project, configuration, and webhook access."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/jira/software/scopes-for-oauth-2-3LO-and-forge-apps/",
+      "checkedAt": "2026-07-15",
+      "supports": "Atlassian publishes granular Jira Software scopes for boards, epics, issues, sprints, source code, feature flags, deployments, builds, remote links, and development information."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/jira/platform/rest/v3/",
+      "checkedAt": "2026-07-15",
+      "supports": "Jira Cloud REST API v3 is the current platform surface for issues, projects, users, workflows, configuration, and related resources."
+    },
+    {
+      "url": "https://developer.atlassian.com/cloud/jira/software/rest/",
+      "checkedAt": "2026-07-15",
+      "supports": "Jira Software REST documents boards, backlogs, epics, issues, sprints, development information, feature flags, deployments, builds, remote links, security, operations, and DevOps components."
+    },
+    {
+      "url": "https://www.atlassian.com/software/jira/product-discovery/features",
+      "checkedAt": "2026-07-15",
+      "supports": "Atlassian describes Jira Product Discovery as a prioritization and roadmapping product for organizing ideas, insights, fields, views, roadmaps, stakeholder feedback, and delivery links."
+    },
+    {
+      "url": "https://www.atlassian.com/software/jira/product-discovery/guides/integrations/overview",
+      "checkedAt": "2026-07-15",
+      "supports": "Atlassian states that Product Discovery ideas are Jira issues available through the Jira Cloud Platform REST API, while views are not available through its public API."
+    }
+  ]
+}

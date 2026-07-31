@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-entra-id",
+  "name": "Microsoft Entra ID",
+  "category": "developer",
+  "description": "Microsoft Entra ID is Microsoft's cloud identity and access management service for users, groups, applications, devices, authentication, authorization, roles, policies, governance, and access to organizational resources.",
+  "agentUseSummary": "Connect through Relay-owned Microsoft OAuth and let selected agents verify only the signed-in user's minimized Entra identity. Relay does not expose directory-wide users, groups, roles, applications, devices, domains, licenses, authentication methods, policies, logs, reports, privileged identity data, or mutations in V1.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id",
+    "docsUrl": "https://learn.microsoft.com/en-us/graph/api/user-get?view=graph-rest-1.0",
+    "developerConsoleUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["offline_access", "User.Read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "signed_in_identity_only"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-entra-id/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "microsoft_entra_id_read",
+      "label": "Read signed-in identity",
+      "description": "Verify and return the signed-in user's Entra object ID, display name, user principal name, and user type.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "microsoft_entra_id_read",
+        "label": "Read signed-in Entra identity",
+        "description": "Call only Microsoft Graph v1.0 /me with a fixed field selection."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "microsoft_entra_id_manage",
+        "label": "Access the directory or change Microsoft Entra ID",
+        "description": "Other users, groups, memberships, roles, applications, service principals, devices, domains, licenses, authentication methods, policies, audit or sign-in logs, reports, and all mutations are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_entra_id_safe",
+      "label": "Safe",
+      "description": "One signed-in profile read runs directly. Directory collections, privileged identity data, administrative surfaces, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["microsoft_entra_id_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["microsoft_entra_id_manage"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one fixed Microsoft Graph v1.0 signed-in identity wrapper through Relay-owned Microsoft OAuth."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one fixed Microsoft Graph v1.0 signed-in identity wrapper through Relay-owned Microsoft OAuth."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's multi-tenant Entra application has not been configured and accepted for the exact Microsoft Entra ID callback and delegated User.Read permission, and no organizational tenant has completed consent and acceptance.",
+    "nextAction": "The provider-console owner updates Relay's verified multi-tenant Entra application, adds the exact callback, grants delegated Microsoft Graph User.Read, stores the client ID and secret in Railway, then validates OAuth, refresh, the minimized /me read, disconnect, and post-disconnect denial in a non-production organizational tenant."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/entra/identity/",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents Entra ID as the identity and access platform for users, applications, roles, authentication, devices, governance, and organizational resources."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/api/user-get?view=graph-rest-1.0",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents the stable Graph v1.0 /me endpoint, $select minimization, and User.Read as its least-privileged delegated permission."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/permissions-reference#userread",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents delegated User.Read as sign-in and signed-in profile access without administrator consent."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/throttling",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents Graph 429 throttling behavior and Retry-After guidance; Relay exposes one non-paginated identity request per invocation and maps throttling safely."
+    }
+  ]
+}

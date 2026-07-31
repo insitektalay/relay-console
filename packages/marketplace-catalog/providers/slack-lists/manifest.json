@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "slack-lists",
+  "name": "Slack Lists",
+  "category": "work_management",
+  "description": "Slack Lists provides structured collaborative task and project tracking inside Slack with customizable fields, views, and workflows.",
+  "agentUseSummary": "Connect a customer-owned Slack app token, then let selected agents inspect one bounded item page, draft one text item locally, or create basic to-do Lists and text items under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://slack.com/features/lists",
+    "docsUrl": "https://docs.slack.dev/surfaces/lists/",
+    "developerConsoleUrl": "https://api.slack.com/apps",
+    "termsUrl": "https://slack.com/terms-of-service",
+    "privacyUrl": "https://slack.com/trust/privacy/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["lists:read", "lists:write"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_slack_app_token",
+      "fixed_slack_lists_methods"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SLACK_LISTS_TOKEN",
+        "label": "Slack Lists app token",
+        "required": true,
+        "secret": true,
+        "helpText": "A bot or user token from the customer's own Slack app with lists:read and lists:write. Railway stores it encrypted and sends it only to slack.com/api."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "list_read",
+      "label": "Read bounded List items",
+      "description": "Inspect shaped items from one explicit Slack List.",
+      "defaultSelected": true
+    },
+    {
+      "id": "list_write",
+      "label": "Create Lists and text items",
+      "description": "Create a basic to-do List or add one bounded text item.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "slack_lists_items_list",
+        "label": "List items",
+        "description": "List one bounded page of shaped items from one explicit Slack List."
+      },
+      {
+        "id": "slack_lists_item_draft",
+        "label": "Draft text item",
+        "description": "Prepare one bounded text item locally without a provider side effect."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "slack_lists_todo_create",
+        "label": "Create to-do List",
+        "description": "Create one basic standalone Slack List in to-do mode."
+      },
+      {
+        "id": "slack_lists_text_item_create",
+        "label": "Add text item",
+        "description": "Add one bounded text value to one explicit column in one explicit List."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "slack_lists_destructive",
+        "label": "Destructive changes",
+        "description": "List and item deletion, bulk deletion, archival, and arbitrary updates are not exposed."
+      },
+      {
+        "id": "slack_lists_access",
+        "label": "Access changes",
+        "description": "User and channel access grants, revocations, and ownership changes are not exposed."
+      },
+      {
+        "id": "slack_lists_sensitive_fields",
+        "label": "Sensitive fields",
+        "description": "Email, phone, user, attachment, message, link, channel, and reference fields are removed from responses and unavailable for writes."
+      },
+      {
+        "id": "slack_lists_export",
+        "label": "Downloads and exports",
+        "description": "Download jobs, bulk exports, automatic pagination, and broad List discovery are not exposed."
+      },
+      {
+        "id": "slack_lists_raw_api",
+        "label": "Raw Slack APIs",
+        "description": "Arbitrary Slack methods, custom schemas, caller-selected origins, and raw tokens are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "slack_lists_safe",
+      "label": "Safe",
+      "description": "Bounded item reads and local drafts run directly; each List or item creation requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["slack_lists_items_list", "slack_lists_item_draft"],
+      "approvalRequiredActions": [
+        "slack_lists_todo_create",
+        "slack_lists_text_item_create"
+      ],
+      "blockedActions": [
+        "slack_lists_destructive",
+        "slack_lists_access",
+        "slack_lists_sensitive_fields",
+        "slack_lists_export",
+        "slack_lists_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected List and item creation runs without Relay per-action approval while fixed methods, shaping, bounds, audits, Slack scopes, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "slack_lists_items_list",
+        "slack_lists_item_draft",
+        "slack_lists_todo_create",
+        "slack_lists_text_item_create"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "slack_lists_destructive",
+        "slack_lists_access",
+        "slack_lists_sensitive_fields",
+        "slack_lists_export",
+        "slack_lists_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts four typed Slack Lists tools and attaches the encrypted customer token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts four typed Slack Lists tools and attaches the encrypted customer token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A Slack workspace owner must create the customer's own app, grant lists:read and lists:write, install it to the intended workspace, and enter the resulting bot or user token in Relay.",
+    "nextAction": "Create and install a least-privilege customer-owned Slack app, connect its token, verify the exact workspace and accessible Lists, test Safe approvals and Dangerous writes, then test token revocation and disconnect."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.slack.dev/surfaces/lists/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents Lists API use cases, methods, permissions, and collaborative List behavior."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/scopes/lists.read/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents lists:read for bot and user tokens and the supported item read methods."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/scopes/lists.write/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents lists:write for List and item creation, update, deletion, and access methods; Relay mounts only bounded creation."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/methods/slackLists.create/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents standalone List creation, lists:write, paid-plan availability, and to-do mode."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/methods/slackLists.items.list/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents exact List item reads with lists:read, explicit list IDs, limit, and cursor parameters."
+    },
+    {
+      "url": "https://docs.slack.dev/reference/methods/slackLists.items.create/",
+      "checkedAt": "2026-07-17",
+      "supports": "Slack documents item creation in an explicit List with initial fields, column IDs, and rich-text blocks."
+    }
+  ]
+}

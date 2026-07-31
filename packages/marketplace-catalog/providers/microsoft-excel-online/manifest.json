@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-excel-online",
+  "name": "Microsoft Excel Online",
+  "category": "knowledge_documents",
+  "description": "Microsoft Excel Online exposes supported .xlsx workbooks stored in Microsoft 365 drives through Microsoft Graph, including worksheets, tables, ranges, names, charts, formulas, functions, formatting, comments, and workbook sessions.",
+  "agentUseSummary": "Excel Online cannot yet be connected through Relay. Workbook APIs operate on OneDrive or SharePoint files and several core calls require delegated Files.ReadWrite even for reads, while app-only access is unsupported. Relay exposes no workbook or file authority until its Entra app, one selected drive item, delegated user, and persistent-versus-nonpersistent session behavior pass acceptance.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft365.com/launch/excel",
+    "docsUrl": "https://learn.microsoft.com/graph/excel-concept-overview",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/licensing/terms/productoffering/Microsoft365/all",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "offline_access",
+      "User.Read",
+      "Files.Read",
+      "Files.ReadWrite"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+    "revocationUrl": "https://myapps.microsoft.com/"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_microsoft_entra_oauth_app",
+      "microsoft_identity_platform_delegated_work_or_school_user",
+      "microsoft_graph_excel_api_v1",
+      "onedrive_for_business_or_sharepoint_drive_item",
+      "exact_drive_and_xlsx_item_binding",
+      "persistent_and_nonpersistent_workbook_sessions",
+      "delegated_files_readwrite_required_for_core_calls",
+      "provider_and_representative_workbook_acceptance_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-excel-online/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workbook_structure_read",
+      "label": "Read selected workbook structure",
+      "description": "After acceptance, list bounded worksheets, tables, ranges, names, charts, and metadata from one exact selected .xlsx drive item.",
+      "defaultSelected": true
+    },
+    {
+      "id": "workbook_values_and_formulas_read",
+      "label": "Read selected cells and formulas",
+      "description": "After field-level acceptance, read a specifically addressed bounded range with value, formula, format, hidden-data, and error controls.",
+      "defaultSelected": false
+    },
+    {
+      "id": "workbook_nonpersistent_calculate",
+      "label": "Calculate without saving",
+      "description": "After session acceptance, use a nonpersistent session to calculate or render selected results without saving changes to the source workbook.",
+      "defaultSelected": false
+    },
+    {
+      "id": "workbook_manage",
+      "label": "Change selected workbook data",
+      "description": "After critical write acceptance, modify one exact range, table, chart, formula, name, or worksheet in a persistent session with eTag, session, and before-state confirmation.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "excel_online_connect_before_review",
+        "label": "Connect before Entra and workbook review",
+        "description": "Relay has no accepted OAuth app, delegated Files.ReadWrite grant, exact drive and item selection, representative workbook, or tested session boundary."
+      },
+      {
+        "id": "excel_online_reads_before_acceptance",
+        "label": "Read workbook data",
+        "description": "Files, worksheets, cells, ranges, tables, formulas, names, charts, comments, formatting, hidden content, metadata, and calculation results remain unavailable."
+      },
+      {
+        "id": "excel_online_workbook_mutations",
+        "label": "Change workbook contents",
+        "description": "Writing values or formulas, inserting, deleting, sorting, filtering, formatting, calculating, refreshing, adding or removing worksheets, tables, charts, comments, names, and macros or links is blocked."
+      },
+      {
+        "id": "excel_online_file_and_sharing_mutations",
+        "label": "Change files or sharing",
+        "description": "Uploading, overwriting, moving, copying, renaming, deleting, sharing, inviting, linking, changing permissions, or exporting OneDrive and SharePoint files is blocked."
+      },
+      {
+        "id": "excel_online_scope_raw_and_session_bypass",
+        "label": "Bypass file or session controls",
+        "description": "Other drive items, cross-site or cross-tenant access, arbitrary paths or OData, unbounded ranges, raw downloads, external links, app-only calls, session leakage, tokens, and provider-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "excel_online_provider_review",
+      "label": "Provider and workbook review pending",
+      "description": "No Excel action is enabled until Relay's Entra app, delegated file scope, tenant, user, drive and item binding, workbook data, formula, session, concurrency, sharing, revocation, and disconnect contracts pass representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "excel_online_connect_before_review",
+        "excel_online_reads_before_acceptance",
+        "excel_online_workbook_mutations",
+        "excel_online_file_and_sharing_mutations",
+        "excel_online_scope_raw_and_session_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount item- and range-bounded Excel tools after Entra, drive, workbook, and session acceptance; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount item- and range-bounded Excel tools after Entra, drive, workbook, and session acceptance; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Microsoft Graph Excel APIs operate on Office Open XML .xlsx workbooks stored in OneDrive for Business, SharePoint, or group drives. The surface provides CRUD over worksheets, tables, ranges, charts, names, formulas, functions, and formatting. Although the overview identifies Files.Read for some read actions, core reference methods such as worksheet listing and session creation require delegated Files.ReadWrite; application permissions are unsupported. Sessions may persist changes, retain them only temporarily, or be omitted, in which case mutations persist. This worker cannot alter Relay's Entra app, grant Files.ReadWrite, capture credentials, run consent, obtain a representative work or school drive and workbook, inspect cells, or mutate files.",
+    "nextAction": "The exclusive provider-console and acceptance task should add https://api.relayconsole.work/api/v1/marketplace/oauth/microsoft-excel-online/callback to Relay's reviewed single-tenant Entra app and use one dedicated work or school user plus one explicitly selected non-production .xlsx drive item. Because core methods require Files.ReadWrite, keep Connect disabled until a safe file-picker and server-side driveId and itemId allowlist prove that Relay cannot use the same token against other files. Acceptance must verify file ownership and sharing, supported format, item identity and eTags, bounded ranges, hidden sheets and cells, formulas and external links, sensitive values, tables and filters, workbook sessions and expiry, nonpersistent calculations, long-running session creation, retries and idempotency, concurrent edits, recalc and locale, file size, throttling, write rollback, token revocation, disconnect, and cross-item denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/graph/excel-concept-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph can read and modify .xlsx workbooks stored in OneDrive and SharePoint and exposes worksheets, tables, ranges, charts, formulas, calculations, and formatting."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/resources/excel",
+      "checkedAt": "2026-07-17",
+      "supports": "Excel APIs address a drive item and define persistent, nonpersistent, and sessionless modes with Files.Read or Files.ReadWrite authorization."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/worksheet-list",
+      "checkedAt": "2026-07-17",
+      "supports": "Worksheet listing requires delegated Files.ReadWrite for work or school and personal accounts, and application permission is unsupported."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/workbook-createsession",
+      "checkedAt": "2026-07-17",
+      "supports": "Workbook session creation requires delegated Files.ReadWrite, does not support application permissions, distinguishes persistent and nonpersistent changes, and can be long-running."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/resources/onedrive",
+      "checkedAt": "2026-07-17",
+      "supports": "Workbook access inherits the broader drive, drive-item, sharing, remote-item, user, group, and SharePoint document-library resource model."
+    }
+  ]
+}

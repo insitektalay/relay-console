@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "freshbooks",
+  "name": "FreshBooks",
+  "aliases": ["freshbooks-accounting"],
+  "category": "commerce_payments",
+  "description": "FreshBooks is cloud accounting and invoicing software built for freelancers and small businesses. It combines invoices, expenses, time tracking, payments, projects, reports, and client-facing workflows in one service.",
+  "agentUseSummary": "Connect one active FreshBooks business through the Relay Console OAuth app, then let agents inspect bounded business membership and privacy-redacted invoice summaries through three read-only tools. V1 excludes financial writes, client identity, contact details, addresses, notes, terms, invoice lines, payments, broader accounting, automatic pagination, arbitrary parameters, and raw FreshBooks API calls.",
+  "provider": {
+    "websiteUrl": "https://www.freshbooks.com/",
+    "docsUrl": "https://www.freshbooks.com/api/authentication",
+    "developerConsoleUrl": "https://my.freshbooks.com/#/developer",
+    "termsUrl": "https://www.freshbooks.com/policies/terms-of-service",
+    "privacyUrl": "https://www.freshbooks.com/policies/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["user:profile:read", "user:invoices:read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.freshbooks.com/oauth/authorize/",
+    "tokenUrl": "https://api.freshbooks.com/auth/oauth/token",
+    "revocationUrl": "https://api.freshbooks.com/auth/oauth/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth_app", "exact_business_account_binding"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/freshbooks/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "business_membership_read", "label": "Read business membership", "description": "Read the bounded role and identifiers for the exact connected business without profile identity data.", "defaultSelected": true },
+    { "id": "invoice_read", "label": "Read invoices", "description": "List bounded redacted invoice summaries or inspect one exact invoice.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "freshbooks_business_memberships_list", "label": "Read connected business", "description": "Read bounded identifiers and role for the exact connected FreshBooks business." }],
+    "approvalRequired": [
+      { "id": "freshbooks_invoice_list", "label": "List invoices", "description": "List at most twenty-five privacy-redacted invoice summaries." },
+      { "id": "freshbooks_invoice_get", "label": "Read invoice", "description": "Read one exact privacy-redacted invoice summary by numeric ID." }
+    ],
+    "blocked": [
+      { "id": "freshbooks_financial_write", "label": "Change accounting records", "description": "Invoice, payment, expense, project, time, client, and broader accounting writes are outside V1." },
+      { "id": "freshbooks_private_data", "label": "Read private accounting data", "description": "Profile and client identity, contact details, addresses, notes, terms, invoice lines, payment details, and raw errors are outside V1." },
+      { "id": "freshbooks_broader_accounting", "label": "Access broader accounting", "description": "Payments, bills, expenses, journals, reports, tax, projects, time, teams, and administration are outside V1." },
+      { "id": "freshbooks_raw_api", "label": "Use arbitrary FreshBooks APIs", "description": "Arbitrary paths, parameters, includes, automatic pagination, and raw API access are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "freshbooks_safe", "label": "Safe", "description": "Connected-business metadata runs directly; invoice reads require matching approval.", "defaultSelected": true, "allowedActions": ["freshbooks_business_memberships_list"], "approvalRequiredActions": ["freshbooks_invoice_list", "freshbooks_invoice_get"], "blockedActions": ["freshbooks_financial_write", "freshbooks_private_data", "freshbooks_broader_accounting", "freshbooks_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while exact-business binding, bounds, audit, redaction, rolling refresh, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["freshbooks_business_memberships_list", "freshbooks_invoice_list", "freshbooks_invoice_get"], "approvalRequiredActions": [], "blockedActions": ["freshbooks_financial_write", "freshbooks_private_data", "freshbooks_broader_accounting", "freshbooks_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three exact FreshBooks read wrappers and attaches the encrypted business token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three exact FreshBooks read wrappers and attaches the encrypted business token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "relay_action_required",
+    "blocker": "Relay Console needs a FreshBooks OAuth app, production client credentials, the two V1 scopes, branding/support details, and any required FreshBooks review before public OAuth can be accepted. This staging/code worker does not open provider consoles or capture credentials.",
+    "nextAction": "In the provider-console task, create or approve the Relay Console FreshBooks app, enable user:profile:read and user:invoices:read, register https://api.relayconsole.work/api/v1/marketplace/oauth/freshbooks/callback, store production client credentials in Railway production, authorize a test business, and verify all three reads, single-use refresh rotation, disconnect, revocation, scope denial, and exact-account denial."
+  },
+  "evidence": [
+    { "url": "https://www.freshbooks.com/api/authentication", "checkedAt": "2026-07-17", "supports": "FreshBooks uses OAuth 2.0 authorization code grant with HTTPS redirect URIs, confidential client credentials, expiring bearer tokens, one-time-use rolling refresh tokens, and token revocation." },
+    { "url": "https://www.freshbooks.com/api/scopes", "checkedAt": "2026-07-17", "supports": "FreshBooks consent is scope-limited and profile read is the baseline scope used to discover the authorized business context." },
+    { "url": "https://www.freshbooks.com/api/identity_model", "checkedAt": "2026-07-17", "supports": "The authenticated identity endpoint exposes business memberships with business ID, account ID, role, and active state; accounting endpoints are bound to account ID." },
+    { "url": "https://www.freshbooks.com/api/invoices", "checkedAt": "2026-07-17", "supports": "Invoice list and exact-invoice GET operations use user:invoices:read and the accounting/account/{accountId}/invoices/invoices paths." },
+    { "url": "https://www.freshbooks.com/accounting", "checkedAt": "2026-07-17", "supports": "FreshBooks officially describes the same FreshBooks product and account surface as FreshBooks accounting software. FreshBooks Accounting therefore resolves to the canonical FreshBooks provider rather than a second connector." }
+  ]
+}

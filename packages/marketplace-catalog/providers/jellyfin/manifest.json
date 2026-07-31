@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "jellyfin",
+  "name": "Jellyfin",
+  "category": "content_creative",
+  "description": "Jellyfin is a free, open-source media server for organizing, streaming, and accessing a person's movies, television, music, photos, and other media across supported clients.",
+  "agentUseSummary": "Connect one exact public HTTPS URL for a customer-owned Jellyfin server with an encrypted customer-owned API key and one selected item ID. Relay exposes only the selected item ID, media type, and creation timestamp while blocking names, summaries, people, tags, provider IDs, ratings, watch state, library identities, artwork, media details, filesystem paths, streams, downloads, playback, scans, refreshes, edits, deletes, sharing, user and server administration, live TV, scheduled tasks, process control, broader browsing, and all mutations.",
+  "provider": {
+    "websiteUrl": "https://jellyfin.org/",
+    "docsUrl": "https://api.jellyfin.org/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://jellyfin.org/docs/general/community-standards/",
+    "privacyUrl": null
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["api_key"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_jellyfin_server",
+      "public_https_server_base_url",
+      "customer_owned_api_key",
+      "selected_item_id"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "JELLYFIN_SERVER_BASE_URL",
+        "label": "Jellyfin HTTPS server base URL",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact public HTTPS URL for one customer-owned server, including its configured base path if present; Relay rejects embedded credentials, unsafe paths, private DNS, queries, and fragments."
+      },
+      {
+        "name": "JELLYFIN_API_KEY",
+        "label": "Jellyfin API key",
+        "required": true,
+        "secret": true,
+        "helpText": "A customer-owned API key; Relay encrypts it and sends it only in the Jellyfin MediaBrowser Authorization header to the configured server."
+      },
+      {
+        "name": "JELLYFIN_ITEM_ID",
+        "label": "Selected media item ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact 32-character ID of the single media item Relay may inspect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "jellyfin_selected_item_lifecycle_get",
+      "label": "Read selected media lifecycle",
+      "description": "Read only the selected item ID, media type, and creation timestamp without names, summaries, people, tags, provider IDs, ratings, watch state, library identity, artwork, media details, paths, streams, or content.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "jellyfin_selected_item_lifecycle_get",
+        "label": "Read selected media lifecycle",
+        "description": "Read only the selected item ID, media type, and creation timestamp."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "jellyfin_private_metadata_content",
+        "label": "Expose private media metadata or content",
+        "description": "Names, summaries, people, tags, provider IDs, ratings, watch state, library identities, artwork, media details, filesystem paths, stream URLs, and media bytes are excluded."
+      },
+      {
+        "id": "jellyfin_mutation",
+        "label": "Mutate Jellyfin or server state",
+        "description": "Playback, downloads, uploads, library scans, metadata refreshes or edits, ratings, watch-state changes, favorites, deletes, sharing, users, server settings, live TV, scheduled tasks, process control, and every other mutation are blocked."
+      },
+      {
+        "id": "jellyfin_broad_access",
+        "label": "Use broad Jellyfin access",
+        "description": "Other items, libraries, users, sessions, lists, search, recommendations, playlists, history, arbitrary paths or queries, redirects, and bulk access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "jellyfin_read_only",
+      "label": "Read Only",
+      "description": "Read one selected item's lifecycle summary; private metadata, media content, broader access, playback, administration, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["jellyfin_selected_item_lifecycle_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "jellyfin_private_metadata_content",
+        "jellyfin_mutation",
+        "jellyfin_broad_access"
+      ]
+    },
+    {
+      "id": "jellyfin_no_access",
+      "label": "No Access",
+      "description": "Expose no Jellyfin actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "jellyfin_selected_item_lifecycle_get",
+        "jellyfin_private_metadata_content",
+        "jellyfin_mutation",
+        "jellyfin_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted customer API key and selected server/item boundary and mounts exactly one projected GET."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted customer API key and selected server/item boundary and mounts exactly one projected GET."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A customer-owned Jellyfin staging server reachable at an exact public HTTPS URL, valid API key, and exact item ID are required. No authorized server or key is available in this worker lane.",
+    "nextAction": "The external setup lane must nominate a staging server and selected item, capture the customer-owned API key and exact boundary directly in Railway, then validate the projected JSON read, public-DNS/base-path/fixed-item enforcement, private-field redaction, key failure, key replacement/revocation, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://api.jellyfin.org/",
+      "checkedAt": "2026-07-18",
+      "supports": "Jellyfin publishes its official server API reference, including the authenticated GET /Items/{itemId} operation and BaseItemDto response fields such as Id, Type, DateCreated, private descriptive metadata, user data, images, paths, and media sources."
+    },
+    {
+      "url": "https://jellyfin.org/docs/general/post-install/networking/",
+      "checkedAt": "2026-07-18",
+      "supports": "Jellyfin documents its self-hosted HTTP(S) service, recommends trusted HTTPS termination for remote access, supports configured base URL paths, and warns against direct insecure Internet exposure."
+    },
+    {
+      "url": "https://github.com/jellyfin/jellyfin/issues/12990",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Jellyfin repository documents the MediaBrowser Authorization header structure for API tokens and the requirement to supply the token as a named header value. Relay uses that header rather than a query parameter."
+    }
+  ]
+}

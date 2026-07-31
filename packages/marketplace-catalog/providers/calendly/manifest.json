@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "calendly",
+  "name": "Calendly",
+  "category": "calendar",
+  "description": "Calendly is scheduling automation software that lets people publish meeting types and coordinate booked events without exchanging availability manually. Teams use it to standardize booking workflows, reduce scheduling overhead, and understand upcoming commitments.",
+  "agentUseSummary": "Connect Calendly through OAuth, then let agents read approval-gated, bounded Event Type and upcoming Scheduled Event summaries for the exact connected user without exposing invitee identity or conferencing details.",
+  "provider": {
+    "websiteUrl": "https://calendly.com/",
+    "docsUrl": "https://developer.calendly.com/creating-an-oauth-app",
+    "developerConsoleUrl": "https://developer.calendly.com/",
+    "termsUrl": "https://calendly.com/terms",
+    "privacyUrl": "https://calendly.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["users:read", "event_types:read", "scheduled_events:read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.calendly.com/oauth/authorize",
+    "tokenUrl": "https://auth.calendly.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_oauth_app",
+      "authorization_code_with_pkce_s256",
+      "exact_user_and_current_organization_binding",
+      "single_use_rotating_refresh_token",
+      "local_disconnect_only",
+      "fixed_calendly_api_origin"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/calendly/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "scheduling_read",
+      "label": "Read scheduling metadata",
+      "description": "Read bounded Event Type and upcoming Scheduled Event summaries for the exact connected Calendly user.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "calendly_event_type_list",
+        "label": "List active event types",
+        "description": "List at most twenty-five active Event Type summaries for the connected user."
+      },
+      {
+        "id": "calendly_scheduled_event_list",
+        "label": "List upcoming scheduled events",
+        "description": "List at most twenty-five active Scheduled Event summaries for the connected user over the next fourteen days."
+      },
+      {
+        "id": "calendly_scheduled_event_get",
+        "label": "Read a scheduled event",
+        "description": "Read one exact Scheduled Event summary without invitee identity, location, conferencing, notes or tracking details."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "calendly_safe",
+      "label": "Safe",
+      "description": "Every bounded Calendly scheduling read requires approval; invitee data, organization-wide access, broader API access and writes are outside Relay's V1 surface.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "calendly_event_type_list",
+        "calendly_scheduled_event_list",
+        "calendly_scheduled_event_get"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three selected bounded Calendly reads run without Relay per-action approval; exact user binding, redaction, bounds, audits, provider scopes and Calendly limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "calendly_event_type_list",
+        "calendly_scheduled_event_list",
+        "calendly_scheduled_event_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed Calendly read wrappers and attaches the encrypted OAuth token only to the fixed Calendly API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed Calendly read wrappers and attaches the encrypted OAuth token only to the fixed Calendly API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A Relay-owned public Calendly OAuth application, staging credentials, provider approval where required, and live consent validation still require the separate provider-console task.",
+    "nextAction": "In the provider-console task, create the Calendly OAuth application with Relay's exact HTTPS callback, store staging client credentials, then verify PKCE S256, exact three-scope consent, exact user/current-organization binding, rotating single-use refresh-token replacement, all three bounded approval-gated reads, local disconnect and post-disconnect denial. Calendly does not document a token revocation endpoint in the cited OAuth guidance, so do not claim upstream revoke-on-disconnect."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.calendly.com/creating-an-oauth-app",
+      "checkedAt": "2026-07-17",
+      "supports": "Calendly documents public OAuth applications, the authorization endpoint, HTTPS production redirect URIs, authorization-code exchange, client credentials and PKCE S256."
+    },
+    {
+      "url": "https://developer.calendly.com/scopes",
+      "checkedAt": "2026-07-17",
+      "supports": "Calendly documents the users:read, event_types:read and scheduled_events:read scopes used by Relay's bounded read-only surface."
+    },
+    {
+      "url": "https://developer.calendly.com/refresh-token-rotation-guide",
+      "checkedAt": "2026-07-17",
+      "supports": "Calendly documents single-use refresh-token rotation, atomic storage of each replacement token pair and reconnect handling after invalid_grant."
+    },
+    {
+      "url": "https://developer.calendly.com/how-to-access-calendly-data-on-behalf-of-authenticated-users",
+      "checkedAt": "2026-07-17",
+      "supports": "Calendly documents resolving the authenticated user and current organization through GET /users/me before reading user-bound scheduling data."
+    }
+  ]
+}

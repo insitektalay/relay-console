@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "apple-icloud",
+  "name": "Apple iCloud",
+  "category": "knowledge_documents",
+  "description": "Apple iCloud is Apple's cloud service for syncing app data, files, photos, mail, calendars, contacts, notes, reminders, backups, and other personal information across Apple devices and the web.",
+  "agentUseSummary": "Apple iCloud is not available as a general Relay connection because Apple publishes app-siloed CloudKit and iCloud Documents storage, not an API for a third party to enumerate or manage a user's arbitrary iCloud Drive or umbrella iCloud data. Mail, Calendar, and Contacts use separate supported-app authorization or app-specific-password contracts and must be evaluated as distinct providers; Relay will not collect an Apple Account password or imply broader iCloud authority.",
+  "provider": {
+    "websiteUrl": "https://www.icloud.com/",
+    "docsUrl": "https://developer.apple.com/icloud/cloudkit/",
+    "developerConsoleUrl": "https://icloud.developer.apple.com/",
+    "termsUrl": "https://www.apple.com/legal/internet-services/icloud/",
+    "privacyUrl": "https://www.apple.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "no_general_icloud_api",
+      "cloudkit_app_container_not_user_drive",
+      "icloud_documents_app_ubiquity_container",
+      "service_specific_authorization_required",
+      "apple_account_password_rejected"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "apple_icloud_connection",
+        "label": "Connect an iCloud account",
+        "description": "Relay exposes no umbrella iCloud connection because Apple publishes no third-party general-account or iCloud Drive API."
+      },
+      {
+        "id": "apple_icloud_credentials",
+        "label": "Collect Apple credentials",
+        "description": "Apple Account passwords, app-specific passwords, trusted-device codes, cookies, session tokens, and private framework credentials are never collected for a general iCloud provider."
+      },
+      {
+        "id": "apple_icloud_data",
+        "label": "Access iCloud data",
+        "description": "Drive files, photos, backups, mail, calendars, contacts, notes, reminders, Find My, passwords, and other account data remain unavailable through this provider."
+      },
+      {
+        "id": "apple_icloud_private_raw",
+        "label": "Use private or raw iCloud interfaces",
+        "description": "Reverse-engineered web calls, private frameworks, scraping, device automation, CloudKit container substitution, arbitrary endpoints, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "apple_icloud_unavailable",
+      "label": "Unavailable",
+      "description": "No general Apple iCloud action or credential path is exposed.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "apple_icloud_connection",
+        "apple_icloud_credentials",
+        "apple_icloud_data",
+        "apple_icloud_private_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No general iCloud wrapper is mounted because Apple exposes only app-container and service-specific contracts."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No general iCloud wrapper is mounted because Apple exposes only app-container and service-specific contracts."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": "Apple's supported developer surfaces store and synchronize an app's own records or files inside developer-configured CloudKit and ubiquity containers. They do not authorize Relay to enumerate or manage a user's arbitrary iCloud Drive or umbrella iCloud account. Apple's supported third-party account-data authorization is explicitly limited to services such as Mail, Calendar, and Contacts, which require separate provider contracts.",
+    "nextAction": "Keep the umbrella Apple iCloud provider unavailable and do not collect Apple Account or app-specific credentials. Evaluate Apple Calendar, Apple Contacts, and any future iCloud Mail provider independently under Apple's supported service-specific authorization; only reconsider iCloud Drive if Apple publishes a documented third-party delegated file API."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.apple.com/icloud/cloudkit/",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple describes CloudKit as storage for an app's data and states that app containers silo each app so its data does not become entangled with other apps."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/cloudkit/deciding-whether-cloudkit-is-right-for-your-app",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple documents iCloud Documents as synchronizing files selected by an app in that app's ubiquity container and CloudKit as storing that app's model objects, not browsing arbitrary user iCloud Drive content."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/cloudkit",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple defines CloudKit as moving structured app and user data between an app and its own iCloud containers and explicitly says it complements the app's existing data objects."
+    },
+    {
+      "url": "https://support.apple.com/en-us/121539",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple's current third-party account-data authorization guidance names iCloud Mail, Calendar, and Contacts and provides per-app revocation, without presenting general iCloud Drive or umbrella account access."
+    }
+  ]
+}

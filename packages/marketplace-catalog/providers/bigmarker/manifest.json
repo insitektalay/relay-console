@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "bigmarker",
+  "name": "BigMarker",
+  "category": "communication",
+  "description": "BigMarker is a webinar, virtual-event, and hybrid-event platform with conferences, series, meeting spaces, registration, engagement, recordings, analytics, and integrations.",
+  "agentUseSummary": "Connect a dedicated BigMarker API key through Railway's encrypted store, then retrieve only aggregate inventory metadata from one fixed first page of future conferences.",
+  "provider": {
+    "websiteUrl": "https://www.bigmarker.com",
+    "docsUrl": "https://docs.bigmarker.com/",
+    "developerConsoleUrl": "https://www.bigmarker.com/user/api_key",
+    "termsUrl": "https://www.bigmarker.com/terms",
+    "privacyUrl": "https://www.bigmarker.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["dedicated_api_key", "encrypted_account_binding"],
+    "credentialRequirements": [
+      {
+        "name": "BIGMARKER_API_KEY",
+        "label": "BigMarker API key",
+        "required": true,
+        "secret": true
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "conference_inventory_count",
+      "label": "Count future conferences",
+      "description": "Inspect only aggregate inventory metadata from one fixed first page of future conferences.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "bigmarker_conference_inventory_count",
+        "label": "Count future conferences",
+        "description": "Read one fixed first page and return only aggregate future-conference inventory metadata."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "bigmarker_conference_identity_content",
+        "label": "Conference identity and content",
+        "description": "Conference, channel, series, meeting-space, presenter, and member IDs plus titles, descriptions, addresses, schedules, branding, tags, and raw records are not returned."
+      },
+      {
+        "id": "bigmarker_people_engagement",
+        "label": "People and engagement",
+        "description": "Registrants, attendees, presenters, subscribers, contact details, access links, attendance, polls, questions, chats, surveys, and analytics are not exposed."
+      },
+      {
+        "id": "bigmarker_media_access",
+        "label": "Media and privileged access",
+        "description": "Recordings, transcripts, downloads, reports, admin URLs, enter URLs, credentials, media, webhooks, and communications are not exposed."
+      },
+      {
+        "id": "bigmarker_mutation_raw",
+        "label": "Changes and raw API",
+        "description": "Conference, series, registration, presenter, subscriber, poll, block-list, recording, meeting-space, and every other mutation plus arbitrary origins, paths, IDs, filters, pages, bodies, and raw responses are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "bigmarker_safe",
+      "label": "Safe",
+      "description": "Every account-wide aggregate future-conference read requires matching Relay approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["bigmarker_conference_inventory_count"],
+      "blockedActions": [
+        "bigmarker_conference_identity_content",
+        "bigmarker_people_engagement",
+        "bigmarker_media_access",
+        "bigmarker_mutation_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected aggregate reads run without Relay per-action approval while account binding, fixed origin and endpoint, first-page bounds, record exclusion, audits, encrypted credentials, and BigMarker rate limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["bigmarker_conference_inventory_count"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "bigmarker_conference_identity_content",
+        "bigmarker_people_engagement",
+        "bigmarker_media_access",
+        "bigmarker_mutation_raw"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware BigMarker aggregate future-conference inventory tool using an encrypted API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware BigMarker aggregate future-conference inventory tool using an encrypted API key."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A BigMarker administrator must generate a dedicated API key on the documented www.bigmarker.com base, configure it through Railway's encrypted connector setup, confirm account/channel authorization, and complete staging acceptance.",
+    "nextAction": "Generate a dedicated key, store it only through Railway's encrypted connector setup, exercise Safe denial/approval and Dangerous aggregate reads, verify rotation and local disconnect, deploy through the integration lane, and run live acceptance without exposing conference records."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.bigmarker.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "BigMarker documents API-KEY authentication, the fixed GET /api/v1/conferences/ route, page/role/per_page/type controls, pagination totals, conference content fields Relay excludes, and broad adjacent privileged/write surfaces."
+    },
+    {
+      "url": "https://kb.bigmarker.com/knowledge/using-bigmarker-api",
+      "checkedAt": "2026-07-18",
+      "supports": "BigMarker documents administrator API-key generation and rotation, per-account base URLs, a 100-call-per-minute general API limit, and distinct registration limits."
+    }
+  ]
+}

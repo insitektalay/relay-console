@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sprinto",
+  "name": "Sprinto",
+  "category": "developer",
+  "description": "Sprinto is a governance, risk, and compliance automation platform for workflow checks, controls, evidence, staff, devices, risks, policies, audits, trust centers, and continuous monitoring.",
+  "agentUseSummary": "Add a customer-owned Developer API key for a US-resident Sprinto account. Selected agents can list only bounded workflow-check IDs and titles through one hard-coded GraphQL query. Relay blocks arbitrary GraphQL, introspection, evidence, staff, controls, risks, non-US origins, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://sprinto.com/",
+    "docsUrl": "https://developer.sprinto.com/docs/quick-start",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://sprinto.com/terms-of-service/",
+    "privacyUrl": "https://sprinto.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["full available GraphQL schema"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "fixed_us_origin",
+      "full_graph_credential_contained",
+      "beta_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SPRINTO_API_KEY",
+        "label": "Sprinto Developer API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Admin-issued key for a US-resident Sprinto account. Sprinto currently gives keys full graph access; Relay exposes only one bounded read query."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "compliance_check_read",
+      "label": "Read workflow-check directory",
+      "description": "List a bounded, minimized directory of implemented compliance-check titles.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "sprinto_read",
+        "label": "List workflow checks",
+        "description": "List up to 20 minimized workflow-check IDs and titles from a US-resident Sprinto account."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "sprinto_manage",
+        "label": "Access compliance records or change Sprinto",
+        "description": "Arbitrary GraphQL, introspection, evidence, staff, controls, risks, policies, audits, trust data, files, non-US origins, and every mutation are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sprinto_safe",
+      "label": "Safe",
+      "description": "One bounded workflow-check directory read runs directly; arbitrary GraphQL, sensitive records, non-US origins, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["sprinto_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["sprinto_manage"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway pins the US GraphQL origin and exposes one hard-coded bounded workflow-check query."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway pins the US GraphQL origin and exposes one hard-coded bounded workflow-check query."
+    }
+  ],
+  "availability": "beta_available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer has supplied a US-resident Sprinto Developer API key and representative workflow checks for non-production acceptance. Sprinto's beta API currently gives every key complete access to the available GraphQL schema rather than a read-only scope.",
+    "nextAction": "A Sprinto administrator for a US-resident account creates a dedicated API key, stores it through Relay's encrypted credential flow, and validates only the bounded workflow-check query, GraphQL and mutation denial, key disable/rotation, disconnect, 10-request-per-minute handling, and post-disconnect denial in non-production. EU and India remain unsupported until Sprinto documents callable GraphQL endpoints rather than explorer URLs."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.sprinto.com/docs/quick-start",
+      "checkedAt": "2026-07-18",
+      "supports": "Sprinto documents the fixed US GraphQL endpoint, api-key request header, admin-generated keys, complete available-graph authority, and a simple JSON POST contract."
+    },
+    {
+      "url": "https://developer.sprinto.com/docs/api-structure",
+      "checkedAt": "2026-07-18",
+      "supports": "Sprinto documents GraphQL query and mutation roots, workflowChecksPaginated, first and after arguments, and mutation support that Relay excludes."
+    },
+    {
+      "url": "https://developer.sprinto.com/docs/pagination",
+      "checkedAt": "2026-07-18",
+      "supports": "Sprinto documents Relay-style cursor pagination and a workflow-check response containing edge cursors and node titles."
+    },
+    {
+      "url": "https://developer.sprinto.com/docs/sprinto-developer-api-documentation",
+      "checkedAt": "2026-07-18",
+      "supports": "Sprinto documents beta status, no uptime or backward-compatibility guarantee, admin API-key authentication, a 10-request-per-minute per-IP and per-key limit, and regional URLs; only the US URL is documented as a GraphQL endpoint."
+    },
+    {
+      "url": "https://sprinto.com/integrations/api/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sprinto describes pulling risks, controls, and evidence, pushing findings and signals, arbitrary GraphQL shaping, cursor pagination, and admin-issued controlled API keys, supporting Relay's narrow runtime boundary."
+    }
+  ]
+}

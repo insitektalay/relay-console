@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "typeform",
+  "name": "Typeform",
+  "category": "content_creative",
+  "description": "Typeform is an online form and survey platform for building conversational questionnaires, registrations, quizzes, feedback flows, and lead-capture experiences. Teams use it to publish branded forms, organize work in shared workspaces, and collect structured responses across web and embedded experiences.",
+  "agentUseSummary": "Connect one Typeform account, workspace, and validated API region through Relay-owned OAuth, then let agents read approval-gated, bounded Form metadata and completed Response lifecycle timestamps without exposing questions, answers, respondent identity, or hidden data.",
+  "provider": {
+    "websiteUrl": "https://www.typeform.com/",
+    "docsUrl": "https://www.typeform.com/developers/get-started/applications/",
+    "developerConsoleUrl": "https://admin.typeform.com/",
+    "termsUrl": "https://admin.typeform.com/to/dwk6gt",
+    "privacyUrl": "https://admin.typeform.com/to/dwk6gt?typeform-source=www.typeform.com#privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "accounts:read",
+      "workspaces:read",
+      "forms:read",
+      "responses:read",
+      "offline"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.typeform.com/oauth/authorize",
+    "tokenUrl": "https://api.typeform.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "authorization_code",
+      "exact_account_and_selected_workspace_binding",
+      "validated_global_or_eu_api_origin",
+      "provider_authoritative_access_expiry",
+      "single_use_rotating_refresh_token",
+      "serialized_complete_token_pair_replacement",
+      "local_disconnect_only"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/typeform/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "form_response_read",
+      "label": "Read forms and response lifecycle",
+      "description": "Read bounded Form metadata and completed Response lifecycle timestamps for one exact Typeform account, workspace, and API region.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "typeform_form_list_recent",
+        "label": "List workspace forms",
+        "description": "List at most twenty-five Typeform Form summaries from the selected workspace, newest update first."
+      },
+      {
+        "id": "typeform_form_get",
+        "label": "Read a form summary",
+        "description": "Read one exact Typeform Form summary without questions, fields, choices, logic, media, variables or tracking."
+      },
+      {
+        "id": "typeform_response_list_recent",
+        "label": "List recent response lifecycle",
+        "description": "List at most twenty-five completed Response lifecycle summaries submitted during the previous fourteen days."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "typeform_safe",
+      "label": "Safe",
+      "description": "Every bounded Typeform read requires approval; questions, answers, respondent identity, hidden values, metadata, files, payments, webhooks, export and writes are outside Relay's V1 surface.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "typeform_form_list_recent",
+        "typeform_form_get",
+        "typeform_response_list_recent"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three selected bounded Typeform reads run without Relay per-action approval; account/workspace/region binding, redaction, first-page bounds, audits, scopes, refresh rotation and rate limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "typeform_form_list_recent",
+        "typeform_form_get",
+        "typeform_response_list_recent"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed Typeform read wrappers and attaches the encrypted OAuth token only to the validated global or EU API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed Typeform read wrappers and attaches the encrypted OAuth token only to the validated global or EU API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A Relay-owned Typeform Developer App, one-time client-secret capture, staging credentials, eligible global/EU test accounts, and live consent validation still require the separate provider-console task.",
+    "nextAction": "In the provider-console task, register the Typeform app with Relay's exact HTTPS callback and exact five scopes, capture the client secret once into staging, then verify account/workspace/API-region binding, provider-authoritative access expiry, single-use refresh-token replacement, all three bounded reads, two-requests-per-second enforcement, local disconnect, and post-disconnect denial. Do not request write, image, theme, or webhook scopes or claim undocumented upstream revocation."
+  },
+  "evidence": [
+    {
+      "url": "https://www.typeform.com/developers/get-started/applications/",
+      "checkedAt": "2026-07-17",
+      "supports": "Typeform documents the authorization and token endpoints, exact callback and state, confidential client credentials, provider expires_in, offline refresh, newly returned single-use refresh tokens, and default one-week access lifetime."
+    },
+    {
+      "url": "https://www.typeform.com/developers/get-started/scopes/",
+      "checkedAt": "2026-07-17",
+      "supports": "Typeform documents the accounts:read, workspaces:read, forms:read, responses:read, and offline scopes used by Relay's bounded read-only contract."
+    },
+    {
+      "url": "https://www.typeform.com/developers/get-started/responses-data-center/",
+      "checkedAt": "2026-07-17",
+      "supports": "Typeform documents global and EU data-center API origins while keeping OAuth authorization on the fixed global endpoint."
+    },
+    {
+      "url": "https://www.typeform.com/developers/create/reference/retrieve-account-workspaces/",
+      "checkedAt": "2026-07-17",
+      "supports": "Typeform documents token-visible Workspace enumeration used to bind one exact selected workspace."
+    },
+    {
+      "url": "https://www.typeform.com/developers/create/reference/retrieve-forms/",
+      "checkedAt": "2026-07-17",
+      "supports": "Typeform documents selected-workspace Form listing, page size, page, last-update sort, and order parameters used by the fixed bounded wrapper."
+    },
+    {
+      "url": "https://www.typeform.com/developers/create/reference/retrieve-form/",
+      "checkedAt": "2026-07-17",
+      "supports": "Typeform documents exact Form retrieval; Relay retains only identifier, title, language, public flag, lifecycle timestamps, and selected workspace."
+    },
+    {
+      "url": "https://www.typeform.com/developers/responses/reference/retrieve-responses/",
+      "checkedAt": "2026-07-17",
+      "supports": "Typeform documents completed Response filtering, date bounds, page size, submitted order, lifecycle timestamps, pagination, and provider freshness behavior."
+    }
+  ]
+}

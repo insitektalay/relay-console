@@ -1,0 +1,283 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "posthog",
+  "name": "PostHog",
+  "category": "developer",
+  "description": "PostHog is a product analytics and product-engineering platform for Events, Insights, Dashboards, Funnels, Retention, Feature Flags, Experiments, Session Replay, Surveys, Error Tracking, LLM Analytics, Data Warehouse, and customer data workflows.",
+  "agentUseSummary": "Connect through Relay's PostHog CIMD OAuth client with PKCE and seven exact read scopes, then bind one US/EU Cloud Organization and Project. Relay exposes seven curated wrappers for bounded Projects, redacted Dashboards and Insights, one approval-gated 31-day Event Trend, and redacted Event/Property schema; persons, recordings, raw data, arbitrary HogQL, broader products, exports, raw MCP, and every write remain blocked.",
+  "provider": {
+    "websiteUrl": "https://posthog.com/",
+    "docsUrl": "https://posthog.com/docs/api",
+    "developerConsoleUrl": "https://app.posthog.com/",
+    "termsUrl": "https://posthog.com/terms",
+    "privacyUrl": "https://posthog.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "organization:read",
+      "project:read",
+      "dashboard:read",
+      "insight:read",
+      "query:read",
+      "event_definition:read",
+      "property_definition:read"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://oauth.posthog.com/oauth/authorize/",
+    "tokenUrl": "https://oauth.posthog.com/oauth/token/",
+    "revocationUrl": "https://oauth.posthog.com/oauth/revoke/"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_cimd_oauth",
+      "mandatory_pkce_s256",
+      "refresh_token_rotation",
+      "customer_consent",
+      "exact_us_or_eu_cloud_origin",
+      "exact_organization_and_project_binding"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "RELAY_POSTHOG_OAUTH_CLIENT_METADATA_URL",
+        "label": "Relay PostHog CIMD URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway must contain the approved HTTPS Relay Client ID Metadata Document URL. The document identifies Relay and lists the exact Railway callback."
+      },
+      {
+        "name": "POSTHOG_API_ORIGIN",
+        "label": "PostHog Cloud API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Select https://us.posthog.com or https://eu.posthog.com for the exact granted Project. Self-hosted and arbitrary origins are outside V1."
+      },
+      {
+        "name": "POSTHOG_ORGANIZATION_ID",
+        "label": "PostHog Organization ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Select the exact Organization authorized by the OAuth grant."
+      },
+      {
+        "name": "POSTHOG_PROJECT_ID",
+        "label": "PostHog Project/Environment ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Select the exact numeric Project/Environment ID used by every Relay data tool."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/posthog/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "projects",
+      "label": "Projects",
+      "description": "Read bounded Organization Project/Environment summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "dashboards",
+      "label": "Dashboards",
+      "description": "Read bounded redacted Dashboard summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "insights",
+      "label": "Insights",
+      "description": "Read bounded redacted Insight summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "bounded_query",
+      "label": "Bounded Event trend",
+      "description": "Run one fixed short daily Event-total Trend.",
+      "defaultSelected": true
+    },
+    {
+      "id": "schema",
+      "label": "Analytics schema",
+      "description": "Read bounded Event and Property Definition summaries.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "posthog_projects_list",
+        "label": "List Projects",
+        "description": "List at most 25 Project/Environment summaries for the exact Organization and identify the selected Project."
+      },
+      {
+        "id": "posthog_dashboards_list",
+        "label": "List Dashboards",
+        "description": "List at most 25 redacted Dashboard summaries for the selected Project."
+      },
+      {
+        "id": "posthog_dashboard_read",
+        "label": "Read Dashboard",
+        "description": "Read one redacted Dashboard summary without tiles, Insight results, filters, or sharing configuration."
+      },
+      {
+        "id": "posthog_insights_list",
+        "label": "List Insights",
+        "description": "List at most 25 redacted Insight summaries for the selected Project."
+      },
+      {
+        "id": "posthog_insight_read",
+        "label": "Read Insight",
+        "description": "Read one redacted Insight summary without query filters, results, persons, or raw Event data."
+      },
+      {
+        "id": "posthog_schema_read",
+        "label": "Read analytics schema",
+        "description": "List at most 25 redacted Event or Property Definition summaries for the selected Project."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "posthog_query_bounded",
+        "label": "Run bounded Event trend",
+        "description": "Run one fixed daily total Trend for one exact Event over an explicit range of at most 31 days."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "posthog_person_private",
+        "label": "Access persons or recordings",
+        "description": "Person/Group records, distinct IDs, properties, cohorts and membership, session recordings, replays, traces, logs, support conversations, and classified data are outside V1."
+      },
+      {
+        "id": "posthog_raw_data",
+        "label": "Access raw analytics data",
+        "description": "Raw Events, properties/values, arbitrary HogQL/SQL, arbitrary queries, broad exports, Data Warehouse, detailed filters, and unbounded results are outside V1."
+      },
+      {
+        "id": "posthog_mutation",
+        "label": "Change PostHog data",
+        "description": "Event capture and every Dashboard, Insight, Feature Flag, Experiment, Cohort, Annotation, Survey, Notebook, Pipeline, Subscription, Organization, Project, or other mutation are outside V1."
+      },
+      {
+        "id": "posthog_broader_products",
+        "label": "Access broader PostHog products",
+        "description": "Feature Flags, Experiments, Session Replay, Error Tracking, Surveys, LLM Analytics, Revenue Analytics, Data Warehouse, CDP, Support, and administrative products are outside V1."
+      },
+      {
+        "id": "posthog_raw_mcp",
+        "label": "Use raw PostHog MCP or API",
+        "description": "Raw hosted MCP tools, arbitrary origins/Organizations/Projects/paths/queries, pagination, crawling, synchronization, and raw REST access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "posthog_safe",
+      "label": "Safe",
+      "description": "Six bounded metadata/schema reads run automatically; the fixed Event trend requires approval, while persons, raw data, broader products, arbitrary access, MCP, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "posthog_projects_list",
+        "posthog_dashboards_list",
+        "posthog_dashboard_read",
+        "posthog_insights_list",
+        "posthog_insight_read",
+        "posthog_schema_read"
+      ],
+      "approvalRequiredActions": ["posthog_query_bounded"],
+      "blockedActions": [
+        "posthog_person_private",
+        "posthog_raw_data",
+        "posthog_mutation",
+        "posthog_broader_products",
+        "posthog_raw_mcp"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All seven curated read-only tools run without Relay per-action approval while exact region/Organization/Project binding, fixed requests, short ranges, audit, redaction, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "posthog_projects_list",
+        "posthog_dashboards_list",
+        "posthog_dashboard_read",
+        "posthog_insights_list",
+        "posthog_insight_read",
+        "posthog_schema_read",
+        "posthog_query_bounded"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "posthog_person_private",
+        "posthog_raw_data",
+        "posthog_mutation",
+        "posthog_broader_products",
+        "posthog_raw_mcp"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts seven curated PostHog REST wrappers and attaches refreshed OAuth access server-side after exact Cloud-region, Organization, and Project binding."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts seven curated PostHog REST wrappers and attaches refreshed OAuth access server-side after exact Cloud-region, Organization, and Project binding."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's approved HTTPS PostHog Client ID Metadata Document is not yet published or configured in Railway, and no real US/EU Cloud user grant is available for consent and live semantic acceptance.",
+    "nextAction": "Publish the approved Relay CIMD document with the exact Railway callback, set RELAY_POSTHOG_OAUTH_CLIENT_METADATA_URL on Railway, then complete US/EU Cloud consent, refresh/revocation, Project binding, seven bounded reads, Safe approval, disconnect, and post-disconnect denial checks."
+  },
+  "evidence": [
+    {
+      "url": "https://posthog.com/docs/api/oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "PostHog documents region-agnostic OAuth, URL-valued CIMD client identity, exact redirect metadata, authorization-code and refresh grants, PKCE S256, optional verification, bearer-header tokens, and access/refresh token types."
+    },
+    {
+      "url": "https://oauth.posthog.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-17",
+      "supports": "PostHog's live authorization metadata publishes the authorization, token, revocation, userinfo, supported read scopes, refresh grant, public-client token authentication, and S256 PKCE capability."
+    },
+    {
+      "url": "https://posthog.com/docs/api/projects",
+      "checkedAt": "2026-07-17",
+      "supports": "PostHog documents Organization-scoped Project reads, project:read, bounded list parameters, bearer authentication, and the private fields Relay strips."
+    },
+    {
+      "url": "https://posthog.com/docs/api/dashboards",
+      "checkedAt": "2026-07-17",
+      "supports": "PostHog documents Project-scoped Dashboard list/detail endpoints and dashboard:read authority."
+    },
+    {
+      "url": "https://posthog.com/docs/api/insights",
+      "checkedAt": "2026-07-17",
+      "supports": "PostHog documents Project-scoped Insight list/detail endpoints and insight:read authority."
+    },
+    {
+      "url": "https://posthog.com/docs/api/query",
+      "checkedAt": "2026-07-17",
+      "supports": "PostHog documents Project-scoped query execution and query:read; Relay permits only one fixed short daily EventsNode TrendsQuery."
+    },
+    {
+      "url": "https://posthog.com/docs/api/event-definitions",
+      "checkedAt": "2026-07-17",
+      "supports": "PostHog documents bounded Event Definition reads and event_definition:read."
+    },
+    {
+      "url": "https://posthog.com/docs/api/property-definitions",
+      "checkedAt": "2026-07-17",
+      "supports": "PostHog documents bounded Property Definition reads and property_definition:read."
+    }
+  ]
+}

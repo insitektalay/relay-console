@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "judge-me",
+  "name": "Judge.me",
+  "category": "marketing",
+  "description": "Judge.me is an ecommerce reviews platform for collecting, publishing, moderating, and syndicating product and store reviews across Shopify, WooCommerce, and other storefronts.",
+  "agentUseSummary": "Judge.me cannot yet be connected through Relay. Judge.me recommends scoped OAuth for app integrations, but Relay's production app, exact callback, client credentials, approved scope bundle, and representative merchant acceptance do not exist; using a merchant's broad private API token instead would weaken delegated authority and credential lifecycle controls.",
+  "provider": {
+    "websiteUrl": "https://judge.me/",
+    "docsUrl": "https://judge.me/help/en/articles/8409180-using-judge-me-api",
+    "developerConsoleUrl": "https://judge.me/profile/apps/new",
+    "termsUrl": "https://judge.me/terms",
+    "privacyUrl": "https://judge.me/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["read_products", "read_reviews", "read_reviewers"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://app.judge.me/oauth/authorize",
+    "tokenUrl": "https://judge.me/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth",
+      "authorization_code",
+      "space_delimited_scopes",
+      "permanent_access_token",
+      "shop_domain_binding",
+      "private_api_token_fallback_rejected"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "JUDGE_ME_CLIENT_ID",
+        "label": "Judge.me client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held production Judge.me app client ID."
+      },
+      {
+        "name": "JUDGE_ME_CLIENT_SECRET",
+        "label": "Judge.me client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-encrypted Judge.me app secret; never returned to clients or agents."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/judge-me/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "judge_me_oauth_connection",
+        "label": "Connect a Judge.me store",
+        "description": "Connect remains hidden until Relay's production app, exact callback, credentials, least-authority scopes, and representative consent acceptance exist."
+      },
+      {
+        "id": "judge_me_private_token",
+        "label": "Collect a merchant private token",
+        "description": "Relay does not substitute a merchant's broad server-side private API token for a scoped delegated OAuth connection."
+      },
+      {
+        "id": "judge_me_review_reads",
+        "label": "Read reviews, products, or reviewers",
+        "description": "Review, product, reviewer, and store data remain unavailable before connector implementation and representative acceptance."
+      },
+      {
+        "id": "judge_me_mutations_raw",
+        "label": "Mutate reviews or use raw APIs",
+        "description": "Creating, publishing, hiding, moderating, replying to, or importing reviews, sending review requests, arbitrary endpoints, pagination, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "judge_me_unavailable",
+      "label": "Unavailable",
+      "description": "No Judge.me action is enabled before production OAuth app setup and connector acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "judge_me_oauth_connection",
+        "judge_me_private_token",
+        "judge_me_review_reads",
+        "judge_me_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Judge.me wrappers are mounted before production OAuth app and representative store acceptance."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Judge.me wrappers are mounted before production OAuth app and representative store acceptance."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "relay_action_required",
+    "blocker": "Judge.me requires Relay to create a confidential OAuth app, register an exact callback, receive a client ID and secret, choose least-authority scopes, and complete consent with a representative store. The alternative merchant private token has read/write account authority and does not establish delegated scope, app review, revocation, or lifecycle behavior.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should create the Judge.me app, register https://api.relayconsole.work/api/v1/marketplace/oauth/judge-me/callback, request only read_products, read_reviews, and read_reviewers, store credentials in Railway, and return consent, token-lifecycle, exact-store binding, schema, quota, disconnect, and denial evidence before a bounded read connector is implemented."
+  },
+  "evidence": [
+    {
+      "url": "https://judge.me/help/en/articles/8283047-setting-up-oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Judge.me documents confidential authorization-code OAuth, app creation, exact redirect URI, state, space-delimited permissions, client secret exchange, and a permanent scoped access token; it recommends requesting only essential permissions."
+    },
+    {
+      "url": "https://judge.me/help/en/articles/8409180-using-judge-me-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Judge.me documents shop-domain binding plus public and private API tokens, with the private token granting server-side read/write access and review reads and writes using the private token."
+    },
+    {
+      "url": "https://judge.me/help/en/articles/8278390-build-integrations-with-judge-me",
+      "checkedAt": "2026-07-17",
+      "supports": "Judge.me's integration guidance recommends OAuth with only necessary permissions such as read_reviews and read_reviewers for app integrations."
+    }
+  ]
+}

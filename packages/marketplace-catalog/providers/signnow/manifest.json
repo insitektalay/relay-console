@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "signnow",
+  "name": "SignNow",
+  "category": "knowledge_documents",
+  "description": "SignNow prepares, routes, and tracks electronic-signature documents.",
+  "agentUseSummary": "Connect one SignNow user through Relay-owned confidential OAuth. SignNow authorizes with the broad * scope, so Relay contains the token server-side and exposes only two fixed, read-only projections: up to 25 first-page document metadata summaries and lifecycle metadata for one explicit document. People, content, signing, audit data, writes, broader authority, raw paths, arbitrary queries, pagination, polling, retries, and exports are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.signnow.com/developers",
+    "docsUrl": "https://docs.signnow.com/",
+    "developerConsoleUrl": "https://app.signnow.com/webapp/api/dashboard",
+    "termsUrl": "https://www.signnow.com/terms-of-use",
+    "privacyUrl": "https://www.signnow.com/privacy_policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["*"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.signnow.com/authorize",
+    "tokenUrl": "https://api.signnow.com/oauth2/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth",
+      "confidential_authorization_code",
+      "broad_provider_scope_relay_contained",
+      "user_bound",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/signnow/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "document_list",
+      "label": "List documents",
+      "description": "Read a bounded first page of self-owned document metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "document_get",
+      "label": "Inspect document metadata",
+      "description": "Read lifecycle metadata for one explicit document.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "signnow_document_list",
+        "label": "List document summaries",
+        "description": "List up to 25 first-page document metadata summaries owned by the connected user."
+      },
+      {
+        "id": "signnow_document_get",
+        "label": "Inspect a document",
+        "description": "Inspect lifecycle metadata for one explicit SignNow document ID."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "signnow_private_content",
+        "label": "Access private document content",
+        "description": "Files, downloads, thumbnails, page images, fields, filled values, signer and recipient identity, signatures, invitations, messages, attachments, and audit data are blocked."
+      },
+      {
+        "id": "signnow_mutation",
+        "label": "Mutate or sign documents",
+        "description": "Uploading, creating, editing, sending, signing, sharing, reminding, cancelling, deleting, and generating signing links are blocked."
+      },
+      {
+        "id": "signnow_broader_authority",
+        "label": "Use broad provider authority",
+        "description": "Templates, document groups, teams, organizations, users, webhooks, embedded signing, account administration, and every other capability conveyed by SignNow's broad OAuth token are blocked."
+      },
+      {
+        "id": "signnow_raw_bulk",
+        "label": "Use raw or bulk APIs",
+        "description": "Raw paths, arbitrary queries, pagination, polling, automatic retries, batch access, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "signnow_read_only",
+      "label": "Read-only document metadata",
+      "description": "Two bounded metadata reads run automatically; SignNow's broad token is contained behind fixed paths, strict projection, and blocked writes.",
+      "defaultSelected": true,
+      "allowedActions": ["signnow_document_list", "signnow_document_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "signnow_private_content",
+        "signnow_mutation",
+        "signnow_broader_authority",
+        "signnow_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Fixed paths, strict field projection, the result cap, and Relay's read-only boundary remain enforced despite the provider's broad token.",
+      "defaultSelected": false,
+      "allowedActions": ["signnow_document_list", "signnow_document_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "signnow_private_content",
+        "signnow_mutation",
+        "signnow_broader_authority",
+        "signnow_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded metadata reads and keeps the broad SignNow OAuth token server-side behind fixed GET routes and strict projection."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded metadata reads and keeps the broad SignNow OAuth token server-side behind fixed GET routes and strict projection."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay's SignNow OAuth application, production API plan, client credentials, and any required provider approval are not configured. SignNow exposes broad * authority rather than a documented fine-grained read-only scope. No provider-console, credential, consent, Railway, or live acceptance work is authorized in this worker task.",
+    "nextAction": "An authorized owner configures the exact Railway callback on a Relay-owned SignNow OAuth application, stores the client ID and secret through Railway's secret process, completes any provider review, deploys separately, and runs live connect, user binding, list/get redaction, refresh, local disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://www.signnow.com/developers/signnow-partner-integration-guide",
+      "checkedAt": "2026-07-17",
+      "supports": "SignNow documents OAuth 2.0, authorization_code for other user accounts, refresh_token, Basic client credentials, and POST /oauth2/token."
+    },
+    {
+      "url": "https://docs.signnow.com/docs/signnow/oauth2/operations/get-a-oauth-2-userauth",
+      "checkedAt": "2026-07-17",
+      "supports": "SignNow documents the browser redirect used to obtain an authorization code."
+    },
+    {
+      "url": "https://signnow.github.io/SignNowNodeSDK/file/lib/oauth2/index.js.html",
+      "checkedAt": "2026-07-17",
+      "supports": "SignNow's official SDK documents form-encoded Basic-auth token and refresh exchanges and access-token responses containing refresh token, expiry, and scope."
+    },
+    {
+      "url": "https://signnow.github.io/SignNowNodeSDK/file/lib/document/index.js.html",
+      "checkedAt": "2026-07-17",
+      "supports": "SignNow's official SDK documents GET /user/documentsv2 and GET /document/{id}; Relay fixes those paths and projects only metadata."
+    }
+  ]
+}

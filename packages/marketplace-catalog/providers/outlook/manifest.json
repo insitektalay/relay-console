@@ -1,0 +1,217 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "outlook",
+  "name": "Outlook",
+  "category": "communication",
+  "description": "Outlook provides personal and work email through Microsoft 365 and Microsoft Graph.",
+  "agentUseSummary": "Connect one signed-in Outlook mailbox through Relay-owned Microsoft OAuth with OIDC, offline refresh, PKCE, and the exact delegated Mail.Read permission. Four wrappers read the first twenty-five non-hidden root folders, the first twenty-five newest Inbox messages, the first twenty-five newest unread Inbox messages, or one explicit message as at most eight thousand plain-text body characters. Relay blocks shared and application mail, attachments and MIME, search and exports, writes and sends, other Graph workloads, raw endpoints, automatic pagination, and retries.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-365/outlook/outlook-for-business",
+    "docsUrl": "https://learn.microsoft.com/graph/outlook-mail-concept-overview",
+    "developerConsoleUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+    "termsUrl": "https://www.microsoft.com/licensing/terms/product/ForOnlineServices/all",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "openid",
+      "profile",
+      "offline_access",
+      "https://graph.microsoft.com/Mail.Read"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "delegated_signed_in_user",
+      "self_mailbox_only",
+      "expiring_access_token",
+      "offline_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/outlook/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "mail_folders_list",
+      "label": "List mail folders",
+      "description": "Read non-hidden root folders from the signed-in mailbox.",
+      "defaultSelected": true
+    },
+    {
+      "id": "inbox_messages_list",
+      "label": "Review recent Inbox",
+      "description": "Read bounded newest Inbox message summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "unread_messages_list",
+      "label": "Review unread Inbox",
+      "description": "Read bounded newest unread Inbox message summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "message_get",
+      "label": "Read message",
+      "description": "Read one explicit message as bounded plain text.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "outlook_mail_folders_list",
+        "label": "List Outlook mail folders",
+        "description": "Read up to twenty-five non-hidden root folders in the signed-in mailbox."
+      },
+      {
+        "id": "outlook_inbox_messages_list",
+        "label": "List recent Inbox messages",
+        "description": "Read up to twenty-five newest message summaries from the signed-in user's Inbox."
+      },
+      {
+        "id": "outlook_unread_messages_list",
+        "label": "List unread Inbox messages",
+        "description": "Read up to twenty-five newest unread message summaries from the signed-in user's Inbox."
+      },
+      {
+        "id": "outlook_message_get",
+        "label": "Get Outlook message",
+        "description": "Read one explicit prior-result message as bounded plain text from the signed-in mailbox."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "outlook_shared_application_mail",
+        "label": "Access other mailboxes",
+        "description": "Shared, delegated other-user, group, application-permission, and tenant-wide mail are blocked."
+      },
+      {
+        "id": "outlook_attachments_mime_headers",
+        "label": "Access attachments or raw mail",
+        "description": "Attachments, MIME, raw headers, unsafe HTML, extensions, and custom properties are blocked."
+      },
+      {
+        "id": "outlook_search_delta_subscriptions_export",
+        "label": "Search or export mail",
+        "description": "Search, arbitrary filters, delta, subscriptions, exports, automatic pagination, polling, and automatic retries are blocked."
+      },
+      {
+        "id": "outlook_draft_reply_forward_send",
+        "label": "Draft or send mail",
+        "description": "Drafts, replies, forwards, sends, recipients changes, and every other external communication are blocked."
+      },
+      {
+        "id": "outlook_message_mutation",
+        "label": "Mutate Outlook mail",
+        "description": "Moves, archives, read-state changes, categories, rules, deletes, batch operations, and folder changes are blocked."
+      },
+      {
+        "id": "outlook_calendar_contacts_files_directory",
+        "label": "Access other Microsoft Graph data",
+        "description": "Calendar, contacts, files, Teams, users, directory, administration, and non-mail Graph workloads are blocked."
+      },
+      {
+        "id": "outlook_raw_pagination",
+        "label": "Use raw Graph access",
+        "description": "Raw endpoints, arbitrary queries, beta Graph, page tokens, and CLI or MCP passthrough are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "outlook_read_only",
+      "label": "Read only",
+      "description": "Four delegated signed-in-mailbox reads run automatically; other mailboxes, raw content, search/export, writes, other Graph workloads, and pagination remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "outlook_mail_folders_list",
+        "outlook_inbox_messages_list",
+        "outlook_unread_messages_list",
+        "outlook_message_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "outlook_shared_application_mail",
+        "outlook_attachments_mime_headers",
+        "outlook_search_delta_subscriptions_export",
+        "outlook_draft_reply_forward_send",
+        "outlook_message_mutation",
+        "outlook_calendar_contacts_files_directory",
+        "outlook_raw_pagination"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The exact Mail.Read permission, signed-in /me boundary, four typed reads, privacy redaction, first-page-only behavior, and no-write invariants remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "outlook_mail_folders_list",
+        "outlook_inbox_messages_list",
+        "outlook_unread_messages_list",
+        "outlook_message_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "outlook_shared_application_mail",
+        "outlook_attachments_mime_headers",
+        "outlook_search_delta_subscriptions_export",
+        "outlook_draft_reply_forward_send",
+        "outlook_message_mutation",
+        "outlook_calendar_contacts_files_directory",
+        "outlook_raw_pagination"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded delegated Outlook reads and attaches encrypted OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded delegated Outlook reads and attaches encrypted OAuth tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay must configure a production multi-tenant Entra confidential web application, register the canonical Railway callback, configure the exact delegated OIDC/offline/Mail.Read consent, configure Railway staging credentials, and authorize acceptance work and personal mailboxes. Those provider-console and environment actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the canonical callback and exact delegated scopes, complete publisher verification and staging credentials, then verify account binding, all four wrappers, personal and work accounts, refresh, rotation, revocation, disconnect, consent denial, throttling/error mapping, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-auth-code-flow",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents authorization-code OAuth with PKCE, OIDC scopes, and offline_access for refresh tokens."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/api/user-list-mailfolders?view=graph-rest-1.0",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents signed-in-user /me root mail-folder listing, hidden-folder exclusion by default, OData page sizing, and next links Relay does not follow."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/api/user-list-messages?view=graph-rest-1.0",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents delegated Mail.Read message listing, OData select/order/filter/page parameters, and body content preferences."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/graph/api/message-get?view=graph-rest-1.0",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents explicit /me message reads, delegated Mail.Read, MIME alternatives Relay blocks, and the Prefer text-body header Relay fixes."
+    }
+  ]
+}

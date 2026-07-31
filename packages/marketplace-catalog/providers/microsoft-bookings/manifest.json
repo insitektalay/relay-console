@@ -1,0 +1,209 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-bookings",
+  "name": "Microsoft Bookings",
+  "category": "work_management",
+  "description": "Microsoft Bookings is Microsoft 365's appointment scheduling product for organizations. Teams use it to publish booking pages, define services, coordinate availability, and manage customer appointments alongside Outlook and Teams.",
+  "agentUseSummary": "Connect one selected Bookings business through Relay-owned delegated work-account OAuth, then let agents inspect privacy-bounded business, service, and maximum-seven-day schedule metadata through four fixed Graph wrappers. Relay excludes customers, staff, contact data, notes, answers, meeting links, locations, raw appointment details, writes, broad or application permissions, business discovery, exports, pagination, beta APIs, and raw Graph access.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-365/business/scheduling-and-booking-app",
+    "docsUrl": "https://learn.microsoft.com/graph/api/resources/booking-api-overview",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["https://graph.microsoft.com/Bookings.Read.All"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "microsoft_delegated_work_user",
+      "selected_bookings_business",
+      "encrypted_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-bookings/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "business_services",
+      "label": "Read business and services",
+      "description": "Review one selected Bookings business and its bounded service catalog.",
+      "defaultSelected": true
+    },
+    {
+      "id": "calendar_view",
+      "label": "Read schedule metadata",
+      "description": "Review up to seven days of privacy-scrubbed occupied schedule metadata.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "microsoft_bookings_business_get",
+        "label": "Get selected business",
+        "description": "Read privacy-bounded metadata for the connection-selected Bookings business."
+      },
+      {
+        "id": "microsoft_bookings_services_list",
+        "label": "List services",
+        "description": "List at most twenty-five services for the selected Bookings business."
+      },
+      {
+        "id": "microsoft_bookings_service_get",
+        "label": "Get service",
+        "description": "Read one explicit prior-result service without notes, staff, or custom questions."
+      },
+      {
+        "id": "microsoft_bookings_calendar_view",
+        "label": "View schedule metadata",
+        "description": "Read privacy-scrubbed appointment metadata for an explicit range of at most seven days."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "microsoft_bookings_customers_staff",
+        "label": "Read customers or staff",
+        "description": "Customer records, staff records, identities, contact data, and availability are outside V1."
+      },
+      {
+        "id": "microsoft_bookings_customer_contact_notes",
+        "label": "Read private appointment content",
+        "description": "Customer names, emails, phones, time zones, notes, answers, reminders, and additional information are outside V1."
+      },
+      {
+        "id": "microsoft_bookings_join_urls",
+        "label": "Read meeting or location details",
+        "description": "Join URLs, meeting links, locations, and appointment instructions are outside V1."
+      },
+      {
+        "id": "microsoft_bookings_appointment_detail",
+        "label": "Read raw appointment details",
+        "description": "Raw appointment detail, custom questions, and arbitrary expansions are outside V1."
+      },
+      {
+        "id": "microsoft_bookings_mutations_cancel",
+        "label": "Change Bookings resources",
+        "description": "Create, update, cancel, delete, publish, and other mutations are outside V1."
+      },
+      {
+        "id": "microsoft_bookings_application_write_scopes",
+        "label": "Use broad Bookings permissions",
+        "description": "Application permissions and Bookings write or manage scopes are outside V1."
+      },
+      {
+        "id": "microsoft_bookings_raw_beta_export_pagination",
+        "label": "Use raw or bulk access",
+        "description": "Business discovery, beta or raw endpoints, arbitrary OData, exports, retries, polling, and automatic pagination are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_bookings_safe",
+      "label": "Safe",
+      "description": "Four selected-business privacy-scrubbed reads run automatically; customers, staff, private content, meeting details, writes, broad permissions, discovery, pagination, beta, and raw Graph remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "microsoft_bookings_business_get",
+        "microsoft_bookings_services_list",
+        "microsoft_bookings_service_get",
+        "microsoft_bookings_calendar_view"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_bookings_customers_staff",
+        "microsoft_bookings_customer_contact_notes",
+        "microsoft_bookings_join_urls",
+        "microsoft_bookings_appointment_detail",
+        "microsoft_bookings_mutations_cancel",
+        "microsoft_bookings_application_write_scopes",
+        "microsoft_bookings_raw_beta_export_pagination"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four selected-business reads run without Relay per-action approval; exact scope, business binding, limits, scrubbing, audit, and Microsoft controls still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "microsoft_bookings_business_get",
+        "microsoft_bookings_services_list",
+        "microsoft_bookings_service_get",
+        "microsoft_bookings_calendar_view"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_bookings_customers_staff",
+        "microsoft_bookings_customer_contact_notes",
+        "microsoft_bookings_join_urls",
+        "microsoft_bookings_appointment_detail",
+        "microsoft_bookings_mutations_cancel",
+        "microsoft_bookings_application_write_scopes",
+        "microsoft_bookings_raw_beta_export_pagination"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four selected-business privacy-scrubbed Bookings wrappers and attaches encrypted Microsoft tokens only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four selected-business privacy-scrubbed Bookings wrappers and attaches encrypted Microsoft tokens only on Railway."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_setup_pending",
+    "blocker": "Relay still needs its Entra application registration, delegated Bookings.Read.All configuration, exact Railway callback, staging credentials, a work test account, a staging Bookings business, and Microsoft acceptance. Those provider-console and live-consent actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the Relay-owned Entra application and exact callback, store its credentials on Railway staging, then verify work-account consent, exact scope, PKCE/state, refresh rotation, selected-business binding, all four reads, privacy exclusions, throttling, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/graph/permissions-reference#bookingsreadall",
+      "checkedAt": "2026-07-17",
+      "supports": "Delegated Bookings.Read.All is the least-privileged read permission for Bookings resources and applies to work or school accounts."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/bookingbusiness-get",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides an exact bookingBusiness read under delegated Bookings.Read.All."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/bookingbusiness-list-services",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides the selected business services collection under delegated Bookings.Read.All."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/bookingservice-get",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides an exact selected-business bookingService read under delegated Bookings.Read.All."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/bookingbusiness-list-calendarview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides an explicit start/end bookingBusiness calendar view under delegated Bookings.Read.All."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/microsoft-365/bookings/bookings-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Bookings is an organizational appointment scheduling product integrated with Microsoft 365 calendars, Teams, and Outlook."
+    }
+  ]
+}

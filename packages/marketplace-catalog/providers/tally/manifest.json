@@ -1,0 +1,194 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "tally",
+  "name": "Tally",
+  "category": "work_management",
+  "description": "Tally is an online form and survey platform for collecting responses through flexible, document-like forms. Teams use it for registrations, feedback, applications, lead capture, payments, and other structured information workflows.",
+  "agentUseSummary": "Create a dedicated user-bound Tally API key, add it once, and let agents use three bounded metadata-only reads for token-visible Forms and completed Submission lifecycle summaries. Tally grants each key all resources visible to its user, so Relay blocks questions, answers, respondent identity, files, payments, analytics, administration, writes, arbitrary pagination, exports, and the broad hosted MCP surface.",
+  "provider": {
+    "websiteUrl": "https://tally.so/",
+    "docsUrl": "https://developers.tally.so/api-reference/introduction",
+    "developerConsoleUrl": "https://tally.so/settings/api-keys",
+    "termsUrl": "https://tally.so/terms",
+    "privacyUrl": "https://tally.so/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "exact_current_user_binding",
+      "provider_user_permission_inheritance",
+      "all_user_resources_authority",
+      "fixed_api_version"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "TALLY_API_KEY",
+        "label": "Tally API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated user-bound API key in Tally Settings. The key inherits that user's changing permissions and can access all resources visible to that user."
+      }
+    ],
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "form_list",
+      "label": "List forms",
+      "description": "Read a bounded page of token-visible Form metadata summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "form_get",
+      "label": "Read form metadata",
+      "description": "Read one exact Form metadata summary.",
+      "defaultSelected": true
+    },
+    {
+      "id": "submission_list",
+      "label": "List submission metadata",
+      "description": "Read a bounded page of completed Submission lifecycle summaries.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "tally_form_list",
+        "label": "List forms",
+        "description": "Read page one of twenty-five token-visible Form metadata summaries."
+      },
+      {
+        "id": "tally_form_get",
+        "label": "Read form metadata",
+        "description": "Read one exact Form metadata summary without blocks, settings, or payments."
+      },
+      {
+        "id": "tally_submission_list",
+        "label": "List submission metadata",
+        "description": "Read page one of twenty-five completed Submission lifecycle summaries without questions or responses."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "tally_private_content",
+        "label": "Read private form content",
+        "description": "Questions, answers, respondent identity, sessions, files, PDFs, previews, payments, settings, blocks, analytics, members, and invites are outside V1."
+      },
+      {
+        "id": "tally_form_mutation",
+        "label": "Change forms",
+        "description": "Creating, publishing, updating, duplicating, moving, closing, or deleting Forms is outside V1."
+      },
+      {
+        "id": "tally_submission_mutation",
+        "label": "Change submissions",
+        "description": "Creating, updating, or deleting Submissions is outside V1."
+      },
+      {
+        "id": "tally_administration",
+        "label": "Administer Tally",
+        "description": "Workspace, organization, user, invite, webhook, and webhook-event administration is outside V1."
+      },
+      {
+        "id": "tally_raw_export",
+        "label": "Run raw requests or exports",
+        "description": "Raw API or MCP tools, arbitrary pages, limits, filters, dates, searches, pagination, crawling, synchronization, and export are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "tally_safe",
+      "label": "Safe",
+      "description": "Three bounded metadata-only reads run automatically; private content, administration, arbitrary requests, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "tally_form_list",
+        "tally_form_get",
+        "tally_submission_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "tally_private_content",
+        "tally_form_mutation",
+        "tally_submission_mutation",
+        "tally_administration",
+        "tally_raw_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact current-user health, Tally-granted permissions, the fixed origin and API version, limits, audit, redaction, and provider rate limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "tally_form_list",
+        "tally_form_get",
+        "tally_submission_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "tally_private_content",
+        "tally_form_mutation",
+        "tally_submission_mutation",
+        "tally_administration",
+        "tally_raw_export"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded Tally metadata wrappers and attaches the encrypted customer API key server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded Tally metadata wrappers and attaches the encrypted customer API key server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Local acceptance requires a customer-controlled Tally account, a dedicated tly- API key, representative Forms and completed Submissions, and confirmation that the broad user-bound authority is acceptable. No credentials are available in this code-only task.",
+    "nextAction": "Create a dedicated Tally API key for the intended least-privilege user, add it through Relay's encrypted connection flow, then locally verify /users/me binding, all three bounded reads, permission removal, key rotation, 100-request-per-minute handling, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.tally.so/api-reference/api-keys",
+      "checkedAt": "2026-07-17",
+      "supports": "Tally documents customer-created tly- bearer keys tied to one user, inheriting that user's changing permissions and accessing all user-visible resources without fine-grained key permissions."
+    },
+    {
+      "url": "https://developers.tally.so/api-reference/introduction",
+      "checkedAt": "2026-07-17",
+      "supports": "Tally fixes its HTTPS REST origin at api.tally.so, uses bearer authentication, returns standard authorization and rate-limit errors, and limits requests to 100 per minute."
+    },
+    {
+      "url": "https://developers.tally.so/api-reference/versioning",
+      "checkedAt": "2026-07-17",
+      "supports": "Tally documents the tally-version header and the 2025-02-01 paginated Forms contract; Relay pins that version and fixes page one to twenty-five results."
+    },
+    {
+      "url": "https://developers.tally.so/api-reference/endpoint/forms/submissions/list",
+      "checkedAt": "2026-07-17",
+      "supports": "Tally submission listings contain private questions, responses, respondent identifiers, preview and PDF URLs; Relay fixes the completed filter and returns only lifecycle metadata."
+    },
+    {
+      "url": "https://developers.tally.so/api-reference/mcp",
+      "checkedAt": "2026-07-17",
+      "supports": "Tally's beta hosted MCP supports provider OAuth and broad conversational form and submission tools; Relay does not expose that raw tool surface or treat it as REST OAuth."
+    }
+  ]
+}

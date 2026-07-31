@@ -1,0 +1,185 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "salesforce-data-cloud",
+  "name": "Salesforce Data Cloud",
+  "category": "crm_support",
+  "description": "Salesforce Data Cloud, now branded Data 360, unifies customer data and exposes governed query, profile, metadata, calculated-insight, and identity APIs.",
+  "agentUseSummary": "Connect a customer-owned least-privilege Salesforce External Client App. Relay performs the documented two-stage token exchange and mounts four Query API v3 reads: one existing-query schema read runs directly, while bounded query submission, status, and row retrieval require approval.",
+  "provider": {
+    "websiteUrl": "https://www.salesforce.com/data/",
+    "docsUrl": "https://developer.salesforce.com/docs/data/data-cloud-query-guide/references/data-cloud-query-api-reference",
+    "developerConsoleUrl": "https://login.salesforce.com/",
+    "termsUrl": "https://www.salesforce.com/company/legal/agreements/",
+    "privacyUrl": "https://www.salesforce.com/company/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": ["api", "cdp_query_api"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://login.salesforce.com/services/oauth2/token",
+    "revocationUrl": "https://login.salesforce.com/services/oauth2/revoke"
+  },
+  "connection": {
+    "types": [
+      "customer_owned_external_client_app",
+      "enumerated_production_or_sandbox_login",
+      "salesforce_client_credentials_exchange",
+      "salesforce_data_cloud_token_exchange",
+      "verified_tenant_specific_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SALESFORCE_DATA_CLOUD_CLIENT_ID",
+        "label": "Salesforce external client app ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use a dedicated customer-owned External Client App with api and cdp_query_api only."
+      },
+      {
+        "name": "SALESFORCE_DATA_CLOUD_CLIENT_SECRET",
+        "label": "Salesforce external client app secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay sends this only to the selected fixed Salesforce login origin."
+      },
+      {
+        "name": "SALESFORCE_DATA_CLOUD_LOGIN_ENVIRONMENT",
+        "label": "Salesforce login environment",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter exactly production or sandbox."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/salesforce-data-cloud/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read query metadata",
+      "description": "Read one existing query's output schema.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Query Data Cloud data",
+      "description": "Submit, monitor, and retrieve one bounded query with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "salesforce_data_cloud_structural_read",
+        "label": "Read Data Cloud query metadata",
+        "description": "Read the output schema for one exact existing query."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "salesforce_data_cloud_sensitive_read",
+        "label": "Query Data Cloud data",
+        "description": "Submit, monitor, or retrieve one bounded Data Cloud query."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "salesforce_data_cloud_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Client credentials, core and Data Cloud tokens, authorization headers, and credential-bearing fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "salesforce_data_cloud_bulk_transfer",
+        "label": "Run bulk transfers",
+        "description": "Wildcards, exports, ingestion, streams, chunks, bulk APIs, unbounded queries, responses above 1.25 MB, and more than 200 requested rows are excluded."
+      },
+      {
+        "id": "salesforce_data_cloud_mutation_admin",
+        "label": "Mutate or administer Data Cloud",
+        "description": "Ingestion, profile writes, activation, segmentation, modeling, identity resolution, metadata changes, query cancellation, permissions, users, apps, and tenant administration remain provider-side."
+      },
+      {
+        "id": "salesforce_data_cloud_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only four pinned Query API v3 routes run on the tenant origin returned by Salesforce; arbitrary origins, paths, headers, parameters, SQL forms, and legacy APIs are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "salesforce_data_cloud_safe",
+      "label": "Safe",
+      "description": "One existing query's schema can be read directly; query submission, status, and bounded rows require approval while tenant, SQL, row, byte, and response bounds remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": ["salesforce_data_cloud_structural_read"],
+      "approvalRequiredActions": ["salesforce_data_cloud_sensitive_read"],
+      "blockedActions": [
+        "salesforce_data_cloud_secret_exposure",
+        "salesforce_data_cloud_bulk_transfer",
+        "salesforce_data_cloud_mutation_admin",
+        "salesforce_data_cloud_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected reads run without Relay per-action approval; two-stage token exchange, exact tenant routing, SELECT-only SQL, row/byte/response bounds, audits, and mutation/admin/bulk blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "salesforce_data_cloud_structural_read",
+        "salesforce_data_cloud_sensitive_read"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "salesforce_data_cloud_secret_exposure",
+        "salesforce_data_cloud_bulk_transfer",
+        "salesforce_data_cloud_mutation_admin",
+        "salesforce_data_cloud_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway performs both server-side token exchanges and mounts four bounded Query API v3 reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway performs both server-side token exchanges and mounts four bounded Query API v3 reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Salesforce Data Cloud requires a customer-owned least-privilege External Client App, a Data Cloud-licensed integration user, api and cdp_query_api scopes, and production or sandbox credentials. No console, app, account, credential, token, tenant, data, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create a dedicated staging External Client App and run-as integration user outside this worker, grant only api and cdp_query_api plus the minimum Data Cloud data-space permissions, store the app ID, secret, and environment in Railway staging, then verify both token exchanges, tenant-origin rejection, schema/query/status/row operations, approval denial/allow, row/byte/response bounds, rate limits, app revocation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.salesforce.com/docs/data/data-cloud-query-guide/references/data-cloud-query-api-reference/c360a-direct-api-connected-app.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents Data Cloud licensing and roles, api plus cdp_query_api scopes, Salesforce-to-Data-Cloud token exchange, tenant-specific instance_url, token lifetime, and the required c360a.salesforce.com endpoint structure."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/data/data-cloud-query-guide/references/data-cloud-query-api-reference/query-api-v3-post.html",
+      "checkedAt": "2026-07-17",
+      "supports": "The current Query API v3 submit contract documents POST /api/v3/query, SELECT SQL, ASYNC transfer mode, queryRowLimit as a server-side implicit LIMIT, status-header query ID, and structured errors."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/data/data-cloud-query-guide/references/data-cloud-query-api-reference/query-api-v3-get-rows.html",
+      "checkedAt": "2026-07-17",
+      "supports": "The current rows contract documents GET /api/v3/query/{queryId}/rows with required offset, optional limit and byteLimit, JSON schema/data, and a provider maximum byte limit of 20 MB that Relay narrows to 1 MB."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/data/data-cloud-query-guide/references/data-cloud-query-api-reference/c360a-api-queryservices-overview.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce lists the current v3 submit, status, rows, chunks, metadata, and cancel routes, recommends explicit fields and limits, and identifies the Data Cloud instance URL as separate from the standard Salesforce org URL."
+    }
+  ]
+}

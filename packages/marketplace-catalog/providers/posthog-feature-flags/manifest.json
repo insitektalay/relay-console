@@ -1,0 +1,166 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "posthog-feature-flags",
+  "name": "PostHog Feature Flags",
+  "category": "developer",
+  "description": "PostHog Feature Flags supports controlled feature rollout, multivariate releases, targeting, experimentation, and remote configuration within PostHog projects.",
+  "agentUseSummary": "Connect a dedicated project-scoped personal API key with only feature_flag:read, select the US or EU Cloud region, and bind one non-production project. Relay approval-gates a 25-item active flag list and one exact redacted flag read; targeting properties, cohorts, evaluation, payloads, and all mutations remain blocked.",
+  "provider": {
+    "websiteUrl": "https://posthog.com/feature-flags",
+    "docsUrl": "https://posthog.com/docs/api",
+    "developerConsoleUrl": "https://app.posthog.com/",
+    "termsUrl": "https://posthog.com/terms",
+    "privacyUrl": "https://posthog.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["feature_flag:read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_personal_api_key",
+      "bearer_authentication",
+      "feature_flag_read_scope",
+      "enumerated_cloud_region",
+      "exact_project_binding",
+      "fixed_private_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "POSTHOG_FEATURE_FLAGS_PERSONAL_API_KEY",
+        "label": "PostHog personal API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated project-scoped personal API key with only feature_flag:read."
+      },
+      {
+        "name": "POSTHOG_FEATURE_FLAGS_REGION",
+        "label": "PostHog Cloud region",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter exactly us or eu. Self-hosted origins are outside V1."
+      },
+      {
+        "name": "POSTHOG_FEATURE_FLAGS_PROJECT_ID",
+        "label": "PostHog project ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one non-production numeric project."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read feature flags",
+      "description": "Read bounded, redacted feature-flag configuration with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "posthog_feature_flags_sensitive_read",
+        "label": "Read PostHog feature flags",
+        "description": "Read bounded active flag summaries or one exact redacted flag configuration."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "posthog_feature_flags_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Personal API keys, Bearer headers, stored project routing, and credential-bearing fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "posthog_feature_flags_targeting_data",
+        "label": "Read targeting data",
+        "description": "Person/group properties, distinct IDs, cohort membership, condition values, evaluation contexts, remote-config payloads, and evaluation results are excluded."
+      },
+      {
+        "id": "posthog_feature_flags_mutation",
+        "label": "Mutate PostHog",
+        "description": "Flag creation, updates, deletes, archival, rollout changes, experiments, cohort creation, bulk actions, test evaluation, dashboards, and all other mutations remain provider-side."
+      },
+      {
+        "id": "posthog_feature_flags_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only the official feature-flag list and exact integer retrieve routes run on enumerated US/EU private API origins with stored project binding; arbitrary paths, queries, pagination, public evaluation endpoints, local evaluation, exports, and raw API access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "posthog_feature_flags_safe",
+      "label": "Safe",
+      "description": "Both bounded feature-flag reads require approval; exact region/project binding, response bounds, audits, targeting redaction, and evaluation/mutation blocks remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["posthog_feature_flags_sensitive_read"],
+      "blockedActions": [
+        "posthog_feature_flags_secret_exposure",
+        "posthog_feature_flags_targeting_data",
+        "posthog_feature_flags_mutation",
+        "posthog_feature_flags_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected redacted feature-flag read runs without Relay per-action approval; exact region/project binding, response bounds, audits, targeting redaction, and evaluation/mutation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["posthog_feature_flags_sensitive_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "posthog_feature_flags_secret_exposure",
+        "posthog_feature_flags_targeting_data",
+        "posthog_feature_flags_mutation",
+        "posthog_feature_flags_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted read-scoped key server-side and mounts two project-bound, approval-gated, redacted flag reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted read-scoped key server-side and mounts two project-bound, approval-gated, redacted flag reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "PostHog requires a customer project and a dedicated personal API key restricted to feature_flag:read and that project. No console, account, key, project, flag, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create a dedicated project-scoped feature_flag:read key outside this worker, configure its encrypted value, US/EU region and project ID in Railway staging, then verify project binding, active-list and exact-read redaction, approval/access denial, response bounds, rate limiting, key revocation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://eu.posthog.com/api/schema/",
+      "checkedAt": "2026-07-18",
+      "supports": "PostHog's official OpenAPI pins GET /api/projects/{project_id}/feature_flags/ and GET /api/projects/{project_id}/feature_flags/{id}/ to feature_flag:read; write routes require feature_flag:write, and list supports active, limit and offset."
+    },
+    {
+      "url": "https://posthog.com/docs/api",
+      "checkedAt": "2026-07-18",
+      "supports": "PostHog documents US/EU private API origins, personal-key authentication for private endpoints, pagination, rate limiting, and the distinction between private metadata APIs and public flag evaluation."
+    },
+    {
+      "url": "https://posthog.com/docs/api/personal-api-keys",
+      "checkedAt": "2026-07-18",
+      "supports": "PostHog documents Bearer authentication, project/access scoping, least-privilege scopes, secret handling, individual invalidation, and key rotation."
+    }
+  ]
+}

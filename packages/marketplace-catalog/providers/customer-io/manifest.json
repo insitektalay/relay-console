@@ -1,0 +1,202 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "customer-io",
+  "name": "Customer.io",
+  "category": "communication",
+  "description": "Customer.io is a customer engagement platform for behavioral messaging, journeys, campaigns, broadcasts, transactional messages, audience segments, and delivery reporting.",
+  "agentUseSummary": "Enter one workspace-specific Customer.io App API key, exact numeric Workspace ID, and allowlisted US or EU App API origin. Relay validates that binding and exposes only the binding summary plus at most twenty-five content-free Campaign and Broadcast lifecycle summaries; people, identity, content, recipients, deliveries, reports, triggers, broader APIs, arbitrary queries, pagination, exports, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://customer.io/",
+    "docsUrl": "https://docs.customer.io/integrations/api/app/",
+    "developerConsoleUrl": "https://fly.customer.io/settings/api_credentials?keyType=app",
+    "termsUrl": "https://customer.io/legal/terms-of-service/",
+    "privacyUrl": "https://customer.io/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_workspace_app_api_key",
+      "customer_supplied_region",
+      "exact_workspace_id_validation",
+      "broad_workspace_api_authority",
+      "manual_provider_key_rotation"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CUSTOMER_IO_APP_API_ORIGIN",
+        "label": "Customer.io App API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter https://api.customer.io for a US workspace or https://api-eu.customer.io for an EU workspace. Relay rejects every other origin."
+      },
+      {
+        "name": "CUSTOMER_IO_WORKSPACE_ID",
+        "label": "Customer.io Workspace ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact numeric Workspace ID associated with the dedicated App API key so Relay can validate the binding before use."
+      },
+      {
+        "name": "CUSTOMER_IO_APP_API_KEY",
+        "label": "Customer.io App API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated App API key for the exact workspace. Customer.io shows the key once; rotate it regularly and optionally restrict it to Relay's egress IP addresses."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workspace_binding",
+      "label": "Workspace binding",
+      "description": "Validate one exact Workspace-scoped App API key and regional origin.",
+      "defaultSelected": true
+    },
+    {
+      "id": "campaign_metadata",
+      "label": "Campaign metadata",
+      "description": "List bounded, content-free Campaign lifecycle summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "broadcast_metadata",
+      "label": "Broadcast metadata",
+      "description": "List bounded, content-free Broadcast lifecycle summaries.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "customer_io_workspace_binding_get",
+        "label": "Read workspace binding",
+        "description": "Validate the exact App API origin, key, and configured Workspace ID without returning workspace names, usage, or profile counts."
+      },
+      {
+        "id": "customer_io_campaign_list",
+        "label": "List campaigns",
+        "description": "Read at most twenty-five Campaign lifecycle summaries without names, descriptions, actions, tags, audiences, or content."
+      },
+      {
+        "id": "customer_io_broadcast_list",
+        "label": "List broadcasts",
+        "description": "Read at most twenty-five Broadcast lifecycle summaries without names, actions, tags, recipients, metrics, or content."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "customer_io_people_private",
+        "label": "Access people or identity",
+        "description": "People, identifiers, profile attributes, devices, relationships, segment membership, and activity are outside V1."
+      },
+      {
+        "id": "customer_io_message_private",
+        "label": "Access message or delivery detail",
+        "description": "Message content, recipients, deliveries, links, events, failures, transactional data, and person-level reports are outside V1."
+      },
+      {
+        "id": "customer_io_mutation",
+        "label": "Change or send Customer.io data",
+        "description": "Triggering, sending, creating, updating, deleting, suppressing, or otherwise mutating Customer.io resources is outside V1."
+      },
+      {
+        "id": "customer_io_broader_api",
+        "label": "Access broader Customer.io APIs",
+        "description": "Track, Pipelines, transactional send, exports, collections, segments, templates, reporting drilldowns, and administration are outside V1."
+      },
+      {
+        "id": "customer_io_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary origins, paths, filters, identifiers, pagination, crawling, synchronization, exports, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "customer_io_safe",
+      "label": "Safe",
+      "description": "Three bounded metadata-only reads run automatically; people, identity, content, deliveries, reports, broader APIs, arbitrary requests, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "customer_io_workspace_binding_get",
+        "customer_io_campaign_list",
+        "customer_io_broadcast_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "customer_io_people_private",
+        "customer_io_message_private",
+        "customer_io_mutation",
+        "customer_io_broader_api",
+        "customer_io_raw_query"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact regional-origin and Workspace binding, fixed endpoints, response limits, audit, redaction, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "customer_io_workspace_binding_get",
+        "customer_io_campaign_list",
+        "customer_io_broadcast_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "customer_io_people_private",
+        "customer_io_message_private",
+        "customer_io_mutation",
+        "customer_io_broader_api",
+        "customer_io_raw_query"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Customer.io metadata wrappers and attaches the encrypted workspace App API key, exact Workspace ID, and validated official regional origin server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Customer.io metadata wrappers and attaches the encrypted workspace App API key, exact Workspace ID, and validated official regional origin server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer creates a dedicated App API key for the exact workspace, records it when shown, supplies the workspace's numeric ID and US/EU App API origin, rotates the key regularly, and optionally configures Customer.io's IP allowlist for Relay egress."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.customer.io/integrations/api/app/",
+      "checkedAt": "2026-07-17",
+      "supports": "Customer.io documents the regional App API as bearer-authenticated and publishes fixed workspaces, campaigns, and broadcasts retrieval endpoints; its OpenAPI pins Workspace listing to the US API origin and documents a ten-request-per-second limit for Campaign and Broadcast listing."
+    },
+    {
+      "url": "https://docs.customer.io/accounts/settings/managing-credentials/",
+      "checkedAt": "2026-07-17",
+      "supports": "Customer.io documents separate credentials per workspace, App API keys for data retrieval and message triggering, one-time key display, hashed storage, rotation, deletion, and optional workspace-specific IP allowlisting."
+    },
+    {
+      "url": "https://docs.customer.io/integrations/api/customerio-apis/",
+      "checkedAt": "2026-07-17",
+      "supports": "Customer.io distinguishes the bearer-authenticated App API from Track and Pipelines APIs; Relay accepts only an App API key and blocks ingestion and mutation surfaces."
+    }
+  ]
+}

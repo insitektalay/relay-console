@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "configcat",
+  "name": "ConfigCat",
+  "category": "developer",
+  "description": "ConfigCat is a hosted feature flag and remote configuration service with products, configs, environments, flags, settings, targeting rules, and percentage rollouts.",
+  "agentUseSummary": "Connect dedicated read-only Public API credentials bound to one non-production config. Relay approval-gates bounded flag metadata reads while served values, variations, environments, targeting rules, SDK keys, and mutations remain blocked.",
+  "provider": {
+    "websiteUrl": "https://configcat.com/",
+    "docsUrl": "https://configcat.com/docs/api/reference/overview/",
+    "developerConsoleUrl": "https://app.configcat.com/",
+    "termsUrl": "https://configcat.com/terms/",
+    "privacyUrl": "https://configcat.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["read_only_member"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_public_api_credentials",
+      "read_only_member_permission",
+      "exact_config_binding",
+      "fixed_public_management_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CONFIGCAT_PUBLIC_API_USERNAME",
+        "label": "ConfigCat Public API username",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated ConfigCat Public API credential for a read-only member."
+      },
+      {
+        "name": "CONFIGCAT_PUBLIC_API_PASSWORD",
+        "label": "ConfigCat Public API password",
+        "required": true,
+        "secret": true,
+        "helpText": "Store the matching Public API password encrypted."
+      },
+      {
+        "name": "CONFIGCAT_CONFIG_ID",
+        "label": "ConfigCat config ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one non-production Config UUID."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read feature flag metadata",
+      "description": "Read bounded config-level flag metadata with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "configcat_sensitive_read",
+        "label": "Read ConfigCat flags",
+        "description": "Read bounded config-level feature flag metadata."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "configcat_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Public API usernames, passwords, and authorization headers never enter agent-visible inputs or results."
+      },
+      {
+        "id": "configcat_private_data",
+        "label": "Read flag values or rollout rules",
+        "description": "Served values, predefined variation values, environments, targeting and percentage rules, users, comparators, and SDK keys are excluded."
+      },
+      {
+        "id": "configcat_mutation",
+        "label": "Mutate ConfigCat",
+        "description": "Flag, value, rule, environment, config, product, organization, webhook, tag, credential, and every other mutation remain provider-side."
+      },
+      {
+        "id": "configcat_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only one config's flag list and exact flag metadata GETs run on api.configcat.com; arbitrary paths, queries, pagination, value endpoints, evaluation, and alternate origins are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "configcat_safe",
+      "label": "Safe",
+      "description": "Both metadata reads require approval; read-only authority, fixed API/config routes, bounds, redaction, audits, and value/evaluation/mutation blocks remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["configcat_sensitive_read"],
+      "blockedActions": [
+        "configcat_secret_exposure",
+        "configcat_private_data",
+        "configcat_mutation",
+        "configcat_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected metadata read runs without Relay approval; read-only authority, fixed API/config routes, bounds, redaction, audits, and value/evaluation/mutation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["configcat_sensitive_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "configcat_secret_exposure",
+        "configcat_private_data",
+        "configcat_mutation",
+        "configcat_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches encrypted Public API credentials server-side and mounts two approval-gated metadata reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches encrypted Public API credentials server-side and mounts two approval-gated metadata reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "ConfigCat requires a customer organization, dedicated read-only member/Public API credentials, and one config. This worker may not create or configure them.",
+    "nextAction": "Create the restricted staging credential outside this worker, configure username, password, and config ID in Railway staging, then verify binding, reads, redaction, approvals, bounds, revocation, disconnect, and denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.configcat.com/docs/v1/swagger.json",
+      "checkedAt": "2026-07-18",
+      "supports": "ConfigCat's official OpenAPI pins Basic authentication, fixed config flag list and exact flag metadata GETs, response fields, rate-limit headers, and separate mutation/value routes."
+    },
+    {
+      "url": "https://configcat.com/docs/api/reference/overview/",
+      "checkedAt": "2026-07-18",
+      "supports": "ConfigCat documents the Public Management API, Public API credentials, fixed api.configcat.com origin, and the distinction between metadata management and flag evaluation."
+    }
+  ]
+}

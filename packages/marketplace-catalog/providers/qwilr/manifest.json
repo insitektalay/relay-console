@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "qwilr",
+  "name": "Qwilr",
+  "category": "knowledge_documents",
+  "description": "Qwilr is a proposal and document-automation platform for creating interactive sales pages, quotes, contracts, and digital sales rooms. Revenue teams use it to personalize buyer content, track engagement, collect acceptance, and connect proposal activity to downstream workflows.",
+  "agentUseSummary": "Connect a dedicated customer-owned Qwilr access token, then let agents discover bounded saved-block identifiers, inspect redacted page lifecycle metadata, or create reviewed template-based drafts under Safe or Dangerous policy. Relay forces drafts to remain unpublished and excludes page content, people, links, acceptance, payments, account administration, raw access, and token material.",
+  "provider": {
+    "websiteUrl": "https://qwilr.com/",
+    "docsUrl": "https://docs.qwilr.com/api-reference/",
+    "developerConsoleUrl": "https://app.qwilr.com/#/settings/api",
+    "termsUrl": "https://qwilr.com/terms/",
+    "privacyUrl": "https://qwilr.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_access_token",
+      "bearer_jwt",
+      "api_enabled_account",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "QWILR_ACCESS_TOKEN",
+        "label": "Qwilr access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a dedicated customer-owned token in Qwilr API Settings for an API-enabled account."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "saved_blocks_list",
+      "label": "Discover saved blocks",
+      "description": "List bounded saved-block identifiers and labels without block content.",
+      "defaultSelected": true
+    },
+    {
+      "id": "page_metadata_read",
+      "label": "Inspect page metadata",
+      "description": "Read one page's redacted lifecycle metadata without content, people, URLs, acceptance, or payments.",
+      "defaultSelected": true
+    },
+    {
+      "id": "page_draft_create",
+      "label": "Create template drafts",
+      "description": "Create one bounded page draft from an explicit template with publishing forced off.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "qwilr_saved_blocks_list",
+        "label": "List saved blocks",
+        "description": "List up to 50 saved-block IDs, names, and types from the connected account."
+      },
+      {
+        "id": "qwilr_page_get",
+        "label": "Inspect page metadata",
+        "description": "Inspect privacy-redacted lifecycle metadata for one explicit Qwilr page."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "qwilr_page_create_draft",
+        "label": "Create page draft",
+        "description": "Create one bounded page draft from an explicit template with publishing forced off."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "qwilr_publish_external",
+        "label": "Publish or expose pages",
+        "description": "Publishing, reviving, public links, sharing, acceptance, signatures, post-accept redirects, and outbound notifications are blocked."
+      },
+      {
+        "id": "qwilr_private_content",
+        "label": "Access private page content",
+        "description": "Page blocks, quote contents, substitutions, metadata, acceptance records, accepters, links, PDFs, payment details, and collaborator/editor URLs are blocked from results."
+      },
+      {
+        "id": "qwilr_account_mutation",
+        "label": "Mutate account or financial configuration",
+        "description": "Page replacement/deletion, taxes, payment gateways/settings, users, webhooks, and account administration are blocked."
+      },
+      {
+        "id": "qwilr_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, arbitrary bodies, block-based page construction, pagination, polling, retries, batches, exports, and unbounded results are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "qwilr_safe",
+      "label": "Safe",
+      "description": "Bounded redacted reads run automatically; creating a provider-hosted page draft requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["qwilr_saved_blocks_list", "qwilr_page_get"],
+      "approvalRequiredActions": ["qwilr_page_create_draft"],
+      "blockedActions": [
+        "qwilr_publish_external",
+        "qwilr_private_content",
+        "qwilr_account_mutation",
+        "qwilr_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected draft creation runs without Relay per-action approval; ownership, fixed paths, input bounds, token secrecy, forced unpublished state, redaction, audits, and Qwilr plan limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "qwilr_saved_blocks_list",
+        "qwilr_page_get",
+        "qwilr_page_create_draft"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "qwilr_publish_external",
+        "qwilr_private_content",
+        "qwilr_account_mutation",
+        "qwilr_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway confines the broad customer token to two fixed redacted reads and one bounded unpublished template-draft operation."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway confines the broad customer token to two fixed redacted reads and one bounded unpublished template-draft operation."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Qwilr requires an API-enabled eligible account and a customer-generated access token that is displayed only once; API document generation may also carry plan-specific per-document charges. No account, token, plan confirmation, live provider session, Railway change, or production acceptance is available in this worker task.",
+    "nextAction": "An authorized customer enables API access on an eligible Qwilr plan, creates a dedicated integration user and one-time token, stores it through Relay's encrypted connection flow, reviews document charges, then separately validates saved-block health, redacted page reads, Safe approval, Dangerous draft creation, forced unpublished state, token rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.qwilr.com/api-reference/",
+      "checkedAt": "2026-07-17",
+      "supports": "Qwilr documents the fixed https://api.qwilr.com/v1 origin, broad account Bearer JWT token, saved-block listing, page get/create/update, tax and payment-gateway resources, webhooks, and users; Relay selects only fixed redacted reads plus unpublished template drafts."
+    },
+    {
+      "url": "https://docs.qwilr.com/docs/getting-started/quick-start/",
+      "checkedAt": "2026-07-17",
+      "supports": "Qwilr documents API-enabled Enterprise setup, one-time access-token display, template IDs, substitutions, tags, and POST /v1/pages for programmatic page creation."
+    },
+    {
+      "url": "https://qwilr.com/api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Qwilr describes proposal, quote, contract, report, and sales-content automation and states that API usage can require extra fees and a custom quote."
+    }
+  ]
+}

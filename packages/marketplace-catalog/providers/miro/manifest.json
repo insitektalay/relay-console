@@ -1,0 +1,230 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "miro",
+  "name": "Miro",
+  "category": "content_creative",
+  "description": "Miro is a collaborative online workspace for visual planning, workshops, product discovery, diagrams, research, and project coordination. Teams arrange sticky notes, cards, text, shapes, frames, and other content on shared boards so ideas and decisions remain visible in one place.",
+  "agentUseSummary": "Connect a Miro team once, then let agents inspect authorized boards and bounded board items, prepare exact changes, or create sticky notes and cards and update supported items under Safe or Dangerous policy. Relay preserves Miro's item type, content, style, position, geometry, parent, creator, timestamp, and cursor semantics without exposing OAuth tokens.",
+  "provider": {
+    "websiteUrl": "https://miro.com/",
+    "docsUrl": "https://developers.miro.com/reference/",
+    "developerConsoleUrl": "https://miro.com/app/settings/user-profile/apps",
+    "termsUrl": "https://miro.com/legal/terms-of-service/",
+    "privacyUrl": "https://miro.com/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["boards:read", "boards:write"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://miro.com/oauth/authorize",
+    "tokenUrl": "https://api.miro.com/v1/oauth/token",
+    "revocationUrl": "https://api.miro.com/v2/oauth/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/miro/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "board_read",
+      "label": "Read boards",
+      "description": "List bounded boards and inspect useful metadata for one explicit board.",
+      "defaultSelected": true
+    },
+    {
+      "id": "item_read",
+      "label": "Read board items",
+      "description": "Inspect bounded cursor-paginated items with type, content, style, position, geometry, parent, creator, and timestamps.",
+      "defaultSelected": true
+    },
+    {
+      "id": "item_draft",
+      "label": "Prepare board changes",
+      "description": "Normalize and hash exact item changes locally before any provider mutation.",
+      "defaultSelected": true
+    },
+    {
+      "id": "item_write",
+      "label": "Create and update items",
+      "description": "Create sticky notes or cards and update supported explicit items.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "miro_board_list",
+        "label": "List boards",
+        "description": "List one bounded page of boards visible to the connected Miro user."
+      },
+      {
+        "id": "miro_board_get",
+        "label": "Read board",
+        "description": "Read useful metadata for one explicit Miro board."
+      },
+      {
+        "id": "miro_board_items",
+        "label": "List board items",
+        "description": "List one cursor-bounded page of typed items from one explicit board."
+      },
+      {
+        "id": "miro_item_get",
+        "label": "Read board item",
+        "description": "Read one explicit item with its content and spatial context."
+      },
+      {
+        "id": "miro_item_prepare",
+        "label": "Prepare item change",
+        "description": "Normalize and hash one sticky-note, card, or supported-item change locally."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "miro_sticky_note_create",
+        "label": "Create sticky note",
+        "description": "Create one bounded sticky note on one explicit board."
+      },
+      {
+        "id": "miro_card_create",
+        "label": "Create card",
+        "description": "Create one bounded card on one explicit board."
+      },
+      {
+        "id": "miro_item_update",
+        "label": "Update supported item",
+        "description": "Update one explicit sticky note, card, text, or shape."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "miro_item_delete",
+        "label": "Delete board content",
+        "description": "Deletion and bulk destructive operations are outside V1."
+      },
+      {
+        "id": "miro_board_admin",
+        "label": "Administer boards or teams",
+        "description": "Board creation, sharing, membership, organization, project, team, and enterprise administration are outside V1."
+      },
+      {
+        "id": "miro_extended_mutation",
+        "label": "Change extended board resources",
+        "description": "Connectors, tags, app cards, documents, embeds, images, webhooks, and external-resource mutations are outside V1."
+      },
+      {
+        "id": "miro_binary_broad_raw",
+        "label": "Transfer or crawl broad content",
+        "description": "Binary transfer, automatic pagination, broad ingestion, exports, and arbitrary REST calls are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "miro_safe",
+      "label": "Safe",
+      "description": "Bounded board and item reads plus local drafts run directly; every Miro mutation requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "miro_board_list",
+        "miro_board_get",
+        "miro_board_items",
+        "miro_item_get",
+        "miro_item_prepare"
+      ],
+      "approvalRequiredActions": [
+        "miro_sticky_note_create",
+        "miro_card_create",
+        "miro_item_update"
+      ],
+      "blockedActions": [
+        "miro_item_delete",
+        "miro_board_admin",
+        "miro_extended_mutation",
+        "miro_binary_broad_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Miro operation supported by this connector runs without Relay per-action approval; connection ownership, OAuth grants, fixed routes, bounds, audits, redaction, idempotency, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "miro_board_list",
+        "miro_board_get",
+        "miro_board_items",
+        "miro_item_get",
+        "miro_item_prepare",
+        "miro_sticky_note_create",
+        "miro_card_create",
+        "miro_item_update"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "miro_item_delete",
+        "miro_board_admin",
+        "miro_extended_mutation",
+        "miro_binary_broad_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts eight exact Miro board and item wrappers and attaches the user's OAuth token without exposing it to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts eight exact Miro board and item wrappers and attaches the user's OAuth token without exposing it to the agent."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Miro OAuth app has not been confirmed with the production callback, boards:read and boards:write scopes, public distribution, Partner approval, Marketplace review, and production credentials.",
+    "nextAction": "Create or update Relay Console in Miro's developer team, add the exact production callback and two board scopes, configure the installation URL and listing, complete the Partner and Marketplace review process, store the client ID and secret in Railway, then test consent, rotating refresh, revocation, bounded reads, Safe approval, Dangerous writes, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.miro.com/docs/getting-started-with-oauth",
+      "checkedAt": "2026-07-16",
+      "supports": "Miro documents confidential authorization-code OAuth, the exact authorization and token endpoints, boards:read and boards:write scopes, one-hour access tokens, 60-day refresh tokens, and replacement of both tokens on refresh."
+    },
+    {
+      "url": "https://developers.miro.com/reference/get-boards",
+      "checkedAt": "2026-07-16",
+      "supports": "Miro REST v2 lists boards with explicit filters, sorting, offset, a maximum page size of fifty, boards:read scope, and provider rate limits."
+    },
+    {
+      "url": "https://developers.miro.com/reference/get-items",
+      "checkedAt": "2026-07-16",
+      "supports": "Miro REST v2 lists board items with type filters, parent context, cursor pagination, limits from ten to fifty, and boards:read scope."
+    },
+    {
+      "url": "https://developers.miro.com/reference/create-sticky-note-item",
+      "checkedAt": "2026-07-16",
+      "supports": "Miro REST v2 creates bounded sticky notes with data, style, position, geometry, and parent fields under boards:write."
+    },
+    {
+      "url": "https://developers.miro.com/reference/update-card-item",
+      "checkedAt": "2026-07-16",
+      "supports": "Miro REST v2 updates one explicit card through a type-specific route and preserves data, style, position, geometry, and parent semantics."
+    },
+    {
+      "url": "https://developers.miro.com/reference/revoke-token-v2",
+      "checkedAt": "2026-07-16",
+      "supports": "Miro's v2 revocation endpoint invalidates both the current access token and its refresh token using the app client credentials."
+    },
+    {
+      "url": "https://developers.miro.com/docs/publish-your-app",
+      "checkedAt": "2026-07-16",
+      "supports": "Public Marketplace distribution requires Miro Partner approval and review, which Miro says may take eight to twelve weeks."
+    }
+  ]
+}

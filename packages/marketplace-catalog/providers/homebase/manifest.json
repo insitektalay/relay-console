@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "homebase",
+  "name": "Homebase",
+  "category": "work_management",
+  "description": "Homebase is an all-in-one employee management platform for small businesses with hourly teams. Businesses use it for scheduling, time clocks, timesheets, payroll, team communication, hiring, onboarding, HR, compliance, and labor-cost management.",
+  "agentUseSummary": "Add a Homebase-issued API key, then choose which agents can read company, location, employee, shift, timecard, labor, plan, and time-clock status data.",
+  "provider": {
+    "websiteUrl": "https://www.joinhomebase.com/",
+    "docsUrl": "https://app.joinhomebase.com/api-docs",
+    "developerConsoleUrl": "https://app.joinhomebase.com/settings/api",
+    "termsUrl": "https://app.joinhomebase.com/terms",
+    "privacyUrl": "https://www.joinhomebase.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key"],
+    "credentialRequirements": [
+      {
+        "key": "HOMEBASE_API_KEY",
+        "label": "Homebase API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Request a read-only key from Homebase API Settings. Homebase must approve the request before the key appears."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "homebase_read",
+      "label": "Read Homebase",
+      "description": "Use all 16 operations in Homebase's current read-only public API for companies, locations, employees, shifts, timecards, labor, plans, and time-clock status."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "homebase_read",
+        "label": "Read Homebase",
+        "description": "Run one exact selected GET operation from Homebase's current public API."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "homebase_safe",
+      "label": "Safe",
+      "description": "All 16 bounded Homebase public API reads run directly; the current public contract contains no write operations.",
+      "defaultSelected": true,
+      "allowedActions": ["homebase_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All selected Homebase API-key-authorized operations run directly. This mode grants no undocumented write authority because Homebase's current public contract is read-only.",
+      "defaultSelected": false,
+      "allowedActions": ["homebase_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 16 pinned Homebase public API reads through the encrypted customer-key connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 16 pinned Homebase public API reads through the encrypted customer-key connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No Homebase-approved customer API key or representative test account is available in this workspace.",
+    "nextAction": "Request a read-only key from Homebase API Settings, wait for Homebase approval, save it through Relay Console, then verify company identity, pagination, all 16 reads, PIN redaction, agent assignment, key replacement, disconnect, and post-disconnect denial. Write access is not advertised because Homebase's current public Swagger contract contains no mutations; partners must separately ask a Homebase representative about write permission and its approved contract."
+  },
+  "evidence": [
+    {
+      "url": "https://app.joinhomebase.com/api/public/swagger_doc.json",
+      "checkedAt": "2026-07-15",
+      "supports": "Homebase's current official Swagger 2.0 contract has SHA-256 66ecd9f2cc5a93b8d7b26cbe81f17ec900c8460e8e6f0dec63273d26ee8074ff and defines 16 GET operations with no public mutations."
+    },
+    {
+      "url": "https://app.joinhomebase.com/api-docs",
+      "checkedAt": "2026-07-15",
+      "supports": "Homebase documents customer-requested read-only bearer API keys, provider approval, the fixed api.joinhomebase.com origin, the application/vnd.homebase-v1+json Accept header, pagination, and a 60-requests-per-minute limit for UUID routes."
+    },
+    {
+      "url": "https://www.joinhomebase.com/partner-integrations",
+      "checkedAt": "2026-07-15",
+      "supports": "Homebase operates a separate partner integration programme; the public API docs direct partners needing write permission to their Homebase representative."
+    },
+    {
+      "url": "https://www.joinhomebase.com/how-it-works",
+      "checkedAt": "2026-07-15",
+      "supports": "Homebase describes its employee scheduling, time tracking, payroll, hiring, onboarding, communication, and HR product capabilities."
+    }
+  ]
+}

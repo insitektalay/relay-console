@@ -1,0 +1,208 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "bitrix24",
+  "name": "Bitrix24",
+  "category": "crm_support",
+  "description": "Bitrix24 is a business workspace combining customer relationship management, sales pipelines, tasks, collaboration, communications, sites, stores, automation, and administration. Teams use its CRM to organize deals and coordinate customer work inside a portal.",
+  "agentUseSummary": "Create one dedicated least-privilege Bitrix24 cloud incoming webhook, save its secret URL once, and let agents use three approval-gated bounded reads for the webhook owner and Deal summaries. Relay excludes contacts, companies, leads, communications, files, products, custom fields, mutations, arbitrary REST methods, pagination, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.bitrix24.com/",
+    "docsUrl": "https://apidocs.bitrix24.com/settings/how-to-call-rest-api/authorization.html",
+    "developerConsoleUrl": "https://helpdesk.bitrix24.com/open/21133100/",
+    "termsUrl": "https://www.bitrix24.com/terms.html",
+    "privacyUrl": "https://www.bitrix24.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["basic", "crm"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_incoming_webhook",
+      "exact_cloud_portal_binding",
+      "exact_webhook_owner_binding",
+      "crm_permission"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "BITRIX24_WEBHOOK_URL",
+        "label": "Bitrix24 incoming webhook URL",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated incoming webhook with CRM permission. The URL contains its secret; Relay stores the complete value encrypted and never returns it to agents."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "profile_read",
+      "label": "Read webhook owner",
+      "description": "Read bounded identity metadata for the exact user who owns the incoming webhook.",
+      "defaultSelected": true
+    },
+    {
+      "id": "deal_read",
+      "label": "Read deals",
+      "description": "List bounded Deal summaries or inspect one exact Deal without contact, company, communication, product, file, or custom-field data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "bitrix24_profile_get",
+        "label": "Read webhook owner",
+        "description": "Read the bounded basic profile for the exact incoming-webhook owner."
+      },
+      {
+        "id": "bitrix24_deal_list",
+        "label": "List deals",
+        "description": "List at most twenty-five bounded Deal summaries from the first fixed page."
+      },
+      {
+        "id": "bitrix24_deal_get",
+        "label": "Read deal",
+        "description": "Read one exact bounded Deal by positive numeric ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "bitrix24_record_mutation",
+        "label": "Change Bitrix24 data",
+        "description": "Creating, updating, moving, converting, merging, or deleting CRM records is outside V1."
+      },
+      {
+        "id": "bitrix24_private_crm",
+        "label": "Read private CRM data",
+        "description": "Contacts, companies, leads, phone numbers, email addresses, comments, activities, files, products, custom fields, and communications are outside V1."
+      },
+      {
+        "id": "bitrix24_broader_workspace",
+        "label": "Access broader workspace data",
+        "description": "Tasks, users beyond the webhook owner, chats, calls, calendars, Drive, sites, stores, automation, administration, and events are outside V1."
+      },
+      {
+        "id": "bitrix24_raw_rest",
+        "label": "Call arbitrary REST methods",
+        "description": "Arbitrary methods, paths, fields, filters, sorting, pages, batches, and raw REST access are outside V1."
+      },
+      {
+        "id": "bitrix24_bulk_export",
+        "label": "Export Bitrix24 data",
+        "description": "Automatic pagination, crawling, synchronization, batch APIs, and exports are outside V1."
+      },
+      {
+        "id": "bitrix24_untrusted_host",
+        "label": "Call another host",
+        "description": "V1 accepts exact incoming webhook URLs only on documented Bitrix24 cloud zones; custom-domain and on-premise portals are excluded."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "bitrix24_safe",
+      "label": "Safe",
+      "description": "All three bounded identity and CRM reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "bitrix24_profile_get",
+        "bitrix24_deal_list",
+        "bitrix24_deal_get"
+      ],
+      "blockedActions": [
+        "bitrix24_record_mutation",
+        "bitrix24_private_crm",
+        "bitrix24_broader_workspace",
+        "bitrix24_raw_rest",
+        "bitrix24_bulk_export",
+        "bitrix24_untrusted_host"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only tools run without Relay per-action approval while exact webhook-owner and portal binding, fixed methods and fields, provider permissions, limits, audits, redaction, and secret isolation remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "bitrix24_profile_get",
+        "bitrix24_deal_list",
+        "bitrix24_deal_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "bitrix24_record_mutation",
+        "bitrix24_private_crm",
+        "bitrix24_broader_workspace",
+        "bitrix24_raw_rest",
+        "bitrix24_bulk_export",
+        "bitrix24_untrusted_host"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded approval-gated Bitrix24 reads and attaches the encrypted incoming webhook URL only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded approval-gated Bitrix24 reads and attaches the encrypted incoming webhook URL only on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Bitrix24 cloud portal or dedicated incoming webhook credential is available in this workspace.",
+    "nextAction": "In the provider-console task, a Bitrix24 administrator creates a dedicated incoming webhook owned by the intended least-privilege user with CRM permission, stores its URL through Relay, then validates portal and owner binding, profile and Deal reads, approval enforcement, permission denial, webhook rotation/deletion, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://apidocs.bitrix24.com/settings/how-to-call-rest-api/authorization.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Bitrix24 documents permanent incoming webhook credentials and OAuth; webhook calls execute as the exact owner and remain limited by that user's rights and selected permissions."
+    },
+    {
+      "url": "https://helpdesk.bitrix24.com/open/21133100/",
+      "checkedAt": "2026-07-17",
+      "supports": "Bitrix24 documents creating incoming webhooks, selecting tool permissions, the secret-bearing URL format, ownership transfer behavior, request statistics, and the requirement to keep the key private."
+    },
+    {
+      "url": "https://apidocs.bitrix24.com/api-reference/common/users/profile.html",
+      "checkedAt": "2026-07-17",
+      "supports": "The profile method returns bounded current-owner identity metadata under the basic scope without parameters."
+    },
+    {
+      "url": "https://apidocs.bitrix24.com/api-reference/crm/universal/crm-item-list.html",
+      "checkedAt": "2026-07-17",
+      "supports": "crm.item.list uses the CRM scope, respects the executing user's read permissions, supports explicit selected fields, fixed ordering and exact filters, and returns a static first page of at most fifty records."
+    },
+    {
+      "url": "https://apidocs.bitrix24.com/api-reference/scopes/index.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Bitrix24 separates application or webhook scopes from user permissions and recommends selecting only scopes required by directly invoked methods."
+    },
+    {
+      "url": "https://www.bitrix24.com/upload/DPA/Bitrix24_Infrastructure_and_Sub.pdf",
+      "checkedAt": "2026-07-17",
+      "supports": "Bitrix24 publishes the official cloud domain zones Relay allowlists for this V1 connection; custom-domain and on-premise portals remain excluded."
+    },
+    {
+      "url": "https://www.bitrix24.com/terms.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Bitrix24 publishes the service terms and incorporates its privacy policy; Relay uses only the documented REST mechanism and customer-authorized data."
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ab-tasty",
+  "name": "AB Tasty",
+  "category": "crm_support",
+  "description": "AB Tasty is an experimentation, personalization, feature-management, recommendation, and merchandising platform whose Flagship services cover projects, environments, campaigns, flags, targeting, goals, and decisions.",
+  "agentUseSummary": "Add a customer-owned AB Tasty Remote Control API token generated from an access limited to project reads plus its exact account ID, then let selected agents list up to 100 project IDs and names. Relay blocks environments, campaigns, variations, flags, users, targeting, goals, decisions, results, arbitrary API access, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://www.abtasty.com/",
+    "docsUrl": "https://docs.abtasty.com/server-side/remote-control-api",
+    "developerConsoleUrl": "https://app.flagship.io/",
+    "termsUrl": "https://www.abtasty.com/terms-of-use/",
+    "privacyUrl": "https://www.abtasty.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_remote_control_token",
+      "exact_account_id_bound",
+      "permanent_application_actions_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "AB_TASTY_ACCESS_TOKEN",
+        "label": "AB Tasty Remote Control API token",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a customer-owned token generated from an access limited to the project read action; Relay encrypts it server-side."
+      },
+      {
+        "key": "AB_TASTY_ACCOUNT_ID",
+        "label": "AB Tasty account ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter the exact account ID bound to the Remote Control access."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ab_tasty_read",
+      "label": "List projects",
+      "description": "Use only GET /v1/accounts/{account_id}/projects with page 0 and 100 items, returning project IDs and names.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "ab_tasty_read",
+        "label": "List AB Tasty projects",
+        "description": "List up to 100 project IDs and names for one exact account without environments, campaigns, flags, users, targeting, results, or writes."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "ab_tasty_manage",
+        "label": "Change AB Tasty",
+        "description": "Project, environment, campaign, variation, flag, targeting, goal, user, and every other mutation are blocked."
+      },
+      {
+        "id": "ab_tasty_sensitive_or_decision_data",
+        "label": "Read users, decisions, or results",
+        "description": "Users, visitor contexts, assignments, campaign results, decision responses, targeting, goals, and flag usage code are blocked."
+      },
+      {
+        "id": "ab_tasty_arbitrary_api",
+        "label": "Use arbitrary API access",
+        "description": "Additional pages, environments, campaigns, variations, flags, filters, arbitrary routes, and custom arguments are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "ab_tasty_safe",
+      "label": "Safe",
+      "description": "One minimized account-bound project-directory read runs directly. Environments, campaigns, flags, users, targeting, arbitrary API access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["ab_tasty_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "ab_tasty_manage",
+        "ab_tasty_sensitive_or_decision_data",
+        "ab_tasty_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized project-directory tool through the encrypted customer-owned AB Tasty token and exact account ID."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized project-directory tool through the encrypted customer-owned AB Tasty token and exact account ID."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer AB Tasty or Flagship account, project-read-only Remote Control access, client credentials or generated token, exact account ID, representative project fixture, or token-rotation procedure is available in this workspace.",
+    "nextAction": "An AB Tasty administrator creates a Remote Control access limited to the project read action and exact environments, generates a bounded-lifetime token, saves it with the exact account ID through Relay Console, then verifies minimized project listing, scope and account boundaries, expiration, agent assignment, replacement, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.abtasty.com/server-side/remote-control-api/getting-started",
+      "checkedAt": "2026-07-17",
+      "supports": "AB Tasty documents application creation with permanent selected actions, expiring or non-expiring token generation, Bearer authentication, and the Remote Control Swagger contract."
+    },
+    {
+      "url": "https://docs.abtasty.com/server-side/remote-control-api/authorization",
+      "checkedAt": "2026-07-17",
+      "supports": "The authorization guide documents access names, selected environments and actions, one-time client credentials, account-bound token issuance, configurable expiry, token validation, and access revocation."
+    },
+    {
+      "url": "https://docs.abtasty.com/server-side/remote-control-api/projects",
+      "checkedAt": "2026-07-17",
+      "supports": "The official Projects reference documents Bearer-authenticated GET /v1/accounts/{account_id}/projects, zero-based page and maximum-per-page controls, pagination metadata, and project ID and name fields."
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ninja-forms",
+  "name": "Ninja Forms",
+  "category": "work_management",
+  "description": "Ninja Forms is a WordPress form builder for contact forms, registrations, surveys, payments, file collection, and other structured submissions. Site administrators manage fields, actions, calculations, submissions, and integrations from WordPress.",
+  "agentUseSummary": "Install WordPress 6.9 or later and Ninja Forms 3.14 or later on one public HTTPS site, create a dedicated WordPress Application Password, add the exact site and credential once, then let selected agents use five pinned abilities for bounded form discovery, sanitized schemas, field types, calculations, and one exact submission's labeled fields. Relay does not mount arbitrary WordPress routes or abilities, unbounded submission lists, actions, settings, exports, public links, or writes.",
+  "provider": {
+    "websiteUrl": "https://ninjaforms.com/",
+    "docsUrl": "https://ninjaforms.com/docs/abilities-api/",
+    "developerConsoleUrl": "https://developer.wordpress.org/rest-api/using-the-rest-api/authentication/",
+    "termsUrl": "https://ninjaforms.com/terms-of-service/",
+    "privacyUrl": "https://ninjaforms.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_wordpress_application_password",
+      "exact_public_https_wordpress_site",
+      "ninja_forms_admin_capability_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "NINJA_FORMS_SITE_URL",
+        "label": "Ninja Forms site URL",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter the public HTTPS WordPress site URL. Relay sends requests only to that site's Ninja Forms WordPress Abilities API route and rejects private or local destinations."
+      },
+      {
+        "key": "NINJA_FORMS_USERNAME",
+        "label": "WordPress username",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a dedicated WordPress administrator because Ninja Forms requires its form-management capability for every official ability."
+      },
+      {
+        "key": "NINJA_FORMS_APPLICATION_PASSWORD",
+        "label": "WordPress Application Password",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated revocable WordPress Application Password for Relay; never enter the user's normal WordPress password."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ninja_forms_read",
+      "label": "Read forms and exact submission fields",
+      "description": "Use five pinned Ninja Forms abilities for bounded form discovery, sanitized schemas, field types, calculations, and one exact submission's labeled fields.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "ninja_forms_read",
+        "label": "Read Ninja Forms",
+        "description": "Read bounded form metadata, schemas, calculations, field types, and one exact submission's labeled fields from the configured site."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "ninja_forms_manage",
+        "label": "Change Ninja Forms",
+        "description": "Form, field, action, calculation, submission, plugin-setting, export, and all other mutations are outside Relay's V1 contract."
+      },
+      {
+        "id": "ninja_forms_unbounded_submissions",
+        "label": "List or export submissions",
+        "description": "The provider's submission-list ability has no result limit, so Relay exposes only one exact submission's labeled fields."
+      },
+      {
+        "id": "ninja_forms_arbitrary_ability",
+        "label": "Run another ability or WordPress route",
+        "description": "Requests are pinned to five named Ninja Forms abilities on the configured site's WordPress Abilities API route."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "ninja_forms_safe",
+      "label": "Safe",
+      "description": "Five pinned reads run directly. Unbounded submission lists and every Ninja Forms or WordPress mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["ninja_forms_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "ninja_forms_manage",
+        "ninja_forms_unbounded_submissions",
+        "ninja_forms_arbitrary_ability"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with five pinned abilities through the encrypted site-bound WordPress Application Password."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with five pinned abilities through the encrypted site-bound WordPress Application Password."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned public WordPress 6.9+ site with Ninja Forms 3.14+, dedicated administrator Application Password, representative forms, or safe test submissions is available in this workspace.",
+    "nextAction": "A site administrator verifies the supported WordPress and Ninja Forms versions, creates a dedicated revocable Application Password for a dedicated administrator, saves the exact public site URL, username, and Application Password through Relay Console, then verifies site binding, all five reads, bounded list and schema minimization, exact-submission access, agent assignment, credential replacement, disconnect, provider-side revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://ninjaforms.com/docs/abilities-api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Ninja Forms documents its official abilities, WordPress 6.9 and Ninja Forms 3.14 requirements, Application Password authentication, administrator-level permission checks, and the available read and write operations."
+    },
+    {
+      "url": "https://developer.wordpress.org/apis/abilities-api/rest-api-endpoints/",
+      "checkedAt": "2026-07-17",
+      "supports": "WordPress documents the authenticated /wp-abilities/v1 REST namespace, named ability execution route, input envelope, and Application Password use for external clients."
+    },
+    {
+      "url": "https://developer.wordpress.org/rest-api/using-the-rest-api/authentication/",
+      "checkedAt": "2026-07-17",
+      "supports": "WordPress documents Application Passwords as revocable credentials for remote REST API authentication over HTTPS."
+    },
+    {
+      "url": "https://downloads.wordpress.org/plugin/ninja-forms.latest-stable.zip",
+      "checkedAt": "2026-07-17",
+      "supports": "The official current plugin package registers the five selected abilities with REST exposure and fixed schemas; its submission-list ability has no limit input, supporting Relay's exclusion of that operation."
+    }
+  ]
+}

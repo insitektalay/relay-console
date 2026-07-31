@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "trello",
+  "name": "Trello",
+  "category": "work_management",
+  "description": "Trello is a visual work management product built around boards, lists, and cards. Teams use it to organize projects, track work through stages, assign people, record due dates, and discuss tasks.",
+  "agentUseSummary": "Connect a Trello account once, then select which agents may find and read boards and cards, prepare card changes, create or update cards, and add comments under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://trello.com/",
+    "docsUrl": "https://developer.atlassian.com/cloud/trello/rest/",
+    "developerConsoleUrl": "https://trello.com/apps/admin",
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth1",
+    "relayOwned": true,
+    "scopes": ["read", "write"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://trello.com/1/OAuthAuthorizeToken",
+    "tokenUrl": "https://trello.com/1/OAuthGetAccessToken",
+    "revocationUrl": "https://api.trello.com/1/tokens/{token}"
+  },
+  "connection": {
+    "types": ["relay_owned_power_up_oauth1", "trello_member_account"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/trello/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "board_read", "label": "View boards", "description": "List bounded boards available to the connected member.", "defaultSelected": true },
+    { "id": "card_read", "label": "Find and read cards", "description": "Find bounded cards and read one explicit card with limited context.", "defaultSelected": true },
+    { "id": "card_draft", "label": "Prepare card changes", "description": "Prepare an exact card create, update, or comment locally without changing Trello.", "defaultSelected": true },
+    { "id": "card_write", "label": "Create, update, and comment", "description": "Create or update one card and add one bounded comment.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "trello_board_list", "label": "List boards", "description": "List a bounded set of boards available to the connected member." },
+      { "id": "trello_board_cards_list", "label": "List board cards", "description": "List a bounded set of open cards on one explicit board." },
+      { "id": "trello_card_get", "label": "Read a card", "description": "Read one explicit card with bounded comments and member context." },
+      { "id": "trello_search", "label": "Find cards", "description": "Find a bounded set of cards matching an explicit query." },
+      { "id": "trello_card_prepare", "label": "Prepare a card change", "description": "Prepare and hash one card create, update, or comment locally." }
+    ],
+    "approvalRequired": [
+      { "id": "trello_card_create", "label": "Create a card", "description": "Create one card in an explicit list; Safe mode requires matching approval." },
+      { "id": "trello_card_update", "label": "Update a card", "description": "Update bounded fields on one explicit card; Safe mode requires matching approval." },
+      { "id": "trello_card_comment_create", "label": "Comment on a card", "description": "Add one bounded comment to an explicit card; Safe mode requires matching approval." }
+    ],
+    "blocked": [
+      { "id": "trello_admin", "label": "Administer Trello", "description": "Workspace, member, Power-Up, webhook, enterprise, and billing administration are outside V1." },
+      { "id": "trello_destructive", "label": "Delete Trello data", "description": "Board, list, card, checklist, label, and comment deletion are outside V1." },
+      { "id": "trello_raw_api", "label": "Call arbitrary Trello endpoints", "description": "Raw paths, batch requests, unbounded pagination, and arbitrary REST calls are never exposed to agents." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "trello_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local drafts run directly; each Trello card write requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["trello_board_list", "trello_board_cards_list", "trello_card_get", "trello_search", "trello_card_prepare"],
+      "approvalRequiredActions": ["trello_card_create", "trello_card_update", "trello_card_comment_create"],
+      "blockedActions": ["trello_admin", "trello_destructive", "trello_raw_api"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Trello operation supported by this connector runs without Relay per-action approval; connection ownership, Trello-granted access, request bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["trello_board_list", "trello_board_cards_list", "trello_card_get", "trello_search", "trello_card_prepare", "trello_card_create", "trello_card_update", "trello_card_comment_create"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["trello_admin", "trello_destructive", "trello_raw_api"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts eight typed Trello tools and attaches the authorized member token server-side without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts eight typed Trello tools and attaches the authorized member token server-side without exposing it to the agent." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay Console's Trello Power-Up, API key and OAuth secret, exact production callback, read/write permissions, allowed origin, branding, and a fresh production authorization have not been configured and verified.",
+    "nextAction": "Create the Relay Console Trello Power-Up, generate its API key and secret, register https://api.relayconsole.work as an allowed origin and the exact callback, add TRELLO_API_KEY and TRELLO_API_SECRET to Railway, then verify request-token signing, member and Workspace binding, bounded reads, Safe writes, Dangerous writes, revocation, disconnect, and denial."
+  },
+  "evidence": [
+    { "url": "https://developer.atlassian.com/cloud/trello/guides/rest-api/authorization/", "checkedAt": "2026-07-16", "supports": "Trello documents delegated API-key authorization, basic OAuth 1.0 request, authorize, and access-token endpoints, the application signing secret, read/write scopes, allowed origins, callback behavior, secret user tokens, and token revocation." },
+    { "url": "https://developer.atlassian.com/cloud/trello/guides/rest-api/api-introduction/", "checkedAt": "2026-07-16", "supports": "Trello documents Power-Up API keys, member tokens, boards, lists, cards, actions and comments, search, nested resources, and bounded pagination." },
+    { "url": "https://developer.atlassian.com/cloud/trello/rest/", "checkedAt": "2026-07-16", "supports": "The core Trello REST reference documents board, card, member, search, token, and webhook resources and states that Forge and Atlassian OAuth2 apps cannot access these core resources." },
+    { "url": "https://developer.atlassian.com/cloud/trello/guides/rest-api/rate-limits/", "checkedAt": "2026-07-16", "supports": "Trello documents per-key, per-token, member-route, search-route, database-time, and response-size limits plus HTTP 429 responses and rate-limit headers." }
+  ]
+}

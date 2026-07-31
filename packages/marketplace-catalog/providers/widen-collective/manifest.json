@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "widen-collective",
+  "name": "Acquia DAM (Widen)",
+  "category": "content_creative",
+  "description": "Acquia DAM (Widen) is a digital asset management and product information management platform for organizing, finding, governing, and distributing brand content. Marketing, creative, and commerce teams use it to manage assets, metadata, permissions, collections, workflows, product records, publishing, analytics, and delivery from one shared system.",
+  "agentUseSummary": "Connect your Acquia DAM collective with an administrator-created access token, then let agents use the current V1 and V2 asset, metadata, taxonomy, collection, product, order, workflow, analytics, user, usage, and webhook SDK surface under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "widen-collective",
+    "sourceUrl": "https://www.acquia.com/themes/custom/juice/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://www.acquia.com/products/acquia-dam",
+    "docsUrl": "https://docs.acquia.com/acquia-dam/apis-acquia-dam",
+    "developerConsoleUrl": "https://docs.acquia.com/acquia-dam/api-faqs",
+    "termsUrl": "https://www.acquia.com/about-us/legal/terms-use",
+    "privacyUrl": "https://www.acquia.com/about-us/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "WIDEN_COLLECTIVE_SUBDOMAIN",
+        "label": "Acquia DAM collective subdomain",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the first part of your Acquia DAM address, such as example from example.widencollective.com."
+      },
+      {
+        "name": "WIDEN_COLLECTIVE_ACCESS_TOKEN",
+        "label": "Acquia DAM access token",
+        "required": true,
+        "secret": true,
+        "helpText": "A DAM administrator creates a dedicated token under Admin > Global Settings > API Setup. Access follows that account's roles and permissions."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": [
+      {
+        "event": "asset and workflow events",
+        "path": "/api/v1/marketplace/webhooks/widen-collective",
+        "signature": "Acquia DAM exposes webhook configuration through V2, but Relay does not ingest events until a provider-authenticated callback contract is verified. Agents can still manage provider webhooks under the selected policy."
+      }
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "dam_read",
+      "label": "Browse digital assets",
+      "description": "Read authorized assets, metadata, categories, collections, products, users, analytics, workflows, usage, and webhook configuration."
+    },
+    {
+      "id": "dam_manage",
+      "label": "Manage digital assets",
+      "description": "Upload, update, organize, publish, order, govern, subscribe, and delete through Acquia DAM's current V1 and V2 SDK surface."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "widen_collective_read",
+        "label": "Read Acquia DAM data",
+        "description": "Run one bounded GET operation from Acquia DAM's current V1 or V2 SDK surface."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "widen_collective_manage",
+        "label": "Change Acquia DAM data",
+        "description": "Run one documented upload, create, update, workflow, webhook, order, or delete operation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "widen_collective_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Access tokens, authorization headers, cookies, signed delivery URLs, and integration URLs never enter agent-visible results."
+      },
+      {
+        "id": "widen_collective_untrusted_route",
+        "label": "Call an undocumented route",
+        "description": "Every request is pinned to the fixed Acquia DAM V2 origin or the validated customer collective's V1 origin and the current SDK route surface."
+      },
+      {
+        "id": "widen_collective_unbounded_transfer",
+        "label": "Transfer unbounded data",
+        "description": "Relay bounds request bodies to five megabytes, responses to ten megabytes, and refuses redirects."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "widen_collective_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; every provider mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["widen_collective_read"],
+      "approvalRequiredActions": ["widen_collective_manage"],
+      "blockedActions": ["widen_collective_secret_exposure", "widen_collective_untrusted_route", "widen_collective_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected token-authorized Acquia DAM operation runs without Relay per-action approval; ownership, account permissions, fixed origins, route bounds, redaction, audits, provider limits, and provider charges still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["widen_collective_read", "widen_collective_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["widen_collective_secret_exposure", "widen_collective_untrusted_route", "widen_collective_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded wrappers for all 94 public methods in Acquia's current TypeScript SDK across the fixed V1 and V2 origins."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded wrappers for all 94 public methods in Acquia's current TypeScript SDK across the fixed V1 and V2 origins."
+    }
+  ],
+  "availability": "beta_available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No customer Acquia DAM collective, administrator-created access token, representative assets or products, or live provider session is available for production acceptance.",
+    "nextAction": "A customer administrator creates a dedicated token under Admin > Global Settings > API Setup, enters the collective subdomain and token in Relay Console, and verifies bounded reads, Safe denial plus approval, Dangerous mutations, redaction, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.acquia.com/acquia-dam/apis-acquia-dam",
+      "checkedAt": "2026-07-15",
+      "supports": "Acquia documents V1 and V2 APIs, recommends V2, and authenticates both with access tokens created in DAM API Setup."
+    },
+    {
+      "url": "https://docs.acquia.com/acquia-dam/api-faqs",
+      "checkedAt": "2026-07-15",
+      "supports": "Acquia documents administrator-created access tokens, account-bound permissions, and support-created integrations for refresh-token access."
+    },
+    {
+      "url": "https://github.com/Widen/acquia-dam-ts-sdk",
+      "checkedAt": "2026-07-15",
+      "supports": "Acquia's current TypeScript SDK exposes 94 public methods across assets, metadata, categories, collections, products, orders, users, analytics, usage, workflows, webhooks, attributes, and search integration."
+    },
+    {
+      "url": "https://docs.acquia.com/acquia-dam/help/88621-new-api-usage-endpoint",
+      "checkedAt": "2026-07-15",
+      "supports": "Acquia documents a monthly included API-call allowance and customer overage charges, so Relay uses a customer-owned token rather than assuming provider costs."
+    },
+    {
+      "url": "https://www.acquia.com/products/acquia-dam",
+      "checkedAt": "2026-07-15",
+      "supports": "Acquia identifies Acquia DAM as the continuation of Widen and describes digital asset management, product information management, workflow, publishing, portals, and analytics."
+    }
+  ]
+}

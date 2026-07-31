@@ -1,0 +1,202 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "goto-meeting",
+  "name": "GoTo Meeting",
+  "category": "communication",
+  "description": "GoTo Meeting is GoTo's web-conferencing platform for secure video meetings, screen sharing, collaboration, cloud recordings, transcripts, and meeting administration. Teams use it to schedule and host virtual meetings, connect from browsers and mobile devices, and revisit meeting content.",
+  "agentUseSummary": "Connect one GoTo Meeting organizer with Relay-owned OAuth, then let agents verify that exact organizer, list at most ten upcoming Meeting schedules, and inspect one Meeting already present in that bounded set without exposing provider IDs, email addresses, join links, passwords, conference credentials, attendees, recordings, transcripts, writes, later results, or raw APIs.",
+  "provider": {
+    "websiteUrl": "https://www.goto.com/meeting",
+    "docsUrl": "https://developer.goto.com/GoToMeetingV1",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.goto.com/company/legal/api-terms",
+    "privacyUrl": "https://www.goto.com/company/legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://authentication.logmeininc.com/oauth/authorize",
+    "tokenUrl": "https://authentication.logmeininc.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_client",
+      "authorization_code_basic_client_auth_conditional_refresh_rotation",
+      "goto_meeting_product_only_client_without_scope_parameter",
+      "exact_server_bound_scim_current_user_organizer",
+      "encrypted_state_token_bundle_and_client_secret",
+      "local_disconnect_with_product_logout_or_client_disable_upstream"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "GOTO_MEETING_CLIENT_ID",
+        "label": "GoTo Meeting OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held client ID for a confidential OAuth client assigned only the GoTo Meeting product."
+      },
+      {
+        "name": "GOTO_MEETING_CLIENT_SECRET",
+        "label": "GoTo Meeting OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-held confidential secret; never entered in Relay Console clients."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/goto-meeting/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "identity_read",
+      "label": "Verify connected organizer",
+      "description": "Verify the exact OAuth-bound organizer without exposing their provider identity.",
+      "defaultSelected": true
+    },
+    {
+      "id": "meeting_list",
+      "label": "List upcoming Meetings",
+      "description": "List at most ten upcoming Meeting schedule summaries for the connected organizer.",
+      "defaultSelected": true
+    },
+    {
+      "id": "meeting_read",
+      "label": "Read one bounded Meeting",
+      "description": "Inspect one Meeting already verified in the first bounded upcoming set.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "goto_meeting_identity_get",
+        "label": "Verify connected organizer",
+        "description": "Verify the exact OAuth-authorized GoTo organizer without returning provider IDs or email addresses."
+      },
+      {
+        "id": "goto_meeting_upcoming_list",
+        "label": "List upcoming Meetings",
+        "description": "List at most ten upcoming Meeting schedule summaries for the exact connected organizer."
+      },
+      {
+        "id": "goto_meeting_get",
+        "label": "Read one bounded Meeting",
+        "description": "Read one Meeting only after its ID appears in the connected organizer's first ten upcoming Meetings."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "goto_meeting_mutations",
+        "label": "Block mutations and launch actions",
+        "description": "Meeting create, update, delete, start, scheduling, co-organizer, session, room, and webhook writes are unavailable."
+      },
+      {
+        "id": "goto_meeting_sensitive_adjacent",
+        "label": "Block sensitive adjacent data",
+        "description": "Organizer identities, join and host links, passwords, conference credentials, attendees, attendance, history, sessions, recordings, transcripts, AI summaries, and downloads are unavailable."
+      },
+      {
+        "id": "goto_meeting_admin_other_raw",
+        "label": "Block administration, other products, and raw access",
+        "description": "Organizer, group, account, Admin, SCIM-management, Connect, Webinar, Training, Rescue, Resolve, other-organizer, later-result, export, bulk, and raw API access is unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "goto_meeting_safe",
+      "label": "Safe",
+      "description": "The three selected fixed reads run automatically; identities, join data, sensitive artifacts, mutations, broad authority, later results, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "goto_meeting_identity_get",
+        "goto_meeting_upcoming_list",
+        "goto_meeting_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "goto_meeting_mutations",
+        "goto_meeting_sensitive_adjacent",
+        "goto_meeting_admin_other_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three reads run without Relay per-action approval; exact organizer authority, a Meeting-only client, fixed routes, bounds, audits, and secret isolation still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "goto_meeting_identity_get",
+        "goto_meeting_upcoming_list",
+        "goto_meeting_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "goto_meeting_mutations",
+        "goto_meeting_sensitive_adjacent",
+        "goto_meeting_admin_other_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed GoTo Meeting reads while Railway alone holds the Meeting-only confidential OAuth client, conditionally rotating token bundle, and exact organizer binding."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed GoTo Meeting reads while Railway alone holds the Meeting-only confidential OAuth client, conditionally rotating token bundle, and exact organizer binding."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A Relay GoTo OAuth client assigned only the GoTo Meeting product, exact Railway callback, confidential credentials, GoTo API terms and trademark review, live consent, representative organizer account, and staging validation remain for separate provider-console and integration tasks.",
+    "nextAction": "After batch integration, register the exact Railway callback on a confidential GoTo Meeting-only client, store credentials in staging, and validate state, consent, no-scope client authority, SCIM current-user binding, conditional refresh-token rotation, first-ten upcoming bounds, sensitive-field exclusion, response limits, rate limits, local disconnect, upstream product logout or client disable, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.goto.com/meeting",
+      "checkedAt": "2026-07-18",
+      "supports": "GoTo presents GoTo Meeting as secure web-conferencing software with video, screen sharing, collaboration, administration, recordings, transcripts, and cross-device meeting access."
+    },
+    {
+      "url": "https://developer.goto.com/Authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "GoTo documents authorization-code OAuth, the current authorization and token endpoints, confidential HTTP Basic client authentication, optional scopes whose omission inherits client-assigned scopes, one-hour access tokens, and conditionally rotating refresh tokens."
+    },
+    {
+      "url": "https://developer.goto.com/guides/Authentication/New_Token_Retrieval_Migration_Guide/",
+      "checkedAt": "2026-07-18",
+      "supports": "GoTo documents the current authentication host, SCIM current-user identity lookup without a token scope, organizer-key replacement by the current-user ID, and refresh responses that include a replacement refresh token only when issued."
+    },
+    {
+      "url": "https://developer.goto.com/Scim",
+      "checkedAt": "2026-07-18",
+      "supports": "The SCIM reference documents the fixed current-user endpoint and identity fields used only for server-side exact-organizer binding."
+    },
+    {
+      "url": "https://developer.goto.com/GoToMeetingV1",
+      "checkedAt": "2026-07-18",
+      "supports": "The current GoTo Meeting reference documents organizer-bound upcoming Meetings, Meeting detail, schedule fields, and the sensitive mutation, attendee, recording, transcript, join, credential, administration, and other-product surfaces Relay excludes."
+    },
+    {
+      "url": "https://developer.goto.com/guides/References/Ref-Rate-Limits/",
+      "checkedAt": "2026-07-18",
+      "supports": "GoTo documents a default limit of ten requests per second per API and HTTP 429 responses when exceeded."
+    },
+    {
+      "url": "https://www.goto.com/company/legal/api-terms",
+      "checkedAt": "2026-07-18",
+      "supports": "GoTo's developer API terms govern API access, user data, branding, volume, and distribution, so live release and official branding remain externally gated."
+    }
+  ]
+}

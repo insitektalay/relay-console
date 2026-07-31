@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "adobe-acrobat-sign",
+  "name": "Adobe Acrobat Sign",
+  "category": "knowledge_documents",
+  "description": "Adobe Acrobat Sign routes and tracks electronic-signature agreements.",
+  "agentUseSummary": "Connect one Adobe Acrobat Sign user through Relay-owned OAuth with exactly agreement_read:self. Two wrappers list up to 25 first-page self-owned agreement summaries or inspect one explicit agreement's status metadata. Relay excludes participants, documents, signing URLs, messages, form data, audit trails, writes, group/account/admin authority, raw paths, arbitrary queries, pagination, polling, retries, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.adobe.com/acrobat/business/sign.html",
+    "docsUrl": "https://opensource.adobe.com/acrobat-sign/developer_guide/index.html",
+    "developerConsoleUrl": "https://secure.echosign.com/public/static/oauthDoc.jsp",
+    "termsUrl": "https://www.adobe.com/legal/terms.html",
+    "privacyUrl": "https://www.adobe.com/privacy/policy.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["agreement_read:self"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://secure.echosign.com/public/oauth/v2",
+    "tokenUrl": "https://{callback-api-shard}/oauth/v2/token",
+    "revocationUrl": "https://{connected-api-shard}/oauth/v2/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth",
+      "confidential_authorization_code",
+      "callback_api_shard_bound",
+      "self_user_only",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/adobe-acrobat-sign/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "agreement_list",
+      "label": "List agreements",
+      "description": "Read a bounded first page of self-owned agreement summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "agreement_get",
+      "label": "Inspect agreement status",
+      "description": "Read status and lifecycle metadata for one explicit agreement.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "adobe_acrobat_sign_agreement_list",
+        "label": "List agreement summaries",
+        "description": "List up to 25 first-page agreement status summaries owned by the connected user."
+      },
+      {
+        "id": "adobe_acrobat_sign_agreement_get",
+        "label": "Inspect an agreement",
+        "description": "Inspect status and lifecycle metadata for one explicit agreement ID."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "adobe_acrobat_sign_private_content",
+        "label": "Access private agreement content",
+        "description": "Documents, downloads, participant identity, messages, form data, signing URLs, audit trails, and authentication details are blocked."
+      },
+      {
+        "id": "adobe_acrobat_sign_mutation",
+        "label": "Mutate agreements",
+        "description": "Creating, sending, signing, delegating, cancelling, deleting, reminding, uploading, and modifying agreements are blocked."
+      },
+      {
+        "id": "adobe_acrobat_sign_broader_authority",
+        "label": "Use broader authority",
+        "description": "Group, account, library, widget, workflow, webhook, admin, and impersonation access are blocked."
+      },
+      {
+        "id": "adobe_acrobat_sign_raw_bulk",
+        "label": "Use raw or bulk APIs",
+        "description": "Raw paths, arbitrary queries, pagination, polling, automatic retries, batch access, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "adobe_acrobat_sign_read_only",
+      "label": "Read-only agreement status",
+      "description": "Two bounded self-owned agreement reads run automatically; private content, writes, broader authority, raw access, and bulk transfer remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "adobe_acrobat_sign_agreement_list",
+        "adobe_acrobat_sign_agreement_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "adobe_acrobat_sign_private_content",
+        "adobe_acrobat_sign_mutation",
+        "adobe_acrobat_sign_broader_authority",
+        "adobe_acrobat_sign_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The self-only scope, fixed shard, fixed paths, field redaction, result cap, and read-only boundary remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "adobe_acrobat_sign_agreement_list",
+        "adobe_acrobat_sign_agreement_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "adobe_acrobat_sign_private_content",
+        "adobe_acrobat_sign_mutation",
+        "adobe_acrobat_sign_broader_authority",
+        "adobe_acrobat_sign_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded agreement-status reads and attaches the self-scoped OAuth token server-side on the bound Adobe shard."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded agreement-status reads and attaches the self-scoped OAuth token server-side on the bound Adobe shard."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay's Adobe Acrobat Sign OAuth application, production client credentials, and any required Adobe enablement or review are not configured. No provider-console, credential, consent, Railway, or live acceptance work is authorized in this worker task.",
+    "nextAction": "An authorized owner configures the exact Railway callback and agreement_read:self on a Relay-owned Adobe Acrobat Sign OAuth application, stores the client ID and secret through Railway's secret process, completes any provider review, deploys separately, and runs live connect, shard binding, list/get redaction, refresh, revoke/disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://opensource.adobe.com/acrobat-sign/developer_guide/gstarted.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents OAuth 2.0, exact application scopes, agreement_read:self for reading agreements, and callback code, state, api_access_point, and web_access_point values."
+    },
+    {
+      "url": "https://opensource.adobe.com/acrobat-sign/developer_guide/oauth.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents one-hour access tokens, refresh tokens, and shard-specific token refresh and revocation endpoints."
+    },
+    {
+      "url": "https://opensource.adobe.com/acrobat-sign/developer_guide/best-practices.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents sharded accounts and GET /api/rest/v6/base_uris for discovering and caching the exact apiAccessPoint."
+    },
+    {
+      "url": "https://opensource.adobe.com/acrobat-sign/developer_guide/apiusage.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Adobe documents REST API usage, agreement retrieval, paging, and rate-limit behavior; Relay caps one page and performs no polling or automatic retries."
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "outreach",
+  "name": "Outreach",
+  "category": "crm_support",
+  "description": "Outreach is a sales execution platform for prospecting, account planning, sequencing, calling, meetings, forecasting, and revenue workflows. Sales teams use it to organize accounts, coordinate repeatable engagement, and understand pipeline activity.",
+  "agentUseSummary": "Connect through Relay's reviewed Outreach OAuth application with only accounts.read and sequences.read, then let selected agents read the first 25 minimized account or sequence summaries. Relay does not expose prospects, contact channels, sequence content or steps, includes, filters, pagination, calls, mailings, opportunities, tasks, users, arbitrary API access, or writes.",
+  "provider": {
+    "websiteUrl": "https://www.outreach.io/",
+    "docsUrl": "https://developers.outreach.io/api/getting-started",
+    "developerConsoleUrl": "https://developers.outreach.io/apps",
+    "termsUrl": "https://www.outreach.io/legal/terms-of-service",
+    "privacyUrl": "https://www.outreach.io/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["accounts.read", "sequences.read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.outreach.io/oauth/authorize",
+    "tokenUrl": "https://api.outreach.io/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth",
+      "provider_reviewed_production_app",
+      "user_and_governance_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "OUTREACH_OAUTH_CLIENT_ID",
+        "label": "Outreach OAuth client ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Use Relay's approved Outreach OAuth application identifier."
+      },
+      {
+        "key": "OUTREACH_OAUTH_CLIENT_SECRET",
+        "label": "Outreach OAuth client secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Use Relay's approved Outreach OAuth client secret; Relay encrypts it server-side."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/outreach/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "outreach_read",
+      "label": "Read accounts and sequence summaries",
+      "description": "Use two pinned API v2 collection reads for at most 25 minimized accounts or sequence summaries without includes, filters, or cursor following.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "outreach_read",
+        "label": "Read Outreach summaries",
+        "description": "Read the first 25 minimized account or sequence summaries through exact read-only OAuth scopes."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "outreach_manage",
+        "label": "Change Outreach",
+        "description": "Sequence states, prospect engagement, calls, events, mailings, opportunities, tasks, users, and every mutation are outside Relay's V1 contract."
+      },
+      {
+        "id": "outreach_sensitive_data",
+        "label": "Read prospects or engagement content",
+        "description": "Prospects, contact channels, message or template content, sequence steps, and other sensitive engagement data are blocked."
+      },
+      {
+        "id": "outreach_arbitrary_api",
+        "label": "Use arbitrary API requests",
+        "description": "Includes, filters, cursor following, custom routes, user-supplied URLs, and raw API access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "outreach_safe",
+      "label": "Safe",
+      "description": "Two bounded summary reads run directly. Prospects, content, includes, filters, pagination links, engagement actions, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["outreach_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "outreach_manage",
+        "outreach_sensitive_data",
+        "outreach_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed read tool with two pinned bounded API v2 operations through Outreach OAuth."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed read tool with two pinned bounded API v2 operations through Outreach OAuth."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No Relay Outreach application, development or production credentials, provider review and publication, non-production organization, authorized user, representative fixtures, or governance-permission matrix is available in this workspace.",
+    "nextAction": "The provider-setup owner creates Relay's Outreach application, configures the exact callback and only accounts.read plus sequences.read, validates authorization and refresh in a non-production organization, completes Outreach review and production publication, then verifies both bounded reads, permission errors, minimization, agent assignment, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.outreach.io/api/oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Outreach documents authorization-code OAuth, development and production application credentials, app review and publication, two-hour access tokens, fourteen-day refresh tokens, state, and the authorization and token endpoints."
+    },
+    {
+      "url": "https://developers.outreach.io/api/getting-started",
+      "checkedAt": "2026-07-17",
+      "supports": "Outreach documents resource.action OAuth scopes such as accounts.read and explains that user and governance permissions continue to constrain API access."
+    },
+    {
+      "url": "https://developers.outreach.io/api/making-requests",
+      "checkedAt": "2026-07-17",
+      "supports": "Outreach documents JSON API requests, page[size], cursor links, optional count suppression, includes, and filters; Relay fixes page size at 25, disables count, and does not expose links, includes, or filters."
+    },
+    {
+      "url": "https://developers.outreach.io/api/reference/tag/Account/",
+      "checkedAt": "2026-07-17",
+      "supports": "Outreach's official API v2 reference documents the account collection used for Relay's bounded account-summary read."
+    },
+    {
+      "url": "https://developers.outreach.io/api/reference/overview/",
+      "checkedAt": "2026-07-17",
+      "supports": "Outreach publishes the API v2 reference and machine-readable schema used to verify resource contracts without accessing a provider console or organization."
+    }
+  ]
+}

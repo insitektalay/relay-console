@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mattermost",
+  "name": "Mattermost",
+  "category": "communication",
+  "description": "Mattermost is a collaboration platform available as independently administered cloud and self-managed deployments with channels, messages, playbooks, integrations, and APIs.",
+  "agentUseSummary": "Mattermost cannot currently be connected because its OAuth client is registered separately on each customer server and receives every permission of the authorizing user rather than granular scopes. Customer-owned bot accounts and non-expiring personal access tokens are materially different credential products, so Relay requires an explicit choice of identity and authority before defining actions.",
+  "provider": {
+    "websiteUrl": "https://mattermost.com/",
+    "docsUrl": "https://developers.mattermost.com/integrate/apps/authentication/oauth2/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://mattermost.com/terms-of-use/",
+    "privacyUrl": "https://mattermost.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_instance_specific_oauth",
+      "oauth_has_full_effective_user_authority",
+      "dynamic_client_registration_disabled_by_default",
+      "bot_account_is_separate_identity_product",
+      "personal_token_is_non_expiring_session_authority"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "mattermost_per_instance_oauth",
+        "label": "Connect per-instance OAuth",
+        "description": "Every independently administered server must enable OAuth and register Relay, and the resulting token inherits all permissions of the authorizing user without granular scopes."
+      },
+      {
+        "id": "mattermost_dynamic_registration",
+        "label": "Register clients dynamically",
+        "description": "Dynamic Client Registration is disabled by default and exposes a public unauthenticated registration endpoint when an administrator enables it, so Relay will not assume or require it."
+      },
+      {
+        "id": "mattermost_bot_or_personal_token",
+        "label": "Use a bot or personal token",
+        "description": "Bot accounts and personal access tokens are customer-owned non-OAuth identity products with server-specific roles and broad or non-expiring authority."
+      },
+      {
+        "id": "mattermost_data_and_mutations",
+        "label": "Access Mattermost data",
+        "description": "Users, teams, channels, posts, threads, direct messages, files, reactions, playbooks, webhooks, plugins, configuration, compliance data, exports, and every read or write remain unavailable."
+      },
+      {
+        "id": "mattermost_raw_access",
+        "label": "Use raw Mattermost access",
+        "description": "Arbitrary origins, paths, REST endpoints, raw tools, pagination, and automatic retries are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "mattermost_unavailable",
+      "label": "Unavailable",
+      "description": "No agent action can be enabled until Relay selects and governs one exact per-instance user or bot identity model.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mattermost_per_instance_oauth",
+        "mattermost_dynamic_registration",
+        "mattermost_bot_or_personal_token",
+        "mattermost_data_and_mutations",
+        "mattermost_raw_access"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Mattermost identity, authority, or wrapper contract is authorized to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Mattermost identity, authority, or wrapper contract is authorized to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Mattermost OAuth is per customer server and mirrors the authorizing user's full effective permissions; bot accounts and personal tokens are distinct non-OAuth credential products, so no truthful default connection model exists.",
+    "nextAction": "Do not request instance credentials or show Connect. Reconsider after an explicit product/security decision selects per-instance confidential OAuth, a least-privilege member bot, or another narrowly governed customer-owned identity and accepts its effective authority."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.mattermost.com/integrate/apps/authentication/oauth2/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mattermost documents per-server client registration, OAuth disabled by default, optional confidential-client S256, refresh tokens, user/app revocation, and tokens that can perform every action available to the authorizing user."
+    },
+    {
+      "url": "https://developers.mattermost.com/integrate/apps/authentication/oauth2/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mattermost documents Dynamic Client Registration as disabled by default and warns that enabling it exposes an unauthenticated public client-registration endpoint."
+    },
+    {
+      "url": "https://developers.mattermost.com/integrate/reference/personal-access-token/",
+      "checkedAt": "2026-07-17",
+      "supports": "Personal access tokens are non-expiring equivalents of user session tokens and carry all privileges of their user, including administrator authority when issued for an administrator."
+    },
+    {
+      "url": "https://developers.mattermost.com/integrate/reference/bot-accounts/",
+      "checkedAt": "2026-07-17",
+      "supports": "Bot accounts are separate customer-managed identities with token and membership/role authority rather than delegated user OAuth."
+    }
+  ]
+}

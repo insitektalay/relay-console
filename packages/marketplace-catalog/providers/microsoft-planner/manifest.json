@@ -1,0 +1,183 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-planner",
+  "name": "Microsoft Planner",
+  "category": "work_management",
+  "description": "Microsoft Planner is a task and work management product for teams using Microsoft 365. People use it to organize plans, assign tasks, track dates and progress, and coordinate shared work through boards and schedules.",
+  "agentUseSummary": "Connect Microsoft Planner through Relay-owned Microsoft work-account OAuth, then let agents inspect bounded assigned-task and explicit task or plan metadata through four fixed Graph wrappers. Relay excludes assignment identities, task details, group and directory discovery, writes, application or other-user access, exports, pagination, beta APIs, and raw Graph access.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-365/business/task-management-software",
+    "docsUrl": "https://learn.microsoft.com/graph/planner-concept-overview",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "profile", "offline_access", "Tasks.Read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "microsoft_delegated_work_user",
+      "signed_in_user_planner_authority",
+      "encrypted_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-planner/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "assigned_tasks",
+      "label": "Read assigned tasks",
+      "description": "Review bounded Planner tasks assigned to the signed-in work account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "explicit_task_plan_read",
+      "label": "Read explicit tasks and plans",
+      "description": "Inspect one prior-result task or plan and list bounded plan tasks.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "microsoft_planner_assigned_tasks_list",
+        "label": "List assigned tasks",
+        "description": "List at most twenty-five privacy-bounded Planner tasks assigned to the signed-in work account."
+      },
+      {
+        "id": "microsoft_planner_task_get",
+        "label": "Read task metadata",
+        "description": "Read bounded metadata for one explicit prior-result Planner task without task details or assignment identities."
+      },
+      {
+        "id": "microsoft_planner_plan_get",
+        "label": "Read plan metadata",
+        "description": "Read bounded metadata for one explicit prior-result Planner plan without group-directory expansion."
+      },
+      {
+        "id": "microsoft_planner_plan_tasks_list",
+        "label": "List plan tasks",
+        "description": "List at most twenty-five privacy-bounded tasks for one explicit prior-result plan."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "microsoft_planner_assignment_details",
+        "label": "Read assignment identities or task details",
+        "description": "Assignment identities, assignee resolution, descriptions, checklists, references, attachments, and task details are outside V1."
+      },
+      {
+        "id": "microsoft_planner_group_directory",
+        "label": "Discover groups or people",
+        "description": "Group, roster, member, user, bucket, and directory discovery or expansion are outside V1."
+      },
+      {
+        "id": "microsoft_planner_mutation",
+        "label": "Change Planner resources",
+        "description": "Create, update, assign, complete, reorder, move, copy, and delete operations are outside V1."
+      },
+      {
+        "id": "microsoft_planner_application_raw",
+        "label": "Use broad or raw access",
+        "description": "Application permissions, all-user access, exports, automatic pagination, beta APIs, and raw Graph access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_planner_safe",
+      "label": "Safe",
+      "description": "Four bounded delegated reads run automatically; identities, details, directory discovery, writes, application access, pagination, beta, and raw Graph remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "microsoft_planner_assigned_tasks_list",
+        "microsoft_planner_task_get",
+        "microsoft_planner_plan_get",
+        "microsoft_planner_plan_tasks_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_planner_assignment_details",
+        "microsoft_planner_group_directory",
+        "microsoft_planner_mutation",
+        "microsoft_planner_application_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four delegated reads run without Relay per-action approval; exact scope, signed-in-user authority, limits, audit, redaction, and Microsoft controls still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "microsoft_planner_assigned_tasks_list",
+        "microsoft_planner_task_get",
+        "microsoft_planner_plan_get",
+        "microsoft_planner_plan_tasks_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_planner_assignment_details",
+        "microsoft_planner_group_directory",
+        "microsoft_planner_mutation",
+        "microsoft_planner_application_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded Planner read wrappers and attaches encrypted Microsoft tokens only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded Planner read wrappers and attaches encrypted Microsoft tokens only on Railway."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_setup_pending",
+    "blocker": "Relay still needs its Entra application registration, delegated Tasks.Read configuration, exact Railway callback, staging credentials, a licensed Planner work account, and Microsoft acceptance. Those provider-console and live-consent actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the Relay-owned Entra application and exact callback, store its credentials on Railway staging, then verify licensed work-account consent, exact scope, PKCE/state, refresh rotation, signed-in-user binding, all four reads, privacy exclusions, throttling, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/graph/auth-v2-user",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph delegated authorization uses the v2 authorization-code flow, supports PKCE, and uses offline_access when a refresh token is required."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/planneruser-list-tasks",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /me/planner/tasks lists tasks assigned to the signed-in work user and supports least-privileged delegated Tasks.Read."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/plannertask-get",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides an exact plannerTask read under delegated Tasks.Read."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/plannerplan-get",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides an exact plannerPlan metadata read under delegated Tasks.Read."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/plannerplan-list-tasks",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides a fixed plan-tasks collection endpoint under delegated Tasks.Read."
+    }
+  ]
+}

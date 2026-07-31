@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "adobe-target",
+  "name": "Adobe Target",
+  "category": "developer",
+  "description": "Adobe Target is an enterprise experimentation and personalization platform for A/B tests, experience targeting, automated personalization, multivariate tests, recommendations, audiences, offers, and activity reporting.",
+  "agentUseSummary": "Add one customer-owned Adobe OAuth server-to-server credential bound to a Target tenant and read-only product profile. Selected agents can list only bounded, minimized activity metadata. Relay blocks definitions, content, reports, profiles, administration, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://business.adobe.com/products/target/adobe-target.html",
+    "docsUrl": "https://experienceleague.adobe.com/en/docs/target-dev/developer/api/configure-authentication",
+    "developerConsoleUrl": "https://developer.adobe.com/console/",
+    "termsUrl": "https://www.adobe.com/legal/terms.html",
+    "privacyUrl": "https://www.adobe.com/privacy/policy.html"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://ims-na1.adobelogin.com/ims/token/v3",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_oauth_server_to_server", "oauth2_client_credentials", "tenant_bound"],
+    "credentialRequirements": [
+      {"name": "ADOBE_TARGET_TENANT", "label": "Adobe Target tenant code", "required": true, "secret": false, "helpText": "The Target account tenant code used in mc.adobe.io API paths; enter the code only, not a URL."},
+      {"name": "ADOBE_TARGET_CLIENT_ID", "label": "Adobe OAuth client ID", "required": true, "secret": true, "helpText": "Client ID for a customer-owned OAuth server-to-server credential assigned a read-only Target product profile."},
+      {"name": "ADOBE_TARGET_CLIENT_SECRET", "label": "Adobe OAuth client secret", "required": true, "secret": true, "helpText": "Client secret stored encrypted and submitted only to Adobe IMS."},
+      {"name": "ADOBE_TARGET_SCOPES", "label": "Adobe OAuth server-to-server scopes", "required": true, "secret": false, "helpText": "Copy the exact comma-separated scopes shown for this Target credential in Adobe Developer Console."}
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {"id": "experimentation_activity_read", "label": "Read experimentation activities", "description": "List a bounded, minimized directory of activities visible to the configured Adobe Target product profile.", "defaultSelected": true}
+  ],
+  "actions": {
+    "allowed": [
+      {"id": "adobe_target_read", "label": "List Adobe Target activities", "description": "List up to 20 minimized activity metadata records from the bound Target tenant."}
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {"id": "adobe_target_manage", "label": "Inspect content or change Adobe Target", "description": "Activity definitions, experiences, offers, audiences, reports, profiles, properties, environments, recommendations, batch operations, administration, and all mutations are unavailable."}
+    ]
+  },
+  "approvalProfiles": [
+    {"id": "adobe_target_safe", "label": "Safe", "description": "One bounded activity-directory read runs directly. Activity content, reports, profiles, administration, and every mutation remain blocked.", "defaultSelected": true, "allowedActions": ["adobe_target_read"], "approvalRequiredActions": [], "blockedActions": ["adobe_target_manage"]}
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {"format": "openclaw", "installSupport": "installable", "description": "Railway obtains short-lived tokens for one exact Adobe Target tenant and exposes only a bounded activity-directory wrapper."},
+    {"format": "hermes", "installSupport": "installable", "description": "Railway obtains short-lived tokens for one exact Adobe Target tenant and exposes only a bounded activity-directory wrapper."}
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer has supplied an Adobe OAuth server-to-server credential assigned a least-privilege Target product profile and one exact tenant, and the credential lifecycle and non-production acceptance have not been validated.",
+    "nextAction": "An Adobe administrator creates an OAuth server-to-server credential for Target, assigns the narrowest product profile that can list activities, records the tenant and exact scopes, stores all values through Relay's encrypted credential flow, then validates token renewal, bounded activity reads, disconnect, secret rotation/revocation, rate limiting, and post-disconnect denial in non-production."
+  },
+  "evidence": [
+    {"url": "https://experienceleague.adobe.com/en/docs/target-dev/developer/api/configure-authentication", "checkedAt": "2026-07-17", "supports": "Adobe documents Developer Console authentication for Target Admin APIs and migration to OAuth server-to-server credentials."},
+    {"url": "https://developer.adobe.com/developer-console/docs/guides/authentication/ServerToServerAuthentication/implementation", "checkedAt": "2026-07-17", "supports": "Adobe documents the client-credentials form POST to the fixed IMS token endpoint, exact credential scopes, token expiry, and server-side secret handling."},
+    {"url": "https://experienceleague.adobe.com/en/docs/target-dev/developer/api/admin-api/admin-api-overview", "checkedAt": "2026-07-17", "supports": "Adobe documents tenant-bound Target Admin APIs, bearer and x-api-key headers, versioned media types, and authenticated activity administration."},
+    {"url": "https://developers.adobetarget.com/api/", "checkedAt": "2026-07-17", "supports": "Adobe's Target API reference documents GET activity listing with limit and offset parameters; the provider redirects this reference to current Experience League documentation."},
+    {"url": "https://experienceleague.adobe.com/en/docs/target/using/troubleshoot/target-limits", "checkedAt": "2026-07-17", "supports": "Adobe documents a 50-calls-per-minute limit for Target Admin, Reporting, and bulk profile update APIs."}
+  ]
+}

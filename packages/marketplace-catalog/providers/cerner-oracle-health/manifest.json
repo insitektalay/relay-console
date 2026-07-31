@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "cerner-oracle-health",
+  "name": "Cerner Oracle Health",
+  "category": "work_management",
+  "description": "Cerner Oracle Health is Oracle's electronic health record and healthcare platform built around Oracle Health Millennium. Health systems use it for clinical documentation, medication orders, results, encounters, scheduling, patient administration, interoperability, analytics, and care operations.",
+  "agentUseSummary": "Connect an authorized Oracle Health Millennium SMART/FHIR R4 base URL and bearer token after customer/provider app registration, then let selected agents inspect discovery and content-minimized FHIR metadata under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.oracle.com/health/",
+    "docsUrl": "https://docs.oracle.com/en/industries/health/millennium-platform-apis/",
+    "developerConsoleUrl": "https://code.cerner.com/developer/smart-on-fhir/apps",
+    "termsUrl": "https://www.oracle.com/legal/terms.html",
+    "privacyUrl": "https://www.oracle.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "customer_owned_smart_fhir_token",
+    "relayOwned": false,
+    "scopes": [
+      "openid",
+      "fhirUser",
+      "online_access",
+      "user/Patient.read",
+      "user/Observation.read",
+      "user/Condition.read",
+      "user/MedicationRequest.read",
+      "user/DiagnosticReport.read",
+      "user/DocumentReference.read",
+      "user/Encounter.read",
+      "user/Appointment.read"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_smart_fhir", "healthcare", "tenant_bound"],
+    "credentialRequirements": [
+      {
+        "name": "EHR_FHIR_BASE_URL",
+        "label": "Oracle Health FHIR R4 base URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact HTTPS FHIR R4 base URL for the authorized Oracle Health Millennium tenant or sandbox."
+      },
+      {
+        "name": "EHR_FHIR_ACCESS_TOKEN",
+        "label": "Oracle Health SMART/FHIR bearer token",
+        "required": true,
+        "secret": true,
+        "helpText": "Use an authorized, revocable token from the customer/provider-approved SMART app registration."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ehr_fhir_read",
+      "label": "Read SMART/FHIR metadata",
+      "description": "Inspect tenant discovery and content-minimized metadata for allowlisted FHIR R4 resources without exposing raw protected health information.",
+      "defaultEnabled": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "ehr_fhir_discovery_read",
+        "label": "Read SMART/FHIR discovery",
+        "description": "Read the connected tenant's SMART configuration and FHIR CapabilityStatement without patient chart payloads."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "ehr_fhir_metadata_search",
+        "label": "Search FHIR metadata",
+        "description": "Search allowlisted FHIR R4 resources with Relay-bounded query parameters and content-minimized results."
+      },
+      {
+        "id": "ehr_fhir_metadata_read",
+        "label": "Read FHIR resource metadata",
+        "description": "Read one exact allowlisted FHIR R4 resource through Relay's content-minimized projection."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "ehr_raw_chart_exposure",
+        "label": "Expose raw chart content",
+        "description": "FHIR narratives, notes, attachments, values, addresses, telecom fields, names, identifiers, and raw records are not sent to agents."
+      },
+      {
+        "id": "ehr_patient_portal_credentials",
+        "label": "Collect portal credentials",
+        "description": "Relay never collects patient portal usernames, passwords, passkeys, MFA codes, activation codes, cookies, or browser sessions."
+      },
+      {
+        "id": "ehr_fhir_write",
+        "label": "Mutate clinical records",
+        "description": "Creates, updates, deletes, bulk export, messaging, ordering, scheduling mutation, and administrative EHR actions are outside this V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "cerner_oracle_health_safe",
+      "label": "Safe",
+      "description": "Discovery runs directly. FHIR resource searches and reads require approval and return only content-minimized metadata.",
+      "defaultSelected": true,
+      "allowedActions": ["ehr_fhir_discovery_read"],
+      "approvalRequiredActions": ["ehr_fhir_metadata_search", "ehr_fhir_metadata_read"],
+      "blockedActions": ["ehr_raw_chart_exposure", "ehr_patient_portal_credentials", "ehr_fhir_write"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected read operations run without Relay per-action approval; tenant binding, SMART/FHIR scopes, content minimization, bounds, audits, and token secrecy still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["ehr_fhir_discovery_read", "ehr_fhir_metadata_search", "ehr_fhir_metadata_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["ehr_raw_chart_exposure", "ehr_patient_portal_credentials", "ehr_fhir_write"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "server_proxy",
+      "description": "Railway mounts bounded SMART/FHIR discovery and content-minimized read wrappers; tokens remain server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "server_proxy",
+      "description": "Railway mounts bounded SMART/FHIR discovery and content-minimized read wrappers; tokens remain server-side."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Oracle Health requires application registration, an authorized Oracle Health account, REST API permission, tenant-specific FHIR endpoints, SMART scopes, and customer/provider acceptance before live use. No provider console, account, credential, consent, Railway deployment, or live tenant validation was performed.",
+    "nextAction": "Register Relay's SMART/FHIR application with Oracle Health and the customer tenant, approve the minimum read scopes, connect a non-production FHIR base URL and token, then verify discovery, content minimization, Safe approvals, token refresh/revocation, disconnect denial, and tenant-bound audit records."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.oracle.com/en/industries/health/millennium-platform-apis/authorization-framework/",
+      "checkedAt": "2026-07-18",
+      "supports": "Oracle Health documents SMART authorization, SMART App Launch 1.0/2.0, SMART Backend Services, registration requirements, REST API permission, scopes, online_access refresh-token duration, openid, and fhirUser."
+    },
+    {
+      "url": "https://docs.oracle.com/en/industries/health/millennium-platform-apis/mfrap/index.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Oracle Health documents FHIR R4 APIs for registered users accessing authorized Oracle Health Millennium data."
+    },
+    {
+      "url": "https://docs.oracle.com/en/industries/health/millennium-platform-apis/apis.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Oracle lists the Millennium Platform API catalogue and cautions that DSTU2 is no longer supported, so Relay targets R4."
+    },
+    {
+      "url": "https://docs.oracle.com/en/industries/health/millennium-platform-apis/mfrap/api-medicationrequest.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Oracle's R4 MedicationRequest documentation shows provider, patient, and system authorization types plus read/search and mutation endpoints; Relay V1 exposes only content-minimized reads."
+    }
+  ]
+}

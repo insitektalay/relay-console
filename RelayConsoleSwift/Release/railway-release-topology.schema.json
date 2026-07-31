@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "railway-release-topology.schema.json",
+  "title": "Relay Console Railway release topology",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "capturedAt", "project", "production", "staging"],
+  "properties": {
+    "schemaVersion": { "const": "relay.railway-release-topology.v1" },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "workspaceName"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "workspaceName": { "type": ["string", "null"] }
+      }
+    },
+    "production": { "$ref": "#/$defs/environment" },
+    "staging": { "$ref": "#/$defs/environment" }
+  },
+  "$defs": {
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "services", "backend"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "enum": ["production", "staging"] },
+        "services": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "backend": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["serviceId", "serviceName", "sourceRepository", "sourceBranch", "checkSuites", "rootDirectory", "deployment"],
+          "properties": {
+            "serviceId": { "type": "string", "minLength": 1 },
+            "serviceName": { "const": "clawchat" },
+            "sourceRepository": { "const": "insitektalay/relay-console" },
+            "sourceBranch": { "type": "string", "minLength": 1 },
+            "checkSuites": { "const": true },
+            "rootDirectory": { "const": "/backend" },
+            "deployment": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "status", "createdAt", "sourceCommit", "sourceBranch", "sourceRepository"],
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "status": { "const": "SUCCESS" },
+                "createdAt": { "type": "string", "format": "date-time" },
+                "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+                "sourceBranch": { "type": "string", "minLength": 1 },
+                "sourceRepository": { "const": "insitektalay/relay-console" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

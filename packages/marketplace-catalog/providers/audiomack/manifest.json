@@ -1,0 +1,171 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "audiomack",
+  "name": "Audiomack",
+  "category": "content_creative",
+  "description": "Audiomack is a music streaming and creator platform for publishing and discovering songs, albums, playlists, podcasts, and artist profiles.",
+  "agentUseSummary": "Connect Audiomack through its documented OAuth 1.0a flow. Agents can use 32 bounded reads and 17 approval-gated account mutations covering music, artists, charts, search, playlists, favorites, reposts, follows, notifications, and pinned artist content. Account/password endpoints, play-stat calls, previews, and streaming URLs remain blocked.",
+  "provider": {
+    "websiteUrl": "https://audiomack.com/",
+    "docsUrl": "https://audiomack.com/data-api/docs",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://audiomack.com/about/terms-of-service",
+    "privacyUrl": "https://audiomack.com/about/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth1",
+    "relayOwned": true,
+    "scopes": ["account_authority"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://audiomack.com/oauth/authenticate",
+    "tokenUrl": "https://api.audiomack.com/v1/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "oauth1",
+      "relay_owned_consumer",
+      "pinned_operation_registry",
+      "non_refreshable_token_pair"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "AUDIOMACK_CONSUMER_KEY",
+        "label": "Audiomack consumer key",
+        "required": true,
+        "secret": false,
+        "helpText": "Relay-owned OAuth consumer key issued by Audiomack."
+      },
+      {
+        "name": "AUDIOMACK_CONSUMER_SECRET",
+        "label": "Audiomack consumer secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay-owned OAuth consumer secret stored only in Railway."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/audiomack/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "audiomack_read",
+      "label": "Read Audiomack resources",
+      "description": "Read pinned music, artist, chart, search, playlist, metric, notification, and authorized-user resources.",
+      "defaultSelected": true,
+      "platformCapability": "audiomack_read"
+    },
+    {
+      "id": "audiomack_manage",
+      "label": "Manage Audiomack resources",
+      "description": "Manage favorites, reposts, follows, playlists, notification state, and the authorized artist's pinned content.",
+      "defaultSelected": true,
+      "platformCapability": "audiomack_manage"
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "audiomack_read",
+        "label": "Read Audiomack",
+        "description": "Run one pinned bounded Audiomack music, artist, chart, search, playlist, or authorized-user read."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "audiomack_manage",
+        "label": "Manage Audiomack",
+        "description": "Manage one favorite, repost, follow, playlist, notification, or pinned-content change; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "audiomack_secret_exposure",
+        "label": "Expose Audiomack secrets",
+        "description": "Consumer secrets, OAuth token pairs, cookies, and signed authorization headers are never exposed."
+      },
+      {
+        "id": "audiomack_account_credentials",
+        "label": "Automate account or password flows",
+        "description": "API registration and forgot-password endpoints require raw passwords or email-triggering account actions and are not exposed."
+      },
+      {
+        "id": "audiomack_play_manipulation",
+        "label": "Automate plays or retrieve streams",
+        "description": "Play-stat calls, preview audio, streaming URLs, artificial statistics, downloading, and private playback interfaces are blocked."
+      },
+      {
+        "id": "audiomack_unbounded_transfer",
+        "label": "Transfer unbounded Audiomack data",
+        "description": "Every action is one pinned endpoint, pages are capped at 100, requests are bounded, and responses are capped at 5 MB."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "audiomack_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; every favorite, repost, follow, playlist, notification, and pinned-content mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["audiomack_read"],
+      "approvalRequiredActions": ["audiomack_manage"],
+      "blockedActions": [
+        "audiomack_secret_exposure",
+        "audiomack_account_credentials",
+        "audiomack_play_manipulation",
+        "audiomack_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected OAuth-authorized mutations run without Relay per-action approval; specific intent, fixed endpoints, bounds, audits, redaction, and provider rules still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["audiomack_read", "audiomack_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "audiomack_secret_exposure",
+        "audiomack_account_credentials",
+        "audiomack_play_manipulation",
+        "audiomack_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "OpenClaw receives 49 pinned read and mutation wrappers with OAuth 1.0a signing and bounded results."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Hermes receives the same selected capabilities, approval profile, and cloud-held OAuth token pair."
+    }
+  ],
+  "availability": "provider_setup_required",
+  "providerSetup": {
+    "status": "external_setup_required",
+    "blocker": "Audiomack's live official API reference requires an OAuth consumer key and secret but does not publish a self-service issuance or application-registration procedure. Relay therefore needs Audiomack to issue or approve a consumer before staging can connect. This worker contacted no provider and opened no account or console.",
+    "nextAction": "The acceptance owner should confirm Audiomack still issues Data API consumers for Relay's use case, obtain the consumer key and secret, configure the exact Railway callback, store both in the approved Railway environment, then run staging request-token, consent, access-token, identity, representative read/mutation, redaction, rate-limit, disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://audiomack.com/data-api/docs",
+      "checkedAt": "2026-07-17",
+      "supports": "Audiomack's live official reference documents HTTPS API origins, OAuth 1.0a request/authorization/access-token flow, filtering, paging, errors, entity schemas, and the pinned music, artist, chart, search, playlist, user, notification, metrics, and pinned-content endpoints."
+    },
+    {
+      "url": "https://audiomack.com/about/terms-of-service",
+      "checkedAt": "2026-07-17",
+      "supports": "Audiomack's current terms govern accounts, content rights, platform access, automated indexing, statistics manipulation, and user responsibilities."
+    },
+    {
+      "url": "https://audiomack.com/about/privacy-policy",
+      "checkedAt": "2026-07-17",
+      "supports": "Audiomack's current privacy policy governs account and service data handling."
+    }
+  ]
+}

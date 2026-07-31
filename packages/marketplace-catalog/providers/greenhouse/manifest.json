@@ -1,0 +1,202 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "greenhouse",
+  "name": "Greenhouse",
+  "category": "developer",
+  "description": "Greenhouse Recruiting is an applicant-tracking and hiring platform built around Jobs, Offices, Departments, candidates, applications, interviews, and offers.",
+  "agentUseSummary": "Authorize Relay's Greenhouse partner integration for one exact Recruiting Organization with only harvest:jobs:list, harvest:offices:list, and harvest:departments:list. Agents can list bounded first pages of safe Job, Office, and Department summaries. Relay excludes candidates, applications, interviews, offers, users, hiring-team identities, custom fields, physical locations, writes, raw APIs, broader scopes, and cursor following.",
+  "provider": {
+    "websiteUrl": "https://www.greenhouse.com/",
+    "docsUrl": "https://harvestdocs.greenhouse.io/docs/harvest-partner-oauth",
+    "developerConsoleUrl": "https://harvestdocs.greenhouse.io/docs/harvest-partner-oauth",
+    "termsUrl": "https://www.greenhouse.com/terms-of-service",
+    "privacyUrl": "https://www.greenhouse.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "harvest:jobs:list",
+      "harvest:offices:list",
+      "harvest:departments:list"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.greenhouse.io/authorize",
+    "tokenUrl": "https://auth.greenhouse.io/token"
+  },
+  "connection": {
+    "types": [
+      "greenhouse_partner_authorization_code",
+      "exact_three_list_scopes",
+      "rotating_refresh_token",
+      "exact_organization",
+      "candidate_data_excluded"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "GREENHOUSE_CLIENT_ID",
+        "label": "Greenhouse partner client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Greenhouse-issued Relay partner client ID configured only on Railway."
+      },
+      {
+        "name": "GREENHOUSE_CLIENT_SECRET",
+        "label": "Greenhouse partner client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Greenhouse-issued confidential partner secret configured only on Railway."
+      },
+      {
+        "name": "GREENHOUSE_ORGANIZATION_ID",
+        "label": "Greenhouse Recruiting Organization ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind the exact mutual-customer Organization before authorization."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/greenhouse/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "job_read",
+      "label": "Read Jobs",
+      "description": "List bounded safe Job requisition summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "organization_read",
+      "label": "Read recruiting structure",
+      "description": "List bounded safe Office and Department hierarchy summaries.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "greenhouse_job_list",
+        "label": "List Jobs",
+        "description": "List at most twenty-five Jobs from the first Harvest v3 page."
+      },
+      {
+        "id": "greenhouse_office_list",
+        "label": "List Offices",
+        "description": "List at most twenty-five safe Office hierarchy summaries from the first page."
+      },
+      {
+        "id": "greenhouse_department_list",
+        "label": "List Departments",
+        "description": "List at most twenty-five Department hierarchy summaries from the first page."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "greenhouse_candidate_data",
+        "label": "Read candidate data",
+        "description": "Candidates, applications, interviews, offers, EEOC/demographics, attachments, notes, emails, scorecards, and approvals are outside V1."
+      },
+      {
+        "id": "greenhouse_sensitive_read",
+        "label": "Read sensitive recruiting data",
+        "description": "Hiring-team identities, users, descriptions, custom fields, openings, posts, office physical locations/contact users, and reports are outside V1."
+      },
+      {
+        "id": "greenhouse_write",
+        "label": "Change Greenhouse",
+        "description": "Create, update, move, hire, reject, delete, lifecycle, and all other mutations are outside V1."
+      },
+      {
+        "id": "greenhouse_raw_api",
+        "label": "Use raw Harvest API",
+        "description": "Harvest v1/v2, customer client credentials, arbitrary paths, filters, fields, cursors, pagination, raw responses, and broader scopes are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "greenhouse_safe",
+      "label": "Safe",
+      "description": "All three bounded recruiting-structure reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "greenhouse_job_list",
+        "greenhouse_office_list",
+        "greenhouse_department_list"
+      ],
+      "blockedActions": [
+        "greenhouse_candidate_data",
+        "greenhouse_sensitive_read",
+        "greenhouse_write",
+        "greenhouse_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three selected reads run without per-action approval while exact scopes, Organization binding, bounds, redaction, refresh, and audit remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "greenhouse_job_list",
+        "greenhouse_office_list",
+        "greenhouse_department_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "greenhouse_candidate_data",
+        "greenhouse_sensitive_read",
+        "greenhouse_write",
+        "greenhouse_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three fixed safe Harvest v3 list wrappers and attaches refreshed partner OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three fixed safe Harvest v3 list wrappers and attaches refreshed partner OAuth tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "A signed Greenhouse partnership agreement, provider-issued testing/production credentials, exact Railway callback, requested scopes, and authorized staging Organization are required.",
+    "nextAction": "Complete Greenhouse partner approval for exactly the three list scopes, configure the Railway callback and credentials, then validate Site Admin consent, rotating 24-hour refresh tokens, Organization binding, denial, and the three bounded reads."
+  },
+  "evidence": [
+    {
+      "url": "https://harvestdocs.greenhouse.io/docs/harvest-partner-oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Greenhouse documents partner-only authorization code OAuth, exact callback and scopes, HTTP Basic token exchange, one-hour access tokens, rotating 24-hour refresh tokens, and Site Admin requirements for list endpoints."
+    },
+    {
+      "url": "https://harvestdocs.greenhouse.io/docs/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Greenhouse distinguishes multi-customer partner OAuth from customer-only client credentials and requires server-side secret storage and Bearer access to Harvest v3."
+    },
+    {
+      "url": "https://harvestdocs.greenhouse.io/reference/get_v3-jobs",
+      "checkedAt": "2026-07-17",
+      "supports": "Greenhouse documents the Harvest v3 Jobs list, per_page bounds, cursor pagination, and Job fields; Relay sends only per_page and never follows a cursor."
+    },
+    {
+      "url": "https://harvestdocs.greenhouse.io/reference/get_v3-offices",
+      "checkedAt": "2026-07-17",
+      "supports": "Greenhouse documents the Offices list and hierarchy, including physical-location and contact fields Relay discards."
+    },
+    {
+      "url": "https://harvestdocs.greenhouse.io/reference/get_v3-departments",
+      "checkedAt": "2026-07-17",
+      "supports": "Greenhouse documents the Departments list and safe hierarchy fields used by Relay."
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-dynamics-365-business-central",
+  "name": "Microsoft Dynamics 365 Business Central",
+  "category": "finance_accounting",
+  "description": "Microsoft Dynamics 365 Business Central is an enterprise resource planning platform for finance, sales, purchasing, inventory, projects, service, manufacturing, and business operations.",
+  "agentUseSummary": "Choose a Business Central online environment, connect through Relay-owned Microsoft OAuth, and let selected agents list only a bounded, minimized company directory. Relay does not expose financial or operational records, custom APIs, arbitrary OData, pagination, or mutations in V1.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/en-us/dynamics-365/products/business-central",
+    "docsUrl": "https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/api-reference/v2.0/",
+    "developerConsoleUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "offline_access",
+      "https://api.businesscentral.dynamics.com/Financials.ReadWrite.All"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "customer_selected_environment"],
+    "credentialRequirements": [
+      {
+        "name": "BUSINESS_CENTRAL_ENVIRONMENT_NAME",
+        "label": "Business Central environment name",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact Business Central online environment name, such as Production or Sandbox."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-dynamics-365-business-central/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "microsoft_dynamics_365_business_central_read",
+      "label": "List companies",
+      "description": "Read up to 50 minimized company identifiers and names from the selected Business Central environment.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "microsoft_dynamics_365_business_central_read",
+        "label": "List Business Central companies",
+        "description": "Call only the selected environment's standard companies endpoint and return id, name, and displayName for at most 50 companies."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "microsoft_dynamics_365_business_central_manage",
+        "label": "Access records or change Business Central",
+        "description": "Customers, vendors, items, employees, ledgers, journals, accounts, documents, orders, invoices, payments, attachments, reports, custom APIs, arbitrary OData, and all mutations are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_dynamics_365_business_central_safe",
+      "label": "Safe",
+      "description": "One bounded company-directory read runs directly. Financial and operational records, arbitrary endpoints, pagination, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["microsoft_dynamics_365_business_central_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["microsoft_dynamics_365_business_central_manage"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one environment-bound, bounded standard-API company-directory wrapper through Relay-owned Microsoft OAuth."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one environment-bound, bounded standard-API company-directory wrapper through Relay-owned Microsoft OAuth."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's multi-tenant Entra application has not been configured and accepted for production Business Central delegated Financials.ReadWrite.All and the exact Business Central callback, and no licensed customer environment has completed consent and acceptance.",
+    "nextAction": "The provider-console owner updates Relay's verified multi-tenant Entra application, adds the exact callback, grants delegated Business Central Financials.ReadWrite.All, stores the client ID and secret in Railway, then validates OAuth, refresh, the bounded companies read, disconnect, and post-disconnect denial in a licensed non-production customer environment."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-develop-connect-apps",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents OAuth v2 and the common Business Central API endpoint for production Connect apps, and identifies delegated Financials.ReadWrite.All as the permission for this API."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/webservices/api-endpoint-structure",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents the environment-bound standard API v2.0 route under api.businesscentral.dynamics.com."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/api-reference/v2.0/api/dynamics_company_get",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents the authenticated GET companies operation and its id, name, and displayName fields."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/administration/operational-limits-online",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents online operational limits, including up to 300 companies per environment; Relay intentionally returns only the first 50 and does not paginate."
+    }
+  ]
+}

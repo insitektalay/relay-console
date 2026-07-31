@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "usercentrics",
+  "name": "Usercentrics",
+  "category": "developer",
+  "description": "Usercentrics is a consent management platform for collecting, documenting, and applying website and application users' privacy choices.",
+  "agentUseSummary": "Usercentrics is unavailable as a Relay agent connection because its published integration surface centers on browser and app SDKs that initialize a CMP and collect or change an end user's consent. Its server-side analytics export is a plan-gated raw-consent feed provisioned through support, not a bounded configuration-management API. Relay does not simulate consent, expose controller IDs or consent strings, or ingest raw consent histories.",
+  "provider": {
+    "websiteUrl": "https://usercentrics.com/",
+    "docsUrl": "https://docs.usercentrics.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://usercentrics.com/terms-and-conditions/",
+    "privacyUrl": "https://usercentrics.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "client_runtime_consent_sdk_not_mounted",
+      "end_user_consent_actions_blocked",
+      "plan_gated_raw_consent_export_not_ingested",
+      "no_documented_bounded_admin_api"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "usercentrics_connection",
+        "label": "Connect Usercentrics",
+        "description": "Relay exposes no Usercentrics connection without a documented bounded server-side management API suitable for agent use."
+      },
+      {
+        "id": "usercentrics_consent_action",
+        "label": "Collect or change consent",
+        "description": "Accept, deny, save, restore, reset, and every other end-user consent or session action are never executed by an agent."
+      },
+      {
+        "id": "usercentrics_private_consent_data",
+        "label": "Read private consent data",
+        "description": "Controller IDs, device audit IDs, user sessions, consent histories, consent strings, service decisions, location, raw exports, and webhook payloads are excluded."
+      },
+      {
+        "id": "usercentrics_undocumented_api",
+        "label": "Use undocumented interfaces",
+        "description": "Browser-observed configuration endpoints, internal GraphQL, arbitrary Usercentrics hosts, SDK network traffic, scraping, and reverse-engineered requests are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "usercentrics_unavailable",
+      "label": "Unavailable",
+      "description": "No Usercentrics action or credential path is exposed until the provider publishes a stable bounded server-side management contract that does not require Relay to impersonate a consenting user or ingest raw consent histories.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "usercentrics_connection",
+        "usercentrics_consent_action",
+        "usercentrics_private_consent_data",
+        "usercentrics_undocumented_api"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No wrappers are mounted because the documented SDKs act in end-user consent sessions and the server-side export contains raw consent data."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No wrappers are mounted because the documented SDKs act in end-user consent sessions and the server-side export contains raw consent data."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": "Usercentrics documents client SDKs for initializing a CMP and accepting, denying, saving, restoring, or inspecting individual consent state. Its separate Analytics Data Export Service is a premium or corporate raw-consent export that requires support activation and specially delivered credentials; the public documentation does not establish a bounded server-side configuration-management API for Relay.",
+    "nextAction": "Keep Usercentrics unavailable and do not collect settings IDs, analytics IDs, API keys, controller IDs, sessions, consent strings, exports, or webhooks. Re-evaluate only if Usercentrics publishes a stable versioned server-side admin API with metadata-only reads, least-privilege credentials, fixed schemas, pagination and rate limits, revocation, and an explicit prohibition boundary around individual consent actions and histories."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.usercentrics.com/cmp_browser_sdk/4.38.2/index.html",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Browser SDK initializes from a settings ID and exposes accept-all, deny-all, and service-decision updates inside a browser consent session rather than a server-side admin contract."
+    },
+    {
+      "url": "https://docs.usercentrics.com/cmp_in_app_sdk/latest/getting_started/configure/",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Apps SDK is configured with a Settings ID or Ruleset ID and loads consent UI/configuration into an end-user device runtime."
+    },
+    {
+      "url": "https://support.usercentrics.com/hc/en-us/articles/22234449338652-The-process-for-a-Raw-Data-Export-Request",
+      "checkedAt": "2026-07-18",
+      "supports": "Usercentrics says its scheduled API export contains raw analytics/consent data, is plan-gated, requires support activation, and delivers an Analytics ID and API key through a verified confidential process."
+    },
+    {
+      "url": "https://support.usercentrics.com/hc/en-us/articles/20022542647964-Consent-Webhook",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Consent Webhook is a plan-gated push of user consent payloads, not a bounded configuration metadata API."
+    }
+  ]
+}

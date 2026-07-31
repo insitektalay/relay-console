@@ -1,0 +1,263 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "riverside-fm",
+  "name": "Riverside.fm",
+  "category": "content_creative",
+  "description": "Riverside.fm is a remote recording, editing, livestreaming, webinar, and media-production platform. Teams use it to organize studios and projects, capture local audio and video tracks, produce edits and exports, and operate live audience events.",
+  "agentUseSummary": "Add a dedicated key from an eligible Riverside Business account, then let agents use the complete documented v3 workspace, recording, export, webinar, edit, timeline, transcript, download, and deletion surface under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://riverside.fm/",
+    "docsUrl": "https://docs.riverside.fm/quickstart",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://riverside.fm/terms-conditions",
+    "privacyUrl": "https://riverside.fm/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key", "api_connector", "select_business_account"],
+    "credentialRequirements": [
+      {
+        "name": "RIVERSIDE_API_KEY",
+        "label": "Riverside Business API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated API key generated for the customer's eligible Riverside Business account."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workspace",
+      "label": "Workspace",
+      "description": "Read productions, studios, and projects in the connected Business account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "recordings",
+      "label": "Recordings",
+      "description": "Read, download, or delete exact recordings and transcripts.",
+      "defaultSelected": true
+    },
+    {
+      "id": "exports",
+      "label": "Exports",
+      "description": "Read, download, or permanently delete exact exports.",
+      "defaultSelected": true
+    },
+    {
+      "id": "webinars",
+      "label": "Webinars",
+      "description": "Read bounded event registrants or register one attendee.",
+      "defaultSelected": true
+    },
+    {
+      "id": "edits",
+      "label": "Edits and timelines",
+      "description": "Read edits and create, inspect, or download editing timelines.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "riverside_workspace_read",
+        "label": "Read workspace",
+        "description": "List the connected Riverside account's productions, studios, and projects."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "riverside_recording_read",
+        "label": "Read recordings",
+        "description": "List or inspect bounded recordings, tracks, files, and transcription availability."
+      },
+      {
+        "id": "riverside_recording_download",
+        "label": "Download recording media or transcripts",
+        "description": "Resolve one recording file or return one bounded transcript."
+      },
+      {
+        "id": "riverside_recording_delete",
+        "label": "Delete recordings",
+        "description": "Soft-delete one exact recording and its tracks and files."
+      },
+      {
+        "id": "riverside_export_read",
+        "label": "Read exports",
+        "description": "List or inspect bounded completed Riverside exports."
+      },
+      {
+        "id": "riverside_export_download",
+        "label": "Download exports",
+        "description": "Resolve one exact export's short-lived signed download URL."
+      },
+      {
+        "id": "riverside_export_delete",
+        "label": "Delete exports",
+        "description": "Permanently delete one exact export."
+      },
+      {
+        "id": "riverside_webinar_read",
+        "label": "Read webinar registrants",
+        "description": "Read one bounded page of registrant and attendance records for an exact event."
+      },
+      {
+        "id": "riverside_webinar_register",
+        "label": "Register webinar attendees",
+        "description": "Register one named attendee with an exact event and return their personal join link."
+      },
+      {
+        "id": "riverside_edit_read",
+        "label": "Read edits",
+        "description": "List a bounded page of edits belonging to the connected account."
+      },
+      {
+        "id": "riverside_timeline_manage",
+        "label": "Create and inspect timeline exports",
+        "description": "Queue one exact edit timeline, inspect its status, or resolve its ZIP download."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "riverside_webhook_management",
+        "label": "Manage webhook subscriptions",
+        "description": "Webhook subscription creation, signing-secret capture, replay, and receiver installation are not mounted in V1 because Riverside's public endpoint reference does not expose subscription-management operations."
+      },
+      {
+        "id": "riverside_secret_exposure",
+        "label": "Expose Riverside credentials",
+        "description": "The Business API key never enters agent-visible inputs, URLs, logs, or results."
+      },
+      {
+        "id": "riverside_raw_api",
+        "label": "Use arbitrary Riverside APIs",
+        "description": "Caller-selected origins, paths, headers, browser automation, session cookies, private APIs, and deprecated v1 or v2 endpoints are blocked."
+      },
+      {
+        "id": "riverside_unbounded_transfer",
+        "label": "Run unbounded transfers",
+        "description": "Automatic pagination, bulk deletion, recursive download, arbitrary binary proxying, and unbounded transcript or response transfer are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "riverside_safe",
+      "label": "Safe",
+      "description": "Workspace hierarchy reads run directly; recording, media, transcript, export, edit, registrant, timeline, registration, and deletion actions require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["riverside_workspace_read"],
+      "approvalRequiredActions": [
+        "riverside_recording_read",
+        "riverside_recording_download",
+        "riverside_recording_delete",
+        "riverside_export_read",
+        "riverside_export_download",
+        "riverside_export_delete",
+        "riverside_webinar_read",
+        "riverside_webinar_register",
+        "riverside_edit_read",
+        "riverside_timeline_manage"
+      ],
+      "blockedActions": [
+        "riverside_webhook_management",
+        "riverside_secret_exposure",
+        "riverside_raw_api",
+        "riverside_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected v3 Business API action runs without Relay per-action approval while key secrecy, the fixed origin, account authority, bounds, audits, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "riverside_workspace_read",
+        "riverside_recording_read",
+        "riverside_recording_download",
+        "riverside_recording_delete",
+        "riverside_export_read",
+        "riverside_export_download",
+        "riverside_export_delete",
+        "riverside_webinar_read",
+        "riverside_webinar_register",
+        "riverside_edit_read",
+        "riverside_timeline_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "riverside_webhook_management",
+        "riverside_secret_exposure",
+        "riverside_raw_api",
+        "riverside_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected typed Riverside v3 tools and injects the encrypted customer API key only at the fixed provider origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected typed Riverside v3 tools and injects the encrypted customer API key only at the fixed provider origin."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Riverside currently limits Business API access to select Business accounts and directs customers to their customer success manager to generate an API key. No eligible customer account, dedicated key, representative workspace, recording, export, webinar, or edit was available for live acceptance.",
+    "nextAction": "The Riverside Business account owner asks their customer success manager to enable v3 API access and generates a dedicated key, then connects it in Relay Console. Verify workspace health, one-page bounds, recording and export reads, transcript caps, signed-download allowlisting, webinar PII redaction and registration, timeline creation and polling, Safe approvals, Dangerous execution, soft versus permanent deletion semantics, provider rate limits, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.riverside.fm/quickstart",
+      "checkedAt": "2026-07-17",
+      "supports": "Riverside documents its current v3 Business API, fixed account hierarchy, bearer API-key authentication, and select-Business-account eligibility through a customer success manager."
+    },
+    {
+      "url": "https://docs.riverside.fm/llms.txt",
+      "checkedAt": "2026-07-17",
+      "supports": "Riverside's current documentation index enumerates workspace, recording, export, webinar registrant, edit, timeline-export, download, deletion, and webhook documentation."
+    },
+    {
+      "url": "https://docs.riverside.fm/endpoints-reference/v3/list-all-recordings",
+      "checkedAt": "2026-07-17",
+      "supports": "The v3 recording API documents bounded page-based listing, studio, project and date filters, full track and file metadata, transcript availability, and one-second request limits."
+    },
+    {
+      "url": "https://docs.riverside.fm/endpoints-reference/v3/get-registrants",
+      "checkedAt": "2026-07-17",
+      "supports": "The v3 webinar API documents account-bound cursor pagination, bounded limits, attendance and approval filters, participant PII, attribution, custom fields, and personal join URLs."
+    },
+    {
+      "url": "https://docs.riverside.fm/endpoints-reference/v3/create-timeline-export",
+      "checkedAt": "2026-07-17",
+      "supports": "Riverside documents asynchronous XML or AAF timeline creation for exact edits, target-specific formats, job polling, and ZIP downloads."
+    },
+    {
+      "url": "https://riverside.fm/terms-conditions",
+      "checkedAt": "2026-07-17",
+      "supports": "Riverside's terms govern authorized platform access, customer authority, recordings, content, and service use."
+    },
+    {
+      "url": "https://riverside.fm/privacy-policy",
+      "checkedAt": "2026-07-17",
+      "supports": "Riverside's privacy policy describes customer, user, audience, recording, event, and platform data processing relevant to media and registrant access."
+    }
+  ]
+}

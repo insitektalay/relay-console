@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "umami-self-hosted",
+  "name": "Umami Self-Hosted",
+  "category": "developer",
+  "description": "Umami Self-Hosted is the customer-operated edition of Umami's open-source, privacy-focused web and product analytics platform. Teams use it to measure aggregate traffic, content performance and live activity while retaining control of the application and analytics database.",
+  "agentUseSummary": "Connect one current public HTTPS Umami installation with a dedicated least-privilege username and password plus one exact website UUID. Selected agents can read four fixed bounded aggregate reports under Safe or Dangerously skip permissions; tracking, administration, raw events, sessions, arbitrary filters and private-network endpoints remain unavailable.",
+  "icon": { "assetName": "marketplace-logo-umami-self-hosted.png", "sourceUrl": "https://umami.is/favicon.ico" },
+  "provider": {
+    "websiteUrl": "https://github.com/umami-software/umami",
+    "docsUrl": "https://docs.umami.is/docs/api/website-stats",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://umami.is/terms",
+    "privacyUrl": "https://umami.is/privacy"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_username_password", "public_https_self_hosted", "exact_website_uuid_binding", "fixed_read_only_api_queries", "server_side_encrypted_secret_injection"],
+    "credentialRequirements": [
+      { "name": "UMAMI_SELF_HOSTED_INSTALLATION_URL", "label": "Umami installation URL", "required": true, "secret": false, "helpText": "The public HTTPS root of one current customer-operated Umami installation. Private addresses, custom ports, redirects and embedded credentials are rejected." },
+      { "name": "UMAMI_SELF_HOSTED_USERNAME", "label": "Umami username", "required": true, "secret": true, "helpText": "A dedicated least-privilege Umami user that can view only the intended website." },
+      { "name": "UMAMI_SELF_HOSTED_PASSWORD", "label": "Umami password", "required": true, "secret": true, "helpText": "The dedicated user's password. Relay sends it only to the exact installation's fixed login endpoint and never logs it or the returned bearer token." },
+      { "name": "UMAMI_SELF_HOSTED_WEBSITE_ID", "label": "Umami website ID", "required": true, "secret": false, "helpText": "The exact UUID of the intended Umami website." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "traffic_overview", "label": "Traffic overview", "description": "Read aggregate website totals and a bounded pageview/session time series for one exact website.", "defaultSelected": true },
+    { "id": "content_performance", "label": "Content performance", "description": "Read bounded aggregate top-page paths with query strings removed.", "defaultSelected": true },
+    { "id": "realtime_aggregate", "label": "Aggregate active visitors", "description": "Read only the current aggregate active-visitor count.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "umami_self_hosted_stats", "label": "Read website statistics", "description": "Read fixed aggregate pageview, visitor, visit, bounce and time totals." },
+      { "id": "umami_self_hosted_top_pages", "label": "Read top pages", "description": "Read at most twenty aggregate page-path rows with query strings stripped." },
+      { "id": "umami_self_hosted_pageviews", "label": "Read pageview series", "description": "Read a bounded UTC pageview and session time series for one recent window." },
+      { "id": "umami_self_hosted_active_visitors", "label": "Read active visitors", "description": "Read the aggregate number of visitors active in the last five minutes." }
+    ],
+    "blocked": [
+      { "id": "umami_self_hosted_events", "label": "Send events", "description": "Tracking, identify, performance, custom-event and historical event injection calls are unavailable." },
+      { "id": "umami_self_hosted_sites", "label": "Manage sites", "description": "Website provisioning, settings, reset, shared links, users, teams and account administration are unavailable." },
+      { "id": "umami_self_hosted_raw_data", "label": "Read raw data", "description": "PostgreSQL, raw events, sessions, event data, distinct IDs and visitor-level records are unavailable." },
+      { "id": "umami_self_hosted_raw_query", "label": "Run raw stats queries", "description": "Agents cannot choose metric types, filters, segments, timestamps, timezones, offsets, website IDs, URLs or arbitrary requests." },
+      { "id": "umami_self_hosted_private_network", "label": "Reach private infrastructure", "description": "Private, local, reserved, link-local, non-HTTPS and redirecting endpoints are unavailable; Relay opens no tunnel and keeps the web backend on Railway." },
+      { "id": "umami_self_hosted_unbounded_export", "label": "Export unbounded analytics", "description": "Five fixed recent windows, twenty-row tables and 256 KiB responses are the maximum supported surface." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "umami_self_hosted_safe",
+      "label": "Safe",
+      "description": "All private analytics reads require approval. Exact installation and website binding, fixed API queries, bounds and audits always apply.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["umami_self_hosted_stats", "umami_self_hosted_top_pages", "umami_self_hosted_pageviews", "umami_self_hosted_active_visitors"],
+      "blockedActions": ["umami_self_hosted_events", "umami_self_hosted_sites", "umami_self_hosted_raw_data", "umami_self_hosted_raw_query", "umami_self_hosted_private_network", "umami_self_hosted_unbounded_export"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four aggregate reads run without Relay per-action approval; exact authority, fixed queries, bounds, redaction and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["umami_self_hosted_stats", "umami_self_hosted_top_pages", "umami_self_hosted_pageviews", "umami_self_hosted_active_visitors"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["umami_self_hosted_events", "umami_self_hosted_sites", "umami_self_hosted_raw_data", "umami_self_hosted_raw_query", "umami_self_hosted_private_network", "umami_self_hosted_unbounded_export"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway authenticates at one exact public HTTPS Umami installation and executes four fixed aggregate reads for one exact website UUID with SSRF protection, bounds and redaction." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway authenticates at one exact public HTTPS Umami installation and executes four fixed aggregate reads for one exact website UUID with SSRF protection, bounds and redaction." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer operates and secures a current Umami release at a public HTTPS URL, creates a dedicated least-privilege user with access only to the intended website, confirms its UUID, and enters those values in Relay. Keep Umami and PostgreSQL patched, backed up and isolated; never expose PostgreSQL publicly."
+  },
+  "evidence": [
+    { "url": "https://github.com/umami-software/umami", "checkedAt": "2026-07-18", "supports": "Umami is an MIT-licensed open-source, privacy-focused analytics platform that can be self-hosted with PostgreSQL." },
+    { "url": "https://docs.umami.is/docs", "checkedAt": "2026-07-18", "supports": "The current Umami v3 documentation describes core aggregate web analytics including pageviews, visitors, engagement, referrers, devices and countries." },
+    { "url": "https://docs.umami.is/docs/api", "checkedAt": "2026-07-18", "supports": "The official API overview states that self-hosted endpoints live under the installation's /api path and require authentication." },
+    { "url": "https://docs.umami.is/docs/guides/automate-reporting-with-api", "checkedAt": "2026-07-18", "supports": "The official reporting guide documents POST /api/auth/login with username/password, the returned Bearer token and self-hosted website statistics requests." },
+    { "url": "https://docs.umami.is/docs/api/website-stats", "checkedAt": "2026-07-18", "supports": "The official website statistics reference documents fixed stats, pageviews, metrics and active visitor GET endpoints plus their timestamp, unit, type and limit parameters." }
+  ]
+}

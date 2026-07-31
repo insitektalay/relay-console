@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "hightail",
+  "name": "Hightail",
+  "category": "knowledge_documents",
+  "description": "Hightail is a secure large-file sharing and creative collaboration platform from OpenText. Creative teams use it to deliver large files, collect precise feedback and approvals, manage versions, and keep project conversations connected to the work.",
+  "agentUseSummary": "Connect a production API token from the customer's Hightail Teams or Business administrator, then let agents send bounded files to explicit recipients under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "hightail",
+    "sourceUrl": "https://www.hightail.com/assets/images/favicon/apple-touch-icon.png?v=2"
+  },
+  "provider": {
+    "websiteUrl": "https://www.hightail.com/",
+    "docsUrl": "https://developer.hightail.com/",
+    "developerConsoleUrl": "https://spaces.hightail.com/admin/api",
+    "termsUrl": "https://www.hightail.com/terms",
+    "privacyUrl": "https://www.opentext.com/about/copyright-information/site-privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_token", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "HIGHTAIL_API_TOKEN",
+        "label": "Hightail API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Ask your Hightail Teams or Business administrator for a production API token."
+      },
+      {
+        "name": "HIGHTAIL_SENDER_EMAIL",
+        "label": "Sender email",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the Hightail user email in the same organization as the API token."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "file_send",
+      "label": "Send large files",
+      "description": "Upload bounded files to a Hightail Send and notify explicitly selected recipients with the chosen delivery controls."
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "hightail_send_files",
+        "label": "Send files",
+        "description": "Upload one bounded set of files and send it to explicitly named recipients; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "hightail_unbounded_send",
+        "label": "Send unbounded files or recipients",
+        "description": "Relay limits one agent send to five files, five megabytes per file, 25 megabytes total, and 100 explicit recipients."
+      },
+      {
+        "id": "hightail_raw_upload_url",
+        "label": "Expose or replace upload URLs",
+        "description": "Relay accepts only Hightail-returned signed HTTPS Amazon S3 upload URLs and never exposes them to agents."
+      },
+      {
+        "id": "hightail_undocumented_operation",
+        "label": "Use an undocumented Hightail operation",
+        "description": "The current public API documents only creation, direct signed upload, and submission of file sends."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "hightail_safe",
+      "label": "Safe",
+      "description": "Hightail sends require approval because they upload content and can notify external recipients.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["hightail_send_files"],
+      "blockedActions": ["hightail_unbounded_send", "hightail_raw_upload_url", "hightail_undocumented_operation"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected Hightail sends run without Relay per-action approval; ownership, recipient and payload bounds, fixed provider origins, token secrecy, audits, and Hightail plan limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["hightail_send_files"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["hightail_unbounded_send", "hightail_raw_upload_url", "hightail_undocumented_operation"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts a typed bounded file-send workflow and never exposes the Hightail token or provider-signed upload URLs to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts a typed bounded file-send workflow and never exposes the Hightail token or provider-signed upload URLs to the agent."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No customer Hightail Teams or Business production API token, matching sender account, or signed-in provider session is available for production acceptance.",
+    "nextAction": "A customer Hightail administrator generates a production API token, connects it with a matching organization sender email, then Relay verifies Safe denial plus approval, Dangerous send, recipient and file bounds, signed-upload origin pinning, redaction, token revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.hightail.com/",
+      "checkedAt": "2026-07-14",
+      "supports": "Hightail documents customer-owned API-token authentication for Teams and Business accounts and a production API consisting of create-send and submit-send endpoints with direct provider-signed S3 uploads between them."
+    },
+    {
+      "url": "https://developer.hightail.com/assets/OpenText_Hightail_Development_Guide.pdf",
+      "checkedAt": "2026-07-14",
+      "supports": "OpenText's development guide documents the same administrator-issued production token and create, signed-upload, and submit workflow."
+    },
+    {
+      "url": "https://www.hightail.com/",
+      "checkedAt": "2026-07-14",
+      "supports": "Hightail describes secure large-file delivery, creative collaboration, feedback, approvals, project management, and its ownership by OpenText."
+    }
+  ]
+}

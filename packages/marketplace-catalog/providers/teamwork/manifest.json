@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "teamwork",
+  "name": "Teamwork",
+  "category": "work_management",
+  "description": "Teamwork is a project-management platform for planning projects, tasks, milestones, workloads, time, budgets, files, messages, and team collaboration. Organizations use it to coordinate client work, assign responsibility, track delivery, and report on project performance.",
+  "agentUseSummary": "Connect one Teamwork installation through OAuth, then let agents read bounded projects and tasks or use the complete installation-authorized Projects API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.teamwork.com/",
+    "docsUrl": "https://apidocs.teamwork.com/",
+    "developerConsoleUrl": "https://developer.teamwork.com/",
+    "termsUrl": "https://www.teamwork.com/legal/terms-of-service/",
+    "privacyUrl": "https://www.teamwork.com/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.teamwork.com/launchpad/login/",
+    "tokenUrl": "https://www.teamwork.com/launchpad/v1/token.json",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_app_oauth",
+      "exact_installation_binding",
+      "permanent_access_token",
+      "installation_specific_api_origin"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/teamwork/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "project_read",
+      "label": "Read projects",
+      "description": "Read bounded project summaries from the connected Teamwork installation.",
+      "defaultSelected": true
+    },
+    {
+      "id": "task_read",
+      "label": "Read tasks",
+      "description": "Read bounded task summaries from the connected Teamwork installation.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Teamwork Projects API",
+      "description": "Use the complete documented Teamwork Projects API surface allowed by the connected user and installation.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "teamwork_project_list",
+        "label": "List projects",
+        "description": "List at most twenty-five project summaries from the connected installation."
+      },
+      {
+        "id": "teamwork_task_list",
+        "label": "List tasks",
+        "description": "List at most twenty-five task summaries from the connected installation."
+      },
+      {
+        "id": "teamwork_task_get",
+        "label": "Read a task",
+        "description": "Read one task summary by Teamwork task ID."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "teamwork_full_api",
+        "label": "Use full Teamwork API",
+        "description": "Use any documented Teamwork Projects API operation authorized by the connection; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "teamwork_safe",
+      "label": "Safe",
+      "description": "Bounded project and task reads run directly; every other Teamwork API operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["teamwork_project_list", "teamwork_task_list", "teamwork_task_get"],
+      "approvalRequiredActions": ["teamwork_full_api"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Teamwork operation runs without Relay per-action approval; installation binding, secret isolation, request bounds, audits, provider permissions, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["teamwork_project_list", "teamwork_task_list", "teamwork_task_get", "teamwork_full_api"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Teamwork wrappers and attaches the encrypted OAuth token only to the exact installation API origin returned by Teamwork."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Teamwork wrappers and attaches the encrypted OAuth token only to the exact installation API origin returned by Teamwork."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "A Relay-owned Teamwork App Login Flow application, exact callback, provider publication, staging credentials, and an authorized installation are required for live acceptance outside this code task.",
+    "nextAction": "In the provider-console task, finish the Teamwork developer account and app, register Relay's exact callback, obtain publication approval, add staging credentials, then verify authorization, installation binding, bounded reads, Safe approval, Dangerous mutation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://apidocs.teamwork.com/guides/teamwork/app-login-flow",
+      "checkedAt": "2026-07-17",
+      "supports": "Teamwork documents its App Login Flow, exact login and JSON token endpoints, fifteen-minute authorization code, permanent access token, installation-specific apiEndPoint, and publication process."
+    },
+    {
+      "url": "https://apidocs.teamwork.com/guides/teamwork/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Teamwork documents bearer-token authentication and using the installation API endpoint returned by App Login Flow."
+    },
+    {
+      "url": "https://apidocs.teamwork.com/docs/teamwork/v3/projects/get-projects-api-v3-projects-json",
+      "checkedAt": "2026-07-17",
+      "supports": "The official Projects API documents bounded project listing."
+    },
+    {
+      "url": "https://apidocs.teamwork.com/docs/teamwork/v3/tasks/get-projects-api-v3-tasks-json",
+      "checkedAt": "2026-07-17",
+      "supports": "The official Projects API documents task listing and the broader task resource surface."
+    }
+  ]
+}

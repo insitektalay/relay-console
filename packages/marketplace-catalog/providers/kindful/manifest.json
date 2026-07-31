@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "kindful",
+  "name": "Kindful",
+  "category": "crm_support",
+  "description": "Kindful is a nonprofit CRM and fundraising platform for managing supporters, donations, campaigns, funds, groups, custom fields and reporting.",
+  "agentUseSummary": "Connect one Kindful organization through Relay-owned reviewed OAuth, then let selected agents read organization metadata and query authorized contacts and transactions through nine pinned provider routes. Relay requests only basic and data_query and does not mount imports, links or integration-status writes in V1.",
+  "provider": {
+    "websiteUrl": "https://kindful.com/",
+    "docsUrl": "https://developer.kindful.com/partner/",
+    "developerConsoleUrl": "https://app.kindful.com/partner",
+    "termsUrl": "https://kindful.com/api-terms-conditions/",
+    "privacyUrl": "https://kindful.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["basic", "data_query"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://app.kindful.com/admin/oauth2/authorize",
+    "tokenUrl": "https://app.kindful.com/admin/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_reviewed_oauth_app",
+      "confidential_authorization_code",
+      "exact_kindful_organization",
+      "basic_and_data_query_scopes",
+      "local_disconnect_only",
+      "fixed_kindful_api_origin"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/kindful/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "kindful_read",
+      "label": "Read nonprofit CRM data",
+      "description": "Read account, campaign, fund, group and custom-field metadata and query contacts and transactions.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "kindful_read",
+        "label": "Read Kindful fundraising data",
+        "description": "Read organization metadata and query authorized contacts and transactions through Kindful's documented API."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "kindful_safe",
+      "label": "Safe",
+      "description": "All nine selected Kindful operations are semantic reads under basic and data_query; imports, links and integration-status writes are outside V1.",
+      "defaultSelected": true,
+      "allowedActions": ["kindful_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same read-only surface runs without per-action approval; OAuth scopes, fixed routes, payload bounds, audits and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["kindful_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts nine pinned Kindful metadata/query operations and attaches the encrypted OAuth token only to app.kindful.com."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts nine pinned Kindful metadata/query operations and attaches the encrypted OAuth token only to app.kindful.com."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "Kindful requires a Partner Dashboard application, OAuth client credentials, playground acceptance, provider QA and App Directory approval; this code-only worker has none of those artifacts.",
+    "nextAction": "In the separate authorized provider-console task, create the Relay application with the exact Railway callback, request only basic and data_query, complete Kindful QA, store KINDFUL_CLIENT_ID and KINDFUL_CLIENT_SECRET on Railway, and validate consent, organization binding, every pinned metadata/query route, disconnect and post-disconnect denial in staging."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.kindful.com/partner/set-up-your-environment/",
+      "checkedAt": "2026-07-17",
+      "supports": "Kindful documents its production authorization and token endpoints plus basic, data_add and data_query scopes; Relay deliberately selects only basic and data_query."
+    },
+    {
+      "url": "https://developer.kindful.com/partner/partner-dashboard-faq/",
+      "checkedAt": "2026-07-17",
+      "supports": "Kindful requires partner applications to use OAuth2, pass provider QA, comply with API terms and limit Kindful data use to the integration's function."
+    },
+    {
+      "url": "https://developer.kindful.com/customer/querying-guide/contact-queries/",
+      "checkedAt": "2026-07-17",
+      "supports": "Kindful documents POST /api/v1/contacts/query, its linked/change/filter query language, maximum page size of fifty and five-minute query tokens."
+    },
+    {
+      "url": "https://developer.kindful.com/customer/querying-guide/transaction-queries/",
+      "checkedAt": "2026-07-17",
+      "supports": "Kindful documents POST /api/v1/transactions/query with linked/change/date/campaign filters and bounded query-token pagination."
+    },
+    {
+      "url": "https://developer.kindful.com/customer/querying-guide/query-for-metadata/",
+      "checkedAt": "2026-07-17",
+      "supports": "Kindful documents organization details, campaigns, funds, groups and custom-field metadata as the supporting read surface for integrations."
+    }
+  ]
+}

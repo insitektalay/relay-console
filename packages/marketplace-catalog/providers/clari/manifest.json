@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "clari",
+  "name": "Clari",
+  "category": "crm_support",
+  "description": "Clari is a revenue platform for forecasting, pipeline inspection, opportunity management, and conversation intelligence through Clari Copilot. Revenue teams use it to understand deal health, coordinate forecasts, review customer calls, and improve sales execution.",
+  "agentUseSummary": "Add the customer workspace's Clari Copilot API key and password, then let selected agents read up to 25 minimized non-private call summaries in a date range capped at 31 days. Relay forces private calls, audio, video, participants, pagination counts, transcripts, summaries, CRM objects, analytics, arbitrary API access, and writes off.",
+  "provider": {
+    "websiteUrl": "https://www.clari.com/",
+    "docsUrl": "https://api-doc.copilot.clari.com/",
+    "developerConsoleUrl": "https://app.copilot.clari.com/",
+    "termsUrl": "https://www.clari.com/products/copilot/terms-of-service/",
+    "privacyUrl": "https://www.clari.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_workspace_credentials",
+      "organization_wide_api_pair",
+      "provider_plan_and_workspace_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "CLARI_COPILOT_API_KEY",
+        "label": "Clari Copilot API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use the workspace's Clari Copilot API key; Relay encrypts it server-side."
+      },
+      {
+        "key": "CLARI_COPILOT_API_PASSWORD",
+        "label": "Clari Copilot API password",
+        "secret": true,
+        "required": true,
+        "helpText": "Use the matching Clari Copilot API password; Relay encrypts it server-side."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "clari_read",
+      "label": "Read non-private call summaries",
+      "description": "Use one pinned Clari Copilot /calls request for at most 25 minimized summaries with private calls, media, participants, and pagination disabled.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "clari_read",
+        "label": "Read Clari Copilot call summaries",
+        "description": "Read up to 25 minimized non-private call summaries within a validated date range of at most 31 days."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "clari_manage",
+        "label": "Change Clari",
+        "description": "Call uploads, users, contacts, accounts, opportunities, topics, scorecards, and every mutation are outside Relay's V1 contract."
+      },
+      {
+        "id": "clari_sensitive_data",
+        "label": "Read private calls, content, or people",
+        "description": "Private calls, participants, user identities, transcripts, summaries, audio, video, signed media URLs, topics, scorecards, and CRM fields are blocked."
+      },
+      {
+        "id": "clari_arbitrary_api",
+        "label": "Use arbitrary API requests",
+        "description": "Paging, ranges over 31 days, participant or topic filters, call details, custom routes, and raw API access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "clari_safe",
+      "label": "Safe",
+      "description": "Bounded non-private call-summary reads run directly. Participants, transcripts, media, CRM data, analytics, paging, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["clari_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "clari_manage",
+        "clari_sensitive_data",
+        "clari_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed non-private call-summary tool through the encrypted customer-owned Clari Copilot credential pair."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed non-private call-summary tool through the encrypted customer-owned Clari Copilot credential pair."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer Clari Copilot workspace, organization API key-password pair, representative non-private call fixtures, plan entitlement, workspace access model, or credential-rotation procedure is available in this workspace.",
+    "nextAction": "A Clari workspace administrator obtains or rotates the organization API credentials in Workspace Settings > Integrations > Clari Copilot API, saves them through Relay Console, then verifies the bounded call read, private-call and media exclusion, date validation, minimization, rate and weekly-quota errors, agent assignment, credential replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api-doc.copilot.clari.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Clari documents X-Api-Key plus X-Api-Password authentication, workspace settings provisioning, a ten-request-per-second default limit, a 100,000-request weekly quota, and a broad read/write Copilot API surface."
+    },
+    {
+      "url": "https://api-doc.copilot.clari.com/#tag/call/paths/~1calls/get",
+      "checkedAt": "2026-07-17",
+      "supports": "The official call-list reference documents GET /calls, skip and limit, ISO date filters, private-call, audio, video and pagination switches, participant and topic filters, a 100-record maximum, and the separate content-rich call-details endpoint; Relay fixes the safe switches and exposes only dates."
+    },
+    {
+      "url": "https://community.clari.com/product-q-a-6/how-to-use-copilot-apis-2258",
+      "checkedAt": "2026-07-17",
+      "supports": "Clari's official community guide confirms the API credential location, organization-wide credential pair, call and CRM endpoints, rich transcript and analytics access, rate limits, and upload capabilities that Relay excludes."
+    }
+  ]
+}

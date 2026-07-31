@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "audius",
+  "name": "Audius",
+  "category": "content_creative",
+  "description": "Audius is an open music protocol and creator platform for publishing, discovering, streaming, collecting, and socially engaging with tracks, playlists, and artist profiles.",
+  "agentUseSummary": "Connect Audius through its current OAuth 2.0 Authorization Code flow with mandatory PKCE and the write scope. Agents can read bounded user, track, playlist, comment, resolve, discovery, and authenticated-profile routes and run approval-gated content/social mutations. Coins, wallets, tips, rewards, prizes, grants, authorized-app administration, DMs, messaging, streams, downloads, and unbounded uploads remain blocked.",
+  "provider": {
+    "websiteUrl": "https://audius.co/",
+    "docsUrl": "https://docs.audius.co/api/",
+    "developerConsoleUrl": "https://api.audius.co/plans",
+    "termsUrl": "https://audius.co/documents/TermsOfUse.pdf",
+    "privacyUrl": "https://audius.co/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["write"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.audius.co/v1/oauth/authorize",
+    "tokenUrl": "https://api.audius.co/v1/oauth/token",
+    "revocationUrl": "https://api.audius.co/v1/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth2",
+      "pkce_s256",
+      "rotating_refresh_token",
+      "public_api_key_client",
+      "content_social_boundary"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "AUDIUS_API_KEY",
+        "label": "Audius API key",
+        "required": true,
+        "secret": false,
+        "helpText": "Relay-owned developer application API key used as the public OAuth client ID."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/audius/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "audius_read",
+      "label": "Read Audius content and social resources",
+      "description": "Read users, tracks, playlists, comments, resolve results, discovery data, and the authorized profile.",
+      "defaultSelected": true,
+      "platformCapability": "audius_read"
+    },
+    {
+      "id": "audius_manage",
+      "label": "Manage Audius content and social resources",
+      "description": "Run write-scoped user, track, playlist, and comment mutations without financial, wallet, grant, or messaging authority.",
+      "defaultSelected": true,
+      "platformCapability": "audius_manage"
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "audius_read",
+        "label": "Read Audius",
+        "description": "Read one bounded official Audius content or social API route."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "audius_manage",
+        "label": "Manage Audius",
+        "description": "Run one OAuth-authorized content or social mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "audius_secret_exposure",
+        "label": "Expose Audius secrets",
+        "description": "API keys, access and refresh tokens, bearer headers, wallet material, and private keys are never exposed."
+      },
+      {
+        "id": "audius_financial_authority",
+        "label": "Use financial or authorization-admin routes",
+        "description": "Coins, wallets, tips, rewards, prizes, grants, authorized-app administration, DMs, and messaging remain blocked."
+      },
+      {
+        "id": "audius_media_transfer",
+        "label": "Transfer Audius media",
+        "description": "Stream and download routes, arbitrary binary transfers, and unbounded uploads are not exposed by these wrappers."
+      },
+      {
+        "id": "audius_arbitrary_interface",
+        "label": "Use arbitrary Audius interfaces",
+        "description": "Relay fixes calls to api.audius.co/v1 and allows only bounded content and social resource roots."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "audius_safe",
+      "label": "Safe",
+      "description": "Bounded content and social reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["audius_read"],
+      "approvalRequiredActions": ["audius_manage"],
+      "blockedActions": [
+        "audius_secret_exposure",
+        "audius_financial_authority",
+        "audius_media_transfer",
+        "audius_arbitrary_interface"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected write-scoped content/social mutations run without Relay per-action approval; fixed origins, bounded routes, audits, redaction, and provider rules still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["audius_read", "audius_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "audius_secret_exposure",
+        "audius_financial_authority",
+        "audius_media_transfer",
+        "audius_arbitrary_interface"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "OpenClaw receives bounded content/social REST wrappers backed by write-scoped PKCE OAuth."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Hermes receives the same selected capabilities, approval profile, and cloud-held rotating token pair."
+    }
+  ],
+  "availability": "provider_setup_required",
+  "providerSetup": {
+    "status": "external_setup_required",
+    "blocker": "Relay must create an Audius developer app, register the exact Railway callback, and store its public API key. This worker did not open the Audius settings or developer portal and created no application or credential.",
+    "nextAction": "The acceptance owner should create Relay's Audius developer app, register https://api.relayconsole.work/api/v1/marketplace/oauth/audius/callback, store AUDIUS_API_KEY in the approved Railway environment, then run staging write-scope PKCE OAuth, /me binding, representative content reads and social mutations, blocked financial/media route checks, token refresh and revocation, disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.audius.co/developers/guides/log-in-with-audius/",
+      "checkedAt": "2026-07-17",
+      "supports": "Audius documents developer-app API keys, exact redirect registration, Authorization Code with mandatory S256 PKCE, read/write scopes, JSON token exchange, access and refresh tokens, /me identity, refresh, and revocation."
+    },
+    {
+      "url": "https://docs.audius.co/api/",
+      "checkedAt": "2026-07-17",
+      "supports": "The current OAS reference documents the production v1 origin and user, track, playlist, resolve, explore, comments, events, rewards, prizes, wallet, coins, OAuth, grants, and authenticated-user resource families."
+    },
+    {
+      "url": "https://docs.audius.co/sdk/",
+      "checkedAt": "2026-07-17",
+      "supports": "Audius documents free API plans, API keys, backend bearer tokens, SDK content/social operations, OAuth login, streaming, and upload capabilities."
+    },
+    {
+      "url": "https://audius.co/documents/TermsOfUse.pdf",
+      "checkedAt": "2026-07-17",
+      "supports": "Audius's current terms govern platform and API access and allow users to disable third-party API access."
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "macos-update-manifest.schema.json",
+  "title": "Relay Console public beta macOS update manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "channel",
+    "generatedAt",
+    "manualUpdate",
+    "current",
+    "previous",
+    "previousDMGMinimumRetentionDays",
+    "downloadPageURL",
+    "releaseNotesURL",
+    "supportURL",
+    "rollbackPolicyURL"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.macos-update-manifest.v1" },
+    "channel": { "const": "public-beta" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "manualUpdate": { "const": true },
+    "current": { "$ref": "#/$defs/currentArtifact" },
+    "previous": {
+      "anyOf": [
+        { "$ref": "#/$defs/previousArtifact" },
+        { "type": "null" }
+      ]
+    },
+    "previousDMGMinimumRetentionDays": { "type": "integer", "minimum": 30 },
+    "downloadPageURL": { "const": "https://relayconsole.work/download" },
+    "releaseNotesURL": { "const": "https://relayconsole.work/release-notes" },
+    "supportURL": { "const": "https://relayconsole.work/support" },
+    "rollbackPolicyURL": { "const": "https://relayconsole.work/updates" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "fileName": { "type": "string", "pattern": "^[^/]+\\.dmg$" },
+    "publicURL": {
+      "type": "string",
+      "pattern": "^https://relayconsole\\.work/[^?#]+$"
+    },
+    "artifactBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "build",
+        "fileName",
+        "url",
+        "checksumURL",
+        "sha256",
+        "sizeBytes",
+        "publishedAt",
+        "architectures",
+        "signatureMode",
+        "notarizationStatus",
+        "distributionEvidenceSHA256"
+      ],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "build": { "type": "string", "minLength": 1 },
+        "fileName": { "$ref": "#/$defs/fileName" },
+        "url": { "$ref": "#/$defs/publicURL" },
+        "checksumURL": { "$ref": "#/$defs/publicURL" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "sizeBytes": { "type": "integer", "minimum": 1 },
+        "publishedAt": { "type": "string", "format": "date-time" },
+        "architectures": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["arm64", "x86_64"] }
+        },
+        "signatureMode": { "const": "developer-id-hardened-runtime" },
+        "notarizationStatus": { "const": "accepted-stapled" },
+        "distributionEvidenceSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "currentArtifact": { "$ref": "#/$defs/artifactBase" },
+    "previousArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "build",
+        "fileName",
+        "url",
+        "checksumURL",
+        "sha256",
+        "sizeBytes",
+        "publishedAt",
+        "architectures",
+        "signatureMode",
+        "notarizationStatus",
+        "distributionEvidenceSHA256",
+        "retainedUntil"
+      ],
+      "properties": {
+        "version": { "type": "string", "minLength": 1 },
+        "build": { "type": "string", "minLength": 1 },
+        "fileName": { "$ref": "#/$defs/fileName" },
+        "url": { "$ref": "#/$defs/publicURL" },
+        "checksumURL": { "$ref": "#/$defs/publicURL" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "sizeBytes": { "type": "integer", "minimum": 1 },
+        "publishedAt": { "type": "string", "format": "date-time" },
+        "architectures": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["arm64", "x86_64"] }
+        },
+        "signatureMode": { "const": "developer-id-hardened-runtime" },
+        "notarizationStatus": { "const": "accepted-stapled" },
+        "distributionEvidenceSHA256": { "$ref": "#/$defs/sha256" },
+        "retainedUntil": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "practice-better",
+  "name": "Practice Better",
+  "category": "work_management",
+  "description": "Practice Better is practice-management and electronic health record software for health and wellness professionals. Practices use it for clients, bookings, clinical notes, forms, programs, billing, measurements, protocols, labs, insurance, telehealth, and daily administration.",
+  "agentUseSummary": "Add the client ID and client secret from your approved Practice Better API add-on, then choose which agents can use the complete current beta API under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://practicebetter.io/",
+    "docsUrl": "https://api-docs.practicebetter.io/",
+    "developerConsoleUrl": "https://my.practicebetter.io/",
+    "termsUrl": "https://practicebetter.io/terms-api",
+    "privacyUrl": "https://practicebetter.io/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["read", "write"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.practicebetter.io/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_client_credentials"],
+    "credentialRequirements": [
+      {
+        "name": "PRACTICE_BETTER_CLIENT_ID",
+        "label": "Practice Better client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Create an API key after Practice Better approves the API Access beta add-on, then copy its client ID."
+      },
+      {
+        "name": "PRACTICE_BETTER_CLIENT_SECRET",
+        "label": "Practice Better client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the client secret shown when the API key is created. This is not the user's Practice Better password."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "practice_read",
+      "label": "Read practice and clinical data",
+      "description": "Read clients, schedules, programs, forms, clinical records, measurements, protocols, labs, billing, insurance, tasks, tags, webhooks, and account settings through every documented retrieval operation.",
+      "defaultSelected": true
+    },
+    {
+      "id": "practice_manage",
+      "label": "Manage practice and clinical data",
+      "description": "Create, update, cancel, enroll, reschedule, and delete supported records through every documented mutation in the current beta API.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "practice_better_api_read",
+        "label": "Read Practice Better",
+        "description": "Run one bounded operation from the complete documented retrieval and reporting surface."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "practice_better_api_manage",
+        "label": "Manage Practice Better",
+        "description": "Run one documented mutation for practice, client, clinical, scheduling, billing, program, tag, or webhook data."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "practice_better_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer-owned client secret and short-lived access tokens never enter agent-visible requests or results."
+      },
+      {
+        "id": "practice_better_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every token and business request stays on Practice Better's documented fixed HTTPS API origin."
+      },
+      {
+        "id": "practice_better_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only the 92 current documented beta operations represented by the read and manage tools."
+      },
+      {
+        "id": "practice_better_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds query fields, request bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "practice_better_safe",
+      "label": "Safe",
+      "description": "Retrieval and reporting operations run directly. Every operation that creates, changes, cancels, enrolls, reschedules, or deletes data requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["practice_better_api_read"],
+      "approvalRequiredActions": ["practice_better_api_manage"],
+      "blockedActions": ["practice_better_secret_exposure", "practice_better_unofficial_origin", "practice_better_unsupported_endpoint", "practice_better_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every documented operation authorized by the connected practice runs without Relay per-action approval. Practice authority, API-key restrictions, exact routes, bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["practice_better_api_read", "practice_better_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["practice_better_secret_exposure", "practice_better_unofficial_origin", "practice_better_unsupported_endpoint", "practice_better_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges encrypted customer-owned credentials server-side and mounts all 92 current beta API operations through fixed-origin bounded tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges encrypted customer-owned credentials server-side and mounts all 92 current beta API operations through fixed-origin bounded tools."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Practice Better's API is a paid-plan beta add-on that requires the account owner to accept the API terms and pass a support-team review before customer-owned client credentials can be created. No approved practice credentials or authorized clinical test account are available for production verification.",
+    "nextAction": "A paid Practice Better account owner must request the API Access beta add-on, complete provider review, create a restricted API key, and connect its client ID and secret. Then verify token exchange, representative reads, Safe approval, Dangerous mutations, redaction, credential replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.practicebetter.io/hc/en-us/articles/16637584053275-Getting-Started-with-the-Practice-Better-API-Beta",
+      "checkedAt": "2026-07-15",
+      "supports": "Practice Better documents the paid-plan API add-on, support review, customer-created client ID and secret, short-lived client-credentials token exchange, and current beta status."
+    },
+    {
+      "url": "https://api-docs.practicebetter.io/swagger.json",
+      "checkedAt": "2026-07-15",
+      "supports": "Practice Better's official Swagger 2.0 definition documents the fixed api.practicebetter.io origin, read and write scopes, five-request-per-second and 10,000-request-per-day limits, and 92 current business operations."
+    },
+    {
+      "url": "https://practicebetter.io/terms-api",
+      "checkedAt": "2026-07-15",
+      "supports": "Practice Better's API terms make the subscribing customer responsible for API fees, credentials, privacy, API-client security, and provider-enforced limits."
+    }
+  ]
+}

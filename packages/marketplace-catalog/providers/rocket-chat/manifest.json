@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "rocket-chat",
+  "name": "Rocket.Chat",
+  "category": "communication",
+  "description": "Rocket.Chat is a communication platform available as separately administered cloud and self-managed workspaces with rooms, messages, integrations, applications, and APIs.",
+  "agentUseSummary": "Rocket.Chat cannot currently be connected because a customer administrator registers an OAuth application independently in each workspace and the resulting app has full access to the authorizing user's account without granular read-only scopes. Customer-owned bot/app identities and personal tokens are distinct authority models, so Relay requires an explicit product decision before defining actions.",
+  "provider": {
+    "websiteUrl": "https://www.rocket.chat/",
+    "docsUrl": "https://docs.rocket.chat/docs/third-party-login",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.rocket.chat/terms",
+    "privacyUrl": "https://www.rocket.chat/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_workspace_specific_oauth",
+      "oauth_has_full_user_account_authority",
+      "granular_read_only_scopes_not_available",
+      "bot_or_app_identity_requires_product_decision",
+      "personal_token_is_long_lived_user_authority"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "rocket_chat_per_workspace_oauth",
+        "label": "Connect per-workspace OAuth",
+        "description": "Each workspace administrator must register Relay and supply workspace-specific credentials and endpoints, while the token can perform every action available to the authorizing user."
+      },
+      {
+        "id": "rocket_chat_bot_or_app_identity",
+        "label": "Use a bot or app identity",
+        "description": "Customer-owned bot and application identities are separately governed products whose membership, role, installation, update, and revocation contracts are not selected here."
+      },
+      {
+        "id": "rocket_chat_personal_token",
+        "label": "Use a personal access token",
+        "description": "A personal token is a long-lived user credential authenticated with the user's ID, not delegated OAuth or narrowly scoped account authority."
+      },
+      {
+        "id": "rocket_chat_data_and_mutations",
+        "label": "Access Rocket.Chat data",
+        "description": "Users, rooms, channels, groups, direct messages, posts, threads, files, reactions, moderation, settings, integrations, webhooks, exports, realtime subscriptions, and every read or write remain unavailable."
+      },
+      {
+        "id": "rocket_chat_raw_access",
+        "label": "Use raw Rocket.Chat access",
+        "description": "Arbitrary workspace origins, paths, REST or realtime endpoints, raw tools, pagination, and automatic retries are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "rocket_chat_unavailable",
+      "label": "Unavailable",
+      "description": "No agent action can be enabled until Relay selects one exact workspace-specific user or application identity and accepts its authority.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "rocket_chat_per_workspace_oauth",
+        "rocket_chat_bot_or_app_identity",
+        "rocket_chat_personal_token",
+        "rocket_chat_data_and_mutations",
+        "rocket_chat_raw_access"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Rocket.Chat identity, authority, or wrapper contract is authorized to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Rocket.Chat identity, authority, or wrapper contract is authorized to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Rocket.Chat OAuth is registered per workspace and gives the application full effective authority over the authorizing user's account; bot/app identities and personal tokens are different customer-owned credential products.",
+    "nextAction": "Do not request workspace credentials or show Connect. Reconsider after an explicit product/security decision selects per-workspace OAuth, a least-privilege bot/app identity, or another narrowly governed model and accepts its exact authority."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.rocket.chat/docs/third-party-login",
+      "checkedAt": "2026-07-17",
+      "supports": "Rocket.Chat documents an administrator creating the third-party application inside each workspace and copying that workspace's client ID, secret, authorization URL, and access-token URL."
+    },
+    {
+      "url": "https://docs.rocket.chat/docs/oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Rocket.Chat explicitly warns that OAuth apps have full account access and can perform any action on behalf of the authorizing user."
+    },
+    {
+      "url": "https://developer.rocket.chat/apidocs/authentication-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Authenticated API requests use Rocket.Chat workspace session identity rather than a universal provider-owned Relay account boundary."
+    },
+    {
+      "url": "https://developer.rocket.chat/apidocs/generate-personal-access-token",
+      "checkedAt": "2026-07-17",
+      "supports": "Personal access tokens are irrecoverable user credentials used with X-Auth-Token and X-User-Id and are not delegated OAuth grants."
+    }
+  ]
+}

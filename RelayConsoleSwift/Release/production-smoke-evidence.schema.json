@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "production-smoke-evidence.schema.json",
+  "title": "Relay Console production smoke evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "capturedAt",
+    "status",
+    "checkSetComplete",
+    "releaseBinding",
+    "origins",
+    "checks",
+    "privacy"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.production-smoke-evidence.v1" },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "status": { "enum": ["ready", "failed"] },
+    "checkSetComplete": { "type": "boolean" },
+    "releaseBinding": { "$ref": "#/$defs/releaseBinding" },
+    "origins": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backend", "web", "websocket"],
+      "properties": {
+        "backend": { "const": "https://api.relayconsole.work" },
+        "web": { "const": "https://relayconsole.work" },
+        "websocket": { "const": "wss://api.relayconsole.work" }
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backendLive",
+        "backendReady",
+        "productionSynthetic",
+        "webRoot",
+        "webRewriteLive",
+        "webRewriteReady",
+        "authenticatedWebsocket",
+        "billingObservability",
+        "operationsObservability"
+      ],
+      "properties": {
+        "backendLive": { "$ref": "#/$defs/healthCheck" },
+        "backendReady": { "$ref": "#/$defs/healthCheck" },
+        "productionSynthetic": { "$ref": "#/$defs/healthCheck" },
+        "webRoot": { "$ref": "#/$defs/basicCheck" },
+        "webRewriteLive": { "$ref": "#/$defs/healthCheck" },
+        "webRewriteReady": { "$ref": "#/$defs/healthCheck" },
+        "authenticatedWebsocket": { "$ref": "#/$defs/websocketCheck" },
+        "billingObservability": { "$ref": "#/$defs/billingCheck" },
+        "operationsObservability": { "$ref": "#/$defs/operationsCheck" }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "credentialsIncluded",
+        "cookiesIncluded",
+        "websocketTicketsIncluded",
+        "operatorSecretIncluded",
+        "workspaceIdentifiersIncluded",
+        "customerIdentifiersIncluded",
+        "responseBodiesIncluded"
+      ],
+      "properties": {
+        "credentialsIncluded": { "const": false },
+        "cookiesIncluded": { "const": false },
+        "websocketTicketsIncluded": { "const": false },
+        "operatorSecretIncluded": { "const": false },
+        "workspaceIdentifiersIncluded": { "const": false },
+        "customerIdentifiersIncluded": { "const": false },
+        "responseBodiesIncluded": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "nullableStatusCode": {
+      "type": ["integer", "null"],
+      "minimum": 100,
+      "maximum": 599
+    },
+    "releaseBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "sourceCommit",
+        "sourceBranch",
+        "railwayProjectId",
+        "railwayEnvironmentId",
+        "railwayServiceId",
+        "railwayDeploymentId",
+        "vercelGithubDeploymentId",
+        "vercelDeploymentId",
+        "vercelDeploymentURL",
+        "railwayTopologySHA256",
+        "railwayConfigurationSHA256",
+        "remoteEvidenceSHA256",
+        "publicSurfacesSHA256"
+      ],
+      "properties": {
+        "repository": { "const": "insitektalay/relay-console" },
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "sourceBranch": { "type": "string", "pattern": "^release/.+" },
+        "railwayProjectId": { "type": "string", "minLength": 1 },
+        "railwayEnvironmentId": { "type": "string", "minLength": 1 },
+        "railwayServiceId": { "type": "string", "minLength": 1 },
+        "railwayDeploymentId": { "type": "string", "minLength": 1 },
+        "vercelGithubDeploymentId": { "type": "integer", "minimum": 1 },
+        "vercelDeploymentId": {
+          "type": "string",
+          "pattern": "^dpl_[A-Za-z0-9]+$"
+        },
+        "vercelDeploymentURL": {
+          "type": "string",
+          "pattern": "^https://[A-Za-z0-9.-]+\\.vercel\\.app$"
+        },
+        "railwayTopologySHA256": { "$ref": "#/$defs/sha256" },
+        "railwayConfigurationSHA256": { "$ref": "#/$defs/sha256" },
+        "remoteEvidenceSHA256": { "$ref": "#/$defs/sha256" },
+        "publicSurfacesSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "basicCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "statusCode", "latencyMs"],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "statusCode": { "$ref": "#/$defs/nullableStatusCode" },
+        "latencyMs": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "healthCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passed",
+        "statusCode",
+        "latencyMs",
+        "serviceOk",
+        "serviceStatus",
+        "service"
+      ],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "statusCode": { "$ref": "#/$defs/nullableStatusCode" },
+        "latencyMs": { "type": "integer", "minimum": 0 },
+        "serviceOk": { "type": "boolean" },
+        "serviceStatus": { "type": ["string", "null"] },
+        "service": { "type": ["string", "null"] }
+      }
+    },
+    "websocketCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passed",
+        "latencyMs",
+        "loginPassed",
+        "workspaceLookupPassed",
+        "workspaceSource",
+        "ticketPassed",
+        "socketAuthenticated"
+      ],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "latencyMs": { "type": "integer", "minimum": 0 },
+        "loginPassed": { "type": "boolean" },
+        "workspaceLookupPassed": { "type": "boolean" },
+        "workspaceSource": { "enum": ["env", "discovered", null] },
+        "ticketPassed": { "type": "boolean" },
+        "socketAuthenticated": { "type": "boolean" }
+      }
+    },
+    "billingCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passed",
+        "statusCode",
+        "latencyMs",
+        "snapshotStatus",
+        "alerts",
+        "activePaidSubscriptions",
+        "failedBillingEvents",
+        "staleBillingEvents",
+        "entitlementMismatches",
+        "privacySafe"
+      ],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "statusCode": { "$ref": "#/$defs/nullableStatusCode" },
+        "latencyMs": { "type": "integer", "minimum": 0 },
+        "snapshotStatus": {
+          "enum": ["healthy", "attention", "invalid_contract", null]
+        },
+        "alerts": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "BILLING_EVENT_FAILURES",
+              "BILLING_EVENT_STUCK",
+              "PAYMENT_ATTENTION_REQUIRED",
+              "ENTITLEMENT_MISMATCHES",
+              "MIGRATION_GRACE_EXPIRING",
+              "MIGRATION_GRACE_EXPIRED"
+            ]
+          }
+        },
+        "activePaidSubscriptions": { "type": "integer", "minimum": 0 },
+        "failedBillingEvents": { "type": "integer", "minimum": 0 },
+        "staleBillingEvents": { "type": "integer", "minimum": 0 },
+        "entitlementMismatches": { "type": "integer", "minimum": 0 },
+        "privacySafe": { "type": "boolean" }
+      }
+    },
+    "operationsCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passed",
+        "statusCode",
+        "latencyMs",
+        "snapshotStatus",
+        "alerts",
+        "activeBridgeDevices",
+        "recentBridgeDevices",
+        "failedBridgeEvents",
+        "staleBridgeEvents",
+        "staleRuntimeDispatches",
+        "oauthRefreshFailures",
+        "privacySafe"
+      ],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "statusCode": { "$ref": "#/$defs/nullableStatusCode" },
+        "latencyMs": { "type": "integer", "minimum": 0 },
+        "snapshotStatus": {
+          "enum": ["healthy", "attention", "invalid_contract", null]
+        },
+        "alerts": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "BRIDGE_EVENT_FAILURES",
+              "BRIDGE_EVENTS_STUCK",
+              "RUNTIME_DISPATCHES_STUCK",
+              "OAUTH_REFRESH_FAILURES"
+            ]
+          }
+        },
+        "activeBridgeDevices": { "type": "integer", "minimum": 0 },
+        "recentBridgeDevices": { "type": "integer", "minimum": 0 },
+        "failedBridgeEvents": { "type": "integer", "minimum": 0 },
+        "staleBridgeEvents": { "type": "integer", "minimum": 0 },
+        "staleRuntimeDispatches": { "type": "integer", "minimum": 0 },
+        "oauthRefreshFailures": { "type": "integer", "minimum": 0 },
+        "privacySafe": { "type": "boolean" }
+      }
+    }
+  }
+}

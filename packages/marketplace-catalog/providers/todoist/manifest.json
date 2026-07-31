@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "todoist",
+  "name": "Todoist",
+  "category": "work_management",
+  "description": "Todoist is a task and project management platform for capturing work, planning priorities, organizing projects and sections, collaborating with teams, and tracking personal or shared commitments. People and organizations use it across web, desktop, mobile, email, calendar, and automation workflows to keep tasks, deadlines, reminders, comments, labels, and progress in one place.",
+  "agentUseSummary": "Connect one Todoist user through OAuth, then let agents read bounded projects and active tasks or use the broader documented JSON API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://todoist.com/",
+    "docsUrl": "https://developer.todoist.com/api/v1/",
+    "developerConsoleUrl": "https://app.todoist.com/app/settings/integrations/developer",
+    "termsUrl": "https://doist.com/terms-of-service",
+    "privacyUrl": "https://doist.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "data:read_write",
+      "data:delete",
+      "project:delete",
+      "backups:read"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.todoist.com/oauth/authorize",
+    "tokenUrl": "https://api.todoist.com/oauth/access_token",
+    "revocationUrl": "https://api.todoist.com/api/v1/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_app_oauth",
+      "exact_authorizing_user_binding",
+      "one_hour_access_token",
+      "single_use_rotating_refresh_token_with_sixty_second_retry_grace",
+      "fixed_todoist_api_origin"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/todoist/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "project_task_read",
+      "label": "Read projects and tasks",
+      "description": "Read bounded project and active-task data from the connected Todoist user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Todoist JSON API",
+      "description": "Use the documented JSON Todoist API v1 surface allowed by the connected user and plan.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "todoist_project_list",
+        "label": "List projects",
+        "description": "List at most twenty-five Todoist project summaries."
+      },
+      {
+        "id": "todoist_task_list",
+        "label": "List active tasks",
+        "description": "List at most twenty-five active Todoist task summaries."
+      },
+      {
+        "id": "todoist_task_get",
+        "label": "Read a task",
+        "description": "Read one active Todoist task by exact opaque task ID."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "todoist_full_api",
+        "label": "Use full Todoist JSON API",
+        "description": "Use any documented JSON Todoist API v1 operation authorized by the connection; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "todoist_safe",
+      "label": "Safe",
+      "description": "Bounded project and task reads run directly; every other Todoist API operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "todoist_project_list",
+        "todoist_task_list",
+        "todoist_task_get"
+      ],
+      "approvalRequiredActions": ["todoist_full_api"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Todoist operation runs without Relay per-action approval; user binding, secret isolation, request bounds, audits, Todoist authorization, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "todoist_project_list",
+        "todoist_task_list",
+        "todoist_task_get",
+        "todoist_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Todoist wrappers and attaches encrypted OAuth tokens only to the fixed Todoist API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Todoist wrappers and attaches encrypted OAuth tokens only to the fixed Todoist API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A Relay-owned Todoist OAuth application, refresh-token-enabled credentials, and live consent validation still require the provider-console task.",
+    "nextAction": "In the provider-console task, register Relay's exact callback and scopes, add staging credentials, then verify authorization, one-hour expiry, rotated refresh with retry grace, exact-user binding, Safe approval, Dangerous mutation, RFC 7009 revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.todoist.com/api/v1/",
+      "checkedAt": "2026-07-17",
+      "supports": "Todoist documents authorization-code OAuth, its permission scopes, API v1 resources, the current-user endpoint, one-hour access tokens for new apps, rotated refresh tokens with a sixty-second retry grace, and token revocation."
+    },
+    {
+      "url": "https://developer.todoist.com/api/v1/#tag/Projects",
+      "checkedAt": "2026-07-17",
+      "supports": "Todoist documents project reads and mutations used by the bounded project wrapper and full JSON API action."
+    },
+    {
+      "url": "https://developer.todoist.com/api/v1/#tag/Tasks",
+      "checkedAt": "2026-07-17",
+      "supports": "Todoist documents active-task reads plus create, update, complete, reopen, move and delete operations used by the bounded task wrappers and full JSON API action."
+    }
+  ]
+}

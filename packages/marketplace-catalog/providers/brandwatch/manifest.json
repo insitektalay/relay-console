@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "brandwatch",
+  "name": "Brandwatch",
+  "category": "communication",
+  "description": "Brandwatch is a consumer-intelligence and social media management platform for research, listening, analytics, publishing, and engagement. Its Consumer Research product organizes searches and configuration in projects and queries.",
+  "agentUseSummary": "Add a customer-generated Brandwatch Consumer Research bearer token and bind it to one exact project, then let agents inspect bounded identity- and content-redacted project references and query structure.",
+  "provider": {
+    "websiteUrl": "https://www.brandwatch.com/",
+    "docsUrl": "https://developers.brandwatch.com/docs/getting-started",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://developers.brandwatch.com/docs/best-practices",
+    "privacyUrl": "https://www.brandwatch.com/legal/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["read", "trust", "write"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.brandwatch.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_bearer_token", "exact_project_binding"],
+    "credentialRequirements": [
+      {
+        "name": "BRANDWATCH_ACCESS_TOKEN",
+        "label": "Brandwatch API access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a Consumer Research API access token with Brandwatch's official authentication flow. Relay encrypts it and sends it only as a Bearer header to https://api.brandwatch.com; Relay never requests or stores your Brandwatch password."
+      },
+      {
+        "name": "BRANDWATCH_PROJECT_ID",
+        "label": "Brandwatch project ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Paste one exact positive-decimal project ID returned by the official Projects summary endpoint."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "consumer_research_structure_read",
+      "label": "Read Consumer Research structure",
+      "description": "Read bounded identity- and content-redacted project references and query structure for one exact Brandwatch Consumer Research project.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "brandwatch_project_reference_list",
+        "label": "List Brandwatch project references",
+        "description": "List at most twenty-five project IDs and time zones without project, client, company, user, or billing identity."
+      },
+      {
+        "id": "brandwatch_query_structure_list",
+        "label": "List Brandwatch query structure",
+        "description": "List at most twenty-five query IDs and query types for one exact project without names, search expressions, authors, content, or results."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "brandwatch_identity_or_configuration",
+        "label": "Access identity or configuration",
+        "description": "Project, client, company, user and query names; descriptions; usernames; billing identity; search expressions; filters; groups; tags; categories; rules; and configuration are outside Relay's bounded connector."
+      },
+      {
+        "id": "brandwatch_mentions_content_or_analytics",
+        "label": "Access mentions, content, or analytics",
+        "description": "Mentions, authors, posts, messages, URLs, media, source data, topics, sentiment, demographics, charts, metrics, dashboards, reports, and other content or analytics remain blocked."
+      },
+      {
+        "id": "brandwatch_upload_publish_engage_or_administer",
+        "label": "Upload, publish, engage, or administer Brandwatch",
+        "description": "Data upload, query or rule changes, publishing, replies, engagement, channels, webhooks, users, clients, API credentials, billing, and administration remain blocked."
+      },
+      {
+        "id": "brandwatch_raw_api_or_bulk",
+        "label": "Use raw API or bulk access",
+        "description": "Arbitrary paths, methods, queries, bodies, Analysis API jobs, streams, pagination, bulk operations, exports, browser sessions, and undocumented endpoints remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "brandwatch_safe",
+      "label": "Safe",
+      "description": "Both bounded structure reads require approval; all identity, names, search expressions, mentions, authors, content, analytics, uploads, mutations, publishing, engagement, raw API, pagination, bulk, and export surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "brandwatch_project_reference_list",
+        "brandwatch_query_structure_list"
+      ],
+      "blockedActions": [
+        "brandwatch_identity_or_configuration",
+        "brandwatch_mentions_content_or_analytics",
+        "brandwatch_upload_publish_engage_or_administer",
+        "brandwatch_raw_api_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same two bounded reads run directly; exact project binding, fixed GET paths, redaction, response caps, audits, and Brandwatch's rate limit remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "brandwatch_project_reference_list",
+        "brandwatch_query_structure_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "brandwatch_identity_or_configuration",
+        "brandwatch_mentions_content_or_analytics",
+        "brandwatch_upload_publish_engage_or_administer",
+        "brandwatch_raw_api_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives two bounded Brandwatch structure-read tools with exact project binding and identity/content redaction."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same two bounded Brandwatch structure-read tools with exact project binding and identity/content redaction."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Brandwatch Consumer Research API access requires an eligible customer account with Regular or Admin API-user permission, a customer-generated access token, and one exact project ID. The documented token may carry read, trust, and write authority even though Relay uses only two fixed GET endpoints.",
+    "nextAction": "The customer generates an access token using Brandwatch's official authentication guide without sharing their password with Relay, supplies one exact project ID, and completes a live read-only connection check."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.brandwatch.com/docs/authenticate",
+      "checkedAt": "2026-07-18",
+      "supports": "Brandwatch documents customer access-token generation, Bearer authentication at https://api.brandwatch.com, read/trust/write token scope, an approximately one-year default token lifetime, and Regular or Admin API-user permission."
+    },
+    {
+      "url": "https://developers.brandwatch.com/docs/retrieving-projects",
+      "checkedAt": "2026-07-18",
+      "supports": "Official Consumer Research documentation defines GET /projects/summary and project IDs; Relay returns only bounded IDs and safe time-zone values."
+    },
+    {
+      "url": "https://developers.brandwatch.com/docs/retrieving-queries",
+      "checkedAt": "2026-07-18",
+      "supports": "Official documentation defines GET /projects/{projectId}/queries/summary and its query metadata; Relay returns only bounded query IDs and safe query types."
+    },
+    {
+      "url": "https://developers.brandwatch.com/docs/rate-limiting",
+      "checkedAt": "2026-07-18",
+      "supports": "Brandwatch documents a default Consumer Research API limit of 30 requests in a rolling 10-minute window per API Client and HTTP 429 beyond the limit."
+    },
+    {
+      "url": "https://developers.brandwatch.com/docs/best-practices",
+      "checkedAt": "2026-07-18",
+      "supports": "Brandwatch supports only documented endpoints, requires HTTPS with TLS 1.2 or newer, and repeats the 30-request-per-10-minute API Client limit."
+    }
+  ],
+  "securityNotes": [
+    "Relay stores only the customer-generated access token and exact project ID as encrypted secret references; it never requests or stores the Brandwatch username or password used in the provider's token-generation flow.",
+    "The bearer token is sent only in an Authorization header to the fixed https://api.brandwatch.com origin and never in a URL, agent prompt, log, catalog record, or runtime result.",
+    "Although Brandwatch's documented token response includes read, trust, and write scope, Relay allowlists only GET /projects/summary and GET /projects/{boundProjectId}/queries/summary and performs no mutation.",
+    "Responses are capped at 1 MB and twenty-five items; redirects, arbitrary query parameters, automatic pagination, Analysis API jobs, streams, raw responses, bulk operations, and exports are blocked.",
+    "Project, client, company, user and query names; descriptions; usernames; search expressions; authors; mentions; content; analytics; publishing; engagement; uploads; billing; and administration are excluded.",
+    "Relay enforces Brandwatch's documented default ceiling of thirty requests per rolling ten minutes per API Client."
+  ]
+}

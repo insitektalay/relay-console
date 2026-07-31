@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "remember-the-milk",
+  "name": "Remember The Milk",
+  "category": "work_management",
+  "description": "Remember The Milk is a task-management service for organizing personal and shared work across lists, tags, locations, reminders, contacts, and recurring plans. People use it to capture tasks quickly, search and prioritize commitments, coordinate shared lists, automate routines, and stay on schedule across web, desktop, and mobile apps.",
+  "agentUseSummary": "Connect a Remember The Milk Pro account once, then choose which agents can read or manage every documented hosted-MCP capability under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.rememberthemilk.com/",
+    "docsUrl": "https://www.rememberthemilk.com/services/mcp/",
+    "developerConsoleUrl": "https://www.rememberthemilk.com/.well-known/oauth-authorization-server",
+    "termsUrl": "https://www.rememberthemilk.com/terms.rtm",
+    "privacyUrl": "https://www.rememberthemilk.com/privacy.rtm"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["read", "write", "delete"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.rememberthemilk.com/oauth/authorize.rtm",
+    "tokenUrl": "https://www.rememberthemilk.com/oauth/token.rtm",
+    "revocationUrl": "https://www.rememberthemilk.com/oauth/revoke.rtm"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/remember-the-milk/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "productivity_read",
+      "label": "Read tasks and organization",
+      "description": "Read authorized tasks, lists, permissions, tags, notes, locations, reminders, contacts, scripts, settings, timezone, and language.",
+      "defaultSelected": true
+    },
+    {
+      "id": "productivity_manage",
+      "label": "Manage tasks and organization",
+      "description": "Create, update, complete, batch, share, automate, delete, restore, configure, and undo authorized Remember The Milk work.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "remember_the_milk_mcp_read",
+        "label": "Read Remember The Milk",
+        "description": "Use one documented Remember The Milk task, list, note, location, reminder, contact, script, or setting read tool."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "remember_the_milk_mcp_manage",
+        "label": "Manage Remember The Milk",
+        "description": "Use one documented Remember The Milk mutation, batch, sharing, automation, settings, or undo tool; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "remember_the_milk_safe",
+      "label": "Safe",
+      "description": "Task and organization reads run directly; every create, update, batch, sharing, automation, settings, delete, restore, or undo operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["remember_the_milk_mcp_read"],
+      "approvalRequiredActions": ["remember_the_milk_mcp_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized Remember The Milk MCP operation runs without Relay per-action approval. Ownership, provider authority, exact tool allowlists, live schemas, bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "remember_the_milk_mcp_read",
+        "remember_the_milk_mcp_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts exact read and manage wrappers and proxies refreshed user OAuth to Remember The Milk's fixed hosted MCP."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts exact read and manage wrappers and proxies refreshed user OAuth to Remember The Milk's fixed hosted MCP."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay's confidential S256 PKCE client is dynamically registered with the exact Railway callback and its client ID and secret are stored only on Railway. Remember The Milk MCP requires a Pro account, and no signed-in Pro user was available for production OAuth and MCP acceptance.",
+    "nextAction": "A Pro user clicks Connect, approves read, write, and delete access, then Relay verifies refresh, all 58 documented tools, representative reads, Safe management denial and approval, Dangerous management and undo, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.rememberthemilk.com/services/mcp/",
+      "checkedAt": "2026-07-15",
+      "supports": "Remember The Milk documents its official hosted MCP for secure account access from compatible AI clients."
+    },
+    {
+      "url": "https://www.rememberthemilk.com/services/mcp/tools/",
+      "checkedAt": "2026-07-15",
+      "supports": "The official tool reference documents 58 task, batch, list, tag, note, location, reminder, contact, MilkScript, settings, and undo tools."
+    },
+    {
+      "url": "https://www.rememberthemilk.com/services/mcp/faq/",
+      "checkedAt": "2026-07-15",
+      "supports": "The official FAQ identifies the exact https://www.rememberthemilk.com/mcp endpoint, OAuth 2.0, Pro requirement, full read and management authority, structured content, and disconnect behavior."
+    },
+    {
+      "url": "https://www.rememberthemilk.com/mcp/.well-known/oauth-protected-resource",
+      "checkedAt": "2026-07-15",
+      "supports": "The protected-resource metadata publishes the exact MCP resource, Remember The Milk authorization server, and read, write, and delete scopes."
+    },
+    {
+      "url": "https://www.rememberthemilk.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-15",
+      "supports": "The authorization metadata publishes authorization, token, dynamic-registration, and revocation endpoints with authorization code, refresh token, confidential client authentication, and S256 PKCE."
+    }
+  ]
+}

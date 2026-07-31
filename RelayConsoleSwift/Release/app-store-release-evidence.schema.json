@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "app-store-release-evidence.schema.json",
+  "title": "Relay Console release-bound App Store acceptance evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "releaseId",
+    "capturedAt",
+    "candidate",
+    "releaseBinding",
+    "repository",
+    "results",
+    "privacy"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "relay.app-store-release-evidence.v1"
+    },
+    "releaseId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capturedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCommit", "manifestSHA256"],
+      "properties": {
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "manifestSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "releaseBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceBranch",
+        "iOSDistributionSHA256",
+        "billingReleaseSHA256",
+        "publicSurfacesSHA256"
+      ],
+      "properties": {
+        "sourceBranch": { "type": "string", "pattern": "^release/.+" },
+        "iOSDistributionSHA256": { "$ref": "#/$defs/sha256" },
+        "billingReleaseSHA256": { "$ref": "#/$defs/sha256" },
+        "publicSurfacesSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metadataSHA256",
+        "privacyDisclosuresSHA256",
+        "privacyManifestSHA256",
+        "reviewPathSHA256"
+      ],
+      "properties": {
+        "metadataSHA256": { "$ref": "#/$defs/sha256" },
+        "privacyDisclosuresSHA256": { "$ref": "#/$defs/sha256" },
+        "privacyManifestSHA256": { "$ref": "#/$defs/sha256" },
+        "reviewPathSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "results": {
+      "$ref": "app-store-release-results.schema.json"
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "credentialsIncluded",
+        "secretValuesIncluded",
+        "reviewAccountIdentifiersIncluded",
+        "customerContentIncluded",
+        "paymentIdentifiersIncluded",
+        "rawScreenshotsIncluded",
+        "rawAppStoreConnectResponseIncluded"
+      ],
+      "properties": {
+        "credentialsIncluded": { "const": false },
+        "secretValuesIncluded": { "const": false },
+        "reviewAccountIdentifiersIncluded": { "const": false },
+        "customerContentIncluded": { "const": false },
+        "paymentIdentifiersIncluded": { "const": false },
+        "rawScreenshotsIncluded": { "const": false },
+        "rawAppStoreConnectResponseIncluded": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "commit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    }
+  }
+}

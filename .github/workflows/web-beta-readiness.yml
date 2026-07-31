@@ -1,0 +1,116 @@
+name: Web Beta Readiness
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    name: Web beta readiness
+    runs-on: ubuntu-latest
+    env:
+      CLAWCHAT_RAILWAY_ORIGIN: https://api.relayconsole.work
+      NEXT_PUBLIC_RAILWAY_WS_BASE_URL: wss://api.relayconsole.work
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+
+      - name: Enforce workflow security policy
+        run: node scripts/workflow-security-gate.mjs
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10.29.2
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20.20.0
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Enforce codebase remediation ratchets
+        run: |
+          pnpm run test:codebase-remediation
+          pnpm run test:typescript-unused-gate
+          pnpm run unused:check:web
+          pnpm run test:runtime-reachability-gate
+          pnpm run reachability:check web
+          pnpm run test:source-structure-gate
+          pnpm run source-structure:check
+          pnpm run goal:codebase-remediation
+          pnpm run test:marketplace-semantic-parity
+          pnpm run marketplace:semantic-parity
+
+      - name: Run web beta readiness checks
+        run: pnpm --dir web run verify:beta
+
+      - name: Run canonical Next build for tracing visibility
+        run: pnpm --dir web build
+
+      - name: Test dependency advisory backports
+        run: pnpm run test:dependency-advisory-gate && pnpm run test:dependency-backports
+
+      - name: Audit web production dependencies
+        run: pnpm --dir web run audit:prod
+
+      - name: Check web production licence inventory
+        run: pnpm run dependency:licenses:web
+
+      - name: Check published web dependency inventory
+        run: pnpm run dependency:licenses:inventory:web
+
+  landing:
+    name: Public website readiness
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+
+      - name: Enforce workflow security policy
+        run: node scripts/workflow-security-gate.mjs
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 10.29.2
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20.20.0
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            Relay Console landing page/pnpm-lock.yaml
+
+      - name: Install repository policy dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install landing dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: Relay Console landing page
+
+      - name: Verify public website
+        run: pnpm run typecheck && pnpm run lint && pnpm run test:policy-content && pnpm run build
+        working-directory: Relay Console landing page
+
+      - name: Audit public website production dependencies
+        run: pnpm run audit:prod
+        working-directory: Relay Console landing page
+
+      - name: Check public website production licence inventory
+        run: node scripts/dependency-license-gate.mjs landing
+
+      - name: Check published public website dependency inventory
+        run: node scripts/dependency-license-inventory.mjs --check-surface landing

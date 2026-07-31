@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "disco-ediscovery",
+  "name": "DISCO eDiscovery",
+  "category": "crm_support",
+  "description": "DISCO eDiscovery is cloud e-discovery software for litigation teams, corporate legal teams, and law firms to process, search, review, analyze, produce, and manage legal discovery data. Its public API is a selected-plan, read-only organization analytics API for DISCO Ediscovery data usage and review database size reporting.",
+  "agentUseSummary": "Connect one DISCO organization with a customer-owned DISCO API key and organization ID; agents can list available API datasets and read bounded usage-size summary counts only. Relay excludes matter names, review database identifiers, session identifiers, documents, users, review content, legal holds, exports, writes, arbitrary endpoints, and administration.",
+  "provider": {
+    "websiteUrl": "https://csdisco.com/offerings/ediscovery",
+    "docsUrl": "https://developer.csdisco.com/",
+    "developerConsoleUrl": "https://app.csdisco.com/",
+    "termsUrl": "https://csdisco.com/legal/terms",
+    "privacyUrl": "https://csdisco.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "organization_id",
+      "cidr_allowlisted_read_only_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "DISCO_EDISCOVERY_API_KEY",
+        "label": "DISCO API key",
+        "required": true,
+        "secret": true,
+        "helpText": "DISCO issues API keys to eligible selected-plan organizations. The organization manager must allowlist Relay's outbound CIDR source and provide the key through Relay's encrypted credential store."
+      },
+      {
+        "name": "DISCO_EDISCOVERY_ORGANIZATION_ID",
+        "label": "DISCO organization ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind one exact DISCO organization ID from the DISCO application; agents cannot choose a different organization at runtime."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ediscovery_usage_analytics_read",
+      "label": "Read e-discovery usage analytics",
+      "description": "List available read-only API datasets and return redacted usage and review database size counts for one bound organization.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "disco_ediscovery_datasets_list",
+        "label": "List DISCO eDiscovery API datasets",
+        "description": "Return only available dataset identifiers for the exact bound DISCO organization."
+      },
+      {
+        "id": "disco_ediscovery_usage_summary_get",
+        "label": "Get DISCO eDiscovery usage summary",
+        "description": "Return counts for data-usage change rows and review database size rows across a caller-supplied ISO-8601 time window."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "disco_ediscovery_identity_matter_or_reviewdb_data",
+        "label": "Access identity, matter, or review database data",
+        "description": "Organization identifiers, users, authorized users, matter names and IDs, review database names and IDs, review states, session keys, and row-level metadata remain blocked."
+      },
+      {
+        "id": "disco_ediscovery_document_review_ai_or_legalhold_data",
+        "label": "Access documents, review, AI, or legal hold data",
+        "description": "Documents, search results, review work, tags, annotations, productions, Cecilia AI prompts or outputs, legal holds, custodians, collections, exports, and legal content remain unavailable."
+      },
+      {
+        "id": "disco_ediscovery_write_export_or_administer",
+        "label": "Write, export, or administer DISCO",
+        "description": "Imports, uploads, promotions, culls, overlays, remediation, exports, productions, user management, API key management, CIDR management, billing changes, and administration are blocked."
+      },
+      {
+        "id": "disco_ediscovery_raw_api_pagination_or_bypass",
+        "label": "Use raw APIs, pagination, browser sessions, or bypass",
+        "description": "Arbitrary hosts, endpoints, headers, request bodies, browser sessions, cookies, passwords, provider consoles, raw payload return, pagination, polling, retries, bulk, and undocumented APIs are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "disco_ediscovery_safe",
+      "label": "Safe",
+      "description": "Bounded read-only analytics calls require approval; legal data, identities, documents, review work, exports, writes, raw APIs, and administration remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "disco_ediscovery_datasets_list",
+        "disco_ediscovery_usage_summary_get"
+      ],
+      "blockedActions": [
+        "disco_ediscovery_identity_matter_or_reviewdb_data",
+        "disco_ediscovery_document_review_ai_or_legalhold_data",
+        "disco_ediscovery_write_export_or_administer",
+        "disco_ediscovery_raw_api_pagination_or_bypass"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same bounded read-only analytics calls run directly; exact organization binding, CIDR/API-key ownership, redaction, response caps, audits, and provider limits remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "disco_ediscovery_datasets_list",
+        "disco_ediscovery_usage_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "disco_ediscovery_identity_matter_or_reviewdb_data",
+        "disco_ediscovery_document_review_ai_or_legalhold_data",
+        "disco_ediscovery_write_export_or_administer",
+        "disco_ediscovery_raw_api_pagination_or_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives fixed DISCO eDiscovery wrappers for dataset listing and redacted usage-size summary counts."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same fixed DISCO eDiscovery wrappers."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "The customer must have selected-plan DISCO API access, an organization manager must create or authorize the DISCO API key, and Relay's outbound CIDR must be allowlisted before live acceptance.",
+    "nextAction": "Customer organization manager confirms API eligibility, allowlists Relay's outbound CIDR source, supplies the DISCO API key and organization ID through Relay's encrypted credential flow, and completes a live read-only acceptance check."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.csdisco.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "DISCO documents a read-only Ediscovery API for organization business-intelligence analysis with API-key and organization-id headers, CIDR verification, 100 requests per minute per customer organization, and datasets/metrics endpoints."
+    },
+    {
+      "url": "https://developer.csdisco.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "The documented endpoints include /datasets, /datasets/data-usage-changes, /datasets/data-usage-changes/metadata, /metrics, /metrics/metric-reviewdb-size, and /metrics/metric-reviewdb-size/metadata; Relay uses only bounded read-only dataset and count summaries."
+    },
+    {
+      "url": "https://csdisco.com/offerings/ediscovery",
+      "checkedAt": "2026-07-18",
+      "supports": "DISCO describes its eDiscovery product as litigation-team software for EDRM workflows, search, review, collaboration, cloud architecture, and AI-assisted discovery."
+    },
+    {
+      "url": "https://www.disco.co/security",
+      "checkedAt": "2026-07-18",
+      "supports": "DISCO's security materials describe encryption in transit and at rest, AWS hosting, access controls, and security review practices, reinforcing the high-sensitivity legal-data treatment."
+    }
+  ],
+  "securityNotes": [
+    "Relay stores the DISCO API key and organization ID only in the encrypted credential boundary; catalog data contains no key, organization ID, matter identifier, review database identifier, session key, or legal data.",
+    "Relay allowlists only POST https://api.csdisco.com/datasets, /datasets/data-usage-changes, and /metrics/metric-reviewdb-size, rejects redirects, waits 30 seconds, caps responses at 1 MB, and sends no runtime-selected paths.",
+    "Outputs contain only dataset identifiers and aggregate row counts; matter names, review database names/IDs, session keys, operation rows, sizes, documents, users, legal content, and raw provider payloads are excluded.",
+    "Writes, imports, uploads, exports, productions, review work, legal holds, user/API-key/CIDR administration, arbitrary APIs, pagination, polling, retries, SDKs, browser sessions, bulk, and undocumented endpoints remain blocked.",
+    "Selected-plan API eligibility, organization-manager authorization, CIDR allowlisting, credential entry, and live acceptance remain customer/external setup steps."
+  ]
+}

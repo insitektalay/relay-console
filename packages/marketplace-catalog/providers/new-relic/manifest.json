@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "new-relic",
+  "name": "New Relic",
+  "category": "developer",
+  "description": "New Relic is an observability platform for monitoring applications, infrastructure, digital experiences, logs, errors, and business telemetry. Engineering and operations teams use it to understand entity health, investigate performance and failures, manage alerts, and analyze operational data.",
+  "agentUseSummary": "Connect a user-owned New Relic user API key to one exact US or EU account, then let agents search bounded entity health, inspect one entity, and read a fixed one-hour aggregate Transaction health summary. Relay V1 excludes raw events, logs, traces, messages, arbitrary GraphQL or NRQL, cross-account access, mutations, ingestion, key management, administration, pagination, and export.",
+  "provider": {
+    "websiteUrl": "https://newrelic.com/",
+    "docsUrl": "https://docs.newrelic.com/docs/apis/nerdgraph/get-started/introduction-new-relic-nerdgraph/",
+    "developerConsoleUrl": "https://one.newrelic.com/admin-portal/api-keys/home",
+    "termsUrl": "https://newrelic.com/termsandconditions/terms",
+    "privacyUrl": "https://newrelic.com/termsandconditions/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false
+  },
+  "connection": {
+    "types": ["user_owned_user_api_key", "exact_account_binding", "exact_us_or_eu_nerdgraph_origin", "authorizing_user_permission_inheritance"],
+    "credentialRequirements": [
+      { "id": "NEW_RELIC_USER_API_KEY", "label": "New Relic user API key", "secret": true, "required": true, "description": "A user key created by the connecting New Relic user and encrypted by Railway." },
+      { "id": "NEW_RELIC_ACCOUNT_ID", "label": "New Relic account ID", "secret": false, "required": true, "description": "One exact positive account ID accessible to that user." },
+      { "id": "NEW_RELIC_REGION", "label": "New Relic region", "secret": false, "required": true, "description": "The exact us or eu NerdGraph data region." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "entity_read", "label": "Read entities", "description": "Search and inspect bounded entity health summaries in one exact account.", "defaultSelected": true },
+    { "id": "account_health", "label": "Read account health", "description": "Read a fixed one-hour aggregate Transaction health summary.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "new_relic_search_entities", "label": "Search entities", "description": "Search at most twenty-five entity health summaries in the bound account." },
+      { "id": "new_relic_get_entity", "label": "Read entity", "description": "Read one exact entity's bounded status and tags." },
+      { "id": "new_relic_read_account_health", "label": "Read account health", "description": "Read a fixed one-hour aggregate Transaction health summary for the bound account." }
+    ],
+    "blocked": [
+      { "id": "new_relic_mutation", "label": "Change New Relic", "description": "Entity, workload, dashboard, alert, issue, configuration, and other mutations are outside V1." },
+      { "id": "new_relic_private_telemetry", "label": "Read private telemetry", "description": "Raw events, logs, traces, spans, errors, attributes, messages, and historical exports are outside V1." },
+      { "id": "new_relic_arbitrary_query", "label": "Run arbitrary queries", "description": "Arbitrary GraphQL, NRQL, accounts, cursors, pagination, introspection, and raw responses are outside V1." },
+      { "id": "new_relic_ingestion", "label": "Ingest telemetry", "description": "License keys, ingest endpoints, agents, and telemetry submission are outside V1." },
+      { "id": "new_relic_admin", "label": "Administer New Relic", "description": "Users, roles, authentication domains, keys, billing, security, and administration are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "new_relic_safe", "label": "Safe", "description": "All three bounded observability reads require matching approval.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["new_relic_search_entities", "new_relic_get_entity", "new_relic_read_account_health"], "blockedActions": ["new_relic_mutation", "new_relic_private_telemetry", "new_relic_arbitrary_query", "new_relic_ingestion", "new_relic_admin"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while account ownership, user-key authority, fixed queries, limits, redaction, audit, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["new_relic_search_entities", "new_relic_get_entity", "new_relic_read_account_health"], "approvalRequiredActions": [], "blockedActions": ["new_relic_mutation", "new_relic_private_telemetry", "new_relic_arbitrary_query", "new_relic_ingestion", "new_relic_admin"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three fixed New Relic NerdGraph wrappers and attaches the encrypted user key server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three fixed New Relic NerdGraph wrappers and attaches the encrypted user key server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "Live acceptance requires a customer-owned New Relic user API key, one exact accessible account ID, and its US or EU data region. No public third-party OAuth grant to NerdGraph is documented, so Relay does not invent or simulate OAuth.",
+    "nextAction": "An authorized customer enters a user API key, account ID, and region in Relay's encrypted connection form; then verify account binding, entity search, exact entity read, fixed aggregate health, permission denial, regional routing, key rotation, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/", "checkedAt": "2026-07-17", "supports": "NerdGraph uses user API keys tied to a New Relic user and that user's effective account permissions; Relay therefore uses customer-owned encrypted credentials." },
+    { "url": "https://docs.newrelic.com/docs/apis/nerdgraph/get-started/introduction-new-relic-nerdgraph/", "checkedAt": "2026-07-17", "supports": "NerdGraph is New Relic's GraphQL API with US and EU endpoints and API-key authorization." },
+    { "url": "https://docs.newrelic.com/docs/apis/nerdgraph/examples/nerdgraph-entities-api-tutorial/", "checkedAt": "2026-07-17", "supports": "Entity search and exact entity lookup expose GUID, name, type, reporting, alert severity, and tags; Relay fixes the query and caps returned entities." },
+    { "url": "https://docs.newrelic.com/docs/apis/nerdgraph/examples/nerdgraph-nrql-tutorial/", "checkedAt": "2026-07-17", "supports": "Account-bound NerdGraph NRQL returns aggregate results under provider query limits; Relay pins a single one-hour Transaction health query and does not accept arbitrary NRQL." }
+  ]
+}

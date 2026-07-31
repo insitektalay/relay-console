@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "churnzero",
+  "name": "ChurnZero",
+  "category": "developer",
+  "description": "ChurnZero is a customer-success platform for account and contact profiles, health scoring, journeys, playbooks, product usage, engagement, retention, expansion, and reporting.",
+  "agentUseSummary": "ChurnZero cannot currently be connected as a generic Relay agent provider. ChurnZero publicly describes a read-only OData REST API for exporting customer data and a separate HTTP ingestion API, but does not publish a stable public base URL, authentication contract, entity schema, field projection, or bounded metadata operation that Relay can safely implement without a reviewed customer subscription and export contract.",
+  "provider": {
+    "websiteUrl": "https://churnzero.com/",
+    "docsUrl": "https://churnzero.com/features/rest-api/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://churnzero.com/terms-of-use/",
+    "privacyUrl": "https://churnzero.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "licensed_read_only_odata_export",
+      "customer_data_export_surface",
+      "separate_http_ingestion_api",
+      "no_public_stable_agent_contract"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "churnzero_generic_connect",
+        "label": "Connect an unreviewed ChurnZero tenant",
+        "description": "Relay will not request an app key, API key, username, password, token, OData URL, or customer export credential without a published authentication and revocation contract."
+      },
+      {
+        "id": "churnzero_customer_data_export",
+        "label": "Export ChurnZero customer data",
+        "description": "Accounts, contacts, health scores and factors, journeys, segments, events, activities, product usage, revenue, renewals, assignments, custom fields, and history are blocked without a reviewed entity and field allowlist."
+      },
+      {
+        "id": "churnzero_ingestion_mutation",
+        "label": "Ingest or mutate ChurnZero data",
+        "description": "HTTP ingestion, account or contact upserts, event tracking, attribute changes, increments, deletions, imports, and other writes are blocked."
+      },
+      {
+        "id": "churnzero_unsupported_automation",
+        "label": "Use unsupported automation",
+        "description": "Relay will not infer OData entities, accept arbitrary origins or queries, automate the dashboard, reuse browser sessions, scrape exports, reverse-engineer private endpoints, or pass through raw customer data."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "churnzero_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled until ChurnZero publishes or supplies a reviewed, distributable, least-privilege API contract with stable authentication, schemas, and privacy projections.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "churnzero_generic_connect",
+        "churnzero_customer_data_export",
+        "churnzero_ingestion_mutation",
+        "churnzero_unsupported_automation"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No publicly documented schema-safe ChurnZero operation is available to mount as OpenClaw tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No publicly documented schema-safe ChurnZero operation is available to mount as Hermes tools."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "ChurnZero advertises a licensed read-only OData REST API for exporting broad customer data, while its separate HTTP API ingests accounts, contacts, attributes, and events. Public provider material does not define a stable REST base URL, credential and revocation model, entity metadata contract, field-level authorization, response limits, or a universal privacy-safe projection. Publishing a generic connector would require arbitrary OData access to customer records or invented private implementation details.",
+    "nextAction": "Do not request credentials or expose Connect. Reconsider ChurnZero only after obtaining a distributable provider contract that defines exact origins, least-privilege credentials and revocation, stable OData entities, a reviewed metadata or aggregate operation, strict entity/field/query allowlists, response bounds, audit requirements, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://churnzero.com/features/rest-api/",
+      "checkedAt": "2026-07-17",
+      "supports": "ChurnZero officially describes its REST API as an OData implementation for extracting ChurnZero customer data into internal systems, Excel, Tableau, and Power BI, but does not publish operation URLs, authentication, entity schemas, field projections, or bounded response contracts on the public page."
+    },
+    {
+      "url": "https://churnzero.com/blog/rest-api-gives-cs-leaders-more-room-to-lead/",
+      "checkedAt": "2026-07-17",
+      "supports": "ChurnZero states that its REST API is read-only and can extract accounts, health scores and factors, history, journeys, and other customer data, while data ingestion uses native integrations or the HTTP API. Relay will not expose this broad customer export surface without stable schema and privacy controls."
+    },
+    {
+      "url": "https://churnzero.com/blog/churnzero-segment-integration/",
+      "checkedAt": "2026-07-17",
+      "supports": "ChurnZero describes its App Key and HTTP API as mechanisms for sending account, contact, event, attribute, and product-usage data into ChurnZero. This is ingestion authority, not a bounded read-only agent surface."
+    },
+    {
+      "url": "https://churnzero.com/wp-content/uploads/2025/07/Subscription_Service_Agreement_2023.10.24.pdf",
+      "checkedAt": "2026-07-17",
+      "supports": "ChurnZero's terms make API availability subject to licensing capabilities, implementation resources, API documentation, and third-party licensing terms. Relay will not infer private or customer-only protocols outside a reviewed distributable contract."
+    }
+  ]
+}

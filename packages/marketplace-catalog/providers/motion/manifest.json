@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "motion",
+  "name": "Motion",
+  "category": "work_management",
+  "description": "Motion is an AI-powered work management platform that brings tasks, projects, calendars, documents, and team planning into one workspace. Its scheduling engine automatically places work around meetings, deadlines, priorities, and availability, then replans the day as circumstances change.",
+  "agentUseSummary": "Add your Motion API key once, then select which agents can read or manage the Motion workspaces available to that key under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.usemotion.com/",
+    "docsUrl": "https://docs.usemotion.com/api-reference/",
+    "developerConsoleUrl": "https://app.usemotion.com/settings",
+    "termsUrl": "https://www.usemotion.com/legal/terms-of-service",
+    "privacyUrl": "https://www.usemotion.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "MOTION_API_KEY",
+        "label": "Motion API key",
+        "required": true,
+        "secret": true,
+        "helpText": "In Motion, open Settings, create an API key, and copy it when Motion shows it."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "work_read",
+      "label": "Read Motion work",
+      "description": "Read authorized workspaces, users, schedules, statuses, projects, tasks, recurring tasks, comments, and custom fields.",
+      "defaultSelected": true
+    },
+    {
+      "id": "work_manage",
+      "label": "Manage Motion work",
+      "description": "Create and update projects, tasks, recurring tasks, comments, and custom fields, move or unassign tasks, and delete supported records.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "motion_api_read",
+        "label": "Read Motion",
+        "description": "Read one exact bounded endpoint from Motion's documented API."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "motion_api_manage",
+        "label": "Manage Motion",
+        "description": "Call one exact bounded documented mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "motion_secret_exposure",
+        "label": "Expose the API key",
+        "description": "The API key remains encrypted and never enters agent-visible requests, URLs, or results."
+      },
+      {
+        "id": "motion_unofficial_origin",
+        "label": "Use another origin",
+        "description": "Every request is pinned to Motion's official public HTTPS API origin."
+      },
+      {
+        "id": "motion_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits only endpoints currently listed in Motion's official API reference."
+      },
+      {
+        "id": "motion_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds paths, queries, bodies, redirects, results, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "motion_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly. Every creation, update, move, unassignment, custom-field change, or deletion requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["motion_api_read"],
+      "approvalRequiredActions": ["motion_api_manage"],
+      "blockedActions": ["motion_secret_exposure", "motion_unofficial_origin", "motion_unsupported_endpoint", "motion_unbounded_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected key-authorized Motion operation runs without Relay per-action approval. Connection ownership, provider authority, exact endpoints, request bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["motion_api_read", "motion_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["motion_secret_exposure", "motion_unofficial_origin", "motion_unsupported_endpoint", "motion_unbounded_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts separate exact-endpoint read and manage tools and injects the encrypted API key only at Motion's fixed public API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts separate exact-endpoint read and manage tools and injects the encrypted API key only at Motion's fixed public API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Motion's official API uses a customer-created X-API-Key and does not document an OAuth authorization flow that Relay can own.",
+    "nextAction": "Create a Motion API key in Settings, connect it in Relay Console, then verify representative reads, Safe mutation approval, Dangerous task management, redaction, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.usemotion.com/help/getting-started/what-is-motion",
+      "checkedAt": "2026-07-15",
+      "supports": "Motion describes its shared tasks, projects, events, documents, data, AI features, and automatic scheduling for individuals and teams."
+    },
+    {
+      "url": "https://docs.usemotion.com/cookbooks/getting-started/",
+      "checkedAt": "2026-07-15",
+      "supports": "Motion instructs customers to create an API key in Settings and send it in the X-API-Key header to api.usemotion.com."
+    },
+    {
+      "url": "https://docs.usemotion.com/api-reference/",
+      "checkedAt": "2026-07-15",
+      "supports": "Motion's current API reference lists workspaces, users, schedules, statuses, projects, tasks, recurring tasks, comments, and custom-field operations."
+    },
+    {
+      "url": "https://docs.usemotion.com/api-reference/tasks/list/",
+      "checkedAt": "2026-07-15",
+      "supports": "The task API documents X-API-Key authorization, cursor pagination, bounded filters, and the current task representation."
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "deputy",
+  "name": "Deputy",
+  "category": "work_management",
+  "description": "Deputy is workforce-management software for shift-based businesses. Teams use it for employee scheduling, time and attendance, shift communication, availability and leave, tasks, labor forecasting, compliance, timesheets, and payroll workflows.",
+  "agentUseSummary": "Connect Deputy once, then let agents use every selected active operation in Deputy's official Public API under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.deputy.com/",
+    "docsUrl": "https://developer.deputy.com/",
+    "developerConsoleUrl": "https://once.deputy.com/my/oauth_clients",
+    "termsUrl": "https://www.deputy.com/terms",
+    "privacyUrl": "https://www.deputy.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["longlife_refresh_token"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://once.deputy.com/my/oauth/login",
+    "tokenUrl": "https://once.deputy.com/my/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["oauth_connector"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/deputy/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "deputy_read",
+      "label": "Read Deputy",
+      "description": "Use every selected documented retrieval operation for workforce, scheduling, time, attendance, leave, tasks, communication, and account data."
+    },
+    {
+      "id": "deputy_write",
+      "label": "Manage Deputy",
+      "description": "Use every selected documented public mutation for workforce, scheduling, time, attendance, leave, tasks, communication, and administration."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "deputy_read",
+        "label": "Read Deputy",
+        "description": "Run one exact selected Deputy GET operation from the pinned official documentation."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "deputy_write",
+        "label": "Manage Deputy",
+        "description": "Run one exact selected Deputy mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "deputy_safe",
+      "label": "Safe",
+      "description": "Bounded Deputy reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["deputy_read"],
+      "approvalRequiredActions": ["deputy_write"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All selected and Deputy-authorized public operations run without Relay per-action approval; connection ownership, fixed install authority, exact routes, bounds, audits, redaction, provider limits, and account authority still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["deputy_read", "deputy_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected pinned Deputy operations through the authenticated server-side connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected pinned Deputy operations through the authenticated server-side connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Deputy OAuth client, exact production callback, Railway client credentials, and live customer-install authorization are not configured.",
+    "nextAction": "Create Relay Console's Deputy OAuth client at once.deputy.com, register https://api.relayconsole.work/api/v1/marketplace/oauth/deputy/callback, store DEPUTY_CLIENT_ID and DEPUTY_CLIENT_SECRET on Railway, then verify authorization, install binding, 24-hour access-token renewal with refresh-token rotation, identity, bounded reads, Safe approval, Dangerous mutations, local disconnect, provider revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.deputy.com/docs/using-oauth-20",
+      "checkedAt": "2026-07-15",
+      "supports": "Deputy documents self-service public OAuth client registration, authorization-code exchange, the longlife_refresh_token scope, 24-hour access tokens, rotating refresh tokens, and an install-specific endpoint returned by the token service."
+    },
+    {
+      "url": "https://developer.deputy.com/docs/public-api-facts-and-overview",
+      "checkedAt": "2026-07-15",
+      "supports": "Deputy describes its public API as the same read/write API used by its own applications and states that public apps use OAuth 2.0, while the Advanced Employee API requires a separate vendor security check."
+    },
+    {
+      "url": "https://developer.deputy.com/docs/getting-started-with-the-deputy-api",
+      "checkedAt": "2026-07-15",
+      "supports": "Deputy documents customer-specific install origins, JSON REST APIs, a 500-record response maximum, v1 and v2 routes, trial sandboxes, and ordinary API access for integrations."
+    },
+    {
+      "url": "https://developer.deputy.com/llms.txt",
+      "checkedAt": "2026-07-15",
+      "supports": "Deputy's official machine-readable index enumerates the API reference pages whose per-operation OpenAPI definitions are pinned by Relay; privileged provisioning and HR-onboarding surfaces are excluded."
+    }
+  ]
+}

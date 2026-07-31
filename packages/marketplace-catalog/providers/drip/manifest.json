@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "drip",
+  "name": "Drip",
+  "category": "marketing_analytics",
+  "description": "Drip is an ecommerce marketing automation platform for subscriber profiles, segmentation, email campaigns, workflows, forms, events, and shopper activity. Merchants use it to coordinate personalized customer journeys and lifecycle marketing.",
+  "agentUseSummary": "Connect one Drip account through Relay's public-integration OAuth app with the provider's `public` scope and non-expiring access token. Relay exposes only one selected subscriber's ID and timestamps plus bounded metadata for one selected Email Series Campaign; subscriber identity and behavior, other resources, messaging, automation, exports, and mutations are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.drip.com/",
+    "docsUrl": "https://developer.drip.com/",
+    "developerConsoleUrl": "https://www.getdrip.com/user/edit",
+    "termsUrl": "https://www.drip.com/terms",
+    "privacyUrl": "https://www.drip.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["public"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.getdrip.com/oauth/authorize",
+    "tokenUrl": "https://www.getdrip.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_oauth_app",
+      "bound_account",
+      "selected_non_email_subscriber_id",
+      "selected_email_series_campaign"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "DRIP_CLIENT_ID",
+        "label": "Relay Drip OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held Relay public-integration client ID configured with the exact callback."
+      },
+      {
+        "name": "DRIP_CLIENT_SECRET",
+        "label": "Relay Drip OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-held Drip client secret; never sent to clients or agents."
+      },
+      {
+        "name": "DRIP_ACCOUNT_ID",
+        "label": "Selected Drip account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one account used in both fixed API paths."
+      },
+      {
+        "name": "DRIP_SUBSCRIBER_ID",
+        "label": "Selected non-email subscriber ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The opaque subscriber ID whose ID and timestamps Relay may read; email selectors are rejected."
+      },
+      {
+        "name": "DRIP_CAMPAIGN_ID",
+        "label": "Selected Email Series Campaign ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one Email Series Campaign whose bounded summary Relay may read."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/drip/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "drip_subscriber_summary_get",
+      "label": "Read selected subscriber summary",
+      "description": "Read only the ID and timestamps for one selected subscriber without identity, contact, consent, status, activity, score, value, tags, IP, purchase, or custom fields.",
+      "defaultSelected": true
+    },
+    {
+      "id": "drip_campaign_summary_get",
+      "label": "Read selected Email Series Campaign summary",
+      "description": "Read bounded organizational metadata for one selected Email Series Campaign.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "drip_subscriber_summary_get",
+        "label": "Read selected subscriber summary",
+        "description": "Read the selected subscriber's ID and timestamps while discarding all personal and marketing fields."
+      },
+      {
+        "id": "drip_campaign_summary_get",
+        "label": "Read selected Email Series Campaign summary",
+        "description": "Read the selected Email Series Campaign's ID, name, status, and creation time while discarding sender, notification, subscriber, form, link, and message details."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "drip_private_data",
+        "label": "Expose private marketing data",
+        "description": "Subscriber identity, contact, consent, status, activity, score, value, tags, custom, purchase, and IP fields plus campaign sender, notification, subscriber, form, and link data are excluded."
+      },
+      {
+        "id": "drip_mutation",
+        "label": "Mutate Drip state",
+        "description": "Subscriber changes, subscriptions, tags, events, campaigns, workflows, forms, webhooks, shopper activity, sends, and every other mutation are blocked."
+      },
+      {
+        "id": "drip_broad_access",
+        "label": "Use broad Drip access",
+        "description": "Other accounts, subscribers, campaigns, users, lists, searches, pages, workflows, conversions, events, arbitrary paths, redirects, downloads, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "drip_read_only",
+      "label": "Read Only",
+      "description": "Read one selected subscriber and Email Series Campaign through an account-bound Relay OAuth grant; private data, broader access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "drip_subscriber_summary_get",
+        "drip_campaign_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "drip_private_data",
+        "drip_mutation",
+        "drip_broad_access"
+      ]
+    },
+    {
+      "id": "drip_no_access",
+      "label": "No Access",
+      "description": "Expose no Drip actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "drip_subscriber_summary_get",
+        "drip_campaign_summary_get",
+        "drip_private_data",
+        "drip_mutation",
+        "drip_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the non-expiring Relay-owned Drip OAuth token server-side and mounts exactly two account-bound projected reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the non-expiring Relay-owned Drip OAuth token server-side and mounts exactly two account-bound projected reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A Drip public-integration OAuth app, exact Railway callback, provider-issued client credentials, authorized staging account, opaque subscriber ID, Email Series Campaign ID, and live grant are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "The provider-console lane must register and activate Relay's public Drip OAuth app with the exact Railway callback, capture the client credentials in Railway, authorize a staging account, bind an opaque subscriber ID and Email Series Campaign ID, then validate account isolation, both redacted reads, email-selector denial, rate and authorization errors, token revocation by uninstall, replacement, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.drip.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Drip documents an HTTPS JSON API at api.getdrip.com, private API-token authentication, public-integration OAuth bearer authentication, app registration with an exact callback, the public scope, and non-expiring OAuth tokens."
+    },
+    {
+      "url": "https://developer.drip.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Drip documents GET /v2/:account_id/subscribers/:id_or_email_or_visitor_uuid and the sensitive subscriber fields excluded by Relay; Relay permits only an opaque ID selector."
+    },
+    {
+      "url": "https://developer.drip.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Drip documents GET /v2/:account_id/campaigns/:campaign_id, its single-campaign envelope, and the Email Series Campaign metadata used for Relay's bounded projection."
+    },
+    {
+      "url": "https://developer.drip.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Drip documents 3,600 individual requests per hour, 429 rate responses, and safe 401, 403, 404, and 422 error semantics."
+    }
+  ]
+}

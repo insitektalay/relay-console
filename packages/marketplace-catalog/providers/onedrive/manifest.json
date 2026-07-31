@@ -1,0 +1,183 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "onedrive",
+  "name": "OneDrive",
+  "category": "knowledge_documents",
+  "description": "OneDrive is Microsoft's cloud file storage and synchronization product for personal and work accounts. People use it to organize files and folders, keep content available across devices, and collaborate through Microsoft 365.",
+  "agentUseSummary": "Connect OneDrive through Relay-owned Microsoft OAuth, then let agents inspect the signed-in user's own-drive identity, quota, and bounded file or folder metadata through four fixed Graph wrappers. Relay excludes file content, shared and remote items, search, permissions, versions, writes, other drives and sites, application permissions, exports, pagination, and raw Graph access.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/microsoft-365/onedrive/online-cloud-storage",
+    "docsUrl": "https://learn.microsoft.com/graph/onedrive-concept-overview",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "profile", "offline_access", "Files.Read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "microsoft_delegated_user",
+      "signed_in_own_drive_binding",
+      "encrypted_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/onedrive/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "drive_read",
+      "label": "Read connected drive",
+      "description": "Read bounded metadata and quota state for the signed-in user's own OneDrive.",
+      "defaultSelected": true
+    },
+    {
+      "id": "item_read",
+      "label": "Read file and folder metadata",
+      "description": "List bounded root or explicit-folder items and inspect one exact item without file content.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "onedrive_drive_get",
+        "label": "Read connected drive",
+        "description": "Read bounded identity, type, web address, and quota metadata for the signed-in user's own OneDrive."
+      },
+      {
+        "id": "onedrive_root_children_list",
+        "label": "List root items",
+        "description": "List at most twenty-five bounded file and folder metadata records from the connected drive root."
+      },
+      {
+        "id": "onedrive_folder_children_list",
+        "label": "List folder items",
+        "description": "List at most twenty-five bounded children of one explicit folder from a prior result."
+      },
+      {
+        "id": "onedrive_item_get",
+        "label": "Read item metadata",
+        "description": "Read bounded metadata for one explicit file or folder without downloading its content."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "onedrive_content_download",
+        "label": "Read file content",
+        "description": "File bytes, download URLs, previews, thumbnails, workbook/document content, and content-derived metadata are outside V1."
+      },
+      {
+        "id": "onedrive_shared_search_permissions",
+        "label": "Access broad storage surfaces",
+        "description": "Shared and remote items, search, recent items, share tokens, versions, permissions, subscriptions, delta, and exports are outside V1."
+      },
+      {
+        "id": "onedrive_mutation",
+        "label": "Change files or folders",
+        "description": "Upload, create, rename, edit, move, copy, delete, restore, share, comment, lock, retention, and sensitivity-label changes are outside V1."
+      },
+      {
+        "id": "onedrive_other_drives_admin_raw",
+        "label": "Access other Microsoft storage",
+        "description": "Other users, sites, groups, drives, application permissions, selected/admin permissions, automatic pagination, and raw Graph access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "onedrive_safe",
+      "label": "Safe",
+      "description": "Four bounded metadata-only reads run automatically; every content, broad-access, write, admin, export, pagination, and raw surface remains blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "onedrive_drive_get",
+        "onedrive_root_children_list",
+        "onedrive_folder_children_list",
+        "onedrive_item_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "onedrive_content_download",
+        "onedrive_shared_search_permissions",
+        "onedrive_mutation",
+        "onedrive_other_drives_admin_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four selected reads run without Relay per-action approval; exact signed-in-drive binding, Microsoft-granted authority, limits, audit, redaction, and provider controls still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "onedrive_drive_get",
+        "onedrive_root_children_list",
+        "onedrive_folder_children_list",
+        "onedrive_item_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "onedrive_content_download",
+        "onedrive_shared_search_permissions",
+        "onedrive_mutation",
+        "onedrive_other_drives_admin_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded OneDrive metadata wrappers and attaches encrypted Microsoft tokens only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded OneDrive metadata wrappers and attaches encrypted Microsoft tokens only on Railway."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_setup_pending",
+    "blocker": "Relay still needs its Entra application registration, publisher verification as applicable, exact Railway callback, staging credentials, and authorized Microsoft personal and work-account acceptance. Those provider-console and live-consent actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the Relay-owned Entra application and exact callback, store its credentials on Railway staging, then verify personal and work-account consent, exact scope, PKCE/state, refresh rotation, own-drive binding, all four reads, throttling, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/graph/auth-v2-user",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph delegated authorization uses the v2 authorization-code flow, supports PKCE, and uses offline_access when a refresh token is required."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/permissions-reference#filesread",
+      "checkedAt": "2026-07-17",
+      "supports": "Delegated Files.Read permits the signed-in user to read their files, supports personal and work or school accounts, and does not require administrator consent."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/drive-get",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /me/drive returns the signed-in user's default drive and supports selected drive metadata."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/driveitem-list-children",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides fixed root and item children endpoints with $select and $top query controls."
+    },
+    {
+      "url": "https://learn.microsoft.com/graph/api/driveitem-get",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Graph provides exact driveItem metadata reads; Relay deliberately omits content expansion and download surfaces."
+    }
+  ]
+}

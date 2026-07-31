@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "gravity-forms",
+  "name": "Gravity Forms",
+  "category": "work_management",
+  "description": "Gravity Forms is a WordPress form and workflow plugin for registrations, applications, surveys, payments, file collection, and other structured submissions. Site owners use its visual builder, conditional logic, notifications, add-ons, entry management, and REST API to collect and route business data.",
+  "agentUseSummary": "Enable REST API v2 on one public HTTPS WordPress site, create a dedicated read-only Gravity Forms key, add the site URL and key pair once, then let selected agents read form summaries, sanitized field schemas, and bounded explicitly selected entry fields. Relay does not mount arbitrary WordPress access, writes, submissions, files, notifications, feeds, webhooks, or unbounded entry export.",
+  "provider": {
+    "websiteUrl": "https://www.gravityforms.com/",
+    "docsUrl": "https://docs.gravityforms.com/rest-api-v2/",
+    "developerConsoleUrl": "https://docs.gravityforms.com/gravity-forms-rest-api-settings/",
+    "termsUrl": "https://www.gravityforms.com/terms-conditions/",
+    "privacyUrl": "https://www.gravityforms.com/privacy/"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_read_only_api_key_pair",
+      "exact_public_https_wordpress_site",
+      "gravity_forms_user_capability_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "GRAVITY_FORMS_SITE_URL",
+        "label": "Gravity Forms site URL",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter the public HTTPS WordPress site URL. Relay sends requests only to that site's /wp-json/gf/v2 route and rejects private or local destinations."
+      },
+      {
+        "key": "GRAVITY_FORMS_CONSUMER_KEY",
+        "label": "Read-only consumer key",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a Gravity Forms REST API v2 key with Read permission for a dedicated least-privilege WordPress user."
+      },
+      {
+        "key": "GRAVITY_FORMS_CONSUMER_SECRET",
+        "label": "Consumer secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Copy the matching secret when the read-only key is created; Gravity Forms displays it only once."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "gravity_forms_read",
+      "label": "Read forms and selected entry fields",
+      "description": "Use four pinned REST API v2 reads for form summaries, sanitized schemas, and at most 25 entries with at most 20 explicitly selected fields.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "gravity_forms_read",
+        "label": "Read Gravity Forms",
+        "description": "Read form summaries, sanitized form schemas, or bounded selected entry fields from the configured site."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "gravity_forms_manage",
+        "label": "Change Gravity Forms",
+        "description": "Form, entry, submission, notification, feed, webhook, and all other mutations are outside Relay's V1 contract."
+      },
+      {
+        "id": "gravity_forms_unbounded_export",
+        "label": "Export entries",
+        "description": "Relay requires one form, at most 25 entries, and at most 20 explicitly selected fields per entry request."
+      },
+      {
+        "id": "gravity_forms_other_wordpress_api",
+        "label": "Use another WordPress route",
+        "description": "Requests are pinned to the configured site's Gravity Forms REST API v2 route only."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "gravity_forms_safe",
+      "label": "Safe",
+      "description": "Four bounded reads run directly. Every Gravity Forms or WordPress mutation remains blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["gravity_forms_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "gravity_forms_manage",
+        "gravity_forms_unbounded_export",
+        "gravity_forms_other_wordpress_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts four pinned read-only Gravity Forms tools through the encrypted site-bound key pair."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts four pinned read-only Gravity Forms tools through the encrypted site-bound key pair."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned public Gravity Forms site, dedicated read-only REST API v2 key pair, representative forms, or safe test entries are available in this workspace.",
+    "nextAction": "A site administrator enables REST API v2, creates a dedicated Read key for a least-privilege WordPress user, saves the public site URL and key pair through Relay Console, then verifies site binding, capabilities, the four bounded reads, selected-field minimization, agent assignment, key replacement, disconnect, provider-side revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.gravityforms.com/rest-api-v2-authentication/",
+      "checkedAt": "2026-07-17",
+      "supports": "Gravity Forms documents customer-created REST API v2 credentials, read/write key permissions, user-capability enforcement, Basic authentication over HTTPS, and OAuth 1.0a as its recommended alternative."
+    },
+    {
+      "url": "https://docs.gravityforms.com/gravity-forms-rest-api-settings/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official settings guide documents enabling the REST API, adding credentials with selected permissions, one-time key display, and revoking keys."
+    },
+    {
+      "url": "https://docs.gravityforms.com/getting-forms-with-the-rest-api-v2/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official forms guide documents GET /forms and GET /forms/{id}, including the gravityforms_edit_forms user capability requirement."
+    },
+    {
+      "url": "https://docs.gravityforms.com/searching-and-getting-entries-with-the-rest-api-v2/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official entries guide documents form-scoped and single-entry reads, explicit field selection, labels, paging, and the gravityforms_view_entries capability requirement."
+    }
+  ]
+}

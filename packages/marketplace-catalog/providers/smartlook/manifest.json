@@ -1,0 +1,163 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "smartlook",
+  "name": "Smartlook",
+  "category": "developer",
+  "description": "Smartlook is a digital experience analytics platform for session recordings, event analytics, funnels, and product behavior insights.",
+  "agentUseSummary": "Connect one exact Smartlook project with a customer-owned REST API token and its EU or US data region, then let agents list only bounded event-definition identity and classification metadata under approval. Relay excludes visitors, identities, sessions, recordings, URLs, properties, occurrences, funnels, writes, administration, pagination, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.smartlook.com/",
+    "docsUrl": "https://integrations.smartlook.com/docs/api-overview",
+    "developerConsoleUrl": "https://app.smartlook.com/",
+    "termsUrl": "https://www.smartlook.com/terms-of-service/",
+    "privacyUrl": "https://www.smartlook.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "customer_owned_project_api_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_project_api_token",
+      "exact_project_scope",
+      "eu_or_us_region_binding",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SMARTLOOK_API_TOKEN",
+        "label": "Smartlook project API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Have the project owner create a dedicated REST API token and store it only through Relay's encrypted connection flow."
+      },
+      {
+        "name": "SMARTLOOK_REGION",
+        "label": "Smartlook data region",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter eu or us to match the project's configured data-storage region."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "event_definition_list",
+      "label": "List event definitions",
+      "description": "List bounded event-definition IDs, names, types, and category IDs without visitor, session, recording, or occurrence data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "smartlook_event_definitions_list",
+        "label": "List event definitions",
+        "description": "List at most 25 event-definition IDs, names, types, and category IDs from one exact Smartlook project."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "smartlook_visitor_session_data",
+        "label": "Access visitors or sessions",
+        "description": "Visitors, identities, sessions, recordings, public links, playback, URLs, devices, locations, and user/session properties are blocked."
+      },
+      {
+        "id": "smartlook_event_private_data",
+        "label": "Access private event data",
+        "description": "Event occurrences, timestamps, selectors, page URLs, text, properties, visitor/session links, and funnel drop-off identities are blocked."
+      },
+      {
+        "id": "smartlook_mutation_admin",
+        "label": "Mutate or administer Smartlook",
+        "description": "Deleting events or visitors, uploading mappings, creating/updating/deleting webhooks, token management, project settings, members, and administration are blocked."
+      },
+      {
+        "id": "smartlook_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, arbitrary filters, category filters, cursors, links, pagination, polling, retries, batches, exports, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "smartlook_event_definitions_safe",
+      "label": "Safe",
+      "description": "The bounded event-definition read requires approval; visitors, sessions, recordings, private event data, writes, cursors, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["smartlook_event_definitions_list"],
+      "blockedActions": [
+        "smartlook_visitor_session_data",
+        "smartlook_event_private_data",
+        "smartlook_mutation_admin",
+        "smartlook_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded event-definition read runs without Relay per-action approval; project-token scope, EU/US origin binding, strict projection, result bounds, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["smartlook_event_definitions_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "smartlook_visitor_session_data",
+        "smartlook_event_private_data",
+        "smartlook_mutation_admin",
+        "smartlook_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway confines one customer-owned project token to a fixed regional event-definition read with approval and strict projection."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway confines one customer-owned project token to a fixed regional event-definition read with approval and strict projection."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A Smartlook project owner must select one exact project, create a dedicated REST API token, identify the project's EU or US data region, and store both through Relay. No account, token creation, credential capture, live REST request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized Smartlook project owner creates a dedicated REST API token for one project and stores it with the exact eu or us region through Relay's encrypted flow. They then separately verify the one-item health read, one approved bounded event-definition list, rate limits, token inactivity/rotation/revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://integrations.smartlook.com/docs/api-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Smartlook documents Bearer REST API tokens scoped to one project, separate tokens per project, EU/US regional API origins, token inactivity expiry, rate limits, event resources, and cursor pagination. Relay requires one project token and region, makes one request, and never stores or follows a cursor."
+    },
+    {
+      "url": "https://integrations.smartlook.com/reference/geteventslist",
+      "checkedAt": "2026-07-17",
+      "supports": "Smartlook documents GET /api/v1/events with before, after, limit, and categoryId queries. Relay fixes the path, permits only a limit from 1 through 25, and projects event-definition identity/classification fields."
+    },
+    {
+      "url": "https://help.smartlook.com/docs/rest-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Smartlook states that project owners manage REST API tokens. Relay therefore requires customer-owned setup and does not create, capture, or administer tokens."
+    },
+    {
+      "url": "https://help.smartlook.com/docs/privacy-first",
+      "checkedAt": "2026-07-17",
+      "supports": "Smartlook describes privacy-first capture defaults while allowing customers to configure collection. Relay treats project analytics as sensitive and blocks visitors, sessions, recordings, URLs, selectors, properties, occurrences, and raw responses."
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "bonsai",
+  "name": "Bonsai",
+  "category": "work_management",
+  "description": "Bonsai is a business-management platform for client relationships, projects, tasks, deals, time tracking, proposals, contracts, invoices, expenses, scheduling, and company operations. Freelancers, agencies, and professional-services teams use it to manage work and billing from one workspace.",
+  "agentUseSummary": "Connect Bonsai through its official hosted MCP OAuth flow, then choose which agents can use the complete current 25-tool surface under Safe or Dangerous policy. Safe mode runs 12 task, project, team, CRM, pipeline, tag, and invoice reads directly and requires approval for all 13 create, update, delete, time-entry, and invoice mutations.",
+  "provider": {
+    "websiteUrl": "https://www.hellobonsai.com/",
+    "docsUrl": "https://docs.hellobonsai.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.hellobonsai.com/legal/terms",
+    "privacyUrl": "https://www.hellobonsai.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.hellobonsai.com/oauth/authorize",
+    "tokenUrl": "https://app.hellobonsai.com/oauth/token",
+    "revocationUrl": "https://app.hellobonsai.com/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "hosted_remote_mcp",
+      "oauth2_1_authorization_code_pkce",
+      "dynamic_client_registration",
+      "public_client",
+      "role_permissions",
+      "live_tool_schema_discovery"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/bonsai/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "bonsai_read",
+      "label": "Read work and CRM data",
+      "description": "Read authorized tasks, subtasks, projects, team members, deals, pipeline stages, contacts, companies, tags, and invoices through all 12 documented read tools.",
+      "defaultSelected": true
+    },
+    {
+      "id": "bonsai_manage",
+      "label": "Manage work, CRM, time, and invoices",
+      "description": "Use all 13 documented mutations for tasks, projects, deals, contacts, companies, time entries, invoices, and invoice items.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "bonsai_mcp_read",
+        "label": "Read Bonsai",
+        "description": "Use one exact documented Bonsai MCP read tool after live schema and role validation."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "bonsai_mcp_write",
+        "label": "Manage Bonsai",
+        "description": "Create, update, or delete authorized tasks, projects, deals, contacts, companies, time entries, invoices, and invoice items; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "bonsai_secret_exposure",
+        "label": "Expose OAuth material",
+        "description": "OAuth codes, tokens, verifiers, authorization headers, cookies, and credentials never enter tool arguments or agent-visible results."
+      },
+      {
+        "id": "bonsai_raw_mcp",
+        "label": "Use raw MCP",
+        "description": "Relay exposes only the 25 documented Bonsai tools after live schema discovery, never arbitrary MCP methods or provider-added tools."
+      },
+      {
+        "id": "bonsai_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds arguments, responses, tool discovery, cursors, nesting, redirects, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "bonsai_safe",
+      "label": "Safe",
+      "description": "All 12 documented reads run directly; every create, update, delete, time-entry, or invoice mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["bonsai_mcp_read"],
+      "approvalRequiredActions": ["bonsai_mcp_write"],
+      "blockedActions": [
+        "bonsai_secret_exposure",
+        "bonsai_raw_mcp",
+        "bonsai_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 25 selected and OAuth-authorized Bonsai MCP tools run without Relay per-action approval; connection ownership, role permissions, exact tool allowlists, live schemas, bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["bonsai_mcp_read", "bonsai_mcp_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "bonsai_secret_exposure",
+        "bonsai_raw_mcp",
+        "bonsai_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected typed Bonsai wrappers through the authenticated hosted MCP token proxy."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected typed Bonsai wrappers through the authenticated hosted MCP token proxy."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Bonsai's hosted MCP is live in beta and supports public OAuth 2.1 clients through dynamic client registration, but Relay's client has not been registered with the production callback and its resulting client ID has not been configured in Railway. No representative role, plan, consent, or live 25-tool schema has been accepted.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should dynamically register Relay as a public PKCE client with https://api.relayconsole.work/api/v1/marketplace/oauth/bonsai/callback, configure BONSAI_MCP_CLIENT_ID in Railway, then connect a representative non-owner role and verify state and PKCE, 15-minute refresh, role-based tool omission and denial, all 25 live schemas, bounded reads, Safe mutation denial, approved reversible task mutation, invoice and time-entry approval behavior, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.hellobonsai.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Bonsai documents its beta hosted MCP as the only current developer surface, exposes exactly 25 named tools, uses OAuth 2.1 authorization code with S256 PKCE and dynamic client registration, issues 15-minute access tokens with refresh, rechecks role permissions per call, supports revocation, and limits traffic to 10,000 requests per 10 minutes per IP."
+    },
+    {
+      "url": "https://mcp.hellobonsai.com/.well-known/oauth-protected-resource",
+      "checkedAt": "2026-07-17",
+      "supports": "Bonsai's protected-resource metadata binds the hosted MCP resource to https://mcp.hellobonsai.com and identifies https://app.hellobonsai.com as its authorization server with bearer-header authentication."
+    },
+    {
+      "url": "https://app.hellobonsai.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-17",
+      "supports": "Bonsai's authorization-server metadata publishes authorization, token, revocation, introspection, and registration endpoints; authorization-code and refresh-token grants; S256; public token-endpoint authentication; and client metadata documents."
+    },
+    {
+      "url": "https://help.hellobonsai.com/en/articles/1894805-all-about-user-permissions-in-bonsai",
+      "checkedAt": "2026-07-17",
+      "supports": "Bonsai documents owner, partner, project-manager, collaborator, and custom role permissions across companies, projects, tasks, time, invoices, financial data, and administration."
+    }
+  ]
+}

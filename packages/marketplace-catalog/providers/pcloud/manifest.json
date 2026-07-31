@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "pcloud",
+  "name": "pCloud",
+  "category": "knowledge_documents",
+  "description": "pCloud is a cloud storage platform for keeping, syncing, and sharing files across devices. People and teams use it to organize folders, back up content, share files and links, stream media, restore revisions and deleted items, and collaborate on stored documents.",
+  "agentUseSummary": "Connect pCloud once, then let agents use the selected file, folder, sharing, archive, revision, trash, and collection operations under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.pcloud.com/",
+    "docsUrl": "https://docs.pcloud.com/",
+    "developerConsoleUrl": "https://docs.pcloud.com/my_apps/",
+    "termsUrl": "https://www.pcloud.com/terms_and_conditions.html",
+    "privacyUrl": "https://www.pcloud.com/privacy_policy.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["manageshares"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://my.pcloud.com/oauth2/authorize",
+    "tokenUrl": "https://{api-or-eapi}.pcloud.com/oauth2_token",
+    "revocationUrl": "https://{api-or-eapi}.pcloud.com/logout"
+  },
+  "connection": {
+    "types": ["oauth_connector"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/pcloud/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "pcloud_read",
+      "label": "Read pCloud",
+      "description": "Use 47 selected documented retrieval operations for files, folders, shares, public links, media, archives, revisions, trash, and collections."
+    },
+    {
+      "id": "pcloud_write",
+      "label": "Manage pCloud content",
+      "description": "Use 47 selected documented operations to upload, create, copy, move, rename, share, restore, or delete content and collections."
+    }
+  ],
+  "actions": {
+    "allowed": [{
+      "id": "pcloud_read",
+      "label": "Read pCloud",
+      "description": "Run one exact bounded pCloud retrieval operation from the pinned official documentation."
+    }],
+    "approvalRequired": [{
+      "id": "pcloud_write",
+      "label": "Manage pCloud content",
+      "description": "Run one exact content, sharing, destructive, or collection mutation; Safe mode requires approval."
+    }],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "pcloud_safe",
+      "label": "Safe",
+      "description": "All 47 bounded pCloud reads run directly; every upload, content, sharing, destructive, trash, or collection mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["pcloud_read"],
+      "approvalRequiredActions": ["pcloud_write"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 94 selected pCloud operations run without Relay per-action approval; connection ownership, the user-approved pCloud authority, fixed regional hosts, bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["pcloud_read", "pcloud_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected pinned pCloud operations through the authenticated server-side connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected pinned pCloud operations through the authenticated server-side connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's pCloud OAuth app, exact production callback, and live account authorization are not configured on Railway.",
+    "nextAction": "Create Relay's pCloud app, configure https://api.relayconsole.work/api/v1/marketplace/oauth/pcloud/callback, store PCLOUD_CLIENT_ID and PCLOUD_CLIENT_SECRET on Railway, then verify state, region binding, identity, reads, Safe approval, Dangerous mutations, logout revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.pcloud.com/methods/oauth_2.0/authorize.html",
+      "checkedAt": "2026-07-14",
+      "supports": "pCloud documents server-side authorization-code OAuth, the manageshares permission, state, and callback-provided US or Europe API host binding."
+    },
+    {
+      "url": "https://docs.pcloud.com/methods/oauth_2.0/oauth2_token.html",
+      "checkedAt": "2026-07-14",
+      "supports": "pCloud documents exchanging the authorization code and Relay app credentials for a bearer token and user ID at the user's regional API authority."
+    },
+    {
+      "url": "https://docs.pcloud.com/methods/",
+      "checkedAt": "2026-07-14",
+      "supports": "pCloud's official method corpus yields 94 selected non-account operations: 47 reads and 47 content, sharing, archive, trash, and collection mutations."
+    },
+    {
+      "url": "https://docs.pcloud.com/protocols/http_json_protocol/",
+      "checkedAt": "2026-07-14",
+      "supports": "pCloud documents fixed method-name paths, GET or POST parameters, JSON result envelopes, and multipart file uploads."
+    },
+    {
+      "url": "https://docs.pcloud.com/methods/auth/logout.html",
+      "checkedAt": "2026-07-14",
+      "supports": "pCloud documents logout as invalidating the connected authentication token."
+    }
+  ]
+}

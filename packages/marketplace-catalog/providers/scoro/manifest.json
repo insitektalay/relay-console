@@ -1,0 +1,207 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "scoro",
+  "name": "Scoro",
+  "category": "work_management",
+  "description": "Scoro is professional services automation software for managing projects, resources, sales, time, finances, and business performance in one cloud platform. Agencies, consultancies, and other service businesses use it to plan delivery, coordinate teams, track work, and connect operational activity with financial results.",
+  "agentUseSummary": "Connect one Scoro tenant and exact business entity with a customer-owned API key after Relay's public integration AppId is approved, then let agents use three approval-gated bounded reads for entity and Project summaries. Relay pins the exact tenant.scoro.com origin, AppId header, business entity, fixed JSON POST endpoints, page one, twenty-five results, and excludes customers, contacts, users, managers, communication, addresses, descriptions, permissions, relationships, financial documents, writes, arbitrary filters or pages, downloads, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.scoro.com/",
+    "docsUrl": "https://api.scoro.com/api/v2",
+    "developerConsoleUrl": "https://developers.scoro.com/",
+    "termsUrl": "https://www.scoro.com/developer-terms/",
+    "privacyUrl": "https://www.scoro.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_company_api_key",
+      "relay_owned_public_integration_app_id",
+      "exact_tenant_subdomain_binding",
+      "exact_business_entity_binding",
+      "api_key_authority_inheritance",
+      "public_marketplace_review"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "SCORO_SITE",
+        "label": "Scoro tenant subdomain",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter only the tenant label before .scoro.com, such as examplecompany. Relay validates and pins the exact HTTPS origin."
+      },
+      {
+        "key": "SCORO_COMPANY_ACCOUNT_ID",
+        "label": "Scoro business entity ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Use the exact company_account_id shown with the API key under Settings > External Connections > API."
+      },
+      {
+        "key": "SCORO_API_KEY",
+        "label": "Scoro API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated least-privilege company-based API key. Relay stores it encrypted and never returns it to agents."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "business_entity_read",
+      "label": "Read business entity",
+      "description": "Read bounded metadata for the exact API-key-bound business entity without company contact, registration, tax, address, plan, or broader entity data.",
+      "defaultSelected": true
+    },
+    {
+      "id": "project_read",
+      "label": "Read projects",
+      "description": "List bounded Project summaries or inspect one exact Project without customers, managers, people, descriptions, phases, permissions, relationships, custom fields, or tags.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "scoro_business_entity_get",
+        "label": "Read business entity",
+        "description": "Read bounded metadata for the exact configured Scoro business entity."
+      },
+      {
+        "id": "scoro_project_list",
+        "label": "List projects",
+        "description": "List at most twenty-five bounded Project summaries from fixed page one."
+      },
+      {
+        "id": "scoro_project_get",
+        "label": "Read project",
+        "description": "Read one exact bounded Project summary by positive numeric ID."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "scoro_record_mutation",
+        "label": "Change Scoro data",
+        "description": "Creating, modifying, assigning, completing, deleting, uploading, sending, subscribing, or bulk-changing Scoro records is outside V1."
+      },
+      {
+        "id": "scoro_private_business_data",
+        "label": "Read private business data",
+        "description": "Customers, contacts, companies, users, managers, emails, phones, addresses, descriptions, notes, comments, files, permissions, relationships, custom fields, and tags are outside V1."
+      },
+      {
+        "id": "scoro_financial_and_broader_product",
+        "label": "Access financial or broader Scoro data",
+        "description": "Invoices, quotes, orders, bills, expenses, purchase orders, products, prices, costs, receipts, forecasts, calendar, tasks, time entries, bookings, notifications, reports, administration, and webhooks are outside V1."
+      },
+      {
+        "id": "scoro_raw_api",
+        "label": "Call arbitrary Scoro APIs",
+        "description": "Arbitrary tenants, entities, modules, actions, methods, IDs, filters, bookmarks, pages, limits, detailed responses, payloads, and raw API access are outside V1."
+      },
+      {
+        "id": "scoro_bulk_export",
+        "label": "Export Scoro data",
+        "description": "Automatic pagination, crawling, synchronization, PDF generation, downloads, batch operations, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "scoro_safe",
+      "label": "Safe",
+      "description": "All three bounded private business and Project reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "scoro_business_entity_get",
+        "scoro_project_list",
+        "scoro_project_get"
+      ],
+      "blockedActions": [
+        "scoro_record_mutation",
+        "scoro_private_business_data",
+        "scoro_financial_and_broader_product",
+        "scoro_raw_api",
+        "scoro_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected read-only tools run without Relay per-action approval while exact tenant, business entity, AppId, and resource binding, fixed paths, limits, audits, redaction, provider authority, and API-key isolation remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "scoro_business_entity_get",
+        "scoro_project_list",
+        "scoro_project_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "scoro_record_mutation",
+        "scoro_private_business_data",
+        "scoro_financial_and_broader_product",
+        "scoro_raw_api",
+        "scoro_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded approval-gated Scoro entity and Project reads and attaches the encrypted customer API key only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded approval-gated Scoro entity and Project reads and attaches the encrypted customer API key only on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No reviewed Relay public Scoro integration AppId, customer tenant, exact business entity ID, or dedicated API key is available in this workspace.",
+    "nextAction": "In the provider-console task, submit Relay's public integration interest request, create the developer integration, obtain and securely configure SCORO_APP_ID, complete Marketplace review, then have a customer administrator provide a dedicated least-privilege API key with exact tenant and company_account_id and validate AppId, tenant, entity, bounded reads, approvals, rate denial, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.scoro.com/api/v2",
+      "checkedAt": "2026-07-18",
+      "supports": "The official API v2 reference pins JSON POST requests to an account-derived tenant.scoro.com origin, requires apiKey or user_token plus company_account_id, documents public-integration AppId review, fixed project and companyAccount endpoints, page and response limits, rate limits, safe status handling, and broader mutation surfaces Relay excludes."
+    },
+    {
+      "url": "https://www.scoro.com/developer-terms/",
+      "checkedAt": "2026-07-18",
+      "supports": "Scoro's Developer Terms require client authorization, purpose limitation, appropriate security, privacy compliance, incident handling, and no secondary sale or profiling of client content; Relay limits processing to documented bounded customer-authorized reads."
+    },
+    {
+      "url": "https://www.scoro.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Scoro presents the product as professional services automation for project, resource, sales, time, financial, and business-performance management."
+    },
+    {
+      "url": "https://www.scoro.com/terms-of-use/",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Terms define Scoro's cloud Platform, Client Accounts, business Entities, user-controlled access, Marketplace third-party applications, and customer responsibility for authorized content and permissions."
+    },
+    {
+      "url": "https://www.scoro.com/privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "The official privacy framework recognizes customer-controlled platform content and personal data; Relay excludes contact, communication, address, customer, and user identity from its Project results."
+    }
+  ]
+}

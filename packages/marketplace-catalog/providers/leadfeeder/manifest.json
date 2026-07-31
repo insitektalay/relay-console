@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "leadfeeder",
+  "name": "Leadfeeder",
+  "category": "crm_support",
+  "description": "Leadfeeder, part of Dealfront, is a B2B lead-generation and revenue-intelligence platform for company and contact search, website-visitor identification, signals, enrichment, lists, tags, and go-to-market workflows.",
+  "agentUseSummary": "Add a user-generated Leadfeeder API key, then let selected agents list accessible account IDs and names. Relay calls only the unfiltered /v1/accounts route, caps output at 100 accounts, removes credit and request metadata, and blocks companies, contacts, visitor activity, IPs, signals, enrichment, tracking, lists, tags, custom fields, arbitrary API or MCP access, and mutations.",
+  "provider": {
+    "websiteUrl": "https://www.leadfeeder.com/",
+    "docsUrl": "https://docs.leadfeeder.com/api/public",
+    "developerConsoleUrl": "https://app.dealfront.com/",
+    "termsUrl": "https://www.dealfront.com/terms/",
+    "privacyUrl": "https://www.dealfront.com/privacy-center/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_user_api_key",
+      "manage_api_keys_permission",
+      "user_account_permissions_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "LEADFEEDER_API_KEY",
+        "label": "Leadfeeder API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a user-generated API key with Manage API keys and use API permission; Relay encrypts it server-side."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "leadfeeder_read",
+      "label": "List accounts",
+      "description": "Use only the unfiltered /v1/accounts route and return account IDs and names without credit or request metadata.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "leadfeeder_read",
+        "label": "List Leadfeeder accounts",
+        "description": "List up to 100 accessible account IDs and names without credit details, visitor data, company data, or writes."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "leadfeeder_manage",
+        "label": "Change Leadfeeder",
+        "description": "Lists, tags, custom fields, campaigns, tracking, CRM relationships, enrichment jobs, exports, and every mutation are outside Relay's V1 contract."
+      },
+      {
+        "id": "leadfeeder_sensitive_or_metered_data",
+        "label": "Read visitor, contact, or credit data",
+        "description": "Website visits, page activity, IP addresses, contacts, personal data, financial reports, signals, credit balances, usage details, and enrichment are blocked."
+      },
+      {
+        "id": "leadfeeder_arbitrary_api",
+        "label": "Use arbitrary API or MCP access",
+        "description": "Account-specific queries, companies, filters, paging, OpenAPI-generated tools, arbitrary routes, hosted MCP tools, and custom arguments are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "leadfeeder_safe",
+      "label": "Safe",
+      "description": "One minimized account-directory read runs directly. Credits, companies, contacts, visitor activity, IPs, signals, enrichment, tracking, arbitrary API or MCP access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["leadfeeder_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "leadfeeder_manage",
+        "leadfeeder_sensitive_or_metered_data",
+        "leadfeeder_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized account-directory tool through the encrypted customer-owned Leadfeeder API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized account-directory tool through the encrypted customer-owned Leadfeeder API key."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer Leadfeeder or Dealfront account, user with Manage API keys and use API permission, active API key, representative multi-account fixture, account-permission matrix, or key-rotation procedure is available in this workspace.",
+    "nextAction": "A Leadfeeder administrator grants the API permission to a suitable user, that user creates or rotates an API key, saves it through Relay Console, then verifies minimized multi-account listing, permission boundaries, the 10-request-per-second and monthly limits, agent assignment, credential replacement, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.leadfeeder.com/api/public/authentication-354547m0",
+      "checkedAt": "2026-07-17",
+      "supports": "Leadfeeder documents user-generated API keys in the X-Api-Key header, permission-gated key creation, user-account permission boundaries, and the /accounts discovery workflow."
+    },
+    {
+      "url": "https://docs.leadfeeder.com/api/public/list-accounts-4008950e0",
+      "checkedAt": "2026-07-17",
+      "supports": "The official List Accounts reference documents GET /v1/accounts, account IDs and names for the unfiltered list, account-specific credit details only when account_id is supplied, and the relevant authentication and error responses."
+    },
+    {
+      "url": "https://docs.leadfeeder.com/api/public/overview-of-the-leadfeeder-mcp-server-370532m0",
+      "checkedAt": "2026-07-17",
+      "supports": "Leadfeeder documents a beta hosted OAuth MCP with broad company, contact, visitor, enrichment, list, tag and write capabilities governed by account permissions and credits; Relay intentionally excludes that broader beta surface."
+    }
+  ]
+}

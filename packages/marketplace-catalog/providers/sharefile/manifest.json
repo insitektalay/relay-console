@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sharefile",
+  "name": "ShareFile",
+  "category": "knowledge_documents",
+  "description": "ShareFile is a secure file sharing, collaboration, and document workflow platform for businesses. Teams use it to store and exchange files, manage clients and folders, request documents, collect approvals and signatures, automate workflows, and protect sensitive content.",
+  "agentUseSummary": "Connect ShareFile once, then let agents use every selected active operation in ShareFile's official REST API under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.sharefile.com/",
+    "docsUrl": "https://api.sharefile.com/docs/",
+    "developerConsoleUrl": "https://api.sharefile.com/apikeys",
+    "termsUrl": "https://api.sharefile.com/home/tos",
+    "privacyUrl": "https://www.sharefile.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://secure.sharefile.com/oauth/authorize",
+    "tokenUrl": "https://{customer-subdomain}.{api-control-plane}/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["oauth_connector"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/sharefile/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sharefile_read",
+      "label": "Read ShareFile",
+      "description": "Use all 141 selected documented retrieval operations for files, folders, shares, users, workflows, reports, access, and account metadata."
+    },
+    {
+      "id": "sharefile_content_write",
+      "label": "Manage files and workflows",
+      "description": "Use all 59 selected content, sharing, email, session, workflow, and collaboration mutations."
+    },
+    {
+      "id": "sharefile_admin",
+      "label": "Administer ShareFile",
+      "description": "Use all 109 selected user, group, access-control, policy, reporting, integration, storage, and webhook mutations when the connected account permits it."
+    }
+  ],
+  "actions": {
+    "allowed": [{
+      "id": "sharefile_read",
+      "label": "Read ShareFile",
+      "description": "Run one exact selected ShareFile GET operation from the pinned official documentation."
+    }],
+    "approvalRequired": [
+      {
+        "id": "sharefile_content_write",
+        "label": "Manage ShareFile content",
+        "description": "Run one exact content or collaboration mutation; Safe mode requires approval."
+      },
+      {
+        "id": "sharefile_admin",
+        "label": "Administer ShareFile",
+        "description": "Run one exact administrative mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "sharefile_safe",
+      "label": "Safe",
+      "description": "All 141 bounded ShareFile reads run directly; every content, sharing, destructive, or administrative mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["sharefile_read"],
+      "approvalRequiredActions": ["sharefile_content_write", "sharefile_admin"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 309 selected and ShareFile-authorized operations run without Relay per-action approval; connection ownership, tenant authority, exact routes, bounds, audits, redaction, provider limits, and account authority still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["sharefile_read", "sharefile_content_write", "sharefile_admin"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected pinned ShareFile operations through the authenticated server-side connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the selected pinned ShareFile operations through the authenticated server-side connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's ShareFile OAuth client, exact production callback, and live customer-account authorization are not configured on Railway.",
+    "nextAction": "Request a ShareFile OAuth client, configure https://api.relayconsole.work/api/v1/marketplace/oauth/sharefile/callback, store SHAREFILE_CLIENT_ID and SHAREFILE_CLIENT_SECRET on Railway, then verify signed callback validation, tenant binding, refresh, identity, reads, Safe approval, Dangerous mutations, local disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.sharefile.com/gettingstarted/oauth2",
+      "checkedAt": "2026-07-14",
+      "supports": "ShareFile documents public authorization-code OAuth, exact HTTPS redirects, HMAC-signed callback authority data, tenant-specific token endpoints, bearer authentication, and refresh tokens."
+    },
+    {
+      "url": "https://api.sharefile.com/docs/",
+      "checkedAt": "2026-07-14",
+      "supports": "ShareFile's official REST entity documentation yields 309 unique selected route variants: 141 retrievals and 168 mutations across files, sharing, workflows, administration, reporting, storage, and webhooks."
+    },
+    {
+      "url": "https://api.sharefile.com/gettingstarted/odata",
+      "checkedAt": "2026-07-14",
+      "supports": "ShareFile documents its fixed /sf/v3 OData-style entity model, JSON request bodies, and GET, POST, PATCH, and DELETE semantics."
+    },
+    {
+      "url": "https://github.com/sharefile-org/ShareFile-NET",
+      "checkedAt": "2026-07-14",
+      "supports": "ShareFile's official SDK provides implementation evidence for OAuth token handling and the tenant-specific v3 API surface."
+    }
+  ]
+}

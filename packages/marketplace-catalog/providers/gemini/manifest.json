@@ -1,0 +1,203 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "gemini",
+  "name": "Gemini",
+  "category": "commerce_payments",
+  "description": "Gemini is a cryptocurrency exchange and custody platform for buying, selling, storing, and trading digital assets. Exchange customers use its Spot API to inspect public markets, review account activity, and manage orders programmatically.",
+  "agentUseSummary": "Add a dedicated customer-owned, account-scoped Gemini API key and secret with Auditor for reads or Trader only when trading is selected, then choose which agents can read bounded Spot market and account data or place and cancel exact limit orders under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.gemini.com/",
+    "docsUrl": "https://docs.gemini.com/rest-api/",
+    "developerConsoleUrl": "https://exchange.gemini.com/settings/api",
+    "termsUrl": "https://www.gemini.com/legal/user-agreement",
+    "privacyUrl": "https://www.gemini.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["Auditor", "Trader"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_account_api_key_pair",
+      "base64_json_hmac_sha384_signed_rest",
+      "strictly_increasing_millisecond_nonce",
+      "fixed_gemini_api_origin",
+      "role_restricted"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "GEMINI_API_KEY",
+        "label": "Gemini API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated account-scoped Exchange API key. Use the read-only Auditor role for market/account review, or Trader only when the Spot trading capability is selected. Do not assign Fund Manager, Administrator, Master-key, withdrawal, transfer, custody, or broader authority."
+      },
+      {
+        "key": "GEMINI_API_SECRET",
+        "label": "Gemini API secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Paste the Gemini API secret. Relay encrypts it and uses it only to generate X-GEMINI-SIGNATURE over a base64 JSON payload sent to the fixed Gemini Exchange REST origin."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "market_data",
+      "label": "Read spot market data",
+      "description": "Read a bounded public ticker, 20-level order book, or 100-candle summary for one exact Gemini Spot symbol.",
+      "defaultSelected": true
+    },
+    {
+      "id": "account_read",
+      "label": "Read account and trading data",
+      "description": "Read bounded balances, active orders, up to 100 past trades, and one exact order status authorized by an Auditor or Trader key.",
+      "defaultSelected": true
+    },
+    {
+      "id": "spot_trading",
+      "label": "Place and cancel spot limit orders",
+      "description": "Place one typed limit order with an exact execution option and cancel one exact order, subject to the Trader role and Gemini trading limits.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "gemini_market_read",
+        "label": "Read Gemini spot markets",
+        "description": "Read one bounded public ticker, order-book, or candle summary."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "gemini_account_read",
+        "label": "Read Gemini account data",
+        "description": "Read one bounded balance, active-order, trade-history, or exact order-status result; Safe mode requires approval."
+      },
+      {
+        "id": "gemini_order_place",
+        "label": "Place a Gemini spot limit order",
+        "description": "Place one typed limit spot order with an exact execution option; Safe mode requires approval."
+      },
+      {
+        "id": "gemini_order_cancel",
+        "label": "Cancel a Gemini spot order",
+        "description": "Cancel one exact spot order; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "gemini_funding_blocked",
+        "label": "Funding and transfers unavailable",
+        "description": "Deposit addresses, withdrawals, internal transfers, custody movements, and Fund Manager operations are outside Relay's V1 surface."
+      },
+      {
+        "id": "gemini_broader_trading_blocked",
+        "label": "Broader trading unavailable",
+        "description": "Batch cancellation, wrap orders, clearing, auctions, perpetuals, derivatives, FIX/WebSocket sessions, heartbeat cancellation, and raw endpoint delegation are outside V1."
+      },
+      {
+        "id": "gemini_admin_blocked",
+        "label": "Administration unavailable",
+        "description": "Master-key account selection, account administration, API-key management, reports, and institutional administration are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "gemini_safe",
+      "label": "Safe",
+      "description": "Public market summaries run directly; every private account read and every financial order action requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["gemini_market_read"],
+      "approvalRequiredActions": [
+        "gemini_account_read",
+        "gemini_order_place",
+        "gemini_order_cancel"
+      ],
+      "blockedActions": [
+        "gemini_funding_blocked",
+        "gemini_broader_trading_blocked",
+        "gemini_admin_blocked"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All selected Gemini market, account, and spot-order actions run without Relay per-action approval; connection ownership, API roles, fixed routing, nonce discipline, signing, bounds, redaction, audits, and Gemini limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "gemini_market_read",
+        "gemini_account_read",
+        "gemini_order_place",
+        "gemini_order_cancel"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "gemini_funding_blocked",
+        "gemini_broader_trading_blocked",
+        "gemini_admin_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Gemini Spot wrappers and performs nonce generation, base64 payload construction, and HMAC-SHA384 signing server-side without exposing either key to the runtime."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four typed Gemini Spot wrappers and performs nonce generation, base64 payload construction, and HMAC-SHA384 signing server-side without exposing either key to the runtime."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No eligible customer-owned Gemini Exchange account, dedicated account-scoped API key pair, or representative Spot account is available to this code-only worker; Exchange and API availability depend on the customer's jurisdiction, account verification, and product eligibility.",
+    "nextAction": "An eligible Gemini customer creates a dedicated account-scoped key with Auditor for reads or Trader only when Spot trading is selected, does not assign Fund Manager, Administrator, Master, withdrawal, transfer, custody, or broader authority, enables time-based nonce compatibility or otherwise reserves the session for Relay's increasing millisecond nonce, saves the key pair through Relay Console, and verifies balance health, bounded market/account reads, Safe approval, each intended limit execution option, one permitted Spot order, exact cancellation, rate-limit handling, credential replacement, disconnect, key revocation, and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.gemini.com/rest-api/#private-api-invocation",
+      "checkedAt": "2026-07-17",
+      "supports": "Gemini documents X-GEMINI-APIKEY, a base64 JSON X-GEMINI-PAYLOAD, HMAC-SHA384 X-GEMINI-SIGNATURE, and a nonce that is time-bound or strictly increasing per API-key session."
+    },
+    {
+      "url": "https://docs.gemini.com/rest-api/#roles",
+      "checkedAt": "2026-07-17",
+      "supports": "Gemini documents Auditor as read-only, Trader as able to inspect balances and orders and place or cancel orders, and Fund Manager as separately able to withdraw and transfer funds."
+    },
+    {
+      "url": "https://docs.gemini.com/rest-api/#market-data-apis",
+      "checkedAt": "2026-07-17",
+      "supports": "Gemini documents the fixed api.gemini.com origin and public Spot ticker, bounded order-book, and candle endpoints."
+    },
+    {
+      "url": "https://docs.gemini.com/rest-api/#order-status-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Gemini documents signed active-order, past-trade, exact order-status, and available-balance endpoints for Auditor or Trader keys, with endpoint-specific limits and rate-limit guidance."
+    },
+    {
+      "url": "https://docs.gemini.com/rest-api/#new-order",
+      "checkedAt": "2026-07-17",
+      "supports": "Gemini documents Trader-only exchange limit order placement with symbol, amount, price, side, client order ID, and maker-or-cancel, immediate-or-cancel, or fill-or-kill execution options."
+    },
+    {
+      "url": "https://docs.gemini.com/rest-api/#cancel-order",
+      "checkedAt": "2026-07-17",
+      "supports": "Gemini documents Trader-only cancellation of one exact order ID and an idempotent status response when an order was already cancelled."
+    }
+  ]
+}

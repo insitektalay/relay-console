@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "goto-webinar",
+  "name": "GoTo Webinar",
+  "category": "communication",
+  "description": "GoTo Webinar is a hosted webinar platform for scheduling live, broadcast, simulive, series, sequence, and on-demand events with registration, panelists, engagement, email, recordings, and reporting.",
+  "agentUseSummary": "Connect a GoTo organizer through Relay-owned rotating OAuth with only identity and collaboration scopes, then inspect one fixed first page and time window of content-free webinar schedule and experience metadata.",
+  "provider": {
+    "websiteUrl": "https://www.goto.com/webinar",
+    "docsUrl": "https://developer.goto.com/GoToWebinarV2",
+    "developerConsoleUrl": "https://developer.logmeininc.com/clients",
+    "termsUrl": "https://www.goto.com/company/legal",
+    "privacyUrl": "https://www.goto.com/company/legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["identity:scim.me", "collab:"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://authentication.logmeininc.com/oauth/authorize",
+    "tokenUrl": "https://authentication.logmeininc.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_authorization_code",
+      "rotating_refresh_token",
+      "authenticated_organizer_binding"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "GOTO_WEBINAR_CLIENT_ID",
+        "label": "Relay GoTo Webinar OAuth client ID",
+        "required": true,
+        "secret": false
+      },
+      {
+        "name": "GOTO_WEBINAR_CLIENT_SECRET",
+        "label": "Relay GoTo Webinar OAuth client secret",
+        "required": true,
+        "secret": true
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/goto-webinar/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "lifecycle_read",
+      "label": "Read webinar lifecycle",
+      "description": "Inspect a bounded content-free webinar schedule and experience summary for the authenticated organizer.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "goto_webinar_lifecycle_list",
+        "label": "List webinar lifecycle",
+        "description": "List one bounded page of content-free webinar lifecycle metadata for the authenticated organizer."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "goto_webinar_identity_content",
+        "label": "Webinar identity and content",
+        "description": "Webinar keys and IDs, subjects, descriptions, registration URLs, passwords, organizer/co-organizer identity, account keys, recording assets, and raw records are not returned."
+      },
+      {
+        "id": "goto_webinar_people_engagement",
+        "label": "People and engagement",
+        "description": "Registrants, attendees, panelists, organizers, join links, registration fields and answers, questions, polls, surveys, attendance, and engagement are not exposed."
+      },
+      {
+        "id": "goto_webinar_media_communications",
+        "label": "Media and communications",
+        "description": "Recordings, transcripts, audio details, livestreams, emails, invitations, reminders, follow-ups, certificates, webhooks, and communications are not exposed."
+      },
+      {
+        "id": "goto_webinar_mutation_raw",
+        "label": "Changes and raw API",
+        "description": "Scheduling, copying, updating, cancelling, registration, people, media, webhook, and every other mutation plus arbitrary paths, IDs, filters, dates, pages, origins, bodies, and tokens are not exposed."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "goto_webinar_safe",
+      "label": "Safe",
+      "description": "Every authenticated-organizer webinar lifecycle read requires matching Relay approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["goto_webinar_lifecycle_list"],
+      "blockedActions": [
+        "goto_webinar_identity_content",
+        "goto_webinar_people_engagement",
+        "goto_webinar_media_communications",
+        "goto_webinar_mutation_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected lifecycle reads run without Relay per-action approval while authenticated-organizer binding, fixed origins, endpoint, time window, first page, bounds, redaction, audits, OAuth scopes, licensing, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["goto_webinar_lifecycle_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "goto_webinar_identity_content",
+        "goto_webinar_people_engagement",
+        "goto_webinar_media_communications",
+        "goto_webinar_mutation_raw"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware content-free GoTo Webinar lifecycle tool and refreshes the organizer grant server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one approval-aware content-free GoTo Webinar lifecycle tool and refreshes the organizer grant server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay must register a GoTo OAuth client with only identity:scim.me and collab:, configure the exact Railway callback and encrypted secret, and authorize an organizer with an eligible GoTo Webinar subscription.",
+    "nextAction": "Register and review the Relay client, configure Railway credentials, authorize a representative organizer, exercise Safe denial/approval and Dangerous reads, verify conditional refresh-token replacement and local disconnect, deploy through the integration lane, and run live acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.goto.com/GoToWebinarV2",
+      "checkedAt": "2026-07-18",
+      "supports": "GoTo documents the v2 authenticated-organizer webinar list, required from/to range, zero-based page, size limit, lifecycle fields, broad adjacent surfaces, and collab: authentication scope."
+    },
+    {
+      "url": "https://developer.goto.com/Authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "GoTo documents confidential authorization-code OAuth, one-hour access tokens, refresh tokens, returned scope/principal metadata, client-managed scopes, and the current authentication origin."
+    },
+    {
+      "url": "https://developer.goto.com/guides/Authentication/05_HOW_refreshToken/",
+      "checkedAt": "2026-07-18",
+      "supports": "GoTo documents refresh-token use and conditional replacement, requiring Relay to preserve the existing refresh token unless a new one is returned."
+    }
+  ]
+}

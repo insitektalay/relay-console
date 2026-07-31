@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "google-forms", "name": "Google Forms", "category": "knowledge_documents",
+  "description": "Google Forms is Google's form and survey builder for collecting structured input. Individuals and teams use it for intake, registration, feedback, quizzes, and lightweight workflows.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth, explicitly choose Forms for Relay, then use four bounded tools for response-free structure reads, local preparation, unpublished form creation, and typed question creation. Relay V1 uses only drive.file and excludes responses, respondent data, watches, publishing, quiz and collection settings, destructive items, arbitrary batches, linked Sheets, sharing, export, and raw access.",
+  "provider": { "websiteUrl": "https://workspace.google.com/products/forms/", "docsUrl": "https://developers.google.com/workspace/forms/api/guides/authorizing", "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials", "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy", "privacyUrl": "https://policies.google.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["openid", "email", "https://www.googleapis.com/auth/drive.file"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth", "tokenUrl": "https://oauth2.googleapis.com/token" },
+  "connection": { "types": ["relay_owned_global_oauth", "exact_google_account_binding", "app_visible_form_corpus", "responses_disabled", "offline_refresh_token", "provider_revocation"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/google-forms/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "form_read", "label": "Read form structure", "description": "Read bounded questions and metadata without responses.", "defaultSelected": true },
+    { "id": "form_draft", "label": "Prepare form updates", "description": "Validate and hash typed form updates locally.", "defaultSelected": true },
+    { "id": "form_write", "label": "Create forms and questions", "description": "Create unpublished Forms and typed questions after policy checks.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_forms_form_get", "label": "Read form structure", "description": "Read bounded structure from one app-visible Form without responses." },
+      { "id": "google_forms_update_prepare", "label": "Prepare form update", "description": "Validate and hash one form or question creation locally." }
+    ],
+    "approvalRequired": [
+      { "id": "google_forms_form_create", "label": "Create unpublished form", "description": "Create one unpublished Form." },
+      { "id": "google_forms_question_create", "label": "Create form question", "description": "Create one typed text or choice question." }
+    ],
+    "blocked": [
+      { "id": "google_forms_responses", "label": "Read form responses", "description": "Responses, identities, answers, grades, and uploaded files are blocked in V1." },
+      { "id": "google_forms_watches_publish", "label": "Watch or publish forms", "description": "Response watches, publishing, accepting-response state, and responder management are blocked in V1." },
+      { "id": "google_forms_settings", "label": "Change quiz, grading, or collection settings", "description": "Quiz, grading, answer keys, email collection, and settings are blocked in V1." },
+      { "id": "google_forms_destructive", "label": "Run destructive or arbitrary updates", "description": "Delete, move, reorder, broad updates, media, file uploads, and arbitrary batches are blocked in V1." },
+      { "id": "google_forms_external_raw", "label": "Share, export, link data, or run raw operations", "description": "Linked Sheets, sharing, export, domain delegation, and raw API or MCP access are blocked in V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "google_forms_safe", "label": "Safe", "description": "Bounded response-free structure reads and local preparation run automatically; form and question creation require matching approval.", "defaultSelected": true, "allowedActions": ["google_forms_form_get", "google_forms_update_prepare"], "approvalRequiredActions": ["google_forms_form_create", "google_forms_question_create"], "blockedActions": ["google_forms_responses", "google_forms_watches_publish", "google_forms_settings", "google_forms_destructive", "google_forms_external_raw"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All four selected tools run without Relay per-action approval while drive.file, response exclusion, explicit targeting, typed limits, audit, redaction, refresh, revocation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["google_forms_form_get", "google_forms_update_prepare", "google_forms_form_create", "google_forms_question_create"], "approvalRequiredActions": [], "blockedActions": ["google_forms_responses", "google_forms_watches_publish", "google_forms_settings", "google_forms_destructive", "google_forms_external_raw"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [{ "format": "openclaw", "installSupport": "installable", "description": "Relay mounts four bounded response-free Google Forms wrappers server-side." }, { "format": "hermes", "installSupport": "installable", "description": "Relay mounts four bounded response-free Google Forms wrappers server-side." }],
+  "availability": "available",
+  "providerSetup": { "status": "provider_review_pending", "blocker": "Relay must configure and verify its Google Cloud consent/client, enable Forms and Drive APIs and explicit form selection, configure Railway staging credentials, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.", "nextAction": "In the provider-console task, configure the canonical Railway callback and exact scopes, complete Google verification, configure staging credentials, then verify response exclusion, all four tools, policy, refresh, revocation, disconnect, and error mapping." },
+  "evidence": [
+    { "url": "https://developers.google.com/workspace/forms/api/guides/authorizing", "checkedAt": "2026-07-17", "supports": "Google documents Forms authorization and drive.file per-file access." },
+    { "url": "https://developers.google.com/workspace/forms/api/reference/rest/v1/forms/get", "checkedAt": "2026-07-17", "supports": "forms.get reads one exact Form resource." },
+    { "url": "https://developers.google.com/workspace/forms/api/reference/rest/v1/forms/create", "checkedAt": "2026-07-17", "supports": "forms.create creates a Form and supports unpublished creation." },
+    { "url": "https://developers.google.com/workspace/forms/api/reference/rest/v1/forms/batchUpdate", "checkedAt": "2026-07-17", "supports": "forms.batchUpdate applies typed item requests with revision control." }
+  ]
+}

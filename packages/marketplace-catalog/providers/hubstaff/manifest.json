@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "hubstaff",
+  "name": "Hubstaff",
+  "category": "work_management",
+  "description": "Hubstaff is time-tracking and workforce-management software for remote, hybrid, field, and office teams. Organizations use it to record work time and activity, schedule attendance, manage projects and tasks, oversee people and locations, handle time off and timesheets, and understand productivity, budgets, payroll, and operational performance.",
+  "agentUseSummary": "Connect Hubstaff once, then choose which agents can read or manage the connected organizations' time, people, projects, tasks, attendance, workforce, billing, location, and insight data under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://hubstaff.com/",
+    "docsUrl": "https://developer.hubstaff.com/",
+    "developerConsoleUrl": "https://developer.hubstaff.com/account/apps",
+    "termsUrl": "https://hubstaff.com/terms",
+    "privacyUrl": "https://hubstaff.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "profile", "email", "hubstaff:read", "hubstaff:write"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://account.hubstaff.com/authorizations/new",
+    "tokenUrl": "https://account.hubstaff.com/access_tokens",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["oauth_connector", "user_and_role_bound_hubstaff_account"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/hubstaff/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "hubstaff_read", "label": "Read time, workforce, and organization data", "description": "Use all 96 pinned official reads across organizations, people, projects, tasks, time, attendance, activity, budgets, billing, payroll, workforce, locations, and insights." },
+    { "id": "hubstaff_manage", "label": "Manage Hubstaff", "description": "Use all 64 pinned official mutations for authorized organizations, people, projects, tasks, attendance, time off, teams, limits, settings, locations, and insight rules." }
+  ],
+  "actions": {
+    "allowed": [{ "id": "hubstaff_read", "label": "Read Hubstaff", "description": "Run one exact selected Hubstaff GET operation from the pinned official v2 API contract." }],
+    "approvalRequired": [{ "id": "hubstaff_manage", "label": "Manage Hubstaff", "description": "Run one exact selected Hubstaff mutation; Safe mode requires approval." }],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "hubstaff_safe", "label": "Safe", "description": "All 96 bounded reads run directly; every mutation requires approval.", "defaultSelected": true, "allowedActions": ["hubstaff_read"], "approvalRequiredActions": ["hubstaff_manage"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All 160 selected and provider-authorized operations run without Relay per-action approval; ownership, OAuth authority, exact routes, bounds, audits, redaction, plan limits, rate limits, and Hubstaff permissions still apply.", "defaultSelected": false, "allowedActions": ["hubstaff_read", "hubstaff_manage"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "The shared service mounts all 160 pinned Hubstaff v2 data and administration operations through the authenticated server-side connector." },
+    { "format": "hermes", "installSupport": "installable", "description": "The shared service mounts all 160 pinned Hubstaff v2 data and administration operations through the authenticated server-side connector." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay Console's Hubstaff OAuth application, production callback, client credentials, and a representative authorized account are not configured.",
+    "nextAction": "Sign in to the Hubstaff developer portal, create Relay Console as an OAuth application, register https://api.relayconsole.work/api/v1/marketplace/oauth/hubstaff/callback exactly, add relayconsole.work branding and legal links, store HUBSTAFF_CLIENT_ID and HUBSTAFF_CLIENT_SECRET on Railway, deploy, then verify PKCE, nonce and state validation, five-scope consent, rotating refresh, user binding, Safe approvals, Dangerous mutations, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developer.hubstaff.com/", "checkedAt": "2026-07-15", "supports": "The official portal documents the Hubstaff v2 REST API, its fixed HTTPS origin, current OAuth scopes, PKCE authorization-code flow, rotating refresh tokens, role-bound access, pagination, provider limits, and application management." },
+    { "url": "https://api.hubstaff.com/v2/docs", "checkedAt": "2026-07-15", "supports": "The current official Swagger contract exposes 166 v2 operations. Relay pins 160 agent-facing data and administration operations: 96 reads and 64 mutations; six webhook challenge-secret lifecycle operations are excluded as callback authentication plumbing." },
+    { "url": "https://account.hubstaff.com/.well-known/openid-configuration", "checkedAt": "2026-07-15", "supports": "Hubstaff publishes authorization, token, user-info, JWKS, supported grant, signing, client-authentication, and scope metadata for OpenID Connect over OAuth 2.0." },
+    { "url": "https://hubstaff.com/", "checkedAt": "2026-07-15", "supports": "Hubstaff describes time tracking, workforce management, productivity, projects, payroll, attendance, scheduling, field work, and reporting for remote, hybrid, field, and office teams." }
+  ]
+}

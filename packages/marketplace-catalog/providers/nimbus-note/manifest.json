@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "nimbus-note",
+  "name": "FuseBase (formerly Nimbus Note)",
+  "category": "knowledge_documents",
+  "description": "Notes, folders, workspaces, tasks, files, portals, databases, and organization resources exposed by FuseBase's customer-owned MCP connection.",
+  "agentUseSummary": "Connect a FuseBase MCP URL and token, then let agents discover and use the complete provider-granted tool surface under Safe or Dangerously skip permissions policy.",
+  "provider": {
+    "websiteUrl": "https://thefusebase.com/",
+    "docsUrl": "https://thefusebase.com/guides/fusebase-ai/connect-external-ai-agents-to-fusebase-with-mcp/",
+    "developerConsoleUrl": "https://app.thefusebase.com/",
+    "termsUrl": "https://thefusebase.com/terms-and-conditions/",
+    "privacyUrl": "https://thefusebase.com/privacy/"
+  },
+  "authentication": {
+    "model": "remote_mcp_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["mcp"],
+    "credentialRequirements": [
+      { "name": "FUSEBASE_MCP_URL", "label": "FuseBase MCP URL", "required": true, "secret": true, "helpText": "Copy the remote MCP URL from the FuseBase organization MCP configuration. Relay accepts only official FuseBase HTTPS hosts." },
+      { "name": "FUSEBASE_MCP_TOKEN", "label": "FuseBase MCP token", "required": true, "secret": true, "helpText": "Copy the revocable token shown when the FuseBase MCP configuration is created." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "discovery", "label": "Tool discovery", "description": "Discover tools granted by the customer-owned FuseBase MCP configuration.", "defaultSelected": true },
+    { "id": "read_tools", "label": "Read tools", "description": "Call discovered FuseBase tools classified as read-only.", "defaultSelected": true },
+    { "id": "full_mcp", "label": "Full MCP", "description": "Call every FuseBase MCP tool granted by the customer's configuration.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "fusebase_discover_tools", "label": "Discover tools", "description": "List bounded metadata for provider-granted tools." },
+      { "id": "fusebase_call_read_tool", "label": "Use a read tool", "description": "Call a discovered tool whose name is classified as read-only." }
+    ],
+    "approvalRequired": [
+      { "id": "fusebase_call_tool", "label": "Use any granted tool", "description": "Call any provider-granted tool; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "fusebase_safe",
+      "label": "Safe",
+      "description": "Discovery and read-only tools run directly; every other provider-granted tool requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["fusebase_discover_tools", "fusebase_call_read_tool"],
+      "approvalRequiredActions": ["fusebase_call_tool"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected provider-granted tool runs without Relay per-action approval; ownership, provider authority, secret isolation, output bounds, and audit controls still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["fusebase_discover_tools", "fusebase_call_read_tool", "fusebase_call_tool"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected FuseBase wrappers and proxies the MCP token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected FuseBase wrappers and proxies the MCP token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer creates a FuseBase MCP configuration with the intended Read, Edit, Full, or custom area authority and enters its URL and token in Relay Console."
+  },
+  "evidence": [
+    { "url": "https://thefusebase.com/guides/fusebase-ai/connect-external-ai-agents-to-fusebase-with-mcp/", "checkedAt": "2026-07-13", "supports": "FuseBase owners and managers can create a remote MCP configuration, choose Full, Read, or custom Off/Read/Edit authority by area, receive an MCP URL and token, and revoke it." },
+    { "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/transports", "checkedAt": "2026-07-13", "supports": "Streamable HTTP uses JSON-RPC POST/GET, application/json and text/event-stream responses, protocol-version headers, and optional session IDs." },
+    { "url": "https://modelcontextprotocol.io/specification/2025-06-18/client/initialization", "checkedAt": "2026-07-13", "supports": "Clients initialize, negotiate protocol capabilities, send initialized notification, then use tools/list and tools/call." },
+    { "url": "https://thefusebase.com/terms-and-conditions/", "checkedAt": "2026-07-13", "supports": "FuseBase is the current Nimbus Web product, so this candidate is implemented under its current provider identity." }
+  ]
+}

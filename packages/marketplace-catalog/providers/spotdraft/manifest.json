@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "spotdraft",
+  "name": "SpotDraft",
+  "category": "knowledge_documents",
+  "description": "SpotDraft is a contract lifecycle management platform for intake, workflows, repository, collaboration, and e-signatures.",
+  "agentUseSummary": "Connect dedicated customer-owned SpotDraft client credentials and let agents list bounded team-role IDs and names. Relay confines the credentials to one fixed metadata read, excluding users, membership, permissions, contracts, documents, workflows, signatures, writes, administration, raw access, and credential material.",
+  "provider": {
+    "websiteUrl": "https://www.spotdraft.com/",
+    "docsUrl": "https://api.spotdraft.com/api/docs/",
+    "developerConsoleUrl": "https://help.spotdraft.com/articles/8632014145-developer-settings",
+    "termsUrl": "https://www.spotdraft.com/terms-of-use",
+    "privacyUrl": "https://www.spotdraft.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_credentials",
+      "http_basic_authentication",
+      "api_access_add_on",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SPOTDRAFT_CLIENT_ID",
+        "label": "SpotDraft client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Generate a dedicated customer-owned API credential in SpotDraft Developer Settings."
+      },
+      {
+        "name": "SPOTDRAFT_CLIENT_SECRET",
+        "label": "SpotDraft client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the one-time client secret and store it only through Relay's encrypted connection flow."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "team_role_metadata_list",
+      "label": "List team roles",
+      "description": "List bounded team-role IDs and names without users, membership, permissions, or contract data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "spotdraft_roles_list",
+        "label": "List team roles",
+        "description": "List at most 100 strictly projected SpotDraft team-role IDs and names."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "spotdraft_users_members",
+        "label": "Access users or members",
+        "description": "Users, emails, identities, role membership, permissions, teams, and SCIM data are blocked."
+      },
+      {
+        "id": "spotdraft_contract_data",
+        "label": "Access contract data",
+        "description": "Contracts, counterparties, templates, workflows, metadata, documents, clauses, files, tasks, approvals, signatures, comments, and links are blocked."
+      },
+      {
+        "id": "spotdraft_mutation_admin",
+        "label": "Mutate or administer SpotDraft",
+        "description": "Contract creation, updates, role assignment, member changes, signing, webhook changes, credential management, settings, and administration are blocked."
+      },
+      {
+        "id": "spotdraft_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, arbitrary queries, filters, cursors, pagination, polling, retries, batches, exports, downloads, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "spotdraft_role_read_only",
+      "label": "Read-only team-role metadata",
+      "description": "One fixed privacy-redacted team-role metadata read runs automatically through customer-owned client credentials.",
+      "defaultSelected": true,
+      "allowedActions": ["spotdraft_roles_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "spotdraft_users_members",
+        "spotdraft_contract_data",
+        "spotdraft_mutation_admin",
+        "spotdraft_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Customer ownership, fixed origin and route, credential secrecy, strict projection, result bounds, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["spotdraft_roles_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "spotdraft_users_members",
+        "spotdraft_contract_data",
+        "spotdraft_mutation_admin",
+        "spotdraft_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway confines customer-owned SpotDraft client credentials to health and one fixed strictly projected team-role metadata read."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway confines customer-owned SpotDraft client credentials to health and one fixed strictly projected team-role metadata read."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "SpotDraft API Access/Developer Module is separately purchased. An authorized customer administrator must generate client credentials, whose secret is displayed once. No account, API module purchase, credential generation, live provider session, Railway change, or production acceptance is available in this worker task.",
+    "nextAction": "An authorized SpotDraft administrator enables API Access, generates a dedicated API credential in Developer Settings, and stores the client ID and one-time client secret through Relay's encrypted connection flow. They then separately validate bounded role listing, least privilege, credential rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.spotdraft.com/articles/8632014145-developer-settings",
+      "checkedAt": "2026-07-17",
+      "supports": "SpotDraft documents customer-generated API credentials in Developer Settings, client ID and one-time client secret handling, and its public API reference."
+    },
+    {
+      "url": "https://help.spotdraft.com/articles/4201589318-auto-assign-users-to-teams-via-api",
+      "checkedAt": "2026-07-17",
+      "supports": "SpotDraft officially documents GET /v2.1/public/auth/roles/list and broader user and role-member mutation endpoints; Relay selects only the role-list metadata read and blocks the broader surfaces."
+    },
+    {
+      "url": "https://legal.spotdraft.com/legal/clm-product-services-offerings-e6e5c133?v=2.0",
+      "checkedAt": "2026-07-17",
+      "supports": "SpotDraft describes API Access/Developer Module as a purchased add-on providing open REST endpoints, webhooks, and authentication tokens."
+    }
+  ]
+}

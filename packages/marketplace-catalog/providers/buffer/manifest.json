@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "buffer",
+  "name": "Buffer",
+  "category": "communication",
+  "description": "Buffer helps teams plan, publish, and analyze social content across connected channels.",
+  "agentUseSummary": "Connect one Buffer account through Relay-owned OAuth, then let agents inspect bounded, identity- and content-redacted account structure metadata.",
+  "provider": {
+    "websiteUrl": "https://buffer.com/",
+    "docsUrl": "https://developers.buffer.com/",
+    "developerConsoleUrl": "https://publish.buffer.com/settings/apps",
+    "termsUrl": "https://buffer.com/legal/terms-of-use",
+    "privacyUrl": "https://buffer.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["account:read", "offline_access"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.buffer.com/auth",
+    "tokenUrl": "https://auth.buffer.com/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "authorization_code",
+      "pkce_s256_required",
+      "single_use_rotating_refresh",
+      "fixed_graphql_origin",
+      "local_disconnect_only"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/buffer/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "social_structure_read",
+      "label": "Read social account structure",
+      "description": "Read bounded, identity- and content-redacted account, organization, and channel lifecycle metadata.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "buffer_account_get",
+        "label": "Read Buffer account status",
+        "description": "Read account ID, creation date, timezone, and a bounded organization count without identity."
+      },
+      {
+        "id": "buffer_organization_list",
+        "label": "List Buffer organizations",
+        "description": "List at most 25 organization IDs and channel counts without names, emails, members, or limits."
+      },
+      {
+        "id": "buffer_channel_list",
+        "label": "List Buffer channel lifecycle",
+        "description": "List at most 25 identity-redacted channel lifecycle summaries for one exact organization."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "buffer_safe",
+      "label": "Safe",
+      "description": "Every bounded metadata read requires approval; identity, post and idea content, analytics, writes, arbitrary GraphQL, pagination, and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "buffer_account_get",
+        "buffer_organization_list",
+        "buffer_channel_list"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three bounded reads run directly; fixed origin, static GraphQL documents, exact identifiers, redaction, bounds, audits, and provider rate limits remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "buffer_account_get",
+        "buffer_organization_list",
+        "buffer_channel_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts only three static, redacted GraphQL metadata reads and injects OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts only three static, redacted GraphQL metadata reads and injects OAuth tokens server-side."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A Buffer OAuth client, confidential client credentials, exact Railway callback, S256 PKCE, consent, single-use refresh rotation testing, and live acceptance are required.",
+    "nextAction": "Use the separate provider-console task to register the app, configure the exact callback and Railway credentials, then validate authorization, rotating refresh, redaction, plan limits, rate-limit handling, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.buffer.com/guides/authentication.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Official OAuth authorization and token origins, mandatory S256 PKCE for all clients, confidential-client token exchange, one-hour access tokens, offline_access, and single-use rotating refresh tokens."
+    },
+    {
+      "url": "https://developers.buffer.com/reference.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Official fixed GraphQL API origin and account, organization, and channel query surfaces."
+    },
+    {
+      "url": "https://support.buffer.com/article/859-does-buffer-have-an-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Current API availability, third-party OAuth guidance, and plan-specific request limits."
+    }
+  ],
+  "securityNotes": [
+    "Relay requests only account:read and offline_access and exposes three approval-gated read-only wrappers.",
+    "Account email and name, organization names, owner email, members and limits, and channel identity and content fields are stripped.",
+    "Requests use only https://api.buffer.com, reject redirects, send static GraphQL documents, validate exact organization IDs, cap responses at 1 MB, and return at most 25 resources.",
+    "Posts, ideas, messages, schedules, drafts, analytics, publishing, engagement, account administration, writes, arbitrary GraphQL, variables beyond exact IDs, pagination, raw APIs, bulk, and exports are unavailable.",
+    "Buffer limits requests per 15-minute, 24-hour, and 30-day windows by plan. Relay propagates 429 responses. Refresh tokens are single-use and the replacement must be saved atomically; disconnect is local because the current guide exposes no revocation endpoint."
+  ]
+}

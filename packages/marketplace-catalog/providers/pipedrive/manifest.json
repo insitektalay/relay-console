@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "pipedrive",
+  "name": "Pipedrive",
+  "category": "crm_support",
+  "description": "Pipedrive is a sales customer relationship management platform built around visual pipelines, organizations, people, deals, activities, and reporting. Sales teams use it to track opportunities, organize account information, plan follow-up, and understand how work moves toward a close.",
+  "agentUseSummary": "Connect one Pipedrive company through Relay Console OAuth, then let agents use three bounded read-only tools for Organization and Deal summaries. V1 excludes people and contact details, owners, activities, notes and files, custom fields, writes, searches, arbitrary parameters, pagination, exports, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.pipedrive.com/",
+    "docsUrl": "https://pipedrive.readme.io/docs/marketplace-oauth-authorization",
+    "developerConsoleUrl": "https://developers.pipedrive.com/",
+    "termsUrl": "https://www.pipedrive.com/en/terms-of-service",
+    "privacyUrl": "https://www.pipedrive.com/en/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["base", "contacts:read", "deals:read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://oauth.pipedrive.com/oauth/authorize",
+    "tokenUrl": "https://oauth.pipedrive.com/oauth/token"
+  },
+  "connection": {
+    "types": ["relay_owned_public_app_oauth", "exact_company_binding", "exact_authorizing_user_binding", "token_returned_api_domain_binding", "authorizing_user_permission_inheritance"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/pipedrive/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "organization_read", "label": "Read organizations", "description": "List bounded Organization summaries from the exact connected Pipedrive company.", "defaultSelected": true },
+    { "id": "deal_read", "label": "Read deals", "description": "List bounded Deal summaries or inspect one exact Deal.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "pipedrive_organization_list", "label": "List organizations", "description": "List at most twenty-five bounded Organization summaries." },
+      { "id": "pipedrive_deal_list", "label": "List deals", "description": "List at most twenty-five bounded Deal summaries." },
+      { "id": "pipedrive_deal_get", "label": "Read deal", "description": "Read one exact Deal by positive numeric ID." }
+    ],
+    "blocked": [
+      { "id": "pipedrive_record_mutation", "label": "Change CRM records", "description": "Creating, updating, merging, archiving, restoring, or deleting Pipedrive records is outside V1." },
+      { "id": "pipedrive_private_crm", "label": "Read personal CRM data", "description": "Persons, owners, users, email, phone, addresses, activities, notes, files, participants, and followers are outside V1." },
+      { "id": "pipedrive_broader_crm", "label": "Access broader CRM data", "description": "Products, leads, projects, filters, pipelines, stages, statistics, custom fields, labels, and archived data are outside V1." },
+      { "id": "pipedrive_raw_search", "label": "Run arbitrary searches", "description": "Arbitrary paths, queries, searches, filters, fields, includes, cursors, domains, and recent-item APIs are outside V1." },
+      { "id": "pipedrive_bulk_export", "label": "Export Pipedrive data", "description": "Automatic pagination, crawling, synchronization, and broad exports are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "pipedrive_safe", "label": "Safe", "description": "All three bounded reads require matching approval.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["pipedrive_organization_list", "pipedrive_deal_list", "pipedrive_deal_get"], "blockedActions": ["pipedrive_record_mutation", "pipedrive_private_crm", "pipedrive_broader_crm", "pipedrive_raw_search", "pipedrive_bulk_export"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while exact-company binding, Pipedrive-granted permissions, static requests, limits, audit, redaction, refresh, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["pipedrive_organization_list", "pipedrive_deal_list", "pipedrive_deal_get"], "approvalRequiredActions": [], "blockedActions": ["pipedrive_record_mutation", "pipedrive_private_crm", "pipedrive_broader_crm", "pipedrive_raw_search", "pipedrive_bulk_export"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three bounded Pipedrive read wrappers and attaches the encrypted company token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three bounded Pipedrive read wrappers and attaches the encrypted company token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "A draft Relay Console public app exists, but Pipedrive still requires the canonical callback, terms and legal address, listing images, an install-flow recording, Developer Partner Agreement acceptance, and Marketplace review. This staging/code worker does not open provider consoles or capture credentials.",
+    "nextAction": "In the provider-console task, change the draft callback to https://api.relayconsole.work/api/v1/marketplace/oauth/pipedrive/callback, retain only base, contacts:read, and deals:read, complete the legal and listing assets, accept the Developer Partner Agreement, submit for review, store environment-specific client credentials, and verify install, exact company/user/domain binding, all three reads, refresh rotation, permission denial, uninstall, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://pipedrive.readme.io/docs/marketplace-oauth-authorization", "checkedAt": "2026-07-17", "supports": "Public Marketplace apps use OAuth authorization code, exact redirect registration, Basic-authenticated token exchange and refresh, rotating access and refresh tokens, granted scopes, and a token-returned API domain." },
+    { "url": "https://pipedrive.readme.io/docs/marketplace-scopes-and-permissions-explanations", "checkedAt": "2026-07-17", "supports": "Pipedrive exposes exact app scopes including base, contacts:read, and deals:read; Relay requests only these scopes and exposes a narrower fixed tool surface." },
+    { "url": "https://developers.pipedrive.com/docs/api/v1/Organizations", "checkedAt": "2026-07-17", "supports": "The Organizations API supports bounded API v2 organization listing; Relay fixes limit and update-time sorting and returns only non-personal summary fields." },
+    { "url": "https://developers.pipedrive.com/docs/api/v1/Deals", "checkedAt": "2026-07-17", "supports": "The Deals API supports bounded API v2 listing and exact deal retrieval; Relay fixes the paths, query keys, result cap, and returned fields." },
+    { "url": "https://pipedrive.readme.io/docs/marketplace-app-approval-process", "checkedAt": "2026-07-17", "supports": "Marketplace approval requires OAuth, least scopes, install and uninstall behavior, token refresh, permission handling, legal and support information, listing media and video, test access, contact details, and Developer Partner Agreement acceptance; review may take up to twenty-one business days." }
+  ]
+}

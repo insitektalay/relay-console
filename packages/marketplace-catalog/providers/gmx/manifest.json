@@ -1,0 +1,113 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "gmx",
+  "name": "GMX",
+  "category": "communication",
+  "description": "GMX is a consumer webmail service from 1&1 Mail & Media with email, folders, contacts, calendar, cloud storage, and mobile apps.",
+  "agentUseSummary": "GMX cannot be newly connected under Relay's provider-owned delegated authorization model. GMX documents only customer-owned mailbox or application-specific passwords for broad IMAP/POP3/SMTP access, so Relay mounts no credentials or tools and does not silently turn a full mailbox secret into a narrow OAuth integration.",
+  "provider": {
+    "websiteUrl": "https://www.gmx.com/mail/",
+    "docsUrl": "https://support.gmx.com/pop-imap/index.html",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.gmx.com/company/terms/",
+    "privacyUrl": "https://www.gmx.com/company/privacypolicy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "delegated_oauth_api_unavailable",
+      "customer_mailbox_secret_requires_separate_product_decision",
+      "no_new_relay_connection"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "gmx_connect",
+        "label": "Connect GMX",
+        "description": "GMX does not publish a delegated OAuth or product API contract for Relay."
+      },
+      {
+        "id": "gmx_mailbox_secret",
+        "label": "Use mailbox credentials",
+        "description": "A GMX mailbox or application-specific password grants broad protocol access and is a distinct credential product not authorized in V1."
+      },
+      {
+        "id": "gmx_mail_protocols",
+        "label": "Use IMAP, POP3, or SMTP",
+        "description": "Mailbox reads, folder access, message mutation, and sends are unavailable because no GMX connection is mounted."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "gmx_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled without an approved customer-owned mailbox credential product or a current GMX delegated API.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "gmx_connect",
+        "gmx_mailbox_secret",
+        "gmx_mail_protocols"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No GMX credentials or tools are mounted; the documented integration requires a customer mailbox secret."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No GMX credentials or tools are mounted; the documented integration requires a customer mailbox secret."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "GMX's official third-party integration is customer-owned IMAP/POP3/SMTP authenticated with the mailbox password or a broad application-specific password. GMX publishes no delegated OAuth/product API contract that lets Relay request narrow agent capabilities without receiving a mailbox-level secret.",
+    "nextAction": "Keep GMX unavailable unless a separate product decision explicitly authorizes customer-owned IMAP/SMTP credentials with a complete protocol security model, or GMX publishes a supported delegated OAuth/API contract."
+  },
+  "evidence": [
+    {
+      "url": "https://support.gmx.com/pop-imap/index.html",
+      "checkedAt": "2026-07-17",
+      "supports": "GMX documents third-party email application access by activating IMAP and POP3 rather than through a delegated product API."
+    },
+    {
+      "url": "https://support.gmx.com/pop-imap/imap/server.html",
+      "checkedAt": "2026-07-17",
+      "supports": "GMX documents fixed IMAP/SMTP servers, TLS requirements, and mailbox-protocol access for third-party clients."
+    },
+    {
+      "url": "https://support.gmx.com/security/2fa/application-specific-passwords.html",
+      "checkedAt": "2026-07-17",
+      "supports": "GMX documents application-specific passwords as the credential for external POP3/IMAP, CalDAV, and CardDAV programs."
+    },
+    {
+      "url": "https://www.gmx.com/mail/",
+      "checkedAt": "2026-07-17",
+      "supports": "GMX's current product page describes its email, folder, contacts, organizer, cloud, security, and mobile product surface."
+    }
+  ]
+}

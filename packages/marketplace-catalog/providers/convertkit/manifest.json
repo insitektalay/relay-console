@@ -1,0 +1,190 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "convertkit",
+  "name": "Kit",
+  "category": "communication",
+  "description": "Kit, formerly ConvertKit, is an email-first creator platform for subscribers, forms, landing pages, broadcasts, automations, commerce, and audience growth.",
+  "agentUseSummary": "Connect one Kit account through Relay-owned confidential OAuth at API v4 using the provider's current public scope. Relay validates the exact account and serializes complete rotating token-pair replacement, then exposes only account metadata, twenty active Form lifecycle summaries, and twenty sparse Broadcast lifecycle summaries; subscribers, identity, embed URLs, message content, audiences, commerce, automation, arbitrary queries, pagination, exports, broader APIs, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://kit.com/",
+    "docsUrl": "https://developers.kit.com/api-reference/authentication",
+    "developerConsoleUrl": "https://app.kit.com/apps",
+    "termsUrl": "https://kit.com/terms-of-service",
+    "privacyUrl": "https://kit.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["public"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.kit.com/v4/oauth/authorize",
+    "tokenUrl": "https://api.kit.com/v4/oauth/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "exact_account_binding",
+      "provider_current_public_scope",
+      "expiring_access_token",
+      "rotating_complete_token_pair",
+      "local_disconnect_and_provider_app_uninstall"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/convertkit/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_metadata",
+      "label": "Account metadata",
+      "description": "Read the exact Kit account summary.",
+      "defaultSelected": true
+    },
+    {
+      "id": "form_metadata",
+      "label": "Active Form metadata",
+      "description": "List bounded active Form lifecycle summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "broadcast_metadata",
+      "label": "Broadcast metadata",
+      "description": "List bounded recent Broadcast lifecycle summaries.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "convertkit_account_get",
+        "label": "Read account metadata",
+        "description": "Read the exact Kit account ID, name, plan, creation time, and timezone name."
+      },
+      {
+        "id": "convertkit_form_list_active",
+        "label": "List active forms",
+        "description": "Read one fixed page of twenty active Form lifecycle summaries."
+      },
+      {
+        "id": "convertkit_broadcast_list_recent",
+        "label": "List recent broadcasts",
+        "description": "Read one fixed page of twenty sparse Broadcast lifecycle summaries."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "convertkit_subscriber_private",
+        "label": "Access subscribers or audience identity",
+        "description": "Subscribers, contact identity, custom fields, tags, segments, consent, and behavior are outside V1."
+      },
+      {
+        "id": "convertkit_content_private",
+        "label": "Access content or audience details",
+        "description": "Form subscriber data and embed URLs plus Broadcast subjects, content, previews, descriptions, email identity, templates, filters, audiences, and statistics are outside V1."
+      },
+      {
+        "id": "convertkit_commerce_automation",
+        "label": "Access commerce or automation",
+        "description": "Purchases, commerce, automations, sequences, and webhooks are outside V1."
+      },
+      {
+        "id": "convertkit_marketing_mutation",
+        "label": "Change or send Kit data",
+        "description": "Creating, updating, sending, subscribing, tagging, importing, bulk processing, or deleting Kit resources is outside V1."
+      },
+      {
+        "id": "convertkit_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary paths, query parameters, cursors, pagination, crawling, synchronization, exports, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "convertkit_safe",
+      "label": "Safe",
+      "description": "Three bounded metadata-only reads run automatically; subscribers, identity, content, audiences, commerce, automation, raw requests, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "convertkit_account_get",
+        "convertkit_form_list_active",
+        "convertkit_broadcast_list_recent"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "convertkit_subscriber_private",
+        "convertkit_content_private",
+        "convertkit_commerce_automation",
+        "convertkit_marketing_mutation",
+        "convertkit_raw_query"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact-account binding, fixed fields, page limits, audit, redaction, serialized token rotation, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "convertkit_account_get",
+        "convertkit_form_list_active",
+        "convertkit_broadcast_list_recent"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "convertkit_subscriber_private",
+        "convertkit_content_private",
+        "convertkit_commerce_automation",
+        "convertkit_marketing_mutation",
+        "convertkit_raw_query"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Kit metadata wrappers and attaches the encrypted, account-bound rotating OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Kit metadata wrappers and attaches the encrypted, account-bound rotating OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Kit requires Relay to create and review a secure App Store OAuth app with the exact Railway callback, current public scope, and secure client credentials. Railway staging credentials and an authorized acceptance account are not configured in this code-only task.",
+    "nextAction": "In the provider-console task, create and submit Relay's Kit App Store OAuth app with https://api.relayconsole.work/api/v1/marketplace/oauth/convertkit/callback, secure application enabled, and the current public scope; configure Railway staging client credentials, then verify state, exact account binding, all three privacy-minimized reads, serialized refresh with complete-pair replacement, the 600-request rolling-minute OAuth limit, provider uninstall plus Relay-local disconnect, app review requirements, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.kit.com/api-reference/oauth-refresh-token-flow",
+      "checkedAt": "2026-07-17",
+      "supports": "Kit documents secure authorization-code OAuth at api.kit.com/v4, registered redirect URIs and state, the current public scope, JSON token exchange, Bearer API calls, expiring access tokens, and complete rotating refresh-token responses."
+    },
+    {
+      "url": "https://developers.kit.com/api-reference/accounts/get-current-account",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /v4/account returns user and account objects; Relay retains only account ID, name, plan type, created time, and timezone name while excluding user and primary account emails."
+    },
+    {
+      "url": "https://developers.kit.com/api-reference/forms/list-forms",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /v4/forms supports per_page and active status filters and returns Form lifecycle fields plus embed URLs; Relay fixes page size at twenty and excludes embed URLs and subscribers."
+    },
+    {
+      "url": "https://developers.kit.com/api-reference/broadcasts/list-broadcasts",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /v4/broadcasts supports bounded cursor pagination and returns lifecycle metadata together with sensitive message and audience fields; Relay fixes the first page at twenty and keeps only six lifecycle fields."
+    },
+    {
+      "url": "https://developers.kit.com/api-reference/response-codes",
+      "checkedAt": "2026-07-17",
+      "supports": "Kit limits OAuth access tokens to 600 API requests over a rolling 60-second period."
+    }
+  ]
+}

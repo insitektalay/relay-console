@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "freshservice",
+  "name": "Freshservice",
+  "category": "crm_support",
+  "description": "Freshservice is an IT service-management platform for incidents, service requests, assets, changes, problems, releases, knowledge, automation, and employee support. Teams use it to run service desks and governed operational workflows.",
+  "agentUseSummary": "Enter one Freshservice account domain and personal agent API key, then let selected agents use bounded ticket summaries or the documented API v2 surface under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.freshworks.com/freshservice/",
+    "docsUrl": "https://api.freshservice.com/v2/",
+    "developerConsoleUrl": "https://support.freshservice.com/support/solutions/articles/50000012704-working-with-apis-in-freshservice",
+    "termsUrl": "https://www.freshworks.com/terms/",
+    "privacyUrl": "https://www.freshworks.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "FRESHSERVICE_DOMAIN",
+        "label": "Freshservice domain",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the account name before .freshservice.com; API v2 does not support custom CNAMEs."
+      },
+      {
+        "name": "FRESHSERVICE_API_KEY",
+        "label": "Freshservice API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy your personal API key from Freshservice profile settings. Its access follows your agent role."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ticket_read",
+      "label": "Read service tickets",
+      "description": "List bounded ticket summaries and read one exact ticket without requester contacts, conversations, attachments, custom fields, descriptions, or embedded resources.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Freshservice API",
+      "description": "Use the documented Freshservice API v2 surface allowed by the connected agent role and personal API key.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "freshservice_ticket_list",
+        "label": "List service tickets",
+        "description": "List at most twenty-five ticket operational summaries from the fixed first page without embeds."
+      },
+      {
+        "id": "freshservice_ticket_get",
+        "label": "Read service ticket",
+        "description": "Read one exact numeric ticket through Relay's bounded operational projection."
+      },
+      {
+        "id": "freshservice_full_api",
+        "label": "Use full Freshservice API",
+        "description": "Use a documented Freshservice API v2 operation authorized by the connected agent API key; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "freshservice_safe",
+      "label": "Safe",
+      "description": "Bounded ticket reads and every broader API operation require approval; tenant binding, secret isolation, provider roles, and limits remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "freshservice_ticket_list",
+        "freshservice_ticket_get",
+        "freshservice_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected API-key-authorized operations run without Relay per-action approval; exact tenant binding, secret isolation, request bounds, audits, provider roles, and Freshservice limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "freshservice_ticket_list",
+        "freshservice_ticket_get",
+        "freshservice_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted personal key only to the exact normalized freshservice.com tenant."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted personal key only to the exact normalized freshservice.com tenant."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer Freshservice domain and personal agent API key are required for live acceptance.",
+    "nextAction": "A customer enters the account name before .freshservice.com and a personal agent API key, then Relay verifies exact-tenant health, bounded reads, Safe approval, Dangerous broader API behavior, key reset, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.freshservice.com/v2/",
+      "checkedAt": "2026-07-17",
+      "supports": "Freshservice's official API v2 reference documents HTTPS-only freshservice.com tenant endpoints, personal API-key Basic authentication, agent-role authorization, ticket APIs, GET/POST/PUT/DELETE operations, pagination, response errors, rate limits, and the lack of custom-CNAME support."
+    },
+    {
+      "url": "https://support.freshservice.com/support/solutions/articles/50000012704-working-with-apis-in-freshservice",
+      "checkedAt": "2026-07-17",
+      "supports": "Freshservice documents its REST API as the supported interface for service-management data and workflows and directs customers to the current API reference."
+    },
+    {
+      "url": "https://support.freshservice.com/support/solutions/articles/50000006003-deprecating-v1-apis-for-freshservice",
+      "checkedAt": "2026-07-17",
+      "supports": "Freshservice documents migration away from API v1 toward API v2, supporting Relay's fixed v2-only boundary."
+    }
+  ]
+}

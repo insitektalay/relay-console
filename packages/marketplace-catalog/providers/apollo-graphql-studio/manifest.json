@@ -1,0 +1,184 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "apollo-graphql-studio",
+  "name": "Apollo GraphQL Studio",
+  "category": "developer_tools",
+  "description": "Apollo GraphOS Studio is a cloud platform for managing, observing, and delivering GraphQL APIs.",
+  "agentUseSummary": "Connect a dedicated customer-owned graph-scoped Consumer or Observer API key. Agents can read only current OCI graph-artifact metadata and one exact launch status through fixed Platform API documents. Schemas, operations, telemetry, mutations, administration, broad credentials, and raw GraphQL remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.apollographql.com/",
+    "docsUrl": "https://www.apollographql.com/docs/graphos/platform/platform-api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.apollographql.com/Apollo-Terms-of-Service.pdf",
+    "privacyUrl": "https://www.apollographql.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_graph_api_key",
+      "exact_graph_variant_binding",
+      "header_authentication",
+      "manual_provider_revocation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "APOLLO_GRAPHOS_API_KEY",
+        "label": "Customer-owned graph API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated graph-scoped Consumer or Observer key, never a personal or organization-wide key. Relay encrypts its copy; delete the key in GraphOS Studio after disconnect."
+      },
+      {
+        "name": "APOLLO_GRAPH_ID",
+        "label": "Graph ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact GraphOS graph ID this connection may inspect."
+      },
+      {
+        "name": "APOLLO_GRAPH_VARIANT",
+        "label": "Graph variant",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact GraphOS variant, such as current, this connection may inspect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "graph_artifact_metadata_read",
+      "label": "Read graph artifact metadata",
+      "description": "Read only current OCI artifact location and digest metadata for the configured graph variant.",
+      "defaultSelected": true
+    },
+    {
+      "id": "launch_status_read",
+      "label": "Read launch status",
+      "description": "Read only the status of one exact launch for the configured graph variant.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "apollo_graphos_graph_artifact_get",
+        "label": "Read graph artifact metadata",
+        "description": "Read the current OCI graph-artifact tag and digest metadata for the configured graph and variant through two fixed Platform API queries."
+      },
+      {
+        "id": "apollo_graphos_launch_status_get",
+        "label": "Read launch status",
+        "description": "Read the status of one exact launch identifier for the configured graph and variant through one fixed Platform API query."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "apollo_graphos_schema_operations_telemetry",
+        "label": "Block graph content and telemetry",
+        "description": "Schemas, SDL, subgraphs, operations, traces, metrics, insights, proposals, persisted queries, graph configuration, and organization data are unavailable."
+      },
+      {
+        "id": "apollo_graphos_mutations_administration",
+        "label": "Block mutations and administration",
+        "description": "Schema publishing and checks, graph and variant changes, integration changes, API-key management, persisted-query changes, proposals, router settings, telemetry settings, and all other mutations are unavailable."
+      },
+      {
+        "id": "apollo_graphos_raw_broad_credentials",
+        "label": "Block raw access and broad credentials",
+        "description": "Arbitrary GraphQL, introspection, fragments, user-supplied variables, batching, pagination, retries, redirects, personal keys, organization keys, operator keys, subgraph keys, cookies, and browser sessions are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "apollo_graphos_safe",
+      "label": "Safe",
+      "description": "Two fixed metadata reads run automatically; graph content, telemetry, mutations, administration, broad credentials, and raw GraphQL remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "apollo_graphos_graph_artifact_get",
+        "apollo_graphos_launch_status_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "apollo_graphos_schema_operations_telemetry",
+        "apollo_graphos_mutations_administration",
+        "apollo_graphos_raw_broad_credentials"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same two fixed reads run without per-action approval; fixed documents, exact graph binding, response reduction, audits, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "apollo_graphos_graph_artifact_get",
+        "apollo_graphos_launch_status_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "apollo_graphos_schema_operations_telemetry",
+        "apollo_graphos_mutations_administration",
+        "apollo_graphos_raw_broad_credentials"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two fixed bounded metadata reads while Railway alone holds the graph key and exact graph/variant binding."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two fixed bounded metadata reads while Railway alone holds the graph key and exact graph/variant binding."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A representative GraphOS organization, dedicated least-privilege graph key, current plan-role confirmation, current terms/privacy review, staging credential entry, live response validation, and provider-side key lifecycle testing remain for separate authorized tasks.",
+    "nextAction": "An authorized provider task must create a dedicated Consumer or Observer graph key for a test graph, store the key and exact graph/variant in Railway staging, then validate only the fixed documents, response reduction, 256 KiB limit, no retry or pagination, encrypted-copy deletion, provider-side key deletion, and post-deletion denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.apollographql.com/docs/graphos/platform/platform-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Apollo documents the GraphOS Platform GraphQL API endpoint, x-api-key authentication, supported read operations and mutations, and the broader authority that Relay must narrow."
+    },
+    {
+      "url": "https://www.apollographql.com/docs/graphos/platform/access-management/api-keys",
+      "checkedAt": "2026-07-18",
+      "supports": "Apollo documents graph API keys, graph-level roles, secret handling, key deletion, and the broader cross-graph authority of personal keys, which Relay prohibits."
+    },
+    {
+      "url": "https://www.apollographql.com/docs/graphos/delivery/launches/cli",
+      "checkedAt": "2026-07-18",
+      "supports": "Apollo publishes the exact graph, variant, launch and status Platform API query shape used by the fixed launch-status action."
+    },
+    {
+      "url": "https://www.apollographql.com/docs/graphos/routing/self-hosted/containerization/oci-artifacts",
+      "checkedAt": "2026-07-18",
+      "supports": "Apollo publishes the exact graphArtifactTagLocation and graphArtifactByTag query shapes used by the bounded artifact-metadata action."
+    },
+    {
+      "url": "https://www.apollographql.com/docs/graphos/platform/limits",
+      "checkedAt": "2026-07-18",
+      "supports": "Apollo documents Platform API limits; Relay performs no automatic retry or pagination and enforces a smaller local response bound."
+    }
+  ]
+}

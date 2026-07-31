@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "simplybook-me",
+  "name": "SimplyBook.me",
+  "category": "work_management",
+  "description": "SimplyBook.me is an online appointment-scheduling platform for service businesses that manage staff, locations, availability, bookings, clients, payments, promotions, and notifications. Businesses use it to publish branded booking pages and run day-to-day appointment operations across web and mobile channels.",
+  "agentUseSummary": "Add your company login and API key for booking access, with an optional user login and API User Key for administration, then choose which agents can use the connection under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://simplybook.me/",
+    "docsUrl": "https://simplybook.me/en/api/developer-api",
+    "developerConsoleUrl": "https://simplybook.me/",
+    "termsUrl": "https://simplybook.me/en/terms-and-conditions",
+    "privacyUrl": "https://simplybook.me/en/legal/privacy-policy"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      { "name": "SIMPLYBOOK_COMPANY_LOGIN", "label": "SimplyBook.me company login", "required": true, "secret": false, "helpText": "Enter the company identifier used in your SimplyBook.me booking URL." },
+      { "name": "SIMPLYBOOK_API_KEY", "label": "SimplyBook.me API key", "required": true, "secret": true, "helpText": "Enable the API Custom Feature, then copy its API key from Custom Features → API → Settings." },
+      { "name": "SIMPLYBOOK_USER_LOGIN", "label": "Administration user login (optional)", "required": false, "secret": false, "helpText": "Add a SimplyBook.me user login only if agents should use administration methods." },
+      { "name": "SIMPLYBOOK_USER_API_KEY", "label": "Administration API User Key (optional)", "required": false, "secret": true, "helpText": "Generate an API User Key under Settings → API User Keys. Do not enter the user's normal password." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "schedule_read", "label": "Read scheduling data", "description": "Use every documented non-mutating public and administration JSON-RPC method for company, service, provider, availability, booking, client, configuration, and reporting data.", "defaultSelected": true },
+    { "id": "schedule_manage", "label": "Manage scheduling", "description": "Use every documented mutating public and administration JSON-RPC method for bookings, clients, service providers, approvals, statuses, notifications, and workdays.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "simplybook_me_api_read", "label": "Read SimplyBook.me", "description": "Read bounded authorized scheduling and administration data through documented JSON-RPC methods." }],
+    "approvalRequired": [{ "id": "simplybook_me_api_manage", "label": "Manage SimplyBook.me", "description": "Change bookings, clients, providers, approvals, statuses, notifications, or workdays through documented JSON-RPC methods." }],
+    "blocked": [
+      { "id": "simplybook_me_secret_exposure", "label": "Expose credentials", "description": "Company and user API credentials and derived hourly tokens never enter agent-visible requests or results." },
+      { "id": "simplybook_me_unofficial_origin", "label": "Use another API origin", "description": "Every request stays on SimplyBook.me's documented user API origins." },
+      { "id": "simplybook_me_unsupported_method", "label": "Call another method", "description": "Relay permits only documented public and administration JSON-RPC methods." },
+      { "id": "simplybook_me_unbounded_transfer", "label": "Run an unbounded transfer", "description": "Relay bounds parameters, responses, redirects, nesting, execution time, and provider calls." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "simplybook_me_safe", "label": "Safe", "description": "Documented reads run directly. Every booking, client, provider, approval, status, notification, or workday change requires approval.", "defaultSelected": true, "allowedActions": ["simplybook_me_api_read"], "approvalRequiredActions": ["simplybook_me_api_manage"], "blockedActions": ["simplybook_me_secret_exposure", "simplybook_me_unofficial_origin", "simplybook_me_unsupported_method", "simplybook_me_unbounded_transfer"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every documented operation authorized by the customer's SimplyBook.me credentials runs without Relay per-action approval. Credential authority, exact methods, bounds, provider limits, redaction, and audits still apply.", "defaultSelected": false, "allowedActions": ["simplybook_me_api_read", "simplybook_me_api_manage"], "approvalRequiredActions": [], "blockedActions": ["simplybook_me_secret_exposure", "simplybook_me_unofficial_origin", "simplybook_me_unsupported_method", "simplybook_me_unbounded_transfer"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay derives one-hour SimplyBook.me tokens server-side and mounts exact public and optional administration JSON-RPC tools." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay derives one-hour SimplyBook.me tokens server-side and mounts exact public and optional administration JSON-RPC tools." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer-owned SimplyBook.me company login and API key are required for live verification; optional full administration also requires a user login and API User Key. SimplyBook.me does not document a third-party OAuth application flow for these APIs.",
+    "nextAction": "Have the account owner enable the API Custom Feature, copy the company login and API key, optionally generate an API User Key under Settings → API User Keys, connect them in Relay Console, then verify public and administration reads, Safe approval, Dangerous mutations, token regeneration, redaction, credential rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://help.simplybook.me/index.php?title=Special%3AMyLanguage%2FUser_API_guide", "checkedAt": "2026-07-15", "supports": "SimplyBook.me documents customer-owned company login and API-key authentication, one-hour derived access tokens, X-Company-Login and X-Token headers, and server-side token handling." },
+    { "url": "https://help.simplybook.me/index.php/Company_public_service_methods", "checkedAt": "2026-07-15", "supports": "SimplyBook.me documents its complete company public JSON-RPC method surface for services, providers, availability, bookings, company configuration, payments, promotions, and related reads and writes." },
+    { "url": "https://help.simplybook.me/index.php?title=Company_administration_service_methods", "checkedAt": "2026-07-15", "supports": "SimplyBook.me documents its administration JSON-RPC surface for bookings, clients, reports, providers, approvals, statuses, notifications, and work schedules." },
+    { "url": "https://simplybook.me/en/api/developer-api", "checkedAt": "2026-07-15", "supports": "SimplyBook.me documents API User Keys as the non-password credential for administration access and the current user-api.simplybook.me login and service origins." }
+  ]
+}

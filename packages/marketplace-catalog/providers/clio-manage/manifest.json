@@ -1,0 +1,174 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "clio-manage",
+  "name": "Clio Manage",
+  "category": "crm_support",
+  "description": "Clio Manage is cloud legal practice-management software for organizing clients, matters, documents, calendars, tasks, time, billing, payments, communications, and firm operations.",
+  "agentUseSummary": "Connect one US-region Clio Manage user through Relay-owned confidential OAuth. Relay requests only the application's read-only Users permission and exposes one approval-gated authority check that returns enabled status, fixed region, and API version while discarding identity and all legal-practice data.",
+  "provider": {
+    "websiteUrl": "https://www.clio.com/manage/",
+    "docsUrl": "https://docs.developers.clio.com/api-docs/clio-manage/",
+    "developerConsoleUrl": "https://developers.clio.com/",
+    "termsUrl": "https://www.clio.com/partnerships/developers/developer-terms-service/",
+    "privacyUrl": "https://www.clio.com/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["Users (read-only, configured on the OAuth application)"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.clio.com/oauth/authorize",
+    "tokenUrl": "https://app.clio.com/oauth/token",
+    "revocationUrl": "https://app.clio.com/oauth/deauthorize"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "authorization_code",
+      "us_region_bound",
+      "read_only_users_permission",
+      "thirty_day_access_token",
+      "non_expiring_refresh_token",
+      "provider_deauthorization"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/clio-manage/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "connection_authority_read",
+      "label": "Verify connection authority",
+      "description": "Verify that the US-region OAuth grant resolves to an enabled Clio Manage user while returning no user identity or legal-practice data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "clio_manage_connection_authority_get",
+        "label": "Verify Clio Manage connection authority",
+        "description": "Call the fixed who-am-I endpoint with only id and enabled fields, use the ID only to validate authority, discard it, and return enabled status, US region, and API version."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "clio_manage_identity_firm_or_client_data",
+        "label": "Access identity, firm, or client data",
+        "description": "User IDs and identity fields, firm details, contacts, clients, matters, relationships, custom fields, notes, and all associated legal-practice data are blocked."
+      },
+      {
+        "id": "clio_manage_documents_communications_or_calendar",
+        "label": "Access documents, communications, or calendars",
+        "description": "Documents, folders, emails, messages, communications, calendar entries, attendees, tasks, activities, time entries, and expenses are blocked."
+      },
+      {
+        "id": "clio_manage_billing_payments_or_financial_data",
+        "label": "Access billing, payments, or financial data",
+        "description": "Bills, balances, bank and trust accounts, payments, accounting records, rates, invoices, transactions, and financial reports are blocked."
+      },
+      {
+        "id": "clio_manage_write_webhook_or_administer",
+        "label": "Write, subscribe, or administer Clio Manage",
+        "description": "Creates, updates, deletes, custom actions, webhooks, exports, users, roles, permissions, OAuth applications, and administration are blocked."
+      },
+      {
+        "id": "clio_manage_raw_api_other_region_or_bulk",
+        "label": "Use raw APIs, another region, or bulk access",
+        "description": "Arbitrary endpoints, methods, fields, associations, filters, pagination, other Clio regions, browser sessions, scraping, raw responses, bulk operations, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "clio_manage_safe",
+      "label": "Safe",
+      "description": "The identity-free authority check requires approval; all identity, legal-practice records, content, financial data, writes, webhooks, administration, arbitrary APIs, and other regions remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["clio_manage_connection_authority_get"],
+      "blockedActions": [
+        "clio_manage_identity_firm_or_client_data",
+        "clio_manage_documents_communications_or_calendar",
+        "clio_manage_billing_payments_or_financial_data",
+        "clio_manage_write_webhook_or_administer",
+        "clio_manage_raw_api_other_region_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same authority check runs directly; US-region binding, read-only Users permission, field minimization, redaction, auditing, response bounds, and provider rate limits remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["clio_manage_connection_authority_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "clio_manage_identity_firm_or_client_data",
+        "clio_manage_documents_communications_or_calendar",
+        "clio_manage_billing_payments_or_financial_data",
+        "clio_manage_write_webhook_or_administer",
+        "clio_manage_raw_api_other_region_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one field-minimized authority check and injects OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one field-minimized authority check and injects OAuth tokens server-side."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A US-region Clio Manage developer account and public OAuth application, accepted Developer Terms, exact Railway callback, confidential client credentials, only the read-only Users permission, application review and directory approval as applicable, customer consent, refresh/deauthorization validation, security and privacy review, and live acceptance are required.",
+    "nextAction": "Use the separate provider-console task to apply for the US developer account, create the OAuth app with only read-only Users permission and the exact Railway callback, accept Clio's developer and data requirements, store the client credentials on Railway, and validate authorization, token refresh, identity redaction, 50-per-minute rate handling, deauthorization, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.developers.clio.com/api-docs/clio-manage/authorization/",
+      "checkedAt": "2026-07-18",
+      "supports": "Clio Manage confidential OAuth 2.0 authorization-code flow, exact redirect URI, 10-minute authorization code, 30-day bearer access token, non-expiring refresh token, deauthorization endpoint and callback, and regional token isolation."
+    },
+    {
+      "url": "https://docs.developers.clio.com/api-docs/clio-manage/permissions/",
+      "checkedAt": "2026-07-18",
+      "supports": "Developer applications choose fixed read-only or read/write access permissions; user roles further restrict access, missing permissions return 403, and associated data can be redacted."
+    },
+    {
+      "url": "https://docs.developers.clio.com/clio-manage/api-reference/",
+      "checkedAt": "2026-07-18",
+      "supports": "Official v4 endpoints, US/CA/EU/AU regions, field selection, who-am-I resource, version header, typed errors, and the much broader legal-practice surface intentionally excluded from V1."
+    },
+    {
+      "url": "https://docs.developers.clio.com/api-docs/clio-manage/rate-limits/",
+      "checkedAt": "2026-07-18",
+      "supports": "API v4 is rate-limited per access token, defaults to 50 requests per minute during peak hours, returns rate-limit headers and Retry-After on 429, and may change limits."
+    },
+    {
+      "url": "https://www.clio.com/partnerships/developers/developer-terms-service/",
+      "checkedAt": "2026-07-18",
+      "supports": "Clio requires minimum necessary data, applicable consent and authority, encrypted transmission and storage, secret protection, deletion after deauthorization or when no longer required, and use only through documented APIs."
+    },
+    {
+      "url": "https://docs.developers.clio.com/handbook/build-your-app/developer-security-and-data-guidelines/",
+      "checkedAt": "2026-07-18",
+      "supports": "Clio's app guidance requires security, privacy, data-residency, deletion, incident-response, and public-policy readiness for approval."
+    }
+  ],
+  "securityNotes": [
+    "Relay's US-only V1 configures only read-only Users permission; Clio Manage permissions are fixed on the developer application rather than dynamically requested during authorization.",
+    "The sole request is GET https://app.clio.com/api/v4/users/who_am_i?fields=id,enabled with X-API-VERSION 4.0.13. The ID is validated transiently and discarded; name, email, roles, firm identity, and legal-practice data are never returned or persisted.",
+    "Requests reject redirects, time out after 20 seconds, cap responses at 1 MB, do not paginate or retry automatically, and preserve 401, 403, 429, and provider-unavailable outcomes.",
+    "Contacts, matters, clients, documents, folders, communications, calendar entries, tasks, activities, notes, custom fields, bills, payments, trust and bank accounts, webhooks, custom actions, writes, administration, arbitrary APIs, other regions, bulk access, and exports are unavailable.",
+    "Access and refresh tokens remain encrypted server-side; disconnect uses Clio's documented deauthorization endpoint and deletes Relay's grant. Provider-console setup and live acceptance remain external blockers."
+  ]
+}

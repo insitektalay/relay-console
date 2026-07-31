@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ticktick",
+  "name": "TickTick",
+  "category": "work_management",
+  "description": "TickTick is a task, checklist, calendar and habit-planning app for organizing personal work and shared projects across desktop, web and mobile. People use it to capture tasks, plan dates and priorities, structure projects, track habits and keep day-to-day commitments visible.",
+  "agentUseSummary": "Connect TickTick through OAuth, then let agents read bounded projects and tasks or use the broader documented Open API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://ticktick.com/",
+    "docsUrl": "https://developer.ticktick.com/docs/index.html#/openapi",
+    "developerConsoleUrl": "https://developer.ticktick.com/manage",
+    "termsUrl": "https://ticktick.com/about/tos",
+    "privacyUrl": "https://ticktick.com/about/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["tasks:read", "tasks:write"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://ticktick.com/oauth/authorize",
+    "tokenUrl": "https://ticktick.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_app_oauth",
+      "access_token_only",
+      "token_bound_grant_validation",
+      "local_disconnect_only",
+      "fixed_ticktick_api_origin"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/ticktick/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "project_task_read", "label": "Read projects and tasks", "description": "Read bounded project and task data from the connected TickTick grant.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full TickTick Open API", "description": "Use the documented Open API v1 surface allowed by the connected user.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "ticktick_project_list", "label": "List projects", "description": "List at most twenty-five TickTick project summaries." },
+      { "id": "ticktick_project_data_get", "label": "Read project data", "description": "Read one TickTick project and at most twenty-five of its task summaries." },
+      { "id": "ticktick_task_get", "label": "Read a task", "description": "Read one TickTick task by exact project and task IDs." }
+    ],
+    "approvalRequired": [
+      { "id": "ticktick_full_api", "label": "Use full TickTick Open API", "description": "Use any documented TickTick Open API v1 operation authorized by the connection; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "ticktick_safe", "label": "Safe", "description": "Bounded project and task reads run directly; every other TickTick API operation requires approval.", "defaultSelected": true, "allowedActions": ["ticktick_project_list", "ticktick_project_data_get", "ticktick_task_get"], "approvalRequiredActions": ["ticktick_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected TickTick operation runs without Relay per-action approval; secret isolation, fixed routing, request bounds, audits, TickTick authorization, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["ticktick_project_list", "ticktick_project_data_get", "ticktick_task_get", "ticktick_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts typed TickTick wrappers and attaches the encrypted OAuth access token only to the fixed TickTick Open API origin." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts typed TickTick wrappers and attaches the encrypted OAuth access token only to the fixed TickTick Open API origin." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A Relay-owned TickTick OAuth application, staging credentials and live consent validation still require the provider-console task.",
+    "nextAction": "In the provider-console task, register Relay's exact callback and tasks:read tasks:write scopes, add staging credentials, then verify authorization, token-bound project-list validation, bounded reads, Safe approval, Dangerous mutation, local disconnect and post-disconnect denial. Do not claim refresh or upstream revocation because TickTick does not document them."
+  },
+  "evidence": [
+    { "url": "https://developer.ticktick.com/docs/index.html#/openapi", "checkedAt": "2026-07-17", "supports": "TickTick documents authorization-code OAuth, exact tasks:read and tasks:write scopes, Basic-authenticated token exchange, the fixed Open API v1 origin, and Project, Task, Focus and Habit routes. It does not document refresh tokens, token expiry, revocation, or a current-user endpoint." },
+    { "url": "https://developer.ticktick.com/manage", "checkedAt": "2026-07-17", "supports": "TickTick's official developer console registers an application client ID, confidential client secret and OAuth redirect URL." }
+  ]
+}

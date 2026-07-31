@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "notion-calendar",
+  "name": "Notion Calendar",
+  "category": "productivity",
+  "description": "Notion Calendar is Notion's calendar application for viewing and managing personal and work schedules, coordinating availability, joining meetings, and scheduling across time zones. It combines events from connected Google Calendar, Microsoft Outlook, and Apple iCloud calendars with dated content from connected Notion workspaces.",
+  "agentUseSummary": "Do not create a separate Notion Calendar connection or install. Use the calendar provider that owns each event for supported event actions and the canonical Notion provider for supported database and page actions; Relay does not reuse Notion Calendar's signed-in sessions, upstream calendar grants, scheduling links, conferencing connections, or desktop-only event-opening deep link as a cloud data API.",
+  "provider": {
+    "websiteUrl": "https://www.notion.com/product/calendar",
+    "docsUrl": "https://www.notion.com/help/category/notion-calendar",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.notion.so/terms",
+    "privacyUrl": "https://www.notion.so/privacy"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "notion_calendar_product_client",
+      "use_source_calendar_provider_connection",
+      "use_canonical_notion_for_workspace_content",
+      "desktop_deep_link_only_no_cloud_data_api",
+      "no_duplicate_connection_state"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "notion_calendar_duplicate_connection",
+        "label": "Create a Notion Calendar connection",
+        "description": "Calendar events remain governed by the connected Google, Outlook, or iCloud account, while database dates remain Notion content; Notion Calendar does not publish a separate Relay-compatible cloud authorization and event resource lifecycle."
+      },
+      {
+        "id": "notion_calendar_duplicate_install",
+        "label": "Install duplicate calendar tools",
+        "description": "Relay routes supported event operations to the explicit calendar provider and supported workspace operations to Notion instead of mounting an overlapping Notion Calendar tool set."
+      },
+      {
+        "id": "notion_calendar_event_access",
+        "label": "Read or change calendar events",
+        "description": "Listing, searching, creating, inviting, responding, rescheduling, moving, canceling, deleting, or joining events must use the calendar service that owns the event and its selected Relay connection."
+      },
+      {
+        "id": "notion_calendar_workspace_access",
+        "label": "Read or change Notion workspace content",
+        "description": "Notion database, page, block, date, AI Meeting Notes, and workspace operations must use the canonical Notion provider and its explicit shared-content boundary."
+      },
+      {
+        "id": "notion_calendar_local_deep_link",
+        "label": "Open an event through the local API",
+        "description": "The documented cron URL scheme only opens an already identified event in the signed-in desktop app; it is not a cloud read or write API and is not mounted as a Relay runtime action."
+      },
+      {
+        "id": "notion_calendar_scheduling_and_connections",
+        "label": "Manage scheduling and connections",
+        "description": "Scheduling links, availability, blocking, calendar accounts, Notion workspaces, conferencing providers, teammates, notifications, defaults, and product settings remain signed-in Notion Calendar state."
+      },
+      {
+        "id": "notion_calendar_private_or_raw_access",
+        "label": "Use private Notion Calendar interfaces",
+        "description": "Sessions, cookies, passwords, app-specific passwords, verification codes, browser automation, scraping, undocumented endpoints, arbitrary URL schemes, private APIs, and raw requests are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "notion_calendar_alias_unavailable",
+      "label": "Use calendar and Notion providers",
+      "description": "No separate Notion Calendar action is enabled because event and workspace authority belongs to the explicit upstream calendar and Notion connections.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "notion_calendar_duplicate_connection",
+        "notion_calendar_duplicate_install",
+        "notion_calendar_event_access",
+        "notion_calendar_workspace_access",
+        "notion_calendar_local_deep_link",
+        "notion_calendar_scheduling_and_connections",
+        "notion_calendar_private_or_raw_access"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No duplicate Notion Calendar tools are mounted. OpenClaw uses the selected calendar provider for events and canonical Notion for supported workspace content."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No duplicate Notion Calendar tools are mounted. Hermes uses the selected calendar provider for events and canonical Notion for supported workspace content."
+    }
+  ],
+  "availability": "deferred",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": "Notion Calendar is a first-party calendar client and scheduling product whose events are synchronized from connected Google Calendar, Microsoft Outlook, and Apple iCloud calendars and whose workspace dates are connected Notion database content. Notion documents a local cron URL scheme that opens one already known event on macOS or Windows, but it does not publish a cloud event data API, third-party OAuth client registration, token lifecycle, callback, or event CRUD contract for Notion Calendar itself. A separate provider card, credential, installation, policy, audit identity, or runtime adapter would hide the event's true upstream authority and duplicate existing Notion or calendar-provider state.",
+    "nextAction": "Keep this product-client slug non-installable. Route event discovery and mutation to the explicitly selected calendar provider connection and route database pages and dated Notion content to the canonical Notion connection, preserving each provider's scopes, resource grants, approvals, audits, and disconnect behavior. Do not mount the desktop cron URL scheme as a data tool. Revisit only if Notion publishes a stable third-party cloud Calendar API with its own identity, granular authorization, resource model, lifecycle, and terms suitable for Relay."
+  },
+  "evidence": [
+    {
+      "url": "https://www.notion.com/product/calendar",
+      "checkedAt": "2026-07-18",
+      "supports": "Notion describes Calendar as a schedule and time-management application that connects multiple Google Calendar, Outlook, and iCloud calendars and integrates Notion workspace dates and pages."
+    },
+    {
+      "url": "https://www.notion.com/en-gb/help/notion-calendar-connections",
+      "checkedAt": "2026-07-18",
+      "supports": "Notion documents conferencing and workspace connections plus a simple local cron URL scheme that only opens a specific known event in the macOS or Windows desktop app."
+    },
+    {
+      "url": "https://www.notion.com/help/use-notion-calendar-with-notion",
+      "checkedAt": "2026-07-18",
+      "supports": "Notion documents connecting workspaces and dated databases, permission-dependent viewing and editing, event-linked pages, and product-managed disconnection inside Notion Calendar."
+    },
+    {
+      "url": "https://www.notion.com/help/notion-calendar-security-practices",
+      "checkedAt": "2026-07-18",
+      "supports": "Notion documents Calendar as using upstream Google and iCloud OAuth, shared Notion sessions, provider-side deletion recovery, and Notion-managed storage and security rather than a public downstream token contract."
+    }
+  ]
+}

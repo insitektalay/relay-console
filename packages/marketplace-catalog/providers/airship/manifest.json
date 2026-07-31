@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "airship",
+  "name": "Airship",
+  "category": "communication",
+  "description": "Airship is a mobile-first customer-experience platform for push notifications, in-app experiences, message center, SMS, email, journeys, experimentation, and audience data. Product and marketing teams use it to coordinate messaging and engagement across apps and digital channels.",
+  "agentUseSummary": "Add a customer-generated role-limited Airship bearer token and select its exact North American or European cloud site; agents can list a redacted first page of segment references through one fixed read-only endpoint.",
+  "provider": {
+    "websiteUrl": "https://www.airship.com/",
+    "docsUrl": "https://docs.airship.com/api/ua/?openapi=http",
+    "developerConsoleUrl": "https://go.airship.com/",
+    "termsUrl": "https://www.airship.com/legal/terms-of-use/",
+    "privacyUrl": "https://www.airship.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_role_bearer_token", "fixed_cloud_site_binding"],
+    "credentialRequirements": [
+      {
+        "name": "AIRSHIP_BEARER_TOKEN",
+        "label": "Airship bearer token",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a dedicated revocable dashboard token with only the role needed to view segments. Relay encrypts it and sends it only as a Bearer header to the selected Airship cloud site."
+      },
+      {
+        "name": "AIRSHIP_CLOUD_SITE",
+        "label": "Airship cloud site",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter exactly na or eu. Relay maps the value to https://go.urbanairship.com or https://go.airship.eu."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "segment_reference_read",
+      "label": "Read segment references",
+      "description": "Read page 1 of at most 25 segment UUID and lifecycle timestamp references while excluding display names, criteria, audience data, and pagination URLs.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "airship_segment_reference_list",
+        "label": "List Airship segment references",
+        "description": "Return at most 25 segment UUIDs and creation/modification timestamps with names, criteria, audiences, and next-page URLs removed."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "airship_segment_names_criteria_or_audiences",
+        "label": "Access segment names, criteria, or audiences",
+        "description": "Display names, selectors, tags, attributes, locations, events, channel/named-user membership, audience counts, and pagination URLs remain blocked."
+      },
+      {
+        "id": "airship_channels_users_messages_or_analytics",
+        "label": "Access channels, users, messages, or analytics",
+        "description": "Channels, addresses, named users, subscriptions, lists, message content, schedules, templates, reports, outcomes, experiments, journeys, and event streams remain blocked."
+      },
+      {
+        "id": "airship_send_write_delete_or_administer",
+        "label": "Send, write, delete, or administer Airship",
+        "description": "Push/email/SMS/in-app sends, segment/list/channel/user changes, schedules, automations, imports, tokens, OAuth clients, webhooks, and administration remain blocked."
+      },
+      {
+        "id": "airship_raw_api_or_bulk",
+        "label": "Use raw API or bulk access",
+        "description": "Basic/Master secrets, OAuth clients, arbitrary cloud sites, origins, paths, methods, headers, queries, bodies, starts, limits, pagination, raw responses, browser sessions, SDK surfaces, streams, bulk, and exports remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "airship_safe",
+      "label": "Safe",
+      "description": "The bounded segment-reference read requires approval; names, criteria, audiences, channels, messages, analytics, writes, administration, arbitrary APIs, pagination, and bulk remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["airship_segment_reference_list"],
+      "blockedActions": ["airship_segment_names_criteria_or_audiences", "airship_channels_users_messages_or_analytics", "airship_send_write_delete_or_administer", "airship_raw_api_or_bulk"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same bounded read runs directly; token role, fixed cloud site/endpoint, redaction, result/response caps, audits, and provider authorization remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["airship_segment_reference_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["airship_segment_names_criteria_or_audiences", "airship_channels_users_messages_or_analytics", "airship_send_write_delete_or_administer", "airship_raw_api_or_bulk"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives one fixed regional Airship segment-reference wrapper with role-token authority and audience redaction."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same fixed regional Airship segment-reference wrapper with role-token authority and audience redaction."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Airship API access requires an eligible customer project and a customer-generated revocable bearer token whose role permits segment reads on the correct cloud site.",
+    "nextAction": "A customer admin generates a dedicated least-privilege dashboard bearer token, supplies na or eu for the project cloud site, and completes a live read-only connection check."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.airship.com/api/ua/?openapi=http",
+      "checkedAt": "2026-07-18",
+      "supports": "Airship documents revocable dashboard bearer tokens with role-based permissions, separate NA/EU HTTP origins, mandatory versioned Accept headers, and GET /api/segments bearer-token support."
+    },
+    {
+      "url": "https://docs.airship.com/api/ua/?openapi=http",
+      "checkedAt": "2026-07-18",
+      "supports": "The Segment listing response includes UUID, display name, creation/modification epoch milliseconds, and next-page URL; Relay returns only UUID and timestamps from limit 25."
+    },
+    {
+      "url": "https://docs.airship.com/developer/rest-api/libraries/ruby/",
+      "checkedAt": "2026-07-18",
+      "supports": "Airship's official library documentation supports customer bearer-token authentication as an alternative to App/Master secrets."
+    },
+    {
+      "url": "https://docs.airship.com/reference/",
+      "checkedAt": "2026-07-18",
+      "supports": "Airship documents a broad customer-experience product and API surface; Relay mounts only the fixed redacted segment-reference read."
+    }
+  ],
+  "securityNotes": [
+    "The customer bearer token and cloud-site binding are encrypted as secret references; the token is sent only as a Bearer header to the allowlisted NA or EU HTTP API origin.",
+    "Relay allowlists only GET /api/segments?limit=25 with the mandatory version=3 Accept header, rejects redirects, uses a 30-second timeout, caps responses at 1 MB, and never follows next_page.",
+    "The result includes at most 25 valid segment UUIDs and non-negative epoch-millisecond creation/modification timestamps; display names, criteria, audience data, and pagination URLs are excluded.",
+    "Channels, users, lists, content, messages, reports, analytics, sends, schedules, writes, deletes, administration, Master secrets, OAuth clients, arbitrary APIs, SDKs, streams, pagination, bulk, and exports remain blocked.",
+    "Provider 401/403/429 and server errors are surfaced safely; token creation/capture, role assignment, provider-console work, and live acceptance remain customer/external steps."
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "firstpromoter",
+  "name": "FirstPromoter",
+  "category": "commerce_payments",
+  "description": "FirstPromoter is an affiliate and referral marketing platform for SaaS and subscription businesses. Teams use it to manage campaigns and promoters, attribute traffic and referrals, calculate commissions, organize payouts, and report on partner performance.",
+  "agentUseSummary": "Connect FirstPromoter's official hosted MCP with public-client PKCE OAuth, select one account during provider consent, then let selected agents read company context, dashboard statistics, dashboard trends, and campaign summaries. Relay pins four zero-argument analytics tools, verifies their live schemas, redacts identity and payout fields, and does not expose raw MCP access, promoter or referral details, money movement, emails, or mutations.",
+  "provider": {
+    "websiteUrl": "https://firstpromoter.com/",
+    "docsUrl": "https://docs.firstpromoter.com/mcp/overview",
+    "developerConsoleUrl": "https://mcp.firstpromoter.com/.well-known/oauth-authorization-server",
+    "termsUrl": "https://firstpromoter.com/terms/",
+    "privacyUrl": "https://firstpromoter.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["user", "mcp"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://mcp.firstpromoter.com/oauth/authorize",
+    "tokenUrl": "https://mcp.firstpromoter.com/oauth/token",
+    "revocationUrl": "https://mcp.firstpromoter.com/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "provider_hosted_oauth_mcp",
+      "dynamic_public_client_pkce",
+      "account_selected_during_consent"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "FIRSTPROMOTER_MCP_CLIENT_ID",
+        "label": "FirstPromoter MCP OAuth client ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Use Relay's dynamically registered public PKCE client ID for FirstPromoter's official hosted MCP."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/firstpromoter/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "firstpromoter_read",
+      "label": "Read affiliate-program analytics",
+      "description": "Use four pinned zero-argument hosted-MCP reads for company context, dashboard statistics, dashboard trends, and campaign summaries.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "firstpromoter_read",
+        "label": "Read FirstPromoter analytics",
+        "description": "Read company context, dashboard statistics, dashboard trends, and campaign summaries through four pinned hosted-MCP tools."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "firstpromoter_manage",
+        "label": "Change FirstPromoter",
+        "description": "Promoter, campaign, referral, commission, reward, promo-code, product, email, asset, contract, and every other mutation are outside Relay's V1 contract."
+      },
+      {
+        "id": "firstpromoter_identity_or_money",
+        "label": "Read identity or money-movement details",
+        "description": "Promoter and referral profiles, customer details, balances, payout methods, commission fulfillment, invoices, payment batches, and email bodies are blocked."
+      },
+      {
+        "id": "firstpromoter_raw_mcp",
+        "label": "Call another MCP tool",
+        "description": "Relay pins four zero-argument analytics tools and fails closed when their live schemas drift; arbitrary MCP tool names and arguments are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "firstpromoter_safe",
+      "label": "Safe",
+      "description": "Four pinned analytics reads run directly. Identity searches, raw MCP tools, details, money movement, email bodies, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["firstpromoter_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "firstpromoter_manage",
+        "firstpromoter_identity_or_money",
+        "firstpromoter_raw_mcp"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with four pinned hosted-MCP analytics operations after provider OAuth and live schema verification."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with four pinned hosted-MCP analytics operations after provider OAuth and live schema verification."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No dynamically registered Relay public OAuth client, customer FirstPromoter account, authorized hosted-MCP connection, representative campaigns, or safe analytics fixture is available in this workspace.",
+    "nextAction": "The provider-setup owner dynamically registers Relay's public PKCE client, verifies the exact callback, connects a non-production FirstPromoter account, selects the account during consent, then verifies discovery, refresh and revocation, the four pinned live schemas and reads, redaction, agent assignment, disconnect, provider-side revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.firstpromoter.com/mcp/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "FirstPromoter documents its experimental hosted MCP at https://mcp.firstpromoter.com, automatic OAuth, account selection, 53 read and mutation tools, approval cards for mutations, and the intentional exclusion of payouts, invoices, commission creation, and payment batches."
+    },
+    {
+      "url": "https://docs.firstpromoter.com/mcp/tools",
+      "checkedAt": "2026-07-17",
+      "supports": "The official tool inventory documents get_company_context, get_dashboard_stats, get_dashboard_trending, and list_campaigns, as well as sensitive detail, mutation, email, and destructive tools that Relay does not expose."
+    },
+    {
+      "url": "https://mcp.firstpromoter.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-17",
+      "supports": "The live OAuth metadata publishes FirstPromoter's authorization, token, dynamic-registration, and revocation endpoints; user and mcp scopes; authorization-code and refresh-token grants; public-client token authentication; and S256 PKCE."
+    },
+    {
+      "url": "https://mcp.firstpromoter.com/.well-known/oauth-protected-resource",
+      "checkedAt": "2026-07-17",
+      "supports": "The live protected-resource metadata identifies the hosted MCP resource, authorization server, mcp scope, and bearer-header transport."
+    }
+  ]
+}

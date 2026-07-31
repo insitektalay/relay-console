@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "roadmunk",
+  "name": "Strategic Roadmaps (Roadmunk)",
+  "category": "work_management",
+  "description": "Strategic Roadmaps, formerly Roadmunk, is a product roadmapping platform for planning and communicating strategy across teams. Organizations collect customer feedback and ideas, prioritize what to build, create timeline, swimlane, and portfolio roadmaps, manage milestones and product work, and share boardroom-ready plans.",
+  "agentUseSummary": "Add an administrator-generated Strategic Roadmaps API token and choose its data region, then select which agents can read or manage authorized product work under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.tempo.io/products/roadmaps",
+    "docsUrl": "https://help.tempo.io/developers/latest/roadmunk",
+    "developerConsoleUrl": "https://app.roadmunk.com/",
+    "termsUrl": "https://www.tempo.io/strategic-roadmaps-terms",
+    "privacyUrl": "https://www.tempo.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "ROADMUNK_API_TOKEN",
+        "label": "Strategic Roadmaps API token",
+        "required": true,
+        "secret": true,
+        "helpText": "An account administrator creates this under Account settings > Integrations > API Tokens. Relay encrypts it and sends it only to the selected official regional gateway."
+      },
+      {
+        "name": "ROADMUNK_REGION",
+        "label": "Data region",
+        "required": true,
+        "secret": false,
+        "helpText": "Choose North America, Europe, or Asia Pacific to match the region where your Strategic Roadmaps account stores data."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "roadmaps_read",
+      "label": "Read roadmaps and product data",
+      "description": "Read authorized roadmaps, items, fields, milestones, feedback, ideas, customers, contacts, products, components, account details, and users.",
+      "defaultSelected": true
+    },
+    {
+      "id": "roadmaps_manage",
+      "label": "Manage roadmaps and product data",
+      "description": "Create, update, and delete every resource supported by the current Strategic Roadmaps GraphQL API and customer token.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "roadmunk_graphql_query",
+        "label": "Query Strategic Roadmaps",
+        "description": "Run one bounded, non-introspection GraphQL query against the selected Strategic Roadmaps region."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "roadmunk_graphql_mutation",
+        "label": "Manage Strategic Roadmaps",
+        "description": "Run one bounded GraphQL mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "roadmunk_credential_exposure",
+        "label": "Expose credentials",
+        "description": "The API token never enters agent-visible requests or results."
+      },
+      {
+        "id": "roadmunk_other_region",
+        "label": "Use another regional gateway",
+        "description": "Every request uses the official region selected when the connection is created."
+      },
+      {
+        "id": "roadmunk_introspection",
+        "label": "Run schema introspection",
+        "description": "Runtime agents cannot run GraphQL introspection or subscriptions."
+      },
+      {
+        "id": "roadmunk_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds GraphQL documents, variables, results, nesting, redirects, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "roadmunk_safe",
+      "label": "Safe",
+      "description": "GraphQL queries run directly. Every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["roadmunk_graphql_query"],
+      "approvalRequiredActions": ["roadmunk_graphql_mutation"],
+      "blockedActions": [
+        "roadmunk_credential_exposure",
+        "roadmunk_other_region",
+        "roadmunk_introspection",
+        "roadmunk_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected token-authorized Strategic Roadmaps query or mutation runs without Relay per-action approval. Account ownership, the selected regional gateway, provider permissions, request bounds, credential protection, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "roadmunk_graphql_query",
+        "roadmunk_graphql_mutation"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "roadmunk_credential_exposure",
+        "roadmunk_other_region",
+        "roadmunk_introspection",
+        "roadmunk_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded query and mutation tools and attaches the encrypted token only at the selected regional gateway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded query and mutation tools and attaches the encrypted token only at the selected regional gateway."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer account administrator needs a paid Strategic Roadmaps plan with API-token access and must create the customer-owned token.",
+    "nextAction": "In Strategic Roadmaps, open Account settings > Integrations > API Tokens, create and copy a token, select the account's North America, Europe, or Asia Pacific data region in Relay Console, then run health, query, Safe approval, Dangerous mutation, disconnect, and post-disconnect denial checks. VPC-specific gateways require a separately reviewed connector configuration."
+  },
+  "evidence": [
+    {
+      "url": "https://help.tempo.io/roadmaps/latest/getting-started-with-the-strategic-roadmaps-graphq",
+      "checkedAt": "2026-07-15",
+      "supports": "Tempo documents Strategic Roadmaps as a GraphQL API authenticated with API Access Tokens and publishes separate official North America, Europe, and Asia Pacific gateways."
+    },
+    {
+      "url": "https://help.tempo.io/roadmaps/latest/token-generation",
+      "checkedAt": "2026-07-15",
+      "supports": "Tempo documents administrator-generated, one-time-copy API tokens under Account settings > Integrations and states that a token provides access across feedback, ideas, and roadmapping data."
+    },
+    {
+      "url": "https://help.tempo.io/roadmaps/latest/token-access-who-can-create-and-revoke-tokens",
+      "checkedAt": "2026-07-15",
+      "supports": "Tempo documents that only Account Administrators can create or revoke API tokens and that token availability depends on the customer's paid plan."
+    },
+    {
+      "url": "https://help.tempo.io/developers/latest/roadmunk",
+      "checkedAt": "2026-07-15",
+      "supports": "Tempo publishes the current query and mutation surface for roadmaps, items, fields, milestones, feedback, ideas, customers, contacts, products, components, account details, and users."
+    },
+    {
+      "url": "https://www.tempo.io/products/roadmaps",
+      "checkedAt": "2026-07-15",
+      "supports": "Tempo describes Strategic Roadmaps, formerly Roadmunk, as a product roadmapping platform for feedback, prioritization, timeline and swimlane views, portfolio plans, dependencies, and boardroom-ready communication."
+    }
+  ]
+}

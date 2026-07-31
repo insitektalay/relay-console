@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "clevertap",
+  "name": "CleverTap",
+  "category": "communication",
+  "description": "CleverTap is a customer-engagement platform for analytics, segmentation, lifecycle campaigns, personalization, experimentation, and cross-channel messaging. Product and growth teams use it to understand user behavior and coordinate relevant experiences across mobile and web products.",
+  "agentUseSummary": "Add customer-owned CleverTap API credentials, select the exact data-center region, and bind one profile identity; agents can then retrieve a redacted summary of only that profile through a fixed read-only endpoint.",
+  "provider": {
+    "websiteUrl": "https://clevertap.com/",
+    "docsUrl": "https://developer.clevertap.com/docs/get-user-profiles-api",
+    "developerConsoleUrl": "https://eu1.dashboard.clevertap.com/",
+    "termsUrl": "https://clevertap.com/terms-of-service/",
+    "privacyUrl": "https://clevertap.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_credentials", "fixed_region_binding", "exact_profile_identity_binding"],
+    "credentialRequirements": [
+      {
+        "name": "CLEVERTAP_ACCOUNT_ID",
+        "label": "CleverTap Account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the Project ID shown in CleverTap Settings. Relay encrypts the value and sends it only in the X-CleverTap-Account-Id header."
+      },
+      {
+        "name": "CLEVERTAP_PASSCODE",
+        "label": "CleverTap API passcode",
+        "required": true,
+        "secret": true,
+        "helpText": "Prefer a dedicated expiring account passcode or an admin-granted user passcode. Relay encrypts it and sends it only in the X-CleverTap-Passcode header."
+      },
+      {
+        "name": "CLEVERTAP_REGION",
+        "label": "CleverTap data-center region",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter exactly eu1, in1, sg1, us1, aps3, or mec1. Relay maps the code to the corresponding official API origin."
+      },
+      {
+        "name": "CLEVERTAP_PROFILE_IDENTITY",
+        "label": "Bound CleverTap profile identity",
+        "required": true,
+        "secret": true,
+        "helpText": "Bind the connection to one exact CleverTap identity. Agents cannot supply or override profile identifiers at runtime."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "bound_user_profile_read",
+      "label": "Read one bound user profile",
+      "description": "Retrieve a bounded summary for one connection-bound identity while excluding custom-property values, device tokens, object IDs, and raw provider data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "clevertap_bound_user_profile_get",
+        "label": "Get bound CleverTap user profile",
+        "description": "Read one exact bound profile and return bounded name/email, event summaries, platform names, and custom-property keys with sensitive device and raw fields removed."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "clevertap_other_profiles_or_exports",
+        "label": "Access other profiles or exports",
+        "description": "Arbitrary identities, emails, object IDs, event-based profile exports, cursors, profile counts, bulk profile access, raw records, custom-property values, device tokens, and object IDs remain blocked."
+      },
+      {
+        "id": "clevertap_events_analytics_or_campaigns",
+        "label": "Access events, analytics, or campaigns",
+        "description": "Event exports, reports, cohorts, segments, funnels, catalogs, recommendations, journeys, campaigns, messages, subscription groups, and campaign triggers remain blocked."
+      },
+      {
+        "id": "clevertap_write_delete_or_administer",
+        "label": "Write, delete, or administer CleverTap",
+        "description": "Profile or event uploads, profile deletion/demerge, device-token changes, campaign sends, wallet changes, settings, users, passcodes, webhooks, and administration remain blocked."
+      },
+      {
+        "id": "clevertap_raw_api_or_bulk",
+        "label": "Use raw API or bulk access",
+        "description": "Arbitrary origins, regions, paths, methods, headers, queries, bodies, identifier overrides, pagination, retries, raw responses, browser sessions, SDK surfaces, undocumented endpoints, and bulk operations remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "clevertap_safe",
+      "label": "Safe",
+      "description": "The bounded profile read requires approval; other identities, raw profile data, exports, analytics, campaigns, writes, deletes, administration, arbitrary API access, and bulk remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["clevertap_bound_user_profile_get"],
+      "blockedActions": ["clevertap_other_profiles_or_exports", "clevertap_events_analytics_or_campaigns", "clevertap_write_delete_or_administer", "clevertap_raw_api_or_bulk"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same bounded profile read runs directly; exact identity/region binding, fixed endpoint, redaction, response caps, audits, and provider authorization remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["clevertap_bound_user_profile_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["clevertap_other_profiles_or_exports", "clevertap_events_analytics_or_campaigns", "clevertap_write_delete_or_administer", "clevertap_raw_api_or_bulk"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives one fixed regional CleverTap profile wrapper with exact identity binding and sensitive-field redaction."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same fixed regional CleverTap profile wrapper with exact identity binding and sensitive-field redaction."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "CleverTap API access requires an eligible customer project, a customer-created account or user passcode, the exact project region, and one existing profile identity.",
+    "nextAction": "A customer admin creates a dedicated expiring passcode, supplies the Project ID, exact region, and one profile identity, then completes a live read-only connection check."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.clevertap.com/docs/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "CleverTap documents Account ID plus Account/User Passcode headers, recommends user passcodes for safer delegation, and supports dedicated account passcodes with expiry and revocation."
+    },
+    {
+      "url": "https://developer.clevertap.com/docs/idc",
+      "checkedAt": "2026-07-18",
+      "supports": "CleverTap documents the exact Europe, India, Singapore, United States, Indonesia, and Middle East API origins used by the region allowlist."
+    },
+    {
+      "url": "https://developer.clevertap.com/docs/get-user-profiles-api",
+      "checkedAt": "2026-07-18",
+      "supports": "CleverTap documents GET /1/profile.json with exactly one email, identity, or objectId lookup and an identity-rich profile response; Relay fixes the call to one bound identity and redacts raw sensitive fields."
+    },
+    {
+      "url": "https://developer.clevertap.com/docs/user-profile-object",
+      "checkedAt": "2026-07-18",
+      "supports": "CleverTap documents profile reads, uploads, device-token changes, counts, deletion, and demerge as separate surfaces; V1 includes only the bounded read."
+    }
+  ],
+  "securityNotes": [
+    "Account ID, passcode, region, and profile identity are encrypted as secret references; the passcode is sent only in the documented authentication header to the allowlisted regional origin.",
+    "Relay allowlists only GET /1/profile.json with one URL-encoded connection-bound identity, rejects redirects, uses a 60-second timeout, caps responses at 1 MB, and does not accept runtime identifiers.",
+    "The result caps event summaries at 25, platform names at 10, custom-property keys at 50, and excludes custom-property values, push tokens, object IDs, raw platform records, cursors, and raw responses.",
+    "Other profile lookups/exports, events, analytics, catalogs, recommendations, segments, campaigns, messages, triggers, uploads, deletes, settings, passcodes, administration, arbitrary APIs, pagination, and bulk remain blocked.",
+    "Provider 401/403/429 and server errors are surfaced safely; credential creation/capture, provider-console work, and live acceptance remain customer/external steps."
+  ]
+}

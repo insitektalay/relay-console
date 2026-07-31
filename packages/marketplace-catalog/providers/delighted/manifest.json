@@ -1,0 +1,125 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "delighted",
+  "name": "Delighted",
+  "category": "work_management",
+  "description": "Delighted is a customer-feedback platform for NPS, CSAT, CES, product-market fit, smiley, and star-rating surveys. Teams use it to collect responses across channels, track experience metrics, segment feedback, and automate follow-up workflows.",
+  "agentUseSummary": "Add the private API key for one exact Delighted CX project, then let selected agents read bounded minimized survey responses and core feedback metrics. Relay does not mount people directories, expanded internal notes, arbitrary trend or channel metric groups, survey sends, response creation, Autopilot, unsubscribes, webhooks, or deletes.",
+  "provider": {
+    "websiteUrl": "https://delighted.com/",
+    "docsUrl": "https://app.delighted.com/docs/api",
+    "developerConsoleUrl": "https://app.delighted.com/docs/api",
+    "termsUrl": "https://delighted.com/terms",
+    "privacyUrl": "https://delighted.com/privacy"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_project_api_key", "http_basic_key_username"],
+    "credentialRequirements": [
+      {
+        "key": "DELIGHTED_API_KEY",
+        "label": "Delighted project API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use the private customer-owned key for the exact Delighted CX project; Relay sends it only as the Basic Auth username with an empty password."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "delighted_read",
+      "label": "Read responses and metrics",
+      "description": "Use two pinned API v1 reads for at most 25 minimized responses and core project metrics within optional bounded timestamps.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "delighted_read",
+        "label": "Read Delighted",
+        "description": "Read bounded minimized survey responses and core metrics for one project."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "delighted_manage",
+        "label": "Change Delighted",
+        "description": "People, survey requests, responses, Autopilot, unsubscribes, webhooks, and all mutations are outside Relay's V1 contract."
+      },
+      {
+        "id": "delighted_broad_feedback",
+        "label": "Read broad people or expanded feedback",
+        "description": "People lists, internal notes, person properties, additional answers, permalinks, and more than 25 responses per call are blocked."
+      },
+      {
+        "id": "delighted_arbitrary_api",
+        "label": "Use another API operation",
+        "description": "Requests are pinned to response-list and core-metrics GET operations only."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "delighted_safe",
+      "label": "Safe",
+      "description": "Two bounded reads run directly. People lists, expanded notes, arbitrary trend groups, sends, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["delighted_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "delighted_manage",
+        "delighted_broad_feedback",
+        "delighted_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with two pinned API v1 operations through the encrypted project key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one read tool with two pinned API v1 operations through the encrypted project key."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Delighted CX project, private project API key, representative responses, or safe metrics fixture is available in this workspace.",
+    "nextAction": "A project administrator supplies the exact project's private API key through Relay Console, then verifies authentication, both bounded reads, response minimization, agent assignment, key replacement, disconnect, provider-side rotation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://app.delighted.com/docs/api",
+      "checkedAt": "2026-07-17",
+      "supports": "Delighted documents project-specific private API keys, HTTPS Basic authentication with the key as username and blank password, JSON-only API v1, plan restrictions, errors, and rate limiting."
+    },
+    {
+      "url": "https://app.delighted.com/docs/api/listing-survey-responses",
+      "checkedAt": "2026-07-17",
+      "supports": "The official response guide documents GET /v1/survey_responses.json, page sizes up to 100, timestamps, ordering, person and trend filters, expansions, comments, notes, properties, and additional answers."
+    },
+    {
+      "url": "https://app.delighted.com/docs/api/getting-metrics",
+      "checkedAt": "2026-07-17",
+      "supports": "The official metrics guide documents GET /v1/metrics.json, timestamp bounds, core NPS and response metrics, trend filtering, and optional channel and email groups."
+    }
+  ]
+}

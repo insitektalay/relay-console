@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "agenda-notes",
+  "name": "Agenda Notes",
+  "category": "productivity",
+  "description": "Agenda is a date-focused notes app for Apple devices that organizes styled notes into project timelines, links notes with calendar events and reminders, and synchronizes private libraries through iCloud or Dropbox.",
+  "agentUseSummary": "Agenda cannot yet be connected to Relay agents because its supported MCP, App Shortcuts, and callback automation execute against an installed local app, while note content stays in the user's iCloud or Dropbox and Relay Marketplace does not currently ship that separate device-local authority.",
+  "provider": {
+    "websiteUrl": "https://agenda.com/",
+    "docsUrl": "https://agenda.community/t/automating-agenda/55455",
+    "developerConsoleUrl": null,
+    "termsUrl": null,
+    "privacyUrl": null
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["device_local_agenda_mcp_authority_unavailable"],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "agenda_notes_connect",
+        "label": "Connect Agenda",
+        "description": "Relay does not present Apple, iCloud, Dropbox, subscription, or local-app state as a cloud API connection and does not silently substitute an installed Mac app for Railway authority."
+      },
+      {
+        "id": "agenda_notes_local_automation",
+        "label": "Use Agenda automation",
+        "description": "Agenda's official MCP server, App Shortcuts, x-callback URLs, templates, actions, and sharing extensions require an installed Apple-platform app and explicit local configuration that Relay cannot currently mount."
+      },
+      {
+        "id": "agenda_notes_private_data_access",
+        "label": "Access private Agenda data",
+        "description": "Relay does not ask for Apple or storage credentials, inspect the local library, reuse app state, call private synchronization services, or bridge Railway to an undisclosed device-local server."
+      },
+      {
+        "id": "agenda_notes_mutation",
+        "label": "Change Agenda content",
+        "description": "Searching, reading, creating, appending to, editing, moving, completing, pinning, sharing, exporting, or deleting notes, projects, categories, and attachments remains unavailable until Relay ships explicit local execution and approval boundaries."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "agenda_notes_unavailable",
+      "label": "Unavailable",
+      "description": "No agent actions can be enabled until Relay ships a separately disclosed, user-authorized device-local Agenda connector using the official MCP or other supported automation.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "agenda_notes_connect",
+        "agenda_notes_local_automation",
+        "agenda_notes_private_data_access",
+        "agenda_notes_mutation"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "Relay does not silently bridge OpenClaw to Agenda's Mac-local MCP server or other device-local automation."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "Relay does not silently bridge Hermes to Agenda's Mac-local MCP server or other device-local automation."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Agenda 22.2 and later provide an official MCP server that can search, read, create, and change notes, alongside App Shortcuts and x-callback URLs. These surfaces run through an installed local Apple-platform app: MCP is Mac-only, disabled by default, and requires Agenda to be running. Agenda says note content remains in the user's iCloud or Dropbox and is unavailable to Agenda's own cloud service, while Relay's current Marketplace runtime intentionally excludes local-app command execution and cannot truthfully offer that authority from Railway.",
+    "nextAction": "Do not request Apple, iCloud, Dropbox, subscription, or app credentials; inspect the local library; call private sync services; silently connect to Agenda's local MCP server; or show a Railway Connect flow. Reconsider after Relay ships a separately disclosed Mac-local connection architecture with app presence, explicit MCP enablement, pinned reviewed tools, per-action approval, result redaction, audit, and no cloud fallback."
+  },
+  "evidence": [
+    {
+      "url": "https://agenda.community/t/agenda-support-for-model-context-protocol-mcp/130140",
+      "checkedAt": "2026-07-18",
+      "supports": "Agenda documents an official MCP server in version 22.2 for macOS that is disabled by default, enabled from the installed app, runs locally, and can search, read, create, append to, and change note metadata."
+    },
+    {
+      "url": "https://agenda.community/t/agenda-support-for-model-context-protocol-mcp/130140?page=2",
+      "checkedAt": "2026-07-18",
+      "supports": "Agenda's developer states that Agenda must be running for MCP, the server is inside the app, the app has no cloud data access, and Codex is the appropriate local client rather than a web service."
+    },
+    {
+      "url": "https://agenda.community/t/x-callback-url-support-and-reference/27253",
+      "checkedAt": "2026-07-18",
+      "supports": "Agenda documents device-local x-callback commands and callbacks for opening, identifying, creating, appending to, replacing, moving, and changing notes and projects through the installed app."
+    },
+    {
+      "url": "https://agenda.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Agenda states that notes synchronize through the user's personal iCloud or Dropbox, are not accessible to Agenda, and can be automated locally with templates, actions, and callback links."
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "formstack",
+  "name": "Formstack",
+  "category": "work_management",
+  "description": "Formstack is a workplace productivity platform for building forms, collecting submissions, automating workflows, generating documents, and capturing electronic signatures. Organizations use its Forms product to create data-collection experiences, route information through approvals and notifications, manage portals and reusable lists, and connect form-driven processes to other systems.",
+  "agentUseSummary": "Generate a dedicated Formstack V2025 Personal Access Token with the intended user permissions and optional expiry, add it once, then decide which agents can read or manage the connected account's forms, fields, submissions, folders, emails, actions, webhooks, smart lists, portals, themes, and permitted subaccounts under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.formstack.com/",
+    "docsUrl": "https://developers.formstack.com/reference/api-overview",
+    "developerConsoleUrl": "https://admin.formstack.com/",
+    "termsUrl": "https://www.formstack.com/legal/terms-of-use",
+    "privacyUrl": "https://www.formstack.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "personal_access_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_personal_access_token",
+      "provider_user_permission_bound",
+      "optional_token_expiry"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "FORMSTACK_PERSONAL_ACCESS_TOKEN",
+        "label": "Formstack Personal Access Token",
+        "secret": true,
+        "required": true,
+        "helpText": "Generate a dedicated fs_pat_ token in Formstack Admin with the user permissions and optional expiry appropriate for Relay. Relay encrypts the token."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "formstack_read",
+      "label": "Read forms and workflows",
+      "description": "Use all 34 pinned JSON reads across authorized forms, fields, submissions, partial submissions, folders, themes, emails, submit actions, webhooks, smart lists, portals, and subaccounts.",
+      "defaultSelected": true
+    },
+    {
+      "id": "formstack_manage",
+      "label": "Manage forms and workflows",
+      "description": "Use all 56 pinned JSON mutations to create, update, copy, assign, or delete supported Formstack resources.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "formstack_read",
+        "label": "Read Formstack",
+        "description": "Run one exact selected JSON read from the fixed Formstack V2025 API."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "formstack_manage",
+        "label": "Manage Formstack",
+        "description": "Run one exact selected Formstack JSON mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "formstack_binary_transfer",
+        "label": "Transfer arbitrary files",
+        "description": "Relay V1 does not fetch submission file bodies, upload Smart List images, or expose provider-issued upload URLs as an agent file-transfer surface."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "formstack_safe",
+      "label": "Safe",
+      "description": "All 34 JSON reads run directly; every mutation requires approval; binary and multipart transfer stays blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["formstack_read"],
+      "approvalRequiredActions": ["formstack_manage"],
+      "blockedActions": ["formstack_binary_transfer"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 90 selected PAT-authorized JSON operations run without Relay per-action approval. Binary and multipart transfer remains outside this V1 contract, while token permissions and expiry, plan limits, connection ownership, fixed-host routing, bounds, audits, redaction, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["formstack_read", "formstack_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["formstack_binary_transfer"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 90 pinned Formstack JSON operations through the encrypted customer-PAT connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 90 pinned Formstack JSON operations through the encrypted customer-PAT connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Formstack account, dedicated V2025 Personal Access Token, or representative forms and submissions are available in this workspace.",
+    "nextAction": "A Formstack user generates a dedicated fs_pat_ token with appropriate permissions and optional expiry, saves it through Relay Console, then verifies all 90 JSON operations, Safe reads and approvals, Dangerous mutations, user-permission boundaries, expiry, rate limits, agent assignment, token replacement, disconnect, provider-side revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.formstack.com/reference/api-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Formstack's official V2025 overview defines the fixed production API origin, JSON and URL-encoded requests, PAT authentication, user-permission binding, daily plan-dependent token quotas, and safe HTTP status behavior."
+    },
+    {
+      "url": "https://developers.formstack.com/reference/authentication",
+      "checkedAt": "2026-07-17",
+      "supports": "Formstack documents customer-generated fs_pat_ Personal Access Tokens, optional expiry, Bearer authentication, and inheritance of the issuing user's in-app permissions."
+    },
+    {
+      "url": "https://dash.readme.com/api/v1/api-registry/8x8pqg3cmqjkfbrf",
+      "checkedAt": "2026-07-17",
+      "supports": "Formstack's official public V2025 OpenAPI registry defines the 90 JSON operations pinned by this connector and the binary or multipart routes explicitly excluded from Relay V1."
+    },
+    {
+      "url": "https://www.formstack.com/products/online-forms",
+      "checkedAt": "2026-07-17",
+      "supports": "Formstack describes its no-code Forms product for data collection, workflow automation, integrations, payments, portals, and business processes."
+    }
+  ]
+}

@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "publer",
+  "name": "Publer",
+  "category": "communication",
+  "description": "Publer is a social media management platform for workspaces, accounts, scheduling, publishing, media, analytics, and collaboration.",
+  "agentUseSummary": "Add a customer-owned least-privilege Publer API key and bind it to one exact workspace, then let agents inspect bounded identity-redacted workspace references and account provider/type structure.",
+  "provider": {
+    "websiteUrl": "https://publer.com/",
+    "docsUrl": "https://publer.com/docs/",
+    "developerConsoleUrl": "https://app.publer.com/",
+    "termsUrl": "https://publer.com/terms-of-service",
+    "privacyUrl": "https://publer.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["workspaces", "accounts"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "exact_workspace_binding"],
+    "credentialRequirements": [
+      {
+        "name": "PUBLER_API_KEY",
+        "label": "Publer API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated key with only workspaces and accounts scopes in Settings > Access & Login > API Keys. Relay encrypts it and sends it only as Bearer-API to https://app.publer.com."
+      },
+      {
+        "name": "PUBLER_WORKSPACE_ID",
+        "label": "Publer workspace ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Paste one exact workspace ID returned by the official List Workspaces endpoint."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workspace_account_structure_read",
+      "label": "Read workspace and account structure",
+      "description": "Read bounded identity-redacted workspace references and account provider/type structure for one exact Publer workspace.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "publer_workspace_list",
+        "label": "List Publer workspace references",
+        "description": "List at most twenty-five workspace IDs without names, pictures, owners, members, plans, or other identity."
+      },
+      {
+        "id": "publer_account_structure_list",
+        "label": "List Publer account structure",
+        "description": "List at most twenty-five account IDs, providers, and account types for one exact workspace without names, social IDs, pictures, profile identity, or content."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "publer_identity_or_members",
+        "label": "Access private identity or members",
+        "description": "Workspace/account names and pictures, owners, members, emails, social IDs, handles, profile identity, roles, and plans are outside Relay's bounded connector."
+      },
+      {
+        "id": "publer_posts_media_or_analytics",
+        "label": "Access posts, media, or analytics",
+        "description": "Posts, drafts, schedules, media, comments, insights, charts, hashtags, best times, member performance, competitors, and other content or analytics remain blocked."
+      },
+      {
+        "id": "publer_publish_or_administer",
+        "label": "Publish or administer Publer",
+        "description": "Creating, scheduling, publishing, editing, deleting, uploading, connecting accounts, changing workspaces, members, roles, keys, billing, or administration remains blocked."
+      },
+      {
+        "id": "publer_raw_api_or_bulk",
+        "label": "Use raw API or bulk access",
+        "description": "Arbitrary paths, methods, queries, bodies, job polling, pagination, bulk operations, exports, browser sessions, and undocumented endpoints remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "publer_safe",
+      "label": "Safe",
+      "description": "Both bounded identity-redacted reads require approval; all identity, members, content, media, analytics, publishing, writes, raw API, pagination, bulk, and export surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "publer_workspace_list",
+        "publer_account_structure_list"
+      ],
+      "blockedActions": [
+        "publer_identity_or_members",
+        "publer_posts_media_or_analytics",
+        "publer_publish_or_administer",
+        "publer_raw_api_or_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same two bounded reads run directly; exact workspace binding, fixed GET paths, identity redaction, response caps, audits, and Publer's rate limit remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "publer_workspace_list",
+        "publer_account_structure_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "publer_identity_or_members",
+        "publer_posts_media_or_analytics",
+        "publer_publish_or_administer",
+        "publer_raw_api_or_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives two bounded Publer read tools with exact workspace binding and identity/content redaction."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same two bounded Publer read tools with exact workspace binding and identity/content redaction."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Publer public API access requires an eligible Business or Enterprise account, a customer-created least-privilege key with workspaces/accounts scopes, and one exact workspace ID.",
+    "nextAction": "The customer creates a dedicated key in Settings > Access & Login > API Keys, selects only workspaces and accounts, supplies one exact workspace ID, and completes a live read-only connection check."
+  },
+  "evidence": [
+    {
+      "url": "https://publer.com/docs/",
+      "checkedAt": "2026-07-18",
+      "supports": "Publer documents its public REST API, fixed https://app.publer.com/api/v1 base, Bearer-API authentication, eligible Business/Enterprise access, and 100 requests per two minutes per user."
+    },
+    {
+      "url": "https://publer.com/docs/getting-started/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Customers create scoped API keys, use Authorization: Bearer-API, and provide Publer-Workspace-Id for workspace-bound requests; workspaces and accounts are documented least-privilege scopes."
+    },
+    {
+      "url": "https://publer.com/docs/api-reference/workspaces",
+      "checkedAt": "2026-07-18",
+      "supports": "Official reference documents GET /workspaces and the workspace ID used as context for other API endpoints."
+    },
+    {
+      "url": "https://publer.com/docs/api-reference/accounts",
+      "checkedAt": "2026-07-18",
+      "supports": "Official reference documents GET /accounts with required Publer-Workspace-Id and account ID, provider, type, name, social ID and picture fields; Relay returns only ID/provider/type."
+    },
+    {
+      "url": "https://publer.com/docs/getting-started/rate-limits",
+      "checkedAt": "2026-07-18",
+      "supports": "Publer documents a fixed-window limit of 100 requests per two minutes per user and HTTP 429 when exceeded."
+    }
+  ],
+  "securityNotes": [
+    "The customer key is encrypted as a secret reference and is sent only as Bearer-API to the fixed https://app.publer.com origin.",
+    "Customers must create a dedicated key with only workspaces and accounts scopes; posts and media scopes are neither requested nor accepted by this connector.",
+    "Every account request is bound server-side to the stored exact workspace ID; tools accept no alternate workspace IDs, paths, methods, queries, or bodies.",
+    "Responses are capped at 1 MB and twenty-five items; redirects, arbitrary pagination, raw responses, job polling, bulk operations, and exports are blocked.",
+    "Workspace/account names and pictures, owners, members, emails, plans, social IDs, handles, profile identity, posts, media, analytics, publishing, and administration are excluded.",
+    "Relay enforces Publer's documented ceiling of one hundred requests per two minutes per user."
+  ]
+}

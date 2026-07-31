@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "concord",
+  "name": "Concord",
+  "category": "knowledge_documents",
+  "description": "Concord is a contract lifecycle management platform for creating, negotiating, approving, signing, and managing agreements.",
+  "agentUseSummary": "Bind a dedicated customer-owned Concord API key to one exact production or UAT environment and one organization. Agents may inspect one agreement's redacted lifecycle metadata or create a reviewed unsent DRAFT under Safe or Dangerous policy. Relay blocks contract content, people, signatures, financial data, external actions, administration, raw access, and key material.",
+  "provider": {
+    "websiteUrl": "https://www.concord.app/",
+    "docsUrl": "https://api.doc.concordnow.com/",
+    "developerConsoleUrl": "https://help.concord.app/hc/en-us/articles/208156353-create-an-api-key-",
+    "termsUrl": "https://www.concord.app/terms-and-conditions/",
+    "privacyUrl": "https://www.concord.app/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "x_api_key_header",
+      "exact_environment_binding",
+      "exact_organization_binding",
+      "paid_plan",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "CONCORD_API_ORIGIN",
+        "label": "Concord API environment",
+        "required": true,
+        "secret": false,
+        "helpText": "Use exactly https://api.concordnow.com for production or https://uat.concordnow.com for Concord UAT."
+      },
+      {
+        "name": "CONCORD_ORGANIZATION_ID",
+        "label": "Concord organization ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one exact customer organization ID that matches the API key's current organization."
+      },
+      {
+        "name": "CONCORD_API_KEY",
+        "label": "Concord API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a dedicated customer-owned API key for the bound organization on an eligible paid plan."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "agreement_metadata_read",
+      "label": "Inspect agreement metadata",
+      "description": "Read one explicit agreement's redacted lifecycle metadata in the exact bound organization.",
+      "defaultSelected": true
+    },
+    {
+      "id": "agreement_draft_create",
+      "label": "Create agreement drafts",
+      "description": "Create one bounded agreement with DRAFT status and no sending, sharing, signing, or automation.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "concord_agreement_metadata_get",
+        "label": "Inspect agreement metadata",
+        "description": "Inspect redacted lifecycle metadata for one explicit agreement in the bound organization."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "concord_agreement_draft_create",
+        "label": "Create agreement draft",
+        "description": "Create one bounded unsent DRAFT agreement in the bound organization."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "concord_private_contract_data",
+        "label": "Access private contract data",
+        "description": "Agreement content, descriptions in results, versions, fields, financial clauses, comments, activities, members, attachments, PDFs, DOCX files, signatures, approvals, links, and people are blocked."
+      },
+      {
+        "id": "concord_external_actions",
+        "label": "Send or change external state",
+        "description": "Sharing, invitations, negotiation, approval actions, signing, signature requests, publishing, exports, webhooks, integrations, renewals, lifecycle changes, and deletion are blocked."
+      },
+      {
+        "id": "concord_administration",
+        "label": "Administer Concord",
+        "description": "Organizations, users, roles, groups, folders, clauses, reports, branding, billing, subscriptions, API keys, and account administration are blocked."
+      },
+      {
+        "id": "concord_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, arbitrary queries or bodies, inbox searches, pagination, polling, retries, batches, downloads, exports, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "concord_safe",
+      "label": "Safe",
+      "description": "Redacted metadata reads run automatically; creating a provider-hosted agreement draft requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["concord_agreement_metadata_get"],
+      "approvalRequiredActions": ["concord_agreement_draft_create"],
+      "blockedActions": [
+        "concord_private_contract_data",
+        "concord_external_actions",
+        "concord_administration",
+        "concord_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected draft creation runs without Relay per-action approval; exact environment and organization binding, key secrecy, fixed routes, forced DRAFT state, bounds, redaction, audits, provider roles, and plan limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "concord_agreement_metadata_get",
+        "concord_agreement_draft_create"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "concord_private_contract_data",
+        "concord_external_actions",
+        "concord_administration",
+        "concord_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway confines the broad organization key to one fixed redacted read and one bounded unsent DRAFT operation."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway confines the broad organization key to one fixed redacted read and one bounded unsent DRAFT operation."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Concord API keys are broad organization credentials available on eligible paid plans and must be paired with an exact UAT or production environment and organization ID. No account, plan confirmation, key, live provider session, Railway change, or production acceptance is available in this worker task.",
+    "nextAction": "An authorized Concord organization administrator confirms an eligible plan, creates a dedicated key, selects UAT or production, records the exact organization ID, and stores the values through Relay's encrypted connection flow. They then separately validate organization-binding health, redacted metadata reads, Safe approval, Dangerous draft creation, forced DRAFT state, rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.doc.concordnow.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Concord documents the production and UAT REST origins, X-API-KEY authentication, current-user organization binding, agreement metadata lookup, DRAFT agreement creation, and broader content, people, signing, approval, export, and administration routes that Relay blocks."
+    },
+    {
+      "url": "https://help.concord.app/hc/en-us/articles/208156353-create-an-api-key-",
+      "checkedAt": "2026-07-17",
+      "supports": "Concord documents customer API-key creation, paid-plan access, and using the UAT sandbox before production."
+    },
+    {
+      "url": "https://www.concord.app/",
+      "checkedAt": "2026-07-17",
+      "supports": "Concord describes contract drafting, collaboration, approval, electronic signature, repository, reporting, integrations, and contract lifecycle management; Relay exposes only the bounded metadata and unsent-draft subset."
+    }
+  ]
+}

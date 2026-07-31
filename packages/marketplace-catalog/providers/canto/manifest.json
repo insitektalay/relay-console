@@ -1,0 +1,171 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "canto",
+  "name": "Canto",
+  "category": "content_creative",
+  "description": "Canto is a digital asset management platform for organizing, finding, governing, and distributing images, video, documents, and other brand content. Marketing and creative teams use it to manage libraries, folders, albums, metadata, versions, approvals, sharing, and delivery from one searchable workspace.",
+  "agentUseSummary": "Connect a customer-owned Canto OAuth app for the organization's account, then let agents use the documented V1 asset, library, metadata, sharing, and administration surface under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "canto",
+    "sourceUrl": "https://www.canto.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://www.canto.com/",
+    "docsUrl": "https://api.canto.com/",
+    "developerConsoleUrl": "https://support.canto.com/hc/en-us/articles/23002535539601-Generating-API-Keys",
+    "termsUrl": "https://www.canto.com/terms/",
+    "privacyUrl": "https://www.canto.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://oauth.canto.{region}/oauth/api/oauth2/authorize",
+    "tokenUrl": "https://oauth.canto.{region}/oauth/api/oauth2/compatible/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_oauth"],
+    "credentialRequirements": [
+      {
+        "name": "CANTO_ACCOUNT_DOMAIN",
+        "label": "Canto account",
+        "required": true,
+        "secret": false,
+        "helpText": "Your Canto account hostname, such as acme.canto.com."
+      },
+      {
+        "name": "CANTO_CLIENT_ID",
+        "label": "App ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Create an API key in Canto and copy its App ID."
+      },
+      {
+        "name": "CANTO_CLIENT_SECRET",
+        "label": "App secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the App Secret from the same Canto API key."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/canto/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "dam_read",
+      "label": "Browse digital assets",
+      "description": "Search and read authorized assets, folders, albums, metadata, users, comments, shares, and library structure."
+    },
+    {
+      "id": "dam_manage",
+      "label": "Manage digital assets",
+      "description": "Create and change authorized assets, versions, folders, albums, metadata, tags, keywords, relations, comments, shares, and assignments."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "canto_read",
+        "label": "Read Canto data",
+        "description": "Run one bounded GET operation inside the connected Canto account's documented V1 API surface."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "canto_manage",
+        "label": "Change Canto data",
+        "description": "Run one documented Canto mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "canto_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth secrets, access tokens, refresh tokens, authorization headers, cookies, and signed delivery URLs never enter agent-visible results."
+      },
+      {
+        "id": "canto_untrusted_origin",
+        "label": "Call another origin",
+        "description": "Requests remain pinned to the HTTPS Canto account saved with the connection."
+      },
+      {
+        "id": "canto_unbounded_transfer",
+        "label": "Transfer unbounded data",
+        "description": "Relay bounds request and response bodies and does not follow redirects."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "canto_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["canto_read"],
+      "approvalRequiredActions": ["canto_manage"],
+      "blockedActions": [
+        "canto_secret_exposure",
+        "canto_untrusted_origin",
+        "canto_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected account-authorized Canto API operation runs without Relay per-action approval; ownership, provider permissions, fixed origin, bounds, redaction, audits, rate limits, and provider enforcement still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["canto_read", "canto_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "canto_secret_exposure",
+        "canto_untrusted_origin",
+        "canto_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded Canto V1 API wrappers against the connection's fixed customer account."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded Canto V1 API wrappers against the connection's fixed customer account."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer Canto account with API Keys enabled, an administrator, and a customer-owned App ID and App Secret are not available for production acceptance.",
+    "nextAction": "A Canto administrator creates an API key, registers https://api.relayconsole.work/api/v1/marketplace/oauth/canto/callback, enters the account hostname, App ID, and App Secret in Relay Console, and completes authorization and live validation."
+  },
+  "evidence": [
+    {
+      "url": "https://api.canto.com/",
+      "checkedAt": "2026-07-14",
+      "supports": "Canto documents OAuth 2 authorization-code and refresh-token flows, regional OAuth authorities, bearer authentication, rate limits, and the V1 assets, library, metadata, sharing, and administration APIs."
+    },
+    {
+      "url": "https://support.canto.com/hc/en-us/articles/23002535539601-Generating-API-Keys",
+      "checkedAt": "2026-07-14",
+      "supports": "Canto documents customer-admin creation of an App ID and App Secret and notes that API access may require provider enablement."
+    },
+    {
+      "url": "https://support.canto.com/hc/en-us/articles/23002380063505-Guideline-for-integrating-Canto-with-a-third-party-system",
+      "checkedAt": "2026-07-14",
+      "supports": "Canto recommends authorization-code OAuth for interactive applications and documents account-region-specific OAuth hosts."
+    },
+    {
+      "url": "https://www.canto.com/",
+      "checkedAt": "2026-07-14",
+      "supports": "Canto describes its digital asset management platform for organizing, finding, governing, and distributing brand content."
+    }
+  ]
+}

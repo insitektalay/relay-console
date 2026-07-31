@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "vidyard", "name": "Vidyard", "category": "content_creative",
+  "description": "Vidyard is a business video platform for recording, hosting, sharing, and measuring video content. Teams use it for personalized sales videos, customer communication, video libraries, embedded players, captions, analytics, and interactive experiences.",
+  "agentUseSummary": "Enter a role- and folder-bound API token from the customer's own Vidyard account, then let agents manage the complete documented Dashboard API under Safe or Dangerous policy.",
+  "provider": { "websiteUrl": "https://www.vidyard.com/", "docsUrl": "https://developer.vidyard.com/", "developerConsoleUrl": "https://secure.vidyard.com/", "termsUrl": "https://www.vidyard.com/terms-of-use/", "privacyUrl": "https://www.vidyard.com/privacy/" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": { "types": ["api_key", "api_connector"], "credentialRequirements": [{ "name": "VIDYARD_API_TOKEN", "label": "Vidyard API token", "required": true, "secret": true, "helpText": "Copy a dedicated role-bound token under Admin > API Tokens in the intended Vidyard folder." }], "callbackPath": null, "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "video_read", "label": "Read video library", "description": "List and inspect permitted players, videos, captions, tags, accounts, and related metadata." },
+    { "id": "video_write", "label": "Maintain video content", "description": "Create, update, duplicate, publish, organize, and delete permitted video resources." },
+    { "id": "analytics", "label": "Use analytics and events", "description": "Read permitted analytics events and manage analytics subscriptions and player webhooks." },
+    { "id": "administration", "label": "Administer Vidyard", "description": "Use all other documented Dashboard API resources permitted by the token's folder and role." }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "vidyard_list_accounts", "label": "List accounts", "description": "List accounts visible to the configured token." },
+      { "id": "vidyard_list_players", "label": "List players", "description": "List one bounded page of players in the configured folder." },
+      { "id": "vidyard_get_player", "label": "Read player", "description": "Read one player by ID or UUID." },
+      { "id": "vidyard_list_videos", "label": "List videos", "description": "List one bounded page of videos in the configured folder." },
+      { "id": "vidyard_get_video", "label": "Read video", "description": "Read one video by ID." }
+    ],
+    "approvalRequired": [{ "id": "vidyard_full_api", "label": "Use full Dashboard API", "description": "Use any current documented Dashboard API operation; Safe mode requires approval." }],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "vidyard_safe", "label": "Safe", "description": "Bounded account, player, and video reads run directly; every other Dashboard API operation requires approval.", "defaultSelected": true, "allowedActions": ["vidyard_list_accounts", "vidyard_list_players", "vidyard_get_player", "vidyard_list_videos", "vidyard_get_video"], "approvalRequiredActions": ["vidyard_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected token-authorized Dashboard API operation runs without Relay per-action approval; ownership, fixed origin, bounds, audits, redaction, token role and folder permissions, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["vidyard_list_accounts", "vidyard_list_players", "vidyard_get_player", "vidyard_list_videos", "vidyard_get_video", "vidyard_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Vidyard tools through the authenticated server-side connector." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Vidyard tools through the authenticated server-side connector." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": { "status": "blocked", "blocker": "No customer Vidyard API token or eligible signed-in provider session is available for production acceptance.", "nextAction": "A customer admin creates a dedicated role-bound token in the intended folder, connects it in Relay Console, then runs health, bounded reads, Safe denial, approved or Dangerous mutation, redaction, revocation, and disconnect checks." },
+  "evidence": [
+    { "url": "https://knowledge.vidyard.com/hc/en-us/articles/360009875814-How-to-access-your-Vidyard-API-tokens", "checkedAt": "2026-07-14", "supports": "Vidyard documents customer API tokens under Admin > API Tokens, permission-gated visibility, role-bound authority, and use with the Dashboard API and analytics webhooks." },
+    { "url": "https://knowledge.vidyard.com/hc/en-us/articles/360010000133-How-to-use-the-Vidyard-Dashboard-API", "checkedAt": "2026-07-14", "supports": "The Dashboard API programmatically manages videos, players, tags, and metadata with CRUD operations; tokens are unique to a folder and inherit the selected role's permissions." },
+    { "url": "https://developer.vidyard.com/", "checkedAt": "2026-07-14", "supports": "The current official reference documents Dashboard v1 resources including accounts, organizations, players, videos, captions, tags, users, teams, events, and webhooks authenticated with auth_token." }
+  ]
+}

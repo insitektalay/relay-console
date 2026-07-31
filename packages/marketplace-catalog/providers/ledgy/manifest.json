@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ledgy",
+  "name": "Ledgy",
+  "category": "developer",
+  "description": "Ledgy is an equity and executive compensation platform for cap tables, share plans, stakeholders, grants, vesting, ownership, transactions, reporting, compliance, and portfolio workflows.",
+  "agentUseSummary": "Add a customer-owned Ledgy company API key. Selected agents can read only the authenticated company ID and name through Ledgy's fixed auth query; Relay blocks cap tables, stakeholders, transactions, grants, vesting, portfolios, documents, arbitrary GraphQL, introspection, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://ledgy.com/",
+    "docsUrl": "https://docs.ledgy.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://ledgy.com/legal/terms-of-service",
+    "privacyUrl": "https://ledgy.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "fixed_origin",
+      "fixed_graphql_query",
+      "read_only_relay_policy",
+      "hosted_mcp_available_separately"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "LEDGY_API_KEY",
+        "label": "Ledgy company API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Customer-owned company API key revealed by an authorized Ledgy administrator. The key can access sensitive equity queries, but Relay sends only the fixed auth query."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "company_identity_read",
+      "label": "Read company identity",
+      "description": "Return only the authenticated Ledgy company ID and name.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "ledgy_read",
+        "label": "Read Ledgy company identity",
+        "description": "Return only the company ID and name associated with the customer-owned Ledgy API key."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "ledgy_manage",
+        "label": "Access equity records or change Ledgy",
+        "description": "Cap tables, stakeholders, transactions, grants, vesting, ownership, investments, portfolio performance, documents, arbitrary GraphQL, introspection, and every mutation are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "ledgy_safe",
+      "label": "Safe",
+      "description": "One fixed company-identity query runs directly; equity, ownership, stakeholder, portfolio, document, arbitrary GraphQL, introspection, and mutation surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["ledgy_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["ledgy_manage"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exposes only Ledgy's fixed auth company-identity query and discards every response field except company ID and name."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exposes only Ledgy's fixed auth company-identity query and discards every response field except company ID and name."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer has supplied a Ledgy company API key through Relay's encrypted credential flow. Ledgy's API documentation exposes one company-level bearer key for GraphQL queries spanning sensitive cap-table, stakeholder, transaction, investment, and portfolio data without a documented per-query scope model. Ledgy also advertises a read-only, permission-bound OAuth MCP for Codex and other AI tools, but the reviewed public page does not publish the exact MCP server URL, authorization metadata, client-registration contract, tool schemas, or disconnect procedure needed for a canonical hosted-MCP mount.",
+    "nextAction": "An authorized Ledgy company administrator confirms that the company-level API key is permitted for this integration, stores it through Relay's encrypted credential flow, then validates the fixed auth query, denial of arbitrary operations, rate limiting, key rotation, key revocation, disconnect, and post-disconnect denial in a non-production company. Re-evaluate the hosted MCP path when Ledgy publishes its exact MCP endpoint, OAuth metadata, registration and consent contract, tool schemas, and revocation semantics."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.ledgy.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Ledgy documents the fixed https://app.ledgy.com/graphql endpoint, a company API key revealed in company general settings, bearer authentication, a limit of 20 requests per five seconds per company, and the auth query returning companyId and companyName. It also documents sensitive cap-table, transaction, stakeholder, investment, and portfolio queries, all of which Relay blocks."
+    },
+    {
+      "url": "https://ledgy.com/ai-equity-management",
+      "checkedAt": "2026-07-18",
+      "supports": "Ledgy advertises a separate read-only MCP integration for Codex, ChatGPT, Claude, and Cursor that inherits the signed-in user's permissions and uses company-selected OAuth with short-lived auto-refreshing tokens, but the public page does not expose the setup metadata needed to mount it canonically."
+    },
+    {
+      "url": "https://ledgy.com/legal/privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "Ledgy identifies cap-table data as shareholder and company information, share-ledger transaction history, uploaded documents, and other cap-table details, supporting critical-risk classification and strict company-identity minimization."
+    },
+    {
+      "url": "https://ledgy.com/legal/terms-of-service",
+      "checkedAt": "2026-07-18",
+      "supports": "Ledgy publishes its current customer terms and legal policy index, supporting customer-authorized credential handling rather than inferred browser or private-endpoint access."
+    }
+  ]
+}

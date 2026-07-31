@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "pandadoc",
+  "name": "PandaDoc",
+  "category": "knowledge_documents",
+  "description": "PandaDoc is document-workflow software for creating, approving, sending, signing, and tracking proposals, quotes, contracts, and other business documents. Teams use it to coordinate document lifecycles, organize reusable materials, and monitor progress from draft through completion.",
+  "agentUseSummary": "Connect one PandaDoc membership and token-bound workspace through Relay-owned OAuth, then let agents read approval-gated, bounded recent Document status, one exact lightweight status, and root Folder metadata without exposing people, content, pricing, or files.",
+  "provider": {
+    "websiteUrl": "https://www.pandadoc.com/",
+    "docsUrl": "https://developers.pandadoc.com/reference/authentication-process",
+    "developerConsoleUrl": "https://app.pandadoc.com/a/#/settings/api-dashboard",
+    "termsUrl": "https://www.pandadoc.com/terms-of-use/",
+    "privacyUrl": "https://www.pandadoc.com/privacy-notice/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.pandadoc.com/oauth2/authorize",
+    "tokenUrl": "https://api.pandadoc.com/oauth2/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "authorization_code",
+      "exact_membership_and_token_bound_workspace_binding",
+      "provider_authoritative_one_year_access_expiry",
+      "serialized_complete_token_pair_replacement",
+      "local_disconnect_only",
+      "fixed_pandadoc_public_api_origin"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/pandadoc/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "document_read",
+      "label": "Read document workflow status",
+      "description": "Read bounded Document status and root Folder metadata for the token-bound PandaDoc membership and workspace.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "pandadoc_document_list_recent",
+        "label": "List recent documents",
+        "description": "List at most twenty-five PandaDoc Document status summaries created during the previous fourteen days."
+      },
+      {
+        "id": "pandadoc_document_status_get",
+        "label": "Read document status",
+        "description": "Read one exact lightweight PandaDoc Document status without calling the sensitive details endpoint."
+      },
+      {
+        "id": "pandadoc_document_folder_list",
+        "label": "List document folders",
+        "description": "List at most twenty-five root PandaDoc Document Folder names and identifiers from page one."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "pandadoc_safe",
+      "label": "Safe",
+      "description": "Every bounded PandaDoc read requires approval; people, fields, pricing, content, files, details, templates, workspace administration, webhooks and writes are outside Relay's V1 surface.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "pandadoc_document_list_recent",
+        "pandadoc_document_status_get",
+        "pandadoc_document_folder_list"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three selected bounded PandaDoc reads run without Relay per-action approval; membership/workspace binding, redaction, first-page bounds, audits, provider scope and limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "pandadoc_document_list_recent",
+        "pandadoc_document_status_get",
+        "pandadoc_document_folder_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed PandaDoc read wrappers and attaches the encrypted OAuth token only to the fixed public API v1 origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed PandaDoc read wrappers and attaches the encrypted OAuth token only to the fixed public API v1 origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "PandaDoc Developer Dashboard/API plan access, a Relay-owned OAuth application, staging credentials, and live membership/workspace consent validation still require the separate provider-console task.",
+    "nextAction": "In the provider-console task, enable PandaDoc API access on an eligible plan, create the OAuth application with Relay's exact HTTPS callback and exact read scope, store staging credentials, then verify exact membership and token-bound workspace selection, the documented 31,535,999-second expiry, serialized complete token-pair replacement, all three bounded reads, local disconnect, and post-disconnect denial. Do not request read+write or claim undocumented PKCE, refresh-token rotation, or upstream revocation."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.pandadoc.com/reference/authentication-process",
+      "checkedAt": "2026-07-17",
+      "supports": "PandaDoc documents browser Authorization Code OAuth, state verification, bearer access, refresh tokens, and a read-only permission distinct from read+write."
+    },
+    {
+      "url": "https://developers.pandadoc.com/reference/access-token",
+      "checkedAt": "2026-07-17",
+      "supports": "PandaDoc documents the access-token endpoint, client credentials, access/refresh pair, refresh grant, and current 31,535,999-second access-token lifetime."
+    },
+    {
+      "url": "https://developers.pandadoc.com/reference/list-members",
+      "checkedAt": "2026-07-17",
+      "supports": "PandaDoc's bounded Members read supplies the exact membership identifier retained only for connection authority validation."
+    },
+    {
+      "url": "https://developers.pandadoc.com/reference/list-workspaces",
+      "checkedAt": "2026-07-17",
+      "supports": "PandaDoc's bounded Workspaces read supplies the exact token-bound workspace identifier and name retained for connection authority validation."
+    },
+    {
+      "url": "https://developers.pandadoc.com/reference/list-documents",
+      "checkedAt": "2026-07-17",
+      "supports": "PandaDoc documents the fixed created-date, count, page, and creation-order parameters used by Relay's bounded recent Document status list."
+    },
+    {
+      "url": "https://developers.pandadoc.com/reference/document-status",
+      "checkedAt": "2026-07-17",
+      "supports": "PandaDoc documents the lightweight exact Document status endpoint used instead of the sensitive details endpoint."
+    },
+    {
+      "url": "https://developers.pandadoc.com/reference/list-documents-folders",
+      "checkedAt": "2026-07-17",
+      "supports": "PandaDoc documents bounded Document Folder listing; Relay fixes page one and returns only identifier and name."
+    }
+  ]
+}

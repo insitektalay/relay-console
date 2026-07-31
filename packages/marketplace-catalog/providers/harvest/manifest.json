@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "harvest",
+  "name": "Harvest",
+  "category": "work_management",
+  "description": "Harvest is time-tracking and invoicing software for teams that organizes timesheets, projects, clients, expenses, budgets and reports. Organizations use it to record billable work, understand project costs and capacity, manage delivery, and turn approved time and expenses into invoices.",
+  "agentUseSummary": "Connect one Harvest account through OAuth, then let agents read bounded project assignments and time entries or use the broader documented V2 API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.getharvest.com/",
+    "docsUrl": "https://help.getharvest.com/api-v2/authentication-api/authentication/authentication/",
+    "developerConsoleUrl": "https://id.getharvest.com/developers",
+    "termsUrl": "https://www.getharvest.com/terms-of-service",
+    "privacyUrl": "https://www.getharvest.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://id.getharvest.com/oauth2/authorize",
+    "tokenUrl": "https://id.getharvest.com/api/v2/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_app_oauth",
+      "single_harvest_account_grant",
+      "exact_account_and_authorizing_user_binding",
+      "fourteen_day_access_token",
+      "refresh_token_supported",
+      "local_disconnect_only",
+      "fixed_harvest_api_origin"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/harvest/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "time_tracking_read", "label": "Read time-tracking data", "description": "Read bounded project-assignment and time-entry data from the connected Harvest account.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full Harvest API", "description": "Use the documented Harvest API V2 surface allowed by the exact account grant and authorizing user.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "harvest_project_assignment_list", "label": "List project assignments", "description": "List at most twenty-five active project assignments for the connected Harvest user." },
+      { "id": "harvest_time_entry_list", "label": "List time entries", "description": "List at most twenty-five time entries for the connected Harvest user in an explicit window no longer than ninety days." },
+      { "id": "harvest_time_entry_get", "label": "Read a time entry", "description": "Read one exact Harvest time entry visible to the connected user." }
+    ],
+    "approvalRequired": [
+      { "id": "harvest_full_api", "label": "Use full Harvest API", "description": "Use any documented Harvest API V2 operation authorized by the exact account grant; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "harvest_safe", "label": "Safe", "description": "Bounded project-assignment and time-entry reads run directly; every other Harvest API operation requires approval.", "defaultSelected": true, "allowedActions": ["harvest_project_assignment_list", "harvest_time_entry_list", "harvest_time_entry_get"], "approvalRequiredActions": ["harvest_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected account-authorized Harvest operation runs without Relay per-action approval; secret isolation, exact account binding, fixed routing, bounds, audits, provider permissions and Harvest limits still apply.", "defaultSelected": false, "allowedActions": ["harvest_project_assignment_list", "harvest_time_entry_list", "harvest_time_entry_get", "harvest_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts typed Harvest wrappers and attaches the encrypted OAuth token and exact account header only to the fixed Harvest API V2 origin." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts typed Harvest wrappers and attaches the encrypted OAuth token and exact account header only to the fixed Harvest API V2 origin." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A Relay-owned single-account Harvest OAuth application, staging credentials and live consent validation still require the provider-console task.",
+    "nextAction": "In the provider-console task, register Relay's exact callback, disable Multi Account, select Harvest only, add staging credentials, then verify authorization, exact harvest:{accountId} and user binding, refresh, bounded reads, Safe approval, Dangerous mutation, local disconnect and post-disconnect denial. Harvest does not document a token revocation endpoint, so do not claim upstream revoke-on-disconnect."
+  },
+  "evidence": [
+    { "url": "https://help.getharvest.com/api-v2/authentication-api/authentication/authentication/", "checkedAt": "2026-07-17", "supports": "Harvest documents server-side authorization-code OAuth, single-account harvest:{accountId} grants, account discovery, confidential token exchange, 1,209,600-second access tokens and refresh tokens. It does not document a token revocation endpoint." },
+    { "url": "https://help.getharvest.com/api-v2/timesheets-api/timesheets/time-entries/", "checkedAt": "2026-07-17", "supports": "Harvest documents bounded time-entry list and exact read operations, permissions by authorizing role, and the wider create, update, restart, stop and delete time-entry surface." },
+    { "url": "https://help.getharvest.com/api-v2/introduction/overview/general/", "checkedAt": "2026-07-17", "supports": "Harvest documents the fixed API V2 origin, GET, POST, PATCH and DELETE methods, JSON responses, and account rate limits." }
+  ]
+}

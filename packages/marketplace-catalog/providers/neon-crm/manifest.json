@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "neon-crm",
+  "name": "Neon CRM",
+  "category": "crm_support",
+  "description": "Neon CRM is Neon One's nonprofit constituent-management platform for fundraising, memberships, events, volunteers, grants, online stores, custom objects and reporting.",
+  "agentUseSummary": "Add a dedicated least-privilege Neon CRM Organization ID and API key, choose which agents may use the connection, and run all 276 operations from the official API v2.11 contract through pinned routes. Safe mode runs 129 semantic reads directly and requires approval for 147 mutations.",
+  "provider": {
+    "websiteUrl": "https://neonone.com/products/neon-crm/",
+    "docsUrl": "https://developer.neoncrm.com/api-v2/",
+    "developerConsoleUrl": "https://app.neoncrm.com/",
+    "termsUrl": "https://neonone.com/terms-of-service/",
+    "privacyUrl": "https://neonone.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_org_id_and_api_key",
+      "http_basic",
+      "least_privilege_system_user",
+      "complete_api_v2_11",
+      "fixed_neon_crm_api_origin"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "NEON_CRM_ORG_ID",
+        "label": "Neon CRM Organization ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Copy the Organization ID from Settings, Organization Profile. Relay stores it with the API key and uses it only as the HTTP Basic username for api.neoncrm.com."
+      },
+      {
+        "key": "NEON_CRM_API_KEY",
+        "label": "Neon CRM API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated least-privilege system user, enable API Access, and copy its API key. Relay encrypts it and uses it only as the HTTP Basic password for api.neoncrm.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "neon_crm_read",
+      "label": "Read nonprofit CRM data",
+      "description": "Use all 129 documented semantic reads in Neon CRM API v2.11.",
+      "defaultSelected": true
+    },
+    {
+      "id": "neon_crm_manage",
+      "label": "Manage nonprofit CRM data",
+      "description": "Use all 147 documented mutations in Neon CRM API v2.11.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "neon_crm_read",
+        "label": "Read Neon CRM",
+        "description": "Use every documented semantic read in Neon CRM API v2.11, including GET resources and provider-defined search or calculation POSTs."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "neon_crm_manage",
+        "label": "Manage Neon CRM",
+        "description": "Create, update, patch, link, refund or delete authorized Neon CRM records; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "neon_crm_safe",
+      "label": "Safe",
+      "description": "All 129 semantic reads run directly; all 147 mutations require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["neon_crm_read"],
+      "approvalRequiredActions": ["neon_crm_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 276 selected API v2.11 operations run without Relay per-action approval; connection ownership, fixed routes, audits, bounds, user permissions and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["neon_crm_read", "neon_crm_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts the complete 276-operation Neon CRM API v2.11 contract with fixed routes and server-side Basic authentication."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts the complete 276-operation Neon CRM API v2.11 contract with fixed routes and server-side Basic authentication."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Live acceptance requires an authorized Neon CRM organization, a dedicated least-privilege system user, its Organization ID and API key, and representative nonprofit records; this code-only worker has none of them.",
+    "nextAction": "An authorized Neon CRM administrator creates the dedicated system user, grants the minimum required permissions, enables API Access, stores its Organization ID and API key through Relay Console, and validates current-user binding, representative reads and approved reversible mutations, key replacement, key deletion, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.neoncrm.com/authentication/",
+      "checkedAt": "2026-07-17",
+      "supports": "Neon CRM documents Organization ID plus user-bound API key authentication, HTTP Basic for API v2, inherited system-user permissions and a dedicated least-privilege user recommendation."
+    },
+    {
+      "url": "https://developer.neoncrm.com/api-v2/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official API v2.11 OpenAPI contract documents 276 operations, the production/sandbox https://api.neoncrm.com/v2 origin, the separate trial origin and Basic authentication."
+    },
+    {
+      "url": "https://developer.neoncrm.com/api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Neon CRM describes accounts, activities, households, donations, pledges, events, memberships, stores, constituent authentication and custom objects as supported product API domains."
+    }
+  ]
+}

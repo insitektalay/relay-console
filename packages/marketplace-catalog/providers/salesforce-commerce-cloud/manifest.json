@@ -1,0 +1,217 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "salesforce-commerce-cloud",
+  "name": "Salesforce Commerce Cloud",
+  "category": "commerce",
+  "description": "Salesforce B2C Commerce is an enterprise ecommerce platform for storefronts, product catalogs, merchandising, pricing, promotions, inventory, customers, carts, checkout, and orders. Organizations use Commerce Cloud APIs to power digital shopping experiences across sites and channels.",
+  "agentUseSummary": "Connect one B2C Commerce organization and site through a dedicated customer-owned private SLAS client with exactly sfcc.shopper-products and sfcc.shopper-categories. Agents can read bounded public metadata for one preselected product and category; shopper data, prices, promotions, inventory, content, search, checkout, Admin APIs, broader scopes, raw APIs, exports, and all mutations are blocked.",
+  "provider": {
+    "websiteUrl": "https://www.salesforce.com/commerce/",
+    "docsUrl": "https://developer.salesforce.com/docs/commerce/commerce-api/guide/authorization-for-shopper-apis.html",
+    "developerConsoleUrl": "https://account.demandware.com/",
+    "termsUrl": "https://www.salesforce.com/company/legal/agreements/",
+    "privacyUrl": "https://www.salesforce.com/company/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["sfcc.shopper-products", "sfcc.shopper-categories"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://{shortCode}.api.commercecloud.salesforce.com/shopper/auth/v1/organizations/{organizationId}/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_private_slas_client",
+      "bound_organization",
+      "selected_site_channel",
+      "selected_product",
+      "selected_category"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SALESFORCE_COMMERCE_CLOUD_SHORT_CODE",
+        "label": "B2C Commerce short code",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact instance short code used to construct the trusted SCAPI host."
+      },
+      {
+        "name": "SALESFORCE_COMMERCE_CLOUD_ORGANIZATION_ID",
+        "label": "B2C Commerce organization ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact organization ID whose selected storefront resources Relay may read."
+      },
+      {
+        "name": "SALESFORCE_COMMERCE_CLOUD_SITE_ID",
+        "label": "Selected storefront site ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact site/channel ID bound into the guest SLAS token and both Shopper API calls."
+      },
+      {
+        "name": "SALESFORCE_COMMERCE_CLOUD_CLIENT_ID",
+        "label": "Private SLAS client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "A dedicated customer-owned private SLAS client configured with exactly the two required read scopes."
+      },
+      {
+        "name": "SALESFORCE_COMMERCE_CLOUD_CLIENT_SECRET",
+        "label": "Private SLAS client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay encrypts this secret and uses it only at the exact guest token endpoint."
+      },
+      {
+        "name": "SALESFORCE_COMMERCE_CLOUD_PRODUCT_ID",
+        "label": "Selected product ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one storefront product whose bounded public metadata Relay may read."
+      },
+      {
+        "name": "SALESFORCE_COMMERCE_CLOUD_CATEGORY_ID",
+        "label": "Selected category ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one storefront category whose bounded public metadata Relay may read."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "salesforce_commerce_cloud_product_summary_get",
+      "label": "Read selected product",
+      "description": "Read a bounded public storefront summary for one preselected product.",
+      "defaultSelected": true
+    },
+    {
+      "id": "salesforce_commerce_cloud_category_summary_get",
+      "label": "Read selected category",
+      "description": "Read a bounded public storefront summary for one preselected category.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "salesforce_commerce_cloud_product_summary_get",
+        "label": "Read selected product",
+        "description": "Read only ID, name, brand, online, and searchable metadata for the configured public storefront product."
+      },
+      {
+        "id": "salesforce_commerce_cloud_category_summary_get",
+        "label": "Read selected category",
+        "description": "Read only ID, name, online, and parent metadata for the configured public storefront category."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "salesforce_commerce_cloud_private_data",
+        "label": "Expose private commerce data",
+        "description": "Customers, guest identifiers, tokens, baskets, orders, addresses, payments, inventory, promotions, prices, content, images, descriptions, variants, custom fields, and raw responses are excluded."
+      },
+      {
+        "id": "salesforce_commerce_cloud_mutation",
+        "label": "Mutate Commerce Cloud state",
+        "description": "Baskets, checkout, orders, customers, wishlists, promotions, catalogs, products, inventory, content, configuration, jobs, imports, and administration are blocked."
+      },
+      {
+        "id": "salesforce_commerce_cloud_broad_access",
+        "label": "Use broad Commerce Cloud access",
+        "description": "Other organizations, sites, products, categories, scopes, Admin APIs, Account Manager, OCAPI, SOAP, search, paging, arbitrary paths, redirects, downloads, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "salesforce_commerce_cloud_read_only",
+      "label": "Read Only",
+      "description": "Read one selected product and category with an exact two-scope site-bound token; private data and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "salesforce_commerce_cloud_product_summary_get",
+        "salesforce_commerce_cloud_category_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "salesforce_commerce_cloud_private_data",
+        "salesforce_commerce_cloud_mutation",
+        "salesforce_commerce_cloud_broad_access"
+      ]
+    },
+    {
+      "id": "salesforce_commerce_cloud_no_access",
+      "label": "No Access",
+      "description": "Expose no Salesforce Commerce Cloud actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "salesforce_commerce_cloud_product_summary_get",
+        "salesforce_commerce_cloud_category_summary_get",
+        "salesforce_commerce_cloud_private_data",
+        "salesforce_commerce_cloud_mutation",
+        "salesforce_commerce_cloud_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted private SLAS credentials server-side and mounts exactly two preselected public storefront reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted private SLAS credentials server-side and mounts exactly two preselected public storefront reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A B2C Commerce instance, organization/site identifiers, dedicated private SLAS client with exactly two read scopes, and staging product/category are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "An authorized B2C Commerce administrator must create a dedicated staging private SLAS client with only sfcc.shopper-products and sfcc.shopper-categories, connect the exact organization/site/product/category through Relay, then validate JWT scope rejection, site binding, token caching, both redacted reads, replacement, disconnect, and post-disconnect denial in Fairfax before live use."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.salesforce.com/docs/commerce/commerce-api/guide/authorization-for-shopper-apis.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents private SLAS clients, client secrets, channel associations, assigned scopes, and Shopper API authorization."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/commerce/commerce-api/guide/slas-private-client.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents the client-credentials guest flow, HTTP Basic client authentication, required grant type, site channel_id, JWT access token, and reusable token behavior."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/commerce/commerce-api/guide/auth-z-scope-catalog.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce defines sfcc.shopper-products and sfcc.shopper-categories as read-only storefront product and category scopes and recommends minimum authority."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/commerce/b2c-commerce/guide/base-url.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents short-code SCAPI hosts, organization IDs, siteId request binding, and the getProduct URL pattern."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/commerce/commerce-api/references/shopper-products?meta=getProduct",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents the selected-product Shopper Products endpoint."
+    },
+    {
+      "url": "https://developer.salesforce.com/docs/commerce/commerce-api/references/shopper-products?meta=getCategory",
+      "checkedAt": "2026-07-17",
+      "supports": "Salesforce documents the selected-category Shopper Products endpoint."
+    }
+  ]
+}

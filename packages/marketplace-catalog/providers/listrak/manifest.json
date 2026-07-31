@@ -1,0 +1,189 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "listrak",
+  "name": "Listrak",
+  "category": "communication",
+  "description": "Listrak provides email, SMS, cross-channel, data-import, privacy, mobile-push, and two-way messaging APIs.",
+  "agentUseSummary": "Connect dedicated customer-owned Email REST client credentials. Relay pins four Email v1 operations: list inventory and exact-list reads run directly, an exact contact read and one-contact create/update require approval, the write requires contact authorization, and subscription additionally requires double-opt-in evidence.",
+  "provider": {
+    "websiteUrl": "https://www.listrak.com/",
+    "docsUrl": "https://api.listrak.com/email",
+    "developerConsoleUrl": "https://admin.listrak.com/",
+    "termsUrl": "https://www.listrak.com/privacy-and-terms/acceptable-use-policy",
+    "privacyUrl": "https://www.listrak.com/privacy-and-terms/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://auth.listrak.com/OAuth2/Token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_oauth_client_id",
+      "customer_owned_oauth_client_secret",
+      "client_credentials_token_exchange",
+      "fixed_email_v1_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "LISTRAK_CLIENT_ID",
+        "label": "Listrak client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use a dedicated customer-owned Email REST integration with least-privilege List and Contact access."
+      },
+      {
+        "name": "LISTRAK_CLIENT_SECRET",
+        "label": "Listrak client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay exchanges this only at the fixed Listrak token endpoint."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read lists",
+      "description": "Use the list inventory and exact-list configuration reads.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read contact",
+      "description": "Use one exact list/contact lookup with approval.",
+      "defaultSelected": false
+    },
+    {
+      "id": "manage",
+      "label": "Manage one contact",
+      "description": "Use one one-contact write with approval, authorization, and double-opt-in enforcement.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "listrak_structural_read",
+        "label": "Read Listrak lists",
+        "description": "Read the account list inventory or one exact list configuration."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "listrak_sensitive_read",
+        "label": "Read Listrak contact",
+        "description": "Read one exact email contact from one exact list."
+      },
+      {
+        "id": "listrak_manage",
+        "label": "Manage Listrak contact",
+        "description": "Create or update one authorized contact with explicit subscription state."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "listrak_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Client credentials, access tokens, authorization headers, and credential-bearing response fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "listrak_bulk_import",
+        "label": "Run bulk or import APIs",
+        "description": "Contact collections, list imports, profile-field bulk updates, exports, clickers/activity, and unbounded transfers are excluded."
+      },
+      {
+        "id": "listrak_send_admin",
+        "label": "Send or administer campaigns",
+        "description": "Message/transactional sends, campaigns, content, lists, events, conversations, saved audiences, profile-field administration, and deletes remain provider-side."
+      },
+      {
+        "id": "listrak_unbounded_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only four pinned Email v1 routes run on fixed token/API origins; unsubscribe overrides, arbitrary paths, queries, fields, URLs, headers, and oversized results are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "listrak_safe",
+      "label": "Safe",
+      "description": "List reads run directly; exact contact reads and one-contact writes require approval, writes require contact authorization, and subscription additionally requires double-opt-in evidence.",
+      "defaultSelected": true,
+      "allowedActions": ["listrak_structural_read"],
+      "approvalRequiredActions": ["listrak_sensitive_read", "listrak_manage"],
+      "blockedActions": [
+        "listrak_secret_exposure",
+        "listrak_bulk_import",
+        "listrak_send_admin",
+        "listrak_unbounded_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected operations run without Relay per-action approval; authorization/double-opt-in attestations, fixed routing, bounds, audits, and bulk/send/admin blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "listrak_structural_read",
+        "listrak_sensitive_read",
+        "listrak_manage"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "listrak_secret_exposure",
+        "listrak_bulk_import",
+        "listrak_send_admin",
+        "listrak_unbounded_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts four pinned Listrak Email v1 routes and performs a fixed client-credentials exchange without exposing secrets or tokens."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts four pinned Listrak Email v1 routes and performs a fixed client-credentials exchange without exposing secrets or tokens."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Listrak requires a customer-owned least-privilege Email REST integration, client credentials, lists, and permission-based contact acquisition. No console, integration/app, credentials, list, contact, consent, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create a dedicated staging Email REST integration outside this worker with only List and Contact access, configure credentials in Railway staging, and verify token exchange, list/contact reads, approval and contact/double-opt-in denial/allow, subscribe/unsubscribe behavior without override, response bounds, secret rotation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.listrak.com/email",
+      "checkedAt": "2026-07-17",
+      "supports": "Listrak's downloadable current Email REST contract documents the fixed API/token origins, client-credentials bearer flow, List and Contact scopes, exact v1 routes, contact schema, and subscription safety parameters."
+    },
+    {
+      "url": "https://help.listrak.com/en/articles/9406951-rest-api-integrations-at-listrak",
+      "checkedAt": "2026-07-17",
+      "supports": "Listrak documents REST method semantics and distinct Email, SMS, Cross Channel, Data Import, Two-Way SMS, Mobile Push, and Privacy API families."
+    },
+    {
+      "url": "https://www.listrak.com/learn/developers",
+      "checkedAt": "2026-07-17",
+      "supports": "Listrak's developer hub identifies the Email REST API for contacts, campaigns, and performance and links the separate API families excluded by Relay."
+    },
+    {
+      "url": "https://www.listrak.com/privacy-and-terms/acceptable-use-policy",
+      "checkedAt": "2026-07-17",
+      "supports": "Listrak documents lawful use, privacy, data-transfer, security, and prohibited-content obligations for its messaging service."
+    }
+  ]
+}

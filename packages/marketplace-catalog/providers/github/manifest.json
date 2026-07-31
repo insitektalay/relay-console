@@ -1,0 +1,242 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "github",
+  "name": "GitHub",
+  "category": "developer",
+  "description": "GitHub is a software development platform for hosting Git repositories and collaborating through issues and pull requests. Teams use it to plan work, review changes, discuss code, and maintain shared software projects.",
+  "agentUseSummary": "Connect GitHub once, then choose which agents may search repositories, read issues and pull requests, prepare comments, or post comments under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://github.com/",
+    "docsUrl": "https://docs.github.com/en/apps/creating-github-apps",
+    "developerConsoleUrl": "https://github.com/settings/apps",
+    "termsUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-of-service",
+    "privacyUrl": "https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://github.com/login/oauth/authorize",
+    "tokenUrl": "https://github.com/login/oauth/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_github_app",
+      "github_app_user_authorization",
+      "user_and_repository_authority_intersection"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/github/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "repository_search",
+      "label": "Find repositories",
+      "description": "Search up to twenty-five repositories visible to the authorized GitHub user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "issue_read",
+      "label": "Read issues",
+      "description": "List up to fifty issues from one explicit repository.",
+      "defaultSelected": true
+    },
+    {
+      "id": "pull_request_read",
+      "label": "Read pull requests",
+      "description": "List up to fifty pull requests from one explicit repository.",
+      "defaultSelected": true
+    },
+    {
+      "id": "comment_draft",
+      "label": "Prepare comments",
+      "description": "Prepare one bounded issue or pull-request comment locally without changing GitHub.",
+      "defaultSelected": true
+    },
+    {
+      "id": "issue_comment_write",
+      "label": "Comment on issues",
+      "description": "Post one exact comment to an explicit issue.",
+      "defaultSelected": true
+    },
+    {
+      "id": "pull_request_comment_write",
+      "label": "Comment on pull requests",
+      "description": "Post one exact conversation comment to an explicit pull request.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "github_repo_search",
+        "label": "Search repositories",
+        "description": "Search a bounded set of repositories visible to the authorized GitHub user."
+      },
+      {
+        "id": "github_issue_list",
+        "label": "List issues",
+        "description": "List a bounded set of issues in one explicit repository."
+      },
+      {
+        "id": "github_pull_request_list",
+        "label": "List pull requests",
+        "description": "List a bounded set of pull requests in one explicit repository."
+      },
+      {
+        "id": "github_issue_comment_prepare",
+        "label": "Prepare a comment",
+        "description": "Prepare one issue or pull-request comment locally without changing GitHub."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "github_issue_comment_create",
+        "label": "Comment on an issue",
+        "description": "Post one exact comment to an explicit issue; Safe mode requires matching approval."
+      },
+      {
+        "id": "github_pull_request_comment_create",
+        "label": "Comment on a pull request",
+        "description": "Post one exact conversation comment to an explicit pull request; Safe mode requires matching approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "github_repository_delete",
+        "label": "Delete repositories",
+        "description": "Repository deletion is outside the bounded V1 connector."
+      },
+      {
+        "id": "github_governance_admin",
+        "label": "Change governance or security",
+        "description": "Organization administration, branch protections, rulesets, secrets, and security-control changes are outside V1."
+      },
+      {
+        "id": "github_raw_api",
+        "label": "Use arbitrary GitHub API calls",
+        "description": "Raw URLs, arbitrary operations, tokens, and unbounded pagination are never exposed to agents."
+      },
+      {
+        "id": "github_history_rewrite",
+        "label": "Rewrite protected history",
+        "description": "Force pushes and protected-history rewrites are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "github_safe",
+      "label": "Safe",
+      "description": "Repository searches, bounded reads, and local drafts run directly; each posted comment requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "github_repo_search",
+        "github_issue_list",
+        "github_pull_request_list",
+        "github_issue_comment_prepare"
+      ],
+      "approvalRequiredActions": [
+        "github_issue_comment_create",
+        "github_pull_request_comment_create"
+      ],
+      "blockedActions": [
+        "github_repository_delete",
+        "github_governance_admin",
+        "github_raw_api",
+        "github_history_rewrite"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected GitHub operation supported by this connector runs without Relay per-action approval; connection ownership, GitHub App permissions, user authority, repository selection, request bounds, audits, redaction, and GitHub limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "github_repo_search",
+        "github_issue_list",
+        "github_pull_request_list",
+        "github_issue_comment_prepare",
+        "github_issue_comment_create",
+        "github_pull_request_comment_create"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "github_repository_delete",
+        "github_governance_admin",
+        "github_raw_api",
+        "github_history_rewrite"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts six typed GitHub tools and attaches the connected GitHub user token server-side without exposing it to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts six typed GitHub tools and attaches the connected GitHub user token server-side without exposing it to the agent."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay Console's public GitHub App, production callback and setup URL, requested repository permissions, app slug, client credentials, and a fresh production authorization have not been configured and verified.",
+    "nextAction": "Create or configure Relay Console as a public GitHub App, allow installation by any account, leave Request user authorization during installation off, register https://api.relayconsole.work/api/v1/marketplace/oauth/github/callback as both the callback URL and setup URL, grant metadata read plus issues read/write and pull-request read permissions, configure GITHUB_APP_SLUG, GITHUB_CLIENT_ID, and GITHUB_CLIENT_SECRET on Railway, then verify installation binding, PKCE, state, user binding, repository search, bounded reads, Safe comment approval, Dangerous comment posting, refresh, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app",
+      "checkedAt": "2026-07-16",
+      "supports": "GitHub documents public GitHub App registration, callback and setup URLs, installation authorization, requested permissions, user authorization during installation, and app distribution settings."
+    },
+    {
+      "url": "https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app",
+      "checkedAt": "2026-07-16",
+      "supports": "GitHub documents the user access-token authorization-code flow, state, PKCE S256, exact callback handling, token exchange, refresh tokens, and the intersection of user authority with GitHub App permissions."
+    },
+    {
+      "url": "https://docs.github.com/en/apps/sharing-github-apps/sharing-your-github-app",
+      "checkedAt": "2026-07-16",
+      "supports": "GitHub documents direct public installation URLs with a state parameter, which Relay uses to bind the selected installation to the OAuth transaction."
+    },
+    {
+      "url": "https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/about-the-setup-url",
+      "checkedAt": "2026-07-16",
+      "supports": "GitHub documents the post-installation setup redirect and installation_id parameter and requires the receiving app to verify that installation instead of trusting the callback value alone."
+    },
+    {
+      "url": "https://docs.github.com/en/rest/apps/oauth-applications?apiVersion=2026-03-10#delete-an-app-token",
+      "checkedAt": "2026-07-16",
+      "supports": "GitHub documents revoking one GitHub App user token with the app client ID and client secret; Relay calls this endpoint before clearing a disconnected connection."
+    },
+    {
+      "url": "https://docs.github.com/en/rest/search/search?apiVersion=2026-03-10#search-repositories",
+      "checkedAt": "2026-07-16",
+      "supports": "GitHub documents authenticated repository search and bounded per-page results; Relay follows only one page and caps output at twenty-five repositories."
+    },
+    {
+      "url": "https://docs.github.com/en/rest/issues/issues?apiVersion=2026-03-10#list-repository-issues",
+      "checkedAt": "2026-07-16",
+      "supports": "GitHub documents repository issue listing and notes that the Issues endpoint also returns pull requests; Relay filters pull-request records and caps output at fifty issues."
+    },
+    {
+      "url": "https://docs.github.com/en/rest/pulls/pulls?apiVersion=2026-03-10#list-pull-requests",
+      "checkedAt": "2026-07-16",
+      "supports": "GitHub documents repository pull-request listing with explicit owner, repository, state, and pagination parameters; Relay follows only one bounded page."
+    },
+    {
+      "url": "https://docs.github.com/en/rest/issues/comments?apiVersion=2026-03-10#create-an-issue-comment",
+      "checkedAt": "2026-07-16",
+      "supports": "GitHub documents one issue-comment endpoint for both issues and pull-request conversations and the required Issues write permission; Relay wraps one exact bounded comment."
+    }
+  ]
+}

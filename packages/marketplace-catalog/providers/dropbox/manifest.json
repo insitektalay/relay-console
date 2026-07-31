@@ -1,0 +1,230 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "dropbox",
+  "name": "Dropbox",
+  "category": "knowledge_documents",
+  "description": "Dropbox is a cloud storage and collaboration service for keeping files and folders synchronized across devices and teams. People use it to store documents, organize shared work, recover revisions, and collaborate on content from a common file space.",
+  "agentUseSummary": "Connect a Dropbox account once, then choose which agents may find and read bounded files, prepare changes, and create, upload, copy, move, rename, or delete explicit entries under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.dropbox.com/",
+    "docsUrl": "https://www.dropbox.com/developers/documentation/http/documentation",
+    "developerConsoleUrl": "https://www.dropbox.com/developers/apps",
+    "termsUrl": "https://www.dropbox.com/terms",
+    "privacyUrl": "https://www.dropbox.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "account_info.read",
+      "files.metadata.read",
+      "files.content.read",
+      "files.metadata.write",
+      "files.content.write"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.dropbox.com/oauth2/authorize",
+    "tokenUrl": "https://api.dropboxapi.com/oauth2/token",
+    "revocationUrl": "https://api.dropboxapi.com/2/auth/token/revoke"
+  },
+  "connection": {
+    "types": ["oauth2", "relay_owned_oauth", "full_dropbox_user_account"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/dropbox/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_read",
+      "label": "View connected account",
+      "description": "Identify the connected Dropbox account and root namespace.",
+      "defaultSelected": true
+    },
+    {
+      "id": "file_read",
+      "label": "Find and read files",
+      "description": "List folders, inspect metadata, search, and read bounded UTF-8 text files.",
+      "defaultSelected": true
+    },
+    {
+      "id": "file_draft",
+      "label": "Prepare file changes",
+      "description": "Prepare exact folder, upload, copy, move, or delete changes locally.",
+      "defaultSelected": true
+    },
+    {
+      "id": "file_write",
+      "label": "Organize files",
+      "description": "Create folders, upload text, copy, move, rename, and delete explicit entries.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "dropbox_account_get",
+        "label": "Read account",
+        "description": "Read the connected Dropbox account identity and root namespace."
+      },
+      {
+        "id": "dropbox_folder_list",
+        "label": "List a folder",
+        "description": "List one bounded page of entries in an explicit folder."
+      },
+      {
+        "id": "dropbox_entry_get",
+        "label": "Read entry metadata",
+        "description": "Read metadata for one explicit file or folder."
+      },
+      {
+        "id": "dropbox_entry_search",
+        "label": "Search files",
+        "description": "Search one bounded page of file and folder metadata."
+      },
+      {
+        "id": "dropbox_text_download",
+        "label": "Read a text file",
+        "description": "Download at most 256 KiB from one explicit UTF-8 text file."
+      },
+      {
+        "id": "dropbox_change_prepare",
+        "label": "Prepare a file change",
+        "description": "Prepare and hash one Dropbox mutation locally."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "dropbox_folder_create",
+        "label": "Create folder",
+        "description": "Create one folder; Safe mode requires approval."
+      },
+      {
+        "id": "dropbox_text_upload",
+        "label": "Upload text",
+        "description": "Create or replace one bounded text file; Safe mode requires approval."
+      },
+      {
+        "id": "dropbox_entry_copy",
+        "label": "Copy entry",
+        "description": "Copy one file or folder; Safe mode requires approval."
+      },
+      {
+        "id": "dropbox_entry_move",
+        "label": "Move entry",
+        "description": "Move or rename one file or folder; Safe mode requires approval."
+      },
+      {
+        "id": "dropbox_entry_delete",
+        "label": "Delete entry",
+        "description": "Delete one file or folder; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "dropbox_sharing_admin",
+        "label": "Change sharing or team administration",
+        "description": "Shared links, members, permissions, team administration, impersonation, and namespace selection are outside V1."
+      },
+      {
+        "id": "dropbox_bulk_unbounded",
+        "label": "Run broad or bulk operations",
+        "description": "Recursive traversal, automatic pagination, upload sessions, batch mutations, restore, permanent deletion, and broad exports are outside V1."
+      },
+      {
+        "id": "dropbox_raw_api",
+        "label": "Call arbitrary Dropbox APIs",
+        "description": "Raw RPC, content, Business, Paper, Sign, and untyped endpoints are outside this connector."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "dropbox_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local drafts run directly; every Dropbox mutation requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "dropbox_account_get",
+        "dropbox_folder_list",
+        "dropbox_entry_get",
+        "dropbox_entry_search",
+        "dropbox_text_download",
+        "dropbox_change_prepare"
+      ],
+      "approvalRequiredActions": [
+        "dropbox_folder_create",
+        "dropbox_text_upload",
+        "dropbox_entry_copy",
+        "dropbox_entry_move",
+        "dropbox_entry_delete"
+      ],
+      "blockedActions": [
+        "dropbox_sharing_admin",
+        "dropbox_bulk_unbounded",
+        "dropbox_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Dropbox operation supported by this connector runs without Relay per-action approval; connection ownership, OAuth grants, bounds, audits, redaction, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "dropbox_account_get",
+        "dropbox_folder_list",
+        "dropbox_entry_get",
+        "dropbox_entry_search",
+        "dropbox_text_download",
+        "dropbox_change_prepare",
+        "dropbox_folder_create",
+        "dropbox_text_upload",
+        "dropbox_entry_copy",
+        "dropbox_entry_move",
+        "dropbox_entry_delete"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "dropbox_sharing_admin",
+        "dropbox_bulk_unbounded",
+        "dropbox_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts eleven typed Dropbox tools and attaches the user's encrypted OAuth token server-side without exposing it to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts eleven typed Dropbox tools and attaches the user's encrypted OAuth token server-side without exposing it to the agent."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "relay_action_required",
+    "blocker": "Relay's production Dropbox scoped app, exact callback, Full Dropbox access, five required scopes, app key, app secret, and production approval are not configured and verified on Railway.",
+    "nextAction": "Create the Relay Console Dropbox app, register https://api.relayconsole.work/api/v1/marketplace/oauth/dropbox/callback, select Full Dropbox, grant the five declared scopes, configure DROPBOX_CLIENT_ID and DROPBOX_CLIENT_SECRET on Railway, then test consent, refresh, bounded reads, Safe and Dangerous writes, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.dropbox.com/oauth-guide",
+      "checkedAt": "2026-07-16",
+      "supports": "Dropbox documents one registered app for all end users, exact redirect matching, scoped Full Dropbox access, authorization code flow, S256 PKCE, short-lived access tokens, offline refresh tokens, and provider revocation."
+    },
+    {
+      "url": "https://developers.dropbox.com/dbx-file-access-guide",
+      "checkedAt": "2026-07-16",
+      "supports": "Dropbox documents file IDs and paths, bounded list-folder pagination, metadata fields, access rights, non-downloadable-file handling, and explicit Files API operations."
+    },
+    {
+      "url": "https://dropbox.github.io/dropbox-sdk-js/Dropbox.html",
+      "checkedAt": "2026-07-16",
+      "supports": "Dropbox's official SDK reference documents current account, list, metadata, search, download, create-folder, upload, copy, move, delete, required scopes, and provider error behavior."
+    }
+  ]
+}

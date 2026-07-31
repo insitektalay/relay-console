@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-meet",
+  "name": "Google Meet",
+  "category": "communication",
+  "description": "Google Meet is Google's video meeting service for real-time collaboration. Individuals and teams use it to create secure meeting spaces and join calls from the web or Google Workspace.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth, then let agents use four bounded wrappers to read one explicit app-created Space, prepare safe configuration locally, create a moderated restricted or trusted Space, and patch one app-created Space with a forced safety update mask. Relay V1 excludes open or unmoderated settings, conference termination, participant and attendance data, conference records, recordings, transcripts, smart notes, Drive artifacts, dial-in and SIP details, events, media, hardware, broad Meet or Drive scopes, pagination, delegation, and raw tools.",
+  "provider": { "websiteUrl": "https://meet.google.com/", "docsUrl": "https://developers.google.com/workspace/meet/api/guides/overview", "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials", "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy", "privacyUrl": "https://policies.google.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["openid", "email", "https://www.googleapis.com/auth/meetings.space.created"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth", "tokenUrl": "https://oauth2.googleapis.com/token" },
+  "connection": { "types": ["relay_owned_global_oauth", "exact_google_account_binding", "expiring_access_token", "offline_refresh_token", "provider_revocation"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/google-meet/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "space_read", "label": "Read meeting spaces", "description": "Read bounded metadata for explicit Spaces created by Relay's app.", "defaultSelected": true },
+    { "id": "space_draft", "label": "Prepare Space changes", "description": "Validate and preview forced-safe Space configuration locally.", "defaultSelected": true },
+    { "id": "space_write", "label": "Create and update Spaces", "description": "Create or patch safely moderated app-created Spaces.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_meet_space_get", "label": "Get meeting space", "description": "Read safe metadata for one explicit Relay-app-created Space." },
+      { "id": "google_meet_space_update_prepare", "label": "Prepare meeting space update", "description": "Validate safe Space creation or patch locally." }
+    ],
+    "approvalRequired": [
+      { "id": "google_meet_space_create", "label": "Create meeting space", "description": "Create one safely configured app-created Space." },
+      { "id": "google_meet_space_patch", "label": "Update meeting space", "description": "Patch one app-created Space with a forced safety configuration and explicit update mask." }
+    ],
+    "blocked": [
+      { "id": "google_meet_end_conference", "label": "End active conference", "description": "Active-conference termination is blocked in V1." },
+      { "id": "google_meet_open_unmoderated", "label": "Use open or unmoderated meeting settings", "description": "Open access, moderation off, unrestricted participant features, attendance, and automatic artifacts are blocked." },
+      { "id": "google_meet_participants_sessions", "label": "Access meeting participants", "description": "Participant identities, attendance, devices, and participant sessions are outside V1." },
+      { "id": "google_meet_conference_records", "label": "Access conference records", "description": "Conference record identifiers and lifecycle data are outside V1." },
+      { "id": "google_meet_artifacts", "label": "Access meeting artifacts", "description": "Recordings, transcripts, smart notes, Drive files, dial-in, and SIP details are outside V1." },
+      { "id": "google_meet_events_media_hardware", "label": "Use Meet events, media, or hardware APIs", "description": "Events, media streams, eCDN, hardware, and add-on surfaces are outside V1." },
+      { "id": "google_meet_broad_scopes_drive", "label": "Use broad Meet or Drive scopes", "description": "Broader Meet and restricted recording or transcript Drive scopes are forbidden." },
+      { "id": "google_meet_raw_delegation", "label": "Run raw or delegated Meet access", "description": "Raw endpoints, automatic pagination, service accounts, and domain delegation are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "google_meet_safe", "label": "Safe", "description": "Explicit app-created Space reads and local preparation run automatically; safe create and patch require matching approval.", "defaultSelected": true, "allowedActions": ["google_meet_space_get", "google_meet_space_update_prepare"], "approvalRequiredActions": ["google_meet_space_create", "google_meet_space_patch"], "blockedActions": ["google_meet_end_conference", "google_meet_open_unmoderated", "google_meet_participants_sessions", "google_meet_conference_records", "google_meet_artifacts", "google_meet_events_media_hardware", "google_meet_broad_scopes_drive", "google_meet_raw_delegation"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All four selected tools run without Relay per-action approval while exact app-created scope, moderated configuration, privacy redaction, audit, refresh, revocation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["google_meet_space_get", "google_meet_space_update_prepare", "google_meet_space_create", "google_meet_space_patch"], "approvalRequiredActions": [], "blockedActions": ["google_meet_end_conference", "google_meet_open_unmoderated", "google_meet_participants_sessions", "google_meet_conference_records", "google_meet_artifacts", "google_meet_events_media_hardware", "google_meet_broad_scopes_drive", "google_meet_raw_delegation"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [{ "format": "openclaw", "installSupport": "installable", "description": "Relay mounts four safe app-created Google Meet Space wrappers and attaches encrypted OAuth tokens server-side." }, { "format": "hermes", "installSupport": "installable", "description": "Relay mounts four safe app-created Google Meet Space wrappers and attaches encrypted OAuth tokens server-side." }],
+  "availability": "available",
+  "providerSetup": { "status": "provider_review_pending", "blocker": "Relay must configure its Google Cloud project and confidential web client, enable Google Meet REST API, publish its OAuth consent screen with verified relayconsole.work domains and policy links, complete Google's applicable verification for the sensitive app-created Space scope, configure Railway staging credentials, confirm Workspace entitlement and admin policy, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.", "nextAction": "In the provider-console task, configure the canonical Railway callback and exact scope, complete Google verification, configure staging credentials, then verify all four tools, app-created ownership, safe configuration and redaction, Safe and Dangerous policy, refresh, rotation, revocation, disconnect, Workspace policy, quota/error mapping, and post-disconnect denial." },
+  "evidence": [
+    { "url": "https://developers.google.com/workspace/meet/api/guides/authenticate-authorize", "checkedAt": "2026-07-17", "supports": "Google documents the narrow meetings.space.created OAuth scope for spaces created by an app and broader scopes Relay excludes." },
+    { "url": "https://developers.google.com/workspace/meet/api/reference/rest/v2/spaces/create", "checkedAt": "2026-07-17", "supports": "Spaces.create uses Meet API v2 and accepts a Space body under the app-created Space scope." },
+    { "url": "https://developers.google.com/workspace/meet/api/reference/rest/v2/spaces/get", "checkedAt": "2026-07-17", "supports": "Spaces.get retrieves one explicit Space resource." },
+    { "url": "https://developers.google.com/workspace/meet/api/reference/rest/v2/spaces/patch", "checkedAt": "2026-07-17", "supports": "Spaces.patch updates one exact Space using an explicit update mask." },
+    { "url": "https://developers.google.com/workspace/meet/api/reference/rest/v2/spaces", "checkedAt": "2026-07-17", "supports": "Space configuration includes access, entry-point, moderation, attendance, and artifact settings plus sensitive conference, phone, and SIP fields Relay excludes." },
+    { "url": "https://developers.google.com/workspace/meet/api/guides/limits", "checkedAt": "2026-07-17", "supports": "Google documents separate Meet read, write, and reduced-create quotas and 429 rate-limit behavior." }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "launch-governance-evidence.schema.json",
+  "title": "Relay Console release-bound launch governance evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "releaseId", "capturedAt", "candidate",
+    "releaseBinding", "documents", "results", "privacy"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.launch-governance-evidence.v1" },
+    "releaseId": { "type": "string", "minLength": 1 },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCommit", "manifestSHA256"],
+      "properties": {
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "manifestSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "releaseBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceBranch", "vercelDeploymentId", "publicSurfacesSHA256",
+        "billingReleaseSHA256"
+      ],
+      "properties": {
+        "sourceBranch": { "type": "string", "pattern": "^release/.+" },
+        "vercelDeploymentId": { "type": "string", "minLength": 1 },
+        "publicSurfacesSHA256": { "$ref": "#/$defs/sha256" },
+        "billingReleaseSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "documents": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "bodySHA256"],
+        "properties": {
+          "path": {
+            "enum": [
+              "/", "/privacy", "/terms", "/acceptable-use", "/support",
+              "/security", "/subprocessors", "/data-deletion",
+              "/third-party-notices"
+            ]
+          },
+          "bodySHA256": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
+    "results": { "$ref": "launch-governance-results.schema.json" },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "credentialsIncluded", "secretValuesIncluded", "customerContentIncluded",
+        "customerIdentifiersIncluded", "rawDocumentBodiesIncluded",
+        "rawReviewMaterialIncluded"
+      ],
+      "properties": {
+        "credentialsIncluded": { "const": false },
+        "secretValuesIncluded": { "const": false },
+        "customerContentIncluded": { "const": false },
+        "customerIdentifiersIncluded": { "const": false },
+        "rawDocumentBodiesIncluded": { "const": false },
+        "rawReviewMaterialIncluded": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" }
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "xray-test-management",
+  "name": "Xray Test Management",
+  "category": "developer",
+  "description": "Xray Test Management is a Jira-native quality-management platform for organizing Tests, Plans, Executions and Test Runs across manual and automated workflows. Engineering and QA teams use it to connect requirements with test coverage, execution status and release evidence inside Jira.",
+  "agentUseSummary": "Connect a dedicated user-linked Xray Cloud API key and bind Relay to one exact numeric Jira project ID. Selected agents can use four bounded metadata reads and one project-verified Test Run status update under Safe or Dangerously skip permissions; JQL, Jira fields, test content, imports, evidence, attachments, raw GraphQL and broader mutations remain unavailable.",
+  "icon": { "assetName": "marketplace-logo-xray-test-management.png", "sourceUrl": "https://www.getxray.app/favicon.ico" },
+  "provider": {
+    "websiteUrl": "https://www.getxray.app/",
+    "docsUrl": "https://getxraydocs.atlassian.net/wiki/spaces/XRAYCLOUD/pages/44577089/Authentication+-+REST+v2",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.getxray.app/terms-and-conditions",
+    "privacyUrl": "https://www.getxray.app/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://xray.cloud.getxray.app/api/v2/authenticate",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_user_linked_api_key", "xray_cloud_fixed_origin", "exact_jira_project_id_binding", "fixed_low_resolver_graphql", "request_local_bearer_token"],
+    "credentialRequirements": [
+      { "name": "XRAY_TEST_MANAGEMENT_CLIENT_ID", "label": "Xray client ID", "required": true, "secret": true, "helpText": "The Client ID from a dedicated API key linked to the intended Xray Cloud user." },
+      { "name": "XRAY_TEST_MANAGEMENT_CLIENT_SECRET", "label": "Xray client secret", "required": true, "secret": true, "helpText": "The matching Client Secret. Railway sends it only to Xray's fixed authentication endpoint and never logs the returned token." },
+      { "name": "XRAY_TEST_MANAGEMENT_PROJECT_ID", "label": "Jira project ID", "required": true, "secret": false, "helpText": "The exact numeric Jira project ID that bounds every supported Xray resource." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "tests_read", "label": "Read tests", "description": "List bounded Test metadata and inspect one exact Test inside one configured Jira project.", "defaultSelected": true },
+    { "id": "execution_read", "label": "Read executions and runs", "description": "List bounded Test Executions and inspect one exact Test Run without Jira fields or test content.", "defaultSelected": true },
+    { "id": "run_status_write", "label": "Update run status", "description": "Update only the status of an exact project-bound Test Run.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "xray_test_management_tests_list", "label": "List tests", "description": "List at most twenty fixed-field tests from one exact Jira project." },
+      { "id": "xray_test_management_test_get", "label": "Read test", "description": "Read bounded metadata for one exact numeric Test issue ID." },
+      { "id": "xray_test_management_executions_list", "label": "List test executions", "description": "List at most twenty fixed-field Test Executions from one exact Jira project." },
+      { "id": "xray_test_management_run_get", "label": "Read test run", "description": "Read one exact Test Run identified by its Test and Test Execution issue IDs." },
+      { "id": "xray_test_management_run_status_update", "label": "Update test-run status", "description": "Update the status of one exact project-bound Test Run." }
+    ],
+    "blocked": [
+      { "id": "xray_test_management_create_delete", "label": "Create or delete test entities", "description": "Tests, Preconditions, Plans, Executions, Sets and their associations cannot be created, copied, imported, reset or deleted." },
+      { "id": "xray_test_management_run_details", "label": "Change detailed run evidence", "description": "Comments, timers, assignees, executors, steps, examples, iterations, parameters, defects, evidence and attachments are unavailable." },
+      { "id": "xray_test_management_jira", "label": "Access broader Jira data", "description": "Jira fields, JQL, issue keys, users, comments, attachments, projects and non-Xray issue APIs are unavailable." },
+      { "id": "xray_test_management_raw_graphql", "label": "Run arbitrary Xray queries", "description": "Agents cannot submit GraphQL, choose fields, filters, JQL, offsets, project IDs, endpoints or arbitrary variables." },
+      { "id": "xray_test_management_import_export", "label": "Import or export results", "description": "JUnit, Cucumber, Xray JSON, Robot, NUnit and other imports, exports, backups and bulk operations are unavailable." },
+      { "id": "xray_test_management_unbounded", "label": "Read unbounded test data", "description": "Twenty-row lists, one exact resource, fixed low-resolver documents and 256 KiB responses are the maximum supported surface." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "xray_test_management_safe",
+      "label": "Safe",
+      "description": "All private test reads and run-status updates require approval. Exact project binding, fixed low-resolver documents, bounds and audits always apply.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["xray_test_management_tests_list", "xray_test_management_test_get", "xray_test_management_executions_list", "xray_test_management_run_get", "xray_test_management_run_status_update"],
+      "blockedActions": ["xray_test_management_create_delete", "xray_test_management_run_details", "xray_test_management_jira", "xray_test_management_raw_graphql", "xray_test_management_import_export", "xray_test_management_unbounded"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All five selected test-management actions run without Relay per-action approval; exact authority, project binding, fixed documents, bounds, redaction and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["xray_test_management_tests_list", "xray_test_management_test_get", "xray_test_management_executions_list", "xray_test_management_run_get", "xray_test_management_run_status_update"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["xray_test_management_create_delete", "xray_test_management_run_details", "xray_test_management_jira", "xray_test_management_raw_graphql", "xray_test_management_import_export", "xray_test_management_unbounded"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway exchanges the encrypted Xray credentials for a request-local token and executes five fixed low-resolver GraphQL operations bound to one exact Jira project." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway exchanges the encrypted Xray credentials for a request-local token and executes five fixed low-resolver GraphQL operations bound to one exact Jira project." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An Xray administrator must create a dedicated API key linked to an appropriately permissioned Jira user and capture its Client ID and Client Secret through the separate provider-console acceptance task.",
+    "nextAction": "In the provider-console acceptance task, create a dedicated user-linked Xray Cloud API key with only the intended project's Jira/Xray permissions, capture its Client ID and Client Secret, confirm the numeric Jira project ID, and enter all three values in Relay before live acceptance."
+  },
+  "evidence": [
+    { "url": "https://getxraydocs.atlassian.net/wiki/spaces/XRAYCLOUD/pages/44577089/Authentication+-+REST+v2", "checkedAt": "2026-07-18", "supports": "Xray Cloud requires a Client ID and Client Secret from a user-assigned API key to obtain a bearer token before API calls." },
+    { "url": "https://getxraydocs.atlassian.net/wiki/spaces/XRAYCLOUD/pages/44568019/Global+Settings+-+API+Keys", "checkedAt": "2026-07-18", "supports": "Xray API keys are linked to specific Jira users and requests act with that user's permissions." },
+    { "url": "https://us.xray.cloud.getxray.app/doc/graphql/index.html", "checkedAt": "2026-07-18", "supports": "The official GraphQL reference documents the fixed endpoint, field selection, pagination and a maximum of 25 resolvers per call." },
+    { "url": "https://us.xray.cloud.getxray.app/doc/graphql/gettests.doc.html", "checkedAt": "2026-07-18", "supports": "getTests supports exact projectId binding plus bounded limit and start arguments." },
+    { "url": "https://us.xray.cloud.getxray.app/doc/graphql/gettestexecutions.doc.html", "checkedAt": "2026-07-18", "supports": "getTestExecutions supports exact projectId binding and bounded pagination." },
+    { "url": "https://us.xray.cloud.getxray.app/doc/graphql/updatetestrunstatus.doc.html", "checkedAt": "2026-07-18", "supports": "updateTestRunStatus changes one exact Test Run ID to a named status." }
+  ]
+}

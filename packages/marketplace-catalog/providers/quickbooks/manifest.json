@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "quickbooks",
+  "name": "QuickBooks Online",
+  "aliases": ["quickbooks-online-advanced", "quickbooks-payroll", "quickbooks-payments", "quickbooks-capital"],
+  "category": "commerce_payments",
+  "description": "QuickBooks Online is cloud accounting software for small businesses and accountants. It brings invoicing, expenses, bank reconciliation, reporting, tax workflows, payroll integrations, and financial records into one online workspace.",
+  "agentUseSummary": "Connect one company through the Relay Console Intuit app, then let agents inspect bounded company metadata, privacy-redacted invoice summaries, pay-type assignments for one exact employee ID, and one exact privacy-redacted Payments charge status through five read-only tools. Payroll Compensation and Payments reads require approval. V1 exposes no customer or employee identity, payment instruments, authorization codes, tokens, receipts, refunds, payslips, deductions, benefits, tax data, bank details, payment mutation, or payroll execution.",
+  "provider": {
+    "websiteUrl": "https://quickbooks.intuit.com/",
+    "docsUrl": "https://developer.intuit.com/app/developer/qbo/docs/develop/authentication-and-authorization/oauth-2.0",
+    "developerConsoleUrl": "https://developer.intuit.com/app/developer/dashboard",
+    "termsUrl": "https://www.intuit.com/legal/terms/",
+    "privacyUrl": "https://www.intuit.com/privacy/statement/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["com.intuit.quickbooks.accounting", "payroll.compensation.read", "com.intuit.quickbooks.payment"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://appcenter.intuit.com/connect/oauth2",
+    "tokenUrl": "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
+    "revocationUrl": "https://developer.api.intuit.com/v2/oauth2/tokens/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth_app", "exact_company_realm_binding"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/quickbooks/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "company_read", "label": "Read company information", "description": "Read bounded metadata for the exact connected company.", "defaultSelected": true },
+    { "id": "invoice_read", "label": "Read invoices", "description": "List bounded redacted invoice summaries or inspect one exact invoice.", "defaultSelected": true },
+    { "id": "payroll_compensation_read", "label": "Read employee pay types", "description": "List bounded compensation-type assignments for one exact employee ID without employee identity or payroll amounts.", "defaultSelected": true },
+    { "id": "payment_charge_read", "label": "Read payment charge status", "description": "Inspect one exact privacy-redacted QuickBooks Payments charge status without customer or payment-instrument data.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [{ "id": "quickbooks_company_info_get", "label": "Read company information", "description": "Read bounded metadata for the exact connected QuickBooks Online company." }],
+    "approvalRequired": [
+      { "id": "quickbooks_invoice_list", "label": "List invoices", "description": "List at most twenty-five privacy-redacted invoice summaries." },
+      { "id": "quickbooks_invoice_get", "label": "Read invoice", "description": "Read one exact privacy-redacted invoice summary by numeric ID." },
+      { "id": "quickbooks_payroll_compensations_list", "label": "List employee pay types", "description": "List at most ten bounded pay-type assignments for one exact numeric employee ID." },
+      { "id": "quickbooks_payment_charge_get", "label": "Read payment charge status", "description": "Read one exact privacy-redacted QuickBooks Payments charge status by opaque ID." }
+    ],
+    "blocked": [
+      { "id": "quickbooks_financial_write", "label": "Change financial or payment records", "description": "Invoice, payment creation/capture/void/refund, customer, vendor, bank, journal, tax, payroll, and settings writes are outside V1." },
+      { "id": "quickbooks_private_data", "label": "Read private accounting, payroll, or payment data", "description": "Customer or employee identity, addresses, email, line items, notes, linked transactions, payment instruments, authorization codes, tokens, receipts, refunds, bank details, payslips, deductions, benefits, tax identifiers, reports, and raw errors are outside V1." },
+      { "id": "quickbooks_broader_admin", "label": "Administer QuickBooks", "description": "Users, subscriptions, app administration, cards, bank accounts, eChecks, tokens, and broader company or Payments administration are outside V1." },
+      { "id": "quickbooks_raw_api", "label": "Use arbitrary QuickBooks APIs", "description": "Arbitrary queries, paths, parameters, automatic pagination, and raw Accounting API access are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "quickbooks_safe", "label": "Safe", "description": "Company metadata runs directly; invoice, payroll compensation, and payment charge reads require matching approval.", "defaultSelected": true, "allowedActions": ["quickbooks_company_info_get"], "approvalRequiredActions": ["quickbooks_invoice_list", "quickbooks_invoice_get", "quickbooks_payroll_compensations_list", "quickbooks_payment_charge_get"], "blockedActions": ["quickbooks_financial_write", "quickbooks_private_data", "quickbooks_broader_admin", "quickbooks_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All five selected read-only tools run without Relay per-action approval while exact-company binding, bounds, audit, redaction, token rotation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["quickbooks_company_info_get", "quickbooks_invoice_list", "quickbooks_invoice_get", "quickbooks_payroll_compensations_list", "quickbooks_payment_charge_get"], "approvalRequiredActions": [], "blockedActions": ["quickbooks_financial_write", "quickbooks_private_data", "quickbooks_broader_admin", "quickbooks_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts five exact QuickBooks read wrappers and attaches the encrypted company token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts five exact QuickBooks read wrappers and attaches the encrypted company token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "relay_action_required",
+    "blocker": "Relay Console needs the com.intuit.quickbooks.payment scope and Intuit production review for Payments, plus an Intuit Silver, Gold, or Platinum tier, restricted payroll.compensation.read scope, production Workforce customer, and production credentials for Payroll Compensation. This code worker does not open provider consoles or capture credentials.",
+    "nextAction": "In the provider-console task, enable com.intuit.quickbooks.payment and payroll.compensation.read on the canonical Relay Console Intuit app, register https://api.relayconsole.work/api/v1/marketplace/oauth/quickbooks/callback, store production credentials through the approved Railway secret path, and verify all five reads, rolling refresh, disconnect, revocation, scope and realm denial, exact charge-ID denial, Payments sandbox and production origins, Payroll production-only enforcement, country routing, and employee-ID denial."
+  },
+  "evidence": [
+    { "url": "https://developer.intuit.com/app/developer/qbo/docs/develop/authentication-and-authorization/oauth-2.0", "checkedAt": "2026-07-17", "supports": "QuickBooks Online uses authorization-code OAuth, exact redirect URI matching, company realmId binding, one-hour access tokens, and rolling refresh tokens." },
+    { "url": "https://developer.intuit.com/app/developer/qbo/docs/learn/scopes", "checkedAt": "2026-07-17", "supports": "The Accounting API uses the single com.intuit.quickbooks.accounting scope; OpenID scopes are unnecessary for the bounded accounting tools." },
+    { "url": "https://developer.intuit.com/app/developer/qbo/docs/develop/authentication-and-authorization/faq", "checkedAt": "2026-07-17", "supports": "Access tokens last one hour and the latest rolling refresh token must be stored after each refresh; refresh tokens have rolling inactivity and maximum lifetime limits." },
+    { "url": "https://developer.intuit.com/app/developer/qbo/docs/learn/explore-the-quickbooks-online-api/data-queries", "checkedAt": "2026-07-17", "supports": "Accounting API queries target one entity and use bounded STARTPOSITION and MAXRESULTS query clauses." },
+    { "url": "https://developer.intuit.com/app/developer/qbo/docs/get-started/get-started-with-the-api-explorer", "checkedAt": "2026-07-17", "supports": "CompanyInfo and Invoice support exact read and query operations used by the three V1 wrappers." },
+    { "url": "https://quickbooks.intuit.com/online/advanced/resource-center/", "checkedAt": "2026-07-17", "supports": "Intuit describes Advanced as a QuickBooks Online plan with additional users, reporting, automation, permissions, backup, and support. QuickBooks Online Advanced therefore resolves to the canonical QuickBooks Online provider rather than a second connector." },
+    { "url": "https://developer.intuit.com/app/developer/payroll-time/docs/get-started", "checkedAt": "2026-07-17", "supports": "Payroll Compensation is a Premium API for Silver, Gold, and Platinum partners, requires the restricted payroll.compensation.read scope, and is unavailable in sandbox." },
+    { "url": "https://developer.intuit.com/app/developer/payroll-time/docs/learn/learn-about-scopes", "checkedAt": "2026-07-17", "supports": "payroll.compensation.read permits pay-type reads through the production Workforce GraphQL endpoint; broader employee, payslip, benefit, deduction, and tax-identifier scopes are separate and remain blocked." },
+    { "url": "https://developer.intuit.com/app/developer/payroll-time/docs/develop/develop-payroll", "checkedAt": "2026-07-17", "supports": "The documented payrollEmployeeCompensations query accepts an exact employeeId and active filter, uses optional intuit_country routing, and returns bounded compensation IDs, names, active state, and types." },
+    { "url": "https://developer.intuit.com/app/developer/payroll-time/docs/faq", "checkedAt": "2026-07-17", "supports": "Broader Workforce APIs require approved-partner onboarding and Workforce testing requires production keys." },
+    { "url": "https://developer.intuit.com/app/developer/qbpayments/docs/learn/scopes", "checkedAt": "2026-07-17", "supports": "com.intuit.quickbooks.payment grants access to the QuickBooks Payments API and is separate from Accounting and OpenID scopes." },
+    { "url": "https://developer.intuit.com/app/developer/qbpayments/docs/develop/authentication-and-authorization/oauth-2.0", "checkedAt": "2026-07-17", "supports": "The Payments OAuth flow uses the same Intuit authorization and rolling token lifecycle and documents an exact GET charge-by-ID request." },
+    { "url": "https://developer.intuit.com/app/developer/qbpayments/docs/get-started/create-a-request", "checkedAt": "2026-07-17", "supports": "Payments uses JSON REST requests, separate sandbox and production origins, and charge responses containing status, amount, currency, created time, and sensitive payment-instrument fields that Relay excludes." },
+    { "url": "https://quickbooks.intuit.com/payments/", "checkedAt": "2026-07-17", "supports": "QuickBooks Payments is the QuickBooks product surface for accepting card, ACH, Apple Pay, PayPal, and Venmo payments and tracking deposits, so it resolves to the canonical QuickBooks provider rather than a second connector." },
+    { "url": "https://quickbooks.intuit.com/learn-support/en-us/help-article/loans/quickbooks-capital-faq/L9pC4w8h4_US_en_US", "checkedAt": "2026-07-17", "supports": "QuickBooks Capital is the embedded QuickBooks small-business lending surface for term loans and lines of credit, with applications and draws performed inside QuickBooks by the eligible owner or guarantor." },
+    { "url": "https://developer.intuit.com/app/developer/qbo/docs/learn/explore-the-quickbooks-online-api", "checkedAt": "2026-07-17", "supports": "The public QuickBooks Online developer resource model documents Accounting entities and routes Payments and Workforce to separate APIs; it does not document a Capital, lending, eligibility, application, credit, draw, repayment, or loan-management API surface." }
+  ]
+}

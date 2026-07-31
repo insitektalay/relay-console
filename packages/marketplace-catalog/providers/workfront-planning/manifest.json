@@ -1,0 +1,240 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "workfront-planning",
+  "name": "Adobe Workfront Planning",
+  "category": "project_management",
+  "description": "Adobe Workfront Planning is an enterprise planning capability for organizing campaigns, initiatives and other business objects in flexible workspaces. Teams define record types and schemas that connect planning context with Workfront execution and Adobe experiences.",
+  "agentUseSummary": "Connect a customer-owned Adobe IMS OAuth server-to-server credential and exact Workfront tenant. Selected agents can use four bounded, read-only V2 workspace and record-type actions; records, fields, views, permissions, people, writes, bulk operations, other Workfront APIs and raw access remain unavailable.",
+  "icon": {
+    "assetName": "marketplace-logo-workfront-planning.png",
+    "sourceUrl": "https://www.adobe.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://business.adobe.com/products/workfront/planning.html",
+    "docsUrl": "https://developer.adobe.com/wf-planning/",
+    "developerConsoleUrl": "https://developer.adobe.com/console/",
+    "termsUrl": "https://www.adobe.com/legal/terms.html",
+    "privacyUrl": "https://www.adobe.com/privacy.html"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://ims-na1.adobelogin.com/ims/token/v3",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_oauth_server_to_server",
+      "client_credentials",
+      "dedicated_technical_account",
+      "fixed_workfront_tenant",
+      "planning_api_v2"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "WORKFRONT_PLANNING_CLIENT_ID",
+        "label": "Adobe IMS client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The OAuth server-to-server client ID from Adobe Developer Console."
+      },
+      {
+        "name": "WORKFRONT_PLANNING_CLIENT_SECRET",
+        "label": "Adobe IMS client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "The current client secret for the dedicated Workfront technical account credential."
+      },
+      {
+        "name": "WORKFRONT_PLANNING_IMS_ORG_ID",
+        "label": "Adobe IMS organization ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact IMS organization ID sent in x-gw-ims-org-id."
+      },
+      {
+        "name": "WORKFRONT_PLANNING_SCOPE",
+        "label": "Adobe IMS scope list",
+        "required": true,
+        "secret": false,
+        "helpText": "The comma-separated Workfront scopes shown on this server-to-server credential."
+      },
+      {
+        "name": "WORKFRONT_PLANNING_CUSTOMER_HOSTNAME",
+        "label": "Workfront customer hostname",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact tenant hostname, such as example.my.workfront.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workspace_read",
+      "label": "Read workspaces",
+      "description": "List bounded workspaces and inspect one exact workspace.",
+      "defaultSelected": true
+    },
+    {
+      "id": "record_type_read",
+      "label": "Read record types",
+      "description": "List bounded record types and inspect one exact schema summary.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "workfront_planning_workspaces_list",
+        "label": "List workspaces",
+        "description": "List at most twenty bounded Workfront Planning workspace summaries."
+      },
+      {
+        "id": "workfront_planning_workspace_get",
+        "label": "Read workspace",
+        "description": "Read bounded metadata for one exact Planning workspace."
+      },
+      {
+        "id": "workfront_planning_record_types_list",
+        "label": "List record types",
+        "description": "List at most twenty bounded record-type summaries in one exact workspace."
+      },
+      {
+        "id": "workfront_planning_record_type_get",
+        "label": "Read record type",
+        "description": "Read bounded metadata for one exact Planning record type."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "workfront_planning_records",
+        "label": "Access Planning records",
+        "description": "Record values, searches, history, thumbnails, external references and comments are unavailable."
+      },
+      {
+        "id": "workfront_planning_schema_admin",
+        "label": "Change Planning schemas",
+        "description": "Workspace, record-type, field and view creation, update, deletion, detachment or reordering are unavailable."
+      },
+      {
+        "id": "workfront_planning_permissions_people",
+        "label": "Access permissions or people",
+        "description": "Members, permission lists, inheritance, access requests, identities and acting-user impersonation are unavailable."
+      },
+      {
+        "id": "workfront_planning_bulk_mutation",
+        "label": "Run bulk operations",
+        "description": "Bulk record creation, update, patch, deletion and movement are unavailable."
+      },
+      {
+        "id": "workfront_planning_other_apis",
+        "label": "Use other Workfront APIs",
+        "description": "Workflow, Fusion, commenting, Review and Approvals, event subscriptions, session authentication and API keys are outside this connection."
+      },
+      {
+        "id": "workfront_planning_v1_raw",
+        "label": "Use V1 or arbitrary API calls",
+        "description": "Version 1, caller-selected origins, paths, headers, cursors, filters, projections and raw requests are unavailable."
+      },
+      {
+        "id": "workfront_planning_unbounded_export",
+        "label": "Run unbounded reads or exports",
+        "description": "Caller cursors, recursive discovery, exports and responses above twenty rows or 256 KiB are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "workfront_planning_safe",
+      "label": "Safe",
+      "description": "Every private metadata read requires approval. Fixed origins, technical-account authority, bounds, field allowlists, token caching, redaction and audits always apply.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "workfront_planning_workspaces_list",
+        "workfront_planning_workspace_get",
+        "workfront_planning_record_types_list",
+        "workfront_planning_record_type_get"
+      ],
+      "blockedActions": [
+        "workfront_planning_records",
+        "workfront_planning_schema_admin",
+        "workfront_planning_permissions_people",
+        "workfront_planning_bulk_mutation",
+        "workfront_planning_other_apis",
+        "workfront_planning_v1_raw",
+        "workfront_planning_unbounded_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected reads run without Relay per-action approval; fixed origins, technical-account authority, bounds, field allowlists, redaction and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "workfront_planning_workspaces_list",
+        "workfront_planning_workspace_get",
+        "workfront_planning_record_types_list",
+        "workfront_planning_record_type_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "workfront_planning_records",
+        "workfront_planning_schema_admin",
+        "workfront_planning_permissions_people",
+        "workfront_planning_bulk_mutation",
+        "workfront_planning_other_apis",
+        "workfront_planning_v1_raw",
+        "workfront_planning_unbounded_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mints and caches Adobe IMS server tokens, then executes four fixed read-only Planning V2 actions at one validated Workfront tenant."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mints and caches Adobe IMS server tokens, then executes four fixed read-only Planning V2 actions at one validated Workfront tenant."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Workfront Planning requires the purchased capability, Adobe Unified Experience, an IMS Org admin-created Developer Console project, an OAuth server-to-server credential, and a technical account assigned only the intended Workfront access.",
+    "nextAction": "In the provider-console acceptance task, create a disposable Adobe Developer Console project and Workfront technical account for a synthetic Planning workspace, assign only view access, capture the exact tenant/header values privately, verify four reads and denials, then rotate/delete the client secret and project."
+  },
+  "evidence": [
+    {
+      "url": "https://experienceleague.adobe.com/en/docs/workfront/using/adobe-workfront-planning/adobe-workfront-planning-general-information/planning-api-basics",
+      "checkedAt": "2026-07-18",
+      "supports": "Adobe documents OAuth-only authentication, current V2 URLs, status and conflict semantics, pagination, projections and the broader Planning surface Relay blocks."
+    },
+    {
+      "url": "https://developer.adobe.com/wf-planning/",
+      "checkedAt": "2026-07-18",
+      "supports": "The current official V2 guide documents workspace and record-type routes, cursor envelopes, version differences and the expanded records, schemas, permissions and bulk APIs."
+    },
+    {
+      "url": "https://developer.adobe.com/workfront-apis/guides/gaining-access/",
+      "checkedAt": "2026-07-18",
+      "supports": "Adobe requires an IMS Org admin-created Developer Console project and explains that the technical account becomes a Workfront user whose access must be assigned."
+    },
+    {
+      "url": "https://developer.adobe.com/developer-console/docs/guides/authentication/ServerToServerAuthentication/ims",
+      "checkedAt": "2026-07-18",
+      "supports": "Adobe documents the fixed IMS token endpoint, client-credentials form fields, scope input, expiring access tokens and no refresh token."
+    }
+  ]
+}

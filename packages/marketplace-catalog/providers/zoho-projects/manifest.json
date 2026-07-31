@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoho-projects",
+  "name": "Zoho Projects",
+  "category": "work_management",
+  "description": "Zoho Projects is project-management software for planning work, coordinating tasks and milestones, tracking time, collaborating, and reporting on delivery.",
+  "agentUseSummary": "Connect one exact Zoho Projects portal through Relay-owned Multi-DC offline OAuth. Agents may list at most twenty-five privacy-redacted projects, list at most twenty-five privacy-redacted tasks in one exact project, or read one exact task. Relay pins the portal, Accounts and API data centers, three read scopes, current V3 product-prefixed endpoints, first page, limits, IDs, returned fields, refresh, revocation, and approval boundary while excluding people, descriptions, comments, attachments, custom fields, time and billing data, broader work data, searches, writes, pagination, bulk APIs, and exports.",
+  "provider": { "websiteUrl": "https://www.zoho.com/projects/", "docsUrl": "https://projects.zoho.com/api-docs", "developerConsoleUrl": "https://api-console.zoho.com/", "termsUrl": "https://www.zoho.com/terms.html", "privacyUrl": "https://www.zoho.com/privacy.html" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["ZohoProjects.portals.READ", "ZohoProjects.projects.READ", "ZohoProjects.tasks.READ"], "pkce": false, "refreshTokens": true, "authorizationUrl": "https://accounts.zoho.com/oauth/v2/auth", "tokenUrl": "https://accounts.zoho.com/oauth/v2/token", "revocationUrl": "https://accounts.zoho.com/oauth/v2/token/revoke" },
+  "connection": { "types": ["relay_owned_confidential_oauth_application", "railway_callback_only", "multi_dc_regional_authority", "exact_portal_binding", "offline_refresh_token_storage"], "credentialRequirements": [{ "key": "ZOHO_PROJECTS_PORTAL_ID", "label": "Zoho Projects portal ID", "secret": false, "required": true }], "callbackPath": "/api/v1/marketplace/oauth/zoho-projects/callback", "webhookRequirements": [] },
+  "capabilities": [{ "id": "project_task_read", "label": "Read projects and tasks", "description": "List bounded privacy-redacted projects and tasks or inspect one exact task in the bound portal.", "defaultSelected": true }],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "zoho_projects_project_list", "label": "List projects", "description": "List at most twenty-five privacy-redacted project summaries from the bound portal." },
+      { "id": "zoho_projects_task_list", "label": "List project tasks", "description": "List at most twenty-five privacy-redacted task summaries from one exact project in the bound portal." },
+      { "id": "zoho_projects_task_get", "label": "Read project task", "description": "Read one exact privacy-redacted task summary from one exact project in the bound portal." }
+    ],
+    "blocked": [
+      { "id": "zoho_projects_mutation", "label": "Change projects or tasks", "description": "Creating, updating, assigning, moving, completing, commenting on, archiving, or deleting projects, tasks, milestones, and related records is outside V1." },
+      { "id": "zoho_projects_private_work_data", "label": "Read private work content", "description": "Descriptions, people, owners, assignees, email, comments, attachments, custom fields, tags, followers, dependencies, checklists, and time or billing data are outside V1." },
+      { "id": "zoho_projects_broader_work_data", "label": "Access broader project data", "description": "Other portals, milestones, task lists, timesheets, forums, events, documents, users, teams, analytics, settings, and administration are outside V1." },
+      { "id": "zoho_projects_raw_search", "label": "Run arbitrary searches or API calls", "description": "Other products, portals, regions, scopes, endpoints, methods, fields, includes, filters, searches, query parameters, versions, and raw requests are outside V1." },
+      { "id": "zoho_projects_bulk_export", "label": "Export project data", "description": "Automatic pagination, deep pages, synchronization, feeds, webhooks, bulk APIs, downloads, imports, and exports are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "zoho_projects_safe", "label": "Safe", "description": "All three bounded private project reads require matching approval.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["zoho_projects_project_list", "zoho_projects_task_list", "zoho_projects_task_get"], "blockedActions": ["zoho_projects_mutation", "zoho_projects_private_work_data", "zoho_projects_broader_work_data", "zoho_projects_raw_search", "zoho_projects_bulk_export"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while exact portal, regional origin, scopes, static requests, limits, audit, redaction, refresh, revocation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["zoho_projects_project_list", "zoho_projects_task_list", "zoho_projects_task_get"], "approvalRequiredActions": [], "blockedActions": ["zoho_projects_mutation", "zoho_projects_private_work_data", "zoho_projects_broader_work_data", "zoho_projects_raw_search", "zoho_projects_bulk_export"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three bounded approval-gated Zoho Projects reads and keeps OAuth credentials on Railway." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three bounded approval-gated Zoho Projects reads and keeps OAuth credentials on Railway." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": { "status": "blocked", "blocker": "No Relay-owned Zoho server-based application callback registration for Zoho Projects, enabled Multi-DC coverage, Railway client credentials, exact portal ID, three-scope offline consent, refresh token, or live acceptance evidence is available in this workspace.", "nextAction": "In the provider-console task, add Relay's exact Zoho Projects Railway callback to the Relay-owned server app, enable Multi-DC credentials for supported Projects regions, configure Railway client credentials, enter the exact portal ID, grant only the three documented read scopes with offline consent, then validate callback state, Accounts/api_domain matching, exact portal, all three bounded reads, Safe approval, representative Dangerous reads, permission denial, refresh, revocation, disconnect, and post-disconnect denial." },
+  "evidence": [
+    { "url": "https://projects.zoho.com/api-docs", "checkedAt": "2026-07-18", "supports": "Zoho Projects V3 documents portals, projects, tasks, exact resource paths, product-prefixed regional api_domain syntax, three read scopes, page/per_page pagination, and response shapes." },
+    { "url": "https://www.zoho.com/accounts/protocol/oauth/web-server-applications.html", "checkedAt": "2026-07-18", "supports": "Zoho documents confidential server-based authorization-code applications, offline access, refresh tokens, and callback requirements." },
+    { "url": "https://www.zoho.com/accounts/protocol/oauth/multi-dc.html", "checkedAt": "2026-07-18", "supports": "Zoho documents Multi-DC enablement, callback location/accounts-server values, regional token exchange, and api_domain binding." }
+  ]
+}

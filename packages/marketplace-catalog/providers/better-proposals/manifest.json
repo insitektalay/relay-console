@@ -1,0 +1,167 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "better-proposals",
+  "name": "Better Proposals",
+  "category": "knowledge_documents",
+  "description": "Better Proposals is a proposal and document platform for creating, sending, tracking, signing, and collecting payment on interactive sales documents.",
+  "agentUseSummary": "Connect a dedicated customer-owned Better Proposals API token, then let agents list bounded redacted proposal lifecycle summaries or inspect one explicit proposal under a fixed read-only policy. Relay excludes contacts, companies, pricing, signatures, payments, links, content, settings, raw access, and every provider mutation.",
+  "provider": {
+    "websiteUrl": "https://betterproposals.io/",
+    "docsUrl": "https://betterproposals.io/resources/api/",
+    "developerConsoleUrl": "https://betterproposals.io/resources/api/",
+    "termsUrl": "https://betterproposals.io/terms-and-conditions/",
+    "privacyUrl": "https://betterproposals.io/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_token",
+      "bptoken_header",
+      "premium_or_enterprise_plan",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "BETTER_PROPOSALS_API_TOKEN",
+        "label": "Better Proposals API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a dedicated customer-owned token in Better Proposals on a Premium or Enterprise account."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "proposal_metadata_list",
+      "label": "List proposal metadata",
+      "description": "List bounded redacted proposal lifecycle summaries without contacts, companies, pricing, signing, payments, links, or content.",
+      "defaultSelected": true
+    },
+    {
+      "id": "proposal_metadata_read",
+      "label": "Inspect proposal metadata",
+      "description": "Read one explicit proposal's redacted lifecycle metadata without private deal data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "better_proposals_proposals_list",
+        "label": "List proposal metadata",
+        "description": "List up to 50 privacy-redacted proposal lifecycle summaries from one bounded provider response."
+      },
+      {
+        "id": "better_proposals_proposal_get",
+        "label": "Inspect proposal metadata",
+        "description": "Inspect privacy-redacted lifecycle metadata for one explicit Better Proposals proposal ID."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "better_proposals_private_data",
+        "label": "Access private proposal data",
+        "description": "Document bodies, sections, contacts, companies, pricing, quotes, signatures, payments, URLs, activity, merge tags, and attachments are blocked."
+      },
+      {
+        "id": "better_proposals_mutation",
+        "label": "Mutate or send documents",
+        "description": "Proposal, cover, quote, company, and document-type creation or changes, sending, signing, payment, deletion, and status mutation are blocked."
+      },
+      {
+        "id": "better_proposals_account_access",
+        "label": "Access account configuration",
+        "description": "Templates, settings, brands, custom merge tags, currencies, users, integrations, credential generation, and account administration are blocked."
+      },
+      {
+        "id": "better_proposals_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, arbitrary filters, status collection routes, pagination, polling, retries, batches, exports, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "better_proposals_read_only",
+      "label": "Read-only proposal lifecycle",
+      "description": "Two fixed privacy-redacted proposal metadata reads run automatically through a customer-owned broad API token.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "better_proposals_proposals_list",
+        "better_proposals_proposal_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "better_proposals_private_data",
+        "better_proposals_mutation",
+        "better_proposals_account_access",
+        "better_proposals_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Customer ownership, fixed read routes, strict projection, token secrecy, result bounds, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "better_proposals_proposals_list",
+        "better_proposals_proposal_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "better_proposals_private_data",
+        "better_proposals_mutation",
+        "better_proposals_account_access",
+        "better_proposals_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway confines the broad customer token to three fixed read-only routes and strictly projected proposal lifecycle metadata."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway confines the broad customer token to three fixed read-only routes and strictly projected proposal lifecycle metadata."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Better Proposals exposes a customer-generated broad API token rather than delegated scopes, and API usage after trial requires a Premium or Enterprise plan. No account, plan confirmation, token, live provider session, Railway change, or production acceptance is available in this worker task.",
+    "nextAction": "An authorized customer confirms an eligible plan, generates a dedicated API token, stores it through Relay's encrypted connection flow, then separately validates proposal-count health, bounded redacted listing, explicit proposal reads, rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://betterproposals.io/resources/api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Better Proposals documents JSON success/error envelopes, the customer-generated Bptoken request header, GET /proposal, GET /proposal/:PROPOSAL_ID, GET /proposal/count, and broader proposal, template, company, quote, currency, settings, and creation routes that Relay blocks."
+    },
+    {
+      "url": "https://betterproposals.io/pricing",
+      "checkedAt": "2026-07-17",
+      "supports": "Better Proposals lists API and Zapier access on Premium and Enterprise rather than Starter."
+    },
+    {
+      "url": "https://betterproposals.io/integrations/",
+      "checkedAt": "2026-07-17",
+      "supports": "Better Proposals describes CRM, payment, Zapier, live-chat, and project-management integrations around its proposal workflow; Relay exposes none of those broader integration surfaces."
+    }
+  ]
+}

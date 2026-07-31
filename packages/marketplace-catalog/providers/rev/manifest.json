@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "rev", "name": "Rev", "category": "content_creative",
+  "description": "Rev is a transcription and captioning service for turning recorded speech into accurate, usable text. People and organizations use it for professional transcripts, captions, subtitles, legal transcription, AI-generated drafts, and downloadable deliverables.",
+  "agentUseSummary": "Enter API keys from the customer's own Rev account, then let agents upload source URLs, place and track transcription or caption orders, and retrieve deliverables under Safe or Dangerous policy; production orders are billed to that customer account.",
+  "provider": { "websiteUrl": "https://www.rev.com/", "docsUrl": "https://www.rev.com/api/docs", "developerConsoleUrl": "https://www.rev.com/api", "termsUrl": "https://www.rev.com/about/terms", "privacyUrl": "https://www.rev.com/about/privacy" },
+  "authentication": { "model": "api_key_pair", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": { "types": ["api_key", "api_connector"], "credentialRequirements": [{ "name": "REV_CLIENT_API_KEY", "label": "Rev client API key", "required": true, "secret": true, "helpText": "Use the client API key from the customer's API-enabled Rev account." }, { "name": "REV_USER_API_KEY", "label": "Rev user API key", "required": true, "secret": true, "helpText": "Use the matching user API key from the same Rev account." }], "callbackPath": null, "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "orders_read", "label": "Track orders", "description": "List and inspect transcription, caption, legal, and AI orders in the connected Rev account.", "defaultSelected": true },
+    { "id": "deliverables", "label": "Retrieve deliverables", "description": "Inspect and download authorized source files, transcripts, captions, subtitles, and AI drafts.", "defaultSelected": true },
+    { "id": "ordering", "label": "Place and manage orders", "description": "Upload source URLs, place paid or sandbox orders, and cancel eligible orders.", "defaultSelected": true },
+    { "id": "sharing", "label": "Share and remove data", "description": "Create non-expiring Rev Editor links and remove order attachments or related data.", "defaultSelected": true },
+    { "id": "administration", "label": "Use the complete Rev API", "description": "Use every current documented Human Transcription and Caption API operation authorized by the account.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "rev_list_orders", "label": "List orders", "description": "List one bounded page of orders." },
+      { "id": "rev_get_order", "label": "Read order", "description": "Read one order and its current status." },
+      { "id": "rev_get_attachment", "label": "Read attachment details", "description": "Read metadata for one source file or deliverable." },
+      { "id": "rev_get_attachment_content", "label": "Download deliverable", "description": "Retrieve one bounded source file, transcript, caption, subtitle, or AI draft." },
+      { "id": "rev_list_workspaces", "label": "List workspaces", "description": "List the workspaces available to the connected account." },
+      { "id": "rev_list_templates", "label": "List legal templates", "description": "List legal transcription templates available to the connected account." }
+    ],
+    "approvalRequired": [
+      { "id": "rev_create_input", "label": "Add source URL", "description": "Register a URL-hosted media source for a new Rev order." },
+      { "id": "rev_place_order", "label": "Place order", "description": "Place a paid or sandbox transcription, caption, legal, or AI order." },
+      { "id": "rev_cancel_order", "label": "Cancel order", "description": "Cancel an eligible order before work begins." },
+      { "id": "rev_delete_order_data", "label": "Delete order data", "description": "Remove an order's attachments and related data." },
+      { "id": "rev_create_share_link", "label": "Create share link", "description": "Create a non-expiring Rev Editor link for a deliverable." },
+      { "id": "rev_full_api", "label": "Use full Rev API", "description": "Use any current documented operation on Rev's fixed API origin; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "rev_safe", "label": "Safe", "description": "Bounded order, workspace, template, attachment, and deliverable reads run directly; uploads, paid or sandbox orders, cancellation, deletion, sharing, and other operations require approval.", "defaultSelected": true, "allowedActions": ["rev_list_orders", "rev_get_order", "rev_get_attachment", "rev_get_attachment_content", "rev_list_workspaces", "rev_list_templates"], "approvalRequiredActions": ["rev_create_input", "rev_place_order", "rev_cancel_order", "rev_delete_order_data", "rev_create_share_link", "rev_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected account-authorized Rev API operation runs without Relay per-action approval; ownership, credential secrecy, fixed origin, response bounds, audits, customer billing, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["rev_list_orders", "rev_get_order", "rev_get_attachment", "rev_get_attachment_content", "rev_list_workspaces", "rev_list_templates", "rev_create_input", "rev_place_order", "rev_cancel_order", "rev_delete_order_data", "rev_create_share_link", "rev_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Rev tools and injects the encrypted client and user API keys server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Rev tools and injects the encrypted client and user API keys server-side." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": { "status": "blocked", "blocker": "No customer Rev API credentials, API-enabled plan, or signed-in provider session is available for production acceptance.", "nextAction": "Enable API access on the customer's Rev account, create client and user API keys, connect them in Relay Console, then verify bounded reads, a sandbox order, Safe denial, approved or Dangerous mutation, redaction, key rotation, and disconnect; place a production order only deliberately because it is billed to that customer." },
+  "evidence": [
+    { "url": "https://www.rev.com/api/docs", "checkedAt": "2026-07-14", "supports": "Rev documents its customer-account Human Transcription and Caption API, API-key-pair authorization, input upload, order lifecycle, attachments, workspaces, and legal templates." },
+    { "url": "https://www.rev.com/api/operations", "checkedAt": "2026-07-14", "supports": "The official operation index documents paid and sandbox order placement, tracking, cancellation, deletion, attachment retrieval, non-expiring editor sharing, workspaces, and templates." },
+    { "url": "https://www.rev.com/api", "checkedAt": "2026-07-14", "supports": "Rev describes the service as human transcription and captioning charged through the customer's account, with API access dependent on that account's plan." }
+  ]
+}

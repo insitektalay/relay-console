@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "statsig",
+  "name": "Statsig",
+  "category": "developer",
+  "description": "Statsig is a feature management and experimentation platform for feature gates, dynamic configuration, experiments, metrics, product analytics, and controlled releases.",
+  "agentUseSummary": "Connect a personal Console API key owned by a dedicated project Read-Only user. Relay approval-gates six versioned Console API reads for bounded gates, dynamic configs, and experiments while removing targeting values, payloads, people, metrics, exposures, and all mutation authority.",
+  "provider": {
+    "websiteUrl": "https://www.statsig.com/",
+    "docsUrl": "https://docs.statsig.com/console-api/introduction",
+    "developerConsoleUrl": "https://console.statsig.com/",
+    "termsUrl": "https://www.statsig.com/terms-of-use",
+    "privacyUrl": "https://www.statsig.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["project_read_only_role"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_personal_console_api_key",
+      "dedicated_read_only_user",
+      "project_bound_key",
+      "fixed_console_api_origin",
+      "pinned_api_version"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "STATSIG_PERSONAL_CONSOLE_API_KEY",
+        "label": "Statsig personal Console API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a personal Console API key owned by a dedicated project Read-Only user."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read product configuration",
+      "description": "Read bounded, redacted gates, dynamic configs, and experiments with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "statsig_sensitive_read",
+        "label": "Read Statsig configuration",
+        "description": "Read bounded, redacted gates, dynamic configs, and experiments."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "statsig_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Personal Console API keys, Statsig headers, and credential-bearing fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "statsig_targeting_private",
+        "label": "Read targeting or personal data",
+        "description": "Target values, user IDs, email/IP values, attributes, overrides, cohorts, parameter/config payloads, metrics, exposures, audit users, and reviewer identities are excluded."
+      },
+      {
+        "id": "statsig_mutation",
+        "label": "Mutate Statsig",
+        "description": "Gate/config/experiment creation, updates, launch, enable/disable, archive/delete, rules, overrides, reviews, metrics, keys, users, access, and all other mutations remain provider-side."
+      },
+      {
+        "id": "statsig_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only six pinned versioned Console API GETs run on statsigapi.net; arbitrary routes, queries, pagination, raw API, HTTP evaluation, SDK initialization, exposure logging, exports, and warehouse access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "statsig_safe",
+      "label": "Safe",
+      "description": "All six bounded configuration reads require approval; read-only user authority, fixed API version/routes, response bounds, redaction, audits, and mutation/evaluation blocks remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["statsig_sensitive_read"],
+      "blockedActions": [
+        "statsig_secret_exposure",
+        "statsig_targeting_private",
+        "statsig_mutation",
+        "statsig_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected redacted configuration read runs without Relay per-action approval; read-only user authority, fixed API version/routes, response bounds, redaction, audits, and mutation/evaluation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["statsig_sensitive_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "statsig_secret_exposure",
+        "statsig_targeting_private",
+        "statsig_mutation",
+        "statsig_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted read-only-user key server-side and mounts six versioned, approval-gated, redacted Console API reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted read-only-user key server-side and mounts six versioned, approval-gated, redacted Console API reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Statsig requires a customer project, a dedicated Read-Only project user, and that user's personal Console API key. No console, account, user, role, key, project, gate, config, experiment, metric, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create a dedicated Read-Only project user and personal Console API key outside this worker, configure the encrypted key in Railway staging, then verify role/project binding, all six reads and redaction, approval/access denial, 1 MB/25-item bounds, version header, key revocation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.statsig.com/console-api/introduction",
+      "checkedAt": "2026-07-18",
+      "supports": "Statsig documents the fixed statsigapi.net Console API origin, STATSIG-API-KEY authentication, current 20240601 version header, CRUD scope, and rate limiting."
+    },
+    {
+      "url": "https://docs.statsig.com/access-management/api-keys",
+      "checkedAt": "2026-07-18",
+      "supports": "Statsig documents personal Console API keys inheriting their owner's project role, project-wide configuration access, secret handling, and the power of non-personal Console keys."
+    },
+    {
+      "url": "https://docs.statsig.com/access-management/projects",
+      "checkedAt": "2026-07-18",
+      "supports": "Statsig documents the Read-Only project role as able to read gates, dynamic configs, experiments, and metrics while all attempted configuration edits fail."
+    },
+    {
+      "url": "https://docs.statsig.com/api-reference/gates/list-gates",
+      "checkedAt": "2026-07-18",
+      "supports": "Statsig's current reference documents bounded list/read gate routes, pagination, gate state and rollout fields, and sensitive targeting and identity fields Relay removes."
+    },
+    {
+      "url": "https://docs.statsig.com/api-reference/experiments/list-experiments",
+      "checkedAt": "2026-07-18",
+      "supports": "Statsig's current reference documents bounded list/read experiment routes, sparse fieldsets, statuses, groups and project-sensitive experiment metadata."
+    }
+  ]
+}

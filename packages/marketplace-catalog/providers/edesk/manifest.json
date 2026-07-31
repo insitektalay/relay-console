@@ -1,0 +1,143 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "edesk",
+  "name": "eDesk",
+  "category": "crm_support",
+  "description": "eDesk is an ecommerce customer-service platform for marketplace messages, tickets, shared inboxes, automation, customer context, order data, and support operations.",
+  "agentUseSummary": "Enter one dedicated expiring eDesk API token, then let selected agents use content-free ticket operations or approved documented API v1 requests under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.edesk.com/",
+    "docsUrl": "https://developers.edesk.com/reference",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.edesk.com/terms-of-service/",
+    "privacyUrl": "https://www.edesk.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "EDESK_API_TOKEN",
+        "label": "eDesk API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated expiring eDesk API token with the least permissions required."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "ticket_metadata_read",
+      "label": "Read ticket operations",
+      "description": "List and inspect bounded ticket operational metadata without subjects, messages, contacts, customer identities, channels, sales orders, tags, owners, custom fields, or raw records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "eDesk API v1",
+      "description": "Use documented fixed-origin API v1 paths and methods allowed by the token's configured permissions.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "edesk_ticket_list",
+        "label": "List ticket metadata",
+        "description": "List a fixed first response of content-free eDesk ticket summaries."
+      },
+      {
+        "id": "edesk_ticket_get",
+        "label": "Read ticket metadata",
+        "description": "Read one exact eDesk ticket through Relay's content-free projection."
+      },
+      {
+        "id": "edesk_full_api",
+        "label": "Use eDesk API v1",
+        "description": "Use a documented eDesk API v1 operation authorized by the configured token; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "edesk_safe",
+      "label": "Safe",
+      "description": "Content-free ticket reads and every broader API operation require approval; fixed origin/version, Bearer-token isolation, permission context, bounds, and provider limits remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "edesk_ticket_list",
+        "edesk_ticket_get",
+        "edesk_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected token-authorized operations run without Relay per-action approval; fixed origin/version, Bearer-token isolation, bounds, audits, permissions, and eDesk limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "edesk_ticket_list",
+        "edesk_ticket_get",
+        "edesk_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted API token only to eDesk's fixed API v1 origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted API token only to eDesk's fixed API v1 origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer-generated dedicated eDesk API token is required for live acceptance.",
+    "nextAction": "Create an expiring least-privilege eDesk token with ticket read access and any explicitly needed broader permissions, enter it in Relay, and verify bounded reads, Safe approval, Dangerous broader operations, rate limits, expiration, rotation, revocation, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.edesk.com/how-to-generate-a-token-edesk-api",
+      "checkedAt": "2026-07-18",
+      "supports": "eDesk documents unique API tokens with expiration and read-only, full-access, or custom granular permissions across tickets and other resources, plus deletion and replacement workflows."
+    },
+    {
+      "url": "https://developers.edesk.com/reference/listtickets",
+      "checkedAt": "2026-07-18",
+      "supports": "eDesk documents Bearer-authenticated ticket listing at GET https://api.edesk.com/v1/tickets with order and filter parameters."
+    },
+    {
+      "url": "https://developers.edesk.com/reference/getticket",
+      "checkedAt": "2026-07-18",
+      "supports": "eDesk documents exact Bearer-authenticated ticket retrieval at GET https://api.edesk.com/v1/tickets/{ticketId}."
+    },
+    {
+      "url": "https://developers.edesk.com/reference/rate-limit",
+      "checkedAt": "2026-07-18",
+      "supports": "eDesk documents a default limit of 60 requests per minute, restoration at two requests per second, and HTTP 429 when quota is exhausted."
+    }
+  ]
+}

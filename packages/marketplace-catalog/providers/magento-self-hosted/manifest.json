@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "magento-self-hosted",
+  "name": "Magento Self-Hosted",
+  "category": "commerce",
+  "description": "Magento Open Source and on-premises Adobe Commerce provide customer-operated digital storefronts with catalogs, inventory, pricing, carts, checkout, orders, customers, content, extensions, and administration.",
+  "agentUseSummary": "Connect one exact public HTTPS URL for a customer-owned Magento Open Source or on-premises Adobe Commerce installation and one selected storefront-visible product SKU. Relay sends one fixed unauthenticated core Commerce GraphQL product query and exposes only that SKU plus in-stock or out-of-stock status while excluding product content, pricing, inventory quantities, customers, carts, orders, configuration, administration, authenticated APIs, broader queries, introspection, and all mutations.",
+  "provider": {
+    "websiteUrl": "https://business.adobe.com/products/commerce/magento/open-source.html",
+    "docsUrl": "https://developer.adobe.com/commerce/webapi/graphql/schema/products/queries/products/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.adobe.com/legal/terms.html",
+    "privacyUrl": "https://www.adobe.com/privacy/policy.html"
+  },
+  "authentication": {
+    "model": "none",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_magento_self_hosted",
+      "public_https_core_graphql",
+      "unauthenticated_storefront_query",
+      "selected_product_sku"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "MAGENTO_SELF_HOSTED_BASE_URL",
+        "label": "Magento HTTPS commerce base URL",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact public HTTPS URL for one customer-owned Magento Open Source or on-premises Adobe Commerce installation, including its install path if present; Relay rejects embedded credentials, unsafe paths, private DNS, queries, and fragments."
+      },
+      {
+        "name": "MAGENTO_SELF_HOSTED_PRODUCT_SKU",
+        "label": "Selected public product SKU",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact SKU of the single storefront-visible product Relay may inspect through the public core Commerce GraphQL API; V1 accepts only letters, numbers, dot, underscore, and hyphen."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "magento_self_hosted_selected_product_stock_get",
+      "label": "Read selected product stock status",
+      "description": "Read only one selected public product SKU and its in-stock or out-of-stock status without product content, pricing, inventory quantities, customer, cart, order, or private commerce data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "magento_self_hosted_selected_product_stock_get",
+        "label": "Read selected product stock status",
+        "description": "Read only one selected public product SKU and its in-stock or out-of-stock status."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "magento_self_hosted_private_content",
+        "label": "Expose private commerce or product data",
+        "description": "Names, descriptions, prices, images, URLs, attributes, categories, reviews, inventory quantities, customer data, carts, orders, and private commerce data are excluded."
+      },
+      {
+        "id": "magento_self_hosted_mutation",
+        "label": "Mutate Magento or Adobe Commerce",
+        "description": "Products, inventory, carts, checkout, orders, customers, configuration, extensions, content, users, files, and every other mutation are blocked."
+      },
+      {
+        "id": "magento_self_hosted_broad_access",
+        "label": "Use broad commerce access",
+        "description": "Other products, search, lists, categories, arbitrary GraphQL, introspection, REST, SOAP, administration, authenticated access, redirects, and bulk access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "magento_self_hosted_public_product_stock_read",
+      "label": "Public Product Stock Read",
+      "description": "Read one selected public product's stock status; product content, pricing, customers, carts, orders, administration, authenticated access, broader queries, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "magento_self_hosted_selected_product_stock_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "magento_self_hosted_private_content",
+        "magento_self_hosted_mutation",
+        "magento_self_hosted_broad_access"
+      ]
+    },
+    {
+      "id": "magento_self_hosted_no_access",
+      "label": "No Access",
+      "description": "Expose no Magento Self-Hosted actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "magento_self_hosted_selected_product_stock_get",
+        "magento_self_hosted_private_content",
+        "magento_self_hosted_mutation",
+        "magento_self_hosted_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores two nonsecret selected boundaries and mounts exactly one unauthenticated fixed public GraphQL product-stock query."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores two nonsecret selected boundaries and mounts exactly one unauthenticated fixed public GraphQL product-stock query."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A customer-owned Magento Open Source or on-premises Adobe Commerce staging installation reachable at an exact public HTTPS URL and one storefront-visible product SKU are required. No authorized staging installation is available in this worker lane.",
+    "nextAction": "The external setup lane must nominate a staging installation and exact storefront-visible SKU, record only those nonsecret boundaries in Railway, then validate the projected core GraphQL read, public-DNS/base-path/fixed-SKU enforcement, content and pricing redaction, missing-product behavior, disconnect, and post-disconnect denial in Fairfax. No Magento token, Admin account, integration, provider console, or consent is required."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.adobe.com/commerce/webapi/graphql/",
+      "checkedAt": "2026-07-18",
+      "supports": "Adobe documents the PaaS and Magento Open Source core Commerce GraphQL endpoint at the customer-operated commerce URL plus /graphql."
+    },
+    {
+      "url": "https://developer.adobe.com/commerce/webapi/graphql/usage/headers/",
+      "checkedAt": "2026-07-18",
+      "supports": "Adobe documents GraphQL queries over HTTP POST with application/json and shows a product-by-SKU query; authorization is an optional header for queries that require customer or admin identity."
+    },
+    {
+      "url": "https://developer.adobe.com/commerce/webapi/graphql/schema/products/queries/products/",
+      "checkedAt": "2026-07-18",
+      "supports": "Adobe documents the core products query for Adobe Commerce PaaS and Magento Open Source, including an exact SKU filter and stock_status in the response; Relay requests and retains only SKU and stock status."
+    }
+  ]
+}

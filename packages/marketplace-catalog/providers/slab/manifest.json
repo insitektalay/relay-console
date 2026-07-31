@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "slab",
+  "name": "Slab",
+  "category": "knowledge_documents",
+  "description": "Posts, topics, users, groups, organization knowledge, and administration through Slab's GraphQL API.",
+  "agentUseSummary": "Enter a customer-owned Slab team API token, then let agents run selected GraphQL queries or mutations under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://slab.com/",
+    "docsUrl": "https://studio.apollographql.com/public/Slab/home",
+    "developerConsoleUrl": "https://app.slab.com/",
+    "termsUrl": "https://slab.com/terms",
+    "privacyUrl": "https://slab.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "SLAB_API_TOKEN",
+        "label": "Slab team API token",
+        "required": true,
+        "secret": true,
+        "helpText": "A Slab team admin copies this from Team settings > Developer. Railway encrypts it and sends it only to api.slab.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "knowledge_read",
+      "label": "Read Slab knowledge",
+      "description": "Run bounded GraphQL query operations against content the Slab Bot can access.",
+      "defaultSelected": true
+    },
+    {
+      "id": "knowledge_write",
+      "label": "Manage Slab knowledge",
+      "description": "Run bounded GraphQL mutation operations authorized by the team token and Slab Bot.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "slab_graphql_query",
+        "label": "Query Slab GraphQL",
+        "description": "Run one bounded, non-introspection GraphQL query against the fixed Slab API origin."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "slab_graphql_mutation",
+        "label": "Mutate Slab GraphQL",
+        "description": "Run one bounded GraphQL mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "slab_safe",
+      "label": "Safe",
+      "description": "GraphQL queries run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["slab_graphql_query"],
+      "approvalRequiredActions": ["slab_graphql_mutation"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected token-authorized Slab query or mutation runs without Relay per-action approval; ownership, fixed origin, bounds, audits, secret non-exposure, Slab Bot access, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["slab_graphql_query", "slab_graphql_mutation"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts separate query and mutation wrappers and attaches the encrypted Slab token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts separate query and mutation wrappers and attaches the encrypted Slab token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A Slab Business or Enterprise team admin must copy the customer-owned API token and ensure Slab Bot can access the intended content.",
+    "nextAction": "In Slab Team settings > Developer, copy the API token, grant Slab Bot the intended content access, enter the token in Relay Console, and run health, query, denial, and approved or Dangerous-mode mutation checks."
+  },
+  "evidence": [
+    {
+      "url": "https://help.slab.com/en/articles/6545629-developer-tools-api-webhooks",
+      "checkedAt": "2026-07-13",
+      "supports": "Slab documents a team-admin-copied API token, GraphQL access governed by Slab Bot visibility, and API/webhook availability only on Business or Enterprise plans."
+    },
+    {
+      "url": "https://studio.apollographql.com/public/Slab/home",
+      "checkedAt": "2026-07-13",
+      "supports": "Slab publishes its current GraphQL schema through an official public GraphOS graph; Railway uses the fixed https://api.slab.com/graphql endpoint and preserves arbitrary current query and mutation documents through bounded wrappers."
+    },
+    {
+      "url": "https://the.slab.com/public/posts/slab-webhooks-a9evxmgd",
+      "checkedAt": "2026-07-13",
+      "supports": "Slab documents customer-configured outgoing webhooks separately from API-token GraphQL access; a webhook is not required to connect and execute the API."
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "twilio-segment-engage",
+  "name": "Twilio Segment Engage",
+  "category": "communication",
+  "description": "Twilio Segment Engage builds audiences and customer engagement workflows on Segment's unified customer profiles and event data.",
+  "agentUseSummary": "Connect a workspace-scoped read-only Segment Public API token and select the documented US or EU origin. Relay mounts three exact Engage reads: one space read runs directly, while audience listing and exact audience inspection require approval.",
+  "provider": {
+    "websiteUrl": "https://segment.com/product/twilio-engage/",
+    "docsUrl": "https://docs.segmentapis.com/tag/Audiences/",
+    "developerConsoleUrl": "https://app.segment.com/",
+    "termsUrl": "https://www.twilio.com/en-us/legal/tos",
+    "privacyUrl": "https://www.twilio.com/en-us/legal/privacy"
+  },
+  "authentication": {
+    "model": "api_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "workspace_scoped_api_token",
+      "profiles_and_engage_read_only_role",
+      "enumerated_regional_origin",
+      "fixed_engage_audience_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "TWILIO_SEGMENT_ENGAGE_API_TOKEN",
+        "label": "Segment Public API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated workspace-scoped token with Profiles and Engage read-only permissions."
+      },
+      {
+        "name": "TWILIO_SEGMENT_ENGAGE_REGION",
+        "label": "Segment workspace region",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter exactly us or eu."
+      },
+      {
+        "name": "TWILIO_SEGMENT_ENGAGE_HEALTH_SPACE_ID",
+        "label": "Segment staging space ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use one non-production Engage space for bounded health verification."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "structural_read",
+      "label": "Read Engage space",
+      "description": "Read one exact space's structural metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "sensitive_read",
+      "label": "Read Engage audiences",
+      "description": "List or inspect audience definitions and sizes with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "twilio_segment_engage_structural_read",
+        "label": "Read Segment Engage space",
+        "description": "Read one exact Engage space's structural metadata."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "twilio_segment_engage_sensitive_read",
+        "label": "Read Segment Engage audiences",
+        "description": "List or inspect audience definitions and sizes."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "twilio_segment_engage_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Workspace API tokens, authorization headers, and credential-bearing fields never enter agent-visible inputs or results."
+      },
+      {
+        "id": "twilio_segment_engage_profile_export",
+        "label": "Read or export profiles",
+        "description": "Profile traits, identities, events, audience members, Profiles Sync, warehouses, exports, pagination cursors, and bulk transfers are excluded."
+      },
+      {
+        "id": "twilio_segment_engage_send_mutation",
+        "label": "Send or mutate engagement",
+        "description": "Audience creation/updates/deletes/runs/previews/schedules, journeys, campaigns, email, SMS, subscriptions, destinations, sources, filters, and workspace administration remain provider-side."
+      },
+      {
+        "id": "twilio_segment_engage_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only three pinned GET routes run on an enumerated US or EU Public API origin; arbitrary paths, regions, queries, include expansions, headers, and oversized results are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "twilio_segment_engage_safe",
+      "label": "Safe",
+      "description": "One exact space metadata read runs directly; audience lists and exact audience definitions require approval while workspace token, region, route, collection, and response bounds remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": ["twilio_segment_engage_structural_read"],
+      "approvalRequiredActions": ["twilio_segment_engage_sensitive_read"],
+      "blockedActions": [
+        "twilio_segment_engage_secret_exposure",
+        "twilio_segment_engage_profile_export",
+        "twilio_segment_engage_send_mutation",
+        "twilio_segment_engage_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three selected reads run without Relay per-action approval; workspace-scoped authority, fixed regional origins, exact IDs, response bounds, audits, and profile/export/send/mutation/admin blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "twilio_segment_engage_structural_read",
+        "twilio_segment_engage_sensitive_read"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "twilio_segment_engage_secret_exposure",
+        "twilio_segment_engage_profile_export",
+        "twilio_segment_engage_send_mutation",
+        "twilio_segment_engage_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted workspace token server-side and mounts three bounded regional Engage reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted workspace token server-side and mounts three bounded regional Engage reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Twilio Segment Engage requires a customer workspace with Engage/Audiences enabled, a dedicated Public API token with Profiles and Engage read-only authority, a regional binding, and a non-production space. No console, workspace, token, space, audience, profile, event, Railway environment, or deployment is allowed in this worker.",
+    "nextAction": "Create a dedicated read-only staging token outside this worker, bind its US or EU region and staging space in Railway staging, then verify workspace isolation, health-space/audience reads, permission and approval denial/allow, region mismatch, response bounds, documented rate limits, token revocation, pause/disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.segmentapis.com/tag/Authentication/",
+      "checkedAt": "2026-07-18",
+      "supports": "Segment documents workspace-scoped Public API tokens, token permissions and revocation, HTTPS-only bearer authentication, and one token per workspace."
+    },
+    {
+      "url": "https://docs.segmentapis.com/tag/Getting-Started",
+      "checkedAt": "2026-07-18",
+      "supports": "Segment documents the fixed api.segmentapis.com US and eu1.api.segmentapis.com EU origins and distinguishes Public API tokens from Config API tokens."
+    },
+    {
+      "url": "https://docs.segmentapis.com/tag/Spaces/",
+      "checkedAt": "2026-07-18",
+      "supports": "Segment documents exact space GET and explains spaces as isolated Personas environments recommended for development/production separation."
+    },
+    {
+      "url": "https://docs.segmentapis.com/tag/Audiences/",
+      "checkedAt": "2026-07-18",
+      "supports": "Segment documents exact list/get audience routes, audience definitions, sizes and status, feature enablement, collection limits, and route-specific rate limits."
+    }
+  ]
+}

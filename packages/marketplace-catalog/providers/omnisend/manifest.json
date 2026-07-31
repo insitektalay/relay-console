@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "omnisend",
+  "name": "Omnisend",
+  "category": "marketing_analytics",
+  "description": "Omnisend is an ecommerce marketing platform for contacts, campaigns, email, SMS, push, automation, segments, products, and analytics.",
+  "agentUseSummary": "Connect one Omnisend brand through Relay-owned OAuth with exactly contacts.read and campaigns.read. Relay pins Omnisend-Version 2026-03-15, binds one 24-character contact and campaign ID, exposes only IDs and lifecycle metadata, and blocks contact identifiers, consent, message content, audiences, analytics, broader resources, exports, and mutations.",
+  "provider": {
+    "websiteUrl": "https://www.omnisend.com/",
+    "docsUrl": "https://api-docs.omnisend.com/reference/getting-started",
+    "developerConsoleUrl": "https://app.omnisend.com/integrations",
+    "termsUrl": "https://www.omnisend.com/terms/",
+    "privacyUrl": "https://www.omnisend.com/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["contacts.read", "campaigns.read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://app.omnisend.com/oauth2/authorize",
+    "tokenUrl": "https://app.omnisend.com/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth_app",
+      "exact_read_scopes",
+      "pinned_api_version_2026_03_15",
+      "selected_contact",
+      "selected_campaign"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "OMNISEND_CLIENT_ID",
+        "label": "Relay Omnisend OAuth client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held Relay OAuth client ID configured with the exact callback and two read scopes."
+      },
+      {
+        "name": "OMNISEND_CLIENT_SECRET",
+        "label": "Relay Omnisend OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-held Omnisend client secret; never sent to clients or agents."
+      },
+      {
+        "name": "OMNISEND_CONTACT_ID",
+        "label": "Selected contact ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact 24-character contact ID whose ID and timestamps Relay may read."
+      },
+      {
+        "name": "OMNISEND_CAMPAIGN_ID",
+        "label": "Selected campaign ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact 24-character campaign ID whose bounded lifecycle metadata Relay may read."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/omnisend/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "omnisend_contact_summary_get",
+      "label": "Read selected contact summary",
+      "description": "Read only the ID and timestamps for one selected contact without identifiers, names, addresses, consent, channels, tags, custom properties, segments, or activity.",
+      "defaultSelected": true
+    },
+    {
+      "id": "omnisend_campaign_summary_get",
+      "label": "Read selected campaign summary",
+      "description": "Read bounded lifecycle metadata for one selected campaign without name, content, sender, audience, UTM, A/B, booster, or analytics details.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "omnisend_contact_summary_get",
+        "label": "Read selected contact summary",
+        "description": "Read the selected contact's ID and timestamps while discarding every identifier, consent, profile, segment, and activity field."
+      },
+      {
+        "id": "omnisend_campaign_summary_get",
+        "label": "Read selected campaign summary",
+        "description": "Read the selected campaign's ID, type, channel, status, and timestamps while discarding private campaign and analytics fields."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "omnisend_private_data",
+        "label": "Expose private marketing data",
+        "description": "Contact identifiers, names, addresses, consent, channels, tags, custom properties, segments, and activity plus campaign name, content, sender, audience, UTM, A/B, booster, and analytics data are excluded."
+      },
+      {
+        "id": "omnisend_mutation",
+        "label": "Mutate Omnisend state",
+        "description": "Contacts, campaigns, content, audiences, sends, schedules, templates, events, segments, products, and every other mutation are blocked."
+      },
+      {
+        "id": "omnisend_broad_access",
+        "label": "Use broad Omnisend access",
+        "description": "Other contacts, campaigns, lists, segments, templates, events, analytics, arbitrary paths, queries, cursors, redirects, downloads, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "omnisend_read_only",
+      "label": "Read Only",
+      "description": "Read one selected contact and campaign through a two-scope Relay OAuth grant; private data, broader access, analytics, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "omnisend_contact_summary_get",
+        "omnisend_campaign_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "omnisend_private_data",
+        "omnisend_mutation",
+        "omnisend_broad_access"
+      ]
+    },
+    {
+      "id": "omnisend_no_access",
+      "label": "No Access",
+      "description": "Expose no Omnisend actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "omnisend_contact_summary_get",
+        "omnisend_campaign_summary_get",
+        "omnisend_private_data",
+        "omnisend_mutation",
+        "omnisend_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the Relay-owned Omnisend OAuth token server-side and mounts exactly two version-pinned projected reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the Relay-owned Omnisend OAuth token server-side and mounts exactly two version-pinned projected reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "An Omnisend OAuth app, exact Railway callback, provider-issued client credentials, authorized staging brand, selected contact and campaign IDs, and live grant are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "The provider-console lane must register Relay's OAuth app with the exact callback and two read scopes, capture credentials in Railway, authorize a staging brand, bind selected IDs, then validate both redacted reads, version pinning, scope denial, retired-version and rate errors, user revocation, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://api-docs.omnisend.com/reference/oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Omnisend documents authorization-code OAuth, app client credentials, requested resource scopes, bearer access, provider token endpoint, and access lasting until user revocation."
+    },
+    {
+      "url": "https://api-docs.omnisend.com/reference/get_contacts-id",
+      "checkedAt": "2026-07-17",
+      "supports": "Omnisend documents GET /api/contacts/{id}, contacts.read, the mandatory Omnisend-Version 2026-03-15 header, and safe validation, auth, scope, not-found, retired-version, rate, and server errors."
+    },
+    {
+      "url": "https://api-docs.omnisend.com/reference/get_campaigns-id",
+      "checkedAt": "2026-07-17",
+      "supports": "Omnisend documents GET /api/campaigns/{id}, campaigns.read, 24-character hexadecimal campaign IDs, the pinned version header, and bounded error semantics."
+    },
+    {
+      "url": "https://api-docs.omnisend.com/reference/campaigns",
+      "checkedAt": "2026-07-17",
+      "supports": "Omnisend documents campaign lifecycle fields and the message content, sender, audience, scheduling, A/B, booster, UTM, and mutation capabilities Relay excludes."
+    }
+  ]
+}

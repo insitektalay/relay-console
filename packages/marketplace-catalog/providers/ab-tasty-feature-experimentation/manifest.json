@@ -1,0 +1,166 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ab-tasty-feature-experimentation",
+  "name": "AB Tasty Feature Experimentation",
+  "category": "developer",
+  "description": "AB Tasty Feature Experimentation supports feature flags, server-side experiments, rollouts, campaigns, environments, targeting, goals, and optimization workflows.",
+  "agentUseSummary": "Connect a dedicated Remote Control API access bound to one non-production account environment. Relay approval-gates bounded campaign metadata reads while goals, schedules, targeting, variations, flags, evaluation, tracking, and mutations remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.abtasty.com/",
+    "docsUrl": "https://docs.abtasty.com/server-side/remote-control-api/campaigns",
+    "developerConsoleUrl": "https://auth.abtasty.com/",
+    "termsUrl": "https://www.abtasty.com/terms-of-use/",
+    "privacyUrl": "https://www.abtasty.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["campaign.read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://auth.flagship.io/{account_id}/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_remote_control_api_access",
+      "campaign_read_scope",
+      "exact_account_environment_binding",
+      "fixed_remote_control_campaign_api"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "AB_TASTY_REMOTE_CONTROL_API_TOKEN",
+        "label": "AB Tasty Remote Control API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated AB Tasty Remote Control API access with campaign read authority only."
+      },
+      {
+        "name": "AB_TASTY_ACCOUNT_ID",
+        "label": "AB Tasty account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one AB Tasty account."
+      },
+      {
+        "name": "AB_TASTY_ACCOUNT_ENVIRONMENT_ID",
+        "label": "AB Tasty account environment ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one non-production account environment."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "sensitive_read",
+      "label": "Read campaign metadata",
+      "description": "Read bounded account-environment campaign metadata with approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "ab_tasty_feature_experimentation_sensitive_read",
+        "label": "Read AB Tasty Feature Experimentation campaigns",
+        "description": "Read bounded campaign metadata from one account environment with approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "ab_tasty_feature_experimentation_secret_exposure",
+        "label": "Expose credentials",
+        "description": "Remote Control API tokens and authorization headers never enter agent-visible inputs or results."
+      },
+      {
+        "id": "ab_tasty_feature_experimentation_private_data",
+        "label": "Read experimentation internals",
+        "description": "Goals, metrics, schedules, targeting, audiences, variation groups, variations, flags, flag values, users, results, and tracking data are excluded."
+      },
+      {
+        "id": "ab_tasty_feature_experimentation_mutation",
+        "label": "Mutate AB Tasty",
+        "description": "Campaign, project, environment, goal, flag, targeting, variation, user, token, and every other mutation remain provider-side."
+      },
+      {
+        "id": "ab_tasty_feature_experimentation_arbitrary_api",
+        "label": "Use arbitrary APIs",
+        "description": "Only first-page campaign list and exact GETs run on api.flagship.io with stored account and account-environment bindings; arbitrary paths, queries, pagination, Decision API evaluation, resource loading, tracking, and alternate origins are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "ab_tasty_feature_experimentation_safe",
+      "label": "Safe",
+      "description": "Both metadata reads require approval; read-only Remote Control API authority, fixed account-environment routes, bounds, redaction, audits, and evaluation/tracking/mutation blocks remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "ab_tasty_feature_experimentation_sensitive_read"
+      ],
+      "blockedActions": [
+        "ab_tasty_feature_experimentation_secret_exposure",
+        "ab_tasty_feature_experimentation_private_data",
+        "ab_tasty_feature_experimentation_mutation",
+        "ab_tasty_feature_experimentation_arbitrary_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The selected metadata read runs without Relay approval; read-only Remote Control API authority, fixed account-environment routes, bounds, redaction, audits, and evaluation/tracking/mutation blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["ab_tasty_feature_experimentation_sensitive_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "ab_tasty_feature_experimentation_secret_exposure",
+        "ab_tasty_feature_experimentation_private_data",
+        "ab_tasty_feature_experimentation_mutation",
+        "ab_tasty_feature_experimentation_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted restricted Remote Control API token server-side and mounts two approval-gated metadata reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted restricted Remote Control API token server-side and mounts two approval-gated metadata reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "AB Tasty requires an eligible customer account, dedicated Remote Control API access/token, and one account environment. This worker may not create or configure them.",
+    "nextAction": "Create the read-only staging access outside this worker, configure token and account/environment IDs in Railway staging, then verify binding, reads, redaction, approvals, bounds, token expiry/revocation, disconnect, and denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.abtasty.com/server-side/remote-control-api/getting-started",
+      "checkedAt": "2026-07-18",
+      "supports": "AB Tasty documents the Remote Control API, permanent per-application scopes, Bearer tokens, and the official Swagger contract."
+    },
+    {
+      "url": "https://docs.abtasty.com/server-side/remote-control-api/authorization",
+      "checkedAt": "2026-07-18",
+      "supports": "AB Tasty documents account/environment-bound Remote Control API access, selected actions, and account-specific token generation."
+    },
+    {
+      "url": "https://docs.abtasty.com/server-side/remote-control-api/campaigns",
+      "checkedAt": "2026-07-18",
+      "supports": "AB Tasty's official campaign reference pins Bearer-authenticated account-environment list and exact GET routes plus page and page-size controls; separate mutation routes remain blocked."
+    }
+  ]
+}

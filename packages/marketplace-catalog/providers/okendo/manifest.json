@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "okendo",
+  "name": "Okendo",
+  "category": "marketing",
+  "description": "Okendo is a customer-marketing platform for ecommerce reviews, loyalty, referrals, surveys, quizzes, customer profiles, and user-generated content.",
+  "agentUseSummary": "Okendo cannot yet be connected through Relay. Its server-side Merchant REST API requires an entitled merchant's store-specific User ID and static API key over HTTP Basic Auth, with broad CRUD authority and no published granular permission or delegated OAuth contract; representative credential and entitlement acceptance is required first.",
+  "provider": {
+    "websiteUrl": "https://www.okendo.io/",
+    "docsUrl": "https://docs.okendo.io/merchant-rest-api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.okendo.io/terms",
+    "privacyUrl": "https://www.okendo.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_user_id",
+      "customer_api_key",
+      "http_basic_auth",
+      "store_specific_credentials",
+      "advanced_plan_or_power_add_on",
+      "no_granular_key_scopes"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "OKENDO_USER_ID",
+        "label": "Okendo User ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Merchant identifier from Okendo integration settings."
+      },
+      {
+        "name": "OKENDO_API_KEY",
+        "label": "Okendo API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Store-specific static API key stored only in Railway's encrypted credential boundary."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "okendo_credentials",
+        "label": "Collect Okendo credentials",
+        "description": "Relay does not collect static merchant credentials before representative paid-account and lifecycle acceptance."
+      },
+      {
+        "id": "okendo_public_substitution",
+        "label": "Substitute storefront APIs",
+        "description": "Public storefront APIs do not establish private merchant ownership or server-side authority."
+      },
+      {
+        "id": "okendo_data",
+        "label": "Access Okendo data",
+        "description": "Reviews, reviewers, customers, loyalty, referrals, surveys, quizzes, settings, and webhook data remain unavailable."
+      },
+      {
+        "id": "okendo_mutations_raw",
+        "label": "Mutate or use raw Okendo APIs",
+        "description": "Review moderation and replies, groups, loyalty changes, webhook subscriptions, arbitrary endpoints, pagination, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "okendo_unavailable",
+      "label": "Unavailable",
+      "description": "No Okendo action is enabled before customer credential, plan, and authority acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "okendo_credentials",
+        "okendo_public_substitution",
+        "okendo_data",
+        "okendo_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Okendo wrappers are mounted until a representative entitled merchant establishes the frozen authority contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Okendo wrappers are mounted until a representative entitled merchant establishes the frozen authority contract."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Okendo Merchant REST API access requires an entitled merchant to retrieve a store-specific User ID and 32-character API key. The same unscoped Basic Auth credential reaches broad review, loyalty, survey, quiz, customer, settings, and webhook CRUD surfaces, while public documentation does not establish key rotation/revocation or representative product entitlements.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should obtain authorization from a representative Advanced merchant or Power merchant with the API add-on, provision dedicated credentials without exposing them in reports, record enabled products and rotation/revocation behavior, inspect exact schemas and quotas without external writes, and return the frozen authority contract before connector implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.okendo.io/merchant-rest-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Okendo documents a merchant-only server-side REST API using HTTPS Basic Auth with the Okendo User ID and a unique static API key from integration settings, a two-request-per-second rate, header versioning, and nextUrl pagination."
+    },
+    {
+      "url": "https://docs.okendo.io/merchant-rest-api/quick-start",
+      "checkedAt": "2026-07-17",
+      "supports": "Okendo's quick start confirms User ID plus API key authentication and exposes published reviews containing review body, order, reviewer email and identity, reward, moderation, and media data."
+    },
+    {
+      "url": "https://docs.okendo.io/merchant-rest-api/endpoints/reviews",
+      "checkedAt": "2026-07-17",
+      "supports": "The same Basic Auth contract covers review listing and retrieval plus moderation updates, customer-notifying replies, and group creation."
+    },
+    {
+      "url": "https://support.okendo.io/en/articles/14508700-integrating-okendo-with-fuego",
+      "checkedAt": "2026-07-17",
+      "supports": "Okendo states API access is included on Advanced and above or available as a paid Power add-on, and that API keys are store-specific and retrieved from Okendo Admin."
+    }
+  ]
+}

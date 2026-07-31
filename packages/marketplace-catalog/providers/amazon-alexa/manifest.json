@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "amazon-alexa",
+  "name": "Amazon Alexa",
+  "category": "communication",
+  "description": "Amazon Alexa is a cloud-based voice assistant and ambient computing service available on Echo and other Alexa-enabled devices. Customers use it to ask questions, play media, manage routines, control compatible smart-home devices, and invoke third-party skills.",
+  "agentUseSummary": "Amazon Alexa is visible as a custom-skill certification preview only. Relay will not collect an Amazon email, password, passkey, one-time code, browser session, Login with Amazon token, skill credential, household profile, device identifier, voice recording, payment detail, or other credential, and no voice query or Alexa action is callable until Amazon certifies and publishes the exact account-linked Relay skill.",
+  "provider": {
+    "websiteUrl": "https://www.amazon.com/alexa",
+    "docsUrl": "https://developer.amazon.com/en-US/docs/alexa/devconsole/test-and-submit-your-skill.html",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://developer.amazon.com/support/legal/alexa-apis/terms-and-agreements",
+    "privacyUrl": "https://www.amazon.com/gp/help/customer/display.html?nodeId=GX7NJQ4ZB8MHFRNJ"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "alexa_custom_skill_certification_required",
+      "relay_account_linking_review_required",
+      "amazon_skill_distribution_and_locale_approval_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "approved_relay_voice_query_ingress",
+      "label": "Use an approved Alexa voice query channel",
+      "description": "After Amazon certifies and publishes Relay's skill, accept only Amazon-signed, account-linked, user-initiated requests for a small allowlist of non-sensitive read-only Relay status queries and return short redacted spoken responses.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "amazon_alexa_enable_before_skill_certification",
+        "label": "Enable before skill certification",
+        "description": "Amazon requires custom skills to pass validation and certification before publication. Relay has no created, tested, certified, or published skill, approved interaction model, invocation name, locale set, account-linking contract, privacy disclosure, or production endpoint for this use case."
+      },
+      {
+        "id": "amazon_alexa_collect_amazon_credentials",
+        "label": "Collect Amazon, skill, or voice credentials",
+        "description": "Relay will not ask for an Amazon email, password, passkey, one-time code, browser session, Login with Amazon token, skill credential, household profile, device identifier, voice recording, or payment detail as a substitute for Amazon-hosted skill enablement and Relay-hosted OAuth account linking."
+      },
+      {
+        "id": "amazon_alexa_skill_requests_before_approval",
+        "label": "Run Alexa skill requests",
+        "description": "No LaunchRequest, IntentRequest, account-linked Relay lookup, spoken response, device directive, routine, reminder, message, notification, purchase, profile, or other Alexa action can run while skill security, certification, and publication review is pending."
+      },
+      {
+        "id": "amazon_alexa_sensitive_or_mutating_voice_actions_blocked",
+        "label": "Sensitive and mutating voice actions unavailable",
+        "description": "Alexa device or smart-home control, routines, reminders, messaging, notifications, purchases, payments, account or household administration, sensitive or private Relay data, arbitrary prompts, raw utterance retention, and every mutation remain outside Relay's planned read-only V1 even after approval."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "amazon_alexa_custom_skill_certification",
+      "label": "Amazon Alexa custom-skill certification pending",
+      "description": "Voice queries remain unavailable until Amazon certifies and publishes Relay's exact skill, account-linking flow, privacy contract, interaction model, locales, security controls, and production endpoint.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "amazon_alexa_enable_before_skill_certification",
+        "amazon_alexa_collect_amazon_credentials",
+        "amazon_alexa_skill_requests_before_approval",
+        "amazon_alexa_sensitive_or_mutating_voice_actions_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No OpenClaw voice channel or tool is callable until Amazon certifies and publishes Relay's skill and Relay implements the signed, account-linked, allowlisted read-only Railway endpoint."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Hermes voice channel or tool is callable until Amazon certifies and publishes Relay's skill and Relay implements the signed, account-linked, allowlisted read-only Railway endpoint."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Amazon's public developer surface supports building custom skills that Alexa invokes over a certified HTTPS or Lambda endpoint; account linking connects an Alexa user to an account in the developer's service. Amazon requires validation, policy, security, functional, and user-experience review before a skill can be published. Relay has no Amazon developer account setup, skill manifest, invocation name, interaction model, locale set, signed-request endpoint, Relay OAuth account-linking contract, privacy and terms disclosure, certification test account, completed certification, or published skill. The official public documentation does not establish a general consumer API that would let Relay agents control a customer's Alexa account, Echo devices, routines, or smart-home inventory, so Relay must not present one.",
+    "nextAction": "Authorized Relay product, legal, privacy, security, and voice-experience owners must establish the approved Amazon developer identity, create the Relay custom skill, define the smallest allowlisted interaction model and locales, configure a fixed Railway HTTPS endpoint plus Relay OAuth authorization-code account linking, publish valid terms and privacy notices, complete Amazon's validation and security tests, provide a dedicated certification test account, and submit the exact skill for certification and publication. They must document eligible non-sensitive Relay queries, minimized spoken response fields, shared-household and voice privacy risks, Amazon signature, timestamp, application and token validation, query and response bounds, timeouts and rate limits, retention and deletion, skill disablement and account unlinking, audits, incident duties, and locale-specific behavior. Engineering can then implement only Amazon-signed, replay-protected, account-linked, user-initiated read-only requests and short redacted responses. Device and smart-home control, routines, reminders, messaging, notifications, purchases, payments, sensitive data, arbitrary prompts, raw utterance retention, and every mutation remain excluded."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.amazon.com/en-US/alexa/alexa-skills-kit/get-deeper/custom-skills",
+      "checkedAt": "2026-07-18",
+      "supports": "Amazon describes custom skills as developer-defined voice interaction models in which Alexa maps spoken input to intents and sends those intents to the developer's skill logic."
+    },
+    {
+      "url": "https://developer.amazon.com/en-US/docs/alexa/account-linking/account-linking-for-custom-skills.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Amazon documents account linking as connecting the Alexa user's identity to an account in the developer's service, with linking initiated through the Alexa app and an access token passed to the skill."
+    },
+    {
+      "url": "https://developer.amazon.com/en-US/docs/alexa/custom-skills/host-a-custom-skill-as-a-web-service.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Amazon requires a published custom-skill web service to use trusted TLS, accept the Alexa request-response protocol, verify signatures and intended application, reject stale requests, and fail certification if unsigned or replayed requests are accepted."
+    },
+    {
+      "url": "https://developer.amazon.com/en-US/docs/alexa/devconsole/test-and-submit-your-skill.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Amazon requires validation and certification review before a skill is published to the Alexa Skills Store, with separate policy, security, functionality, and skill-type checklists."
+    },
+    {
+      "url": "https://developer.amazon.com/en-US/docs/alexa/custom-skills/security-testing-for-an-alexa-skill.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Amazon's skill security requirements cover trusted certificates, request verification, account linking, valid privacy and terms pages, consented and minimized personal data, and restrictions on sensitive information spoken by a skill."
+    }
+  ]
+}

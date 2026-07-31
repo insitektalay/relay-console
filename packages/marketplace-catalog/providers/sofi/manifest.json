@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sofi",
+  "name": "SoFi",
+  "category": "commerce_payments",
+  "description": "SoFi is a digital financial-services company offering checking and savings, personal and student lending, home loans, investing, credit cards, insurance access, and financial planning. Members use its app and website to manage money, review accounts and activity, borrow, invest, transfer funds, and track connected finances.",
+  "agentUseSummary": "SoFi is visible as a consumer account-data partner-review preview only. Relay will not collect a SoFi email, password, one-time code, browser session, account or routing number, card detail, brokerage credential, or developer credential, and no agent action is callable until SoFi approves an exact personal-account data product and customer-consent contract.",
+  "provider": {
+    "websiteUrl": "https://www.sofi.com/",
+    "docsUrl": "https://support.sofi.com/hc/en-us/articles/4423151796749-How-does-SoFi-obtain-information-from-external-accounts",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.sofi.com/terms-of-use/",
+    "privacyUrl": "https://www.sofi.com/online-privacy-policy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "sofi_consumer_account_data_contract_required",
+      "sofi_partner_and_production_approval_required",
+      "customer_consent_and_read_scope_approval_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "approved_personal_banking_read",
+      "label": "Read approved SoFi banking data",
+      "description": "After SoFi approves Relay's consumer account-data product, expose only bounded non-mutating summaries for the connected customer's authorized personal banking account types, balances, and recent transaction lifecycle within explicitly eligible products.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "sofi_connect_before_consumer_data_approval",
+        "label": "Connect before consumer-data approval",
+        "description": "SoFi's consumer documentation describes Plaid bringing external financial accounts into SoFi. SoFi Tech Solutions APIs let business clients build and operate their own financial programs and do not authorize access to personal SoFi memberships. Relay has no approved consumer data product, partner agreement, consent model, scopes, credentials, sandbox acceptance, or production access."
+      },
+      {
+        "id": "sofi_collect_customer_credentials",
+        "label": "Collect customer credentials",
+        "description": "Relay will not ask customers for a SoFi email, password, one-time code, browser session, bearer token, account or routing number, card detail, brokerage credential, PIN, Social Security number, identity document, developer credential, or other secret as a substitute for SoFi-approved consent."
+      },
+      {
+        "id": "sofi_api_actions_before_approval",
+        "label": "Run SoFi API actions",
+        "description": "No member, banking account, balance, transaction, card, statement, loan, investment, brokerage, crypto, credit, insurance, payment, transfer, identity, consent, webhook, or other SoFi API action can run while consumer account-data review is pending."
+      },
+      {
+        "id": "sofi_money_movement_blocked",
+        "label": "Money movement unavailable",
+        "description": "Payments, transfers, card controls, account maintenance, trading, crypto transactions, lending, credit changes, disputes, and every other financial or account mutation remain outside Relay's planned read-only V1 even after approval."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sofi_consumer_data_partner_review",
+      "label": "Consumer account-data partner review pending",
+      "description": "Agent actions remain unavailable until SoFi approves Relay's exact personal account-data product, customer-consent contract, read scope, security profile, and production integration.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sofi_connect_before_consumer_data_approval",
+        "sofi_collect_customer_credentials",
+        "sofi_api_actions_before_approval",
+        "sofi_money_movement_blocked"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "No OpenClaw tools are callable until SoFi approves Relay and Relay implements the approved read-only Railway broker."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "No Hermes tools are callable until SoFi approves Relay and Relay implements the approved read-only Railway broker."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "SoFi's consumer documentation describes customers using Plaid to connect external financial accounts into SoFi and explains how to stop SoFi's future access to external Plaid data. SoFi Tech Solutions separately publishes APIs for business clients to create and operate their own account, card, payment, lending, risk, and dispute programs; those APIs manage the client's account holders and do not authorize access to personal SoFi consumer memberships. Relay has no approved SoFi consumer account-data product, partner agreement, customer-consent route, scopes, credentials, sandbox acceptance, schema and rate-limit contract, privacy allocation, or production authority, so no connection can be offered safely.",
+    "nextAction": "An authorized Relay business, legal, compliance, privacy, and security owner must obtain written SoFi approval for a personal-account data integration distinct from SoFi Tech Solutions' client-program APIs. The owner must document eligible consumer products, exact read permissions and minimized response fields, provider-hosted consent copy and duration, authorization and token contracts, credentials and security controls, sandbox and production onboarding, schemas and rate limits, data retention, revocation and disconnect, audits, incident duties, and production approval. Engineering can then implement a fixed-origin Railway consent broker and the smallest bounded read-only personal banking account-type, balance, and recent transaction-lifecycle V1. Money movement and every mutation remain excluded."
+  },
+  "evidence": [
+    {
+      "url": "https://support.sofi.com/hc/en-us/articles/4423151796749-How-does-SoFi-obtain-information-from-external-accounts",
+      "checkedAt": "2026-07-18",
+      "supports": "SoFi describes Plaid as a consumer-authorized route that transmits external financial-account data into the SoFi app or website, not a public API for third parties to read personal SoFi accounts."
+    },
+    {
+      "url": "https://support.sofi.com/hc/en-us/articles/37964874343309-How-do-I-disconnect-SoFi-from-financial-accounts-linked-via-Plaid",
+      "checkedAt": "2026-07-18",
+      "supports": "SoFi documents stopping its future access to external Plaid-linked data, reinforcing that the published flow concerns SoFi as data recipient."
+    },
+    {
+      "url": "https://docs.tech.sofi.com/pro/docs/introduction",
+      "checkedAt": "2026-07-18",
+      "supports": "SoFi Tech Solutions describes APIs for clients building account, card, payment, lending, dispute, and risk programs rather than access to SoFi consumer memberships."
+    },
+    {
+      "url": "https://tech.sofi.com/platform/open-apis/",
+      "checkedAt": "2026-07-18",
+      "supports": "SoFi Tech Solutions markets Program and related APIs as building blocks for companies to manage their own customers and financial products, so Relay must not misrepresent them as a personal SoFi connection."
+    }
+  ]
+}

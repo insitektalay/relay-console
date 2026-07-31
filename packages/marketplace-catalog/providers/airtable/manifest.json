@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "airtable",
+  "name": "Airtable",
+  "category": "knowledge_documents",
+  "description": "Airtable is a collaborative platform that combines spreadsheet-style tables with relational databases, views, forms, interfaces, and automations. Teams use it to organize projects, content, operations, customer information, and other structured work in shared bases.",
+  "agentUseSummary": "Connect Airtable once, choose the bases or Workspaces to share, then select which agents may inspect structure, read records and comments, prepare changes, create or update records, and add comments under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://airtable.com/",
+    "docsUrl": "https://airtable.com/developers/web/api/introduction",
+    "developerConsoleUrl": "https://airtable.com/create/oauth",
+    "termsUrl": "https://www.airtable.com/company/terms-of-service",
+    "privacyUrl": "https://www.airtable.com/company/privacy"
+  },
+  "authentication": {
+    "model": "oauth2", "relayOwned": true,
+    "scopes": ["schema.bases:read", "data.records:read", "data.records:write", "data.recordComments:read", "data.recordComments:write", "user.email:read"],
+    "pkce": true, "refreshTokens": true,
+    "authorizationUrl": "https://airtable.com/oauth2/v1/authorize",
+    "tokenUrl": "https://airtable.com/oauth2/v1/token"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "resource_restricted", "airtable_user_account"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/airtable/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "base_read", "label": "View bases and structure", "description": "List authorized bases and inspect useful table, field, and view structure.", "defaultSelected": true },
+    { "id": "record_read", "label": "Find and read records", "description": "List bounded records and read explicit records and comments.", "defaultSelected": true },
+    { "id": "record_draft", "label": "Prepare record changes", "description": "Prepare exact record creates, updates, or comments locally.", "defaultSelected": true },
+    { "id": "record_write", "label": "Create and update records", "description": "Create records, patch fields, and add record comments.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "airtable_base_list", "label": "List bases", "description": "List a bounded set of bases included in the OAuth resource grant." },
+      { "id": "airtable_base_schema_get", "label": "Read base schema", "description": "Read bounded table, field, and view metadata for one base." },
+      { "id": "airtable_table_records", "label": "List records", "description": "List a bounded first page of records from one table." },
+      { "id": "airtable_record_get", "label": "Read a record", "description": "Read one explicit record." },
+      { "id": "airtable_record_comments", "label": "List comments", "description": "List bounded comments for one explicit record." },
+      { "id": "airtable_record_prepare", "label": "Prepare a record change", "description": "Prepare and hash one record create, update, or comment locally." }
+    ],
+    "approvalRequired": [
+      { "id": "airtable_record_create", "label": "Create a record", "description": "Create one record in an explicit table; Safe mode requires matching approval." },
+      { "id": "airtable_record_update", "label": "Update a record", "description": "Patch bounded fields on one explicit record; Safe mode requires matching approval." },
+      { "id": "airtable_record_comment_create", "label": "Add a comment", "description": "Add one bounded comment to an explicit record; Safe mode requires matching approval." }
+    ],
+    "blocked": [
+      { "id": "airtable_schema_admin", "label": "Change base structure", "description": "Creating or changing bases, tables, fields, views, collaborators, shares, interfaces, and extensions is outside V1." },
+      { "id": "airtable_destructive", "label": "Delete or bulk-change data", "description": "Deletion, upsert, bulk writes, webhooks, broad exports, and automatic pagination are outside V1." },
+      { "id": "airtable_raw_api", "label": "Call arbitrary Airtable APIs", "description": "Raw REST, agent-supplied formulas, Sync API, Enterprise APIs, and untyped endpoints are never exposed." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "airtable_safe", "label": "Safe", "description": "Bounded reads and local drafts run directly; each Airtable write requires matching approval.", "defaultSelected": true, "allowedActions": ["airtable_base_list", "airtable_base_schema_get", "airtable_table_records", "airtable_record_get", "airtable_record_comments", "airtable_record_prepare"], "approvalRequiredActions": ["airtable_record_create", "airtable_record_update", "airtable_record_comment_create"], "blockedActions": ["airtable_schema_admin", "airtable_destructive", "airtable_raw_api"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected Airtable operation supported by this connector runs without Relay per-action approval; connection ownership, resource grants, bounds, audits, redaction, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["airtable_base_list", "airtable_base_schema_get", "airtable_table_records", "airtable_record_get", "airtable_record_comments", "airtable_record_prepare", "airtable_record_create", "airtable_record_update", "airtable_record_comment_create"], "approvalRequiredActions": [], "blockedActions": ["airtable_schema_admin", "airtable_destructive", "airtable_raw_api"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts nine typed Airtable tools and attaches the authorized user's token server-side without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts nine typed Airtable tools and attaches the authorized user's token server-side without exposing it to the agent." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay Console's Airtable OAuth integration, exact production redirect URL, scopes, legal/support details, client credentials, and a fresh production resource grant have not been configured and verified.",
+    "nextAction": "Register an Airtable OAuth integration, configure https://api.relayconsole.work/api/v1/marketplace/oauth/airtable/callback and the six declared scopes, add AIRTABLE_CLIENT_ID and AIRTABLE_CLIENT_SECRET to Railway, then verify PKCE, user and resource binding, serialized refresh rotation, bounded reads, Safe writes, Dangerous writes, local disconnect, manual provider revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://airtable.com/developers/web/api/oauth-reference", "checkedAt": "2026-07-16", "supports": "Airtable documents authorization and token endpoints, exact HTTPS redirect matching, mandatory S256 PKCE, one-hour access tokens, rotating refresh tokens, and sixty-day refresh inactivity expiry." },
+    { "url": "https://airtable.com/developers/web/api/scopes", "checkedAt": "2026-07-16", "supports": "Airtable documents granular base schema, record, record-comment, and user email scopes constrained by selected resources and the authorizing user's own permissions." },
+    { "url": "https://airtable.com/developers/web/api/list-records", "checkedAt": "2026-07-16", "supports": "Airtable documents bounded record pages of at most one hundred and OAuth support for record reads." },
+    { "url": "https://airtable.com/developers/web/api/rate-limits", "checkedAt": "2026-07-16", "supports": "Airtable documents five requests per second per base and a thirty-second backoff after HTTP 429." },
+    { "url": "https://support.airtable.com/docs/third-party-integrations-via-oauth-overview", "checkedAt": "2026-07-16", "supports": "Airtable documents user-selected base and Workspace resource grants, multiple grants, manual and admin revocation, and the absence of a programmatic refresh-token revocation endpoint." }
+  ]
+}

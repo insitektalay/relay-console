@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "keap",
+  "name": "Keap",
+  "category": "developer",
+  "description": "Keap provides CRM, sales automation, marketing, appointments, invoicing, payments, and commerce workflows.",
+  "agentUseSummary": "Connect a customer-owned Keap Personal Access Token, then let agents list only bounded projected contact custom-field metadata under approval. Relay excludes options, defaults, groups, optional properties, values, CRM and commerce records, writes, administration, bulk operations, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://keap.com/",
+    "docsUrl": "https://developer.keap.com/docs/restv2/",
+    "developerConsoleUrl": "https://developer.keap.com/",
+    "termsUrl": "https://keap.com/legal/terms-of-use",
+    "privacyUrl": "https://keap.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "customer_owned_bearer_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_bearer_token",
+      "fixed_api_origin",
+      "fixed_contact_model_scope",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "KEAP_ACCESS_TOKEN",
+        "label": "Keap access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Store a dedicated least-privilege Personal Access Token only through Relay's encrypted flow."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "contact_custom_field_metadata",
+      "label": "List contact custom-field metadata",
+      "description": "List at most 100 field IDs, labels, record types, field types, and field names without options, defaults, groups, optional properties, values, or CRM records.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "keap_contact_custom_fields_list",
+        "label": "List contact custom-field metadata",
+        "description": "List bounded projected contact custom-field definitions from Keap."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "keap_crm_commerce_records",
+        "label": "Access CRM or commerce records",
+        "description": "Contacts, companies, opportunities, notes, tasks, appointments, files, emails, campaigns, tags, orders, subscriptions, transactions, payment methods, affiliates, and users are blocked."
+      },
+      {
+        "id": "keap_private_schema_logic",
+        "label": "Access private schema logic",
+        "description": "Field options, default values, groups, group names, optional properties, field values, and full model responses are blocked."
+      },
+      {
+        "id": "keap_mutation_administration",
+        "label": "Mutate or administer Keap",
+        "description": "Creates, updates, deletes, email sends, campaign enrollment, tagging, imports, exports, schema changes, payments, and settings changes are blocked."
+      },
+      {
+        "id": "keap_raw_bulk",
+        "label": "Use raw or bulk API access",
+        "description": "Arbitrary paths, filters, searches, raw responses, legacy XML-RPC, later pages, redirects, retries, and bulk access are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "keap_contact_custom_field_metadata_safe",
+      "label": "Safe",
+      "description": "The bounded field-metadata read requires approval; CRM/commerce records, private schema logic, writes, administration, bulk, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["keap_contact_custom_fields_list"],
+      "blockedActions": [
+        "keap_crm_commerce_records",
+        "keap_private_schema_logic",
+        "keap_mutation_administration",
+        "keap_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded metadata read runs without Relay per-action approval; fixed origin/path binding, projection, caps, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["keap_contact_custom_fields_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "keap_crm_commerce_records",
+        "keap_private_schema_logic",
+        "keap_mutation_administration",
+        "keap_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned token to Keap's fixed API origin and projected contact-model wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned token to Keap's fixed API origin and projected contact-model wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Keap user must provision a dedicated least-privilege Personal Access Token and store it through Relay. No account, OAuth app, token, credential capture, consent, live request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized user provisions the least-privilege token, stores it through Relay, then verifies health, one approved metadata list, throttling, token rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.keap.com/docs/restv2/",
+      "checkedAt": "2026-07-17",
+      "supports": "Keap documents GET /crm/rest/v2/contacts/model with custom field metadata and optional properties. Relay projects only field identity/type metadata and excludes options, defaults, groups, optional properties, values, records, and writes."
+    },
+    {
+      "url": "https://developer.keap.com/pat-and-sak/",
+      "checkedAt": "2026-07-17",
+      "supports": "Keap documents Personal Access Tokens used as Bearer credentials under the creating user's visibility and editing permissions. Relay requires a dedicated least-privilege customer-owned token and never provisions or captures it in this worker task."
+    }
+  ]
+}

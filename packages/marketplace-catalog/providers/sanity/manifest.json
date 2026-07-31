@@ -1,0 +1,115 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sanity",
+  "name": "Sanity",
+  "category": "content_creative",
+  "description": "Sanity is a structured-content platform for building and operating websites, apps, and other digital experiences. Teams use its Content Lake and Studio to model content, collaborate on drafts, query reusable data, and publish changes across channels.",
+  "agentUseSummary": "Enter a dedicated Sanity project robot token once, then let agents inspect bounded document types and content, prepare exact changes, create or update drafts, and publish a reviewed draft under Safe or Dangerous policy. Relay keeps the token encrypted, pins every request to the selected project and dataset, and does not expose arbitrary GROQ, destructive operations, project administration, assets, releases, or raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.sanity.io/",
+    "docsUrl": "https://www.sanity.io/docs/http-reference",
+    "developerConsoleUrl": "https://www.sanity.io/manage",
+    "termsUrl": "https://www.sanity.io/legal/terms-of-service",
+    "privacyUrl": "https://www.sanity.io/legal/privacy"
+  },
+  "authentication": {
+    "model": "api_token",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_token", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "SANITY_PROJECT_ID",
+        "label": "Sanity project ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Copy the project ID from the Sanity project settings. Relay pins this connection to that project."
+      },
+      {
+        "name": "SANITY_DATASET",
+        "label": "Sanity dataset",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the dataset agents should use, such as production."
+      },
+      {
+        "name": "SANITY_API_TOKEN",
+        "label": "Sanity robot token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated project robot token in Settings > API > Tokens. Choose Viewer for read-only use or Editor when agents may create, update, and publish drafts."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "document_read", "label": "Read documents", "description": "Discover bounded content types and read documents in the selected dataset.", "defaultSelected": true },
+    { "id": "document_draft", "label": "Prepare and create drafts", "description": "Prepare exact changes locally and create one new draft document.", "defaultSelected": true },
+    { "id": "document_update", "label": "Update drafts", "description": "Update one draft using its exact current revision.", "defaultSelected": true },
+    { "id": "document_publish", "label": "Publish reviewed drafts", "description": "Publish one reviewed draft using its exact current revision.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "sanity_document_type_list", "label": "List document types", "description": "Discover content types from one bounded document page." },
+      { "id": "sanity_document_list", "label": "List documents", "description": "List one bounded cursor page of documents, optionally restricted to one type." },
+      { "id": "sanity_document_get", "label": "Read document", "description": "Read the published and draft versions of one explicit document." },
+      { "id": "sanity_document_prepare", "label": "Prepare document change", "description": "Normalize and hash one proposed document change locally." }
+    ],
+    "approvalRequired": [
+      { "id": "sanity_document_create_draft", "label": "Create draft", "description": "Create one new draft document." },
+      { "id": "sanity_document_update_draft", "label": "Update draft", "description": "Patch one draft using its exact current revision." },
+      { "id": "sanity_document_publish", "label": "Publish document", "description": "Publish one reviewed draft using its exact current revision." }
+    ],
+    "blocked": [
+      { "id": "sanity_destructive", "label": "Delete or unpublish content", "description": "Deletion, discard, purge, unpublish, and bulk mutation are outside V1." },
+      { "id": "sanity_admin", "label": "Administer Sanity", "description": "Projects, datasets, members, roles, tokens, CORS, schemas, webhooks, releases, scheduling, assets, and AI administration are outside V1." },
+      { "id": "sanity_raw", "label": "Use arbitrary GROQ or raw APIs", "description": "Arbitrary queries, mutations, actions, exports, and automatic pagination are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sanity_safe",
+      "label": "Safe",
+      "description": "Bounded reads and local preparation run directly; draft creation, draft updates, and publication require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["sanity_document_type_list", "sanity_document_list", "sanity_document_get", "sanity_document_prepare"],
+      "approvalRequiredActions": ["sanity_document_create_draft", "sanity_document_update_draft", "sanity_document_publish"],
+      "blockedActions": ["sanity_destructive", "sanity_admin", "sanity_raw"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Sanity V1 operation runs without Relay per-action approval; connection ownership, project and dataset binding, token roles, bounds, revision checks, audits, redaction, idempotency, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["sanity_document_type_list", "sanity_document_list", "sanity_document_get", "sanity_document_prepare", "sanity_document_create_draft", "sanity_document_update_draft", "sanity_document_publish"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["sanity_destructive", "sanity_admin", "sanity_raw"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts seven exact Sanity wrappers and injects the encrypted customer robot token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts seven exact Sanity wrappers and injects the encrypted customer robot token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No customer Sanity project ID, dataset, dedicated robot token, or signed-in provider session was available.",
+    "nextAction": "A customer project administrator creates a dedicated expiring robot token with Viewer or Editor access, enters the project ID, dataset, and token, then Relay runs health, bounded reads, Safe approval checks, Dangerous draft creation and update, explicit publication, token revocation, and disconnect checks."
+  },
+  "evidence": [
+    { "url": "https://www.sanity.io/docs/content-lake/http-auth", "checkedAt": "2026-07-16", "supports": "Sanity directs applications and third-party services to dedicated robot tokens with appropriate permissions and documents Bearer authentication, expiry, rotation, and revocation." },
+    { "url": "https://www.sanity.io/docs/app-sdk/sdk-authentication", "checkedAt": "2026-07-16", "supports": "Sanity's seamless stamped-token flow is supplied to custom apps running inside Sanity Dashboard; project tokens are the manually supplied credential for project-specific endpoints." },
+    { "url": "https://www.sanity.io/docs/http-reference/query", "checkedAt": "2026-07-16", "supports": "The Query API documents project- and dataset-bound GROQ requests and parameterized queries." },
+    { "url": "https://www.sanity.io/docs/content-lake/dispatch-actions", "checkedAt": "2026-07-16", "supports": "Sanity recommends the Actions API for document workflows and documents draft creation, exact draft editing, and explicit publication." },
+    { "url": "https://www.sanity.io/docs/content-lake/drafts", "checkedAt": "2026-07-16", "supports": "Sanity documents separate drafts.<id> versions and explicit publication into the unprefixed document ID." }
+  ]
+}

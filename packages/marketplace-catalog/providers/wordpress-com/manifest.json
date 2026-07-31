@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "wordpress-com",
+  "name": "WordPress.com",
+  "category": "content_creative",
+  "description": "WordPress.com is a managed website and publishing platform for creating blogs, business sites, newsletters, and online publications, and it also provides cloud services to Jetpack-connected WordPress sites. Editors use it to draft, review, publish, and maintain posts without operating their own WordPress server.",
+  "agentUseSummary": "Connect one WordPress.com or Jetpack site, then let agents inspect the authorized site and bounded post pages, prepare exact changes, create drafts, update reviewed drafts, or explicitly publish a current version under Safe or Dangerous policy. Relay never requests global access, follows pagination automatically, handles media or site administration, or exposes the non-refreshable OAuth token.",
+  "provider": {
+    "websiteUrl": "https://wordpress.com/",
+    "docsUrl": "https://developer.wordpress.com/docs/api/",
+    "developerConsoleUrl": "https://developer.wordpress.com/apps/",
+    "termsUrl": "https://wordpress.com/tos/",
+    "privacyUrl": "https://automattic.com/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["sites", "posts"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://public-api.wordpress.com/oauth2/authorize",
+    "tokenUrl": "https://public-api.wordpress.com/oauth2/token"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/wordpress-com/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "site_read", "label": "Read authorized site", "description": "List and inspect the specific WordPress.com or Jetpack site granted by the user.", "defaultSelected": true },
+    { "id": "post_read", "label": "Read posts", "description": "List one bounded post page and inspect one explicit post with editor metadata.", "defaultSelected": true },
+    { "id": "post_draft", "label": "Prepare and create drafts", "description": "Prepare exact changes locally and create one post forced to draft.", "defaultSelected": true },
+    { "id": "post_update", "label": "Update drafts", "description": "Update one explicit draft after confirming it has not changed since review.", "defaultSelected": true },
+    { "id": "post_publish", "label": "Publish reviewed posts", "description": "Publish one explicit reviewed draft after confirming it has not changed since review.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "wordpress_com_site_list", "label": "List authorized sites", "description": "List the bounded WordPress.com or Jetpack sites visible to the specific-blog grant." },
+      { "id": "wordpress_com_site_get", "label": "Read site", "description": "Read identity, URL, visibility, capabilities, and useful settings for the authorized site." },
+      { "id": "wordpress_com_post_list", "label": "List posts", "description": "List one bounded page of posts for the authorized site." },
+      { "id": "wordpress_com_post_get", "label": "Read post", "description": "Read one explicit post with bounded editor content and version metadata." },
+      { "id": "wordpress_com_post_prepare", "label": "Prepare post change", "description": "Normalize and hash one draft creation, draft update, or publication locally." }
+    ],
+    "approvalRequired": [
+      { "id": "wordpress_com_post_create_draft", "label": "Create draft", "description": "Create one post with provider status forced to draft and public sharing disabled." },
+      { "id": "wordpress_com_post_update_draft", "label": "Update draft", "description": "Update explicit fields on one draft after confirming its expected modified time." },
+      { "id": "wordpress_com_post_publish", "label": "Publish post", "description": "Publish one explicit reviewed draft after confirming its expected modified time." }
+    ],
+    "blocked": [
+      { "id": "wordpress_com_delete_restore", "label": "Delete or restore content", "description": "Trash, permanent deletion, restore, and bulk mutation are outside V1." },
+      { "id": "wordpress_com_media_admin", "label": "Upload media or administer sites", "description": "Media transfer, comments, taxonomy creation, users, plugins, themes, menus, settings, and site administration are outside V1." },
+      { "id": "wordpress_com_global_raw", "label": "Use global or arbitrary access", "description": "Global scope, batch calls, Reader and social actions, automatic pagination, broad ingestion, arbitrary namespaces, and raw provider calls are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "wordpress_com_safe",
+      "label": "Safe",
+      "description": "Bounded site and post reads plus local change preparation run directly; draft creation, draft updates, and publication require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["wordpress_com_site_list", "wordpress_com_site_get", "wordpress_com_post_list", "wordpress_com_post_get", "wordpress_com_post_prepare"],
+      "approvalRequiredActions": ["wordpress_com_post_create_draft", "wordpress_com_post_update_draft", "wordpress_com_post_publish"],
+      "blockedActions": ["wordpress_com_delete_restore", "wordpress_com_media_admin", "wordpress_com_global_raw"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected WordPress.com operation supported by this connector runs without Relay per-action approval; connection ownership, the specific-blog grant, fixed routes, post-version checks, bounds, audits, redaction, idempotency, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["wordpress_com_site_list", "wordpress_com_site_get", "wordpress_com_post_list", "wordpress_com_post_get", "wordpress_com_post_prepare", "wordpress_com_post_create_draft", "wordpress_com_post_update_draft", "wordpress_com_post_publish"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["wordpress_com_delete_restore", "wordpress_com_media_admin", "wordpress_com_global_raw"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts eight exact WordPress.com site and post wrappers and attaches the user's OAuth token without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts eight exact WordPress.com site and post wrappers and attaches the user's OAuth token without exposing it to the agent." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's WordPress.com Application has not been confirmed with the production callback, sites and posts scopes, application review and terms requirements, and client credentials.",
+    "nextAction": "Register Relay Console in WordPress.com Applications, set the exact production callback and sites and posts scopes without global access, complete required review and terms work, store the client ID and secret in Railway staging, then test consent, token-info binding, bounded reads, Safe approval, Dangerous draft creation and update, explicit publication, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://developer.wordpress.com/docs/api/oauth2/", "checkedAt": "2026-07-16", "supports": "WordPress.com documents the production authorization-code flow, exact redirect matching, specific-blog authorization, sites and posts scopes, form token exchange, non-refresh token response, and token-info validation." },
+    { "url": "https://developer.wordpress.com/docs/api/getting-started/", "checkedAt": "2026-07-16", "supports": "The official guide recommends numeric site IDs, identifies /rest/v1.1/me/sites as the site discovery route, and documents OAuth bearer access for WordPress.com and Jetpack sites." },
+    { "url": "https://developer.wordpress.com/docs/api/rest-api-reference/", "checkedAt": "2026-07-16", "supports": "The official reference distinguishes site, post, comment, media, taxonomy, Reader, and administration routes and supports Relay's fixed V1 allowlist." },
+    { "url": "https://developer.wordpress.com/docs/api/1/get/sites/%24site/posts/", "checkedAt": "2026-07-16", "supports": "The post-list route exposes explicit status, ordering, search, number, and offset controls plus found and post metadata used for one bounded page." },
+    { "url": "https://developer.wordpress.com/docs/api/1.1/post/sites/%24site/posts/new/", "checkedAt": "2026-07-16", "supports": "The create-post route accepts title, content, excerpt, slug, categories, tags, status, and publicize controls used to force draft-first creation without social sharing." },
+    { "url": "https://developer.wordpress.com/docs/api/1.1/post/sites/%24site/posts/%24post_ID/", "checkedAt": "2026-07-16", "supports": "The edit-post route supports explicit draft and publish status transitions after Relay's modified-time precondition." }
+  ]
+}

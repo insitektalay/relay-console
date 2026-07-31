@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-display-and-video-360",
+  "name": "Google Display & Video 360",
+  "category": "marketing",
+  "description": "Display & Video 360 is Google's enterprise media-buying platform for partners, advertisers, campaigns, insertion orders, line items, creatives, targeting, audiences, inventory, deals, invoices, and reporting workflows.",
+  "agentUseSummary": "Display & Video 360 cannot yet be connected through Relay. Google offers OAuth user authorization but only one broad read/write display-video scope; effective safety depends on the user's DV360 role and exact partner or advertiser assignments. Relay exposes no advertiser, campaign, creative, audience, targeting, inventory, budget, invoice, or serving authority until its OAuth client and representative least-privilege role boundary pass acceptance.",
+  "provider": {
+    "websiteUrl": "https://displayvideo.google.com/",
+    "docsUrl": "https://developers.google.com/display-video/api/guides/getting-started/overview",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/library/displayvideo.googleapis.com",
+    "termsUrl": "https://developers.google.com/display-video/api/terms",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://www.googleapis.com/auth/display-video"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token",
+    "revocationUrl": "https://oauth2.googleapis.com/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_google_cloud_project",
+      "oauth2_authenticated_dv360_user",
+      "single_broad_read_write_scope",
+      "partner_and_advertiser_assignment_boundary",
+      "read_only_standard_and_admin_product_roles",
+      "display_video_api_v4",
+      "structured_data_file_download_only",
+      "oauth_verification_and_role_acceptance_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-display-and-video-360/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "media_plan_read",
+      "label": "Read DV360 media plans",
+      "description": "After acceptance with a read-only user, retrieve bounded partner, advertiser, campaign, insertion-order, line-item, creative, targeting, inventory, invoice and related metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "structured_data_export",
+      "label": "Export structured data",
+      "description": "After acceptance, request and download bounded Structured Data Files for selected accessible resources with row, retention and PII controls.",
+      "defaultSelected": false
+    },
+    {
+      "id": "campaign_and_line_item_manage",
+      "label": "Manage campaigns and line items",
+      "description": "After critical write acceptance, create or change selected campaigns, insertion orders, line items, budgets, bids, pacing, targeting and serving state with explicit confirmation.",
+      "defaultSelected": false
+    },
+    {
+      "id": "creative_audience_and_inventory_manage",
+      "label": "Manage creatives, audiences, and inventory",
+      "description": "After policy acceptance, create or change selected creatives, assets, audiences, channels, sites, lists, deals, inventory sources and associated targeting.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "dv360_connect_before_review",
+        "label": "Connect before OAuth and role review",
+        "description": "Relay has no verified production OAuth client, representative DV360 user, accepted role, or tested partner and advertiser assignment boundary."
+      },
+      {
+        "id": "dv360_reads_before_acceptance",
+        "label": "Read DV360 data",
+        "description": "Partners, advertisers, campaigns, budgets, creatives, audiences, targeting, inventory, invoices, users, reports, files and tokens remain unavailable."
+      },
+      {
+        "id": "dv360_campaign_and_serving_mutations",
+        "label": "Change campaigns or serving",
+        "description": "Creating, patching, deleting, archiving, activating, pausing, duplicating, bulk editing, bidding, budgeting, pacing, targeting, or serving resources is blocked."
+      },
+      {
+        "id": "dv360_audience_inventory_and_financial_mutations",
+        "label": "Change audiences, inventory, or financial state",
+        "description": "Audience, list, Floodlight, location, deal, guaranteed order, inventory, invoice, cost, fee, and custom-bidding changes are blocked."
+      },
+      {
+        "id": "dv360_access_bulk_and_raw_bypass",
+        "label": "Bypass role or bulk-data controls",
+        "description": "Service-account user administration, cross-partner or cross-advertiser access, raw or unbounded SDF export, unsupported API versions, arbitrary endpoints, and private-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "dv360_provider_review",
+      "label": "Provider and account review pending",
+      "description": "No DV360 action is enabled until Google's OAuth and data-use requirements and a representative user's role and assignment boundary are accepted and the complete read, bulk-data, campaign, serving, financial, policy and revocation contract passes.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "dv360_connect_before_review",
+        "dv360_reads_before_acceptance",
+        "dv360_campaign_and_serving_mutations",
+        "dv360_audience_inventory_and_financial_mutations",
+        "dv360_access_bulk_and_raw_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded DV360 tools after OAuth and account-role acceptance; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bounded DV360 tools after OAuth and account-role acceptance; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Google requires OAuth2 and an authenticated DV360 user assigned to the relevant partners or advertisers. The display-video scope is broad read/write; there is no separate readonly OAuth scope, so the product's Read only, Standard or Admin role is the critical authority boundary. API v4 spans partners, advertisers, campaigns, insertion orders, line items, ad groups and ads, creatives and assets, audiences, Floodlight, targeting, channels and sites, inventory and guaranteed orders, invoices, custom bidding, users and Structured Data File downloads. Standard and Admin users can create and update resources; activating an insertion order and child line items can start ad serving and spend. This worker cannot create the Cloud project or OAuth client, capture credentials, run consent, obtain a representative DV360 role, or create or mutate campaigns.",
+    "nextAction": "The exclusive provider-console and acceptance task should enable DV360 API v4 in Relay's Google project, configure and verify the OAuth consent screen, and register https://api.relayconsole.work/api/v1/marketplace/oauth/google-display-and-video-360/callback. Begin with a dedicated Read only user assigned to one non-production advertiser, because OAuth cannot express readonly authority. Standard authority must be a separate upgrade. Acceptance must verify partner and advertiser isolation, role changes, resource hierarchy, filters and pagination, SDF row and retention limits, advertiser and audience privacy, political-ad declarations, creative review, YouTube limitations, budget and bid units, insertion-order and line-item draft creation, explicit activation, targeting inheritance, bulk edit atomicity, quota backoff, version sunset, token revocation, disconnect and cross-account denial before Connect is enabled."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.google.com/display-video/api/guides/how-tos/authorizing",
+      "checkedAt": "2026-07-17",
+      "supports": "Google requires OAuth2 and a DV360 user assigned to relevant partners or advertisers; the display-video scope is read/write, while product roles determine read-only, standard or admin authority."
+    },
+    {
+      "url": "https://developers.google.com/display-video/api/reference/rest/v4",
+      "checkedAt": "2026-07-17",
+      "supports": "DV360 API v4 exposes partners, advertisers, campaigns, insertion orders, line items, ads, creatives, audiences, targeting, inventory, deals, invoices, custom bidding, users and bulk task resources."
+    },
+    {
+      "url": "https://developers.google.com/display-video/api/guides/managing-line-items/resources",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents the advertiser-to-campaign-to-insertion-order-to-line-item hierarchy, targeting inheritance, creation and update semantics, and product-specific limitations including political-ad declarations."
+    },
+    {
+      "url": "https://developers.google.com/display-video/api/guides/tasks/run-ad-campaign/create-insertion-order",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents budgets, bids, pacing, costs and explicit entity activation; an active insertion order with active child line items starts ad serving."
+    },
+    {
+      "url": "https://developers.google.com/display-video/api/guides/concepts/structured-data-files/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Structured Data Files support bulk resource data; the API can download SDFs while uploads occur through the DV360 UI, requiring strict export boundaries."
+    }
+  ]
+}

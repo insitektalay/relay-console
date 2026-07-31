@@ -1,0 +1,208 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-power-bi",
+  "name": "Microsoft Power BI",
+  "category": "knowledge_documents",
+  "description": "Microsoft Power BI is Microsoft's business intelligence and analytics product for connecting data, building reports, and sharing insights. Organizations use it to model information, create interactive dashboards and reports, and support data-informed decisions across teams.",
+  "agentUseSummary": "Connect one selected Power BI workspace through Relay-owned delegated work-account OAuth, then let agents inspect bounded workspace, report, and semantic-model metadata through four fixed REST wrappers. Relay excludes report content and visuals, analytics data and queries, URLs and tokens, owners and users, refresh and admin surfaces, exports and downloads, writes, application access, pagination, beta APIs, and raw Power BI access.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/power-platform/products/power-bi",
+    "docsUrl": "https://learn.microsoft.com/rest/api/power-bi/",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://analysis.windows.net/powerbi/api/Workspace.Read.All",
+      "https://analysis.windows.net/powerbi/api/Report.Read.All",
+      "https://analysis.windows.net/powerbi/api/Dataset.Read.All"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "microsoft_delegated_work_user",
+      "selected_power_bi_workspace",
+      "encrypted_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-power-bi/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "workspace_reports",
+      "label": "Read workspace and reports",
+      "description": "Review one selected workspace and bounded report metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "semantic_models",
+      "label": "Read semantic-model metadata",
+      "description": "Review bounded semantic-model names and safe status flags without analytics data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "microsoft_power_bi_workspace_get",
+        "label": "Get selected workspace",
+        "description": "Read safe metadata for the connection-selected Power BI workspace."
+      },
+      {
+        "id": "microsoft_power_bi_reports_list",
+        "label": "List reports",
+        "description": "List at most twenty-five report metadata records without URLs or content."
+      },
+      {
+        "id": "microsoft_power_bi_semantic_models_list",
+        "label": "List semantic models",
+        "description": "List at most twenty-five semantic-model metadata records without data or owner identity."
+      },
+      {
+        "id": "microsoft_power_bi_semantic_model_get",
+        "label": "Get semantic model",
+        "description": "Read safe metadata for one explicit prior-result semantic model."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "microsoft_power_bi_report_content_visuals_data",
+        "label": "Read report content or analytics data",
+        "description": "Report pages, visuals, definitions, data, subscriptions, and content are outside V1."
+      },
+      {
+        "id": "microsoft_power_bi_embed_urls_tokens",
+        "label": "Read embed URLs or tokens",
+        "description": "Embed URLs, web URLs, embed tokens, and app links are outside V1."
+      },
+      {
+        "id": "microsoft_power_bi_dataset_queries_rows_schema",
+        "label": "Query semantic-model data",
+        "description": "Queries, rows, tables, schema, datasources, parameters, and lineage are outside V1."
+      },
+      {
+        "id": "microsoft_power_bi_identities_access_rights",
+        "label": "Read identities or access rights",
+        "description": "Owners, users, principals, access rights, subscriptions, and sharing details are outside V1."
+      },
+      {
+        "id": "microsoft_power_bi_refresh_gateway_capacity_admin",
+        "label": "Administer Power BI",
+        "description": "Refresh, gateways, capacity, admin APIs, tenant scanning, and permissions are outside V1."
+      },
+      {
+        "id": "microsoft_power_bi_exports_downloads_mutations",
+        "label": "Export or change Power BI resources",
+        "description": "Exports, downloads, imports, publishes, updates, deletes, rebinds, refreshes, and other mutations are outside V1."
+      },
+      {
+        "id": "microsoft_power_bi_application_raw_pagination",
+        "label": "Use broad or raw access",
+        "description": "Application permissions, My workspace, other workspaces, beta or raw endpoints, arbitrary OData, and automatic pagination are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_power_bi_safe",
+      "label": "Safe",
+      "description": "Four selected-workspace metadata reads run automatically; content, data, URLs, identities, administration, exports, writes, application access, pagination, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "microsoft_power_bi_workspace_get",
+        "microsoft_power_bi_reports_list",
+        "microsoft_power_bi_semantic_models_list",
+        "microsoft_power_bi_semantic_model_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_power_bi_report_content_visuals_data",
+        "microsoft_power_bi_embed_urls_tokens",
+        "microsoft_power_bi_dataset_queries_rows_schema",
+        "microsoft_power_bi_identities_access_rights",
+        "microsoft_power_bi_refresh_gateway_capacity_admin",
+        "microsoft_power_bi_exports_downloads_mutations",
+        "microsoft_power_bi_application_raw_pagination"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four selected-workspace reads run without Relay per-action approval; exact scopes, binding, limits, projection, audit, and Power BI controls still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "microsoft_power_bi_workspace_get",
+        "microsoft_power_bi_reports_list",
+        "microsoft_power_bi_semantic_models_list",
+        "microsoft_power_bi_semantic_model_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_power_bi_report_content_visuals_data",
+        "microsoft_power_bi_embed_urls_tokens",
+        "microsoft_power_bi_dataset_queries_rows_schema",
+        "microsoft_power_bi_identities_access_rights",
+        "microsoft_power_bi_refresh_gateway_capacity_admin",
+        "microsoft_power_bi_exports_downloads_mutations",
+        "microsoft_power_bi_application_raw_pagination"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four selected-workspace Power BI metadata wrappers and attaches encrypted Microsoft tokens only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four selected-workspace Power BI metadata wrappers and attaches encrypted Microsoft tokens only on Railway."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_setup_pending",
+    "blocker": "Relay still needs its Entra application registration, exact delegated Workspace.Read.All, Report.Read.All, and Dataset.Read.All configuration, exact Railway callback, staging credentials, a work test account, a staging workspace, and Microsoft acceptance. Those provider-console and live-consent actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the Relay-owned Entra application and exact callback, store its credentials on Railway staging, then verify work-account consent, exact scopes, PKCE/state, refresh rotation, selected-workspace binding, all four reads, privacy exclusions, throttling, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/rest/api/power-bi/groups/get-group",
+      "checkedAt": "2026-07-17",
+      "supports": "Power BI provides an exact workspace metadata read under Workspace.Read.All."
+    },
+    {
+      "url": "https://learn.microsoft.com/rest/api/power-bi/reports/get-reports-in-group",
+      "checkedAt": "2026-07-17",
+      "supports": "Power BI provides workspace-bound report metadata under Report.Read.All; responses can contain URLs and ownership data that Relay excludes."
+    },
+    {
+      "url": "https://learn.microsoft.com/rest/api/power-bi/datasets/get-datasets-in-group",
+      "checkedAt": "2026-07-17",
+      "supports": "Power BI provides workspace-bound semantic-model metadata under Dataset.Read.All; responses can contain owner and gateway flags that Relay projects safely."
+    },
+    {
+      "url": "https://learn.microsoft.com/rest/api/power-bi/datasets/get-dataset-in-group",
+      "checkedAt": "2026-07-17",
+      "supports": "Power BI provides an exact workspace-bound semantic-model metadata read under Dataset.Read.All."
+    },
+    {
+      "url": "https://www.microsoft.com/power-platform/products/power-bi",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Power BI is a business intelligence and analytics product for connecting, visualizing, and sharing data insights."
+    }
+  ]
+}

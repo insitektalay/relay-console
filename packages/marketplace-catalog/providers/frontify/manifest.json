@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "frontify",
+  "name": "Frontify",
+  "category": "content_creative",
+  "description": "Frontify is a brand management platform for organizing digital assets, guidelines, templates, and collaborative brand work. Marketing, design, and product teams use it to manage libraries, metadata, approvals, permissions, brand standards, and content delivery from one shared system.",
+  "agentUseSummary": "Connect a customer-owned Frontify OAuth application, then let agents use the current GraphQL account, brand, asset, library, project, metadata, workflow, catalog, and webhook surface under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "frontify",
+    "sourceUrl": "https://www.frontify.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://www.frontify.com/",
+    "docsUrl": "https://frontify.github.io/graphql-reference/",
+    "developerConsoleUrl": "https://help.frontify.com/en/articles/13600605-adobe-workfront-installation-guide",
+    "termsUrl": "https://www.frontify.com/en/legal/terms",
+    "privacyUrl": "https://www.frontify.com/en/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": [
+      "account:read",
+      "basic:read",
+      "basic:write",
+      "webhook:read",
+      "webhook:write"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://{customer-domain}/api/oauth/authorize",
+    "tokenUrl": "https://{customer-domain}/api/oauth/accesstoken",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_oauth"],
+    "credentialRequirements": [
+      {
+        "name": "FRONTIFY_DOMAIN",
+        "label": "Frontify domain",
+        "required": true,
+        "secret": false,
+        "helpText": "Your Frontify hostname, such as brand.frontify.com."
+      },
+      {
+        "name": "FRONTIFY_CLIENT_ID",
+        "label": "Client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Copy the Client ID from your Frontify OAuth application."
+      },
+      {
+        "name": "FRONTIFY_CLIENT_SECRET",
+        "label": "Client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the Client Secret from the same OAuth application."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/frontify/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "brand_read",
+      "label": "Browse brand content",
+      "description": "Search and read authorized accounts, brands, workspaces, libraries, projects, folders, assets, metadata, users, permissions, comments, licenses, workflows, catalogs, and webhooks."
+    },
+    {
+      "id": "brand_manage",
+      "label": "Manage brand content",
+      "description": "Create and change authorized assets, libraries, folders, collections, metadata, comments, licenses, workflows, brands, projects, catalogs, and webhooks."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "frontify_query",
+        "label": "Read Frontify data",
+        "description": "Run one bounded query inside the connected Frontify account's current GraphQL schema."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "frontify_mutate",
+        "label": "Change Frontify data",
+        "description": "Run one bounded mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "frontify_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth secrets, tokens, authorization headers, cookies, and signed transfer URLs never enter agent-visible results."
+      },
+      {
+        "id": "frontify_untrusted_origin",
+        "label": "Call another origin",
+        "description": "Requests remain pinned to the HTTPS Frontify account saved with the connection."
+      },
+      {
+        "id": "frontify_unbounded_transfer",
+        "label": "Transfer unbounded data",
+        "description": "Relay bounds request and response bodies and does not follow redirects."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "frontify_safe",
+      "label": "Safe",
+      "description": "Bounded queries run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["frontify_query"],
+      "approvalRequiredActions": ["frontify_mutate"],
+      "blockedActions": [
+        "frontify_secret_exposure",
+        "frontify_untrusted_origin",
+        "frontify_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected account-authorized Frontify operation runs without Relay per-action approval; ownership, provider permissions, fixed origin, bounds, redaction, audits, rate limits, and provider enforcement still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["frontify_query", "frontify_mutate"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "frontify_secret_exposure",
+        "frontify_untrusted_origin",
+        "frontify_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded Frontify GraphQL query and mutation wrappers against the connection's fixed customer account."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded Frontify GraphQL query and mutation wrappers against the connection's fixed customer account."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer Frontify account with API access, an Account Admin, a confidential OAuth application, and live content are not available for production acceptance.",
+    "nextAction": "A Frontify Account Admin creates a confidential OAuth application, registers https://api.relayconsole.work/api/v1/marketplace/oauth/frontify/callback, grants the five required scopes, enters the domain, Client ID, and Client Secret in Relay Console, and completes authorization and live validation."
+  },
+  "evidence": [
+    {
+      "url": "https://help.frontify.com/en/articles/13942224-creating-a-developer-or-service-user-token",
+      "checkedAt": "2026-07-14",
+      "supports": "Frontify recommends OAuth 2 for production user-delegated access, limits tokens to explicit scopes and user permissions, and recommends service apps for machine-to-machine production access."
+    },
+    {
+      "url": "https://help.frontify.com/en/articles/13600605-adobe-workfront-installation-guide",
+      "checkedAt": "2026-07-14",
+      "supports": "Frontify documents customer-admin confidential OAuth applications, customer-domain authorization and token endpoints, callbacks, client credentials, and account, basic, and webhook scopes."
+    },
+    {
+      "url": "https://frontify.github.io/graphql-reference/",
+      "checkedAt": "2026-07-14",
+      "supports": "Frontify publishes its current GraphQL schema with account, brand, asset, library, project, metadata, workflow, catalog, service-app, and webhook queries and mutations."
+    },
+    {
+      "url": "https://www.frontify.com/en/developer-platform",
+      "checkedAt": "2026-07-14",
+      "supports": "Frontify describes a developer platform for extending and integrating its brand management product."
+    }
+  ]
+}

@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "attio",
+  "name": "Attio",
+  "category": "crm_support",
+  "description": "Attio is an adaptable customer relationship management platform built around collaborative workspaces, configurable objects, records, lists, relationship intelligence, notes, tasks, and workflows. Sales, recruiting, partnership, and other relationship-driven teams use it to model their processes, coordinate follow-up, and maintain a shared view of people, companies, and deals.",
+  "agentUseSummary": "Connect one Attio workspace through Relay Console OAuth, then choose which agents can read stable core CRM data or manage records, list entries, notes, tasks, and webhooks under Safe or Dangerous policy. Relay excludes schema administration, SCIM, beta files and search, meetings, call recordings, transcripts, automatic pagination, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://attio.com/",
+    "docsUrl": "https://docs.attio.com/rest-api/overview",
+    "developerConsoleUrl": "https://build.attio.com/",
+    "termsUrl": "https://attio.com/legal/terms-and-conditions",
+    "privacyUrl": "https://attio.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "object_configuration:read",
+      "record_permission:read-write",
+      "list_configuration:read",
+      "list_entry:read-write",
+      "user_management:read",
+      "note:read-write",
+      "task:read-write",
+      "comment:read",
+      "webhook:read-write"
+    ],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://app.attio.com/authorize",
+    "tokenUrl": "https://app.attio.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth",
+      "public_app_review",
+      "exact_workspace_binding",
+      "exact_authorizing_member_binding",
+      "token_introspection",
+      "non_refreshing_bearer_token",
+      "local_disconnect_without_documented_revocation_endpoint"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/attio/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crm_read",
+      "label": "Read CRM and configuration",
+      "description": "Read bounded stable Attio objects, attributes, records, lists, entries, workspace members, notes, tasks, threads, and webhooks.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crm_manage",
+      "label": "Manage CRM and automations",
+      "description": "Use stable mutations for records, list entries, notes, tasks, and webhooks without schema or workspace administration.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "attio_api_read",
+        "label": "Read Attio CRM",
+        "description": "Read one exact stable core-CRM resource or run one bounded record or list-entry query."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "attio_api_manage",
+        "label": "Manage Attio CRM",
+        "description": "Run one exact stable record, list-entry, note, task, webhook, or deletion mutation."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "attio_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth tokens, app secrets, cookies, and webhook signing secrets never enter agent-visible requests or results."
+      },
+      {
+        "id": "attio_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every CRM request stays on Attio's documented https://api.attio.com origin; OAuth lifecycle calls stay on https://app.attio.com."
+      },
+      {
+        "id": "attio_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Schema administration, select and status configuration, SCIM, beta files and search, meetings, call recordings, transcripts, private interfaces, and raw API calls are blocked."
+      },
+      {
+        "id": "attio_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay performs one request at a time and bounds result limits, offsets, filters, sorts, arrays, bodies, responses, redirects, nesting, and execution time without automatic pagination."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "attio_safe",
+      "label": "Safe",
+      "description": "Bounded stable reads run directly. Every record, list-entry, note, task, webhook, and deletion mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["attio_api_read"],
+      "approvalRequiredActions": ["attio_api_manage"],
+      "blockedActions": [
+        "attio_secret_exposure",
+        "attio_unofficial_origin",
+        "attio_unsupported_endpoint",
+        "attio_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected stable core-CRM operation authorized by the exact Attio workspace runs without Relay per-action approval. Workspace binding, provider scopes, exact routes, fixed origins, bounds, redaction, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["attio_api_read", "attio_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "attio_secret_exposure",
+        "attio_unofficial_origin",
+        "attio_unsupported_endpoint",
+        "attio_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts the stable bounded Attio read and management wrappers with encrypted workspace OAuth credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts the stable bounded Attio read and management wrappers with encrypted workspace OAuth credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Relay has not created an Attio public app, configured the exact production callback and scopes, submitted the app for review, stored ATTIO_CLIENT_ID and ATTIO_CLIENT_SECRET on Railway staging, authorized a representative workspace, or completed live acceptance. Attio permits unpublished OAuth installs with a warning, while warning-free public distribution requires App Store review.",
+    "nextAction": "In the provider-console task, create the Relay Console Attio app with https://api.relayconsole.work/api/v1/marketplace/oauth/attio/callback and the exact nine V1 scopes, submit it for public review, configure ATTIO_CLIENT_ID and ATTIO_CLIENT_SECRET on Railway staging, then verify state and code exchange, exact workspace/member/scope introspection, representative reads and queries, Safe approvals, Dangerous mutations and deletions, webhook-secret redaction, cross-workspace rejection, 429 handling, local disconnect, provider-side removal, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.attio.com/rest-api/guides/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Attio recommends OAuth 2.0 for apps serving multiple workspaces, also offers single-workspace API keys, uses Bearer tokens, and applies endpoint-specific scopes to both token types."
+    },
+    {
+      "url": "https://docs.attio.com/docs/oauth/authorize",
+      "checkedAt": "2026-07-18",
+      "supports": "Attio documents authorization-code OAuth at https://app.attio.com/authorize with exact registered redirect URI and state support."
+    },
+    {
+      "url": "https://docs.attio.com/docs/oauth/introspect",
+      "checkedAt": "2026-07-18",
+      "supports": "Attio's bearer-token introspection returns active status, granted scope, workspace identity and name, and the authorizing workspace-member ID used for exact connection binding."
+    },
+    {
+      "url": "https://docs.attio.com/rest-api/endpoint-reference/records/list-records",
+      "checkedAt": "2026-07-18",
+      "supports": "Attio's stable V2 records API supports scoped object-specific query and CRUD operations; Relay bounds the query body and fixes allowed methods and routes."
+    },
+    {
+      "url": "https://docs.attio.com/rest-api/guides/rate-limiting",
+      "checkedAt": "2026-07-18",
+      "supports": "Attio documents 100-read and 25-write requests per second, explicit 429 Retry-After behavior, and additional score-based limits for record and list-entry queries."
+    },
+    {
+      "url": "https://docs.attio.com/sdk/guides/sharing-your-app",
+      "checkedAt": "2026-07-18",
+      "supports": "Attio allows unpublished OAuth flows with a warning and requires review for warning-free public App Store distribution."
+    },
+    {
+      "url": "https://attio.com/legal/attio-developer-terms",
+      "checkedAt": "2026-07-18",
+      "supports": "Attio publishes dedicated terms governing integration applications and developer use."
+    }
+  ]
+}

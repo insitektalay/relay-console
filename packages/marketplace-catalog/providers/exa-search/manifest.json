@@ -1,0 +1,191 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "exa-search",
+  "name": "Exa Search",
+  "category": "knowledge_documents",
+  "description": "Exa is an AI-native web search and content retrieval service for finding public pages, extracting page contents, locating similar sources, generating cited answers, and running bounded research.",
+  "agentUseSummary": "Connect a customer-owned Exa API key through Relay. Agents may run bounded public-web searches, retrieve content for explicit public URLs, find similar pages, and generate cited answers; deep research and bulk extraction remain approval-gated.",
+  "provider": {
+    "websiteUrl": "https://exa.ai/",
+    "docsUrl": "https://docs.exa.ai/",
+    "developerConsoleUrl": "https://dashboard.exa.ai/api-keys",
+    "termsUrl": "https://exa.ai/terms",
+    "privacyUrl": "https://exa.ai/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "EXA_API_KEY",
+        "label": "Exa API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated key in the Exa dashboard. Relay stores it encrypted and never exposes it to agent prompts, environment files, or tool results."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "search",
+      "label": "Search",
+      "description": "Run bounded Exa searches over the public web and return source URLs with concise evidence.",
+      "defaultSelected": true
+    },
+    {
+      "id": "contents",
+      "label": "Contents",
+      "description": "Retrieve bounded text, highlights, or summaries for explicit public URLs.",
+      "defaultSelected": true
+    },
+    {
+      "id": "similar",
+      "label": "Find similar",
+      "description": "Find public pages similar to an explicit public URL.",
+      "defaultSelected": true
+    },
+    {
+      "id": "answer",
+      "label": "Answer",
+      "description": "Generate a bounded answer with source citations.",
+      "defaultSelected": true
+    },
+    {
+      "id": "research",
+      "label": "Research",
+      "description": "Run broad or deep research workflows only after approval.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "exa_search",
+        "label": "Search web",
+        "description": "Run bounded Exa web searches for public-web evidence."
+      },
+      {
+        "id": "exa_contents",
+        "label": "Fetch contents",
+        "description": "Fetch bounded content for explicit public URLs."
+      },
+      {
+        "id": "exa_find_similar",
+        "label": "Find similar pages",
+        "description": "Find public pages similar to an explicit public URL."
+      },
+      {
+        "id": "exa_answer",
+        "label": "Generate answer",
+        "description": "Generate a bounded answer with source citations."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "exa_deep_research",
+        "label": "Deep research",
+        "description": "Broad or deep research workflows require exact approval."
+      },
+      {
+        "id": "exa_bulk_contents",
+        "label": "Bulk extraction",
+        "description": "High-volume URL extraction or crawling requires exact approval."
+      },
+      {
+        "id": "exa_export_results",
+        "label": "Export result sets",
+        "description": "Exporting large result sets outside the workspace requires exact approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "exa_secret_extraction",
+        "label": "Secret extraction",
+        "description": "Searching for or exposing credentials, keys, tokens, or private data is blocked."
+      },
+      {
+        "id": "exa_private_data_harvesting",
+        "label": "Private data harvesting",
+        "description": "Bulk personal-data collection and login-protected scraping are blocked."
+      },
+      {
+        "id": "exa_access_bypass",
+        "label": "Access bypass",
+        "description": "Bypassing paywalls, authentication, robots restrictions, or site access controls is blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "exa_search_operator",
+      "label": "Search Operator",
+      "description": "Bounded search, contents, similar-page, and answer calls run directly; deep research, bulk extraction, and exports require approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "exa_search",
+        "exa_contents",
+        "exa_find_similar",
+        "exa_answer"
+      ],
+      "approvalRequiredActions": [
+        "exa_deep_research",
+        "exa_bulk_contents",
+        "exa_export_results"
+      ],
+      "blockedActions": [
+        "exa_secret_extraction",
+        "exa_private_data_harvesting",
+        "exa_access_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "medium",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts bounded Exa wrapper tools for selected OpenClaw agents while resolving the encrypted key outside agent environment files."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts bounded Exa wrapper tools for selected Hermes agents while resolving the encrypted key outside agent environment files."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "not_started",
+    "blocker": "No customer-owned Exa API key or provider-authenticated live acceptance evidence is available in this workspace.",
+    "nextAction": "Create a dedicated Exa API key, connect it through Relay, then verify health, bounded search, contents, similar-page and answer calls, approval-gated research, redaction, rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.exa.ai/reference/search",
+      "checkedAt": "2026-07-26",
+      "supports": "Exa documents authenticated web search with bounded result counts, search modes, domain filters, publication and crawl-date filters, and optional returned contents."
+    },
+    {
+      "url": "https://docs.exa.ai/reference/get-contents",
+      "checkedAt": "2026-07-26",
+      "supports": "Exa documents content retrieval for explicit URLs with text, highlights, summaries, subpages, and freshness controls."
+    },
+    {
+      "url": "https://docs.exa.ai/reference/find-similar-links",
+      "checkedAt": "2026-07-26",
+      "supports": "Exa documents finding pages similar to a supplied URL with the same bounded filtering and content options."
+    }
+  ]
+}

@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "kirby-cms",
+  "name": "Kirby CMS",
+  "category": "knowledge_documents",
+  "description": "Kirby CMS is a file-based self-hosted content management system for custom websites and digital publishing. It supports pages, content fields, files, drafts, users, roles, languages, blueprints, plugins, a Panel, and a core REST API with read and mutation routes.",
+  "agentUseSummary": "Relay calls the core individual-page REST endpoint for one preselected page ID with a fixed select projection and returns only ID and publication status. Because Kirby's API also exposes mutations and authenticates as users, Relay requires HTTPS Basic auth from a dedicated non-admin custom role with only page reads enabled and all writes and other resource permissions disabled.",
+  "provider": {
+    "websiteUrl": "https://getkirby.com/",
+    "docsUrl": "https://getkirby.com/docs/reference/api/pages/get",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://getkirby.com/terms",
+    "privacyUrl": "https://getkirby.com/privacy"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": ["pages.read", "all writes disabled"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_operated_kirby_cms",
+      "public_https_core_rest_api",
+      "dedicated_non_admin_read_only_basic_auth_user",
+      "selected_page_id"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "KIRBY_CMS_SITE_BASE_URL",
+        "label": "Kirby CMS HTTPS site base URL",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "KIRBY_CMS_USER_EMAIL",
+        "label": "Dedicated read-only API user email",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "KIRBY_CMS_USER_PASSWORD",
+        "label": "Dedicated read-only API user password",
+        "required": true,
+        "secret": true,
+        "storage": "railway_encrypted"
+      },
+      {
+        "name": "KIRBY_CMS_PAGE_ID",
+        "label": "Selected page ID",
+        "required": true,
+        "secret": false,
+        "storage": "railway_encrypted"
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "kirby_cms_selected_page_state_get",
+      "label": "Read selected page state",
+      "description": "Read one selected page's ID and publication status.",
+      "readOnly": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "kirby_cms_selected_page_state_get",
+        "label": "Read selected page state",
+        "description": "Use the core individual-page REST endpoint for one selected page ID and return only ID and status."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "kirby_cms_private_content",
+        "label": "Expose content or identities",
+        "description": "Titles, slugs, URLs, UUIDs, content, custom fields, files, drafts, children, siblings, users, and identities are excluded from Relay output."
+      },
+      {
+        "id": "kirby_cms_mutation",
+        "label": "Mutate Kirby CMS",
+        "description": "Pages, files, users, roles, languages, site settings, blueprints, drafts, changes, and every PATCH, POST, DELETE, or method override are blocked."
+      },
+      {
+        "id": "kirby_cms_broad_access",
+        "label": "Use broad Kirby CMS access",
+        "description": "Other page IDs, page lists, children, files, users, roles, languages, site, system, custom API routes, redirects, and Panel administration are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "kirby_cms_selected_page_state_read",
+      "label": "Selected Page State Read",
+      "description": "Read one selected page's ID and publication status; content, identities, other resources, administration, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["kirby_cms_selected_page_state_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "kirby_cms_private_content",
+        "kirby_cms_mutation",
+        "kirby_cms_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-page state reader backed by Railway's bounded Kirby CMS adapter."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Mount one no-input selected-page state reader backed by Railway's bounded Kirby CMS adapter."
+    }
+  ],
+  "availability": "preview",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "An authorized public HTTPS Kirby CMS staging site must enable Basic auth and provide a dedicated non-admin custom-role API user with Panel/API access, page reads enabled, every write and other resource permission disabled, one selected page ID, and Fairfax validation.",
+    "nextAction": "In the provider-console lane, create the least-privilege custom role and dedicated user, enable HTTPS-only Basic auth, enter the site URL and selected page ID through Relay, then validate exact-page binding, fixed select projection, content redaction, other-route and mutation denial, redirect and private-DNS denial, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://getkirby.com/docs/reference/api/pages/get",
+      "checkedAt": "2026-07-18",
+      "supports": "Official Kirby documentation defines GET /api/pages/:id, the select query parameter, and ID and status as selectable page fields."
+    },
+    {
+      "url": "https://getkirby.com/docs/guide/api/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Official authentication documentation defines HTTPS-only remote HTTP Basic auth and states that API access is governed by user permissions."
+    },
+    {
+      "url": "https://getkirby.com/docs/guide/users/permissions",
+      "checkedAt": "2026-07-18",
+      "supports": "Official permissions documentation defines custom-role API access, page read permissions, write permissions, default-allow behavior, and the admin role's unrestricted authority, supporting Relay's dedicated non-admin deny-by-default role requirement."
+    },
+    {
+      "url": "https://getkirby.com/docs/reference/api/pages",
+      "checkedAt": "2026-07-18",
+      "supports": "Official page API documentation requires hierarchy slashes in page IDs to be replaced with plus signs and enumerates the adjacent mutation and child/file routes that Relay blocks."
+    }
+  ]
+}

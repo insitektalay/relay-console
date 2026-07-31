@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "freshmarketer",
+  "name": "Freshmarketer",
+  "category": "marketing",
+  "description": "Freshmarketer is Freshworks' marketing-automation product for contacts, segmentation, campaigns, journeys, email, web engagement, conversion optimization, and analytics.",
+  "agentUseSummary": "Enter one exact Freshworks CRM bundle URL and user API key, then let selected agents use identity-free contact operations or approved documented CRM API requests under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.freshworks.com/crm/marketing/",
+    "docsUrl": "https://developers.freshworks.com/crm/api/",
+    "developerConsoleUrl": "https://crmsupport.freshworks.com/support/solutions/articles/50000001606-how-to-find-my-freshmarketer-api-key-",
+    "termsUrl": "https://www.freshworks.com/terms/",
+    "privacyUrl": "https://www.freshworks.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "FRESHMARKETER_BUNDLE_URL",
+        "label": "Freshmarketer CRM bundle URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Copy the exact HTTPS Freshworks CRM bundle base from API Settings, including its /crm/... bundle alias and excluding /api."
+      },
+      {
+        "name": "FRESHMARKETER_API_KEY",
+        "label": "Freshmarketer API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy your user API key from Freshworks CRM profile API Settings. Its access follows your role and scopes."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "contact_metadata_read",
+      "label": "Read contact operations",
+      "description": "List contact views and bounded operational metadata without names, email or phone, addresses, custom fields, accounts, owners, activities, notes, or message content.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Freshworks CRM API",
+      "description": "Use documented CRM API operations allowed by the connected Freshmarketer user API key.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "freshmarketer_filter_list",
+        "label": "List contact views",
+        "description": "List bounded Freshmarketer contact-view identifiers and names."
+      },
+      {
+        "id": "freshmarketer_contact_metadata_list",
+        "label": "List contact metadata",
+        "description": "List one fixed first page of contact operational metadata without identity or contact details."
+      },
+      {
+        "id": "freshmarketer_full_api",
+        "label": "Use Freshworks CRM API",
+        "description": "Use a documented Freshworks CRM API operation authorized by the connected Freshmarketer user key; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "freshmarketer_safe",
+      "label": "Safe",
+      "description": "Identity-free contact metadata reads and every broader CRM API operation require approval; bundle binding, secret isolation, provider authorization, and limits remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "freshmarketer_filter_list",
+        "freshmarketer_contact_metadata_list",
+        "freshmarketer_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected API-key-authorized operations run without Relay per-action approval; exact bundle binding, secret isolation, bounds, audits, provider authorization, and Freshworks limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "freshmarketer_filter_list",
+        "freshmarketer_contact_metadata_list",
+        "freshmarketer_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted user API key only to the exact normalized Freshworks CRM bundle."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted user API key only to the exact normalized Freshworks CRM bundle."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer Freshmarketer CRM bundle URL and user API key are required for live acceptance.",
+    "nextAction": "A customer enters the exact Freshworks CRM bundle URL and user API key, then Relay verifies filter health, identity-free reads, Safe approval, Dangerous broader API behavior, key reset, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.freshworks.com/crm/api/",
+      "checkedAt": "2026-07-18",
+      "supports": "Freshworks' official CRM API reference documents exact bundle aliases, user API keys, Token-token authentication, role-scoped access, contact filters and views, CRUD resources, pagination, and response errors."
+    },
+    {
+      "url": "https://support.freshmarketer.com/support/solutions/articles/50000001606-how-to-find-my-freshmarketer-api-key-",
+      "checkedAt": "2026-07-18",
+      "supports": "Freshmarketer documents that each account has an API key in API settings and that resetting the key disconnects integrations."
+    },
+    {
+      "url": "https://crmsupport.freshworks.com/support/solutions/articles/50000002373-how-to-add-and-use-contacts-",
+      "checkedAt": "2026-07-18",
+      "supports": "Freshworks documents shared Freshmarketer/Freshsales Suite contact management and marketing subscription state, supporting the bounded contact-metadata classification."
+    }
+  ]
+}

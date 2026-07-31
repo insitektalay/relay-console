@@ -1,0 +1,98 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: clawchat-postgres
+    environment:
+      POSTGRES_DB: clawchat
+      POSTGRES_USER: clawchat
+      POSTGRES_PASSWORD: clawchat_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clawchat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: clawchat-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: clawchat-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: clawchat
+      DATABASE_USER: clawchat
+      DATABASE_PASSWORD: clawchat_dev_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_SECRET: dev-refresh-secret-change-in-production
+      JWT_REFRESH_EXPIRES_IN: 30d
+      JWT_WS_SECRET: dev-ws-secret-change-in-production
+      APP_ENCRYPTION_KEY_VERSION: v1
+      APP_ENCRYPTION_KEY: MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=
+      BRIDGE_ACCESS_EXPIRES_IN: 15m
+      BRIDGE_WS_EXPIRES_IN: 5m
+      THROTTLE_TTL: 60
+      THROTTLE_LIMIT: 100
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/src:/app/src
+    command: npm run start:dev
+
+  bridge:
+    build:
+      context: ./bridge
+      dockerfile: Dockerfile
+    container_name: clawchat-bridge
+    depends_on:
+      - backend
+      - redis
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      CLAWCHAT_API_URL: http://backend:3000/api/v1
+      CLAWCHAT_WS_URL: ws://backend:3000/ws
+      REDIS_URL: redis://redis:6379
+      MOCK_MODE: "true"
+      DEFAULT_WORKSPACE_ID: ws-nexus-corp-000001
+      AGENT_SYNC_INTERVAL: 60
+      TASK_SYNC_INTERVAL: 30
+      MESSAGE_SYNC_INTERVAL: 10
+      LOG_LEVEL: info
+    ports:
+      - "3001:3001"
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  redis_data:

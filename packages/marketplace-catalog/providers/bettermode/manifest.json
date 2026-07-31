@@ -1,0 +1,292 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "bettermode",
+  "name": "Bettermode",
+  "category": "communication_collaboration",
+  "description": "Bettermode is a hosted customer-community platform for discussions, knowledge sharing, ideation, engagement, spaces, memberships, events, customization, and integrations.",
+  "agentUseSummary": "Connect a customer-generated access token to one fixed US or EU GraphQL endpoint, one exact Network, and one exact dedicated least-privilege member. Agents can inspect reduced Network, member, Space, and Post metadata and make exact one-member Space membership changes through eight fixed GraphQL documents. Content, communication, moderation, lifecycle, administration, bulk operations, private identity, bot tokens, and arbitrary GraphQL remain blocked.",
+  "provider": {
+    "websiteUrl": "https://bettermode.com/",
+    "docsUrl": "https://developers.bettermode.com/docs/operations/schema/",
+    "developerConsoleUrl": "https://developers.bettermode.com/docs/guide/graphql/authentication/app/",
+    "termsUrl": "https://bettermode.com/legal/terms-of-service",
+    "privacyUrl": "https://bettermode.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_access_token", "regional_graphql"],
+    "credentialRequirements": [
+      {
+        "name": "BETTERMODE_REGION",
+        "label": "Bettermode region",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter us for api.bettermode.com or eu for api.bettermode.de. Relay accepts no custom GraphQL origin."
+      },
+      {
+        "name": "BETTERMODE_NETWORK_ID",
+        "label": "Bettermode Network ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact Network ID the access token is intended to operate in."
+      },
+      {
+        "name": "BETTERMODE_MEMBER_ID",
+        "label": "Bettermode integration member ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact dedicated least-privilege member ID represented by the access token. Relay rejects bot or different-member tokens."
+      },
+      {
+        "name": "BETTERMODE_ACCESS_TOKEN",
+        "label": "Bettermode access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Provide a customer-generated app or member access token bound to the exact dedicated member. Relay encrypts it, never exposes it to agents or clients after saving, and sends it only as a Bearer header."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "catalog_read",
+      "label": "Read Network catalog",
+      "description": "Inspect the exact Network, connected member, and bounded Space structure.",
+      "defaultSelected": true
+    },
+    {
+      "id": "member_read",
+      "label": "Read members",
+      "description": "Inspect bounded reduced Network and Space member identity and role metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "post_metadata_read",
+      "label": "Read post metadata",
+      "description": "Inspect bounded Post lifecycle and engagement metadata without content or author identity.",
+      "defaultSelected": true
+    },
+    {
+      "id": "space_membership_write",
+      "label": "Change Space membership",
+      "description": "Add or remove one exact existing member from one exact Space.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "bettermode_network_get",
+        "label": "Read network",
+        "description": "Read reduced identity, locale, membership, visibility, status, and aggregate metadata for the exact Network."
+      },
+      {
+        "id": "bettermode_actor_get",
+        "label": "Read connected member",
+        "description": "Read reduced identity, status, role, and teammate metadata for the exactly configured member."
+      },
+      {
+        "id": "bettermode_space_list",
+        "label": "List spaces",
+        "description": "List up to twenty-five reduced Space structure and aggregate summaries."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "bettermode_member_list",
+        "label": "List members",
+        "description": "List up to twenty-five reduced member identity, status, role, and contribution summaries without email, profile, session, activity, URL, or raw data."
+      },
+      {
+        "id": "bettermode_space_member_list",
+        "label": "List space members",
+        "description": "List up to twenty-five reduced member and Space-role summaries for one exact Space."
+      },
+      {
+        "id": "bettermode_post_list",
+        "label": "List post metadata",
+        "description": "List up to twenty-five reduced Post lifecycle and engagement summaries without content, author identity, media, URLs, mentions, or raw fields."
+      },
+      {
+        "id": "bettermode_space_member_add",
+        "label": "Add space member",
+        "description": "Add one exact existing member to one exact Space."
+      },
+      {
+        "id": "bettermode_space_member_remove",
+        "label": "Remove space member",
+        "description": "Remove one exact existing member from one exact Space."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "bettermode_content",
+        "label": "Read or write content",
+        "description": "Post and reply bodies, short content, descriptions, custom fields, drafts, private messages, embeds, files, media, attachments, mentions, reactions, topics, events, and arbitrary rich content are outside V1."
+      },
+      {
+        "id": "bettermode_member_lifecycle",
+        "label": "Manage member lifecycle",
+        "description": "Creating, inviting, updating, verifying, suspending, blocking, deleting, impersonating another member, changing Network roles, or changing profile and authentication data is outside V1."
+      },
+      {
+        "id": "bettermode_structure_admin",
+        "label": "Administer network structure",
+        "description": "Creating, updating, deleting, reordering, or configuring Networks, Spaces, Collections, Space roles, Post types, Tags, Topics, Badges, apps, themes, webhooks, SSO, settings, plans, and site state is outside V1."
+      },
+      {
+        "id": "bettermode_moderation",
+        "label": "Moderate community",
+        "description": "Hiding, locking, pinning, archiving, deleting, reviewing, reporting, blocking, or otherwise moderating Posts, replies, members, and Spaces is outside V1."
+      },
+      {
+        "id": "bettermode_communication",
+        "label": "Communicate or notify",
+        "description": "Creating Posts or replies, private messaging, email, invitations, notifications, broadcasts, reactions, and outbound webhooks are outside V1."
+      },
+      {
+        "id": "bettermode_bulk_or_analytics",
+        "label": "Run bulk or analytics actions",
+        "description": "Automatic pagination, multi-member membership mutations, bulk loops, polling, exports, imports, analytics, quota probing, logs, and historical reloads are outside V1."
+      },
+      {
+        "id": "bettermode_private_identity",
+        "label": "Read broader identity data",
+        "description": "Emails, external IDs, profile fields, extra properties, sessions, blocked-member graphs, avatars, banners, locations, locale, last-seen or verification activity, and raw member records are outside V1."
+      },
+      {
+        "id": "bettermode_raw_graphql",
+        "label": "Use arbitrary Bettermode GraphQL",
+        "description": "Arbitrary queries, mutations, fields, variables, aliases, fragments, batching, introspection, alternate endpoints, guest or login token generation, app-token generation, bot tokens, raw responses, webhooks, Liquid, CLI, and direct database access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "bettermode_safe",
+      "label": "Safe",
+      "description": "Exact Network, connected-member, and Space catalog reads run directly. Network/Space member identity, Post metadata, and all Space membership changes require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "bettermode_network_get",
+        "bettermode_actor_get",
+        "bettermode_space_list"
+      ],
+      "approvalRequiredActions": [
+        "bettermode_member_list",
+        "bettermode_space_member_list",
+        "bettermode_post_list",
+        "bettermode_space_member_add",
+        "bettermode_space_member_remove"
+      ],
+      "blockedActions": [
+        "bettermode_content",
+        "bettermode_member_lifecycle",
+        "bettermode_structure_admin",
+        "bettermode_moderation",
+        "bettermode_communication",
+        "bettermode_bulk_or_analytics",
+        "bettermode_private_identity",
+        "bettermode_raw_graphql"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All eight selected bounded Bettermode V1 tools run without Relay per-action approval; encrypted credentials, exact region/Network/member binding, provider authority, fixed GraphQL documents, bounds, audits, privacy reduction, and system blocks still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "bettermode_network_get",
+        "bettermode_actor_get",
+        "bettermode_space_list",
+        "bettermode_member_list",
+        "bettermode_space_member_list",
+        "bettermode_post_list",
+        "bettermode_space_member_add",
+        "bettermode_space_member_remove"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "bettermode_content",
+        "bettermode_member_lifecycle",
+        "bettermode_structure_admin",
+        "bettermode_moderation",
+        "bettermode_communication",
+        "bettermode_bulk_or_analytics",
+        "bettermode_private_identity",
+        "bettermode_raw_graphql"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts eight fixed bounded Bettermode GraphQL documents and keeps the customer-owned member-bound access token encrypted outside agent context."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts eight fixed bounded Bettermode GraphQL documents and keeps the customer-owned member-bound access token encrypted outside agent context."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No representative Bettermode Network, dedicated integration member, member-bound access token, or staging Space/member/Post fixtures were available for live acceptance.",
+    "nextAction": "A Bettermode customer creates or selects a dedicated least-privilege integration member, generates a current app or member access token representing that exact member rather than the default admin-capable bot, and enters the fixed region, exact Network ID, exact member ID, and token in Relay. Staging acceptance verifies Network and actor binding, reduced projections, Safe approval binding, Dangerous execution, representative exact-member Space add/remove cycles, complexity and rate errors, token expiry and rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.bettermode.com/docs/operations/schema/",
+      "checkedAt": "2026-07-18",
+      "supports": "Bettermode's official GraphQL reference requires Bearer access tokens, accepts POST only, and fixes the regional endpoints to api.bettermode.com for US and api.bettermode.de for EU."
+    },
+    {
+      "url": "https://developers.bettermode.com/docs/guide/graphql/authentication/app/",
+      "checkedAt": "2026-07-18",
+      "supports": "App access tokens can represent a specific member or an admin-capable bot when no member is supplied, require a published and installed app, and expire; Relay requires an exact dedicated member and blocks token generation and bot tokens."
+    },
+    {
+      "url": "https://developers.bettermode.com/docs/guide/graphql/making-queries/",
+      "checkedAt": "2026-07-18",
+      "supports": "Bettermode documents fixed query documents, variables, mandatory connection limits, node projections, and the members and spaces connection shapes used by Relay."
+    },
+    {
+      "url": "https://developers.bettermode.com/docs/guide/tutorials/retrieve-members/",
+      "checkedAt": "2026-07-18",
+      "supports": "The official tutorial documents members and spaceMembers as paginated queries and the member and Space-role relationship used by Relay's reduced projections."
+    },
+    {
+      "url": "https://developers.bettermode.com/docs/graphql/queries/posts/",
+      "checkedAt": "2026-07-18",
+      "supports": "The official schema documents the bounded posts connection, optional Space restriction, offset pagination, and Post fields selected by Relay's metadata-only wrapper."
+    },
+    {
+      "url": "https://developers.bettermode.com/docs/guide/tutorials/space-members/",
+      "checkedAt": "2026-07-18",
+      "supports": "Bettermode documents addSpaceMembers and removeSpaceMembers; Relay constrains their array-capable provider shapes to exactly one validated existing member and one validated Space per approved call."
+    },
+    {
+      "url": "https://developers.bettermode.com/docs/guide/graphql/rate-limits/",
+      "checkedAt": "2026-07-18",
+      "supports": "Bettermode applies burst and daily request and complexity quotas by plan, returns HTTP 429 and Retry-After on denial, and reports complexity in GraphQL response extensions."
+    },
+    {
+      "url": "https://bettermode.com/legal/privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "Bettermode's privacy policy distinguishes subscriber and end-user data and states that each customer community publishes the policy governing information collected in that community."
+    }
+  ]
+}

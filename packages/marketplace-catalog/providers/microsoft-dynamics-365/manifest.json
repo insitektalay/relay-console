@@ -1,0 +1,212 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-dynamics-365",
+  "name": "Microsoft Dynamics 365",
+  "category": "crm_support",
+  "description": "Microsoft Dynamics 365 is Microsoft's suite of connected business applications for sales, service, finance, and operations. Sales teams use Dynamics 365 Sales to manage customer accounts, track opportunities, and coordinate pipeline activity on Microsoft Dataverse.",
+  "agentUseSummary": "Connect one verified Dataverse Sales environment through Relay-owned delegated work-account OAuth, then let agents inspect bounded organization, account, and opportunity metadata through four fixed GET-only wrappers. Relay excludes contacts and personal data, identities and owners, custom tables, search and expansions, schema and operations, writes, exports, application access, pagination, and raw Dataverse access.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/dynamics-365",
+    "docsUrl": "https://learn.microsoft.com/power-apps/developer/data-platform/webapi/overview",
+    "developerConsoleUrl": "https://entra.microsoft.com/",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "offline_access",
+      "user_impersonation"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_global_oauth",
+      "microsoft_delegated_work_user",
+      "selected_dataverse_environment",
+      "encrypted_refresh_token",
+      "provider_revocation"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-dynamics-365/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "organization_accounts",
+      "label": "Read organization and accounts",
+      "description": "Review one selected Dynamics organization and bounded standard account metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "opportunities",
+      "label": "Read opportunity summaries",
+      "description": "Review bounded standard opportunity pipeline metadata without customer or owner lookups.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "microsoft_dynamics_365_organization_get",
+        "label": "Get Dynamics organization",
+        "description": "Read fixed safe metadata for the selected Dataverse organization."
+      },
+      {
+        "id": "microsoft_dynamics_365_accounts_list",
+        "label": "List Dynamics accounts",
+        "description": "Read at most twenty-five fixed-field business account summaries."
+      },
+      {
+        "id": "microsoft_dynamics_365_account_get",
+        "label": "Get Dynamics account",
+        "description": "Read fixed fields for one explicit prior-result account."
+      },
+      {
+        "id": "microsoft_dynamics_365_opportunities_list",
+        "label": "List Dynamics opportunities",
+        "description": "Read at most twenty-five fixed-field opportunity pipeline summaries."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "microsoft_dynamics_365_contacts_addresses_notes",
+        "label": "Read personal or free-text CRM data",
+        "description": "Contacts, leads, addresses, emails, phones, activities, notes, attachments, and free text are outside V1."
+      },
+      {
+        "id": "microsoft_dynamics_365_owners_users_teams",
+        "label": "Read CRM identities",
+        "description": "Owners, users, teams, customer lookups, formatted identity annotations, and access details are outside V1."
+      },
+      {
+        "id": "microsoft_dynamics_365_custom_tables_columns",
+        "label": "Read custom Dataverse data",
+        "description": "Custom tables, columns, relationships, alternate keys, and non-standard Sales data are outside V1."
+      },
+      {
+        "id": "microsoft_dynamics_365_search_fetchxml_expand",
+        "label": "Search or expand Dataverse data",
+        "description": "Search, SQL, FetchXML, filters, expansions, aggregates, change tracking, and arbitrary OData are outside V1."
+      },
+      {
+        "id": "microsoft_dynamics_365_schema_actions_batch",
+        "label": "Inspect schema or invoke operations",
+        "description": "Metadata, schema, actions, functions, batch requests, and custom APIs are outside V1."
+      },
+      {
+        "id": "microsoft_dynamics_365_mutations_assign_share_merge",
+        "label": "Change Dynamics records",
+        "description": "Creates, updates, deletes, upserts, assigns, shares, merges, and all other mutations are outside V1."
+      },
+      {
+        "id": "microsoft_dynamics_365_application_export_pagination_raw",
+        "label": "Use broad or raw access",
+        "description": "Application users, other environments, exports, automatic pagination, retries, polling, and raw endpoints are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_dynamics_365_safe",
+      "label": "Safe",
+      "description": "Four selected-environment fixed-field GET reads run automatically; personal data, identities, custom data, search, schema, operations, writes, exports, pagination, and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "microsoft_dynamics_365_organization_get",
+        "microsoft_dynamics_365_accounts_list",
+        "microsoft_dynamics_365_account_get",
+        "microsoft_dynamics_365_opportunities_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_dynamics_365_contacts_addresses_notes",
+        "microsoft_dynamics_365_owners_users_teams",
+        "microsoft_dynamics_365_custom_tables_columns",
+        "microsoft_dynamics_365_search_fetchxml_expand",
+        "microsoft_dynamics_365_schema_actions_batch",
+        "microsoft_dynamics_365_mutations_assign_share_merge",
+        "microsoft_dynamics_365_application_export_pagination_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four selected-environment reads run without Relay per-action approval; exact scope, environment binding, fixed projections, limits, audit, and Dataverse controls still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "microsoft_dynamics_365_organization_get",
+        "microsoft_dynamics_365_accounts_list",
+        "microsoft_dynamics_365_account_get",
+        "microsoft_dynamics_365_opportunities_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "microsoft_dynamics_365_contacts_addresses_notes",
+        "microsoft_dynamics_365_owners_users_teams",
+        "microsoft_dynamics_365_custom_tables_columns",
+        "microsoft_dynamics_365_search_fetchxml_expand",
+        "microsoft_dynamics_365_schema_actions_batch",
+        "microsoft_dynamics_365_mutations_assign_share_merge",
+        "microsoft_dynamics_365_application_export_pagination_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four selected-environment Dynamics 365 GET wrappers and attaches encrypted Microsoft tokens only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four selected-environment Dynamics 365 GET wrappers and attaches encrypted Microsoft tokens only on Railway."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_setup_pending",
+    "blocker": "Relay still needs its Entra application registration, exact selected-environment delegated user_impersonation configuration, exact Railway callback, staging credentials, a work test account, a staging Dataverse Sales environment with standard account and opportunity tables, and Microsoft acceptance. Those provider-console and live-consent actions are outside this worker task.",
+    "nextAction": "In the provider-console task, configure the Relay-owned Entra application and exact callback, store its credentials on Railway staging, then verify work-account consent, the exact environment resource scope, PKCE/state, refresh rotation, selected-environment and standard-table binding, all four GET reads, privacy exclusions, throttling, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/power-apps/developer/data-platform/webapi/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft Dataverse exposes an OData v4 Web API under each organization environment."
+    },
+    {
+      "url": "https://learn.microsoft.com/power-apps/developer/data-platform/discovery-service",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents selecting a Dataverse environment by its trusted ApiUrl and FriendlyName."
+    },
+    {
+      "url": "https://learn.microsoft.com/power-apps/developer/data-platform/webapi/retrieve-entity-using-web-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Dataverse supports exact GET reads by entity-set ID and recommends $select to constrain returned properties."
+    },
+    {
+      "url": "https://learn.microsoft.com/power-apps/developer/data-platform/webapi/reference/account?view=dataverse-latest",
+      "checkedAt": "2026-07-17",
+      "supports": "The standard account entity set is available at /api/data/v9.2/accounts and includes identity and address fields that Relay excludes."
+    },
+    {
+      "url": "https://learn.microsoft.com/power-apps/developer/data-platform/webapi/reference/opportunity?view=dataverse-latest",
+      "checkedAt": "2026-07-17",
+      "supports": "The standard opportunity entity exposes pipeline values and customer or owner lookups; Relay retains only fixed non-identity pipeline metadata."
+    },
+    {
+      "url": "https://learn.microsoft.com/dynamics365/sales/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Dynamics 365 Sales runs on Microsoft Dataverse and helps sales teams manage accounts and opportunities through their sales process."
+    }
+  ]
+}

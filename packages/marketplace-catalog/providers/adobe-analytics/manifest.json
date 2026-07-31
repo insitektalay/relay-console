@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "adobe-analytics",
+  "name": "Adobe Analytics",
+  "category": "developer",
+  "description": "Adobe Analytics provides enterprise digital experience measurement, dimensions, metrics, segments, report suites, Analysis Workspace projects, and ranked or trended reporting.",
+  "agentUseSummary": "Connect Adobe's official hosted Analytics MCP through public PKCE OAuth. Selected agents can discover authorized companies, report suites, components, and projects and run reports capped at 100 rows. Relay blocks session changes, component and project writes, administration, ingestion, scheduling, and raw tools.",
+  "provider": {
+    "websiteUrl": "https://business.adobe.com/products/analytics/adobe-analytics.html",
+    "docsUrl": "https://developer.adobe.com/analytics-mcp/docs/aa/",
+    "developerConsoleUrl": "https://developer.adobe.com/console",
+    "termsUrl": "https://www.adobe.com/legal/terms.html",
+    "privacyUrl": "https://www.adobe.com/privacy/policy.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["openid", "AdobeID", "additional_info.projectedProductContext"],
+    "pkce": true,
+    "refreshTokens": false,
+    "authorizationUrl": "https://ims-na1.adobelogin.com/ims/authorize/v2",
+    "tokenUrl": "https://ims-na1.adobelogin.com/ims/token/v3",
+    "revocationUrl": "https://ims-na1.adobelogin.com/ims/revoke"
+  },
+  "connection": {
+    "types": ["hosted_mcp", "dynamic_public_pkce", "user_product_profile_permissions"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/adobe-analytics/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [{"id": "analytics_read", "label": "Read analytics", "description": "Discover authorized Analytics components and run bounded read-only reports.", "defaultSelected": true}],
+  "actions": {
+    "allowed": [{"id": "adobe_analytics_read", "label": "Read Adobe Analytics", "description": "Discover permitted companies, report suites, components, and projects or run a bounded read-only report through Adobe's hosted MCP."}],
+    "approvalRequired": [],
+    "blocked": [{"id": "adobe_analytics_manage", "label": "Change Adobe Analytics", "description": "Session-default changes, segments, calculated metrics, date ranges, workspace projects, report-suite administration, ingestion, scheduling, and every mutation are unavailable."}]
+  },
+  "approvalProfiles": [{"id": "adobe_analytics_safe", "label": "Safe", "description": "Documented discovery and bounded reporting reads run directly. Component, project, session, administrative, and ingestion mutations remain blocked.", "defaultSelected": true, "allowedActions": ["adobe_analytics_read"], "approvalRequiredActions": [], "blockedActions": ["adobe_analytics_manage"]}],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {"format": "openclaw", "installSupport": "installable", "description": "Railway connects Adobe's official hosted Analytics MCP with an exact read-only tool allowlist, live schema verification, and a 100-row report cap."},
+    {"format": "hermes", "installSupport": "installable", "description": "Railway connects Adobe's official hosted Analytics MCP with an exact read-only tool allowlist, live schema verification, and a 100-row report cap."}
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's public PKCE client has not been dynamically registered for the Adobe Analytics MCP callback, and no Adobe organization has granted a user the MCP Access permission plus the required Analytics product-profile permissions and completed non-production acceptance.",
+    "nextAction": "The provider-console owner dynamically registers Relay's public PKCE client with the exact callback, stores only the client ID in Railway, grants a non-production user MCP Access and least-privilege Analytics product-profile permissions, then validates OAuth, live tool discovery, bounded reporting, disconnect, token expiry, and post-disconnect denial."
+  },
+  "evidence": [
+    {"url": "https://developer.adobe.com/analytics-mcp/docs/aa/", "checkedAt": "2026-07-17", "supports": "Adobe documents the official hosted Adobe Analytics MCP endpoint and its discovery, component, and reporting capabilities."},
+    {"url": "https://developer.adobe.com/analytics-mcp/docs/guides/", "checkedAt": "2026-07-17", "supports": "Adobe documents OAuth connection, required MCP Access and Analytics permissions, and the aa-mcp.adobe.io endpoint."},
+    {"url": "https://developer.adobe.com/analytics-mcp/docs/aa/reference", "checkedAt": "2026-07-17", "supports": "Adobe documents the exact MCP discovery and reporting tools and separate component/project mutation tools that Relay blocks."},
+    {"url": "https://developer.adobe.com/analytics-mcp/docs/support/faq", "checkedAt": "2026-07-17", "supports": "Adobe documents OAuth dynamic registration, user/product-profile permission enforcement, reporting allowance usage, and the MCP report limit of 100 rows."}
+  ]
+}

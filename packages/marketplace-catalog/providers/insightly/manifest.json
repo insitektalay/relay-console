@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "insightly",
+  "name": "Insightly",
+  "category": "developer",
+  "description": "Insightly is a CRM and project platform for contacts, organizations, leads, opportunities, projects, tasks, products, quotes, service, and reporting.",
+  "agentUseSummary": "Connect one exact Insightly API pod with a customer-owned API key, then let agents list only bounded projected custom-field metadata under approval. Relay excludes private schema logic, CRM records, writes, administration, exports, bulk operations, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.insightly.com/",
+    "docsUrl": "https://api.na1.insightly.com/v3.1/",
+    "developerConsoleUrl": "https://api.na1.insightly.com/v3.1/",
+    "termsUrl": "https://www.insightly.com/terms-of-use/",
+    "privacyUrl": "https://www.insightly.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "customer_owned_api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "api_key",
+      "customer_owned_user_api_key",
+      "exact_pod_scope",
+      "insightly_api_base_binding",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "INSIGHTLY_API_KEY",
+        "label": "Insightly API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated least-privilege user API key and store it only through Relay's encrypted flow."
+      },
+      {
+        "name": "INSIGHTLY_API_BASE_URL",
+        "label": "Insightly API base URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the exact HTTPS api.<pod>.insightly.com URL ending in /v3.1."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "custom_field_metadata",
+      "label": "List custom-field metadata",
+      "description": "List at most 100 field names, ordering, object types, labels, field types, and editability/visibility flags without private schema logic or record values.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "insightly_custom_fields_list",
+        "label": "List custom-field metadata",
+        "description": "List bounded projected custom-field metadata from one exact Insightly pod."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "insightly_crm_records",
+        "label": "Access CRM records",
+        "description": "Contacts, organizations, leads, opportunities, projects, tasks, events, emails, notes, products, quotes, tickets, and custom-object records are blocked."
+      },
+      {
+        "id": "insightly_private_schema_logic",
+        "label": "Access private schema logic",
+        "description": "Help text, defaults, options, dependencies, joins, calculated logic, and record values are blocked."
+      },
+      {
+        "id": "insightly_mutation_administration",
+        "label": "Mutate or administer Insightly",
+        "description": "Creates, updates, deletes, links, tags, files, imports, exports, users, teams, webhooks, and settings changes are blocked."
+      },
+      {
+        "id": "insightly_raw_bulk",
+        "label": "Use raw or bulk API access",
+        "description": "Arbitrary paths, search, filtered records, raw responses, bulk access, later pages, redirects, and retries are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "insightly_custom_field_metadata_safe",
+      "label": "Safe",
+      "description": "The bounded field-metadata read requires approval; CRM records, private schema logic, writes, administration, bulk, and raw APIs remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["insightly_custom_fields_list"],
+      "blockedActions": [
+        "insightly_crm_records",
+        "insightly_private_schema_logic",
+        "insightly_mutation_administration",
+        "insightly_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The bounded metadata read runs without Relay per-action approval; exact pod/path binding, projection, caps, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["insightly_custom_fields_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "insightly_crm_records",
+        "insightly_private_schema_logic",
+        "insightly_mutation_administration",
+        "insightly_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned API key to one exact Insightly pod and a projected custom-field metadata wrapper."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway binds a customer-owned API key to one exact Insightly pod and a projected custom-field metadata wrapper."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "An authorized Insightly administrator must provision a dedicated least-privilege user, obtain its API key and exact pod API URL, and store both through Relay. No account, user, key, credential capture, live request, or provider acceptance is available in this worker task.",
+    "nextAction": "An authorized administrator provisions the least-privilege user and key, stores the key and exact pod base through Relay, then verifies health, one approved metadata list, throttling, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://api.na1.insightly.com/v3.1/",
+      "checkedAt": "2026-07-17",
+      "supports": "Insightly documents HTTPS pod-specific v3.1 API bases, HTTP Basic authentication using a Base64-encoded user API key with a blank password, user-permission inheritance, rate limits, and GET /CustomFields. Relay selects only that metadata read."
+    },
+    {
+      "url": "https://support.insight.ly/en-us/Knowledge/article/1320/What_are_custom_fields/",
+      "checkedAt": "2026-07-17",
+      "supports": "Insightly documents custom fields across CRM, marketing, and service objects and plan-dependent field limits. Relay projects only identity/type/visibility metadata and blocks values and private schema logic."
+    }
+  ]
+}

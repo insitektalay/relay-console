@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "lever",
+  "name": "Lever",
+  "category": "developer",
+  "description": "Lever is an applicant-tracking and recruiting platform built around job Postings, Stages, Opportunities, candidates, applications, interviews, and offers.",
+  "agentUseSummary": "Authorize Relay's Lever partner integration for one exact Account with only offline_access, postings:read:admin, and stages:read:admin. Agents can list bounded non-confidential Posting summaries and Stage labels. Relay excludes candidate-centric records, confidential postings, content, salary, people, writes, raw APIs, broader scopes, and offset following.",
+  "provider": {
+    "websiteUrl": "https://www.lever.co/",
+    "docsUrl": "https://hire.lever.co/developer/documentation",
+    "developerConsoleUrl": "https://hire.lever.co/developer/partner",
+    "termsUrl": "https://www.lever.co/terms/",
+    "privacyUrl": "https://www.lever.co/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["offline_access", "postings:read:admin", "stages:read:admin"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://auth.lever.co/authorize",
+    "tokenUrl": "https://auth.lever.co/oauth/token"
+  },
+  "connection": {
+    "types": [
+      "lever_partner_authorization_code",
+      "production_data_api_audience",
+      "exact_three_scopes",
+      "rotating_refresh_token",
+      "exact_account",
+      "candidate_data_excluded"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "LEVER_CLIENT_ID",
+        "label": "Lever partner client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Lever-issued Relay partner client ID configured only on Railway."
+      },
+      {
+        "name": "LEVER_CLIENT_SECRET",
+        "label": "Lever partner client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Lever-issued confidential partner secret configured only on Railway."
+      },
+      {
+        "name": "LEVER_ACCOUNT_ID",
+        "label": "Lever Account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind the exact Super-Admin-authorized Account before OAuth."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/lever/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "posting_read",
+      "label": "Read non-confidential Postings",
+      "description": "List bounded safe job Posting summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "stage_read",
+      "label": "Read Stages",
+      "description": "List bounded recruiting Stage labels without candidate membership.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "lever_posting_list",
+        "label": "List non-confidential Postings",
+        "description": "List at most twenty-five non-confidential Postings from the first page."
+      },
+      {
+        "id": "lever_stage_list",
+        "label": "List Stages",
+        "description": "List at most twenty-five recruiting Stage labels from the first page."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "lever_candidate_data",
+        "label": "Read candidate data",
+        "description": "Candidates, Contacts, Opportunities, Applications, interviews, offers, feedback, notes, forms, files, EEO/diversity, and related records are outside V1."
+      },
+      {
+        "id": "lever_sensitive_read",
+        "label": "Read sensitive Lever data",
+        "description": "Confidential Postings, users, owners, hiring managers, followers, content/HTML, salary, questions, requisitions, and audit data are outside V1."
+      },
+      {
+        "id": "lever_write",
+        "label": "Change Lever",
+        "description": "Posting, candidate, Opportunity, application, interview, offer, webhook, note, file, and every other mutation are outside V1."
+      },
+      {
+        "id": "lever_raw_api",
+        "label": "Use raw Lever API",
+        "description": "API keys, sandbox substitution, arbitrary endpoints, includes, expands, offsets, pagination, raw responses, and broader scopes are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "lever_safe",
+      "label": "Safe",
+      "description": "Both bounded Lever reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["lever_posting_list", "lever_stage_list"],
+      "blockedActions": [
+        "lever_candidate_data",
+        "lever_sensitive_read",
+        "lever_write",
+        "lever_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both selected reads run without per-action approval while exact scopes, Account binding, non-confidential filtering, bounds, redaction, refresh, and audit remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["lever_posting_list", "lever_stage_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "lever_candidate_data",
+        "lever_sensitive_read",
+        "lever_write",
+        "lever_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two fixed safe Lever list wrappers and attaches refreshed partner OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two fixed safe Lever list wrappers and attaches refreshed partner OAuth tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "provider_review_pending",
+    "blocker": "Lever partner approval, provider-issued credentials, an exact Railway callback, square logo/description, exact scopes, and authorized staging Account are required.",
+    "nextAction": "Complete Lever partner registration for the production Data API audience and exact three scopes, configure Railway credentials/callback, then validate Super Admin consent, rotating refresh, Account binding, EU routing, denial, and the two bounded reads."
+  },
+  "evidence": [
+    {
+      "url": "https://hire.lever.co/developer/oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Lever documents partner-only organization-wide Super Admin OAuth, registered callbacks/scopes, production audience, one-hour access tokens, rotating refresh tokens, EU routing, and provider-side revocation."
+    },
+    {
+      "url": "https://hire.lever.co/developer/documentation",
+      "checkedAt": "2026-07-17",
+      "supports": "Lever documents form-encoded authorization-code exchange, exact Data API root, list/offset pagination, rate limits, Posting confidentiality filtering, Postings, and Stages."
+    },
+    {
+      "url": "https://hire.lever.co/developer/partner",
+      "checkedAt": "2026-07-17",
+      "supports": "Lever documents provider-created OAuth applications/credentials and sandbox-versus-production integration setup."
+    }
+  ]
+}

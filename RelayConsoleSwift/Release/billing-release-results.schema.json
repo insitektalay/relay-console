@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "billing-release-results.schema.json",
+  "title": "Relay Console completed billing release results",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "completedAt", "pricing", "taxAndMerchant",
+    "relayStripe", "relayApple", "crossProvider", "monitoring", "privacy"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.billing-release-results.v3" },
+    "completedAt": { "type": "string", "format": "date-time" },
+    "pricing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "relay", "verifiedAt", "reviewer", "evidenceURL"
+      ],
+      "properties": {
+        "relay": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "plan", "monthlyPriceUSD", "billingPeriod",
+            "stripeLiveProductConfigured", "stripePriceConfigured",
+            "stripeAutomaticTaxConfigured", "appleProductConfigured",
+            "appleIAPOffered", "webPriceTaxDisclosure"
+          ],
+          "properties": {
+            "plan": { "const": "relay_connect_monthly" },
+            "monthlyPriceUSD": { "const": "9.99" },
+            "billingPeriod": { "const": "month" },
+            "stripeLiveProductConfigured": { "const": true },
+            "stripePriceConfigured": { "const": true },
+            "stripeAutomaticTaxConfigured": { "const": true },
+            "appleProductConfigured": { "const": true },
+            "appleIAPOffered": { "const": true },
+            "webPriceTaxDisclosure": {
+              "enum": ["includes-tax", "excludes-tax", "varies-by-region"]
+            }
+          }
+        },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "reviewer": { "$ref": "#/$defs/nonPlaceholder" },
+        "evidenceURL": { "type": "string", "pattern": "^https://" }
+      }
+    },
+    "taxAndMerchant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "launchCountriesReviewed", "launchCountries", "taxVATReviewed",
+        "merchantObligationsReviewed", "reviewedAt", "reviewer", "evidenceURL"
+      ],
+      "properties": {
+        "launchCountriesReviewed": { "const": true },
+        "launchCountries": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Z]{2}$" }
+        },
+        "taxVATReviewed": { "const": true },
+        "merchantObligationsReviewed": { "const": true },
+        "reviewedAt": { "type": "string", "format": "date-time" },
+        "reviewer": { "$ref": "#/$defs/nonPlaceholder" },
+        "evidenceURL": { "type": "string", "pattern": "^https://" }
+      }
+    },
+    "relayStripe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checkoutAndEntitlement", "renewal", "failedPaymentAndGrace",
+        "cancellation", "refund", "dispute", "recovery"
+      ],
+      "properties": {
+        "checkoutAndEntitlement": { "$ref": "#/$defs/journey" },
+        "renewal": { "$ref": "#/$defs/journey" },
+        "failedPaymentAndGrace": { "$ref": "#/$defs/journey" },
+        "cancellation": { "$ref": "#/$defs/journey" },
+        "refund": { "$ref": "#/$defs/journey" },
+        "dispute": { "$ref": "#/$defs/journey" },
+        "recovery": { "$ref": "#/$defs/journey" }
+      }
+    },
+    "relayApple": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "purchaseAndEntitlement", "renewal", "billingRetryAndGrace",
+        "cancellationOrRevocation", "refund", "accountMismatch", "restore"
+      ],
+      "properties": {
+        "purchaseAndEntitlement": { "$ref": "#/$defs/journey" },
+        "renewal": { "$ref": "#/$defs/journey" },
+        "billingRetryAndGrace": { "$ref": "#/$defs/journey" },
+        "cancellationOrRevocation": { "$ref": "#/$defs/journey" },
+        "refund": { "$ref": "#/$defs/journey" },
+        "accountMismatch": { "$ref": "#/$defs/journey" },
+        "restore": { "$ref": "#/$defs/journey" }
+      }
+    },
+    "crossProvider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["duplicateSubscriptionPrevention", "entitlementConvergence"],
+      "properties": {
+        "duplicateSubscriptionPrevention": { "$ref": "#/$defs/journey" },
+        "entitlementConvergence": { "$ref": "#/$defs/journey" }
+      }
+    },
+    "monitoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revenue", "churn", "failedPayment", "entitlementMismatch",
+        "managedRuntimeDisabled", "alertAcknowledgement"
+      ],
+      "properties": {
+        "revenue": { "$ref": "#/$defs/journey" },
+        "churn": { "$ref": "#/$defs/journey" },
+        "failedPayment": { "$ref": "#/$defs/journey" },
+        "entitlementMismatch": { "$ref": "#/$defs/journey" },
+        "managedRuntimeDisabled": { "$ref": "#/$defs/journey" },
+        "alertAcknowledgement": { "$ref": "#/$defs/journey" }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "credentialsIncluded", "secretValuesIncluded",
+        "customerIdentifiersIncluded", "paymentIdentifiersIncluded",
+        "providerObjectIdentifiersIncluded", "customerContentIncluded",
+        "rawCommandOutputIncluded"
+      ],
+      "properties": {
+        "credentialsIncluded": { "const": false },
+        "secretValuesIncluded": { "const": false },
+        "customerIdentifiersIncluded": { "const": false },
+        "paymentIdentifiersIncluded": { "const": false },
+        "providerObjectIdentifiersIncluded": { "const": false },
+        "customerContentIncluded": { "const": false },
+        "rawCommandOutputIncluded": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "nonPlaceholder": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!.*[<>])(?!pending$)(?!tbd$).+$"
+    },
+    "journey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "verifiedAt", "reviewer", "evidenceURL", "customerImpact",
+        "credentialMaterialIncluded", "customerContentIncluded",
+        "testAccountIdentifiersIncluded", "paymentIdentifiersIncluded"
+      ],
+      "properties": {
+        "status": { "const": "passed" },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "reviewer": { "$ref": "#/$defs/nonPlaceholder" },
+        "evidenceURL": { "type": "string", "pattern": "^https://" },
+        "customerImpact": {
+          "enum": ["test-account", "sandbox", "synthetic-only"]
+        },
+        "credentialMaterialIncluded": { "const": false },
+        "customerContentIncluded": { "const": false },
+        "testAccountIdentifiersIncluded": { "const": false },
+        "paymentIdentifiersIncluded": { "const": false }
+      }
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "nuclino",
+  "name": "Nuclino",
+  "category": "knowledge_documents",
+  "description": "Teams, workspaces, items, collections, fields, and files through Nuclino's hosted MCP.",
+  "agentUseSummary": "Connect once through Nuclino OAuth, then let agents use every documented read or write MCP tool under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://www.nuclino.com/",
+    "docsUrl": "https://help.nuclino.com/70af7f4f-connect-nuclino-to-ai-assistants-with-mcp",
+    "developerConsoleUrl": "https://api.nuclino.com/.well-known/oauth-authorization-server",
+    "termsUrl": "https://www.nuclino.com/terms",
+    "privacyUrl": "https://www.nuclino.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": true,
+    "refreshTokens": false,
+    "authorizationUrl": "https://api.nuclino.com/oauth/authorize",
+    "tokenUrl": "https://api.nuclino.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "remote_mcp"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/nuclino/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "knowledge_read",
+      "label": "Read workspace knowledge",
+      "description": "List teams and workspaces, search and read items, and retrieve attached-file metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "knowledge_write",
+      "label": "Create and maintain knowledge",
+      "description": "Create, update, edit, or trash items and collections and manage workspace fields.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "nuclino_mcp_read",
+        "label": "Use read tools",
+        "description": "Use one exact documented Nuclino MCP read tool with bounded arguments and live schema validation."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "nuclino_mcp_write",
+        "label": "Use write tools",
+        "description": "Use one exact documented Nuclino MCP mutation tool; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "nuclino_safe",
+      "label": "Safe",
+      "description": "Documented reads run directly; every create, update, edit, trash, or field mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["nuclino_mcp_read"],
+      "approvalRequiredActions": ["nuclino_mcp_write"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized Nuclino MCP operation runs without Relay per-action approval; ownership, provider permissions, exact tool allowlists, bounds, audits, schema validation, and rate limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["nuclino_mcp_read", "nuclino_mcp_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts exact read/write wrappers and proxies Nuclino OAuth to its hosted MCP."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts exact read/write wrappers and proxies Nuclino OAuth to its hosted MCP."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay's public PKCE client is dynamically registered with the exact Railway callback, but no signed-in Nuclino user session was available for production OAuth and action acceptance.",
+    "nextAction": "A Nuclino user clicks Connect, approves the MCP connection, then Relay runs callback, MCP health, a bounded search, and an approved or Dangerous-mode mutation."
+  },
+  "evidence": [
+    {
+      "url": "https://help.nuclino.com/70af7f4f-connect-nuclino-to-ai-assistants-with-mcp",
+      "checkedAt": "2026-07-13",
+      "supports": "Nuclino documents its hosted MCP at https://api.nuclino.com/mcp, OAuth 2.0 with PKCE, account-permission enforcement, revocation, and the complete current read/write tool list."
+    },
+    {
+      "url": "https://api.nuclino.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-13",
+      "supports": "Nuclino publishes authorization, token, and dynamic registration endpoints with authorization-code and S256 PKCE support."
+    },
+    {
+      "url": "https://help.nuclino.com/8090bb76-authentication",
+      "checkedAt": "2026-07-13",
+      "supports": "Nuclino's separate REST API uses customer-owned API keys with the same authority as the account; Relay prefers the official one-click hosted MCP OAuth route."
+    },
+    {
+      "url": "https://help.nuclino.com/fa38d15f-items-and-collections",
+      "checkedAt": "2026-07-13",
+      "supports": "Nuclino documents bounded list, search, read, create, update, and trash semantics for items and collections."
+    }
+  ]
+}

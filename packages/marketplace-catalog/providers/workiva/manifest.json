@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "workiva",
+  "name": "Workiva",
+  "category": "developer",
+  "description": "Workiva is a secure collaborative reporting and governance platform for financial reporting, sustainability, audit, risk, compliance, controls, documents, spreadsheets, presentations, tasks, records, and regulatory filings.",
+  "agentUseSummary": "Add a customer-created, expiring Workiva workspace API grant for a dedicated integration user in the exact US, EU, or APAC region with only file:read scope. Selected agents can list one first page of at most 20 minimized file and folder metadata records; Relay blocks contents, permissions, people, exports, cross-workspace access, broad APIs, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://www.workiva.com/",
+    "docsUrl": "https://developers.workiva.com/2026-01-01/overview.html",
+    "developerConsoleUrl": null,
+    "termsUrl": null,
+    "privacyUrl": "https://www.workiva.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["file:read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "oauth_client_credentials",
+      "customer_owned",
+      "workspace_bound",
+      "dedicated_integration_user",
+      "regional_origin",
+      "file_read_scope"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "WORKIVA_REGION",
+        "label": "Workiva region",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter us, eu, or apac to pin the API grant to its documented regional origin."
+      },
+      {
+        "name": "WORKIVA_CLIENT_ID",
+        "label": "Workiva API grant client ID",
+        "required": true,
+        "secret": true,
+        "helpText": "Customer-created workspace API grant for a dedicated integration user with only file:read scope."
+      },
+      {
+        "name": "WORKIVA_CLIENT_SECRET",
+        "label": "Workiva API grant client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Expiring, one-time-visible secret stored encrypted and sent only to the selected Workiva region."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "governance_file_metadata_read",
+      "label": "Read Workiva file metadata",
+      "description": "List one bounded first page of minimized file and folder metadata from an exact Workiva workspace.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "workiva_read",
+        "label": "List Workiva files",
+        "description": "List up to 20 minimized file and folder metadata records from one API-grant-bound Workiva workspace."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "workiva_manage",
+        "label": "Read contents or change Workiva",
+        "description": "Document, spreadsheet, presentation, supporting-document and filing contents; tasks; records; reports; users; organizations; permissions; comments; links; exports; cross-workspace access; broad APIs; and every mutation are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "workiva_safe",
+      "label": "Safe",
+      "description": "One bounded file-metadata directory read runs directly; contents, exports, permissions, people, broad APIs, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["workiva_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["workiva_manage"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges the workspace grant only at the selected Workiva region and exposes one bounded, minimized file-directory read."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges the workspace grant only at the selected Workiva region and exposes one bounded, minimized file-directory read."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer has supplied a non-production Workiva workspace with a dedicated integration user, an expiring workspace API grant restricted to only file:read, and representative file-directory data for regional and minimization acceptance. Workiva API grants inherit the selected user's permissions, so the integration user and its accessible files must also be intentionally minimized.",
+    "nextAction": "A Workiva Workspace Owner or Org Security Admin creates a dedicated least-privilege integration user in a non-production workspace, limits that user to the intended files, creates an expiring API grant with only file:read and the correct US, EU, or APAC region, stores the client ID and one-time-visible secret through Relay's encrypted credential flow, and validates exact-scope token issuance, the bounded file metadata read, denied contents, exports, permissions, people, cross-workspace and write access, rate handling, secret regeneration, grant deletion, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.workiva.com/2026-01-01/overview.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Workiva's current versioned REST API overview documents OAuth credential exchange and the supported files, folders, documents, spreadsheets, presentations, tasks, users, organizations, workspaces, records, and reports surfaces."
+    },
+    {
+      "url": "https://developers.workiva.com/2026-01-01/authentication.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Workiva documents OAuth 2.0 Client Credentials, form or JSON token exchange, Bearer authentication, the mandatory 2026-01-01 version header, and approximately ten-minute access tokens."
+    },
+    {
+      "url": "https://support.workiva.com/hc/en-us/articles/39770373001620-Create-and-manage-API-grants-in-workspace-settings",
+      "checkedAt": "2026-07-18",
+      "supports": "Workiva documents administrator-created workspace API grants bound to one workspace and user, selectable scopes, expiration and optional IP allowlists, one-time-visible regeneratable secrets, editing, and deletion."
+    },
+    {
+      "url": "https://support.workiva.com/hc/en-us/community/posts/24652038169876-Start-Here-for-API-Grants-Leading-Practices-for-Each-Field",
+      "checkedAt": "2026-07-18",
+      "supports": "Workiva states that Client Credentials is mandatory, grants inherit the selected user's permissions, each grant is attributed to one workspace, a dedicated integration user is preferred, and only minimum scopes should be selected."
+    },
+    {
+      "url": "https://developers.workiva.com/2026-01-01/getfiles.html",
+      "checkedAt": "2026-07-18",
+      "supports": "The current GET /files contract requires only file:read, accepts a bounded maximum page size and opaque pagination cursor, and returns file identifiers, names, kinds, types, state, template status, containers, and milestone metadata. Relay returns only a minimized subset and does not follow the next link."
+    },
+    {
+      "url": "https://support.workiva.com/hc/en-us/articles/360045097312-Workiva-Connector",
+      "checkedAt": "2026-07-18",
+      "supports": "Workiva documents exact US, EU, and APAC IAM and Platform API origins and requires appropriate permissions for the dedicated integration user rather than arbitrary host overrides."
+    },
+    {
+      "url": "https://developers.workiva.com/2026-01-01/limits.html",
+      "checkedAt": "2026-07-18",
+      "supports": "Workiva documents 429 rate limiting with Retry-After, a 10 MB request maximum, and a 29-second request timeout. Relay makes one bounded request, does not retry automatically, and uses a shorter timeout."
+    }
+  ]
+}

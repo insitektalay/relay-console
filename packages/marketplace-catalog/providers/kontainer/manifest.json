@@ -1,0 +1,169 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "kontainer",
+  "name": "Kontainer",
+  "category": "content_creative",
+  "description": "Kontainer is a digital asset management and product information management platform for organizing brand files, product data, and consent records. Marketing, ecommerce, and product teams use it to search and share assets, manage folders and metadata, maintain product catalogs and channels, control permissions, publish CDN media, and track usage.",
+  "agentUseSummary": "Connect your Kontainer tenant with an administrator-created API token, then let agents use all 127 published DAM, PIM, consent, statistics, user, group, permission, CDN, stream, and integration operations under Safe or Dangerous policy.",
+  "icon": {
+    "assetName": "kontainer",
+    "sourceUrl": "https://kontainer.com/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://kontainer.com/",
+    "docsUrl": "https://app.kontainer.com/api/documentation",
+    "developerConsoleUrl": "https://app.kontainer.com/api/documentation",
+    "termsUrl": "https://kontainer.com/terms-and-conditions",
+    "privacyUrl": "https://kontainer.com/cookie-and-privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "KONTAINER_TENANT",
+        "label": "Kontainer tenant",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the first part of your Kontainer address, such as example from example.kontainer.com."
+      },
+      {
+        "name": "KONTAINER_ACCESS_TOKEN",
+        "label": "Kontainer API token",
+        "required": true,
+        "secret": true,
+        "helpText": "A Kontainer administrator creates the token under Settings > Configuration > API. The token follows that customer's account permissions."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "dam_read",
+      "label": "Browse Kontainer",
+      "description": "Search and read authorized DAM assets, PIM records, consent data, CDN media, statistics, users, groups, permissions, and audit logs."
+    },
+    {
+      "id": "dam_manage",
+      "label": "Manage Kontainer",
+      "description": "Upload, create, update, organize, publish, permission, message, and delete DAM, PIM, user, group, and integration data through the published API."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "kontainer_read",
+        "label": "Read Kontainer data",
+        "description": "Run one bounded GET operation from Kontainer's published OpenAPI surface."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "kontainer_manage",
+        "label": "Change Kontainer data",
+        "description": "Run one documented create, update, upload, message, permission, relationship, CDN, or delete operation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "kontainer_secret_exposure",
+        "label": "Expose credentials",
+        "description": "API tokens, authorization headers, cookies, invitation URLs, and login URLs never enter agent-visible results."
+      },
+      {
+        "id": "kontainer_untrusted_route",
+        "label": "Call an undocumented route",
+        "description": "Every request is pinned to the validated customer tenant's HTTPS origin and one of the 127 method-route pairs in Kontainer's published OpenAPI document."
+      },
+      {
+        "id": "kontainer_unbounded_transfer",
+        "label": "Transfer unbounded data",
+        "description": "Relay bounds request bodies to five megabytes, responses to ten megabytes, and refuses redirects."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "kontainer_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; every provider mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["kontainer_read"],
+      "approvalRequiredActions": ["kontainer_manage"],
+      "blockedActions": [
+        "kontainer_secret_exposure",
+        "kontainer_untrusted_route",
+        "kontainer_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected token-authorized Kontainer operation runs without Relay per-action approval; ownership, provider permissions, tenant binding, route bounds, redaction, audits, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["kontainer_read", "kontainer_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "kontainer_secret_exposure",
+        "kontainer_untrusted_route",
+        "kontainer_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded wrappers for all 127 operations in Kontainer's published OpenAPI document against the validated customer tenant."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts bounded wrappers for all 127 operations in Kontainer's published OpenAPI document against the validated customer tenant."
+    }
+  ],
+  "availability": "beta_available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No customer Kontainer tenant, administrator-created API token, representative DAM or PIM content, or live provider session is available for production acceptance.",
+    "nextAction": "A customer administrator creates a dedicated token under Settings > Configuration > API, enters the tenant and token in Relay Console, and verifies bounded reads, Safe denial plus approval, Dangerous mutations, upload, stream handling, redaction, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://app.kontainer.com/api/documentation",
+      "checkedAt": "2026-07-15",
+      "supports": "Kontainer's OpenAPI 3.0 document publishes 127 GET, POST, PATCH, and DELETE operations across DAM, PIM, consent, statistics, users, groups, permissions, streams, and integration logs."
+    },
+    {
+      "url": "https://helpdesk.kontainer.com/article/kontainer-api-integration/",
+      "checkedAt": "2026-07-15",
+      "supports": "Kontainer requires a customer account, unique tenant URL, and administrator-provided bearer access token, uses JSON:API media types, and documents a standard limit of 500 requests per minute."
+    },
+    {
+      "url": "https://kontainer.com/api-integration/",
+      "checkedAt": "2026-07-15",
+      "supports": "Kontainer describes a full REST API for DAM and PIM, file and metadata workflows, CDN links, filters, partial or full requests, and customer-administered integrations."
+    },
+    {
+      "url": "https://kontainer.com/digital-asset-management",
+      "checkedAt": "2026-07-15",
+      "supports": "Kontainer describes its DAM product for organizing, searching, sharing, governing, converting, and distributing brand files."
+    },
+    {
+      "url": "https://kontainer.com/product-information-management-pim",
+      "checkedAt": "2026-07-15",
+      "supports": "Kontainer describes its PIM product for central product data, assets, variants, channels, ecommerce distribution, and data quality."
+    }
+  ]
+}

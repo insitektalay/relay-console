@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "ghost-self-hosted",
+  "name": "Ghost Self-Hosted",
+  "category": "content_creative",
+  "description": "Ghost Self-Hosted is the customer-operated distribution of Ghost's open-source publishing platform for websites, newsletters and memberships. Publishers use it to write, manage and distribute posts while retaining control of the application, database and infrastructure.",
+  "agentUseSummary": "Connect one current public HTTPS Ghost installation with a dedicated Custom Integration Admin API key. Selected agents can use six fixed posts-only Admin API actions under Safe or Dangerously skip permissions; pages, members, commerce, newsletters, users, settings, themes, webhooks, raw APIs and private-network endpoints remain unavailable.",
+  "icon": { "assetName": "marketplace-logo-ghost-self-hosted.png", "sourceUrl": "https://ghost.org/favicon.ico" },
+  "provider": {
+    "websiteUrl": "https://ghost.org/docs/install/",
+    "docsUrl": "https://docs.ghost.org/admin-api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://ghost.org/terms/",
+    "privacyUrl": "https://ghost.org/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_admin_api_key", "public_https_self_hosted", "fixed_posts_only_admin_api", "short_lived_request_jwt", "server_side_encrypted_secret_injection"],
+    "credentialRequirements": [
+      { "name": "GHOST_SELF_HOSTED_INSTALLATION_URL", "label": "Ghost installation URL", "required": true, "secret": false, "helpText": "The public HTTPS root of one current customer-operated Ghost installation, including any configured subdirectory. Private addresses, custom ports, redirects and embedded credentials are rejected." },
+      { "name": "GHOST_SELF_HOSTED_ADMIN_API_KEY", "label": "Ghost Admin API key", "required": true, "secret": true, "helpText": "A dedicated Custom Integration Admin API key. Railway uses it only to sign short-lived request-local JWTs for the fixed posts surface." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "post_read", "label": "Read posts", "description": "List bounded post summaries and read one exact post, including draft content.", "defaultSelected": true },
+    { "id": "draft_write", "label": "Write drafts", "description": "Create one draft or update the title and HTML of one exact post.", "defaultSelected": false },
+    { "id": "publication", "label": "Publish and delete", "description": "Publish, unpublish or permanently delete one exact post.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "ghost_self_hosted_posts_list", "label": "List posts", "description": "List at most twenty bounded post summaries, including drafts." },
+      { "id": "ghost_self_hosted_post_get", "label": "Read post", "description": "Read one exact post and at most 50,000 characters of HTML." },
+      { "id": "ghost_self_hosted_draft_create", "label": "Create draft", "description": "Create one unpublished draft from bounded title and HTML." },
+      { "id": "ghost_self_hosted_post_update", "label": "Update post", "description": "Update the title or HTML of one exact post with collision detection." },
+      { "id": "ghost_self_hosted_post_set_status", "label": "Publish or unpublish post", "description": "Set one exact post to published or draft with collision detection." },
+      { "id": "ghost_self_hosted_post_delete", "label": "Delete post", "description": "Permanently delete one exact post." }
+    ],
+    "blocked": [
+      { "id": "ghost_self_hosted_pages_tags", "label": "Manage pages or tags", "description": "Pages, tags, authors and navigation are unavailable in this posts-only V1." },
+      { "id": "ghost_self_hosted_members_commerce", "label": "Manage members or commerce", "description": "Members, tiers, offers, subscriptions, newsletters and billing are unavailable." },
+      { "id": "ghost_self_hosted_admin", "label": "Administer Ghost", "description": "Users, settings, themes, images, webhooks, integrations, keys and site administration are unavailable." },
+      { "id": "ghost_self_hosted_raw_api", "label": "Run arbitrary Admin API calls", "description": "Agents cannot choose paths, query parameters, fields, filters, ordering, pages, authors, tags, visibility or arbitrary request bodies." },
+      { "id": "ghost_self_hosted_private_network", "label": "Reach private infrastructure", "description": "Private, local, reserved, link-local, non-HTTPS and redirecting endpoints are unavailable; Relay opens no tunnel and keeps the web backend on Railway." },
+      { "id": "ghost_self_hosted_bulk_export", "label": "Bulk export content", "description": "Twenty-row lists, one exact post, 50,000-character HTML and 256 KiB responses are the maximum supported surface." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "ghost_self_hosted_safe",
+      "label": "Safe",
+      "description": "All private reads and content mutations require approval. Exact installation binding, fixed posts-only routes, collision checks, bounds and audits always apply.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["ghost_self_hosted_posts_list", "ghost_self_hosted_post_get", "ghost_self_hosted_draft_create", "ghost_self_hosted_post_update", "ghost_self_hosted_post_set_status", "ghost_self_hosted_post_delete"],
+      "blockedActions": ["ghost_self_hosted_pages_tags", "ghost_self_hosted_members_commerce", "ghost_self_hosted_admin", "ghost_self_hosted_raw_api", "ghost_self_hosted_private_network", "ghost_self_hosted_bulk_export"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All six selected posts actions run without Relay per-action approval; exact authority, fixed routes, collision checks, bounds, redaction and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["ghost_self_hosted_posts_list", "ghost_self_hosted_post_get", "ghost_self_hosted_draft_create", "ghost_self_hosted_post_update", "ghost_self_hosted_post_set_status", "ghost_self_hosted_post_delete"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["ghost_self_hosted_pages_tags", "ghost_self_hosted_members_commerce", "ghost_self_hosted_admin", "ghost_self_hosted_raw_api", "ghost_self_hosted_private_network", "ghost_self_hosted_bulk_export"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway signs short-lived Ghost integration JWTs and executes six fixed posts-only Admin API actions against the exact public HTTPS installation with collision checks, bounds and redaction." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway signs short-lived Ghost integration JWTs and executes six fixed posts-only Admin API actions against the exact public HTTPS installation with collision checks, bounds and redaction." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A customer administrator must create a dedicated Custom Integration in Ghost Admin and capture its Admin API key through the separate provider-console acceptance task.",
+    "nextAction": "Operate and secure a current Ghost release at a public HTTPS URL, create a dedicated Custom Integration, capture its Admin API key only in the provider-console acceptance task, and enter the URL and key in Relay. Keep Ghost and MySQL patched, backed up and isolated; never expose MySQL publicly."
+  },
+  "evidence": [
+    { "url": "https://ghost.org/docs/install/", "checkedAt": "2026-07-18", "supports": "Ghost documents customer-operated installation and infrastructure requirements for the open-source publishing platform." },
+    { "url": "https://docs.ghost.org/admin-api", "checkedAt": "2026-07-18", "supports": "The official Admin API overview documents the /ghost/api/admin base, Custom Integration keys, fixed integration permissions, Ghost JWT authentication and stable posts endpoints." },
+    { "url": "https://docs.ghost.org/admin-api/posts/overview", "checkedAt": "2026-07-18", "supports": "The official posts reference documents browse, exact read, add, edit and delete routes plus wrapped resources and bounded pagination controls." },
+    { "url": "https://docs.ghost.org/admin-api/posts/updating-a-post", "checkedAt": "2026-07-18", "supports": "Ghost requires updated_at for edit collision detection and recommends fetching the latest post before amendment." },
+    { "url": "https://docs.ghost.org/admin-api/posts/deleting-a-post", "checkedAt": "2026-07-18", "supports": "Ghost documents exact-ID permanent post deletion with an empty successful response." }
+  ]
+}

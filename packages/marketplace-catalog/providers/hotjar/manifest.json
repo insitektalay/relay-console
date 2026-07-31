@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "hotjar",
+  "name": "Hotjar",
+  "category": "work_management",
+  "description": "Hotjar is a digital-experience-insights platform for surveys, heatmaps, session recordings, funnels, and behavior analytics.",
+  "agentUseSummary": "Add a customer-owned Hotjar machine-to-machine API key pair and one exact site ID, then let selected agents read bounded survey definitions and minimized responses. Relay does not expose respondent IDs, attributes, recordings, origin URLs, user lookup or deletion, arbitrary APIs, or writes.",
+  "provider": {
+    "websiteUrl": "https://www.hotjar.com/",
+    "docsUrl": "https://help.hotjar.com/hc/en-us/articles/36820005914001-Hotjar-API-Reference",
+    "developerConsoleUrl": "https://help.hotjar.com/hc/en-us/articles/36819967312529-How-to-Set-Up-the-Hotjar-API",
+    "termsUrl": "https://www.hotjar.com/legal/terms-of-service/",
+    "privacyUrl": "https://www.hotjar.com/legal/policies/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.hotjar.io/v1/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_client_credentials", "site_bound_api"],
+    "credentialRequirements": [
+      { "key": "HOTJAR_CLIENT_ID", "label": "Hotjar API client ID", "secret": true, "required": true, "helpText": "The client ID from a customer-owned Hotjar machine-to-machine API key pair." },
+      { "key": "HOTJAR_CLIENT_SECRET", "label": "Hotjar API client secret", "secret": true, "required": true, "helpText": "The client secret from the same Hotjar API key pair; Hotjar API keys expire after one year." },
+      { "key": "HOTJAR_SITE_ID", "label": "Hotjar site ID", "secret": false, "required": true, "helpText": "The numeric ID of the one exact Hotjar site Relay may read." }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/hotjar/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "hotjar_read", "label": "Read surveys", "description": "Use three pinned API v1 GETs for one exact site with list sizes capped at 25 and respondent identity removed.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "hotjar_read", "label": "Read Hotjar surveys", "description": "Read bounded survey definitions and minimized survey responses for one exact site." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "hotjar_manage", "label": "Change Hotjar", "description": "User lookup, deletion requests, Identify and Events calls, survey changes, and every mutation are outside Relay's V1 contract." },
+      { "id": "hotjar_broad_identity", "label": "Read respondent identity", "description": "Hotjar user IDs, user attributes, recording links, origin URLs, browser, OS, country, window size, and more than 25 items are blocked." },
+      { "id": "hotjar_arbitrary_api", "label": "Call arbitrary Hotjar APIs", "description": "User-supplied hosts, paths, methods, bodies, and query fields are blocked." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "hotjar_safe", "label": "Safe", "description": "Three bounded survey reads run directly. Respondent identifiers and attributes, user lookup and deletion, recording and origin links, broad APIs, and every mutation remain blocked.", "defaultSelected": true, "allowedActions": ["hotjar_read"], "approvalRequiredActions": [], "blockedActions": ["hotjar_manage", "hotjar_broad_identity", "hotjar_arbitrary_api"] }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts one read tool with three pinned survey operations through encrypted customer client credentials." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts one read tool with three pinned survey operations through encrypted customer client credentials." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Hotjar Scale workspace, API key pair, exact site ID, representative survey responses, or safe fixture is available in this workspace.",
+    "nextAction": "A Hotjar administrator supplies an unexpired API client ID and secret plus one exact site ID through Relay Console, then verifies authentication, the three bounded survey reads, response minimization, agent assignment, key replacement, disconnect, provider-side rotation, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://help.hotjar.com/hc/en-us/articles/36820005914001-Hotjar-API-Reference", "checkedAt": "2026-07-17", "supports": "Hotjar documents the API v1 host, client-credentials token exchange, expiring API keys, Bearer authorization, pagination, rate limits, survey GET endpoints and response fields, plus mutating user lookup and deletion." },
+    { "url": "https://help.hotjar.com/hc/en-us/articles/36820033667729-How-to-Share-and-Export-Data", "checkedAt": "2026-07-17", "supports": "Hotjar documents API export of survey responses and distinguishes it from recording metadata exports and manual product exports." },
+    { "url": "https://help.hotjar.com/hc/en-us/articles/36820033755281-Webhooks-Reference", "checkedAt": "2026-07-17", "supports": "Hotjar documents the respondent, recording, origin, device, and survey metadata associated with survey responses, supporting Relay's minimization boundary." }
+  ]
+}

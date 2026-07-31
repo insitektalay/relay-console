@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "matomo-self-hosted",
+  "name": "Matomo Self-Hosted",
+  "category": "developer",
+  "description": "Matomo Self-Hosted is an open-source web analytics platform that organizations operate on infrastructure they control. Teams use it to measure visits, content performance, acquisition and aggregate audience geography while retaining authority over analytics data and deployment.",
+  "agentUseSummary": "Connect one public HTTPS Matomo installation with a dedicated POST-only token that has view permission only on one exact numeric site ID. Selected agents can read four fixed bounded aggregate reports under Safe or Dangerously skip permissions; tracking, visitor-level data, management, raw API methods, segments, private networks and unbounded export remain unavailable.",
+  "icon": {
+    "assetName": "marketplace-logo-matomo-self-hosted.ico",
+    "sourceUrl": "https://matomo.org/favicon.ico"
+  },
+  "provider": {
+    "websiteUrl": "https://matomo.org/matomo-on-premise/",
+    "docsUrl": "https://developer.matomo.org/api-reference/reporting-api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://matomo.org/terms/",
+    "privacyUrl": "https://matomo.org/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_token_auth", "post_only_auth_token", "public_https_self_hosted", "exact_site_id_binding", "server_side_encrypted_secret_injection"],
+    "credentialRequirements": [
+      {
+        "name": "MATOMO_SELF_HOSTED_INSTALLATION_URL",
+        "label": "Matomo installation URL",
+        "required": true,
+        "secret": false,
+        "helpText": "The public HTTPS root of one customer-operated Matomo installation. Private addresses, custom ports, redirects and embedded credentials are rejected."
+      },
+      {
+        "name": "MATOMO_SELF_HOSTED_TOKEN_AUTH",
+        "label": "Matomo auth token",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated token configured for POST requests only and a Matomo user with view permission only on the intended site. Relay sends it only in POST bodies."
+      },
+      {
+        "name": "MATOMO_SELF_HOSTED_SITE_ID",
+        "label": "Matomo site ID",
+        "required": true,
+        "secret": false,
+        "helpText": "One exact positive numeric idSite that the dedicated token may view."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "traffic_overview",
+      "label": "Traffic overview",
+      "description": "Read aggregate visit, engagement and traffic-source summaries for one exact site.",
+      "defaultSelected": true
+    },
+    {
+      "id": "content_performance",
+      "label": "Content performance",
+      "description": "Read at most twenty page paths with aggregate performance metrics and query strings removed.",
+      "defaultSelected": true
+    },
+    {
+      "id": "geography",
+      "label": "Aggregate geography",
+      "description": "Read at most twenty country-level aggregate traffic rows without visitor-level location data.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "matomo_self_hosted_summary", "label": "Read visit summary", "description": "Read bounded aggregate visit and engagement metrics for one fixed recent window." },
+      { "id": "matomo_self_hosted_top_pages", "label": "Read top pages", "description": "Read at most twenty page-path rows with bounded aggregate metrics and stripped query strings." },
+      { "id": "matomo_self_hosted_referrer_types", "label": "Read referrer types", "description": "Read at most twenty aggregate traffic-source type rows." },
+      { "id": "matomo_self_hosted_countries", "label": "Read countries", "description": "Read at most twenty country-level aggregate traffic rows." }
+    ],
+    "blocked": [
+      { "id": "matomo_self_hosted_tracking", "label": "Track visits or events", "description": "Tracking API calls, synthetic visits, ecommerce events and historical data injection are unavailable." },
+      { "id": "matomo_self_hosted_visitor_data", "label": "Read visitor-level data", "description": "Visits logs, visitor profiles, User IDs, IP addresses, device fingerprints, session recordings, heatmaps and raw event exports are unavailable." },
+      { "id": "matomo_self_hosted_management", "label": "Administer Matomo", "description": "Sites, users, roles, tokens, goals, funnels, segments, dashboards, reports, plugins, configuration, archiving and database management are unavailable." },
+      { "id": "matomo_self_hosted_raw_api", "label": "Call raw APIs", "description": "Agents cannot choose API modules, methods, segments, dates, site IDs, URLs, formats, filters or arbitrary request parameters." },
+      { "id": "matomo_self_hosted_private_network", "label": "Reach private infrastructure", "description": "Private, local, reserved, link-local, non-HTTPS and redirecting installation endpoints are unavailable; Relay never opens a tunnel or changes the web backend target." },
+      { "id": "matomo_self_hosted_unbounded_export", "label": "Export unbounded analytics", "description": "Reports use four fixed recent windows, tables are capped at twenty rows, and responses are capped at 256 KiB." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "matomo_self_hosted_safe",
+      "label": "Safe",
+      "description": "All private analytics reads require approval. Exact public installation and site binding, fixed POST-only methods, row and response bounds and audits always apply.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["matomo_self_hosted_summary", "matomo_self_hosted_top_pages", "matomo_self_hosted_referrer_types", "matomo_self_hosted_countries"],
+      "blockedActions": ["matomo_self_hosted_tracking", "matomo_self_hosted_visitor_data", "matomo_self_hosted_management", "matomo_self_hosted_raw_api", "matomo_self_hosted_private_network", "matomo_self_hosted_unbounded_export"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected aggregate reads run without Relay per-action approval; exact installation and site binding, fixed POST-only methods, bounds, redaction and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["matomo_self_hosted_summary", "matomo_self_hosted_top_pages", "matomo_self_hosted_referrer_types", "matomo_self_hosted_countries"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["matomo_self_hosted_tracking", "matomo_self_hosted_visitor_data", "matomo_self_hosted_management", "matomo_self_hosted_raw_api", "matomo_self_hosted_private_network", "matomo_self_hosted_unbounded_export"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway executes four fixed POST-only Matomo Reporting API reads against the exact public HTTPS installation and site ID, with SSRF protection, bounds and redaction."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway executes four fixed POST-only Matomo Reporting API reads against the exact public HTTPS installation and site ID, with SSRF protection, bounds and redaction."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer operates and secures a current Matomo On-Premise installation at a public HTTPS URL, creates a dedicated Matomo user with view permission only on the intended site, creates a token configured for POST requests only under Administration > Personal > Security > Auth tokens, and enters the installation URL, token and exact numeric site ID in Relay. Never reuse a Super User token."
+  },
+  "evidence": [
+    {
+      "url": "https://matomo.org/guide/installation-maintenance/matomo-on-premise-self-hosted/",
+      "checkedAt": "2026-07-18",
+      "supports": "Matomo documents On-Premise as a self-hosted analytics deployment operated on customer infrastructure, with installation, maintenance, security, updating, configuration and scaling responsibilities."
+    },
+    {
+      "url": "https://developer.matomo.org/guides/reporting-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Matomo documents token_auth as equivalent to login authority, recommends tokens valid only for POST requests, and recommends placing the token in the POST body rather than a shareable URL."
+    },
+    {
+      "url": "https://developer.matomo.org/api-reference/reporting-api",
+      "checkedAt": "2026-07-18",
+      "supports": "The official Reporting API documents exact idSite, period, date, JSON format, numeric metrics, filter_limit and separate broad management APIs; Relay fixes and bounds those parameters."
+    },
+    {
+      "url": "https://developer.matomo.org/api-reference/reporting-api-apiModule_apiAction-combinations",
+      "checkedAt": "2026-07-18",
+      "supports": "Matomo documents VisitsSummary.get, Actions.getPageUrls, Referrers.getReferrerType and UserCountry.getCountry as aggregate reporting methods with visit, page, acquisition and country metrics."
+    },
+    {
+      "url": "https://developer.matomo.org/guides/querying-the-reporting-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Matomo documents Reporting API calls against a customer's installation, authenticated access for private statistics and HTTPS to protect token_auth in transit."
+    }
+  ]
+}

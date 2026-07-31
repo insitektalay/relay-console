@@ -1,0 +1,7 @@
+export const HUBSPOT_ENDPOINT_FAMILIES = [
+  { id: "crm_objects", label: "CRM v3 Objects", docsUrl: "https://developers.hubspot.com/docs/api/crm/understanding-the-crm", guidance: "Use /crm/v3/objects/{contacts|companies|deals|tickets|notes|tasks|calls|meetings} for record reads, creates, updates, archive/delete, and batch operations." },
+  { id: "crm_search", label: "CRM Search", docsUrl: "https://developers.hubspot.com/docs/api/crm/search", guidance: "Use POST /crm/v3/objects/{objectType}/search with bounded filters, explicit properties, sort order, and paging; search is separately rate limited." },
+  { id: "properties_and_pipelines", label: "Properties and Pipelines", docsUrl: "https://developers.hubspot.com/docs/api/crm/properties", guidance: "Use properties and pipelines endpoints to resolve internal property names, allowed options, pipeline ids, deal stages, ticket statuses, and validation metadata before writes." },
+  { id: "associations", label: "Associations", docsUrl: "https://developers.hubspot.com/docs/api/crm/associations", guidance: "Use CRM v4 association labels/type ids and v3/v4 association endpoints to read or create contact-company-deal-ticket-activity relationships." },
+  { id: "owners_lists_webhooks", label: "Owners, Lists, and Webhooks", docsUrl: "https://developers.hubspot.com/docs/api/webhooks", guidance: "Use owners and lists endpoints for routing and segmentation reads; webhook subscription creation or callback changes require approval." },
+];

@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "macos-distribution-evidence.schema.json",
+  "title": "Relay Console macOS distribution evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "releaseId", "capturedAt", "candidate", "artifact",
+    "signing", "notarization", "gatekeeper"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.macos-distribution-evidence.v1" },
+    "releaseId": { "type": "string", "minLength": 1 },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "candidate": { "$ref": "#/$defs/candidate" },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fileName", "dmgSHA256", "dmgSizeBytes", "appVersion", "appBuild",
+        "bundleIdentifier", "minimumOS", "architectures", "mainExecutableSHA256",
+        "bridgeExecutableSHA256"
+      ],
+      "properties": {
+        "fileName": { "type": "string", "pattern": "^[^/]+\\.dmg$" },
+        "dmgSHA256": { "$ref": "#/$defs/sha256" },
+        "dmgSizeBytes": { "type": "integer", "minimum": 1 },
+        "appVersion": { "type": "string", "minLength": 1 },
+        "appBuild": { "type": "string", "minLength": 1 },
+        "bundleIdentifier": { "const": "com.relayconsole.app" },
+        "minimumOS": { "type": "string", "minLength": 1 },
+        "architectures": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["arm64", "x86_64"] }
+        },
+        "mainExecutableSHA256": { "$ref": "#/$defs/sha256" },
+        "bridgeExecutableSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "signing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode", "authority", "teamIdentifier", "appCDHash", "timestamped",
+        "hardenedRuntime", "nestedExecutablesVerified", "appVerified", "dmgVerified"
+      ],
+      "properties": {
+        "mode": { "const": "developer-id-hardened-runtime" },
+        "authority": { "type": "string", "pattern": "^Developer ID Application:" },
+        "teamIdentifier": { "$ref": "#/$defs/teamIdentifier" },
+        "appCDHash": { "type": "string", "pattern": "^[A-Fa-f0-9]{40,64}$" },
+        "timestamped": { "const": true },
+        "hardenedRuntime": { "const": true },
+        "nestedExecutablesVerified": { "const": true },
+        "appVerified": { "const": true },
+        "dmgVerified": { "const": true }
+      }
+    },
+    "notarization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "appSubmissionId", "appStatus", "appSubmissionSHA256",
+        "dmgSubmissionId", "dmgStatus", "dmgSubmissionSHA256",
+        "appStapleValidated", "dmgStapleValidated"
+      ],
+      "properties": {
+        "appSubmissionId": { "type": "string", "format": "uuid" },
+        "appStatus": { "const": "Accepted" },
+        "appSubmissionSHA256": { "$ref": "#/$defs/sha256" },
+        "dmgSubmissionId": { "type": "string", "format": "uuid" },
+        "dmgStatus": { "const": "Accepted" },
+        "dmgSubmissionSHA256": { "$ref": "#/$defs/sha256" },
+        "appStapleValidated": { "const": true },
+        "dmgStapleValidated": { "const": true }
+      }
+    },
+    "gatekeeper": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "appAccepted", "dmgAccepted", "quarantinedMountSignatureVerified",
+        "quarantinedMountGatekeeperAccepted"
+      ],
+      "properties": {
+        "appAccepted": { "const": true },
+        "dmgAccepted": { "const": true },
+        "quarantinedMountSignatureVerified": { "const": true },
+        "quarantinedMountGatekeeperAccepted": { "const": true }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "teamIdentifier": { "type": "string", "pattern": "^[A-Z0-9]{10}$" },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceCommit", "manifestSHA256"],
+      "properties": {
+        "sourceCommit": { "$ref": "#/$defs/commit" },
+        "manifestSHA256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

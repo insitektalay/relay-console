@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "servicenow",
+  "name": "ServiceNow",
+  "category": "work_management",
+  "description": "ServiceNow is a customer-configured workflow platform spanning IT, employee, customer, security, risk, operations, and custom applications. Each instance can contain different tables, fields, applications, scripts, flows, access controls, and data classifications.",
+  "agentUseSummary": "ServiceNow cannot yet be connected through Relay. The platform exposes instance-specific Table, Attachment, Import Set, scripted, and product APIs capable of reading and changing base, scoped, global, and custom records. Relay has no approved ServiceNow application, table, field, query, attachment, workflow, operation, or role contract from which to build bounded tools.",
+  "provider": {
+    "websiteUrl": "https://www.servicenow.com/",
+    "docsUrl": "https://www.servicenow.com/docs/r/api-reference/api-reference.html",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.servicenow.com/company/terms-of-use.html",
+    "privacyUrl": "https://www.servicenow.com/privacy-statement.html"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_instance_url_required",
+      "customer_oauth_entity_and_integration_user_required",
+      "instance_specific_roles_acls_and_api_policies",
+      "customer_specific_tables_fields_and_scopes",
+      "exact_application_table_and_operation_contract_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "servicenow_connect",
+        "label": "Connect ServiceNow",
+        "description": "A customer instance, approved authentication, dedicated integration user, OAuth entity, roles, ACLs, API scopes, and access policies are required."
+      },
+      {
+        "id": "servicenow_record_reads",
+        "label": "Read ServiceNow data",
+        "description": "Incidents, requests, changes, problems, assets, users, employees, customers, security records, attachments, knowledge, custom tables, and other records remain unavailable."
+      },
+      {
+        "id": "servicenow_record_mutations",
+        "label": "Change records or workflows",
+        "description": "Creating, updating, deleting, assigning, approving, rejecting, closing, importing, attaching, emailing, triggering flows, or otherwise changing records and workflows is blocked."
+      },
+      {
+        "id": "servicenow_admin_and_bulk",
+        "label": "Administer or bulk-process ServiceNow",
+        "description": "Tables, fields, applications, scripts, flows, users, roles, ACLs, OAuth entities, policies, imports, exports, and bulk extraction are blocked."
+      },
+      {
+        "id": "servicenow_raw_or_private_access",
+        "label": "Use raw or private interfaces",
+        "description": "Arbitrary Table API, encoded queries, scripted APIs, SOAP, sessions, cookies, browser automation, password capture, and privilege probing are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "servicenow_unavailable",
+      "label": "Unavailable",
+      "description": "No ServiceNow action is enabled without one exact application, table and field set, query, workflow, operation, role, and customer-control contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "servicenow_connect",
+        "servicenow_record_reads",
+        "servicenow_record_mutations",
+        "servicenow_admin_and_bulk",
+        "servicenow_raw_or_private_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No ServiceNow tools are mounted before instance-specific application, table, field, role, workflow, and access-policy boundaries are approved."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No ServiceNow tools are mounted before instance-specific application, table, field, role, workflow, and access-policy boundaries are approved."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "ServiceNow is a configurable enterprise application platform rather than one stable record product. Its APIs include generic Table CRUD, attachments, email, imports, transforms, product-specific endpoints, and customer-created scripted APIs. Endpoint discovery occurs inside the customer instance, and base, global, scoped, and custom tables can vary. Authorization is determined by the integration user's roles and ACLs, while OAuth scopes and API access policies require explicit instance configuration; a broad OAuth entity can otherwise reach APIs allowed to that user. A generic Table API wrapper would enable arbitrary queries and mutations across whatever sensitive operational, employee, customer, security, or custom data the tenant exposes.",
+    "nextAction": "Product, IT operations, application owners, legal, privacy, security, audit, and customer owners must select one bounded ServiceNow outcome and representative instance. Freeze the release, application scope, API version, tables, fields, encoded-query grammar, record populations, attachments, roles, ACLs, OAuth scopes, access policies, workflows, operations, approvals, retention, audit, and incident duties. A ServiceNow administrator must then create a dedicated least-privilege integration user and OAuth entity plus table, field, endpoint, method, and network policies. Only after that may Relay implement pinned typed wrappers with exact-host binding, strict fields, safe query construction, bounded pagination, approvals for mutations, idempotency, audit, and post-disable denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.servicenow.com/docs/r/api-reference/rest-api-explorer/c_RESTAPI.html",
+      "checkedAt": "2026-07-17",
+      "supports": "ServiceNow REST APIs support CRUD and instance-discovered endpoints; table and field access depends on customer web-service settings, roles, and ACLs."
+    },
+    {
+      "url": "https://www.servicenow.com/docs/r/api-reference/api-reference.html",
+      "checkedAt": "2026-07-17",
+      "supports": "The platform provides Table, Attachment, Email, product and custom scripted APIs that can access or update instance data."
+    },
+    {
+      "url": "https://www.servicenow.com/docs/r/platform-security/authentication/rest-api-auth-scope.html",
+      "checkedAt": "2026-07-17",
+      "supports": "OAuth REST API scopes require manual links to OAuth entities, and entities without a protective scope may reach other APIs allowed by the instance."
+    },
+    {
+      "url": "https://www.servicenow.com/docs/r/platform-security/authentication/create-api-access-policy.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Customer administrators can restrict specific API versions, resources, methods, applications, and Table API tables through instance policies."
+    },
+    {
+      "url": "https://www.servicenow.com/docs/r/application-development/c_ApplicationScope.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Customer applications have scoped tables and artifacts with configurable cross-application access, while global applications can alter unintended data."
+    }
+  ]
+}

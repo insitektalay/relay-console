@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "railway-release-configuration.schema.json",
+  "title": "Relay Console Railway release configuration evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "capturedAt", "status", "identity", "configuration",
+    "privacy"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.railway-release-configuration.v1" },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "status": { "enum": ["ready", "incomplete"] },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projectId", "environmentId", "environmentName", "serviceId",
+        "serviceName", "deploymentId", "sourceCommit",
+        "railwayTopologySHA256", "liveTopologyMatched"
+      ],
+      "properties": {
+        "projectId": { "type": "string", "minLength": 1 },
+        "environmentId": { "type": "string", "minLength": 1 },
+        "environmentName": { "const": "production" },
+        "serviceId": { "type": "string", "minLength": 1 },
+        "serviceName": { "const": "clawchat" },
+        "deploymentId": { "type": "string", "minLength": 1 },
+        "sourceCommit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "railwayTopologySHA256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "liveTopologyMatched": { "type": "boolean" }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "productionSafetyValidatorPassed", "nodeEnvironment",
+        "databaseConfigured", "redisConfigured", "canonicalOrigins",
+        "signup", "marketplace", "billing", "transactionalEmail",
+        "appleBilling", "destructiveSeedingDisabled"
+      ],
+      "properties": {
+        "productionSafetyValidatorPassed": { "type": "boolean" },
+        "nodeEnvironment": { "type": "string" },
+        "databaseConfigured": { "type": "boolean" },
+        "redisConfigured": { "type": "boolean" },
+        "canonicalOrigins": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["backend", "websocket", "web", "corsIncludesWeb"],
+          "properties": {
+            "backend": { "type": "boolean" },
+            "websocket": { "type": "boolean" },
+            "web": { "type": "boolean" },
+            "corsIncludesWeb": { "type": "boolean" }
+          }
+        },
+        "signup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "configured"],
+          "properties": {
+            "mode": { "enum": ["invite", "public", "unconfigured"] },
+            "configured": { "type": "boolean" }
+          }
+        },
+        "marketplace": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["betaGateEnabled", "cohortConfigured"],
+          "properties": {
+            "betaGateEnabled": { "type": "boolean" },
+            "cohortConfigured": { "type": "boolean" }
+          }
+        },
+        "billing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "enabled", "configured", "liveMode"],
+          "properties": {
+            "provider": { "const": "stripe" },
+            "enabled": { "type": "boolean" },
+            "configured": { "type": "boolean" },
+            "liveMode": { "type": "boolean" }
+          }
+        },
+        "transactionalEmail": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["provider", "enabled", "configured"],
+          "properties": {
+            "provider": { "const": "resend" },
+            "enabled": { "type": "boolean" },
+            "configured": { "type": "boolean" }
+          }
+        },
+        "appleBilling": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "configured", "bundleIdentifierMatches"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "configured": { "type": "boolean" },
+            "bundleIdentifierMatches": { "type": "boolean" }
+          }
+        },
+        "destructiveSeedingDisabled": { "type": "boolean" }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["variableNamesIncluded", "secretValuesIncluded"],
+      "properties": {
+        "variableNamesIncluded": { "const": false },
+        "secretValuesIncluded": { "const": false }
+      }
+    }
+  }
+}

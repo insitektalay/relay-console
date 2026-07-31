@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "zoho",
+  "name": "Zoho CRM",
+  "category": "crm_support",
+  "description": "Zoho CRM is a customer relationship management platform for organizing companies, leads, contacts, deals, sales activity, automation, and reporting. Sales teams use it to manage account relationships, follow opportunities through pipelines, and coordinate work from first inquiry to close.",
+  "agentUseSummary": "Connect one environment-specific Zoho CRM organization through Relay Console OAuth, then let agents use three bounded read-only tools for Account and Deal summaries. V1 excludes leads and contacts, personal details, activities, notes and files, custom fields and modules, writes, searches, COQL, GraphQL, arbitrary parameters, pagination, bulk APIs, exports, and raw API access.",
+  "provider": {
+    "websiteUrl": "https://www.zoho.com/crm/",
+    "docsUrl": "https://www.zoho.com/crm/developer/docs/api/v8/",
+    "developerConsoleUrl": "https://api-console.zoho.com/",
+    "termsUrl": "https://www.zoho.com/terms.html",
+    "privacyUrl": "https://www.zoho.com/privacy.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["ZohoCRM.modules.accounts.READ", "ZohoCRM.modules.deals.READ", "ZohoCRM.org.READ", "ZohoCRM.users.READ"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.zoho.com/oauth/v2/auth",
+    "tokenUrl": "https://accounts.zoho.com/oauth/v2/token",
+    "revocationUrl": "https://accounts.zoho.com/oauth/v2/token/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_server_app_oauth", "organization_specific_grant", "exact_organization_binding", "exact_authorizing_user_binding", "regional_accounts_and_api_domain_binding", "authorizing_user_permission_inheritance"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/zoho/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "account_read", "label": "Read accounts", "description": "List bounded Account summaries from the exact connected Zoho CRM organization.", "defaultSelected": true },
+    { "id": "deal_read", "label": "Read deals", "description": "List bounded Deal summaries or inspect one exact Deal.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "zoho_account_list", "label": "List accounts", "description": "List at most twenty-five bounded Zoho CRM Account summaries." },
+      { "id": "zoho_deal_list", "label": "List deals", "description": "List at most twenty-five bounded Zoho CRM Deal summaries." },
+      { "id": "zoho_deal_get", "label": "Read deal", "description": "Read one exact Zoho CRM Deal by positive numeric ID." }
+    ],
+    "blocked": [
+      { "id": "zoho_record_mutation", "label": "Change CRM records", "description": "Creating, updating, converting, merging, sharing, archiving, restoring, or deleting Zoho CRM records is outside V1." },
+      { "id": "zoho_private_crm", "label": "Read personal CRM data", "description": "Leads, Contacts, users other than the connected user, email, phone, addresses, activities, notes, files, participants, and followers are outside V1." },
+      { "id": "zoho_broader_crm", "label": "Access broader CRM data", "description": "Campaigns, cases, products, quotes, orders, invoices, forecasts, territories, metadata, custom modules, and related lists are outside V1." },
+      { "id": "zoho_raw_query", "label": "Run arbitrary searches or queries", "description": "Arbitrary modules, paths, fields, queries, searches, COQL, GraphQL, custom views, filters, and raw API access are outside V1." },
+      { "id": "zoho_bulk_export", "label": "Export CRM data", "description": "Automatic pagination, bulk APIs, synchronization, notifications, and broad exports are outside V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "zoho_safe", "label": "Safe", "description": "All three bounded reads require matching approval.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["zoho_account_list", "zoho_deal_list", "zoho_deal_get"], "blockedActions": ["zoho_record_mutation", "zoho_private_crm", "zoho_broader_crm", "zoho_raw_query", "zoho_bulk_export"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All three selected read-only tools run without Relay per-action approval while exact-organization binding, Zoho-granted permissions, regional origins, static requests, limits, audit, redaction, refresh, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["zoho_account_list", "zoho_deal_list", "zoho_deal_get"], "approvalRequiredActions": [], "blockedActions": ["zoho_record_mutation", "zoho_private_crm", "zoho_broader_crm", "zoho_raw_query", "zoho_bulk_export"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts three bounded Zoho CRM read wrappers and attaches the encrypted organization token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts three bounded Zoho CRM read wrappers and attaches the encrypted organization token server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Relay's Zoho server-based application, exact callback, Multi DC support with shared credentials, staging client credentials, and representative Zoho CRM organization are not configured in this code-only task.",
+    "nextAction": "In the provider-console task, create a Relay Console server-based application, register https://api.relayconsole.work/api/v1/marketplace/oauth/zoho/callback, enable every required Zoho data center with shared credentials, configure the four exact read scopes and Railway staging credentials, then verify organization choice, regional binding, all three reads, refresh, revocation, permission denial, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://www.zoho.com/crm/developer/docs/api/v8/auth-request.html", "checkedAt": "2026-07-17", "supports": "Zoho CRM uses organization-specific authorization codes, permits the user to select a production, sandbox, or developer organization, and returns location and Accounts-server authority for regional token exchange." },
+    { "url": "https://www.zoho.com/accounts/protocol/oauth/web-server-applications.html", "checkedAt": "2026-07-17", "supports": "Server-based applications are confidential authorization-code clients with optional PKCE, one-hour access tokens, offline refresh tokens, Multi DC support, and programmatic token revocation." },
+    { "url": "https://www.zoho.com/accounts/protocol/oauth/multi-dc.html", "checkedAt": "2026-07-17", "supports": "Global clients enable Multi DC in the API console, may share credentials across enabled data centers, and must use callback location, regional Accounts servers, and token-returned API domains." },
+    { "url": "https://www.zoho.com/crm/developer/docs/api/v8/scopes.html", "checkedAt": "2026-07-17", "supports": "Zoho CRM supports separate per-module READ scopes and comma-delimited multiple scopes; Relay requests only Accounts, Deals, organization, and current-user reads." },
+    { "url": "https://www.zoho.com/crm/developer/docs/api/v8/get-records.html", "checkedAt": "2026-07-17", "supports": "API v8 supports fixed module record listing and exact record retrieval with explicit fields, page size, page, and sorting; Relay fixes all parameters and does not paginate." },
+    { "url": "https://www.zoho.com/crm/developer/docs/api/v8/get-org-data.html", "checkedAt": "2026-07-17", "supports": "The organization endpoint returns an exact CRM organization ID, company name, and environment type under ZohoCRM.org.READ for connection binding." },
+    { "url": "https://www.zoho.com/crm/developer/docs/api/v8/get-users.html", "checkedAt": "2026-07-17", "supports": "The Users endpoint supports type CurrentUser under ZohoCRM.users.READ for exact authorizing-user binding." },
+    { "url": "https://www.zoho.com/crm/developer/docs/api/v8/revoke-tokens.html", "checkedAt": "2026-07-17", "supports": "Zoho revokes an organization-specific refresh token through the domain-specific Accounts token-revocation endpoint." }
+  ]
+}

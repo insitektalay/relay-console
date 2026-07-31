@@ -1,0 +1,208 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "streak",
+  "name": "Streak",
+  "category": "crm_support",
+  "description": "Streak is a customer relationship management platform built into Gmail. Teams use pipelines, stages, boxes, custom fields, contacts, tasks, notes, email sharing, automation, and reports to manage sales and other business processes alongside their inbox.",
+  "agentUseSummary": "Create one dedicated Streak API key and let agents use four approval-gated bounded reads for the key-bound user, one exact Pipeline, and first-page or exact Box summaries. Relay excludes contacts, organizations, collaborators, communications, notes, custom fields, activity content, writes, arbitrary APIs, hosted MCP passthrough, pagination, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.streak.com/",
+    "docsUrl": "https://streak.readme.io/docs/authentication",
+    "developerConsoleUrl": "https://support.streak.com/en/articles/2612883-get-your-streak-api-key",
+    "termsUrl": "https://www.streak.com/terms",
+    "privacyUrl": "https://www.streak.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_user_api_key",
+      "http_basic_authentication",
+      "exact_api_key_user_binding",
+      "authorizing_user_permission_inheritance"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "STREAK_API_KEY",
+        "label": "Streak API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Create a dedicated key under Streak Integrations > Custom Integrations. It inherits the user's privileges; Relay stores it encrypted and never returns it to agents."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "user_read",
+      "label": "Read current user",
+      "description": "Read bounded identity metadata for the exact API-key-bound user.",
+      "defaultSelected": true
+    },
+    {
+      "id": "pipeline_read",
+      "label": "Read pipelines",
+      "description": "Inspect one exact Pipeline and list or inspect bounded Box summaries without people, communication, notes, custom fields, or activity content.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "streak_user_get",
+        "label": "Read current user",
+        "description": "Read the exact API-key-bound Streak user."
+      },
+      {
+        "id": "streak_pipeline_get",
+        "label": "Read pipeline",
+        "description": "Read one exact bounded Pipeline summary by key."
+      },
+      {
+        "id": "streak_box_list",
+        "label": "List boxes",
+        "description": "List at most twenty-five bounded Box summaries from page zero of one exact Pipeline."
+      },
+      {
+        "id": "streak_box_get",
+        "label": "Read box",
+        "description": "Read one exact bounded Box summary by key."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "streak_record_mutation",
+        "label": "Change Streak data",
+        "description": "Creating, updating, moving, assigning, relating, bulk-changing, or deleting Streak records is outside V1."
+      },
+      {
+        "id": "streak_private_crm",
+        "label": "Read private CRM data",
+        "description": "Contacts, organizations, ACL members, owners, assignees, email addresses, phone numbers, custom fields, notes, tasks, files, threads, comments, meetings, timelines, and newsfeed content are outside V1."
+      },
+      {
+        "id": "streak_broader_product",
+        "label": "Access broader Streak data",
+        "description": "Teams, stages, fields, snippets, webhooks, automations, mail merge, Gmail content, integrations, and administration are outside V1."
+      },
+      {
+        "id": "streak_raw_api",
+        "label": "Call arbitrary Streak APIs",
+        "description": "Arbitrary paths, methods, searches, filters, stage selection, pages, payloads, and raw REST or MCP access are outside V1."
+      },
+      {
+        "id": "streak_bulk_export",
+        "label": "Export Streak data",
+        "description": "All-pipeline enumeration, automatic pagination, crawling, synchronization, batch APIs, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "streak_safe",
+      "label": "Safe",
+      "description": "All four bounded private CRM reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "streak_user_get",
+        "streak_pipeline_get",
+        "streak_box_list",
+        "streak_box_get"
+      ],
+      "blockedActions": [
+        "streak_record_mutation",
+        "streak_private_crm",
+        "streak_broader_product",
+        "streak_raw_api",
+        "streak_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All four selected read-only tools run without Relay per-action approval while exact user and resource binding, fixed paths and fields, provider permissions, limits, audits, redaction, and API-key isolation remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "streak_user_get",
+        "streak_pipeline_get",
+        "streak_box_list",
+        "streak_box_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "streak_record_mutation",
+        "streak_private_crm",
+        "streak_broader_product",
+        "streak_raw_api",
+        "streak_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded approval-gated Streak reads and attaches the encrypted API key only on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts four bounded approval-gated Streak reads and attaches the encrypted API key only on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Streak account or dedicated API key is available in this workspace.",
+    "nextAction": "In the provider-console task, the intended least-privilege Streak user creates a dedicated Custom Integration key, stores it through Relay, then validates exact-user binding, bounded Pipeline and Box reads, approvals, permission denial, key deletion and rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://streak.readme.io/docs/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Streak documents HTTPS Basic authentication with the API key as username and no password, warns that each key inherits all privileges of its user, and supports deleting and recreating keys."
+    },
+    {
+      "url": "https://streak.readme.io/reference/get-current-user",
+      "checkedAt": "2026-07-18",
+      "supports": "The fixed GET /api/v1/users/me endpoint returns the exact user associated with the API key."
+    },
+    {
+      "url": "https://streak.readme.io/reference/getting-a-specific-pipeline",
+      "checkedAt": "2026-07-18",
+      "supports": "Streak documents an exact-key Pipeline read; Relay strips embedded stages, fields, owners, and ACL entries."
+    },
+    {
+      "url": "https://streak.readme.io/reference/list-all-boxes-in-pipeline",
+      "checkedAt": "2026-07-18",
+      "supports": "Streak documents page, limit, and fixed descending sort parameters for Pipeline Box lists; Relay pins page zero and limits results to twenty-five."
+    },
+    {
+      "url": "https://streak.readme.io/reference/get-a-box",
+      "checkedAt": "2026-07-18",
+      "supports": "Streak documents an exact-key Box read; Relay returns only key, name, Pipeline/Stage keys, and lifecycle timestamps."
+    },
+    {
+      "url": "https://www.streak.com/integrations/mcp",
+      "checkedAt": "2026-07-18",
+      "supports": "Streak also publishes an OAuth-protected hosted MCP that can read and mutate CRM data; Relay V1 does not pass through its broad dynamic surface."
+    },
+    {
+      "url": "https://www.streak.com/terms",
+      "checkedAt": "2026-07-18",
+      "supports": "Streak publishes service terms; Relay uses only customer-authorized documented API access and does not create accounts or credentials."
+    }
+  ]
+}

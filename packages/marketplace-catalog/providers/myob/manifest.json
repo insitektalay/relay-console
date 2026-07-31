@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "myob",
+  "name": "MYOB",
+  "category": "commerce_payments",
+  "description": "MYOB Business is cloud business and accounting software for small and midsize organizations in Australia and New Zealand. It supports company files, accounting, sales, purchases, banking, payroll, inventory, contacts, reporting, and business administration.",
+  "agentUseSummary": "Connect one exact MYOB company file through a customer-owned confidential OAuth application, the callback businessId, and a dedicated company-file credential token. Agents may use two approval-gated reads for bounded company-file product and API capability metadata. Relay pins the cloud origin and API v2 headers, requires only sme-company-file, caps API resources at twenty-five, and excludes company settings, people, accounting records, financial data, broader product surfaces, writes, arbitrary APIs, pagination, downloads, and exports.",
+  "provider": {
+    "websiteUrl": "https://www.myob.com/",
+    "docsUrl": "https://developer.myob.com/api/myob-business-api/",
+    "developerConsoleUrl": "https://my.myob.com.au/",
+    "termsUrl": "https://www.myob.com/au/terms",
+    "privacyUrl": "https://www.myob.com/au/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2_authorization_code",
+    "relayOwned": false,
+    "scopes": ["sme-company-file"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://secure.myob.com/oauth2/account/authorize",
+    "tokenUrl": "https://secure.myob.com/oauth2/v1/authorize",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_confidential_oauth_application",
+      "railway_callback_only",
+      "callback_business_id_binding",
+      "dedicated_company_file_user",
+      "company_file_credential_header",
+      "rotating_refresh_token_storage"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "MYOB_CLIENT_ID",
+        "label": "MYOB API key / OAuth client ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Use the API key from a customer-owned MYOB application registered with Relay's exact Railway callback."
+      },
+      {
+        "key": "MYOB_CLIENT_SECRET",
+        "label": "MYOB API secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Store the matching customer-owned API secret only through Relay's encrypted OAuth boundary."
+      },
+      {
+        "key": "MYOB_COMPANY_FILE_TOKEN",
+        "label": "Company file credential token",
+        "secret": true,
+        "required": true,
+        "helpText": "Enter Base64(username:password) for a dedicated least-privilege company-file user with access to the file selected during consent."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/connectors/myob/oauth/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "company_file_metadata_read",
+      "label": "Read company file metadata",
+      "description": "Read bounded product, availability, API build, and endpoint-version metadata for one exact company file without company settings, accounting records, people, or writes.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "myob_company_file_get",
+        "label": "Read company file",
+        "description": "Read one bounded product and availability summary for the exact consent-selected MYOB company file."
+      },
+      {
+        "id": "myob_api_info_get",
+        "label": "Read API capabilities",
+        "description": "Read the API build and at most twenty-five endpoint-version summaries for the exact company file."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "myob_record_mutation",
+        "label": "Change MYOB data",
+        "description": "Creating, updating, deleting, posting, reversing, importing, or otherwise changing MYOB records is outside V1."
+      },
+      {
+        "id": "myob_private_business_data",
+        "label": "Read private business data",
+        "description": "Contacts, customers, suppliers, employees, personal cards, addresses, communications, files, notes, and custom data are outside V1."
+      },
+      {
+        "id": "myob_financial_and_broader_product",
+        "label": "Access financial or broader MYOB data",
+        "description": "Company settings, accounts, balances, journals, sales, purchases, banking, payroll, time billing, inventory, tax, reports, and administration are outside V1."
+      },
+      {
+        "id": "myob_raw_api",
+        "label": "Call arbitrary MYOB APIs",
+        "description": "Other origins, company files, scopes, endpoints, fields, filters, ordering, skips, methods, versions, conditional requests, and raw API calls are outside V1."
+      },
+      {
+        "id": "myob_bulk_export",
+        "label": "Export MYOB data",
+        "description": "Automatic pagination, following provider links, polling, crawling, synchronization, downloads, imports, batch operations, and broad exports are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "myob_safe",
+      "label": "Safe",
+      "description": "Both private company-file metadata reads require approval.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["myob_company_file_get", "myob_api_info_get"],
+      "blockedActions": [
+        "myob_record_mutation",
+        "myob_private_business_data",
+        "myob_financial_and_broader_product",
+        "myob_raw_api",
+        "myob_bulk_export"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Both selected read-only tools run without Relay per-action approval while exact app, token, company-file, scope, origin, path, version, field, limit, redaction, audit, and provider-permission boundaries remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["myob_company_file_get", "myob_api_info_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "myob_record_mutation",
+        "myob_private_business_data",
+        "myob_financial_and_broader_product",
+        "myob_raw_api",
+        "myob_bulk_export"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded approval-gated MYOB company-file metadata reads and keeps OAuth and company-file credentials on Railway."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts two bounded approval-gated MYOB company-file metadata reads and keeps OAuth and company-file credentials on Railway."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned MYOB developer application, exact Railway callback registration, client credential pair, API key, dedicated least-privilege company-file user, Base64 company-file credential token, sme-company-file consent, rotating refresh token, or live acceptance evidence is available in this workspace.",
+    "nextAction": "In the provider-console task, create or select a customer-owned MYOB application, register Relay's exact Railway callback, issue its client credentials, create a dedicated least-privilege company-file user, prepare the Base64 company-file credential token, grant only sme-company-file, store all values through Relay, then validate callback state and businessId binding, rotating refresh persistence, exact company-file validation, bounded reads, Safe approvals, representative Dangerous reads, permission denial, secret and token rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.myob.com/api/myob-business-api/",
+      "checkedAt": "2026-07-18",
+      "supports": "MYOB documents the Business API for AccountRight, Essentials, and MYOB Business company files."
+    },
+    {
+      "url": "https://developer.myob.com/api/myob-business-api/api-overview/authentication/",
+      "checkedAt": "2026-07-18",
+      "supports": "MYOB documents authorization-code OAuth, its authorization and token endpoints, rotating refresh responses, callback businessId, and cloud company-file authentication."
+    },
+    {
+      "url": "https://developer.myob.com/api/myob-business-api/api-overview/headers/",
+      "checkedAt": "2026-07-18",
+      "supports": "MYOB documents the bearer, x-myobapi-key, x-myobapi-version v2, and Base64 x-myobapi-cftoken headers used for cloud calls."
+    },
+    {
+      "url": "https://developer.myob.com/api/myob-business-api/api-overview/scopes/sme-company-file/",
+      "checkedAt": "2026-07-18",
+      "supports": "MYOB documents sme-company-file as the granular read scope for company-file metadata, including the root and Info resources used by Relay."
+    },
+    {
+      "url": "https://developer.myob.com/api/myob-business-api/v2/company-files/",
+      "checkedAt": "2026-07-18",
+      "supports": "MYOB documents company-file identity, product, country, availability, and URI fields; Relay preserves only a bounded non-sensitive subset."
+    },
+    {
+      "url": "https://developer.myob.com/api/myob-business-api/v2/info/",
+      "checkedAt": "2026-07-18",
+      "supports": "MYOB documents the Info build and resource-version metadata; Relay caps the returned resources and never follows provider links."
+    }
+  ]
+}

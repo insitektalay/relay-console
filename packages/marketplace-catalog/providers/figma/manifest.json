@@ -1,0 +1,187 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "figma",
+  "name": "Figma",
+  "category": "content_creative",
+  "description": "Figma is a collaborative product-design platform for interface design, prototyping, design systems, developer handoff, and feedback. Teams use shared files, components, variables, comments, projects, libraries, and webhooks to take digital products from early concepts to production specifications.",
+  "agentUseSummary": "Connect a Figma account once, then let agents inspect authorized designs, projects and libraries, work with comments, variables and developer resources, or manage webhooks under Safe or Dangerous policy. Figma's external REST API does not edit canvas nodes; those changes require a plugin running inside Figma.",
+  "provider": {
+    "websiteUrl": "https://www.figma.com/",
+    "docsUrl": "https://developers.figma.com/docs/rest-api/",
+    "developerConsoleUrl": "https://www.figma.com/developers/apps",
+    "termsUrl": "https://www.figma.com/legal/tos/",
+    "privacyUrl": "https://www.figma.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "current_user:read",
+      "file_content:read",
+      "file_metadata:read",
+      "file_comments:read",
+      "file_comments:write",
+      "file_versions:read",
+      "file_dev_resources:read",
+      "file_dev_resources:write",
+      "file_variables:read",
+      "file_variables:write",
+      "library_assets:read",
+      "library_content:read",
+      "team_library_content:read",
+      "project_metadata:read",
+      "projects:read",
+      "selections:read",
+      "webhooks:read",
+      "webhooks:write"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.figma.com/oauth",
+    "tokenUrl": "https://api.figma.com/v1/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/figma/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "design_read",
+      "label": "Read design files",
+      "description": "Read bounded file metadata, node trees, selected nodes, renders, image fills, versions, selections, comments, and reactions for files the user can access.",
+      "defaultSelected": true
+    },
+    {
+      "id": "project_library_read",
+      "label": "Read projects and libraries",
+      "description": "List selected teams, projects, project files, published components, component sets, styles, and library content.",
+      "defaultSelected": true
+    },
+    {
+      "id": "comment_management",
+      "label": "Manage comments and reactions",
+      "description": "Post, reply to, delete, and react to comments on explicit files.",
+      "defaultSelected": true
+    },
+    {
+      "id": "developer_handoff",
+      "label": "Manage developer resources",
+      "description": "Read, create, update, and delete developer links attached to explicit nodes.",
+      "defaultSelected": true
+    },
+    {
+      "id": "variable_management",
+      "label": "Manage variables",
+      "description": "Read and change variables and collections where the connected Enterprise account and file permissions allow it.",
+      "defaultSelected": true
+    },
+    {
+      "id": "webhook_management",
+      "label": "Manage webhooks",
+      "description": "Create, inspect, update, and delete Figma webhooks for explicit team, project, or file contexts.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "figma_api_read",
+        "label": "Read Figma design data",
+        "description": "Use any selected bounded Figma read operation for files, projects, libraries, comments, versions, variables, dev resources, or webhooks."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "figma_api_write",
+        "label": "Change supported Figma resources",
+        "description": "Post or delete comments and reactions, manage variables, dev resources, or webhooks; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "figma_canvas_write",
+        "label": "Edit the design canvas remotely",
+        "description": "Figma's external REST API does not create, move, resize, restyle, or delete canvas nodes; canvas editing requires a plugin running inside Figma."
+      },
+      {
+        "id": "figma_enterprise_governance",
+        "label": "Run enterprise governance APIs",
+        "description": "Organization activity, discovery, developer-log, AI-metering, SCIM, payment, and library-analytics administration are outside this user design-workflow connection."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "figma_safe",
+      "label": "Safe",
+      "description": "Design, project, library, comment, variable, dev-resource, and webhook reads run directly; every supported mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["figma_api_read"],
+      "approvalRequiredActions": ["figma_api_write"],
+      "blockedActions": ["figma_canvas_write", "figma_enterprise_governance"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected OAuth-authorized Figma REST operation runs without Relay per-action approval; fixed origins, exact routes, request bounds, audits, redaction, provider permissions, plan restrictions, and the absence of a remote canvas-write API still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["figma_api_read", "figma_api_write"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["figma_canvas_write", "figma_enterprise_governance"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts exact Figma REST wrappers and attaches the user's OAuth token without exposing it to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts exact Figma REST wrappers and attaches the user's OAuth token without exposing it to the agent."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's Figma OAuth app has not been confirmed as a published public app with the Figma callback and eighteen selected granular scopes, so production client credentials, provider review, and end-user authorization are not yet verified.",
+    "nextAction": "A Figma team or organization admin creates or updates Relay Console in My Apps, adds the exact production Figma callback and eighteen granular scopes, submits the public app for review, stores the client ID and secret in Railway, then runs OAuth, refresh, bounded reads, Safe mutation denial, approved or Dangerous mutation, disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.figma.com/docs/rest-api/oauth-apps/",
+      "checkedAt": "2026-07-16",
+      "supports": "Figma documents public OAuth apps for platforms serving users, exact redirect URLs, public review, browser-based authorization, S256 PKCE, HTTP Basic token exchange, reusable refresh tokens, and the current token endpoint."
+    },
+    {
+      "url": "https://developers.figma.com/docs/rest-api/scopes/",
+      "checkedAt": "2026-07-16",
+      "supports": "Figma documents granular user, file, project, library, comments, versions, variables, dev-resource, selection, and webhook scopes, with provider-side file, plan, and role permissions remaining authoritative."
+    },
+    {
+      "url": "https://developers.figma.com/docs/rest-api/file-endpoints/",
+      "checkedAt": "2026-07-16",
+      "supports": "Figma's file endpoints return bounded metadata, document nodes, selected nodes, renders, image fills, and editor information for files the connected user can access."
+    },
+    {
+      "url": "https://developers.figma.com/docs/rest-api/comments-endpoints/",
+      "checkedAt": "2026-07-16",
+      "supports": "Figma documents read, post, reply, delete, reaction, and reaction-removal operations for comments on explicit files."
+    },
+    {
+      "url": "https://developers.figma.com/docs/rest-api/webhooks/",
+      "checkedAt": "2026-07-16",
+      "supports": "Figma Webhooks V2 supports explicit team, project, and file contexts with provider permission and plan limits."
+    },
+    {
+      "url": "https://developers.figma.com/docs/rest-api/changelog/",
+      "checkedAt": "2026-07-16",
+      "supports": "Figma's changelog directs OAuth refresh traffic to the token endpoint and documents the current context-based Webhooks V2 and granular-scope changes."
+    }
+  ]
+}

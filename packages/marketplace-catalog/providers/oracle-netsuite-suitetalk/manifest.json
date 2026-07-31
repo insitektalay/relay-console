@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "oracle-netsuite-suitetalk",
+  "name": "Oracle NetSuite SuiteTalk",
+  "category": "commerce_payments",
+  "description": "Oracle NetSuite SuiteTalk provides integration interfaces for account-specific ERP records, metadata, queries, datasets, actions, transforms, and customizations. Each NetSuite account can expose different roles, subsidiaries, forms, custom records, custom fields, and business processes.",
+  "agentUseSummary": "Oracle NetSuite SuiteTalk cannot yet be connected through Relay. REST Web Services supports CRUD, record actions and transforms, metadata, SuiteQL, and customer-specific records and fields against an account-specific domain. Relay has no approved record, field, subsidiary, transaction, query, mutation, or financial-control contract from which to build bounded tools.",
+  "provider": {
+    "websiteUrl": "https://www.netsuite.com/",
+    "docsUrl": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/chapter_1540391670.html",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.oracle.com/legal/terms.html",
+    "privacyUrl": "https://www.oracle.com/legal/privacy/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_account_specific_domain_required",
+      "customer_integration_record_required",
+      "customer_role_and_permissions_required",
+      "customer_specific_record_metadata",
+      "exact_record_field_and_operation_contract_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "netsuite_connect",
+        "label": "Connect NetSuite SuiteTalk",
+        "description": "A customer account-specific domain, enabled SuiteCloud features, accepted terms, integration record, authentication method, users, roles, and permissions are required."
+      },
+      {
+        "id": "netsuite_record_reads",
+        "label": "Read NetSuite records",
+        "description": "Customers, vendors, employees, transactions, financials, inventory, projects, files, custom records, custom fields, datasets, and other account data remain unavailable."
+      },
+      {
+        "id": "netsuite_record_mutations",
+        "label": "Change records or transactions",
+        "description": "Creating, updating, deleting, transforming, approving, posting, fulfilling, paying, refunding, closing, or otherwise changing NetSuite records and transactions is blocked."
+      },
+      {
+        "id": "netsuite_raw_query_and_admin",
+        "label": "Use raw queries or administration",
+        "description": "Arbitrary SuiteQL, record metadata, raw REST, RESTlets, SOAP, datasets, scripts, files, roles, permissions, integrations, customizations, and bulk extraction are blocked."
+      },
+      {
+        "id": "netsuite_private_or_credential_access",
+        "label": "Use private or credential-based access",
+        "description": "Browser automation, password or session capture, unapproved tokens, constructed account domains, privilege probing, and undocumented interfaces are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "netsuite_unavailable",
+      "label": "Unavailable",
+      "description": "No NetSuite action is enabled without one exact account, business outcome, record and field set, subsidiary boundary, role, query, operation, and financial-control contract.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "netsuite_connect",
+        "netsuite_record_reads",
+        "netsuite_record_mutations",
+        "netsuite_raw_query_and_admin",
+        "netsuite_private_or_credential_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No NetSuite tools are mounted before account-specific data, role, subsidiary, operation, and financial-control boundaries are approved."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No NetSuite tools are mounted before account-specific data, role, subsidiary, operation, and financial-control boundaries are approved."
+    }
+  ],
+  "availability": "product_decision_required",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Oracle's SuiteTalk REST Web Services is an account-specific ERP integration surface, not one stable consumer API. It can discover customer and company-specific metadata, CRUD records, execute record actions and transforms, run datasets, and execute arbitrary SuiteQL over records. Each account has its own service domain, enabled features, integration records, roles, permissions, forms, subsidiaries, custom records, custom fields, and workflows. OAuth 2.0 or token-based authentication does not provide a safe generic boundary, and Oracle requires customers to enable REST Web Services and accept SuiteCloud terms. A generic wrapper could expose or mutate financial, commercial, employee, inventory, file, and administrative data without a defined purpose or control model.",
+    "nextAction": "Product, finance, accounting, legal, privacy, security, audit, and customer owners must select one bounded NetSuite outcome and representative account. Freeze the environment and account domain, records, fields, joins, subsidiaries, currencies, periods, roles, permissions, queries, actions, transforms, mutations, approvals, segregation-of-duties controls, monetary limits, idempotency, retention, audit, reconciliation, and incident duties. A NetSuite administrator must then enable only required features and create a dedicated least-privilege integration record and role. Only after that may Relay implement pinned typed wrappers with strict field selection, bounded pagination, parameterized queries, approvals for every mutation, audit, reconciliation, and post-disable denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/chapter_1540391670.html",
+      "checkedAt": "2026-07-17",
+      "supports": "SuiteTalk REST Web Services supports metadata, CRUD, record actions and transforms, datasets, and SuiteQL, including customer-specific records and fields."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/article_5085602973.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Customers must enable REST Web Services, accept SuiteCloud terms, and assign REST, access-token, and analytics permissions to appropriate roles."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_1498251763.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Every production, sandbox, and release-preview account has a unique account-specific domain that clients must obtain from the account rather than construct."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/chapter_4369651411.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Oracle documents OAuth 2.0 and token-based authentication for REST Web Services and advises against storing user credentials."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/section_157909186990.html",
+      "checkedAt": "2026-07-17",
+      "supports": "SuiteQL can query NetSuite records through REST with dynamic SQL-like requests and account-specific record catalog metadata."
+    },
+    {
+      "url": "https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/article_0320025211.html",
+      "checkedAt": "2026-07-17",
+      "supports": "API access depends on roles and permissions for forms, sublists, fields, and other account components in addition to the main service permissions."
+    }
+  ]
+}

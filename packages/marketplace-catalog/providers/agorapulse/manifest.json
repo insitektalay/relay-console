@@ -1,0 +1,197 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "agorapulse",
+  "name": "Agorapulse",
+  "category": "communication",
+  "description": "Agorapulse is a social media management platform for publishing, engagement, listening, collaboration, and performance reporting across connected social profiles.",
+  "agentUseSummary": "Add a customer-generated API key from an Open API-enabled Custom plan, bind it to one exact organization and workspace, and let agents inspect bounded profile references and aggregate analytics through four approval-gated tools.",
+  "provider": {
+    "websiteUrl": "https://www.agorapulse.com/",
+    "docsUrl": "https://api.agorapulse.com/docs",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.agorapulse.com/terms-of-service/",
+    "privacyUrl": "https://www.agorapulse.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "bearer_authentication",
+      "exact_organization_workspace_binding",
+      "fixed_api_origin",
+      "provider_managed_key_revocation"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "AGORAPULSE_API_KEY",
+        "label": "Agorapulse API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a dedicated key in Personal settings > API Keys. Relay encrypts it and sends it only to the fixed Agorapulse API origin."
+      },
+      {
+        "name": "AGORAPULSE_ORGANIZATION_ID",
+        "label": "Agorapulse organization ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use Get manager organizations in the official API documentation and paste one exact organization ID."
+      },
+      {
+        "name": "AGORAPULSE_WORKSPACE_ID",
+        "label": "Agorapulse workspace ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use Get organization workspaces for the selected organization and paste one exact workspace ID."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "social_analytics_read",
+      "label": "Read social analytics",
+      "description": "Read bounded identity-redacted profile references and aggregate audience, community-management, and content-performance metrics for one exact Agorapulse workspace.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "agorapulse_profile_list",
+        "label": "List Agorapulse profiles",
+        "description": "List at most 25 profile UIDs and network types without names, handles, avatars, biographies, or account identity."
+      },
+      {
+        "id": "agorapulse_audience_report_get",
+        "label": "Read audience analytics",
+        "description": "Read aggregate audience metrics for one exact profile and a window of at most 31 days."
+      },
+      {
+        "id": "agorapulse_community_report_get",
+        "label": "Read community analytics",
+        "description": "Read aggregate community-management metrics for one exact profile and a window of at most 31 days."
+      },
+      {
+        "id": "agorapulse_content_report_get",
+        "label": "Read content analytics",
+        "description": "Read content-performance metrics with post content and identity removed for one exact profile and a window of at most 31 days."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "agorapulse_identity_or_content",
+        "label": "Read identity or social content",
+        "description": "Names, handles, emails, messages, post text, captions, URLs, media, biographies, and connected-account identity are outside V1."
+      },
+      {
+        "id": "agorapulse_broader_analytics",
+        "label": "Read broader analytics",
+        "description": "Listening, custom reports, Social Media ROI reports, windows over 31 days, pagination, bulk access, and exports are outside V1."
+      },
+      {
+        "id": "agorapulse_publish_or_inbox",
+        "label": "Publish or manage inboxes",
+        "description": "Drafts, calendar notes, scheduling, immediate publishing, media uploads, inbox reads, replies, labels, user notes, and all mutations are outside V1."
+      },
+      {
+        "id": "agorapulse_raw_api",
+        "label": "Use arbitrary Agorapulse APIs",
+        "description": "Arbitrary paths, methods, query parameters, request bodies, raw responses, and undocumented interfaces are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "agorapulse_safe",
+      "label": "Safe",
+      "description": "All four bounded reads require approval; identity, content, listening, broader reports, publishing, inbox access, writes, raw APIs, pagination, bulk, and export remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "agorapulse_profile_list",
+        "agorapulse_audience_report_get",
+        "agorapulse_community_report_get",
+        "agorapulse_content_report_get"
+      ],
+      "blockedActions": [
+        "agorapulse_identity_or_content",
+        "agorapulse_broader_analytics",
+        "agorapulse_publish_or_inbox",
+        "agorapulse_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four reads run directly; exact binding, static paths, redaction, 31-day windows, response caps, audits, and the provider's 500-per-30-minute quota remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "agorapulse_profile_list",
+        "agorapulse_audience_report_get",
+        "agorapulse_community_report_get",
+        "agorapulse_content_report_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "agorapulse_identity_or_content",
+        "agorapulse_broader_analytics",
+        "agorapulse_publish_or_inbox",
+        "agorapulse_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts only four fixed, approval-gated, identity- and content-redacted reads for one exact organization and workspace."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts only four fixed, approval-gated, identity- and content-redacted reads for one exact organization and workspace."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Agorapulse Open API access requires a Custom subscription, a customer-generated API key, and live validation against the intended organization and workspace. No approved customer credentials are available for acceptance.",
+    "nextAction": "An authorized customer must obtain Open API access, generate a dedicated API key, select exact organization and workspace IDs, and connect them. Then validate health, redaction, report ranges, quota behavior, key replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.agorapulse.com/en/articles/12417183-how-to-connect-to-agorapulse-s-open-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Official Analytics Open API availability on Custom plans, customer-generated API keys, organization/workspace/profile discovery, audience/content/community-management reports, read-only status, exclusions, and 500 requests per 30 minutes."
+    },
+    {
+      "url": "https://api.agorapulse.com/docs",
+      "checkedAt": "2026-07-18",
+      "supports": "Official bearer authentication and fixed v1.0 organization, workspace, profile, audience, community-management, and content report routes."
+    },
+    {
+      "url": "https://support.agorapulse.com/en/articles/9250755-how-can-i-link-agorapulse-data-to-looker-studio",
+      "checkedAt": "2026-07-18",
+      "supports": "Current API-key generation workflow, permission inheritance, supported report data, and provider-managed key deletion behavior."
+    }
+  ],
+  "securityNotes": [
+    "Relay stores the customer-generated API key only as an encrypted secret and binds every request to one validated organization and workspace.",
+    "Only fixed GET routes under https://api.agorapulse.com are used. Redirects are rejected, report windows are capped at 31 days, arrays at 25 items, and responses at 2 MB.",
+    "Names, handles, emails, messages, text, titles, descriptions, URLs, media, authors, owners, profile identity, post content, and similar fields are removed recursively from report results.",
+    "Listening, custom and ROI reports, drafts, calendar notes, scheduling, publishing, media, inboxes, replies, labels, user notes, writes, arbitrary APIs, pagination, bulk access, and exports are unavailable.",
+    "Agorapulse documents 500 requests per 30 minutes. Relay enforces that local ceiling and propagates provider 429 responses; key invalidation remains provider-managed."
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "craft-io",
+  "name": "Craft.io",
+  "category": "project_management",
+  "description": "Craft.io is an end-to-end product-management platform for strategy, discovery, prioritization, roadmapping, capacity planning and delivery alignment. Product teams use workspaces, portfolios, work items, OKRs and feedback portals to connect customer evidence and product decisions with execution.",
+  "agentUseSummary": "Connect a customer-owned Craft.io Enterprise account API key, account ID and fixed US or EU region. Selected agents can use eight bounded workspace, work-item and feedback-portal actions under Safe or Dangerously skip permissions; item mutation, portfolios, advanced feedback, raw MCP/API access and exports remain unavailable.",
+  "icon": { "assetName": "marketplace-logo-craft-io.png", "sourceUrl": "https://craft.io/favicon.ico" },
+  "provider": {
+    "websiteUrl": "https://craft.io/",
+    "docsUrl": "https://api.craft.io/docs/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://craft.io/terms-and-conditions/",
+    "privacyUrl": "https://craft.io/privacy-policy/"
+  },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["customer_owned_account_api_key", "craft_io_enterprise", "fixed_regional_origin"],
+    "credentialRequirements": [
+      { "name": "CRAFT_IO_API_KEY", "label": "Craft.io account API key", "required": true, "secret": true, "helpText": "A scoped Craft.io Enterprise account API key issued by Craft.io Customer Success for the intended synthetic account." },
+      { "name": "CRAFT_IO_ACCOUNT_ID", "label": "Craft.io account ID", "required": true, "secret": false, "helpText": "The exact Craft.io account ID associated with the API key." },
+      { "name": "CRAFT_IO_REGION", "label": "Craft.io region", "required": true, "secret": false, "helpText": "The fixed API region: us or eu." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "workspace_read", "label": "Read workspaces and items", "description": "List bounded workspaces and inspect bounded metadata for exact workspace items.", "defaultSelected": true },
+    { "id": "feedback_read", "label": "Read feedback portals", "description": "List bounded feedback portals, categories and metadata-only feedback items.", "defaultSelected": true },
+    { "id": "feedback_write", "label": "Submit plain feedback", "description": "Submit one bounded plain feedback item to one exact portal and workspace.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      { "id": "craft_io_workspaces_list", "label": "List workspaces", "description": "List at most twenty bounded workspace summaries for the configured account." },
+      { "id": "craft_io_items_list", "label": "List workspace items", "description": "List at most twenty metadata-only work items from one exact workspace." },
+      { "id": "craft_io_item_get", "label": "Read work item", "description": "Read bounded metadata for one exact Craft.io work-item ID." },
+      { "id": "craft_io_feedback_portals_list", "label": "List feedback portals", "description": "List at most twenty bounded feedback portals for the configured account." },
+      { "id": "craft_io_feedback_categories_list", "label": "List feedback categories", "description": "List at most twenty categories from one exact feedback portal." },
+      { "id": "craft_io_feedback_items_list", "label": "List feedback items", "description": "List at most twenty metadata-only feedback items from one exact portal." },
+      { "id": "craft_io_feedback_item_get", "label": "Read feedback item", "description": "Read bounded metadata for one exact Craft.io feedback-item ID." },
+      { "id": "craft_io_feedback_submit", "label": "Submit plain feedback", "description": "Submit one bounded plain feedback item to one exact portal and workspace." }
+    ],
+    "blocked": [
+      { "id": "craft_io_item_write", "label": "Change work items", "description": "Item creation, update, deletion, comments, dependencies and bulk item operations are unavailable." },
+      { "id": "craft_io_portfolios", "label": "Use portfolios", "description": "Portfolio discovery, fields, terminology, items and portfolio-item mutation are outside this workspace-bound connection." },
+      { "id": "craft_io_feedback_advanced", "label": "Change advanced feedback", "description": "Rich forms, custom fields, importance changes, companies, labels, comments, connections, promotion and bulk feedback operations are unavailable." },
+      { "id": "craft_io_raw_mcp", "label": "Mount Craft.io MCP tools", "description": "Relay does not expose the provider's raw remote MCP tools or permit model-selected method discovery." },
+      { "id": "craft_io_raw_api", "label": "Run arbitrary Craft.io calls", "description": "Agents cannot choose API origins, paths, fields, filters, pagination, request bodies or raw operations." },
+      { "id": "craft_io_unbounded", "label": "Export Craft.io data", "description": "Twenty-row lists, one exact resource and 256 KiB responses are the maximum supported surface." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "craft_io_safe", "label": "Safe", "description": "Private reads and feedback submission require approval. Fixed region, key authority, exact IDs, bounds, field allowlists, redaction and audits always apply.", "defaultSelected": true, "allowedActions": [], "approvalRequiredActions": ["craft_io_workspaces_list", "craft_io_items_list", "craft_io_item_get", "craft_io_feedback_portals_list", "craft_io_feedback_categories_list", "craft_io_feedback_items_list", "craft_io_feedback_item_get", "craft_io_feedback_submit"], "blockedActions": ["craft_io_item_write", "craft_io_portfolios", "craft_io_feedback_advanced", "craft_io_raw_mcp", "craft_io_raw_api", "craft_io_unbounded"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All eight selected Craft.io actions run without Relay per-action approval; fixed region, key authority, exact IDs, bounds, allowlists, redaction and audits still apply.", "defaultSelected": false, "allowedActions": ["craft_io_workspaces_list", "craft_io_items_list", "craft_io_item_get", "craft_io_feedback_portals_list", "craft_io_feedback_categories_list", "craft_io_feedback_items_list", "craft_io_feedback_item_get", "craft_io_feedback_submit"], "approvalRequiredActions": [], "blockedActions": ["craft_io_item_write", "craft_io_portfolios", "craft_io_feedback_advanced", "craft_io_raw_mcp", "craft_io_raw_api", "craft_io_unbounded"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway executes eight fixed Craft.io REST actions at the selected documented US or EU origin with exact IDs, bounded fields and redaction." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway executes eight fixed Craft.io REST actions at the selected documented US or EU origin with exact IDs, bounded fields and redaction." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "blocked", "blocker": "Craft.io public REST API access requires an Enterprise subscription, a scoped account API key requested from Craft.io Customer Success, the exact account ID and the correct US or EU region in the separate provider-console acceptance task.", "nextAction": "In the provider-console acceptance task, use a synthetic Enterprise account, request a least-authority API key, enter the key/account/region in Relay, verify the eight bounded tools, then rotate or revoke the key." },
+  "evidence": [
+    { "url": "https://help.craft.io/en/articles/8385550-craft-io-public-apis-for-workspace-portfolio-and-feedback-portal", "checkedAt": "2026-07-18", "supports": "Craft.io documents Enterprise-only REST access, Customer Success-issued account API keys, account/workspace/portal identifiers, US and EU documentation, and workspace, item and feedback APIs." },
+    { "url": "https://api.craft.io/docs/", "checkedAt": "2026-07-18", "supports": "The official Swagger contract confirms x-api-key authentication, bounded pagination, metadata field selection and plain feedback submission." },
+    { "url": "https://help.craft.io/en/articles/15643892-craft-io-mcp-server-and-rest-api-what-s-the-difference", "checkedAt": "2026-07-18", "supports": "Craft.io distinguishes its remote MCP server from the REST API and describes the API as the programmatic integration surface." },
+    { "url": "https://craft.io/", "checkedAt": "2026-07-18", "supports": "Craft.io describes its end-to-end product-management workflow across strategy, discovery, prioritization, roadmapping and delivery." }
+  ]
+}

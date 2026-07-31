@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "sugarcrm",
+  "name": "SugarCRM",
+  "category": "crm_support",
+  "description": "SugarCRM is a customer relationship management platform for coordinating accounts, contacts, leads, opportunities, cases, activities, campaigns, contracts, products, quotes, revenue line items, and related customer work across sales and service teams.",
+  "agentUseSummary": "Add an official SugarCloud tenant, a customer-owned OAuth Key, and a dedicated least-privilege Sugar user, then choose which agents can read or manage selected REST v11 core CRM records under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.sugarcrm.com/",
+    "docsUrl": "https://support.sugarcrm.com/documentation/sugar_developer/sugar_developer_guide_25.2/cookbook/web_services/rest_api/php/how_to_manipulate_records_crud/",
+    "developerConsoleUrl": "https://support.sugarcrm.com/documentation/sugar_developer/sugar_developer_guide_25.1/cookbook/web_services/rest_api/bash/how_to_authenticate_and_log_out/",
+    "termsUrl": "https://www.sugarcrm.com/legal/agreements/customers/product-terms",
+    "privacyUrl": "https://www.sugarcrm.com/legal/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_oauth_key",
+      "dedicated_user_password_grant",
+      "official_sugarcloud_tenant_boundary",
+      "provider_role_and_team_authority",
+      "rest_api_v11"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "SUGARCRM_HOST",
+        "label": "SugarCloud domain",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter only the lowercase SugarCloud domain, such as acme.sugarondemand.com, without a scheme or path."
+      },
+      {
+        "name": "SUGARCRM_CLIENT_ID",
+        "label": "OAuth client ID",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the client ID from a customer-owned Sugar OAuth Key created for this integration."
+      },
+      {
+        "name": "SUGARCRM_CLIENT_SECRET",
+        "label": "OAuth client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the secret from the customer-owned Sugar OAuth Key. Relay encrypts it and never exposes it to agents."
+      },
+      {
+        "name": "SUGARCRM_USERNAME",
+        "label": "SugarCRM username",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the username of a dedicated least-privilege Sugar user whose provider roles and teams Relay should preserve."
+      },
+      {
+        "name": "SUGARCRM_PASSWORD",
+        "label": "SugarCRM password",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the dedicated Sugar user's password. Relay encrypts it and exchanges it only at the validated tenant token endpoint."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/sugarcrm/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crm_read",
+      "label": "Read core CRM records",
+      "description": "Read selected core sales, service, activity, campaign, document, contract, product, and quote record collections and individual records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crm_manage",
+      "label": "Manage core CRM records",
+      "description": "Create, update, and delete records in selected core sales, service, activity, campaign, document, contract, product, and quote modules.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "sugarcrm_api_read",
+        "label": "Read SugarCRM",
+        "description": "Read bounded selected core CRM record collections and individual records through Sugar's REST v11 API."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "sugarcrm_api_manage",
+        "label": "Manage SugarCRM",
+        "description": "Create, update, or delete a selected core CRM record through one exact REST v11 operation."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "sugarcrm_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer OAuth key, username, password, and derived Sugar tokens never enter agent-visible requests or results."
+      },
+      {
+        "id": "sugarcrm_unofficial_origin",
+        "label": "Use another origin",
+        "description": "Every token and CRM request stays on the exact configured official SugarCloud sugarondemand.com tenant."
+      },
+      {
+        "id": "sugarcrm_unsupported_operation",
+        "label": "Call another operation",
+        "description": "Relay blocks arbitrary and on-site hosts, arbitrary modules and paths, metadata and discovery, relationships, tags, follows, subscriptions, comments, email, imports, exports, reports, files and downloads, backups, administration, users, roles, teams, OAuth administration, sudo, logout, webhooks, raw MCP, and undocumented operations."
+      },
+      {
+        "id": "sugarcrm_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay performs one request at a time and bounds modules, fields, filters, offsets, pages, bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "sugarcrm_safe",
+      "label": "Safe",
+      "description": "Selected bounded core CRM reads run directly. Every create, update, and delete requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["sugarcrm_api_read"],
+      "approvalRequiredActions": ["sugarcrm_api_manage"],
+      "blockedActions": [
+        "sugarcrm_secret_exposure",
+        "sugarcrm_unofficial_origin",
+        "sugarcrm_unsupported_operation",
+        "sugarcrm_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected core CRM mutations authorized by the dedicated Sugar user run without Relay per-action approval. Exact tenant binding, provider roles and teams, typed routes, bounds, token protection, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["sugarcrm_api_read", "sugarcrm_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "sugarcrm_secret_exposure",
+        "sugarcrm_unofficial_origin",
+        "sugarcrm_unsupported_operation",
+        "sugarcrm_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway exchanges encrypted customer-owned OAuth and dedicated-user credentials only at the exact SugarCloud tenant and mounts selected REST v11 reads and mutations through bounded tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway exchanges encrypted customer-owned OAuth and dedicated-user credentials only at the exact SugarCloud tenant and mounts selected REST v11 reads and mutations through bounded tools."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "Each SugarCloud tenant must supply a customer-owned OAuth Key and a dedicated least-privilege Sugar user. No authorized tenant, OAuth client, username, password, representative CRM records, provider role and team matrix, or tenant customizations are available in this code-only worker for live acceptance.",
+    "nextAction": "An authorized SugarCloud administrator should create a dedicated least-privilege user and a custom OAuth Key, connect the exact sugarondemand.com tenant and encrypted credentials through Relay, and then verify token exchange, representative bounded reads and filters, Safe approval, Dangerous create/update/delete with cleanup, role and team denial, throttling, custom-field compatibility, token and password redaction, credential rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://support.sugarcrm.com/documentation/sugar_developer/sugar_developer_guide_25.1/cookbook/web_services/rest_api/bash/how_to_authenticate_and_log_out/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sugar documents REST v11 password-grant authentication, customer-created OAuth Keys, custom platform identifiers, the tenant-local oauth2/token endpoint, and the OAuth-Token request header."
+    },
+    {
+      "url": "https://support.sugarcrm.com/documentation/sugar_developer/sugar_developer_guide_25.2/cookbook/web_services/rest_api/php/how_to_manipulate_records_crud/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sugar documents REST v11 module create, retrieve, update, and delete operations and the same customer OAuth Key and custom-platform authentication pattern."
+    },
+    {
+      "url": "https://support.sugarcrm.com/documentation/sugar_developer/sugar_developer_guide_14.2/cookbook/web_services/rest_api/php/how_to_filter_a_list_of_records/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sugar documents bounded module collection filtering, fields, ordering, max_num, offset, next_offset, and structured filter operators."
+    },
+    {
+      "url": "https://support.sugarcrm.com/knowledge_base/platform_management/downloading_backups_from_the_backups_module/",
+      "checkedAt": "2026-07-18",
+      "supports": "Sugar's SugarCloud documentation identifies tenant URLs under the sugarondemand.com boundary and shows REST v11 token exchange at that exact instance. Relay does not expose the documented backup surface."
+    },
+    {
+      "url": "https://www.sugarcrm.com/legal/agreements/customers/product-terms",
+      "checkedAt": "2026-07-18",
+      "supports": "Sugar publishes current customer product-specific terms governing SugarCloud and related service use."
+    }
+  ]
+}

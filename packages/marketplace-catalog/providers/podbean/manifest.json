@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "podbean",
+  "name": "Podbean",
+  "category": "content_creative",
+  "description": "Podbean is a podcast hosting, publishing, distribution, monetization, analytics, and private-podcast platform.",
+  "agentUseSummary": "Connect Podbean through confidential OAuth 2.0 with podcast_read, podcast_update, episode_read, and episode_publish. Agents can read the podcast, episodes, chapters, analytics, and statistics; upload bounded assets; and approval-gate episode publishing, updates, deletion, and chapter replacement. Private-member administration, arbitrary remote fetches, credentials, and unbounded transfers remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.podbean.com/",
+    "docsUrl": "https://developers.podbean.com/podbean-api-docs/",
+    "developerConsoleUrl": "https://developers.podbean.com/",
+    "termsUrl": "https://www.podbean.com/terms",
+    "privacyUrl": "https://www.podbean.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "podcast_read",
+      "podcast_update",
+      "episode_read",
+      "episode_publish"
+    ],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://api.podbean.com/v1/dialog/oauth",
+    "tokenUrl": "https://api.podbean.com/v1/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth2",
+      "confidential_client",
+      "refresh_token",
+      "pinned_operation_registry"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PODBEAN_CLIENT_ID",
+        "label": "Podbean app ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Relay-owned Podbean developer application ID."
+      },
+      {
+        "name": "PODBEAN_CLIENT_SECRET",
+        "label": "Podbean app secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Relay-owned app secret stored only in Railway."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/podbean/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "podbean_read",
+      "label": "Read podcasts, episodes, and analytics",
+      "description": "Read the authorized podcast, episodes, chapters, download and engagement statistics, retention, platforms, sources, and reports.",
+      "defaultSelected": true,
+      "platformCapability": "podbean_read"
+    },
+    {
+      "id": "podbean_manage",
+      "label": "Manage episodes and chapters",
+      "description": "Create, update, delete, and chapter one explicit episode.",
+      "defaultSelected": true,
+      "platformCapability": "podbean_manage"
+    },
+    {
+      "id": "podbean_upload",
+      "label": "Upload episode assets",
+      "description": "Upload one bounded audio, video, image, or transcript asset and return only its Podbean file key.",
+      "defaultSelected": true,
+      "platformCapability": "podbean_upload"
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "podbean_read",
+        "label": "Read Podbean",
+        "description": "Read one pinned podcast, episode, chapter, analytics, or statistics operation."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "podbean_manage",
+        "label": "Manage Podbean episodes",
+        "description": "Create, update, delete, or save chapters for one episode; Safe mode requires approval."
+      },
+      {
+        "id": "podbean_upload",
+        "label": "Upload Podbean media",
+        "description": "Authorize and upload one bounded file without exposing the presigned storage credential; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "podbean_secret_exposure",
+        "label": "Expose Podbean secrets",
+        "description": "Client secrets, access and refresh tokens, presigned URLs, and authorization headers are never exposed."
+      },
+      {
+        "id": "podbean_remote_fetch",
+        "label": "Make Podbean fetch arbitrary URLs",
+        "description": "Remote media, image, and transcript URL fields are blocked to prevent server-side request forgery."
+      },
+      {
+        "id": "podbean_private_members",
+        "label": "Manage private members",
+        "description": "Business-master private-member authority and personally identifying membership operations are not requested or exposed."
+      },
+      {
+        "id": "podbean_unbounded_transfer",
+        "label": "Transfer unbounded podcast data",
+        "description": "Calls are pinned and bounded; pages cap at 100, responses at 5 MB, and uploads at 25 MB."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "podbean_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; every episode mutation and file upload requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["podbean_read"],
+      "approvalRequiredActions": ["podbean_manage", "podbean_upload"],
+      "blockedActions": [
+        "podbean_secret_exposure",
+        "podbean_remote_fetch",
+        "podbean_private_members",
+        "podbean_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected publishing actions run without Relay per-action approval; fixed origins, bounds, audits, redaction, and provider rules still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["podbean_read", "podbean_manage", "podbean_upload"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "podbean_secret_exposure",
+        "podbean_remote_fetch",
+        "podbean_private_members",
+        "podbean_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native",
+      "description": "OpenClaw receives pinned podcast, episode, chapter, analytics, statistics, and bounded upload wrappers."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native",
+      "description": "Hermes receives the same selected capabilities, approval profile, and cloud-held OAuth tokens."
+    }
+  ],
+  "availability": "provider_setup_required",
+  "providerSetup": {
+    "status": "external_setup_required",
+    "blocker": "Relay must register a Podbean developer application, provide company/app information and an exact redirect URI, and store the issued app ID and secret. This worker opened no portal and created no account, app, or credential.",
+    "nextAction": "The acceptance owner should register Relay's Podbean app with https://api.relayconsole.work/api/v1/marketplace/oauth/podbean/callback, store PODBEAN_CLIENT_ID and PODBEAN_CLIENT_SECRET in the approved Railway environment, then run staging OAuth, podcast binding, representative reads, bounded upload, publish/update/chapter/delete approvals, refresh, disconnect, and post-disconnect denial acceptance."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.podbean.com/podbean-api-docs/",
+      "checkedAt": "2026-07-17",
+      "supports": "Podbean's live generated reference documents confidential OAuth, refresh, four permissions, podcast/episode/chapter operations, presigned upload, analytics/statistics, pagination to 100, and leaky-bucket limits."
+    },
+    {
+      "url": "https://developers.podbean.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "The current developer landing page advertises the API and developer app registration."
+    },
+    {
+      "url": "https://podbean.freshdesk.com/support/solutions/articles/25000010443-integrating-your-service-with-podbean-platform",
+      "checkedAt": "2026-07-17",
+      "supports": "Podbean's August 2025 guide documents developer registration, app/company information, redirect URI, and issued app ID/secret."
+    },
+    {
+      "url": "https://help.podbean.com/support/solutions/articles/25000008051-publishing-a-new-podcast-episode-via-podbean-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Podbean documents the OAuth, file upload, and episode publishing sequence."
+    }
+  ]
+}

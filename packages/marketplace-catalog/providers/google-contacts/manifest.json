@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-contacts",
+  "name": "Google Contacts",
+  "category": "communication",
+  "description": "Google Contacts is Google's address book for personal and professional contact records. Individuals use it to keep names, email addresses, phone numbers, and organization details available across Google products.",
+  "agentUseSummary": "Connect one Google account through Relay-owned OAuth, then let agents use five bounded wrappers for contact-source-only first-page reads, exact contact reads, local update preparation, contact creation, and latest-ETag safe updates. Relay V1 excludes deletion, photos, contact groups, other contacts, directory profiles, broad personal fields, automatic pagination, sync tokens, delegated access, and raw API or MCP tools.",
+  "provider": { "websiteUrl": "https://contacts.google.com/", "docsUrl": "https://developers.google.com/people/v1/how-tos/authorizing", "developerConsoleUrl": "https://console.cloud.google.com/apis/credentials", "termsUrl": "https://developers.google.com/terms/api-services-user-data-policy", "privacyUrl": "https://policies.google.com/privacy" },
+  "authentication": { "model": "oauth2", "relayOwned": true, "scopes": ["openid", "email", "https://www.googleapis.com/auth/contacts"], "pkce": true, "refreshTokens": true, "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth", "tokenUrl": "https://oauth2.googleapis.com/token" },
+  "connection": { "types": ["relay_owned_global_oauth", "exact_google_account_binding", "expiring_access_token", "offline_refresh_token", "provider_revocation"], "credentialRequirements": [], "callbackPath": "/api/v1/marketplace/oauth/google-contacts/callback", "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "contact_read", "label": "Read contacts", "description": "Read bounded contact-source People with a narrow field mask.", "defaultSelected": true },
+    { "id": "contact_draft", "label": "Prepare contact changes", "description": "Validate and hash privacy-bounded contact changes locally.", "defaultSelected": true },
+    { "id": "contact_write", "label": "Create and update contacts", "description": "Create contacts and safely update allowlisted fields after policy checks.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "google_contacts_connections_list", "label": "List contacts", "description": "Return at most fifty contact-source People with privacy-bounded fields." },
+      { "id": "google_contacts_contact_get", "label": "Read contact", "description": "Read one exact contact-source Person with privacy-bounded fields." },
+      { "id": "google_contacts_update_prepare", "label": "Prepare contact update", "description": "Validate and hash one contact creation or safe patch locally." }
+    ],
+    "approvalRequired": [
+      { "id": "google_contacts_contact_create", "label": "Create contact", "description": "Create one contact with bounded allowlisted fields." },
+      { "id": "google_contacts_contact_patch", "label": "Update contact", "description": "Update allowlisted fields after latest-source ETag preflight." }
+    ],
+    "blocked": [
+      { "id": "google_contacts_delete_photos_batch", "label": "Delete contacts or mutate photos in batches", "description": "Deletion, photos, and batch create, update, or delete operations are blocked in V1." },
+      { "id": "google_contacts_groups", "label": "Manage contact groups", "description": "Contact groups and membership changes are blocked in V1." },
+      { "id": "google_contacts_other_directory", "label": "Access other contacts or directory", "description": "Other contacts, directory profiles, search, and copying are blocked in V1." },
+      { "id": "google_contacts_broad_fields", "label": "Access broad personal fields", "description": "Addresses, birthdays, biographies, relations, events, locations, and other excluded Person fields are blocked in V1." },
+      { "id": "google_contacts_raw_sync", "label": "Run raw, synchronized, or delegated access", "description": "Automatic pagination, sync tokens, domain delegation, raw API calls, and raw MCP tools are blocked in V1." }
+    ]
+  },
+  "approvalProfiles": [
+    { "id": "google_contacts_safe", "label": "Safe", "description": "Privacy-bounded first-page reads and local preparation run automatically; contact creation and updates require matching approval.", "defaultSelected": true, "allowedActions": ["google_contacts_connections_list", "google_contacts_contact_get", "google_contacts_update_prepare"], "approvalRequiredActions": ["google_contacts_contact_create", "google_contacts_contact_patch"], "blockedActions": ["google_contacts_delete_photos_batch", "google_contacts_groups", "google_contacts_other_directory", "google_contacts_broad_fields", "google_contacts_raw_sync"] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "All five selected tools run without Relay per-action approval while exact scope, contact-source and field-mask limits, latest ETags, audit, redaction, refresh, revocation, and provider limits remain enforced.", "defaultSelected": false, "allowedActions": ["google_contacts_connections_list", "google_contacts_contact_get", "google_contacts_update_prepare", "google_contacts_contact_create", "google_contacts_contact_patch"], "approvalRequiredActions": [], "blockedActions": ["google_contacts_delete_photos_batch", "google_contacts_groups", "google_contacts_other_directory", "google_contacts_broad_fields", "google_contacts_raw_sync"] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [{ "format": "openclaw", "installSupport": "installable", "description": "Relay mounts five privacy-bounded Google Contacts wrappers and attaches encrypted OAuth tokens server-side." }, { "format": "hermes", "installSupport": "installable", "description": "Relay mounts five privacy-bounded Google Contacts wrappers and attaches encrypted OAuth tokens server-side." }],
+  "availability": "available",
+  "providerSetup": { "status": "provider_review_pending", "blocker": "Relay must configure its Google Cloud project and confidential web client, enable People API, publish its OAuth consent screen with verified relayconsole.work domains and policy links, complete Google's applicable verification for the sensitive Contacts scope, configure Railway staging credentials, and authorize an acceptance account. Those provider-console and environment actions are outside this worker task.", "nextAction": "In the provider-console task, configure the canonical Railway callback and exact scopes, complete Google verification, configure staging credentials, then verify all five tools, source and field boundaries, ETags, Safe and Dangerous policy, refresh, rotation, revocation, disconnect, quota/error mapping, and post-disconnect denial." },
+  "evidence": [
+    { "url": "https://developers.google.com/people/v1/how-tos/authorizing", "checkedAt": "2026-07-17", "supports": "Google documents People API OAuth authorization and the Contacts scope used by the bounded connector." },
+    { "url": "https://developers.google.com/people/api/rest/v1/people.connections/list", "checkedAt": "2026-07-17", "supports": "People connections list supports source selection, field masks, bounded page sizes, and pagination; Relay pins contact source and reads one page only." },
+    { "url": "https://developers.google.com/people/api/rest/v1/people/get", "checkedAt": "2026-07-17", "supports": "People get reads one exact Person with requested person fields and source selection." },
+    { "url": "https://developers.google.com/people/api/rest/v1/people/createContact", "checkedAt": "2026-07-17", "supports": "People createContact creates one contact Person; Relay restricts the request to bounded allowlisted fields." },
+    { "url": "https://developers.google.com/people/api/rest/v1/people/updateContact", "checkedAt": "2026-07-17", "supports": "People updateContact requires an update field mask and current source ETag; Relay preflights both before a narrow update." }
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "partnerize",
+  "name": "Partnerize",
+  "category": "marketing",
+  "description": "Partnerize is a partnership-management platform for brands and partners, covering campaigns, conversions, commissions, publishers, payments, reporting, tracking, and network administration.",
+  "agentUseSummary": "Partnerize cannot yet be connected through Relay. Its APIs use a console user's static User Application Key and User API Key over HTTP Basic Auth, with authority inherited from that user's network, brand-or-partner role, and campaign permissions rather than credential scopes; a representative dedicated read-only user contract is required first.",
+  "provider": {
+    "websiteUrl": "https://partnerize.com/",
+    "docsUrl": "https://api-docs.partnerize.com/",
+    "developerConsoleUrl": "https://console.partnerize.com/",
+    "termsUrl": "https://partnerize.com/terms-and-conditions/",
+    "privacyUrl": "https://partnerize.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_user_application_key",
+      "customer_user_api_key",
+      "http_basic_auth",
+      "dedicated_read_only_user",
+      "partner_role_only",
+      "exact_network_and_campaign_binding",
+      "user_permission_authority"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PARTNERIZE_USER_APPLICATION_KEY",
+        "label": "Partnerize User Application Key",
+        "required": true,
+        "secret": false,
+        "helpText": "Application key for a dedicated read-only Partnerize partner user."
+      },
+      {
+        "name": "PARTNERIZE_USER_API_KEY",
+        "label": "Partnerize User API Key",
+        "required": true,
+        "secret": true,
+        "helpText": "Static user API key stored only in Railway's encrypted credential boundary."
+      },
+      {
+        "name": "PARTNERIZE_CAMPAIGN_ID",
+        "label": "Partnerize Campaign ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Exact campaign identifier accepted for the initial partner-only boundary."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "partnerize_credentials",
+        "label": "Collect Partnerize credentials",
+        "description": "Relay does not collect user keys before proving the user is dedicated, read-only, partner-role, and campaign-bounded."
+      },
+      {
+        "id": "partnerize_partner_reads",
+        "label": "Read Partnerize partner data",
+        "description": "Networks, campaigns, conversions, commissions, payments, reports, users, and partner account data remain unavailable."
+      },
+      {
+        "id": "partnerize_brand_admin",
+        "label": "Access brand or network administration",
+        "description": "Brand endpoints, partner creation, campaigns, conversions, commissions, tracking, users, and network administration are outside the partner-only boundary."
+      },
+      {
+        "id": "partnerize_mutations_raw",
+        "label": "Mutate or use raw Partnerize APIs",
+        "description": "User changes, conversions, validation, commissions, payments, bulk operations, arbitrary versions, pagination, exports, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "partnerize_unavailable",
+      "label": "Unavailable",
+      "description": "No Partnerize action is enabled before representative read-only partner-user and campaign acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "partnerize_credentials",
+        "partnerize_partner_reads",
+        "partnerize_brand_admin",
+        "partnerize_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Partnerize wrappers are mounted until a representative partner establishes the frozen user-role contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Partnerize wrappers are mounted until a representative partner establishes the frozen user-role contract."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Partnerize API credentials are the console user's static User Application Key and User API Key. The application key identifies the network, the API key identifies the user, and endpoint authority follows that user's access rights across separate brand and partner contexts; credentials themselves have no granular scopes and Relay has no representative dedicated read-only partner user or exact campaign proof.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should obtain authorization from a representative Partnerize partner, have an administrator create a dedicated read-only user restricted to the exact campaign, retrieve its keys without exposing them in reports, store them in Railway, and return user-role, network and campaign binding, key rotation and revocation, schemas, quotas, privacy and financial redaction, denial, versioning, and disconnect evidence before implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://api-docs.partnerize.com/partner/",
+      "checkedAt": "2026-07-17",
+      "supports": "Partnerize documents HTTPS Basic Auth using the User Application Key as username and User API Key as password, with the application key identifying the network, the API key identifying the user, and endpoint authority depending on user access rights."
+    },
+    {
+      "url": "https://api-docs.partnerize.com/brand/",
+      "checkedAt": "2026-07-17",
+      "supports": "Partnerize separately publishes broad brand APIs with partner-account creation, conversion bulk operations, user changes, and other administrative writes under the same user-key authentication model."
+    },
+    {
+      "url": "https://help.phgsupport.com/hc/en-us/articles/5213998421277-Onboarding-Platform-Readiness",
+      "checkedAt": "2026-07-17",
+      "supports": "Partnerize onboarding documentation recognizes full-admin, campaign-specific, and read-only user access levels, supporting a dedicated least-authority user prerequisite."
+    }
+  ]
+}

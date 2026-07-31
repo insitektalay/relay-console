@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "linksquares",
+  "name": "LinkSquares",
+  "category": "knowledge_documents",
+  "description": "LinkSquares is a contract lifecycle platform for Analyze agreement intelligence and Finalize contract workflows.",
+  "agentUseSummary": "Connect a dedicated customer-owned administrator service-account API key and let agents list bounded Analyze agreement-type IDs and names. Relay confines the broad key shared across Analyze and Finalize to redacted health and one fixed metadata read, excluding agreements, terms, tags, files, people, Finalize data, writes, administration, raw access, and key material.",
+  "provider": {
+    "websiteUrl": "https://linksquares.com/",
+    "docsUrl": "https://help.linksquares.com/hc/en-us/articles/10575707057175-LinkSquares-API-Overview",
+    "developerConsoleUrl": "https://help.linksquares.com/hc/en-us/articles/10575849523735-Managing-API-Keys-and-Authenticating-to-the-LinkSquares-APIs",
+    "termsUrl": "https://linksquares.com/terms-of-service/",
+    "privacyUrl": "https://linksquares.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "x_api_key_header",
+      "administrator_service_account",
+      "analyze_finalize_shared_token",
+      "api_add_on",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "LINKSQUARES_API_KEY",
+        "label": "LinkSquares API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated customer-owned service-account key from an API-enabled LinkSquares account and store it only through Relay's encrypted connection flow."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "agreement_type_metadata_list",
+      "label": "List agreement types",
+      "description": "List bounded Analyze agreement-type IDs and names without agreements, terms, tags, files, or people.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "linksquares_agreement_types_list",
+        "label": "List agreement types",
+        "description": "List at most 100 strictly projected Analyze agreement-type IDs and names."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "linksquares_agreement_data",
+        "label": "Access agreement data",
+        "description": "Agreement names, metadata, Smart Values, terms, tags, notes, hierarchy, content, attachments, versions, files, download links, and presigned URLs are blocked."
+      },
+      {
+        "id": "linksquares_finalize_people",
+        "label": "Access Finalize or people data",
+        "description": "Finalize templates, questions, tokens, agreements, tasks, activity, comments, users, roles, emails, departments, and job titles are blocked."
+      },
+      {
+        "id": "linksquares_mutation_admin",
+        "label": "Mutate or administer LinkSquares",
+        "description": "Agreement imports, creates, updates, links, approvals, uploads, status changes, notes, tags, API-key management, service accounts, settings, and administration are blocked."
+      },
+      {
+        "id": "linksquares_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw paths, arbitrary queries, filters, sync, cursors, pagination, polling, retries, batches, exports, downloads, and provider-response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "linksquares_type_read_only",
+      "label": "Read-only agreement-type metadata",
+      "description": "One fixed privacy-redacted Analyze agreement-type read runs automatically through a customer-owned broad administrator key.",
+      "defaultSelected": true,
+      "allowedActions": ["linksquares_agreement_types_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "linksquares_agreement_data",
+        "linksquares_finalize_people",
+        "linksquares_mutation_admin",
+        "linksquares_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Customer ownership, fixed origin and route, key secrecy, strict projection, result bounds, audits, and no-write behavior remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["linksquares_agreement_types_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "linksquares_agreement_data",
+        "linksquares_finalize_people",
+        "linksquares_mutation_admin",
+        "linksquares_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway confines the broad Analyze-and-Finalize administrator key to health and one fixed strictly projected agreement-type read."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway confines the broad Analyze-and-Finalize administrator key to health and one fixed strictly projected agreement-type read."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "LinkSquares API access is a separately licensed module. API keys are tied to a company and administrator user, shared across Analyze and Finalize, and equivalent to agreement access; LinkSquares recommends a dedicated service account. No account, API module, service account, administrator role, key, live provider session, Railway change, or production acceptance is available in this worker task.",
+    "nextAction": "An authorized LinkSquares administrator enables the appropriate API module, creates a dedicated administrator service account, generates its API key, and stores it through Relay's encrypted connection flow. They then separately validate redacted Analyze health, bounded agreement-type listing, service-account permissions, rate-limit behavior, key rotation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.linksquares.com/hc/en-us/articles/10575849523735-Managing-API-Keys-and-Authenticating-to-the-LinkSquares-APIs",
+      "checkedAt": "2026-07-17",
+      "supports": "LinkSquares documents customer x-api-key authentication, keys tied to one user and company, administrator requirements, shared Analyze and Finalize authority, service-account best practice, and key secrecy."
+    },
+    {
+      "url": "https://help.linksquares.com/hc/en-us/articles/10849398433559-Analyze-API-Sample-Use-Cases",
+      "checkedAt": "2026-07-17",
+      "supports": "LinkSquares documents GET /api/analyze/v1/me, GET /api/analyze/v1/agreement_types, broader agreement metadata/files/terms/updates, and separately licensed Analyze API access; Relay selects only redacted health and type identifiers."
+    },
+    {
+      "url": "https://help.linksquares.com/hc/en-us/articles/10575707057175-LinkSquares-API-Overview",
+      "checkedAt": "2026-07-17",
+      "supports": "LinkSquares describes Analyze and Finalize APIs, a 15-request-per-second limit with burst 30, administrator self-service key management, and broad contract read/write surfaces that Relay blocks."
+    }
+  ]
+}

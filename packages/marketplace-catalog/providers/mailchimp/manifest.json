@@ -1,0 +1,185 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mailchimp",
+  "name": "Mailchimp",
+  "category": "communication",
+  "description": "Mailchimp is a marketing platform for managing audiences, campaigns, automations, websites, commerce, and customer communications. Organizations use it to organize marketing contacts and publish or measure messaging programs.",
+  "agentUseSummary": "Connect one Mailchimp account through Relay-owned OAuth, bind the metadata-derived data center and exact account, and expose only three bounded metadata reads: account and role, audience lifecycle aggregates, and recent sent campaign lifecycle summaries. Contact data, message content, recipients, reports, arbitrary queries, pagination, exports, broader APIs, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://mailchimp.com/",
+    "docsUrl": "https://mailchimp.com/developer/marketing/api/",
+    "developerConsoleUrl": "https://admin.mailchimp.com/account/oauth2/",
+    "termsUrl": "https://mailchimp.com/legal/terms/",
+    "privacyUrl": "https://www.intuit.com/privacy/statement/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://login.mailchimp.com/oauth2/authorize",
+    "tokenUrl": "https://login.mailchimp.com/oauth2/token"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth_application",
+      "provider_metadata_data_center_binding",
+      "exact_account_binding",
+      "authorizing_user_role_inheritance",
+      "broad_read_write_provider_token",
+      "non_expiring_provider_token"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/mailchimp/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_metadata",
+      "label": "Account metadata",
+      "description": "Read exact account and authorizing-user role metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "audience_metadata",
+      "label": "Audience metadata",
+      "description": "List bounded audience lifecycle and aggregate-count summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "campaign_metadata",
+      "label": "Sent campaign metadata",
+      "description": "List bounded recently sent campaign lifecycle summaries.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "mailchimp_account_get",
+        "label": "Read account metadata",
+        "description": "Read the exact account ID, name, authorizing-user role, and member-since time."
+      },
+      {
+        "id": "mailchimp_audience_list",
+        "label": "List audience metadata",
+        "description": "Read one fixed page of twenty-five audience lifecycle and aggregate-count summaries."
+      },
+      {
+        "id": "mailchimp_campaign_list_recent_sent",
+        "label": "List recent sent campaigns",
+        "description": "Read one fixed page of twenty-five recently sent campaign lifecycle summaries."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "mailchimp_contact_data",
+        "label": "Access contact data",
+        "description": "Members, subscriber hashes, email addresses, postal addresses, merge fields, GDPR fields, tags, segments, activity, and contact events are outside V1."
+      },
+      {
+        "id": "mailchimp_campaign_content",
+        "label": "Access campaign content or reports",
+        "description": "Subjects, content, recipients, reports, links, click data, and open data are outside V1."
+      },
+      {
+        "id": "mailchimp_mutation",
+        "label": "Change or send Mailchimp data",
+        "description": "Creating, editing, sending, scheduling, pausing, replicating, or deleting Mailchimp resources is outside V1."
+      },
+      {
+        "id": "mailchimp_broader_api",
+        "label": "Access broader Mailchimp APIs",
+        "description": "Automations, commerce, transactional messaging, exports, batches, webhooks, files, templates, and administration are outside V1."
+      },
+      {
+        "id": "mailchimp_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary paths, fields, filters, data centers, pages, automatic pagination, crawling, synchronization, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "mailchimp_safe",
+      "label": "Safe",
+      "description": "Three bounded metadata-only reads run automatically; contact data, campaign content, broader APIs, raw requests, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "mailchimp_account_get",
+        "mailchimp_audience_list",
+        "mailchimp_campaign_list_recent_sent"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mailchimp_contact_data",
+        "mailchimp_campaign_content",
+        "mailchimp_mutation",
+        "mailchimp_broader_api",
+        "mailchimp_raw_query"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact-account and data-center binding, fixed fields, page limits, audit, redaction, token validation, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "mailchimp_account_get",
+        "mailchimp_audience_list",
+        "mailchimp_campaign_list_recent_sent"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "mailchimp_contact_data",
+        "mailchimp_campaign_content",
+        "mailchimp_mutation",
+        "mailchimp_broader_api",
+        "mailchimp_raw_query"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Mailchimp metadata wrappers and attaches the encrypted, data-center-bound OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Mailchimp metadata wrappers and attaches the encrypted, data-center-bound OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Mailchimp requires Relay to register an OAuth application with the exact Railway callback and configure its client credentials. Railway staging credentials and an authorized acceptance account are not configured in this code-only task.",
+    "nextAction": "In the provider-console task, register Relay's Mailchimp OAuth application with https://api.relayconsole.work/api/v1/marketplace/oauth/mailchimp/callback, configure Railway staging client credentials, then verify metadata-derived dc binding, exact API-root account and role binding, all three bounded reads, provider-managed revocation, rate-limit behavior, role changes, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://mailchimp.com/developer/marketing/guides/access-user-data-oauth-2/",
+      "checkedAt": "2026-07-17",
+      "supports": "Mailchimp documents authorization-code OAuth at login.mailchimp.com, form-encoded token exchange, non-expiring tokens without refresh tokens, and a required OAuth Metadata request that returns the user-specific dc server prefix."
+    },
+    {
+      "url": "https://mailchimp.com/developer/marketing/api/root/list-api-root-resources/",
+      "checkedAt": "2026-07-17",
+      "supports": "The Marketing API root supports fields projection and returns account_id, account_name, role, and member_since, allowing an exact account and authorizing-user role binding without retaining identity or contact fields."
+    },
+    {
+      "url": "https://mailchimp.com/developer/marketing/api/lists/get-lists-info/",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /lists supports explicit fields, count, offset, date-created sorting, and returns bounded audience lifecycle fields plus aggregate member and unsubscribe counts."
+    },
+    {
+      "url": "https://mailchimp.com/developer/marketing/api/campaigns/list-campaigns/",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /campaigns supports explicit fields, count, offset, sent-status filtering, and send-time sorting for bounded lifecycle-only campaign summaries."
+    }
+  ]
+}

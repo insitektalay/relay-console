@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "marketplace-provider-acceptance.schema.json",
+  "title": "Relay Console Marketplace provider staging acceptance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "manifestVersion", "providerSlug", "capturedAt",
+    "releaseBinding", "provider", "boundedAction", "journeys", "privacy"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "relay.marketplace-provider-acceptance.v1" },
+    "manifestVersion": { "type": "string", "minLength": 1 },
+    "providerSlug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "releaseBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "providerSourceCommit", "stagingDeploymentId", "stagingSourceBranch"
+      ],
+      "properties": {
+        "providerSourceCommit": { "$ref": "#/$defs/commit" },
+        "stagingDeploymentId": { "$ref": "#/$defs/nonPlaceholder" },
+        "stagingSourceBranch": { "$ref": "#/$defs/nonPlaceholder" }
+      }
+    },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "connectionType", "officialDocsURL", "officialDocsReviewedAt",
+        "dedicatedTestAccount", "leastPrivilege"
+      ],
+      "properties": {
+        "connectionType": {
+          "enum": ["oauth", "api_key", "personal_access_token", "basic", "custom"]
+        },
+        "officialDocsURL": { "type": "string", "pattern": "^https://" },
+        "officialDocsReviewedAt": { "type": "string", "format": "date" },
+        "dedicatedTestAccount": { "const": true },
+        "leastPrivilege": { "const": true }
+      }
+    },
+    "boundedAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actionName", "reversible", "cleanupConfirmed"],
+      "properties": {
+        "actionName": { "$ref": "#/$defs/nonPlaceholder" },
+        "reversible": { "const": true },
+        "cleanupConfirmed": { "const": true }
+      }
+    },
+    "journeys": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "connect", "failureOrDenial", "connectionStatus", "boundedLiveAction",
+        "reconnect", "revokeAndDisconnect"
+      ],
+      "properties": {
+        "connect": { "$ref": "#/$defs/journey" },
+        "failureOrDenial": { "$ref": "#/$defs/journey" },
+        "connectionStatus": { "$ref": "#/$defs/journey" },
+        "boundedLiveAction": { "$ref": "#/$defs/journey" },
+        "reconnect": { "$ref": "#/$defs/journey" },
+        "revokeAndDisconnect": { "$ref": "#/$defs/journey" }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "credentialsIncluded", "secretValuesIncluded", "providerObjectIdentifiersIncluded",
+        "testAccountIdentifiersIncluded", "customerContentIncluded", "rawCommandOutputIncluded"
+      ],
+      "properties": {
+        "credentialsIncluded": { "const": false },
+        "secretValuesIncluded": { "const": false },
+        "providerObjectIdentifiersIncluded": { "const": false },
+        "testAccountIdentifiersIncluded": { "const": false },
+        "customerContentIncluded": { "const": false },
+        "rawCommandOutputIncluded": { "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "nonPlaceholder": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!.*[<>])(?!pending$)(?!tbd$).+$"
+    },
+    "journey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status", "verifiedAt", "reviewer", "evidenceURL", "providerImpact",
+        "credentialMaterialIncluded", "providerObjectIdentifiersIncluded",
+        "testAccountIdentifiersIncluded"
+      ],
+      "properties": {
+        "status": { "const": "passed" },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "reviewer": { "$ref": "#/$defs/nonPlaceholder" },
+        "evidenceURL": { "type": "string", "pattern": "^https://" },
+        "providerImpact": { "enum": ["none", "test-account-only"] },
+        "credentialMaterialIncluded": { "const": false },
+        "providerObjectIdentifiersIncluded": { "const": false },
+        "testAccountIdentifiersIncluded": { "const": false }
+      }
+    }
+  }
+}

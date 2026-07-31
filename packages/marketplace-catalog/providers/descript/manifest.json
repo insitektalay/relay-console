@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1", "slug": "descript", "name": "Descript", "category": "content_creative",
+  "description": "Descript is an audio and video editing platform built around transcript-based editing, recording, transcription, and collaborative production. Creators and teams use it to edit podcasts and videos, improve speech, generate captions and clips, publish projects, and automate repeatable production work.",
+  "agentUseSummary": "Enter a personal API token for the intended Descript Drive, then let agents browse projects and run the complete documented API under Safe or Dangerous policy; imports and AI edits consume that Drive's media minutes and AI credits.",
+  "provider": { "websiteUrl": "https://www.descript.com/", "docsUrl": "https://docs.descriptapi.com/", "developerConsoleUrl": "https://web.descript.com/settings/api-tokens", "termsUrl": "https://www.descript.com/terms", "privacyUrl": "https://www.descript.com/privacy" },
+  "authentication": { "model": "api_token", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": { "types": ["api_token", "api_connector"], "credentialRequirements": [{ "name": "DESCRIPT_API_TOKEN", "label": "Descript API token", "required": true, "secret": true, "helpText": "Create a dedicated token in Descript Settings > API tokens and bind it to the Drive you want Relay Console to use." }], "callbackPath": null, "webhookRequirements": [] },
+  "capabilities": [
+    { "id": "projects_read", "label": "Browse projects", "description": "List and inspect projects, compositions, publishes, models, and recent jobs in the token's Drive.", "defaultSelected": true },
+    { "id": "transcripts", "label": "Export transcripts", "description": "Export a project composition as text, Markdown, HTML, RTF, DOCX, or SRT.", "defaultSelected": true },
+    { "id": "production", "label": "Create and edit productions", "description": "Import media, create projects and compositions, and run Underlord edits that can consume media minutes or AI credits.", "defaultSelected": true },
+    { "id": "publishing", "label": "Publish and manage jobs", "description": "Publish compositions, retrieve share and download links, and cancel running jobs.", "defaultSelected": true },
+    { "id": "administration", "label": "Use the complete Descript API", "description": "Use every current documented public API operation authorized by the token and Drive.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "descript_list_projects", "label": "List projects", "description": "List one bounded page of projects in the token's Drive." },
+      { "id": "descript_get_project", "label": "Read project", "description": "Read one project's media, compositions, and existing publishes." },
+      { "id": "descript_list_jobs", "label": "List jobs", "description": "List one bounded page of recent jobs." },
+      { "id": "descript_get_job", "label": "Read job", "description": "Read one job's current status and bounded result." },
+      { "id": "descript_list_agent_models", "label": "List agent models", "description": "Read the live list of available Underlord models and aliases." },
+      { "id": "descript_export_transcript", "label": "Export transcript", "description": "Export one authorized composition transcript in a supported bounded format." }
+    ],
+    "approvalRequired": [
+      { "id": "descript_import_media", "label": "Import media", "description": "Import media or create a project; this can consume media minutes." },
+      { "id": "descript_agent_edit", "label": "Edit with Underlord", "description": "Create or edit a project with Underlord; this can consume AI credits." },
+      { "id": "descript_publish", "label": "Publish project", "description": "Publish a composition to a Descript share page and rendered download." },
+      { "id": "descript_cancel_job", "label": "Cancel job", "description": "Cancel a running Descript job." },
+      { "id": "descript_full_api", "label": "Use full Descript API", "description": "Use any current documented public API operation; Safe mode requires approval." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "descript_safe", "label": "Safe", "description": "Bounded project, job, model, and transcript reads run directly; imports, AI edits, publishing, cancellation, and other operations require approval.", "defaultSelected": true, "allowedActions": ["descript_list_projects", "descript_get_project", "descript_list_jobs", "descript_get_job", "descript_list_agent_models", "descript_export_transcript"], "approvalRequiredActions": ["descript_import_media", "descript_agent_edit", "descript_publish", "descript_cancel_job", "descript_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected token- and Drive-authorized Descript API operation runs without Relay per-action approval; ownership, token secrecy, fixed origin, bounds, audits, plan credits, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["descript_list_projects", "descript_get_project", "descript_list_jobs", "descript_get_job", "descript_list_agent_models", "descript_export_transcript", "descript_import_media", "descript_agent_edit", "descript_publish", "descript_cancel_job", "descript_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Descript tools and injects the encrypted Drive token server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Descript tools and injects the encrypted Drive token server-side." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": { "status": "blocked", "blocker": "No customer Descript Drive API token or eligible signed-in provider session is available for production acceptance.", "nextAction": "Create a dedicated token for the intended Drive in Descript Settings > API tokens, connect it in Relay Console, then run bounded reads, Safe denial, an approved or Dangerous credit-consuming edit, redaction, token revocation, and disconnect checks." },
+  "evidence": [
+    { "url": "https://help.descript.com/hc/en-us/articles/43370311322509-Descript-API", "checkedAt": "2026-07-14", "supports": "Descript documents personal tokens tied to one Drive, one-time token display, API/MCP media-minute and AI-credit consumption, project/import/edit/publish support, and current limitations." },
+    { "url": "https://docs.descriptapi.com/", "checkedAt": "2026-07-14", "supports": "The official Bearer-token API documents projects, jobs, agent models, media import, Underlord edits, publish, transcript export, cancellation, pagination, 402 credit errors, and 429 retry behavior on descriptapi.com/v1." },
+    { "url": "https://www.descript.com/api", "checkedAt": "2026-07-14", "supports": "API access is for paying users without an extra API fee, while usage draws from the customer's own plan credits and media minutes." }
+  ]
+}

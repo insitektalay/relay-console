@@ -1,0 +1,201 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "webex",
+  "name": "Webex",
+  "category": "communication",
+  "description": "Webex is Cisco's cloud collaboration suite for video meetings, webinars, messaging, calling, and hybrid work. Teams use it to schedule and host online meetings, share content, collaborate across devices, and connect employees and customers.",
+  "agentUseSummary": "Connect one Webex user with Relay-owned OAuth, then let agents verify that exact Person, list at most ten first-page Meeting schedules, and inspect one Meeting already present in that bounded page without exposing provider IDs, email addresses, meeting numbers, host identities, join links, attendees, transcripts, recordings, writes, pagination, or raw APIs.",
+  "provider": {
+    "websiteUrl": "https://www.webex.com/",
+    "docsUrl": "https://developer.webex.com/meeting/docs/meetings",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://developer.webex.com/terms-of-service",
+    "privacyUrl": "https://www.cisco.com/c/en/us/about/legal/privacy-full.html"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["spark:people_read", "meeting:schedules_read"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://webexapis.com/v1/authorize",
+    "tokenUrl": "https://webexapis.com/v1/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_integration",
+      "authorization_code_pkce_s256_rotating_refresh",
+      "exact_server_bound_person",
+      "encrypted_state_verifier_token_bundle_and_client_secret",
+      "local_disconnect_with_user_hub_upstream_revocation"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "WEBEX_CLIENT_ID",
+        "label": "Webex Integration client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held client ID for the registered Relay Webex Integration."
+      },
+      {
+        "name": "WEBEX_CLIENT_SECRET",
+        "label": "Webex Integration client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-held confidential secret; never entered in Relay Console clients."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/webex/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "person_read",
+      "label": "Verify connected Person",
+      "description": "Verify the exact OAuth-bound Person without exposing their provider identity.",
+      "defaultSelected": true
+    },
+    {
+      "id": "meeting_list",
+      "label": "List Meetings",
+      "description": "List at most ten first-page Meeting schedule summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "meeting_read",
+      "label": "Read one bounded Meeting",
+      "description": "Inspect one Meeting already verified in the first bounded page.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "webex_person_get",
+        "label": "Verify connected Person",
+        "description": "Verify the exact OAuth-bound Person without returning provider IDs or email addresses."
+      },
+      {
+        "id": "webex_meetings_list",
+        "label": "List Meetings",
+        "description": "List at most ten first-page Meetings accessible to the connected Person."
+      },
+      {
+        "id": "webex_meeting_get",
+        "label": "Read one Meeting",
+        "description": "Read one Meeting only after its ID appears in the connected Person's first bounded page."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "webex_mutations",
+        "label": "Block mutations",
+        "description": "Meeting create, update, delete, cancel, scheduling, invitee, registration, webhook, and meeting-control writes are unavailable."
+      },
+      {
+        "id": "webex_sensitive_adjacent",
+        "label": "Block sensitive adjacent data",
+        "description": "Invitees, registrants, attendees, participants, transcripts, recordings, summaries, chats, polls, Q&A, meeting numbers, host identities, and join or start links are unavailable."
+      },
+      {
+        "id": "webex_other_products_raw",
+        "label": "Block other products and raw access",
+        "description": "Messaging, Calling, Contact Center, devices, administration, SCIM, compliance, analytics, People search, pages after the first ten Meetings, exports, bulk work, and raw API access are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "webex_safe",
+      "label": "Safe",
+      "description": "The three selected fixed reads run automatically; sensitive, mutating, broad, paginated, downloadable, and raw surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "webex_person_get",
+        "webex_meetings_list",
+        "webex_meeting_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "webex_mutations",
+        "webex_sensitive_adjacent",
+        "webex_other_products_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three reads run without Relay per-action approval; exact Person authority, minimal scopes, fixed routes, bounds, audits, and secret isolation still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "webex_person_get",
+        "webex_meetings_list",
+        "webex_meeting_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "webex_mutations",
+        "webex_sensitive_adjacent",
+        "webex_other_products_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed Webex reads while Railway alone holds the confidential OAuth client, rotating token bundle, and exact Person binding."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three typed Webex reads while Railway alone holds the confidential OAuth client, rotating token bundle, and exact Person binding."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A registered Relay Webex Integration, exact Railway callback, minimal scopes, confidential credentials, Cisco terms and trademark review, live consent, representative Meetings account, and staging validation remain for separate provider-console and integration tasks.",
+    "nextAction": "After batch integration, register the exact Railway callback and two minimal scopes in a Relay Webex Integration, store credentials in staging, and validate PKCE/state, consent, exact Person binding, refresh rotation, first-page bounds, sensitive-field exclusion, rate limits, local disconnect, User Hub upstream revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.webex.com/",
+      "checkedAt": "2026-07-18",
+      "supports": "Cisco presents Webex as a collaboration suite spanning meetings, webinars, messaging, calling, devices, and hybrid work."
+    },
+    {
+      "url": "https://developer.webex.com/create/docs/integrations",
+      "checkedAt": "2026-07-18",
+      "supports": "Webex documents registered Integrations, authorization code with PKCE S256, exact redirects and scopes, authorization and access-token endpoints, rotating refresh tokens, bearer API calls, and no ordinary-user revocation endpoint."
+    },
+    {
+      "url": "https://developer.webex.com/meeting/docs/meetings",
+      "checkedAt": "2026-07-18",
+      "supports": "The Meetings overview documents the fixed webexapis.com/v1 origin, meeting:schedules_read for list/get operations, Meeting resource types, and sensitive adjacent APIs Relay excludes."
+    },
+    {
+      "url": "https://developer.webex.com/meeting/docs/api/v1/meetings",
+      "checkedAt": "2026-07-18",
+      "supports": "The current Meetings reference documents list and get operations and schedule-oriented Meeting response fields."
+    },
+    {
+      "url": "https://developer.webex.com/meeting/docs/basics",
+      "checkedAt": "2026-07-18",
+      "supports": "Webex documents RFC5988 Link-header pagination, variable overlapping rate limits, HTTP 429, and Retry-After behavior."
+    },
+    {
+      "url": "https://developer.webex.com/docs/api/v1/people",
+      "checkedAt": "2026-07-18",
+      "supports": "The People reference documents spark:people_read for viewing People and the broader company-directory authority Relay limits to exact self validation."
+    },
+    {
+      "url": "https://developer.webex.com/terms-of-service",
+      "checkedAt": "2026-07-18",
+      "supports": "Cisco's developer terms govern API apps, Webex Data handling, App Hub review, and trademark use, so branding and live distribution remain externally gated."
+    }
+  ]
+}

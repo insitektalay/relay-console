@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "termly",
+  "name": "Termly",
+  "category": "work_management",
+  "description": "Termly is a data privacy compliance platform for consent management, website cookie scanning, and legal policy generation. Organizations use it to configure consent banners, monitor cookies, publish policies, and support privacy requests.",
+  "agentUseSummary": "Connect one Termly account and one selected website with a customer-owned partner API key pair. Agents can inspect a redacted website compliance summary and bounded banner settings; other websites, visitor consent data, cookie detail, contacts, snippets, documents, collaborators, writes, paging, and raw API access are blocked.",
+  "provider": {
+    "websiteUrl": "https://termly.io/",
+    "docsUrl": "https://docs.termly.io/introduction/authentication/",
+    "developerConsoleUrl": "https://app.termly.io/",
+    "termsUrl": "https://termly.io/our-terms-of-use/",
+    "privacyUrl": "https://termly.io/our-privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_partner_key_pair",
+      "bound_account",
+      "selected_website"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "TERMLY_PUBLIC_KEY",
+        "label": "Termly partner public key",
+        "required": true,
+        "secret": true,
+        "helpText": "Termly manually issues the partner public key. Relay encrypts it server-side."
+      },
+      {
+        "name": "TERMLY_PRIVATE_KEY",
+        "label": "Termly partner private key",
+        "required": true,
+        "secret": true,
+        "helpText": "Termly manually issues the partner private key. Relay encrypts it and uses it only for HMAC request signing."
+      },
+      {
+        "name": "TERMLY_ACCOUNT_ID",
+        "label": "Termly account ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact acct_ account identifier allowed by the partner key."
+      },
+      {
+        "name": "TERMLY_WEBSITE_ID",
+        "label": "Selected Termly website ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The one web_ website Relay may inspect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "termly_website_get",
+      "label": "Read website status",
+      "description": "Read one selected website's redacted compliance and scan-status summary.",
+      "defaultSelected": true
+    },
+    {
+      "id": "termly_banner_get",
+      "label": "Read banner status",
+      "description": "Read one selected website's bounded consent-banner configuration summary.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "termly_website_get",
+        "label": "Read selected website status",
+        "description": "Read one selected website's redacted compliance and scan-status summary."
+      },
+      {
+        "id": "termly_banner_get",
+        "label": "Read selected banner status",
+        "description": "Read one selected website's bounded consent-banner configuration summary."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "termly_private_data",
+        "label": "Expose private compliance data",
+        "description": "Partner keys, WordPress API keys, company contacts, code snippets, consent records, visitor identifiers, cookie details, documents, and collaborator data are excluded."
+      },
+      {
+        "id": "termly_mutation",
+        "label": "Mutate Termly configuration",
+        "description": "Website, banner, cookie, theme, document, scan, collaborator, and consent mutations are blocked."
+      },
+      {
+        "id": "termly_broad_access",
+        "label": "Use broad Termly access",
+        "description": "Account-wide listing, other websites, paging, scrolling, arbitrary queries, raw paths, batch requests, redirects, and export are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "termly_read_only",
+      "label": "Read Only",
+      "description": "Read status for one selected website and its banner; private data and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["termly_website_get", "termly_banner_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "termly_private_data",
+        "termly_mutation",
+        "termly_broad_access"
+      ]
+    },
+    {
+      "id": "termly_no_access",
+      "label": "No Access",
+      "description": "Expose no Termly actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "termly_website_get",
+        "termly_banner_get",
+        "termly_private_data",
+        "termly_mutation",
+        "termly_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted partner key pair server-side and mounts exactly two selected-website read tools."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway attaches the encrypted partner key pair server-side and mounts exactly two selected-website read tools."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Termly manually issues partner public/private API keys and directs integrators to request a separate test account. No authorized partner keys, account, selected website, or test account is available in this worker lane.",
+    "nextAction": "An authorized organization must obtain Termly partner API access, connect its encrypted key pair, account ID, and one selected website through Relay, then validate signing, redaction, replacement, disconnect, post-disconnect denial, and both selected-website reads in Fairfax before live use."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.termly.io/introduction/authentication/",
+      "checkedAt": "2026-07-17",
+      "supports": "Termly documents its REST partner API and says API key pairs are issued manually through its agency program."
+    },
+    {
+      "url": "https://docs.termly.io/introduction/make-a-request/",
+      "checkedAt": "2026-07-17",
+      "supports": "Termly documents the fixed HTTPS api.termly.io host, timestamped TermlyV1 signatures, query model, and live-account/test-account constraint."
+    },
+    {
+      "url": "https://docs.termly.io/quickstart/node-js-example/",
+      "checkedAt": "2026-07-17",
+      "supports": "Termly's official example documents the public/private key derivation, HMAC-SHA256 canonical request, account ID, website ID, and fixed API origin."
+    },
+    {
+      "url": "https://docs.termly.io/endpoints/websites-get/",
+      "checkedAt": "2026-07-17",
+      "supports": "Termly documents GET /v1/websites with exact account and website IDs and response fields including sensitive keys, contacts, and code snippets that Relay removes."
+    },
+    {
+      "url": "https://docs.termly.io/endpoints/banners-get/",
+      "checkedAt": "2026-07-17",
+      "supports": "Termly documents GET banner configuration for exact account and website IDs, including consent-banner display and regional settings."
+    }
+  ]
+}

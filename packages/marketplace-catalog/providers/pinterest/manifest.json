@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "pinterest",
+  "name": "Pinterest",
+  "category": "content_creative",
+  "description": "Pinterest is a visual discovery platform where people collect ideas in boards and share image-based Pins. Creators, shoppers, and organizations use it to organize inspiration and maintain a public visual presence.",
+  "agentUseSummary": "Connect one Pinterest user account through Relay-owned OAuth, then let agents read that account and a bounded set of its public boards and Pins without exposing tokens or enabling private or write access.",
+  "provider": {
+    "websiteUrl": "https://www.pinterest.com/",
+    "docsUrl": "https://developers.pinterest.com/docs/getting-started/",
+    "developerConsoleUrl": "https://developers.pinterest.com/apps/",
+    "termsUrl": "https://policy.pinterest.com/developer-guidelines",
+    "privacyUrl": "https://policy.pinterest.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["user_accounts:read", "boards:read", "pins:read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.pinterest.com/oauth/",
+    "tokenUrl": "https://api.pinterest.com/v5/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_public_oauth_app", "confidential_authorization_code", "continuous_refresh_token", "exact_user_account_binding", "fixed_pinterest_v5_origin"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/pinterest/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "account_read", "label": "Read account", "description": "Read the exact connected Pinterest user account.", "defaultSelected": true },
+    { "id": "public_boards_read", "label": "Read public boards", "description": "List at most ten public boards owned by the connected account.", "defaultSelected": true },
+    { "id": "public_pins_read", "label": "Read public Pins", "description": "List at most ten public Pins and inspect one exact owned Pin.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "pinterest_user_account_get", "label": "Read connected account", "description": "Read the exact OAuth-bound Pinterest user account." },
+      { "id": "pinterest_public_boards_list", "label": "List public boards", "description": "List at most ten public boards owned by the connected account." },
+      { "id": "pinterest_public_pins_list", "label": "List public Pins", "description": "List at most ten public Pins owned by the connected account." },
+      { "id": "pinterest_public_pin_get", "label": "Read public Pin", "description": "Read one exact public Pin only after verifying account ownership." }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      { "id": "pinterest_private_or_write_actions", "label": "Block private and write actions", "description": "Secret boards and Pins, followers, ads, analytics, catalogs, search, creation, updates, deletion, saves, and engagement are not registered." },
+      { "id": "pinterest_raw_or_bulk_access", "label": "Block raw and bulk access", "description": "Bookmarks, automatic pagination, downloads, bulk work, arbitrary fields, and raw Pinterest API access are unavailable." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "pinterest_safe",
+      "label": "Safe",
+      "description": "The four selected bounded public-account reads run automatically; private, write, raw, and bulk surfaces remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["pinterest_user_account_get", "pinterest_public_boards_list", "pinterest_public_pins_list", "pinterest_public_pin_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["pinterest_private_or_write_actions", "pinterest_raw_or_bulk_access"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same four selected reads run without Relay per-action approval; exact account ownership, provider authority, bounds, audits, and secret isolation still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["pinterest_user_account_get", "pinterest_public_boards_list", "pinterest_public_pins_list", "pinterest_public_pin_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["pinterest_private_or_write_actions", "pinterest_raw_or_bulk_access"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Relay mounts four typed Pinterest wrappers and attaches the encrypted user token only at Railway's fixed Pinterest v5 adapter." },
+    { "format": "hermes", "installSupport": "installable", "description": "Relay mounts four typed Pinterest wrappers and attaches the encrypted user token only at Railway's fixed Pinterest v5 adapter." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A Pinterest developer app with Trial access, exact scopes and callback, Railway credentials, Standard-access review, and live consent acceptance remains for the separate provider-console task.",
+    "nextAction": "In the provider-console task, configure the exact Railway HTTPS callback, request user_accounts:read, boards:read, and pins:read, store staging credentials, then validate consent, exact account binding, continuous refresh, bounded reads, ownership denial, disconnect, and post-disconnect denial before requesting Standard access."
+  },
+  "evidence": [
+    { "url": "https://developers.pinterest.com/docs/getting-started/connect-app/", "checkedAt": "2026-07-17", "supports": "Pinterest documents app connection, access tiers, and the review path from Trial to Standard access." },
+    { "url": "https://developers.pinterest.com/docs/getting-started/set-up-authentication-and-authorization/", "checkedAt": "2026-07-17", "supports": "Pinterest documents the OAuth authorization-code flow, exact redirect URI, Basic-auth token exchange, scopes, and continuous refresh tokens." },
+    { "url": "https://developers.pinterest.com/docs/key-concepts/access-tiers/", "checkedAt": "2026-07-17", "supports": "Pinterest documents Trial and Standard access constraints relevant to the provider-console acceptance task." }
+  ]
+}

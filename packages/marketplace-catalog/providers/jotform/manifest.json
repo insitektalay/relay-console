@@ -1,0 +1,197 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "jotform",
+  "name": "Jotform",
+  "category": "work_management",
+  "description": "Jotform is an online form and workflow platform for building surveys, registrations, applications, approvals, order forms, payment forms, and documents without code. Teams use it to collect structured submissions and files, automate approvals, generate reports, collaborate on form-based processes, and connect captured information to business systems.",
+  "agentUseSummary": "Connect a Jotform account through Relay-owned OAuth, then decide which agents can list forms and submissions or create and edit forms through Jotform's official hosted MCP server under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.jotform.com/",
+    "docsUrl": "https://www.jotform.com/help/how-to-use-jotform-mcp-server/",
+    "developerConsoleUrl": "https://oauth2.jotform.com/.well-known/oauth-authorization-server",
+    "accountCreationUrl": "https://www.jotform.com/signup/",
+    "termsUrl": "https://www.jotform.com/terms/",
+    "privacyUrl": "https://www.jotform.com/privacy/"
+  },
+  "authentication": {
+    "model": "remote_mcp_oauth",
+    "relayOwned": true,
+    "scopes": ["readOnly"],
+    "accessOptions": [
+      {
+        "id": "read_only",
+        "label": "Read only",
+        "description": "Allow Relay to list forms and read submissions. Relay cannot create or edit forms or submissions.",
+        "scopes": ["readOnly"],
+        "capabilityIds": ["jotform_read"],
+        "defaultSelected": true
+      },
+      {
+        "id": "read_write",
+        "label": "Read and write",
+        "description": "Allow Relay to read submissions and create or edit forms. Writes still follow the selected Relay approval policy.",
+        "scopes": ["full"],
+        "capabilityIds": ["jotform_read", "jotform_manage"],
+        "defaultSelected": false
+      }
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://oauth2.jotform.com/authorize",
+    "tokenUrl": "https://oauth2.jotform.com/token",
+    "revocationUrl": "https://oauth2.jotform.com/revoke"
+  },
+  "connection": {
+    "types": ["oauth_connector", "customer_owned_api_key"],
+    "credentialRequirements": [
+      {
+        "name": "JOTFORM_API_KEY",
+        "label": "Legacy Jotform API key",
+        "secret": true,
+        "required": true,
+        "requiredForAuthTypes": ["customer_owned_api_key"],
+        "helpText": "Compatibility mode for existing connections only. New users should connect with Jotform OAuth."
+      },
+      {
+        "name": "JOTFORM_API_REGION",
+        "label": "Legacy Jotform API region",
+        "secret": false,
+        "required": true,
+        "requiredForAuthTypes": ["customer_owned_api_key"],
+        "helpText": "Compatibility mode only: select the region used by the existing API-key connection.",
+        "inputType": "select",
+        "options": [
+          { "value": "standard", "label": "Standard" },
+          { "value": "eu", "label": "EU" },
+          { "value": "hipaa", "label": "HIPAA" }
+        ],
+        "defaultValue": "standard"
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/jotform/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "jotform_read",
+      "label": "Read forms and results",
+      "description": "List authorized forms and read form submissions through Jotform's official hosted MCP server.",
+      "defaultSelected": true
+    },
+    {
+      "id": "jotform_manage",
+      "label": "Manage forms and workflows",
+      "description": "Create forms from exact field definitions and edit forms through Jotform's official hosted MCP server.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "jotform_read",
+        "label": "Read Jotform",
+        "description": "Use one exact documented read tool from Jotform's official hosted MCP server."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "jotform_manage",
+        "label": "Manage Jotform",
+        "description": "Use one exact documented Jotform MCP mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "jotform_raw_mcp",
+        "label": "Mount raw MCP",
+        "description": "Relay exposes exact read and write wrappers rather than an ungoverned provider tool surface."
+      },
+      {
+        "id": "jotform_untrusted_origin",
+        "label": "Use another MCP origin",
+        "description": "OAuth tokens are attached only to Jotform's published hosted MCP resource."
+      },
+      {
+        "id": "jotform_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth tokens and legacy API keys stay encrypted and never enter agent-visible arguments or results."
+      },
+      {
+        "id": "jotform_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds live schemas, arguments, results, nesting, pagination, redirects, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "jotform_safe",
+      "label": "Safe",
+      "description": "Official MCP form and submission reads run directly; every form mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["jotform_read"],
+      "approvalRequiredActions": ["jotform_manage"],
+      "blockedActions": [
+        "jotform_raw_mcp",
+        "jotform_untrusted_origin",
+        "jotform_secret_exposure",
+        "jotform_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All selected OAuth-authorized Jotform MCP operations run without Relay per-action approval. Connection ownership, provider authority, live schemas, fixed origin, bounds, audits, redaction, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["jotform_read", "jotform_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "jotform_raw_mcp",
+        "jotform_untrusted_origin",
+        "jotform_secret_exposure",
+        "jotform_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway owns OAuth, verifies Jotform's live MCP schemas, and mounts exact bounded read and write wrappers."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway owns OAuth, verifies Jotform's live MCP schemas, and mounts exact bounded read and write wrappers."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "configured",
+    "blocker": "Relay dynamically registers a public S256 PKCE client with Jotform when no Railway-pinned public client ID exists. A signed-in Jotform account with representative forms is still required for production OAuth and MCP acceptance.",
+    "nextAction": "A Jotform user clicks Connect, approves full access, then Relay verifies callback, refresh, exact live tool schemas, representative reads, Safe mutation approval, form creation and verification, provider revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://mcp.jotform.com/.well-known/oauth-protected-resource/mcp",
+      "checkedAt": "2026-07-29",
+      "supports": "Jotform publishes the exact protected MCP resource, OAuth authorization server, bearer-token transport, and readOnly plus full scopes."
+    },
+    {
+      "url": "https://oauth2.jotform.com/.well-known/oauth-authorization-server",
+      "checkedAt": "2026-07-29",
+      "supports": "Jotform publishes authorization, token, public-client registration and revocation endpoints with authorization-code and refresh grants, public clients, and S256 PKCE."
+    },
+    {
+      "url": "https://www.jotform.com/help/how-to-use-jotform-mcp-server/",
+      "checkedAt": "2026-07-29",
+      "supports": "Jotform documents its hosted MCP server and its form_list, create_form, edit_form, create_submission, and get_submissions tools."
+    },
+    {
+      "url": "https://www.jotform.com/",
+      "checkedAt": "2026-07-17",
+      "supports": "Jotform describes its form builder, templates, data collection, payments, workflow, reporting, collaboration, and integration product features."
+    }
+  ]
+}

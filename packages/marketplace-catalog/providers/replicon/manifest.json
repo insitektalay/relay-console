@@ -1,0 +1,139 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "replicon",
+  "name": "Replicon",
+  "category": "work_management",
+  "description": "Replicon is time-management and professional-services software for organizations with project, workforce, payroll, billing, and compliance needs. Teams use it to capture time and attendance, manage projects and resources, administer people and time off, control costs and billing, prepare payroll, and analyze operational performance.",
+  "agentUseSummary": "Add a Replicon company key and access token, then choose which agents can read or manage the connected tenant's projects, tasks, clients, people, time, activities, billing, costing, and security data under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.replicon.com/",
+    "docsUrl": "https://sb1.replicon.com/services/docs/projects.html",
+    "developerConsoleUrl": "https://login.replicon.com/",
+    "termsUrl": "https://www.deltek.com/legal/",
+    "privacyUrl": "https://www.deltek.com/legal/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_replicon_access_token",
+      "tenant_and_user_permission_bound"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "REPLICON_COMPANY_KEY",
+        "label": "Replicon company key",
+        "secret": false,
+        "required": true,
+        "helpText": "Enter the company key used in your Replicon sign-in URL. Relay uses it to discover and pin your tenant endpoint."
+      },
+      {
+        "key": "REPLICON_ACCESS_TOKEN",
+        "label": "Replicon access token",
+        "secret": true,
+        "required": true,
+        "helpText": "Create an access token in Replicon, then paste it here. Relay encrypts it and sends it only to your discovered replicon.com tenant."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "replicon_read",
+      "label": "Read time, work, people, and financial data",
+      "description": "Use all 102 pinned reads for projects, tasks, clients, users, activities, time, billing, costing, permissions, batches, and configuration."
+    },
+    {
+      "id": "replicon_manage",
+      "label": "Manage time, work, people, and financial data",
+      "description": "Use all 56 pinned mutations for projects, tasks, clients, users, activities, time exports, billing, costing, assignments, approvals, batches, and security administration."
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "replicon_read",
+        "label": "Read Replicon",
+        "description": "Run one exact selected read operation from the pinned public Replicon REST reference."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "replicon_manage",
+        "label": "Manage Replicon",
+        "description": "Run one exact selected Replicon mutation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "replicon_safe",
+      "label": "Safe",
+      "description": "All 102 bounded reads run directly; every mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["replicon_read"],
+      "approvalRequiredActions": ["replicon_manage"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 158 selected and token-authorized operations run without Relay per-action approval; tenant ownership, Replicon permissions, exact routes, bounds, audits, redaction, plan limits, and credential non-exposure still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["replicon_read", "replicon_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts all 158 pinned public Replicon REST operations through the encrypted customer-token connector."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts all 158 pinned public Replicon REST operations through the encrypted customer-token connector."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer-owned Replicon tenant, company key, access token, or representative permission set is available in this workspace.",
+    "nextAction": "A Replicon administrator creates a dedicated least-privilege integration identity and access token, saves the company key and token through Relay Console, then verifies tenant discovery, identity binding, permissions, read and mutation tools, Safe approvals, Dangerous mutations, batch polling, token replacement, agent assignment, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://learning.deltek.com/bundle/Replicon/page/api-authentication.html",
+      "checkedAt": "2026-07-15",
+      "supports": "Deltek's Replicon API guide documents token-based authorization for customer identities rather than a distributable Relay-owned authorization application."
+    },
+    {
+      "url": "https://sb1.replicon.com/services/docs/projects.html",
+      "checkedAt": "2026-07-15",
+      "supports": "Replicon's official interactive references document token authorization, tenant swimlanes, user permission boundaries, dynamic tenant URIs, and the public project, task, client, billing, activity, user, time, and security operation groups."
+    },
+    {
+      "url": "https://global.replicon.com/DiscoveryService1.svc/help/test/GetTenantEndpointDetails",
+      "checkedAt": "2026-07-15",
+      "supports": "Replicon's global discovery service resolves a customer company key to its Replicon tenant endpoint before authenticated service calls."
+    },
+    {
+      "url": "https://www.deltek.com/en/products/replicon",
+      "checkedAt": "2026-07-15",
+      "supports": "Deltek describes Replicon as an AI-powered time tracking platform spanning workforce management, project delivery, payroll, compliance, billing, and operational visibility."
+    }
+  ]
+}

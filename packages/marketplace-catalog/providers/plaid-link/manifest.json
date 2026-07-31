@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "plaid-link",
+  "name": "Plaid Link",
+  "category": "commerce_payments",
+  "description": "Plaid Link is the customer-facing account-connection experience for Plaid's financial-data network, handling institution selection, credential validation, OAuth handoff, multifactor authentication, and consent. Plaid's APIs let approved developers use linked Items for accounts, transactions, investments, liabilities, identity, verification, income, payments, transfers, and other enabled products.",
+  "agentUseSummary": "Add a customer's Plaid environment credentials and one encrypted Item access token produced by its own Link flow, then let agents read bounded enabled data or use the full Item API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://plaid.com/",
+    "docsUrl": "https://plaid.com/docs/link/",
+    "developerConsoleUrl": "https://dashboard.plaid.com/",
+    "termsUrl": "https://plaid.com/legal/",
+    "privacyUrl": "https://plaid.com/legal/#end-user-privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_plaid_developer_account",
+      "customer_completed_link_flow",
+      "exact_encrypted_item_access_token",
+      "fixed_plaid_environment"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "PLAID_API_ORIGIN",
+        "label": "Plaid API origin",
+        "required": true,
+        "secret": false,
+        "helpText": "The customer's exact Plaid Sandbox, Development, or Production API origin."
+      },
+      {
+        "name": "PLAID_CLIENT_ID",
+        "label": "Plaid client ID",
+        "required": true,
+        "secret": true,
+        "helpText": "The customer's Plaid client ID, stored encrypted by Railway."
+      },
+      {
+        "name": "PLAID_SECRET",
+        "label": "Plaid environment secret",
+        "required": true,
+        "secret": true,
+        "helpText": "The customer's environment-specific Plaid secret, stored encrypted by Railway."
+      },
+      {
+        "name": "PLAID_ACCESS_TOKEN",
+        "label": "Plaid Item access token",
+        "required": true,
+        "secret": true,
+        "helpText": "One Item access token produced by the customer's completed Link and public-token exchange flow, stored encrypted by Railway."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": [
+      "Customer configures its Plaid webhook endpoint and handles Item update-mode requirements."
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "financial_data_read",
+      "label": "Read linked financial data",
+      "description": "Read bounded accounts and enabled product data for the exact encrypted Plaid Item token.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Plaid Item API",
+      "description": "Use the complete documented Item API surface enabled for the customer and linked Item.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "plaid_link_read",
+        "label": "Read Plaid data",
+        "description": "Read one bounded documented Plaid resource for the exact linked Item."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "plaid_link_full_api",
+        "label": "Use full Plaid API",
+        "description": "Use a documented mutation, update, removal, payment, transfer, or other high-impact operation; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "plaid_link_safe",
+      "label": "Safe",
+      "description": "Bounded Item reads run directly; mutations, removals, payments, transfers, and administration require approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "plaid_link_read"
+      ],
+      "approvalRequiredActions": [
+        "plaid_link_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Plaid Item operation runs without Relay per-action approval; customer authorization, Item binding, product consent, provider limits, secret isolation, request bounds, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "plaid_link_read",
+        "plaid_link_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Plaid wrappers and injects encrypted client, environment, and exact Item credentials server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Plaid wrappers and injects encrypted client, environment, and exact Item credentials server-side."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Each customer must own a Plaid developer account, select products and countries, complete Dashboard approvals, run Link, exchange the public token, and supply one Item access token. Production use may incur customer charges.",
+    "nextAction": "In the provider-console task, use an approved customer Plaid environment to validate Link, public-token exchange, exact Item binding, product consent, update mode, bounded reads, Safe approval, Dangerous mutation, Item removal, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://plaid.com/docs/link/",
+      "checkedAt": "2026-07-17",
+      "supports": "Plaid documents Link as mandatory for production account connection and describes link-token creation, institution authentication, public-token exchange, Item access-token storage, OAuth, MFA, and update mode."
+    },
+    {
+      "url": "https://plaid.com/docs/api/link/",
+      "checkedAt": "2026-07-17",
+      "supports": "Plaid documents Link token creation, product and country selection, redirects, webhooks, Hosted Link, expiration, and the public-token to access-token flow."
+    },
+    {
+      "url": "https://plaid.com/docs/api/",
+      "checkedAt": "2026-07-17",
+      "supports": "Plaid documents client ID and environment secret authentication, JSON POST APIs, TLS requirements, product endpoints, and Dashboard access."
+    }
+  ]
+}

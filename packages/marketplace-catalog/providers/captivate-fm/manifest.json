@@ -1,0 +1,214 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "captivate-fm",
+  "name": "Captivate.fm",
+  "category": "content_creative",
+  "description": "Captivate.fm is a podcast hosting, publishing, analytics, and growth platform. Creators and teams use it to manage shows, host media, create and schedule episodes, distribute feeds, and understand audience downloads.",
+  "agentUseSummary": "Enter the API key, user ID, and exact show ID from the customer's own Captivate account, then let agents inspect the show, episodes, media, and aggregate analytics or manage episodes under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.captivate.fm/",
+    "docsUrl": "https://docs.captivate.fm/",
+    "developerConsoleUrl": "https://my.captivate.fm/account/api",
+    "termsUrl": "https://www.captivate.fm/terms",
+    "privacyUrl": "https://www.captivate.fm/privacy"
+  },
+  "authentication": {
+    "model": "api_key_pair",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.captivate.fm/authenticate/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "CAPTIVATE_API_KEY",
+        "label": "Captivate API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use the API key from the customer's Captivate account."
+      },
+      {
+        "name": "CAPTIVATE_USER_ID",
+        "label": "Captivate user ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Use the matching user UUID from the Captivate API key page."
+      },
+      {
+        "name": "CAPTIVATE_SHOW_ID",
+        "label": "Captivate show ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Bind Relay to one show UUID that the user can access."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "show_read",
+      "label": "Read connected show",
+      "description": "Read redacted metadata and feed URL for the exact show.",
+      "defaultSelected": true
+    },
+    {
+      "id": "episode_read",
+      "label": "Read episodes and media",
+      "description": "Read bounded protected episode and media records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "analytics",
+      "label": "Read analytics",
+      "description": "Read bounded aggregate show or episode download analytics.",
+      "defaultSelected": true
+    },
+    {
+      "id": "publishing",
+      "label": "Manage episodes",
+      "description": "Create or update episodes using media already in the exact show's library.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "captivate_show_read",
+        "label": "Read connected show",
+        "description": "Read redacted metadata and the feed URL for the exact connected show."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "captivate_episode_read",
+        "label": "Read episodes",
+        "description": "List or inspect bounded episode records, including drafts and scheduled episodes."
+      },
+      {
+        "id": "captivate_media_read",
+        "label": "Read media library",
+        "description": "List or inspect bounded media records for the exact show."
+      },
+      {
+        "id": "captivate_analytics_read",
+        "label": "Read analytics",
+        "description": "Read bounded aggregate show or episode download analytics for an explicit period."
+      },
+      {
+        "id": "captivate_episode_create",
+        "label": "Create episode",
+        "description": "Create a draft, scheduled, or published episode using media already in the exact show's library."
+      },
+      {
+        "id": "captivate_episode_update",
+        "label": "Update episode",
+        "description": "Change bounded metadata, media assignment, schedule, publication state, or Apple listing state for one episode."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "captivate_file_upload",
+        "label": "Upload local files",
+        "description": "Multipart media and artwork upload is not mounted in V1."
+      },
+      {
+        "id": "captivate_account_admin",
+        "label": "Administer Captivate",
+        "description": "Users, roles, networks, plans, billing, destinations, private podcasts, monetization, dynamic content, and account administration are outside this contract."
+      },
+      {
+        "id": "captivate_raw_api",
+        "label": "Use arbitrary Captivate APIs",
+        "description": "Arbitrary paths, caller-selected origins, browser automation, and undocumented endpoints are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "captivate_safe",
+      "label": "Safe",
+      "description": "Redacted connected-show metadata runs directly; protected episode, media, analytics, and publishing actions require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["captivate_show_read"],
+      "approvalRequiredActions": [
+        "captivate_episode_read",
+        "captivate_media_read",
+        "captivate_analytics_read",
+        "captivate_episode_create",
+        "captivate_episode_update"
+      ],
+      "blockedActions": [
+        "captivate_file_upload",
+        "captivate_account_admin",
+        "captivate_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected documented actions run without Relay per-action approval while exact-user/show binding, credential secrecy, fixed origin, bounds, redaction, audits, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "captivate_show_read",
+        "captivate_episode_read",
+        "captivate_media_read",
+        "captivate_analytics_read",
+        "captivate_episode_create",
+        "captivate_episode_update"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "captivate_file_upload",
+        "captivate_account_admin",
+        "captivate_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected Captivate tools and injects the encrypted API key plus exact user and show bindings server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected Captivate tools and injects the encrypted API key plus exact user and show bindings server-side."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer Captivate API key, user ID, exact show ID, eligible plan, or signed-in provider session is available for production acceptance.",
+    "nextAction": "Copy the API key and user ID from the customer's own Captivate account, choose one show ID, connect all three values in Relay Console, then verify exact-show binding, bounded redacted reads, analytics period limits, Safe denial, approved or Dangerous draft creation and update, key rotation, and disconnect. Use media already present in the show because V1 does not mount local multipart upload."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.captivate.fm/",
+      "checkedAt": "2026-07-17",
+      "supports": "Captivate publishes bearer-token API documentation for authentication, users and show binding, shows, episodes, media, and aggregate analytics on a fixed API origin."
+    },
+    {
+      "url": "https://help.captivate.fm/en/article/how-to-find-your-captivate-api-credentials-1mlnjor/",
+      "checkedAt": "2026-07-17",
+      "supports": "Captivate documents a customer-owned user ID and API key intended for connecting external applications that can publish or edit episodes."
+    },
+    {
+      "url": "https://api.captivate.fm/",
+      "checkedAt": "2026-07-17",
+      "supports": "Captivate identifies its current API service as running and directs integrators to its API access channel."
+    },
+    {
+      "url": "https://help.captivate.fm/en/article/account-faqs-1w5xvb8/",
+      "checkedAt": "2026-07-17",
+      "supports": "Captivate describes the API key as unique to the customer's account and intended for supported external applications."
+    }
+  ]
+}

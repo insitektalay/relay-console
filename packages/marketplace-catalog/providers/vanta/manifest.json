@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "vanta",
+  "name": "Vanta",
+  "category": "developer",
+  "description": "Vanta is a trust management and security compliance automation platform for frameworks, controls, tests, evidence, personnel, devices, vendors, risk, trust centers, questionnaires, and audits.",
+  "agentUseSummary": "Add customer-owned Manage Vanta API client credentials restricted to read-only scope. Selected agents can list only bounded, minimized document status metadata. Relay blocks document contents, evidence, people, audits, broad APIs, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://www.vanta.com/",
+    "docsUrl": "https://developer.vanta.com/docs/guides/upload-a-document",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.vanta.com/terms",
+    "privacyUrl": "https://www.vanta.com/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["vanta-api.all:read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": "https://api.vanta.com/oauth/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_client_credentials",
+      "oauth2_client_credentials",
+      "fixed_origin",
+      "ephemeral_one_hour_access_token"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "VANTA_CLIENT_ID",
+        "label": "Vanta API client ID",
+        "required": true,
+        "secret": true,
+        "helpText": "Client ID for a customer-owned Manage Vanta API application restricted to read-only scope."
+      },
+      {
+        "name": "VANTA_CLIENT_SECRET",
+        "label": "Vanta API client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Client secret stored encrypted and submitted only to Vanta's fixed token endpoint."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "compliance_document_read",
+      "label": "Read compliance document status",
+      "description": "List a bounded, minimized directory of document titles, categories, and collection statuses.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "vanta_read",
+        "label": "List compliance documents",
+        "description": "List up to 20 minimized document-status records from the bound Vanta account."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "vanta_manage",
+        "label": "Access evidence or change Vanta",
+        "description": "Document contents and uploads, controls, tests, people, devices, vendors, risks, trust data, audits, integrations, exports, and every mutation are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "vanta_safe",
+      "label": "Safe",
+      "description": "One bounded document-status directory read runs directly; document contents, evidence, people, audits, broad APIs, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["vanta_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["vanta_manage"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mints one-hour read-only tokens against Vanta's fixed origin and exposes only a bounded document-status directory."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mints one-hour read-only tokens against Vanta's fixed origin and exposes only a bounded document-status directory."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer has supplied a Manage Vanta API client restricted to vanta-api.all:read, and the credential lifecycle and non-production acceptance have not been validated.",
+    "nextAction": "A Vanta administrator creates a customer-owned API application with only vanta-api.all:read, stores its client ID and secret through Relay's encrypted credential flow, then validates token renewal, bounded document reads, scope denial, secret rotation/revocation, disconnect, rate limiting, and post-disconnect denial in non-production."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.vanta.com/docs/guides/offboard-people",
+      "checkedAt": "2026-07-18",
+      "supports": "Vanta documents the fixed API and token origins, JSON client-credentials grant with an explicit scope, one-hour access tokens, cursor pagination, and vanta-api.all:read authorization."
+    },
+    {
+      "url": "https://developer.vanta.com/docs/guides/upload-a-document",
+      "checkedAt": "2026-07-18",
+      "supports": "Vanta documents the Manage Vanta API document directory, GET /v1/documents, bearer authorization, pageSize and pageCursor pagination, document title/category/status fields, and sensitive upload and submit mutations that Relay excludes."
+    },
+    {
+      "url": "https://developer.vanta.com/llms.txt",
+      "checkedAt": "2026-07-18",
+      "supports": "Vanta's official API index shows the broad controls, documents, people, devices, vendors, risk, trust, audit, integration, and mutating surface that remains outside this connector."
+    }
+  ]
+}

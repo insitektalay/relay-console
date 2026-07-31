@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "yext",
+  "name": "Yext",
+  "category": "marketing",
+  "description": "Yext is a digital presence platform for managing business entities, listings, reviews, search experiences, analytics, pages, and related content across publishers.",
+  "agentUseSummary": "Yext cannot yet be connected through Relay. Yext supports confidential OAuth, but API authority is configured out-of-band through App Directory permissions rather than requested as consent scopes, and the public guide does not establish Relay's exact distributable permission, token-lifetime, refresh, or revocation contract without prohibited provider-console work.",
+  "provider": {
+    "websiteUrl": "https://www.yext.com/",
+    "docsUrl": "https://hitchhikers.yext.com/docs/managementapis/introduction/",
+    "developerConsoleUrl": "https://www.yext.com/s/me/apps",
+    "termsUrl": "https://www.yext.com/terms/",
+    "privacyUrl": "https://www.yext.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.yext.com/oauth2/authorize",
+    "tokenUrl": "https://api.yextapis.com/oauth2/accesstoken",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth",
+      "app_directory_permission_configuration",
+      "no_runtime_scope_parameter",
+      "app_specific_account_binding",
+      "provider_console_acceptance_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "YEXT_CLIENT_ID",
+        "label": "Yext app client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held production Yext App Directory client ID."
+      },
+      {
+        "name": "YEXT_CLIENT_SECRET",
+        "label": "Yext app API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-encrypted Yext app API key used only for server-side token exchange."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/yext/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "yext_oauth_connection",
+        "label": "Connect a Yext account",
+        "description": "Relay cannot expose Connect until its App Directory permission and distribution contract is inspected and approved."
+      },
+      {
+        "id": "yext_permission_inference",
+        "label": "Infer provider permissions",
+        "description": "Endpoint documentation and account API keys do not prove the permission bundle assigned to a distributed OAuth app."
+      },
+      {
+        "id": "yext_raw_api",
+        "label": "Expose raw Yext APIs",
+        "description": "Arbitrary Management, Content Delivery, Search, Events, Streams, Connectors, webhook, and versioned endpoint access is not permitted."
+      },
+      {
+        "id": "yext_data_and_mutations",
+        "label": "Access Yext data",
+        "description": "Accounts, entities, listings, reviews, comments, invitations, workflows, analytics, publishers, pages, search, social, connectors, and every read or write remain unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "yext_unavailable",
+      "label": "Unavailable",
+      "description": "No Yext action can be enabled before provider-console permission and lifecycle acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "yext_oauth_connection",
+        "yext_permission_inference",
+        "yext_raw_api",
+        "yext_data_and_mutations"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Yext wrappers are mounted before the OAuth app's exact provider permissions are accepted."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Yext wrappers are mounted before the OAuth app's exact provider permissions are accepted."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Yext OAuth omits runtime scopes and assigns authority through App Directory Permissions and Endpoints configuration. This worker cannot open the provider console to establish the exact review-management or broader V1 permission identifiers, distribution eligibility, token lifetime, reconnect behavior, or revocation route.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should create or inspect a Yext App Directory app, select the minimum useful permission bundle, record every configured endpoint permission and redirect domain, confirm distribution/review requirements plus token expiry and revocation behavior, and return that frozen contract before connector implementation or Connect visibility."
+  },
+  "evidence": [
+    {
+      "url": "https://hitchhikers.yext.com/guides/oauth-and-permission-scopes/01-oauth/",
+      "checkedAt": "2026-07-17",
+      "supports": "Yext documents confidential authorization-code OAuth, exact redirect validation, server-side client secret exchange, state, app-specific account identity, and permissions configured in the App Directory rather than requested during OAuth."
+    },
+    {
+      "url": "https://hitchhikers.yext.com/docs/managementapis/introduction/overview-policies-and-conventions/",
+      "checkedAt": "2026-07-17",
+      "supports": "Yext documents versioned Management APIs, US/EU partitions, secret API-key authentication, and broad entity, listings, analytics, and reviews surfaces."
+    },
+    {
+      "url": "https://hitchhikers.yext.com/docs/managementapis/reviews/reviewmanagement/",
+      "checkedAt": "2026-07-17",
+      "supports": "Yext publishes review list/get/create/update, response generation, comment management, and label operations with account permissions and plan/publisher constraints."
+    },
+    {
+      "url": "https://hitchhikers.yext.com/docs/managementapis/introduction/api-changelog/",
+      "checkedAt": "2026-07-17",
+      "supports": "Yext's June 2026 changelog ends V1 support and adds review-workflow APIs, reinforcing the need for a pinned V2 version and explicit reviewed operation set."
+    }
+  ]
+}

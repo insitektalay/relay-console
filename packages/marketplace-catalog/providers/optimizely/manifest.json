@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "optimizely",
+  "name": "Optimizely",
+  "category": "crm_support",
+  "description": "Optimizely is a digital-experience and experimentation platform for web and feature experiments, personalization, audiences, events, results, recommendations, flags, content, and commerce workflows.",
+  "agentUseSummary": "Connect Relay's confidential Optimizely OAuth application, then let selected agents list up to 100 accessible project IDs, names, platforms, and statuses. Optimizely exposes only the broad all OAuth scope, so Relay contains it with one fixed read route and blocks account IDs, snippets, experiments, results, audiences, events, flags, exports, arbitrary API access, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://www.optimizely.com/",
+    "docsUrl": "https://docs.developers.optimizely.com/web-experimentation/docs/rest-api-introduction",
+    "developerConsoleUrl": "https://app.optimizely.com/",
+    "termsUrl": "https://www.optimizely.com/legal/terms-of-service/",
+    "privacyUrl": "https://www.optimizely.com/legal/privacy-notice/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["all"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.optimizely.com/oauth2/authorize",
+    "tokenUrl": "https://app.optimizely.com/oauth2/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth",
+      "authorizing_user_role_bound",
+      "broad_provider_scope_contained"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "OPTIMIZELY_CLIENT_ID",
+        "label": "Optimizely OAuth client ID",
+        "secret": false,
+        "required": true,
+        "helpText": "Relay's confidential Optimizely OAuth application identifier, configured in Railway."
+      },
+      {
+        "key": "OPTIMIZELY_CLIENT_SECRET",
+        "label": "Optimizely OAuth client secret",
+        "secret": true,
+        "required": true,
+        "helpText": "Relay's confidential Optimizely OAuth client secret, held only in Railway."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/optimizely/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "optimizely_read",
+      "label": "List projects",
+      "description": "Use only GET /v2/projects?page=1&per_page=100 and return minimized project IDs, names, platforms, and statuses.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "optimizely_read",
+        "label": "List Optimizely projects",
+        "description": "List up to 100 project IDs, names, platforms, and statuses without account IDs, snippets, experiments, results, events, or writes."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "optimizely_manage",
+        "label": "Change Optimizely",
+        "description": "Project, experiment, audience, event, attribute, page, flag, recommendation, and every other mutation are blocked."
+      },
+      {
+        "id": "optimizely_sensitive_or_export_data",
+        "label": "Read results or exported events",
+        "description": "Experiment results, visitor profiles, events exports, subject access requests, attribution, usage, snippets, account IDs, and credentials are blocked."
+      },
+      {
+        "id": "optimizely_arbitrary_api",
+        "label": "Use arbitrary API access",
+        "description": "Additional pages, filters, experiments, audiences, events, attributes, campaigns, flags, recommendations, arbitrary routes, and custom arguments are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "optimizely_safe",
+      "label": "Safe",
+      "description": "One minimized first-page project-directory read runs directly. The provider's broad all scope is contained by Relay's fixed route, output minimization, assignment boundary, and complete block on experiments, exports, arbitrary API access, and mutations.",
+      "defaultSelected": true,
+      "allowedActions": ["optimizely_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "optimizely_manage",
+        "optimizely_sensitive_or_export_data",
+        "optimizely_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized project-directory tool through Relay-owned refreshing Optimizely OAuth."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized project-directory tool through Relay-owned refreshing Optimizely OAuth."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No administrator-registered Relay Optimizely confidential OAuth application, exact callback registration, client credentials, non-production account, authorized representative user, representative project fixtures, or role matrix is available in this workspace.",
+    "nextAction": "An Optimizely administrator registers Relay's confidential application with the exact Railway callback, stores the client ID and secret in Railway staging, then verifies authorization-code and refresh flows, broad all-scope containment, minimized project listing, role boundaries, agent assignment, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.developers.optimizely.com/web-experimentation/docs/api-conventions",
+      "checkedAt": "2026-07-17",
+      "supports": "Optimizely documents OAuth as the required choice for customer-facing applications, personal tokens only for server-to-server exploration, Bearer authentication, 25-item default and 100-item maximum pagination, Link headers, conventional errors, and rate-limit headers."
+    },
+    {
+      "url": "https://docs.developers.optimizely.com/web-experimentation/docs/registration",
+      "checkedAt": "2026-07-17",
+      "supports": "Optimizely documents administrator application registration, confidential clients, exact HTTPS redirect URIs, state, the authorization endpoint, and the sole broad all scope bound to the authorizing user's role."
+    },
+    {
+      "url": "https://docs.developers.optimizely.com/web-experimentation/docs/authorization-code",
+      "checkedAt": "2026-07-17",
+      "supports": "The authorization-code reference documents the token endpoint, client credentials, redirect binding, two-hour access tokens, and refresh tokens."
+    },
+    {
+      "url": "https://docs.developers.optimizely.com/web-experimentation/docs/rest-api-getting-started",
+      "checkedAt": "2026-07-17",
+      "supports": "The official getting-started guide documents GET /v2/projects and project response fields including account ID, ID, name, platform, status, SDK data, and web snippet configuration; Relay returns only four minimized fields."
+    }
+  ]
+}

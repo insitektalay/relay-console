@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "benchmark-email",
+  "name": "Benchmark Email",
+  "category": "marketing_analytics",
+  "description": "Benchmark Email is an email marketing platform for contacts, lists, campaigns, templates, reports, and sending domains.",
+  "agentUseSummary": "Connect one Benchmark Email account with an encrypted dedicated API key limited to contacts:read and campaigns:read. Relay validates the account-specific regional Benchmark origin, binds one non-email contact ID and campaign ID, exposes only IDs, timestamps, and campaign lifecycle status, and blocks contact keys and fields, campaign preview and counts, content, audiences, reports, domains, broader access, exports, and mutations.",
+  "provider": {
+    "websiteUrl": "https://www.benchmarkemail.com/",
+    "docsUrl": "https://developers.benchmarkemail.io/",
+    "developerConsoleUrl": "https://app.benchmarkemail.io/",
+    "termsUrl": "https://www.benchmarkemail.com/terms/",
+    "privacyUrl": "https://www.benchmarkemail.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["contacts:read", "campaigns:read"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_dedicated_api_key",
+      "exact_read_scopes",
+      "validated_regional_api_origin",
+      "selected_non_email_contact_id",
+      "selected_campaign"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "BENCHMARK_EMAIL_API_KEY",
+        "label": "Benchmark Email API key",
+        "required": true,
+        "secret": true,
+        "helpText": "A dedicated customer-generated key with only contacts:read and campaigns:read; Relay encrypts it and sends it only in X-API-Key."
+      },
+      {
+        "name": "BENCHMARK_EMAIL_API_BASE_URL",
+        "label": "Benchmark Email regional API base URL",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact regional API origin shown beside the key; Relay accepts only documented api-*.benchmarkemail.io HTTPS origins."
+      },
+      {
+        "name": "BENCHMARK_EMAIL_CONTACT_ID",
+        "label": "Selected non-email contact ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact contact ID whose ID and timestamps Relay may read; email selectors are rejected."
+      },
+      {
+        "name": "BENCHMARK_EMAIL_CAMPAIGN_ID",
+        "label": "Selected campaign ID",
+        "required": true,
+        "secret": false,
+        "helpText": "The exact campaign whose bounded lifecycle metadata Relay may read."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "benchmark_email_contact_summary_get",
+      "label": "Read selected contact summary",
+      "description": "Read only the ID and timestamps for one selected contact without key, fields, status, lists, or events.",
+      "defaultSelected": true
+    },
+    {
+      "id": "benchmark_email_campaign_summary_get",
+      "label": "Read selected campaign summary",
+      "description": "Read bounded lifecycle metadata for one selected campaign without preview, failure detail, counts, content, sender, audience, reports, or links.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "benchmark_email_contact_summary_get",
+        "label": "Read selected contact summary",
+        "description": "Read the selected contact's ID and timestamps while discarding all personal, preference, list, and event fields."
+      },
+      {
+        "id": "benchmark_email_campaign_summary_get",
+        "label": "Read selected campaign summary",
+        "description": "Read the selected campaign's ID, status, and timestamps while discarding preview, failure detail, counts, content, audience, and report fields."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "benchmark_email_private_data",
+        "label": "Expose private marketing data",
+        "description": "Contact keys, fields, status, lists, and events plus campaign preview, failure detail, counts, content, sender, audience, reports, and links are excluded."
+      },
+      {
+        "id": "benchmark_email_mutation",
+        "label": "Mutate Benchmark Email state",
+        "description": "Contacts, lists, fields, campaigns, templates, sends, domains, and every other mutation are blocked."
+      },
+      {
+        "id": "benchmark_email_broad_access",
+        "label": "Use broad Benchmark Email access",
+        "description": "Other contacts, campaigns, lists, templates, reports, domains, arbitrary origins, paths, queries, redirects, downloads, and exports are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "benchmark_email_read_only",
+      "label": "Read Only",
+      "description": "Read one selected contact and campaign through an encrypted two-scope API key; private data, broader access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "benchmark_email_contact_summary_get",
+        "benchmark_email_campaign_summary_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "benchmark_email_private_data",
+        "benchmark_email_mutation",
+        "benchmark_email_broad_access"
+      ]
+    },
+    {
+      "id": "benchmark_email_no_access",
+      "label": "No Access",
+      "description": "Expose no Benchmark Email actions.",
+      "defaultSelected": false,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "benchmark_email_contact_summary_get",
+        "benchmark_email_campaign_summary_get",
+        "benchmark_email_private_data",
+        "benchmark_email_mutation",
+        "benchmark_email_broad_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted two-scope API key and bounded regional origin server-side and mounts exactly two selected-resource projected reads."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway stores the encrypted two-scope API key and bounded regional origin server-side and mounts exactly two selected-resource projected reads."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "A Benchmark Email staging account, dedicated two-scope API key, exact regional API base URL, contact ID, and campaign ID are required. No authorized account or credentials are available in this worker lane.",
+    "nextAction": "The provider-console lane must create a dedicated staging key with contacts:read and campaigns:read, capture it directly in Railway with the exact regional API origin and selected IDs, then validate both redacted reads, origin/header containment, email-selector denial, scope/rate errors, key deactivate/reactivate/regenerate/delete, disconnect, and post-disconnect denial in Fairfax."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.benchmarkemail.io/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Benchmark Email documents the X-API-Key header, dedicated scoped keys, contacts:read and campaigns:read, account-specific regional API origin, expiration, deactivate/reactivate, regeneration, deletion, and account-standing behavior."
+    },
+    {
+      "url": "https://developers.benchmarkemail.io/api-reference/contact/get-a-contact-by-id",
+      "checkedAt": "2026-07-18",
+      "supports": "Benchmark Email documents GET /api/contact/{contactId} using API-key authentication for an exact selected contact."
+    },
+    {
+      "url": "https://developers.benchmarkemail.io/api-reference/email-campaign/get-campaign-by-id",
+      "checkedAt": "2026-07-18",
+      "supports": "Benchmark Email documents GET /api/email/campaign/{campaignId} and its campaign lifecycle, preview, and aggregate-count response fields; Relay retains only ID, status, and timestamps."
+    },
+    {
+      "url": "https://developers.benchmarkemail.io/rate-limits",
+      "checkedAt": "2026-07-18",
+      "supports": "Benchmark Email documents per-account hourly and monthly limits, 429 responses, Retry-After, rate headers, and failed-authentication blocking."
+    }
+  ]
+}

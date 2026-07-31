@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "impact",
+  "name": "Impact",
+  "category": "marketing",
+  "description": "Impact is a partnership-management platform for affiliate, influencer, referral, media, and channel programs, including partners, contracts, tracking, conversions, commissions, and payouts.",
+  "agentUseSummary": "Impact cannot yet be connected through Relay. A brand can issue a distinct read-only Account SID and Auth Token for HTTPS Basic Auth, but the credential is still broad within the selected account and public documentation spans materially different brand, publisher, and agency products; representative read-only credential, role, and program acceptance is required first.",
+  "provider": {
+    "websiteUrl": "https://impact.com/",
+    "docsUrl": "https://integrations.impact.com/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://impact.com/terms-of-use/",
+    "privacyUrl": "https://impact.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_account_sid",
+      "customer_read_only_auth_token",
+      "http_basic_auth",
+      "brand_account_only",
+      "exact_program_binding",
+      "separate_read_only_and_read_write_tokens"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "IMPACT_ACCOUNT_SID",
+        "label": "Impact Account SID",
+        "required": true,
+        "secret": false,
+        "helpText": "Unique identifier for the exact connected Impact brand account."
+      },
+      {
+        "name": "IMPACT_READ_ONLY_AUTH_TOKEN",
+        "label": "Impact read-only Auth Token",
+        "required": true,
+        "secret": true,
+        "helpText": "Dedicated read-only token stored only in Railway's encrypted credential boundary; read/write tokens are rejected."
+      },
+      {
+        "name": "IMPACT_PROGRAM_ID",
+        "label": "Impact Program ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Exact numerical brand program identifier to bind and constrain the connection."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "impact_credentials",
+        "label": "Collect Impact credentials",
+        "description": "Relay does not collect an Account SID and token before proving it is read-only and bound to the intended brand and program."
+      },
+      {
+        "id": "impact_brand_reads",
+        "label": "Read Impact brand data",
+        "description": "Programs, partners, contracts, actions, conversions, commissions, payouts, reports, users, and account data remain unavailable."
+      },
+      {
+        "id": "impact_other_roles",
+        "label": "Access publisher or agency accounts",
+        "description": "Media-partner, publisher, agency, solution-provider passthrough, and managed-account APIs are outside the frozen brand-only boundary."
+      },
+      {
+        "id": "impact_mutations_raw",
+        "label": "Mutate or use raw Impact APIs",
+        "description": "Conversions, refunds, partner and contract changes, payouts, tracking, arbitrary endpoints, pagination, exports, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "impact_unavailable",
+      "label": "Unavailable",
+      "description": "No Impact action is enabled before representative read-only brand credential and role acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "impact_credentials",
+        "impact_brand_reads",
+        "impact_other_roles",
+        "impact_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No Impact wrappers are mounted until a representative brand establishes the frozen read-only role contract."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No Impact wrappers are mounted until a representative brand establishes the frozen read-only role contract."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Impact brand accounts expose separate read-only and read/write Account SID/Auth Token pairs, but both use account-wide Basic Auth rather than granular resource scopes. Impact publishes distinct Advertiser, Media Partner, and Agency/Solution Provider APIs, and Relay has no representative brand proving token mode, exact program binding, user permissions, regional schemas, or lifecycle behavior.",
+    "nextAction": "The exclusive provider-console and production-acceptance task should obtain authorization from a representative Impact brand, copy only its read-only Account SID/Auth Token and exact Program ID without exposing them in reports, store them in Railway, reject read/write credentials, and return role, program, rotation/reset, revocation, schemas, quotas, privacy-redaction, financial-data handling, denial, and disconnect evidence before connector implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://help.impact.com/brand/what-would-you-like-to-learn-about/account-administration/account-settings/api-tokens/manage-legacy-api-tokens-as-a-brand",
+      "checkedAt": "2026-07-17",
+      "supports": "Impact documents distinct brand read-only and read/write Account SID/Auth Token pairs, separate reset operations that immediately invalidate the old token, and token-version upgrades."
+    },
+    {
+      "url": "https://integrations.impact.com/impact-brand/docs/api-integration-implementation",
+      "checkedAt": "2026-07-17",
+      "supports": "Impact documents Advertiser API calls using HTTPS Basic Auth with Account SID and Auth Token and shows the same brand API accepting detailed conversion mutations."
+    },
+    {
+      "url": "https://integrations.impact.com/impact-publisher/reference/retrieve-company-information",
+      "checkedAt": "2026-07-17",
+      "supports": "Impact separately documents a Media Partner API whose account is selected by a publisher Account SID/Auth Token, confirming role-specific APIs cannot be conflated."
+    },
+    {
+      "url": "https://integrations.impact.com/impact-agency/reference/brand-api-passthrough",
+      "checkedAt": "2026-07-17",
+      "supports": "Impact's agency Solution Provider API can pass through to managed brand accounts, establishing a third materially different authority model outside the initial brand-only boundary."
+    }
+  ]
+}

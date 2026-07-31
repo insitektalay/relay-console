@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "loyaltylion",
+  "name": "LoyaltyLion",
+  "category": "marketing",
+  "description": "LoyaltyLion is an ecommerce loyalty platform for points, rewards, tiers, referrals, customer activities, orders, redemptions, and shopper-facing loyalty experiences.",
+  "agentUseSummary": "LoyaltyLion cannot yet be connected through Relay. Multi-store integrations must register as an approved LoyaltyLion partner OAuth app by email before receiving client credentials; Relay has no approved app, exact callbacks, credentials, representative consent, or accepted production contract.",
+  "provider": {
+    "websiteUrl": "https://loyaltylion.com/",
+    "docsUrl": "https://developers.loyaltylion.com/api/authentication/oauth/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://loyaltylion.com/terms-of-service",
+    "privacyUrl": "https://loyaltylion.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["read_customers"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://app.loyaltylion.com/oauth/authorize",
+    "tokenUrl": "https://app.loyaltylion.com/oauth/access-token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "provider_approved_partner_oauth",
+      "authorization_code",
+      "comma_delimited_resource_scopes",
+      "permanent_access_token",
+      "exact_store_binding",
+      "email_registration"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "LOYALTYLION_CLIENT_ID",
+        "label": "LoyaltyLion client ID",
+        "required": true,
+        "secret": false,
+        "helpText": "Railway-held client ID issued after LoyaltyLion approves Relay's partner app."
+      },
+      {
+        "name": "LOYALTYLION_CLIENT_SECRET",
+        "label": "LoyaltyLion client secret",
+        "required": true,
+        "secret": true,
+        "helpText": "Railway-encrypted partner OAuth secret; never returned to clients or agents."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/loyaltylion/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "loyaltylion_partner_registration",
+        "label": "Register and connect LoyaltyLion",
+        "description": "Registration and Connect remain unavailable until LoyaltyLion approves Relay's partner app and exact install and callback URLs."
+      },
+      {
+        "id": "loyaltylion_api_key_substitution",
+        "label": "Collect merchant credentials",
+        "description": "Relay does not substitute merchant API keys or deprecated token-and-secret pairs for the published multi-store partner OAuth contract."
+      },
+      {
+        "id": "loyaltylion_customer_reads",
+        "label": "Read loyalty customers",
+        "description": "Customer identity, points, tiers, rewards, activities, orders, unsubscribes, and program data remain unavailable."
+      },
+      {
+        "id": "loyaltylion_mutations_raw",
+        "label": "Mutate loyalty or use raw APIs",
+        "description": "Points and tier changes, activities, orders, rewards, webhooks, arbitrary endpoints, pagination, and raw responses are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "loyaltylion_unavailable",
+      "label": "Unavailable",
+      "description": "No LoyaltyLion action is enabled before partner approval, production OAuth setup, and representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "loyaltylion_partner_registration",
+        "loyaltylion_api_key_substitution",
+        "loyaltylion_customer_reads",
+        "loyaltylion_mutations_raw"
+      ]
+    }
+  ],
+  "riskLevel": "low",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No LoyaltyLion wrappers are mounted before partner approval and representative OAuth acceptance."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No LoyaltyLion wrappers are mounted before partner approval and representative OAuth acceptance."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "LoyaltyLion reserves multi-store OAuth for partners and requires emailed app registration details, including an HTTPS install URL and redirect URL, before it approves the app and issues client credentials. Relay has not submitted or received approval, and this worker may not contact the provider, create the app, capture credentials, or run consent.",
+    "nextAction": "The exclusive provider-approval task should submit Relay's name, description, public URL, logo, HTTPS install URL, and https://api.relayconsole.work/api/v1/marketplace/oauth/loyaltylion/callback to LoyaltyLion Partner Support, request only read_customers, then store issued credentials in Railway and return consent, exact-store binding, permanent-token lifecycle, disconnect, denial, webhook, schema, quota, and privacy-redaction evidence before implementation."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.loyaltylion.com/api/authentication/oauth/",
+      "checkedAt": "2026-07-17",
+      "supports": "LoyaltyLion documents OAuth only for approved partners building multi-store apps, email-based registration and approval, exact HTTPS install and redirect URLs, client credentials, comma-separated resource scopes, a permanent bearer access token, and read_customers authority over points, tiers, rewards, and activities."
+    },
+    {
+      "url": "https://developers.loyaltylion.com/api-reference/authentication/token-secret",
+      "checkedAt": "2026-07-17",
+      "supports": "LoyaltyLion deprecates legacy Basic token-and-secret authentication effective January 10, 2027 and directs partners to OAuth or scoped API keys."
+    },
+    {
+      "url": "https://developers.loyaltylion.com/api-reference/introduction",
+      "checkedAt": "2026-07-17",
+      "supports": "LoyaltyLion distinguishes the backend Admin API from the shopper-facing Headless API, requiring a frozen product and authority boundary before connector work."
+    }
+  ]
+}

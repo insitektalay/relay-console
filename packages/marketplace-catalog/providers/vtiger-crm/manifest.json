@@ -1,0 +1,194 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "vtiger-crm",
+  "name": "Vtiger CRM",
+  "category": "crm_support",
+  "description": "Vtiger CRM is a unified customer relationship management platform for sales, marketing, help desk, projects, and inventory work. Teams use it to maintain leads, contacts, organizations, deals, campaigns, service cases, products, quotes, orders, invoices, tasks, and shared customer history.",
+  "agentUseSummary": "Add the instance subdomain, od1/od2/od3 cluster, dedicated-user login email, and that user's Access Key, then choose which agents can read bounded CRM data or manage selected core records under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.vtiger.com/",
+    "docsUrl": "https://help.vtiger.com/article/147111249-Rest-API-Manual",
+    "developerConsoleUrl": "https://help.vtiger.com/faq/162265706-What-username-and-password-should-I-use-when-calling-the-API-in-Postman",
+    "termsUrl": "https://www.vtiger.com/policy-legal-center/terms-of-service/",
+    "privacyUrl": "https://www.vtiger.com/policy-legal-center/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_username_and_access_key",
+      "http_basic",
+      "exact_instance_and_cluster_binding",
+      "connected_user_role_authority",
+      "plan_gated_api_quota"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "VTIGER_INSTANCE",
+        "label": "Vtiger instance",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter only the first subdomain from your Vtiger CRM URL, such as acme from acme.od1.vtiger.com."
+      },
+      {
+        "name": "VTIGER_CLUSTER",
+        "label": "Vtiger cluster",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter od1, od2, or od3 exactly as shown in your Vtiger CRM URL."
+      },
+      {
+        "name": "VTIGER_USERNAME",
+        "label": "Vtiger username",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the login email of the dedicated Vtiger user whose provider permissions Relay should preserve."
+      },
+      {
+        "name": "VTIGER_ACCESS_KEY",
+        "label": "Vtiger access key",
+        "required": true,
+        "secret": true,
+        "helpText": "Copy the user's Access Key from My Preferences. Relay encrypts it and uses it only for HTTP Basic authentication to the validated instance."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "crm_read",
+      "label": "Read CRM and metadata",
+      "description": "Read the connected user, selected core modules and records, metadata, bounded queries, sync changes, relations, tags, picklist dependencies, account hierarchy, and exact phone or email lookups.",
+      "defaultSelected": true
+    },
+    {
+      "id": "crm_manage",
+      "label": "Manage core CRM records",
+      "description": "Create, fully update, partially revise, delete, reopen, relate, unrelate, add tags to, or remove tags from selected core CRM records.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "vtiger_crm_api_read",
+        "label": "Read Vtiger CRM",
+        "description": "Run one selected stable Vtiger user, metadata, core CRM, relation, tag, hierarchy, lookup, or synchronization read with explicit bounds."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "vtiger_crm_api_manage",
+        "label": "Manage Vtiger CRM",
+        "description": "Create, update, revise, delete, reopen, relate, unrelate, or tag one selected core CRM record."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "vtiger_crm_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The customer username and access key never enter agent-visible requests or results."
+      },
+      {
+        "id": "vtiger_crm_unofficial_origin",
+        "label": "Use another API origin",
+        "description": "Every request stays on the exact validated Vtiger instance and od1, od2, or od3 cluster."
+      },
+      {
+        "id": "vtiger_crm_unsupported_operation",
+        "label": "Call another operation",
+        "description": "Relay blocks arbitrary modules and URLs, raw queries, decrypt and file-content retrieval, workflows, lead conversion, picklist administration, webhooks, batch/composite requests, account and user administration, imports, exports, raw MCP, and undocumented operations."
+      },
+      {
+        "id": "vtiger_crm_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay performs one request at a time and bounds modules, fields, filters, offsets, results, arrays, bodies, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "vtiger_crm_safe",
+      "label": "Safe",
+      "description": "Selected bounded reads run directly. Every create, update, revise, delete, reopen, relation change, and tag change requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["vtiger_crm_api_read"],
+      "approvalRequiredActions": ["vtiger_crm_api_manage"],
+      "blockedActions": [
+        "vtiger_crm_secret_exposure",
+        "vtiger_crm_unofficial_origin",
+        "vtiger_crm_unsupported_operation",
+        "vtiger_crm_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected core CRM mutations authorized by the connected Vtiger user run without Relay per-action approval. Exact instance binding, provider roles, route and module allowlists, bounds, redaction, provider quotas, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["vtiger_crm_api_read", "vtiger_crm_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "vtiger_crm_secret_exposure",
+        "vtiger_crm_unofficial_origin",
+        "vtiger_crm_unsupported_operation",
+        "vtiger_crm_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts selected stable Vtiger REST reads and core-record mutations through exact-instance bounded tools and encrypted customer credentials."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts selected stable Vtiger REST reads and core-record mutations through exact-instance bounded tools and encrypted customer credentials."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "credentials_required",
+    "blocker": "No authorized Vtiger Cloud instance, exact instance/cluster, dedicated-user login email and Access Key, representative CRM records, edition quota, or provider role matrix is available in this code-only worker for live acceptance. The Access Key grants the authority of its paired account user.",
+    "nextAction": "An authorized Vtiger owner should create a dedicated least-privilege user, obtain its login email and Access Key from My Preferences, connect the exact instance and cluster through Relay, then verify connected-user health, representative reads, query and sync bounds, Safe approvals, Dangerous core-record mutations and cleanup, provider permission denial, edition quotas and HTTP 429 handling, audit redaction, key replacement, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.vtiger.com/article/147111249-Rest-API-Manual",
+      "checkedAt": "2026-07-18",
+      "supports": "Vtiger documents its per-instance REST v1 endpoint, HTTP Basic authentication using login email and Access Key, JSON envelopes, record ID format, metadata, record CRUD, bounded query and sync, relations, tags, hierarchy, lookup, files, workflow, batch, and administration operations."
+    },
+    {
+      "url": "https://help.vtiger.com/faq/162265706-What-username-and-password-should-I-use-when-calling-the-API-in-Postman",
+      "checkedAt": "2026-07-18",
+      "supports": "Vtiger documents that integrations obtain an individual user's Access Key from My Preferences and authenticate with the user's login email as Basic username and Access Key as password."
+    },
+    {
+      "url": "https://help.vtiger.com/article/152099716-Vtiger-CRM-API-Limits",
+      "checkedAt": "2026-07-18",
+      "supports": "Vtiger documents edition-specific rolling daily, per-user, hourly, and minute quotas and HTTP 429 when an instance exceeds them."
+    },
+    {
+      "url": "https://www.vtiger.com/pricing/",
+      "checkedAt": "2026-07-18",
+      "supports": "Vtiger documents the CRM product, edition and user-license model, core sales, marketing, help desk, project, inventory, automation, analytics, and plan-specific availability."
+    },
+    {
+      "url": "https://www.vtiger.com/policy-legal-center/terms-of-service/",
+      "checkedAt": "2026-07-18",
+      "supports": "Vtiger's cloud terms govern designated-user subscriptions, account security, customer data, service limits, third-party integrations, and acceptable use."
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mailgun",
+  "name": "Mailgun",
+  "category": "communication",
+  "description": "Transactional email delivery, domain configuration, events, analytics, and account administration through Mailgun's HTTP API.",
+  "agentUseSummary": "Connect a customer-owned Mailgun key once, select capabilities, and let agents inspect delivery state, send mail, or use the full supported Mailgun API under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.mailgun.com/",
+    "docsUrl": "https://documentation.mailgun.com/docs/mailgun/api-reference",
+    "developerConsoleUrl": "https://app.mailgun.com/settings/api_security",
+    "termsUrl": "https://www.mailgun.com/legal/terms/",
+    "privacyUrl": "https://www.mailgun.com/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "basic",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["user_owned_api_key"],
+    "credentialRequirements": [
+      { "name": "MAILGUN_API_KEY", "label": "Mailgun API key", "required": true, "secret": true, "helpText": "Use your own account/RBAC key, or a Domain Sending Key for send-only access." },
+      { "name": "MAILGUN_DOMAIN", "label": "Mailgun domain", "required": true, "secret": false, "helpText": "The verified Mailgun domain this connection is allowed to use." },
+      { "name": "MAILGUN_REGION", "label": "Mailgun region", "required": true, "secret": false, "helpText": "Enter US or EU to match the region that owns the domain." },
+      { "name": "MAILGUN_KEY_TYPE", "label": "Key type", "required": true, "secret": false, "helpText": "Enter account for account/RBAC keys or domain_sending for a Domain Sending Key." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "domain_status", "label": "Domain status", "description": "Inspect the bound domain, DNS verification, and sending state.", "defaultSelected": true },
+    { "id": "events_logs", "label": "Events and logs", "description": "Read bounded delivery events and logs for the bound domain.", "defaultSelected": true },
+    { "id": "metrics", "label": "Metrics", "description": "Query bounded Mailgun delivery metrics.", "defaultSelected": true },
+    { "id": "send", "label": "Send messages", "description": "Send messages through the bound and provider-authorized domain.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full Mailgun API", "description": "Use the provider-supported Mailgun HTTP API within the configured account, domain, and region.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "mailgun_read_domain", "label": "Read domain", "description": "Inspect the bound domain and verification state." },
+      { "id": "mailgun_read_events", "label": "Read events", "description": "Read bounded delivery events for the bound domain." },
+      { "id": "mailgun_read_metrics", "label": "Read metrics", "description": "Read bounded delivery metrics." }
+    ],
+    "approvalRequired": [
+      { "id": "mailgun_send_message", "label": "Send message", "description": "Sending email requires approval in Safe mode." },
+      { "id": "mailgun_full_api", "label": "Use full Mailgun API", "description": "All other Mailgun API operations require approval in Safe mode." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "mailgun_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly; sends and all other API operations require approval.",
+      "defaultSelected": true,
+      "allowedActions": ["mailgun_read_domain", "mailgun_read_events", "mailgun_read_metrics"],
+      "approvalRequiredActions": ["mailgun_send_message", "mailgun_full_api"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The agent may use every selected Mailgun capability without Relay per-action approvals; provider authority, connection ownership, secret isolation, audit evidence, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["mailgun_read_domain", "mailgun_read_events", "mailgun_read_metrics", "mailgun_send_message", "mailgun_full_api"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts bounded Mailgun tools and proxies credentials server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts bounded Mailgun tools and proxies credentials server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer enters their own Mailgun key, bound domain, region, and key type in Relay Console."
+  },
+  "evidence": [
+    { "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/mg-auth", "checkedAt": "2026-07-13", "supports": "Mailgun uses HTTP Basic Auth with username api and customer-owned API keys; primary account keys can use all API endpoints while Domain Sending Keys are send-only." },
+    { "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/api-overview", "checkedAt": "2026-07-13", "supports": "Mailgun publishes distinct fixed US and EU API origins and rate-limit response headers." },
+    { "url": "https://documentation.mailgun.com/docs/mailgun/api-reference/send/mailgun/domain-templates", "checkedAt": "2026-07-13", "supports": "The official Mailgun API reference covers messages, domains, events/logs, metrics, templates, suppressions, mailing lists, routes, webhooks, keys, credentials, and domain administration." }
+  ]
+}

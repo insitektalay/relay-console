@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "postmark",
+  "name": "Postmark",
+  "category": "communication",
+  "description": "Transactional and broadcast email, message streams, templates, activity, bounces, statistics, and account administration through Postmark's REST API.",
+  "agentUseSummary": "Connect a customer-owned Postmark server token and optional account token, select capabilities, and let agents inspect the server, send email, or use the full supported API under Safe or Dangerous policy.",
+  "provider": { "websiteUrl": "https://postmarkapp.com/", "docsUrl": "https://postmarkapp.com/developer/api/overview", "developerConsoleUrl": "https://account.postmarkapp.com/servers", "termsUrl": "https://wildbit.com/terms/", "privacyUrl": "https://wildbit.com/privacy-policy/" },
+  "authentication": { "model": "api_key", "relayOwned": false, "scopes": [], "pkce": false, "refreshTokens": false, "authorizationUrl": null, "tokenUrl": null, "revocationUrl": null },
+  "connection": {
+    "types": ["user_owned_server_token", "optional_user_owned_account_token"],
+    "credentialRequirements": [
+      { "name": "POSTMARK_SERVER_TOKEN", "label": "Postmark server token", "required": true, "secret": true, "helpText": "The token for the exact Postmark server agents may use." },
+      { "name": "POSTMARK_ACCOUNT_TOKEN", "label": "Postmark account token", "required": false, "secret": true, "helpText": "Optional. Add only for selected account-level server, sender, or domain administration." },
+      { "name": "POSTMARK_SENDER_BOUNDARY", "label": "Sender boundary", "required": true, "secret": false, "helpText": "An exact confirmed sender email or verified domain." },
+      { "name": "POSTMARK_MESSAGE_STREAM", "label": "Message stream", "required": true, "secret": false, "helpText": "The exact transactional or broadcast MessageStream ID agents may use." }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "server", "label": "Server", "description": "Read bounded metadata for the connected server.", "defaultSelected": true },
+    { "id": "message_streams", "label": "Message streams", "description": "List server message streams.", "defaultSelected": true },
+    { "id": "stats", "label": "Delivery statistics", "description": "Read bounded outbound delivery statistics.", "defaultSelected": true },
+    { "id": "send", "label": "Send email", "description": "Send through the bound sender and message stream.", "defaultSelected": true },
+    { "id": "full_api", "label": "Full Postmark API", "description": "Use all server-token APIs and optional account-token APIs within the connection authority.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "postmark_read_server", "label": "Read server", "description": "Read bounded server metadata." },
+      { "id": "postmark_read_streams", "label": "Read message streams", "description": "List bounded message-stream metadata." },
+      { "id": "postmark_read_stats", "label": "Read statistics", "description": "Read bounded outbound statistics." }
+    ],
+    "approvalRequired": [
+      { "id": "postmark_send_email", "label": "Send email", "description": "Sending email requires approval in Safe mode." },
+      { "id": "postmark_full_api", "label": "Use full Postmark API", "description": "All other Postmark API operations require approval in Safe mode." }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "postmark_safe", "label": "Safe", "description": "Bounded reads run directly; sends and all other API operations require approval.", "defaultSelected": true, "allowedActions": ["postmark_read_server", "postmark_read_streams", "postmark_read_stats"], "approvalRequiredActions": ["postmark_send_email", "postmark_full_api"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "The agent may use every selected Postmark capability without Relay per-action approvals; token authority, ownership, sender/stream binding, secret isolation, audit evidence, and provider limits still apply.", "defaultSelected": false, "allowedActions": ["postmark_read_server", "postmark_read_streams", "postmark_read_stats", "postmark_send_email", "postmark_full_api"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts selected Postmark tools and proxies tokens server-side." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts selected Postmark tools and proxies tokens server-side." }
+  ],
+  "availability": "available",
+  "providerSetup": { "status": "not_required", "blocker": null, "nextAction": "The customer enters their own server token, optional account token, sender boundary, and message stream." },
+  "evidence": [
+    { "url": "https://postmarkapp.com/developer/api/overview", "checkedAt": "2026-07-13", "supports": "Postmark uses customer-owned server and account token headers at one fixed TLS API origin and returns 401 for invalid tokens." },
+    { "url": "https://postmarkapp.com/developer/api/email-api", "checkedAt": "2026-07-13", "supports": "Single sends require a confirmed sender, allow at most 50 recipients, and have a 10 MB payload limit; batch sends permit 500 messages and 50 MB." },
+    { "url": "https://postmarkapp.com/developer/api/server-api", "checkedAt": "2026-07-13", "supports": "Server-token APIs cover server settings and return API token lists that Relay must redact." },
+    { "url": "https://postmarkapp.com/developer/api/servers-api", "checkedAt": "2026-07-13", "supports": "Account-token APIs provide optional account-owner server administration authority." }
+  ]
+}

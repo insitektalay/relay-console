@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "docusign-identify",
+  "name": "Docusign Identify",
+  "category": "knowledge_documents",
+  "description": "Docusign Identify is an identity-verification product family for adding configured verification workflows to electronic-signature transactions. Organizations use it to choose provider-supported checks while Docusign manages the verification experience and evidence lifecycle.",
+  "agentUseSummary": "Connect a customer-owned Docusign integration key with one exact account, then let agents inspect approval-gated identity-verification workflow configuration metadata without exposing signers, evidence, documents, biometrics, or PII.",
+  "provider": {
+    "websiteUrl": "https://www.docusign.com/products/identify/idv",
+    "docsUrl": "https://developers.docusign.com/docs/esign-rest-api/how-to/request-signature-idv/",
+    "developerConsoleUrl": "https://apps-d.docusign.com/admin/apps-and-keys",
+    "termsUrl": "https://www.docusign.com/legal/terms-and-conditions",
+    "privacyUrl": "https://www.docusign.com/company/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": false,
+    "scopes": ["signature", "extended"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://account.docusign.com/oauth/auth",
+    "tokenUrl": "https://account.docusign.com/oauth/token"
+  },
+  "connection": {
+    "types": [
+      "customer_owned_oauth_app",
+      "authorization_code_with_pkce_s256",
+      "exact_user_and_default_account_binding",
+      "provider_returned_regional_base_uri",
+      "extended_refresh_token"
+    ],
+    "credentialRequirements": [
+      "DOCUSIGN_IDENTIFY_CLIENT_ID",
+      "DOCUSIGN_IDENTIFY_CLIENT_SECRET"
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/docusign-identify/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "identity_verification_workflow_read",
+      "label": "Read identity-verification workflows",
+      "description": "Read bounded workflow identifiers, names and types from one exact Docusign account without signer or evidence data.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "docusign_identify_workflow_list",
+        "label": "List identity-verification workflows",
+        "description": "List bounded identity-verification workflow configuration metadata for one exact Docusign account."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "docusign_identify_safe",
+      "label": "Safe",
+      "description": "The bounded workflow-metadata read requires approval; signers, envelopes, identity evidence, documents, biometrics, PII, writes and raw APIs remain outside Relay V1.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["docusign_identify_workflow_list"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The workflow-metadata read runs without per-action approval; exact-account binding, redaction, request bounds, provider scopes and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["docusign_identify_workflow_list"],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts one typed workflow-metadata wrapper and attaches the encrypted OAuth token only to Docusign UserInfo and the validated account regional API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts one typed workflow-metadata wrapper and attaches the encrypted OAuth token only to Docusign UserInfo and the validated account regional API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "external_blocker",
+    "blocker": "A customer Docusign account with ID Verification entitlement, an integration key, Go-Live approval, credentials, and consent validation are still required in the separate provider-console task.",
+    "nextAction": "In the provider-console task, configure the exact Relay HTTPS callback on a customer-owned integration key, complete Go-Live, consent signature and extended, then verify default-account and regional-base binding, serialized refresh, the bounded workflow read, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://www.docusign.com/blog/dsdev-deep-dive-idv",
+      "checkedAt": "2026-07-17",
+      "supports": "Docusign documents Identify as the product umbrella and ID Verification as an eSignature REST API v2.1 workflow selected when creating recipient authentication requirements."
+    },
+    {
+      "url": "https://www.docusign.com/blog/developers/using-identity-verification-templates-continued",
+      "checkedAt": "2026-07-17",
+      "supports": "Docusign documents the account identify_verification endpoint for listing available identity-verification workflow definitions and using the resulting workflow identifier in envelopes."
+    },
+    {
+      "url": "https://www.docusign.com/blog/developers/introducing-the-id-evidence-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Docusign documents ID Evidence as a separate, highly sensitive PII surface using short-lived resource tokens; Relay excludes the entire surface from V1."
+    },
+    {
+      "url": "https://www.docusign.com/products/identify/idv",
+      "checkedAt": "2026-07-17",
+      "supports": "Docusign describes ID Verification capabilities including document, biometric, liveness and partner methods, which remain outside Relay's metadata-only V1."
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "facetime",
+  "name": "FaceTime",
+  "category": "communication",
+  "description": "FaceTime is Apple's end-to-end encrypted service for one-to-one and group video or audio calls across iPhone, iPad, Mac, Apple Watch, Apple Vision Pro and invited web participants. People use it for live conversation, screen sharing, FaceTime links, voicemail and video messages, captions, translation and synchronized SharePlay experiences.",
+  "agentUseSummary": "FaceTime cannot be connected as a Relay account provider because Apple publishes no delegated personal calling API, OAuth contract, call-history interface or media-control service. Apple's public surfaces can launch a visible FaceTime call by URL or add an app's own SharePlay activity to a user-present conversation; Relay has no approved recipient-bound local call launcher or Group Activities product, so agents cannot initiate, inspect, join, record or manage FaceTime calls.",
+  "provider": {
+    "websiteUrl": "https://support.apple.com/guide/iphone/get-started-with-facetime-iphc4774d8d8/ios",
+    "docsUrl": "https://developer.apple.com/documentation/groupactivities",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://developer.apple.com/support/terms/apple-developer-program-license-agreement/",
+    "privacyUrl": "https://www.apple.com/legal/privacy/data/en/facetime/"
+  },
+  "authentication": {
+    "model": "unsupported",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "no_general_facetime_account_api",
+      "personal_device_bound_service",
+      "facetime_url_scheme_launches_system_app",
+      "macos_requires_system_call_confirmation",
+      "groupactivities_controls_app_owned_shareplay_only",
+      "no_call_history_participant_or_media_api",
+      "native_relay_call_bridge_not_implemented"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "facetime_connect",
+        "label": "Connect FaceTime",
+        "description": "Apple publishes no OAuth, API-key, remote MCP or delegated account contract for a third party to connect a person's FaceTime service."
+      },
+      {
+        "id": "facetime_read_history",
+        "label": "Read calls or history",
+        "description": "No supported FaceTime developer API grants access to recent or missed calls, participants, contacts, FaceTime links, voicemail, video messages, spam state or account settings."
+      },
+      {
+        "id": "facetime_start_or_manage_call",
+        "label": "Start or manage calls",
+        "description": "Agents cannot start calls, answer, decline, join, invite, remove participants, mute, hold, end, transfer, screen share, remote-control or change FaceTime settings without a bounded approved device-local user-present surface."
+      },
+      {
+        "id": "facetime_capture_or_analyze_media",
+        "label": "Capture call media",
+        "description": "Call audio, video, captions, translations, screen sharing, voicemails, video messages, transcripts and derived biometrics cannot be captured, streamed to Railway or analyzed by agents."
+      },
+      {
+        "id": "facetime_shareplay_as_call_access",
+        "label": "Use SharePlay as call access",
+        "description": "Group Activities synchronizes an app's own declared experience after participant activation; it does not expose the FaceTime account, call media, history or general call control."
+      },
+      {
+        "id": "facetime_private_or_credential_access",
+        "label": "Use private or credential-based access",
+        "description": "Apple Account credentials, FaceTime app automation, Recents extraction, private frameworks, call-database access, packet interception and reverse-engineered IDS or APNs calls are never accepted."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "facetime_unavailable",
+      "label": "Unavailable",
+      "description": "No FaceTime action is enabled because Apple exposes no delegated account API and Relay has no approved recipient-bound device-local call launcher or SharePlay product.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "facetime_connect",
+        "facetime_read_history",
+        "facetime_start_or_manage_call",
+        "facetime_capture_or_analyze_media",
+        "facetime_shareplay_as_call_access",
+        "facetime_private_or_credential_access"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "unsupported",
+      "description": "No FaceTime tools are mounted because a cloud or source-host runtime cannot inherit a person's device registration, encrypted call authority, camera, microphone or user-present FaceTime context."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "unsupported",
+      "description": "No FaceTime tools are mounted because a cloud or source-host runtime cannot inherit a person's device registration, encrypted call authority, camera, microphone or user-present FaceTime context."
+    }
+  ],
+  "availability": "unsupported",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "FaceTime is an encrypted personal calling service bound to phone numbers or an Apple Account on registered devices, not a delegated developer platform. Apple exposes a facetime URL scheme that hands one recipient to the system FaceTime app; macOS always asks the person before initiating the call, while native iOS behavior is not a safe unattended agent boundary. Group Activities lets a signed app define and synchronize its own SharePlay experience after people activate or join it, but grants no general FaceTime call, history or media access. Relay has no recipient-bound local call action, verified Mac-only execution path, Group Activities entitlement, participant consent model or call-data governance contract.",
+    "nextAction": "Do not request Apple Account credentials, publish a Connect action, scrape Recents or automate FaceTime. If Relay creates a separate Mac-local communication launcher, implement only one exact normalized phone number or email recipient, show that recipient and audio-versus-video mode to the user, require Relay approval even in Safe mode and preserve macOS FaceTime's final system confirmation, return only that the system accepted the launch request, and never claim connection or delivery. Treat any future SharePlay feature as an app-specific Group Activity with participant join UI and a separate data contract, not FaceTime account authority."
+  },
+  "evidence": [
+    {
+      "url": "https://support.apple.com/guide/iphone/get-started-with-facetime-iphc4774d8d8/ios",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple describes FaceTime setup, user-initiated audio and video calls, group calls, links, screen sharing and SharePlay inside the FaceTime app."
+    },
+    {
+      "url": "https://www.apple.com/legal/privacy/data/en/facetime/",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple states that FaceTime uses a registered phone number or Apple Account, protects calls end to end, never stores call content and separately describes FaceTime links and SharePlay."
+    },
+    {
+      "url": "https://developer.apple.com/library/archive/featuredarticles/iPhoneURLScheme_Reference/FacetimeLinks/FacetimeLinks.html",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple documents facetime and facetime-audio URLs for one specified phone number or email address and states that macOS always prompts before initiating a call."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/xcode/defining-a-custom-url-scheme-for-your-app",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple continues to list facetime as a system URL scheme and warns developers to validate URL parameters and limit actions that risk user data."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/groupactivities/defining-your-apps-shareplay-activities",
+      "checkedAt": "2026-07-17",
+      "supports": "Group Activities requires a signed app capability and lets an app define its own Codable SharePlay activity for user-present sharing over FaceTime, Messages and AirDrop."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/groupactivities/promoting-shareplay-activities-from-your-apps-ui",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple requires an active conversation or system UI that helps people start one before an app's SharePlay activity is activated."
+    },
+    {
+      "url": "https://support.apple.com/guide/security/facetime-security-seca331c55cd/web",
+      "checkedAt": "2026-07-17",
+      "supports": "Apple documents end-to-end encrypted one-to-one and group call media, device identity verification and session-key establishment that Apple cannot decrypt."
+    }
+  ]
+}

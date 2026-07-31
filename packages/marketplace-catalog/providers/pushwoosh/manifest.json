@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "pushwoosh",
+  "name": "Pushwoosh",
+  "category": "communication",
+  "description": "Pushwoosh is a customer-engagement platform for mobile and web push notifications, in-app messages, email, SMS, journeys, segmentation, analytics, and experimentation. Product and marketing teams use it to coordinate messaging and measure audience engagement across applications.",
+  "agentUseSummary": "Add a customer-generated Pushwoosh Server API token and bind one exact application code; agents can read a fixed 24-hour window of aggregate enabled/disabled subscriber counts through one read-only statistics endpoint.",
+  "provider": {
+    "websiteUrl": "https://www.pushwoosh.com/",
+    "docsUrl": "https://docs.pushwoosh.com/developer/api-reference/statistics-api/application-subscriber-statistics/",
+    "developerConsoleUrl": "https://app.pushwoosh.com/",
+    "termsUrl": "https://www.pushwoosh.com/terms-of-use/",
+    "privacyUrl": "https://www.pushwoosh.com/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_server_api_token", "exact_application_code_binding"],
+    "credentialRequirements": [
+      {
+        "name": "PUSHWOOSH_API_TOKEN",
+        "label": "Pushwoosh Server API token",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a dedicated revocable Server API token for the required project. Relay encrypts it and sends it only as an Authorization: Key header to the fixed Pushwoosh API origin."
+      },
+      {
+        "name": "PUSHWOOSH_APPLICATION_CODE",
+        "label": "Pushwoosh application code",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact 5-5 application code, such as XXXXX-XXXXX. Relay binds every request to this application."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "subscriber_status_summary_read",
+      "label": "Read subscriber-status summaries",
+      "description": "Read at most 100 hourly platform aggregates of push-enabled and push-disabled subscribers for the last 24 completed hours.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "pushwoosh_subscriber_status_summary_get",
+        "label": "Get Pushwoosh subscriber-status summary",
+        "description": "Return at most 100 timestamp/platform aggregate enabled and disabled counts from the last 24 completed hours for the bound application."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "pushwoosh_users_devices_tags_or_events",
+        "label": "Access users, devices, tags, or events",
+        "description": "Device tokens, HWIDs, user IDs, emails, phone numbers, aliases, tags, attributes, locations, events, subscriptions, and individual histories remain blocked."
+      },
+      {
+        "id": "pushwoosh_messages_content_or_analytics",
+        "label": "Access messages, content, or detailed analytics",
+        "description": "Campaign names, message content, targeting, segments, filters, templates, journeys, experiments, recipients, outcomes, reports, and detailed analytics remain blocked."
+      },
+      {
+        "id": "pushwoosh_send_write_or_administer",
+        "label": "Send, write, or administer Pushwoosh",
+        "description": "Push, email, SMS, and in-app sends; application, user, device, tag, segment, template, campaign, token, webhook, and project changes; and administration remain blocked."
+      },
+      {
+        "id": "pushwoosh_raw_api_or_bulk",
+        "label": "Use raw API or bulk access",
+        "description": "Device API tokens, arbitrary applications, origins, paths, methods, headers, queries, bodies, time windows, pagination, retries, raw responses, SDKs, browser sessions, bulk, and exports remain blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "pushwoosh_safe",
+      "label": "Safe",
+      "description": "The bounded aggregate subscriber-status read requires approval; identities, content, detailed analytics, sends, writes, administration, arbitrary APIs, and bulk remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["pushwoosh_subscriber_status_summary_get"],
+      "blockedActions": ["pushwoosh_users_devices_tags_or_events", "pushwoosh_messages_content_or_analytics", "pushwoosh_send_write_or_administer", "pushwoosh_raw_api_or_bulk"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same bounded aggregate read runs directly; exact application binding, fixed endpoint/window, redaction, caps, audits, and provider authorization remain mandatory.",
+      "defaultSelected": false,
+      "allowedActions": ["pushwoosh_subscriber_status_summary_get"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["pushwoosh_users_devices_tags_or_events", "pushwoosh_messages_content_or_analytics", "pushwoosh_send_write_or_administer", "pushwoosh_raw_api_or_bulk"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "native_tools",
+      "description": "OpenClaw receives one fixed Pushwoosh application-subscriber-statistics wrapper with identity and content exclusion."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "native_tools",
+      "description": "Hermes receives the same fixed Pushwoosh application-subscriber-statistics wrapper with identity and content exclusion."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "Pushwoosh Server API access requires an eligible customer project, an exact application code, and a customer-generated token authorized for that project.",
+    "nextAction": "A customer admin generates a dedicated revocable Server API token for the required project, supplies the exact application code, and completes a live read-only statistics check."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.pushwoosh.com/developer/api-reference/api-access-token/",
+      "checkedAt": "2026-07-18",
+      "supports": "Pushwoosh documents customer-generated Server API tokens, project assignment, Authorization: Key authentication, and separate device-token authority."
+    },
+    {
+      "url": "https://docs.pushwoosh.com/developer/api-reference/statistics-api/application-subscriber-statistics/",
+      "checkedAt": "2026-07-18",
+      "supports": "Pushwoosh documents POST /api/v2/statistics/application/getSubscribersStatistics with application_code and UTC timestamp bounds, returning timestamp/platform enabled and disabled subscriber aggregates."
+    },
+    {
+      "url": "https://docs.pushwoosh.com/developer/api-reference/api-identifiers",
+      "checkedAt": "2026-07-18",
+      "supports": "Pushwoosh documents the application code as the identifier used in API requests and shows the XXXXX-XXXXX form."
+    },
+    {
+      "url": "https://docs.pushwoosh.com/developer/api-reference/",
+      "checkedAt": "2026-07-18",
+      "supports": "Pushwoosh documents a broad messaging, audience, statistics, and project API surface; Relay mounts only the fixed aggregate statistics read."
+    }
+  ],
+  "securityNotes": [
+    "The Server API token and application code are encrypted as secret references; the token is sent only as an Authorization: Key header to https://api.pushwoosh.com.",
+    "Relay allowlists only POST /api/v2/statistics/application/getSubscribersStatistics with the bound application code and the last 24 completed UTC hours, rejects redirects, waits at most 30 seconds, and caps responses at 1 MB.",
+    "The result contains at most 100 valid timestamp/platform aggregates and non-negative enabled/disabled counts; device tokens, users, tags, events, message content, targeting, recipients, and detailed outcomes are excluded.",
+    "Sends, writes, project/application changes, administration, arbitrary APIs, runtime parameters, pagination, retries, SDKs, browser sessions, bulk, and exports remain blocked.",
+    "Provider 401/403/404/429 and server errors are surfaced safely; token creation/capture, project assignment, provider-console work, and live acceptance remain customer/external steps."
+  ]
+}

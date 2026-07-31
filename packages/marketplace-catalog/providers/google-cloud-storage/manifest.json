@@ -1,0 +1,163 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "google-cloud-storage",
+  "name": "Google Cloud Storage",
+  "category": "developer",
+  "description": "Google Cloud Storage provides project, bucket, managed-folder, object, metadata, lifecycle, retention, encryption, IAM, and data-transfer operations through its APIs.",
+  "agentUseSummary": "Google Cloud Storage cannot yet be connected through Relay. OAuth scopes and Google Cloud IAM combine to determine effective authority, and inherited project permissions can cross bucket boundaries. Relay exposes no bucket or object data until a verified OAuth client, dedicated identity, exact project and bucket allowlist, and least-privilege role pass acceptance.",
+  "provider": {
+    "websiteUrl": "https://cloud.google.com/storage",
+    "docsUrl": "https://cloud.google.com/storage/docs/json_api",
+    "developerConsoleUrl": "https://console.cloud.google.com/apis/library/storage-component.googleapis.com",
+    "termsUrl": "https://cloud.google.com/terms",
+    "privacyUrl": "https://policies.google.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/devstorage.read_write",
+      "https://www.googleapis.com/auth/devstorage.full_control"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "tokenUrl": "https://oauth2.googleapis.com/token",
+    "revocationUrl": "https://oauth2.googleapis.com/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_google_oauth_client",
+      "oauth2_web_server_user_flow",
+      "cloud_storage_json_api",
+      "google_cloud_identity_and_iam_boundary",
+      "exact_project_bucket_and_managed_folder_allowlist",
+      "readonly_first_incremental_scope_upgrades",
+      "oauth_verification_and_representative_acceptance_required"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/google-cloud-storage/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "buckets_and_objects_read",
+      "label": "Read selected storage data",
+      "description": "After acceptance with devstorage.read_only, list and read only explicitly selected buckets, managed folders, objects, generations, and metadata allowed by IAM.",
+      "defaultSelected": true
+    },
+    {
+      "id": "objects_write",
+      "label": "Write selected objects",
+      "description": "After write acceptance, upload, copy, compose, rewrite, move, restore, or change metadata for exact object names with generation and checksum preconditions.",
+      "defaultSelected": false
+    },
+    {
+      "id": "objects_delete",
+      "label": "Delete selected objects",
+      "description": "After destructive-action acceptance, delete one exact object generation only after showing soft-delete, retention, versioning, lifecycle, and recovery consequences.",
+      "defaultSelected": false
+    },
+    {
+      "id": "buckets_and_access_manage",
+      "label": "Manage buckets and access",
+      "description": "After separate administrative acceptance, change selected bucket settings, protection policies, lifecycle, encryption, IAM, or ACL state without broad project authority.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "gcs_connect_before_review",
+        "label": "Connect before OAuth and IAM review",
+        "description": "Relay has no verified OAuth client, accepted Google identity, exact project and bucket allowlist, or tested effective IAM boundary."
+      },
+      {
+        "id": "gcs_reads_before_acceptance",
+        "label": "Read storage data",
+        "description": "Projects, buckets, folders, objects, generations, metadata, tags, policies, keys, logs, and object contents remain unavailable."
+      },
+      {
+        "id": "gcs_object_mutations",
+        "label": "Change or delete objects",
+        "description": "Uploading, overwriting, copying, composing, rewriting, moving, restoring, changing metadata, aborting uploads, or deleting objects and generations is blocked."
+      },
+      {
+        "id": "gcs_bucket_policy_and_financial_mutations",
+        "label": "Change bucket, access, or cost state",
+        "description": "Bucket creation or deletion, IAM and ACL changes, public access, retention and lock changes, lifecycle, soft delete, versioning, encryption, requester pays, replication, storage class, and billing-impacting operations are blocked."
+      },
+      {
+        "id": "gcs_boundary_key_and_endpoint_bypass",
+        "label": "Bypass resource or credential controls",
+        "description": "Cross-project or unlisted-bucket access, inherited-role expansion, signed URL or HMAC key creation, customer encryption key capture, raw downloads, arbitrary endpoints, and provider-console automation are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "gcs_provider_review",
+      "label": "Provider, project, and IAM review pending",
+      "description": "No Cloud Storage action is enabled until OAuth, the selected identity, effective IAM, exact resource allowlists, data handling, protection, write, delete, billing, revocation, and disconnect contracts pass representative acceptance.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "gcs_connect_before_review",
+        "gcs_reads_before_acceptance",
+        "gcs_object_mutations",
+        "gcs_bucket_policy_and_financial_mutations",
+        "gcs_boundary_key_and_endpoint_bypass"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bucket-bounded Cloud Storage tools after OAuth and IAM acceptance; no OpenClaw tool is callable while review is pending."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "preview_only",
+      "description": "A future Railway broker can mount bucket-bounded Cloud Storage tools after OAuth and IAM acceptance; no Hermes tool is callable while review is pending."
+    }
+  ],
+  "availability": "provider_review_pending",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Cloud Storage uses OAuth scopes together with the authenticated identity's effective Google Cloud IAM permissions. devstorage.read_only permits reads and bucket listing, devstorage.read_write permits data changes but not IAM policies, and devstorage.full_control permits data and IAM changes. IAM grants are additive and can be inherited from project level, while deny and organization policies may also apply. Object writes, overwrites, deletes, lifecycle, retention, soft delete, versioning, public access, IAM, encryption, requester pays, and storage classes affect data durability, disclosure, and cost. This worker cannot enable APIs, create or verify an OAuth client, capture credentials, run consent, obtain project or bucket access, inspect data, or alter storage.",
+    "nextAction": "The exclusive provider-console and acceptance task should configure Relay's verified Google OAuth client and register https://api.relayconsole.work/api/v1/marketplace/oauth/google-cloud-storage/callback. Use a dedicated identity, one exact non-production project and bucket, bucket-level roles/storage.objectViewer, and devstorage.read_only only. Acceptance must compute effective inherited and conditional IAM, enforce project and bucket allowlists before list calls, cap object sizes and pagination, redact sensitive metadata and content, verify checksums and generations, use idempotency and preconditions, preserve encryption boundaries, and test signed URLs, public access, retention, soft delete, versioning, lifecycle, restore, overwrite, deletion, storage cost, token revocation, disconnect, and cross-project denial. Write and full-control scopes require separate upgrades."
+  },
+  "evidence": [
+    {
+      "url": "https://cloud.google.com/storage/docs/oauth-scopes",
+      "checkedAt": "2026-07-17",
+      "supports": "Google documents separate Cloud Storage read-only, read-write, and full-control OAuth scopes; only full control can modify IAM policies."
+    },
+    {
+      "url": "https://cloud.google.com/storage/docs/json_api",
+      "checkedAt": "2026-07-17",
+      "supports": "The Cloud Storage JSON API programmatically accesses and manipulates storage projects, buckets, objects, and related resources."
+    },
+    {
+      "url": "https://cloud.google.com/storage/docs/access-control/iam",
+      "checkedAt": "2026-07-17",
+      "supports": "Cloud Storage IAM roles apply through project, bucket, and managed-folder hierarchy, with additive inherited grants and overriding deny policies."
+    },
+    {
+      "url": "https://cloud.google.com/storage/docs/access-control/iam-roles",
+      "checkedAt": "2026-07-17",
+      "supports": "Google defines granular viewer, creator, object-admin, and storage-admin roles and identifies their resource levels and permissions."
+    },
+    {
+      "url": "https://cloud.google.com/storage/docs/soft-delete",
+      "checkedAt": "2026-07-17",
+      "supports": "Soft delete can retain deleted or overwritten buckets and objects for restoration, but policies have propagation, cost, retention, and eventual permanent-deletion consequences."
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "beehiiv",
+  "name": "beehiiv",
+  "category": "content_creative",
+  "description": "beehiiv is a newsletter publishing platform for creating, distributing, and analyzing email publications and their audiences.",
+  "agentUseSummary": "Connect one exact beehiiv organization through Relay-owned OAuth, then let agents inspect approval-gated, bounded organization, publication, and post lifecycle metadata without subscriber identity, publication content, or engagement.",
+  "provider": {
+    "websiteUrl": "https://www.beehiiv.com/",
+    "docsUrl": "https://developers.beehiiv.com/",
+    "developerConsoleUrl": "https://developers.beehiiv.com/oauth2",
+    "termsUrl": "https://www.beehiiv.com/terms-of-use",
+    "privacyUrl": "https://www.beehiiv.com/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["identify:read", "publications:read", "posts:read"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://app.beehiiv.com/oauth/authorize",
+    "tokenUrl": "https://app.beehiiv.com/oauth/token",
+    "revocationUrl": "https://app.beehiiv.com/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_confidential_oauth_app",
+      "authorization_code",
+      "exact_organization_binding",
+      "fixed_api_and_oauth_origins",
+      "provider_authoritative_expiry",
+      "refresh_token",
+      "upstream_revocation",
+      "first_page_only"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/beehiiv/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "newsletter_metadata_read",
+      "label": "Read newsletter lifecycle metadata",
+      "description": "Read bounded, redacted organization, publication, and post lifecycle metadata.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "beehiiv_account_get",
+        "label": "Read OAuth account summary",
+        "description": "Read the exact beehiiv organization identifier and token lifetime without returning user identity."
+      },
+      {
+        "id": "beehiiv_publication_list",
+        "label": "List publication lifecycle",
+        "description": "List at most twenty-five publication lifecycle summaries without names, organizations, URLs, or engagement statistics."
+      },
+      {
+        "id": "beehiiv_post_list",
+        "label": "List post lifecycle",
+        "description": "List at most twenty-five post lifecycle summaries for one exact publication without content, titles, authors, URLs, or engagement."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "beehiiv_safe",
+      "label": "Safe",
+      "description": "Every bounded beehiiv metadata read requires approval; subscriber identity, content, engagement, automations, segments, polls, tiers, referrals, webhooks, writes, exports, and raw API access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "beehiiv_account_get",
+        "beehiiv_publication_list",
+        "beehiiv_post_list"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The three bounded beehiiv metadata reads run without Relay per-action approval; exact-organization binding, fixed origins, redaction, first-page bounds, audits, and rate limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "beehiiv_account_get",
+        "beehiiv_publication_list",
+        "beehiiv_post_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three exact-organization, approval-aware beehiiv metadata reads and attaches the OAuth token server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three exact-organization, approval-aware beehiiv metadata reads and attaches the OAuth token server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's beehiiv OAuth client and production credentials are not configured yet; client registration requires beehiiv Support.",
+    "nextAction": "Using the separate provider-console task, register Relay's confidential OAuth client with the Railway callback through beehiiv Support, store BEEHIIV_CLIENT_ID and BEEHIIV_CLIENT_SECRET in Railway, deploy, and run live consent, refresh, exact-organization reads, policy, upstream revocation, and post-disconnect denial checks."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.beehiiv.com/oauth2",
+      "checkedAt": "2026-07-17",
+      "supports": "beehiiv documents confidential authorization-code OAuth, space-delimited scopes, refresh tokens, token info, introspection, revocation, and Support-assisted client registration."
+    },
+    {
+      "url": "https://developers.beehiiv.com/api-reference/publications/index",
+      "checkedAt": "2026-07-17",
+      "supports": "beehiiv documents the publications:read list endpoint, fixed API origin, bearer authentication, pagination, and optional engagement expansions that Relay excludes."
+    },
+    {
+      "url": "https://developers.beehiiv.com/api-reference/posts/index",
+      "checkedAt": "2026-07-17",
+      "supports": "beehiiv documents the posts:read publication-bound list endpoint and content, author, title, URL, and stats fields that Relay strips."
+    },
+    {
+      "url": "https://developers.beehiiv.com/welcome/rate-limiting",
+      "checkedAt": "2026-07-17",
+      "supports": "beehiiv documents a 180-request-per-minute per-organization limit and rate-limit response headers."
+    }
+  ],
+  "securityNotes": [
+    "Relay requests only identify:read, publications:read, and posts:read; all write and subscriber scopes are excluded.",
+    "Relay stores access and refresh tokens encrypted, binds the grant to token-info resource_owner_id, and never returns secrets to agents.",
+    "Runtime requests use only https://app.beehiiv.com OAuth utilities and https://api.beehiiv.com API reads, reject redirects, cap responses at 2 MB, and throttle to no more than 180 requests per minute per organization.",
+    "Publication output excludes names, organization names, URLs, and stats; post output excludes title, subtitle, subject, preview, authors, slugs, URLs, content, premium tiers, and engagement.",
+    "Disconnect revokes the refresh token upstream before deleting Relay's encrypted grant."
+  ]
+}

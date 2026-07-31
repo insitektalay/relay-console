@@ -1,0 +1,242 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "telegram-personal-bots",
+  "name": "Telegram Personal Bots",
+  "category": "communication",
+  "description": "Telegram Personal Bots are developer-created bot identities that communicate through Telegram's official HTTPS Bot API. Each bot has its own username, token, chats, queued updates and provider-enforced permissions; it is not a person's Telegram account or access to personal chat history.",
+  "agentUseSummary": "Connect a dedicated customer-owned BotFather token and an exact allowlist of up to 100 chat IDs or channel usernames. Agents can read the bot identity, webhook status, one allowed chat and bounded queued updates; sending, editing and deleting messages require approval in Safe mode, while personal-account access, raw APIs, webhook changes, administration, payments, files, broadcasts and unlisted chats remain blocked.",
+  "provider": {
+    "websiteUrl": "https://telegram.org/",
+    "docsUrl": "https://core.telegram.org/bots/api",
+    "developerConsoleUrl": "https://t.me/BotFather",
+    "termsUrl": "https://telegram.org/tos/bot-developers",
+    "privacyUrl": "https://telegram.org/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_botfather_token",
+      "dedicated_bot_identity_not_personal_account",
+      "fixed_api_telegram_org_origin",
+      "exact_chat_id_or_channel_username_allowlist",
+      "bounded_short_polling_only",
+      "server_side_encrypted_secret_injection"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "TELEGRAM_BOT_TOKEN",
+        "label": "Telegram bot token",
+        "required": true,
+        "secret": true,
+        "helpText": "Create or select your dedicated bot in @BotFather and paste its token. Anyone holding this token controls the bot."
+      },
+      {
+        "name": "TELEGRAM_ALLOWED_CHAT_IDS",
+        "label": "Allowed Telegram chat IDs",
+        "required": true,
+        "secret": false,
+        "helpText": "Comma-separated exact numeric chat IDs or @channel usernames, maximum 100. Relay rejects all other chats."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "bot_identity",
+      "label": "Bot identity",
+      "description": "Read the connected bot's identity and webhook delivery status.",
+      "defaultSelected": true
+    },
+    {
+      "id": "allowed_chat_read",
+      "label": "Allowed chat reads",
+      "description": "Read exact allowed-chat metadata and at most 100 queued updates through one non-blocking poll.",
+      "defaultSelected": true
+    },
+    {
+      "id": "message_send",
+      "label": "Send messages",
+      "description": "Send bounded plain-text messages only to configured chats.",
+      "defaultSelected": true
+    },
+    {
+      "id": "message_manage",
+      "label": "Manage messages",
+      "description": "Edit or delete one exact message in a configured chat.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "telegram_bot_read_identity",
+        "label": "Read bot identity",
+        "description": "Read the connected bot's bounded public identity and webhook status."
+      },
+      {
+        "id": "telegram_bot_read_chat",
+        "label": "Read allowed chat",
+        "description": "Read metadata for one exact chat in the connection allowlist."
+      },
+      {
+        "id": "telegram_bot_read_updates",
+        "label": "Read bounded updates",
+        "description": "Read at most 100 queued updates and return only chats in the connection allowlist."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "telegram_bot_send_message",
+        "label": "Send message",
+        "description": "Send one bounded text message to an allowed chat."
+      },
+      {
+        "id": "telegram_bot_edit_message",
+        "label": "Edit message",
+        "description": "Edit one exact bot message in an allowed chat."
+      },
+      {
+        "id": "telegram_bot_delete_message",
+        "label": "Delete message",
+        "description": "Delete one exact message in an allowed chat."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "telegram_bot_personal_account",
+        "label": "Act as a personal Telegram account",
+        "description": "The Bot API token authorizes only its bot identity and never a person's Telegram account, phone login, sessions, contacts, history or Saved Messages."
+      },
+      {
+        "id": "telegram_bot_token_exposure",
+        "label": "Expose bot credentials",
+        "description": "The bot token remains encrypted and is injected only into fixed-origin Telegram Bot API requests."
+      },
+      {
+        "id": "telegram_bot_unapproved_chat",
+        "label": "Access chats outside the allowlist",
+        "description": "Every chat-specific read or write must match one exact configured chat ID or channel username."
+      },
+      {
+        "id": "telegram_bot_raw_admin_api",
+        "label": "Call raw or administrative APIs",
+        "description": "Raw methods, webhook changes, bot configuration, administrators, invite links, payments, games, Stars, files, broadcasts, bans, promotions, forum administration, business connections and account management are unavailable."
+      },
+      {
+        "id": "telegram_bot_unbounded_polling",
+        "label": "Poll or export without bounds",
+        "description": "Long polling, continuous ingestion, unbounded history, bulk export and update delivery beyond 100 queued items are unavailable."
+      },
+      {
+        "id": "telegram_bot_spam",
+        "label": "Spam or harass users",
+        "description": "Unsolicited messaging, bulk broadcasts, deceptive behavior, impersonation and requests for passwords or one-time codes are prohibited."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "telegram_personal_bots_safe",
+      "label": "Safe",
+      "description": "Bounded bot identity and allowed-chat reads run directly; every send, edit and delete requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "telegram_bot_read_identity",
+        "telegram_bot_read_chat",
+        "telegram_bot_read_updates"
+      ],
+      "approvalRequiredActions": [
+        "telegram_bot_send_message",
+        "telegram_bot_edit_message",
+        "telegram_bot_delete_message"
+      ],
+      "blockedActions": [
+        "telegram_bot_personal_account",
+        "telegram_bot_token_exposure",
+        "telegram_bot_unapproved_chat",
+        "telegram_bot_raw_admin_api",
+        "telegram_bot_unbounded_polling",
+        "telegram_bot_spam"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected sends, edits and deletes run without Relay per-action approval; bot identity, chat allowlist, fixed API origin, bounds, secret isolation, audits and Telegram terms still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "telegram_bot_read_identity",
+        "telegram_bot_read_chat",
+        "telegram_bot_read_updates",
+        "telegram_bot_send_message",
+        "telegram_bot_edit_message",
+        "telegram_bot_delete_message"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "telegram_bot_personal_account",
+        "telegram_bot_token_exposure",
+        "telegram_bot_unapproved_chat",
+        "telegram_bot_raw_admin_api",
+        "telegram_bot_unbounded_polling",
+        "telegram_bot_spam"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts seven bounded Telegram Bot API tools, injects the encrypted token only into fixed api.telegram.org requests and enforces the exact configured chat allowlist."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts seven bounded Telegram Bot API tools, injects the encrypted token only into fixed api.telegram.org requests and enforces the exact configured chat allowlist."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer creates or selects a dedicated bot in @BotFather, reviews Telegram's Bot Platform Developer Terms, keeps group privacy mode enabled unless broader access is strictly necessary, starts or adds the bot only in intended chats, and enters the bot token plus exact allowed chat IDs in Relay. Rotate the token in BotFather if it is exposed. Do not enter a personal Telegram API ID/hash, phone number, login code, two-step password, exported session or another person's bot token."
+  },
+  "evidence": [
+    {
+      "url": "https://core.telegram.org/bots/api",
+      "checkedAt": "2026-07-18",
+      "supports": "Telegram documents an HTTPS Bot API, unique bot tokens, fixed bot-prefixed request URLs, bounded getUpdates polling, webhooks, getMe, chat methods and message methods."
+    },
+    {
+      "url": "https://core.telegram.org/bots/features#botfather",
+      "checkedAt": "2026-07-18",
+      "supports": "Telegram states that @BotFather creates and manages bots, generates the authentication token and warns that anyone holding the token can control the bot."
+    },
+    {
+      "url": "https://core.telegram.org/bots/features#privacy-mode",
+      "checkedAt": "2026-07-18",
+      "supports": "Telegram enables group privacy mode by default so bots receive only relevant commands and replies; administrators or bots with privacy mode disabled can receive broader group messages."
+    },
+    {
+      "url": "https://core.telegram.org/bots/faq",
+      "checkedAt": "2026-07-18",
+      "supports": "Telegram documents BotFather plus backend setup, the messages visible to bots, mutually exclusive webhook and long-poll update delivery, file limits and broadcast rate limits."
+    },
+    {
+      "url": "https://telegram.org/tos/bot-developers",
+      "checkedAt": "2026-07-18",
+      "supports": "Telegram's Bot Platform terms require a suitable privacy policy and prohibit spam, harassment, impersonation, deceptive personal-data collection, password or OTP requests and materially divergent platform use."
+    }
+  ]
+}

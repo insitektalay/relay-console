@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "klaviyo-sms",
+  "name": "Klaviyo SMS",
+  "category": "communication",
+  "description": "Klaviyo SMS is Klaviyo's text-messaging configuration and sender-readiness product for enabling branded, carrier-registered messaging. It provisions toll-free sending identities and tracks their registration lifecycle; actual messages are delivered through Klaviyo campaigns and flows.",
+  "agentUseSummary": "Connect with Relay-owned PKCE OAuth and let agents inspect SMS readiness or approval-gate configuration, real-number provisioning, and rejected carrier-registration resubmission. The connector pins the eight beta Text Messaging API operations and cannot send messages or alter profiles, consent, campaigns, or flows.",
+  "provider": {
+    "websiteUrl": "https://www.klaviyo.com/products/sms-marketing",
+    "docsUrl": "https://developers.klaviyo.com/en/reference/text_messaging_api_overview",
+    "developerConsoleUrl": "https://www.klaviyo.com/oauth/applications",
+    "termsUrl": "https://www.klaviyo.com/legal/terms-of-service",
+    "privacyUrl": "https://www.klaviyo.com/legal/privacy/privacy-notice"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["accounts:read", "sender-config:read", "sender-config:write"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://www.klaviyo.com/oauth/authorize",
+    "tokenUrl": "https://a.klaviyo.com/oauth/token",
+    "revocationUrl": "https://a.klaviyo.com/oauth/revoke"
+  },
+  "connection": {
+    "types": [
+      "relay_owned_oauth_application",
+      "pkce_s256",
+      "rotating_refresh_tokens",
+      "exact_account_binding",
+      "beta_revision_2026_07_15_pre"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/klaviyo-sms/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "readiness",
+      "label": "SMS readiness",
+      "description": "Read account configuration, toll-free senders, and carrier-registration lifecycle.",
+      "defaultSelected": true
+    },
+    {
+      "id": "provision",
+      "label": "Provision SMS sending",
+      "description": "Create configuration, provision a toll-free number, or resubmit a rejected carrier registration.",
+      "defaultSelected": false
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "klaviyo_sms_readiness_read",
+        "label": "Read SMS readiness",
+        "description": "Read the exact account configuration, senders, and carrier-registration state."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "klaviyo_sms_provision",
+        "label": "Provision SMS configuration or sender",
+        "description": "Creating SMS configuration, provisioning a real toll-free number, or resubmitting carrier registration requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "klaviyo_sms_send",
+        "label": "Send SMS",
+        "description": "The Text Messaging API explicitly does not send messages; campaigns and flows remain outside this connector."
+      },
+      {
+        "id": "klaviyo_sms_consent",
+        "label": "Change consent or profiles",
+        "description": "Profile phone data, subscriptions, consent, suppressions, lists, and historical imports are outside this connector."
+      },
+      {
+        "id": "klaviyo_sms_broader_api",
+        "label": "Use broader Klaviyo APIs",
+        "description": "Campaigns, flows, profiles, events, reports, arbitrary paths, revisions, and pagination are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "klaviyo_sms_safe",
+      "label": "Safe",
+      "description": "Readiness reads run directly; every number-provisioning or carrier-registration mutation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["klaviyo_sms_readiness_read"],
+      "approvalRequiredActions": ["klaviyo_sms_provision"],
+      "blockedActions": [
+        "klaviyo_sms_send",
+        "klaviyo_sms_consent",
+        "klaviyo_sms_broader_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected readiness and provisioning operations run without Relay per-action approval while OAuth scopes, exact account, pinned revision/routes, bounds, audit, redaction, and send/consent/broader-API blocks remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": ["klaviyo_sms_readiness_read", "klaviyo_sms_provision"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "klaviyo_sms_send",
+        "klaviyo_sms_consent",
+        "klaviyo_sms_broader_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts eight pinned SMS-readiness operations and attaches rotating OAuth tokens server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts eight pinned SMS-readiness operations and attaches rotating OAuth tokens server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "Relay needs a reviewed Klaviyo OAuth app, beta Text Messaging API eligibility, and staging credentials; this worker may not perform provider-console or Railway setup.",
+    "nextAction": "Register the exact Railway callback, configure staging credentials, confirm beta/region eligibility and legal ownership, then run the full staging provisioning and carrier-review acceptance matrix."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.klaviyo.com/en/reference/text_messaging_api_overview",
+      "checkedAt": "2026-07-17",
+      "supports": "The beta Text Messaging API configures SMS readiness but explicitly cannot send messages and requires sender-config read/write scopes."
+    },
+    {
+      "url": "https://developers.klaviyo.com/en/docs/klaviyo_text_messaging",
+      "checkedAt": "2026-07-17",
+      "supports": "The interim official guide defines eight configuration, sender, and registration operations, fixed pre-release revision, bounds, lifecycle, and resubmission semantics."
+    },
+    {
+      "url": "https://developers.klaviyo.com/en/v2026-04-15/reference/campaigns_api_overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Actual SMS delivery belongs to consent-aware Klaviyo campaigns rather than the Text Messaging API."
+    },
+    {
+      "url": "https://developers.klaviyo.com/en/v2025-07-15/docs/collect_email_and_sms_consent_via_api",
+      "checkedAt": "2026-07-17",
+      "supports": "SMS consent and phone-profile operations are separate high-risk APIs and are excluded from this sender-configuration connector."
+    }
+  ]
+}

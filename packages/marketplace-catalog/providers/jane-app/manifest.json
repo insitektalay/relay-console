@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "jane-app",
+  "name": "Jane App",
+  "category": "work_management",
+  "description": "Jane is practice-management software for health and wellness clinics. Clinics use it for online booking, schedules, patient records, charting, treatments, staff, billing, and day-to-day practice operations.",
+  "agentUseSummary": "Enter the clinic's Jane URL and connect once through practitioner-approved OAuth, then choose which agents can use its authorized clinic and clinical data under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://jane.app/",
+    "docsUrl": "https://developers.jane.app/docs/getting-started",
+    "developerConsoleUrl": "https://developers.jane.app/",
+    "termsUrl": "https://jane.app/terms",
+    "privacyUrl": "https://jane.app/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [
+      "observations:read",
+      "observations:create",
+      "observations:update",
+      "care_plans:read",
+      "care_plans:create",
+      "care_plans:update",
+      "medications:read",
+      "medications:create",
+      "medications:update",
+      "patients:read",
+      "locations:read",
+      "staff_members:read",
+      "appointments:read",
+      "companies:read",
+      "document_uploads:read",
+      "document_uploads:create",
+      "disciplines:read",
+      "treatments:read"
+    ],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.id.janeapp.com/realms/jane/protocol/openid-connect/auth",
+    "tokenUrl": "https://login.id.janeapp.com/realms/jane/protocol/openid-connect/token",
+    "revocationUrl": "https://login.id.janeapp.com/realms/jane/protocol/openid-connect/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/jane-app/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "clinical_read",
+      "label": "Read clinic and clinical data",
+      "description": "Read company, locations, staff, appointments, treatments, disciplines, patients, observations, care plans, medications, and user-owned document uploads.",
+      "defaultSelected": true
+    },
+    {
+      "id": "clinical_manage",
+      "label": "Manage clinical records",
+      "description": "Create or update observations, care plans, activities, medications, and user-owned clinical document uploads.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "jane_app_api_read",
+        "label": "Read Jane App",
+        "description": "Run one of 23 current practitioner-authorized clinic or clinical read operations."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "jane_app_api_manage",
+        "label": "Manage Jane App",
+        "description": "Run one of nine current practitioner-authorized clinical record or document mutations."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "jane_app_secret_exposure",
+        "label": "Expose credentials",
+        "description": "OAuth credentials and provider-managed webhook signing secrets never enter agent-visible requests or results."
+      },
+      {
+        "id": "jane_app_cross_clinic_access",
+        "label": "Access another clinic",
+        "description": "Every request stays on the clinic origin bound into the practitioner OAuth token."
+      },
+      {
+        "id": "jane_app_unsupported_endpoint",
+        "label": "Call another endpoint",
+        "description": "Relay permits the 32 current practitioner business operations; OAuth and webhook infrastructure remain connection-owned."
+      },
+      {
+        "id": "jane_app_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds queries, bodies, uploads, responses, redirects, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "jane_app_safe",
+      "label": "Safe",
+      "description": "Authorized reads and patient search run directly. Every clinical record or document change requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["jane_app_api_read"],
+      "approvalRequiredActions": ["jane_app_api_manage"],
+      "blockedActions": [
+        "jane_app_secret_exposure",
+        "jane_app_cross_clinic_access",
+        "jane_app_unsupported_endpoint",
+        "jane_app_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected practitioner-authorized business operation runs without Relay per-action approval. Clinic and practitioner authority, exact routes, bounds, credential protection, Jane limits, healthcare-data controls, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["jane_app_api_read", "jane_app_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "jane_app_secret_exposure",
+        "jane_app_cross_clinic_access",
+        "jane_app_unsupported_endpoint",
+        "jane_app_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts 32 clinic-bound Jane business operations and attaches practitioner OAuth credentials server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts 32 clinic-bound Jane business operations and attaches practitioner OAuth credentials server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "review_pending",
+    "blocker": "Jane's Developer Platform is a vetted Technology Partner program. Relay has no approved production Jane Extension, partner client ID and secret, registered callback, granted production scopes, representative clinic data, or authorized live practitioner account.",
+    "nextAction": "Apply through Jane Partnerships, register Relay Console with https://api.relayconsole.work/api/v1/marketplace/oauth/jane-app/callback and the 18 current business scopes, store JANE_APP_CLIENT_ID and JANE_APP_CLIENT_SECRET in Railway, deploy, and verify clinic-bound connect, refresh, reads, Safe approval, Dangerous clinical mutation, revocation, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developers.jane.app/docs/getting-started",
+      "checkedAt": "2026-07-15",
+      "supports": "Jane documents partner approval, exact HTTPS callbacks, required PKCE and state, practitioner and clinic-bound OAuth, five-minute access tokens, refresh and revocation, and fixed clinic audiences."
+    },
+    {
+      "url": "https://developers.jane.app/llms.txt",
+      "checkedAt": "2026-07-15",
+      "supports": "Jane's official current reference index exposes 36 clinic API operations plus separate partner-extension administration; Relay maps all 32 practitioner business operations while retaining OAuth and webhook infrastructure at the connection boundary."
+    },
+    {
+      "url": "https://jane.app/blog/jane-integrations-our-program-our-partners-and-how-to-work-with-us",
+      "checkedAt": "2026-07-15",
+      "supports": "Jane states that its healthcare API program is approval-based, limited to vetted partners, and not open for clinics to independently publish integrations."
+    }
+  ]
+}

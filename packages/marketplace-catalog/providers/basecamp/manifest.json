@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "basecamp",
+  "name": "Basecamp",
+  "category": "work_management",
+  "description": "Basecamp is a project-management and team-communication platform that organizes projects, to-dos, schedules, messages, files, documents, check-ins, and group chat. Teams use it to coordinate work, centralize project communication, track responsibilities, and keep clients and collaborators aligned.",
+  "agentUseSummary": "Connect one Basecamp account through OAuth, then let agents read bounded projects and to-dos or use the complete account-authorized Basecamp API under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://basecamp.com/",
+    "docsUrl": "https://github.com/basecamp/bc-api",
+    "developerConsoleUrl": "https://launchpad.37signals.com/integrations",
+    "termsUrl": "https://basecamp.com/about/policies/terms",
+    "privacyUrl": "https://basecamp.com/about/policies/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://launchpad.37signals.com/authorization/new",
+    "tokenUrl": "https://launchpad.37signals.com/authorization/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "relay_owned_public_app_oauth",
+      "exact_bc3_account_binding",
+      "expiring_access_token",
+      "refresh_token",
+      "account_specific_api_origin"
+    ],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/basecamp/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "project_read",
+      "label": "Read projects",
+      "description": "Read bounded project summaries from the connected Basecamp account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "todo_read",
+      "label": "Read to-dos",
+      "description": "Read bounded to-do summaries from the connected Basecamp account.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Full Basecamp API",
+      "description": "Use the complete documented Basecamp API surface allowed by the connected person and account.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "basecamp_project_list",
+        "label": "List projects",
+        "description": "List at most twenty-five project summaries from the connected account."
+      },
+      {
+        "id": "basecamp_project_get",
+        "label": "Read a project",
+        "description": "Read one project summary by Basecamp project ID."
+      },
+      {
+        "id": "basecamp_todo_get",
+        "label": "Read a to-do",
+        "description": "Read one to-do summary by Basecamp to-do ID."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "basecamp_full_api",
+        "label": "Use full Basecamp API",
+        "description": "Use any documented Basecamp API operation authorized by the connection; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "basecamp_safe",
+      "label": "Safe",
+      "description": "Bounded project and to-do reads run directly; every other Basecamp API operation requires approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "basecamp_project_list",
+        "basecamp_project_get",
+        "basecamp_todo_get"
+      ],
+      "approvalRequiredActions": ["basecamp_full_api"],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Basecamp operation runs without Relay per-action approval; account binding, secret isolation, request bounds, audits, provider permissions, and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "basecamp_project_list",
+        "basecamp_project_get",
+        "basecamp_todo_get",
+        "basecamp_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Basecamp wrappers and attaches encrypted OAuth tokens only to the exact bc3 account origin returned by 37signals."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts typed Basecamp wrappers and attaches encrypted OAuth tokens only to the exact bc3 account origin returned by 37signals."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "awaiting_provider_setup",
+    "blocker": "A Relay-owned 37signals integration, exact callback, staging credentials, and an authorized Basecamp account are required for live acceptance outside this code task.",
+    "nextAction": "In the provider-console task, register Relay's exact callback, add staging credentials, then verify authorization, exact account binding, refresh, bounded reads, Safe approval, Dangerous mutation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://github.com/basecamp/bc-api/blob/master/sections/authentication.md",
+      "checkedAt": "2026-07-17",
+      "supports": "Basecamp documents standard OAuth authorization-code exchange, two-week access tokens, refresh tokens, the authorization lookup, and selecting a bc3 account-specific API href."
+    },
+    {
+      "url": "https://github.com/basecamp/bc-api",
+      "checkedAt": "2026-07-17",
+      "supports": "Basecamp documents its account-prefixed HTTPS API, required identifying User-Agent, JSON operations, flat resource routes, pagination, rate limits, and the complete endpoint surface."
+    },
+    {
+      "url": "https://github.com/basecamp/bc-api/blob/master/sections/projects.md",
+      "checkedAt": "2026-07-17",
+      "supports": "The official API reference documents project listing and individual project reads."
+    },
+    {
+      "url": "https://github.com/basecamp/bc-api/blob/master/sections/todos.md",
+      "checkedAt": "2026-07-17",
+      "supports": "The official API reference documents canonical flat to-do reads and broader to-do operations."
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "bitbucket",
+  "name": "Bitbucket",
+  "category": "developer",
+  "description": "Bitbucket Cloud is a Git hosting and code-collaboration service built around repositories, pull requests, and issue tracking. Software teams use it to review changes, coordinate development, and manage source code in shared workspaces.",
+  "agentUseSummary": "Connect Bitbucket once, then choose which agents may find repositories, read issues and pull requests, prepare comments, or post comments under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://bitbucket.org/",
+    "docsUrl": "https://developer.atlassian.com/cloud/bitbucket/rest/intro/",
+    "developerConsoleUrl": "https://bitbucket.org/account/settings/app-authorizations/",
+    "termsUrl": "https://www.atlassian.com/legal/cloud-terms-of-service",
+    "privacyUrl": "https://www.atlassian.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["account", "repository", "pullrequest", "issue"],
+    "pkce": false,
+    "refreshTokens": true,
+    "authorizationUrl": "https://bitbucket.org/site/oauth2/authorize",
+    "tokenUrl": "https://bitbucket.org/site/oauth2/access_token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "bitbucket_cloud_user_authorization"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/bitbucket/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "repository_search", "label": "Find repositories", "description": "Search up to twenty-five repositories visible to the authorized Bitbucket user.", "defaultSelected": true },
+    { "id": "issue_read", "label": "Read issues", "description": "List up to fifty issues from one explicit Bitbucket repository.", "defaultSelected": true },
+    { "id": "pull_request_read", "label": "Read pull requests", "description": "List up to fifty pull requests from one explicit Bitbucket repository.", "defaultSelected": true },
+    { "id": "comment_draft", "label": "Prepare comments", "description": "Prepare one bounded issue or pull-request comment locally without changing Bitbucket.", "defaultSelected": true },
+    { "id": "issue_comment_write", "label": "Comment on issues", "description": "Post one exact comment to an explicit Bitbucket issue.", "defaultSelected": true },
+    { "id": "pull_request_comment_write", "label": "Comment on pull requests", "description": "Post one exact comment to an explicit Bitbucket pull request.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "bitbucket_repository_search", "label": "Search repositories", "description": "Search a bounded set of repositories visible to the authorized Bitbucket user." },
+      { "id": "bitbucket_issue_list", "label": "List issues", "description": "List a bounded set of issues in one explicit Bitbucket repository." },
+      { "id": "bitbucket_pull_request_list", "label": "List pull requests", "description": "List a bounded set of pull requests in one explicit Bitbucket repository." },
+      { "id": "bitbucket_pull_request_comment_prepare", "label": "Prepare a comment", "description": "Prepare one issue or pull-request comment locally without changing Bitbucket." }
+    ],
+    "approvalRequired": [
+      { "id": "bitbucket_issue_comment_create", "label": "Comment on an issue", "description": "Post one exact comment to an explicit Bitbucket issue; Safe mode requires matching approval." },
+      { "id": "bitbucket_pull_request_comment_create", "label": "Comment on a pull request", "description": "Post one exact comment to an explicit Bitbucket pull request; Safe mode requires matching approval." }
+    ],
+    "blocked": [
+      { "id": "bitbucket_repository_admin", "label": "Administer repositories or workspaces", "description": "Repository, project, workspace, member, permission, and branch-restriction administration are outside V1." },
+      { "id": "bitbucket_pipeline_write", "label": "Change pipelines", "description": "Pipeline runs, variables, deployments, runners, and other CI/CD mutations are outside V1." },
+      { "id": "bitbucket_repository_mutation", "label": "Change repository contents", "description": "Branches, tags, files, merges, pushes, forks, and repository deletion are outside V1." },
+      { "id": "bitbucket_raw_api", "label": "Use arbitrary Bitbucket API calls", "description": "Raw URLs, arbitrary operations, tokens, and unbounded pagination are never exposed to agents." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "bitbucket_safe",
+      "label": "Safe",
+      "description": "Repository searches, bounded reads, and local drafts run directly; each posted comment requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["bitbucket_repository_search", "bitbucket_issue_list", "bitbucket_pull_request_list", "bitbucket_pull_request_comment_prepare"],
+      "approvalRequiredActions": ["bitbucket_issue_comment_create", "bitbucket_pull_request_comment_create"],
+      "blockedActions": ["bitbucket_repository_admin", "bitbucket_pipeline_write", "bitbucket_repository_mutation", "bitbucket_raw_api"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected Bitbucket operation supported by this connector runs without Relay per-action approval; connection ownership, Bitbucket user authority, request bounds, audits, redaction, and Bitbucket limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["bitbucket_repository_search", "bitbucket_issue_list", "bitbucket_pull_request_list", "bitbucket_pull_request_comment_prepare", "bitbucket_issue_comment_create", "bitbucket_pull_request_comment_create"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["bitbucket_repository_admin", "bitbucket_pipeline_write", "bitbucket_repository_mutation", "bitbucket_raw_api"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts six typed Bitbucket tools and attaches the connected user's token server-side without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts six typed Bitbucket tools and attaches the connected user's token server-side without exposing it to the agent." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay Console's Bitbucket OAuth consumer, production callback, scopes, client credentials, and a fresh production authorization have not been configured and verified.",
+    "nextAction": "Create a Bitbucket Cloud OAuth consumer in the Relay Console workspace, register https://api.relayconsole.work/api/v1/marketplace/oauth/bitbucket/callback, grant account, repository, pullrequest, and issue, configure BITBUCKET_CLIENT_ID and BITBUCKET_CLIENT_SECRET on Railway, then verify state, user binding, refresh-token rotation, bounded reads, Safe comment approval, Dangerous comment posting, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://support.atlassian.com/bitbucket-cloud/docs/use-oauth-on-bitbucket-cloud/", "checkedAt": "2026-07-16", "supports": "Atlassian documents workspace-owned OAuth consumers, exact callback configuration, authorization-code exchange, two-hour access tokens, refresh tokens, fixed consumer scopes, and bearer authentication." },
+    { "url": "https://developer.atlassian.com/cloud/bitbucket/rest/intro/", "checkedAt": "2026-07-16", "supports": "Bitbucket documents OAuth scopes account, repository, pullrequest, and issue; refresh-token rotation and three-month unused refresh expiry; bearer-token API access; and bounded paginated resources." },
+    { "url": "https://developer.atlassian.com/cloud/bitbucket/rest/api-group-repositories/", "checkedAt": "2026-07-16", "supports": "Bitbucket documents repository listing and filtering; Relay restricts results to page one and twenty-five shaped records." },
+    { "url": "https://developer.atlassian.com/cloud/bitbucket/rest/api-group-issue-tracker/", "checkedAt": "2026-07-16", "supports": "Bitbucket documents repository issue listing and comment creation; Relay wraps one explicit repository and bounded page-one results." },
+    { "url": "https://developer.atlassian.com/cloud/bitbucket/rest/api-group-pullrequests/", "checkedAt": "2026-07-16", "supports": "Bitbucket documents pull-request listing and comment creation; Relay exposes only shaped reads and one exact comment mutation." },
+    { "url": "https://developer.atlassian.com/cloud/bitbucket/changelog/", "checkedAt": "2026-07-16", "supports": "Bitbucket removed OAuth token query/body authentication and standardized the token response scope field in May 2026; Relay uses Authorization bearer headers and accepts the current scope field." }
+  ]
+}

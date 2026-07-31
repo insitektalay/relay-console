@@ -1,0 +1,169 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "habitica",
+  "name": "Habitica",
+  "category": "work_management",
+  "description": "Habitica is a task-management app that turns everyday habits, recurring dailies, to-dos, and personal rewards into a role-playing game. People use it to build routines, track goals, level an avatar, earn equipment and pets, and stay accountable through parties, quests, challenges, and community features.",
+  "agentUseSummary": "Add your Habitica User ID and API token once, then select which agents can read or manage the Habitica account under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://habitica.com/",
+    "docsUrl": "https://habitica.com/apidoc/",
+    "developerConsoleUrl": "https://habitica.com/user/settings/api",
+    "termsUrl": "https://habitica.com/static/terms",
+    "privacyUrl": "https://habitica.com/static/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["api_key"],
+    "credentialRequirements": [
+      {
+        "name": "HABITICA_USER_ID",
+        "label": "Habitica User ID",
+        "required": true,
+        "secret": false,
+        "helpText": "In Habitica, open Settings > API and copy your User ID."
+      },
+      {
+        "name": "HABITICA_API_TOKEN",
+        "label": "Habitica API token",
+        "required": true,
+        "secret": true,
+        "helpText": "In Habitica, open Settings > API and copy your API token. Treat it like a password."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "productivity_read",
+      "label": "Read Habitica progress",
+      "description": "Read authorized habits, dailies, to-dos, rewards, tags, user progress, parties, groups, challenges, quests, chat, notifications, shops, content, and world state.",
+      "defaultSelected": true
+    },
+    {
+      "id": "productivity_manage",
+      "label": "Manage Habitica progress",
+      "description": "Create and score tasks, manage tags and account preferences, participate in parties, challenges, quests, chat and shops, and use documented third-party V3 mutations permitted by the account.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "habitica_api_read",
+        "label": "Read Habitica",
+        "description": "Run one bounded GET request against Habitica's documented third-party V3 API."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "habitica_api_manage",
+        "label": "Manage Habitica",
+        "description": "Run one bounded POST, PUT, or DELETE request; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "habitica_secret_exposure",
+        "label": "Expose credentials",
+        "description": "The User ID and API token never enter agent-visible requests, URLs, or results."
+      },
+      {
+        "id": "habitica_unofficial_origin",
+        "label": "Use another origin",
+        "description": "Every request is pinned to Habitica's official HTTPS V3 API origin."
+      },
+      {
+        "id": "habitica_unsupported_api",
+        "label": "Call an internal API family",
+        "description": "Authentication, administration, debugging, and official-client payment routes are excluded from the third-party connector."
+      },
+      {
+        "id": "habitica_unbounded_transfer",
+        "label": "Run an unbounded transfer",
+        "description": "Relay bounds paths, queries, bodies, redirects, results, nesting, and execution time."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "habitica_safe",
+      "label": "Safe",
+      "description": "Bounded reads run directly. Every task score, creation, update, purchase, message, membership, account change, or deletion requires approval.",
+      "defaultSelected": true,
+      "allowedActions": ["habitica_api_read"],
+      "approvalRequiredActions": ["habitica_api_manage"],
+      "blockedActions": [
+        "habitica_secret_exposure",
+        "habitica_unofficial_origin",
+        "habitica_unsupported_api",
+        "habitica_unbounded_transfer"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected token-authorized Habitica operation runs without Relay per-action approval. Connection ownership, provider authority, fixed origin, request bounds, credential protection, provider limits, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["habitica_api_read", "habitica_api_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "habitica_secret_exposure",
+        "habitica_unofficial_origin",
+        "habitica_unsupported_api",
+        "habitica_unbounded_transfer"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded read and manage tools and attaches the encrypted User ID and API token only at Habitica's fixed V3 API origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts separate bounded read and manage tools and attaches the encrypted User ID and API token only at Habitica's fixed V3 API origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A Habitica user must supply the User ID and API token shown in their own Settings > API page. Habitica's current third-party API uses user-owned header credentials and does not publish a distributable OAuth application flow for Relay to own.",
+    "nextAction": "Copy the User ID and API token from Habitica Settings > API, connect them in Relay Console, then verify credential health, representative reads, Safe manage approval, Dangerous task scoring and management, redaction, token reset, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://habitica.com/apidoc/",
+      "checkedAt": "2026-07-15",
+      "supports": "Habitica's official V3 API documentation publishes its supported task, tag, user, party, group, challenge, quest, chat, notification, shop, content, and world routes."
+    },
+    {
+      "url": "https://github.com/HabitRPG/habitica/blob/develop/website/server/middlewares/auth.js",
+      "checkedAt": "2026-07-15",
+      "supports": "Habitica's official server source authenticates third-party requests with x-api-user and x-api-key headers and records non-official x-client use."
+    },
+    {
+      "url": "https://habitica.fandom.com/wiki/Application_Programming_Interface",
+      "checkedAt": "2026-07-15",
+      "supports": "Habitica's maintained API guide directs third-party tools to V3 and explains that users obtain their User ID and API token from Settings > API."
+    },
+    {
+      "url": "https://habitica.com/static/features",
+      "checkedAt": "2026-07-15",
+      "supports": "Habitica describes its gamified tasks, habits, dailies, to-dos, parties, challenges, rewards, and avatar progression."
+    }
+  ]
+}

@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "braze",
+  "name": "Braze",
+  "category": "communication",
+  "description": "Braze is a customer engagement platform for cross-channel Campaigns, Canvases, audience orchestration, behavioral data, messaging, personalization, and analytics.",
+  "agentUseSummary": "Enter one dedicated workspace REST API key with exactly campaigns.list, campaigns.data_series, and canvas.list plus its provisioned regional REST endpoint. Relay validates both list permissions and exposes only twenty-five content-free Campaign summaries, twenty-five content-free Canvas summaries, and a seven-day top-level aggregate series for one Campaign from that bounded page; users, audiences, identity, content, detailed reports, broader APIs, arbitrary queries, pagination, exports, and writes remain blocked.",
+  "provider": {
+    "websiteUrl": "https://www.braze.com/",
+    "docsUrl": "https://www.braze.com/docs/api/basics/",
+    "developerConsoleUrl": "https://dashboard.braze.com/",
+    "termsUrl": "https://www.braze.com/company/legal/terms",
+    "privacyUrl": "https://www.braze.com/company/legal/privacy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["campaigns.list", "campaigns.data_series", "canvas.list"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_workspace_rest_api_key",
+      "customer_supplied_regional_rest_endpoint",
+      "exact_endpoint_permission_scope",
+      "immutable_provider_ip_allowlist",
+      "manual_provider_key_rotation"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "BRAZE_REST_ENDPOINT",
+        "label": "Braze REST endpoint",
+        "required": true,
+        "secret": false,
+        "helpText": "Copy the exact regional REST endpoint shown with the key in Settings > APIs and Identifiers. Relay accepts only Braze's currently documented regional hosts."
+      },
+      {
+        "name": "BRAZE_REST_API_KEY",
+        "label": "Braze REST API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Create a dedicated workspace key with exactly campaigns.list, campaigns.data_series, and canvas.list; configure Railway egress IPs at creation because Braze key permissions and IP allowlists are immutable."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "campaign_metadata",
+      "label": "Campaign metadata",
+      "description": "List bounded, content-free Campaign lifecycle summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "canvas_metadata",
+      "label": "Canvas metadata",
+      "description": "List bounded, content-free Canvas lifecycle summaries.",
+      "defaultSelected": true
+    },
+    {
+      "id": "campaign_analytics",
+      "label": "Campaign analytics",
+      "description": "Read one fixed seven-day Campaign aggregate series.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "braze_campaign_list_recent",
+        "label": "List recent campaigns",
+        "description": "Read the newest unarchived Campaign page and return at most twenty-five content-free lifecycle summaries."
+      },
+      {
+        "id": "braze_canvas_list_recent",
+        "label": "List recent Canvases",
+        "description": "Read the newest unarchived Canvas page and return at most twenty-five content-free lifecycle summaries."
+      },
+      {
+        "id": "braze_campaign_analytics_get",
+        "label": "Read campaign analytics",
+        "description": "Read a fixed seven-day top-level aggregate series for one Campaign proven to belong to the bounded Campaign page."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "braze_people_private",
+        "label": "Access users or audiences",
+        "description": "Users, identifiers, attributes, devices, events, purchases, sessions, segments, audience membership, and profile exports are outside V1."
+      },
+      {
+        "id": "braze_content_private",
+        "label": "Access content or detailed reports",
+        "description": "Campaign/Canvas names, tags, descriptions, message variations, bodies, subjects, URLs, recipients, channel/variation drilldowns, and Currents data are outside V1."
+      },
+      {
+        "id": "braze_mutation",
+        "label": "Change or send Braze data",
+        "description": "Tracking, identifying, merging, creating, updating, deleting, triggering, sending, scheduling, and administering Braze resources are outside V1."
+      },
+      {
+        "id": "braze_broader_api",
+        "label": "Access broader Braze APIs",
+        "description": "Catalogs, Cloud Data Ingestion, email/SMS status, templates, content blocks, preference centers, SCIM, SDK authentication, and broader export APIs are outside V1."
+      },
+      {
+        "id": "braze_raw_query",
+        "label": "Run arbitrary requests",
+        "description": "Arbitrary endpoints, paths, pages, filters, time ranges, Campaigns outside the bounded list, pagination, crawling, synchronization, exports, and raw API access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "braze_safe",
+      "label": "Safe",
+      "description": "Three bounded metadata and aggregate reads run automatically; users, audiences, identity, content, detailed reports, broader APIs, arbitrary requests, exports, and writes stay blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "braze_campaign_list_recent",
+        "braze_canvas_list_recent",
+        "braze_campaign_analytics_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "braze_people_private",
+        "braze_content_private",
+        "braze_mutation",
+        "braze_broader_api",
+        "braze_raw_query"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "The same three read-only tools run while exact regional endpoint and provider permissions, fixed pages and time windows, membership checks, audit, redaction, and provider limits remain enforced.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "braze_campaign_list_recent",
+        "braze_canvas_list_recent",
+        "braze_campaign_analytics_get"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "braze_people_private",
+        "braze_content_private",
+        "braze_mutation",
+        "braze_broader_api",
+        "braze_raw_query"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Braze read wrappers and attaches the encrypted scoped workspace REST key and validated regional endpoint server-side."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts three bounded Braze read wrappers and attaches the encrypted scoped workspace REST key and validated regional endpoint server-side."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "not_required",
+    "blocker": null,
+    "nextAction": "The customer creates a dedicated workspace REST API key with exactly campaigns.list, campaigns.data_series, and canvas.list, configures Railway egress IPs before creation if desired, copies the provisioned REST endpoint, and rotates by replacing the immutable key."
+  },
+  "evidence": [
+    {
+      "url": "https://www.braze.com/docs/api/basics/",
+      "checkedAt": "2026-07-17",
+      "supports": "Braze documents workspace REST API keys, endpoint-specific permissions, immutable permission/IP-allowlist settings, the current regional REST endpoint table, Bearer authentication, and default rate limits."
+    },
+    {
+      "url": "https://www.braze.com/docs/api/endpoints/export/campaigns/get_campaigns/",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /campaigns/list requires campaigns.list, supports fixed page zero/newest/unarchived parameters, and returns Campaign ID, last-edited time, name, API-campaign status, and tags; Relay strips names and tags."
+    },
+    {
+      "url": "https://www.braze.com/docs/api/endpoints/export/canvas/get_canvases/",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /canvas/list requires canvas.list, supports fixed page zero/newest/unarchived parameters, and returns Canvas ID, last-edited time, name, and tags; Relay strips names and tags."
+    },
+    {
+      "url": "https://www.braze.com/docs/api/endpoints/export/campaigns/get_campaign_analytics/",
+      "checkedAt": "2026-07-17",
+      "supports": "GET /campaigns/data_series requires campaigns.data_series and supports a one-to-100-day range; Relay fixes seven days and returns only top-level daily aggregate fields without channel or variation drilldowns."
+    }
+  ]
+}

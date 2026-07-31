@@ -1,0 +1,246 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "vanilla-forums",
+  "name": "Vanilla Forums",
+  "category": "communication_collaboration",
+  "description": "Vanilla Forums, now Higher Logic Vanilla, is a hosted community platform for discussions, questions and answers, knowledge sharing, groups, events, moderation, gamification, and customer engagement.",
+  "agentUseSummary": "Connect one exact public HTTPS Vanilla community with a dedicated least-privilege personal access token. Agents can inspect the connected actor and bounded reduced Category, Badge, Discussion, and user metadata through five read-only tools. Content, communication, moderation, lifecycle, administration, bulk operations, private identity, and arbitrary API access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://vanillaforums.com/",
+    "docsUrl": "https://success.vanillaforums.com/kb/api",
+    "developerConsoleUrl": "https://success.vanillaforums.com/kb/articles/41-authentication",
+    "termsUrl": "https://www.higherlogic.com/legal/",
+    "privacyUrl": "https://www.higherlogic.com/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_access_token", "managed_site"],
+    "credentialRequirements": [
+      {
+        "name": "VANILLA_FORUMS_BASE_URL",
+        "label": "Vanilla community URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the public HTTPS origin of the exact Vanilla community, without /api/v2 or another path."
+      },
+      {
+        "name": "VANILLA_FORUMS_ACCESS_TOKEN",
+        "label": "Vanilla personal access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Generate a dedicated least-privilege personal access token from the Vanilla user profile. Relay encrypts it, never exposes it to agents or clients after saving, and sends it only as a Bearer header."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "catalog_read",
+      "label": "Read community catalog",
+      "description": "Inspect the connected actor and reduced Category and Badge metadata.",
+      "defaultSelected": true
+    },
+    {
+      "id": "discussion_metadata_read",
+      "label": "Read discussion metadata",
+      "description": "Inspect bounded Discussion lifecycle and engagement metadata without content or author identity.",
+      "defaultSelected": true
+    },
+    {
+      "id": "user_directory_read",
+      "label": "Read user directory",
+      "description": "Inspect bounded reduced user identity and aggregate contribution metadata.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "vanilla_forums_actor_get",
+        "label": "Read connected actor",
+        "description": "Read reduced identity and authority metadata for the user who created the configured access token."
+      },
+      {
+        "id": "vanilla_forums_category_list",
+        "label": "List categories",
+        "description": "List up to twenty-five reduced Category summaries."
+      },
+      {
+        "id": "vanilla_forums_badge_list",
+        "label": "List badges",
+        "description": "List up to twenty-five reduced Badge definitions without recipient data."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "vanilla_forums_discussion_list",
+        "label": "List discussion metadata",
+        "description": "List up to twenty-five Discussion lifecycle and engagement summaries without bodies, excerpts, media, URLs, or author identity."
+      },
+      {
+        "id": "vanilla_forums_user_list",
+        "label": "List users",
+        "description": "List up to twenty-five reduced community-user identity and aggregate summaries without email, IP, profile fields, SSO identifiers, activity timestamps, or raw records."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "vanilla_forums_content",
+        "label": "Read or write content",
+        "description": "Discussion and comment bodies, excerpts, rendered HTML, drafts, conversations, messages, knowledge articles, uploads, files, media, events, polls, and arbitrary rich content are outside V1."
+      },
+      {
+        "id": "vanilla_forums_user_lifecycle",
+        "label": "Manage user lifecycle",
+        "description": "Creating, inviting, updating, merging, deleting, banning, warning, spoofing, assigning roles, or changing ranks and permissions is outside V1."
+      },
+      {
+        "id": "vanilla_forums_structure_admin",
+        "label": "Administer community structure",
+        "description": "Creating, updating, deleting, reordering, or configuring Categories, Groups, Badges, Ranks, Products, Subcommunities, themes, addons, webhooks, settings, and site state is outside V1."
+      },
+      {
+        "id": "vanilla_forums_moderation",
+        "label": "Moderate community content",
+        "description": "Flagging, reviewing, deleting, moving, closing, pinning, sinking, featuring, announcing, restoring, or otherwise moderating Discussions, Comments, users, and reports is outside V1."
+      },
+      {
+        "id": "vanilla_forums_communication",
+        "label": "Communicate or notify",
+        "description": "Creating Discussions or Comments, conversations, direct messages, email, notifications, invitations, announcements, and outbound webhooks is outside V1."
+      },
+      {
+        "id": "vanilla_forums_bulk_or_analytics",
+        "label": "Run bulk or analytics actions",
+        "description": "Automatic pagination, bulk loops, polling, CSV exports, imports, analytics, logs, audit data, high-frequency sync, and historical reloads are outside V1."
+      },
+      {
+        "id": "vanilla_forums_private_identity",
+        "label": "Read broader identity data",
+        "description": "Email addresses, IP addresses, SSO IDs, profile fields, custom fields, avatars, locations, activity timestamps, private roles, and raw user records are outside V1."
+      },
+      {
+        "id": "vanilla_forums_raw_api",
+        "label": "Use arbitrary Vanilla APIs",
+        "description": "Arbitrary endpoints, methods, fields, filters, expansions, headers, bodies, alternate origins, query-token authentication, role tokens, spoof headers, raw responses, webhooks, GraphQL, MCP, CLI, and direct database access are outside V1."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "vanilla_forums_safe",
+      "label": "Safe",
+      "description": "Connected-actor, Category, and Badge catalog reads run directly. Discussion metadata and user-directory reads require matching approval.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "vanilla_forums_actor_get",
+        "vanilla_forums_category_list",
+        "vanilla_forums_badge_list"
+      ],
+      "approvalRequiredActions": [
+        "vanilla_forums_discussion_list",
+        "vanilla_forums_user_list"
+      ],
+      "blockedActions": [
+        "vanilla_forums_content",
+        "vanilla_forums_user_lifecycle",
+        "vanilla_forums_structure_admin",
+        "vanilla_forums_moderation",
+        "vanilla_forums_communication",
+        "vanilla_forums_bulk_or_analytics",
+        "vanilla_forums_private_identity",
+        "vanilla_forums_raw_api"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All five selected bounded Vanilla V1 reads run without Relay per-action approval; encrypted credentials, exact-site binding, token-owner permissions, field and page bounds, audits, privacy reduction, redirect denial, and system blocks still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "vanilla_forums_actor_get",
+        "vanilla_forums_category_list",
+        "vanilla_forums_badge_list",
+        "vanilla_forums_discussion_list",
+        "vanilla_forums_user_list"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "vanilla_forums_content",
+        "vanilla_forums_user_lifecycle",
+        "vanilla_forums_structure_admin",
+        "vanilla_forums_moderation",
+        "vanilla_forums_communication",
+        "vanilla_forums_bulk_or_analytics",
+        "vanilla_forums_private_identity",
+        "vanilla_forums_raw_api"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts five exact bounded Vanilla API v2 read wrappers and keeps the customer-owned personal access token encrypted outside agent context."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts five exact bounded Vanilla API v2 read wrappers and keeps the customer-owned personal access token encrypted outside agent context."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "No representative Vanilla community, personal access token, or staging Category, Badge, Discussion, and user fixtures were available for live acceptance.",
+    "nextAction": "A Vanilla user with Garden > Tokens > Add permission generates a dedicated least-privilege personal access token, enters the exact public HTTPS community origin in Relay, confirms the five selected endpoints and fields in that site's tailored API v2 reference, and verifies exact actor and site binding, reduced projections, Safe approval binding, Dangerous execution, paging and rate errors, token rotation and revocation, disconnect, and post-disconnect denial in staging."
+  },
+  "evidence": [
+    {
+      "url": "https://success.vanillaforums.com/kb/articles/40",
+      "checkedAt": "2026-07-18",
+      "supports": "Vanilla API v2 uses page and limit pagination, Link and paging headers, permission-filtered result pages, and a fields parameter on GET calls; each community's Dashboard reference is the authoritative site-tailored endpoint catalog."
+    },
+    {
+      "url": "https://success.vanillaforums.com/kb/articles/41-authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Personal access tokens are generated from user profiles for server-to-server integrations, use the preferred Authorization Bearer header, require Garden > Tokens > Add permission, and inherit the generating user's permissions."
+    },
+    {
+      "url": "https://success.vanillaforums.com/kb/articles/1962-workato-integration",
+      "checkedAt": "2026-07-18",
+      "supports": "The official integration guide fixes the base URL to the community root, documents GET /api/v2/users/me as the token smoke test, identifies users, discussions, comments, and categories as API resources, recommends fields reduction and least privilege, and warns that routes and fields vary by site configuration and addons."
+    },
+    {
+      "url": "https://success.vanillaforums.com/kb/articles/1823-how-to-assign-a-badge-to-a-user-via-the-badges-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Vanilla documents GET /api/v2/badges for Badge lookup and Bearer-token authentication; Relay exposes only the reduced read and blocks Badge assignment."
+    },
+    {
+      "url": "https://success.vanillaforums.com/kb/articles/436-authenticating-api-v2-calls-with-role-tokens",
+      "checkedAt": "2026-07-18",
+      "supports": "Role tokens are short-lived, query-parameter credentials limited to specific endpoints and omit user identity; Relay excludes role-token issuance and query-token use from V1."
+    },
+    {
+      "url": "https://success.vanillaforums.com/kb/articles/326-authenticate-api-v2-calls-as-another-user-spoofing",
+      "checkedAt": "2026-07-18",
+      "supports": "Vanilla spoofing uses the powerful X-Vanilla-Spoof header with an administrator token; Relay blocks spoofing and arbitrary headers."
+    },
+    {
+      "url": "https://www.higherlogic.com/legal/",
+      "checkedAt": "2026-07-18",
+      "supports": "Higher Logic publishes the current Vanilla subscription terms, API terms, privacy policy, data-processing documents, acceptable-use policy, and subprocessors from its legal portal."
+    }
+  ]
+}

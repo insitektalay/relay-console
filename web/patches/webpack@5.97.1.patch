@@ -1,0 +1,139 @@
+diff --git a/lib/schemes/HttpUriPlugin.js b/lib/schemes/HttpUriPlugin.js
+index 8bf7ef7..9d9f5e3 100644
+--- a/lib/schemes/HttpUriPlugin.js
++++ b/lib/schemes/HttpUriPlugin.js
+@@ -29,6 +29,8 @@ const memoize = require("../util/memoize");
+ const getHttp = memoize(() => require("http"));
+ const getHttps = memoize(() => require("https"));
+ 
++const MAX_REDIRECTS = 5;
++
+ /**
+  * @param {typeof import("http") | typeof import("https")} request request
+  * @param {string | { toString: () => string } | undefined} proxy proxy
+@@ -605,22 +607,68 @@ class HttpUriPlugin {
+ 				};
+ 
+ 				for (const { scheme, fetch } of schemes) {
++					/**
++					 * Resolve and authorize a redirect target before it can be
++					 * requested or persisted in webpack's buildHttp cache.
++					 *
++					 * @param {string} location Location header value
++					 * @param {string} base current absolute URL
++					 * @returns {string} authorized absolute URL
++					 */
++					const validateRedirectLocation = (location, base) => {
++						let nextUrl;
++						try {
++							nextUrl = new URL(location, base);
++						} catch (error) {
++							throw new Error("Invalid buildHttp redirect URL", {
++								cause: error
++							});
++						}
++						if (
++							nextUrl.protocol !== "http:" &&
++							nextUrl.protocol !== "https:"
++						) {
++							throw new Error("buildHttp redirect uses a disallowed protocol");
++						}
++						if (!isAllowed(nextUrl.href)) {
++							throw new Error(
++								"buildHttp redirect does not match the allowedUris policy"
++							);
++						}
++						return nextUrl.href;
++					};
++
+ 					/**
+ 					 * @param {string} url URL
+ 					 * @param {string | null} integrity integrity
+ 					 * @param {function(Error | null, ResolveContentResult=): void} callback callback
++					 * @param {number=} redirectCount number of redirects followed
+ 					 */
+-					const resolveContent = (url, integrity, callback) => {
++					const resolveContent = (
++						url,
++						integrity,
++						callback,
++						redirectCount = 0
++					) => {
+ 						/**
+ 						 * @param {Error | null} err error
+ 						 * @param {TODO} result result result
+ 						 * @returns {void}
+ 						 */
+ 						const handleResult = (err, result) => {
+ 							if (err) return callback(err);
+ 							if ("location" in result) {
++								let absolute;
++								try {
++									absolute = validateRedirectLocation(result.location, url);
++								} catch (error) {
++									return callback(error);
++								}
++								if (redirectCount >= MAX_REDIRECTS) {
++									return callback(new Error("Too many buildHttp redirects"));
++								}
+ 								return resolveContent(
+-									result.location,
++									absolute,
+ 									integrity,
+ 									(err, innerResult) => {
+ 										if (err) return callback(err);
+@@ -631,6 +679,7 @@ class HttpUriPlugin {
+ 											storeLock: storeLock && result.storeLock
+ 										});
+-									}
++									},
++									redirectCount + 1
+ 								);
+ 							}
+ 							if (
+@@ -744,8 +793,14 @@ class HttpUriPlugin {
+ 									res.statusCode >= 301 &&
+ 									res.statusCode <= 308
+ 								) {
++									let absolute;
++									try {
++										absolute = validateRedirectLocation(location, url);
++									} catch (error) {
++										return callback(error);
++									}
+ 									const result = {
+-										location: new URL(location, url).href
++										location: absolute
+ 									};
+ 									if (
+ 										!cachedResult ||
+@@ -847,12 +902,26 @@ class HttpUriPlugin {
+ 					 * @returns {boolean} true when allowed, otherwise false
+ 					 */
+ 					const isAllowed = uri => {
++						let parsedUri;
++						try {
++							parsedUri = new URL(uri);
++						} catch (_error) {
++							return false;
++						}
+ 						for (const allowed of allowedUris) {
+ 							if (typeof allowed === "string") {
+-								if (uri.startsWith(allowed)) return true;
++								let parsedAllowed;
++								try {
++									parsedAllowed = new URL(allowed);
++								} catch (_error) {
++									continue;
++								}
++								if (parsedUri.href.startsWith(parsedAllowed.href)) {
++									return true;
++								}
+ 							} else if (typeof allowed === "function") {
+-								if (allowed(uri)) return true;
+-							} else if (allowed.test(uri)) {
++								if (allowed(parsedUri.href)) return true;
++							} else if (allowed.test(parsedUri.href)) {
+ 								return true;
+ 							}
+ 						}

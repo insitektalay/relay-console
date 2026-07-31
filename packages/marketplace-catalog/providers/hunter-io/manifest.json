@@ -1,0 +1,192 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "hunter-io",
+  "name": "Hunter.io",
+  "category": "crm_support",
+  "description": "Hunter is a business contact discovery, email verification and outreach platform.",
+  "agentUseSummary": "Connect a dedicated customer-owned Hunter API key. Agents can read reduced account usage, aggregate email counts for one domain, and verify one explicit email with Safe approval before spending Hunter credit. Contact discovery, enrichment, outreach, resource management, administration, bulk and raw access remain blocked.",
+  "provider": {
+    "websiteUrl": "https://hunter.io/",
+    "docsUrl": "https://hunter.io/api-documentation/v2",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://hunter.io/terms-of-service",
+    "privacyUrl": "https://hunter.io/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "x_api_key_header_authentication",
+      "manual_provider_revocation_required"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "HUNTER_API_KEY",
+        "label": "Customer-owned Hunter API key",
+        "required": true,
+        "secret": true,
+        "helpText": "Use a dedicated Hunter API key. Relay sends it only in X-API-KEY, encrypts its copy, and requires you to delete the key in Hunter after disconnect."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "account_usage_read",
+      "label": "Read account usage",
+      "description": "Read only bounded current-period Hunter plan and request usage without identity or team data.",
+      "defaultSelected": true
+    },
+    {
+      "id": "domain_email_count_read",
+      "label": "Read domain email counts",
+      "description": "Read only aggregate email counts for one validated domain without revealing contacts.",
+      "defaultSelected": true
+    },
+    {
+      "id": "email_verification",
+      "label": "Verify one email",
+      "description": "Spend Hunter verification credit for one explicit email and return only reduced technical deliverability state.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "hunter_account_usage_get",
+        "label": "Read account usage",
+        "description": "Read only plan and current-period credit/search/verification usage through Hunter's free account endpoint."
+      },
+      {
+        "id": "hunter_domain_email_count_get",
+        "label": "Read domain email counts",
+        "description": "Read only aggregate total, personal and generic email counts for one validated domain through Hunter's free count endpoint."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "hunter_email_verify",
+        "label": "Verify one email address",
+        "description": "Spend up to 0.5 Hunter credit to verify one explicitly supplied email, returning only deliverability status, score and technical check flags."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "hunter_discovery_finding_enrichment",
+        "label": "Block contact discovery and enrichment",
+        "description": "Discover, Domain Search, Domain Finder, Email Finder, people/company/combined enrichment, sources, names, titles, locations, social profiles, phone numbers and contact exports are unavailable."
+      },
+      {
+        "id": "hunter_leads_companies_sequences_messages",
+        "label": "Block outreach and resource management",
+        "description": "Leads, companies, lists, tags, custom attributes, sequences, templates, recipients, email accounts, messages, sending, webhooks, connected apps and all writes or deletes are unavailable."
+      },
+      {
+        "id": "hunter_admin_bulk_raw",
+        "label": "Block administration, bulk and raw access",
+        "description": "Team members, usage history, API-key administration, bulk operations, arbitrary paths or parameters, raw API/MCP, browser sessions, pagination, retries, redirects and webhooks are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "hunter_safe",
+      "label": "Safe",
+      "description": "Free usage and aggregate domain-count reads run automatically; each credit-consuming email verification requires approval. Contact discovery, enrichment, outreach, administration, bulk and raw access remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": [
+        "hunter_account_usage_get",
+        "hunter_domain_email_count_get"
+      ],
+      "approvalRequiredActions": ["hunter_email_verify"],
+      "blockedActions": [
+        "hunter_discovery_finding_enrichment",
+        "hunter_leads_companies_sequences_messages",
+        "hunter_admin_bulk_raw"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All three bounded reads, including single-email verification, run without Relay per-action approval; Hunter credits, legal/privacy denials, input bounds, reduction and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "hunter_account_usage_get",
+        "hunter_domain_email_count_get",
+        "hunter_email_verify"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "hunter_discovery_finding_enrichment",
+        "hunter_leads_companies_sequences_messages",
+        "hunter_admin_bulk_raw"
+      ]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded typed reads while Railway alone holds the dedicated Hunter API key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts three bounded typed reads while Railway alone holds the dedicated Hunter API key."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "A representative Hunter account, dedicated API key, data-protection/legal basis review for submitted business emails, current terms/privacy review, staging credential entry, live response validation, credit accounting and key-lifecycle testing remain for separate authorized tasks.",
+    "nextAction": "An authorized provider task must create a dedicated key, confirm the customer's lawful purpose for each submitted business email, store the key in Railway staging, and validate only account, email-count and verifier routes, Safe approval, Dangerous behavior, reduced output, 451 privacy denial, 202 pending state, credit accounting, no retry/pagination, encrypted-copy deletion, provider-side key deletion and post-deletion denial."
+  },
+  "evidence": [
+    {
+      "url": "https://hunter.io/api-documentation/v2#authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "Hunter documents secret API-key authentication through X-API-KEY, Authorization or query parameter, key generation/deletion, its fixed API origin and safe HTTP error taxonomy including privacy denial."
+    },
+    {
+      "url": "https://hunter.io/api-documentation/v2#account",
+      "checkedAt": "2026-07-18",
+      "supports": "Hunter documents the free account endpoint and its current-period plan and request usage fields; Relay excludes identity and team fields."
+    },
+    {
+      "url": "https://hunter.io/api-documentation/v2#email-count",
+      "checkedAt": "2026-07-18",
+      "supports": "Hunter documents the single-domain aggregate email-count endpoint and its total, personal and generic counts."
+    },
+    {
+      "url": "https://hunter.io/api-documentation/v2#email-verifier",
+      "checkedAt": "2026-07-18",
+      "supports": "Hunter documents single-email verification, statuses and technical checks, 202 pending and 451 claimed-email handling, provider limits, and the source/contact fields Relay deliberately drops."
+    },
+    {
+      "url": "https://help.hunter.io/en/articles/1970956-hunter-api",
+      "checkedAt": "2026-07-18",
+      "supports": "Hunter documents current endpoint credit costs, including free account and count calls and 0.5 credit per email verification, along with per-request and no-bulk behavior."
+    },
+    {
+      "url": "https://hunter.io/terms-of-service",
+      "checkedAt": "2026-07-18",
+      "supports": "Hunter permits third-party API products subject to its agreement and warns that excessive API requests can suspend access."
+    },
+    {
+      "url": "https://hunter.io/privacy-policy",
+      "checkedAt": "2026-07-18",
+      "supports": "Hunter documents professional contact data, independent-controller responsibilities for users, legal bases, retention, claims/removal and data-protection obligations."
+    }
+  ]
+}

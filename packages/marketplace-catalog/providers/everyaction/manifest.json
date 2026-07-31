@@ -1,0 +1,151 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "everyaction",
+  "name": "EveryAction",
+  "category": "crm_support",
+  "description": "EveryAction is a nonprofit and organizing CRM for constituent records, fundraising, advocacy, canvassing, events, volunteer engagement and digital programs.",
+  "agentUseSummary": "Add a client-requested EveryAction application name and context-bound API key, then run 217 current official non-payment operations through pinned routes. Safe runs 123 GET reads directly and requires approval for 94 non-GET operations; the separate-host PCI payment route remains blocked in every policy.",
+  "provider": {
+    "websiteUrl": "https://www.everyaction.com/",
+    "docsUrl": "https://docs.everyaction.com/",
+    "developerConsoleUrl": "https://www.everyaction.com/",
+    "termsUrl": "https://www.bonterratech.com/legal/terms-of-service",
+    "privacyUrl": "https://www.bonterratech.com/legal/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "basic_auth",
+      "application_name",
+      "context_bound_api_key",
+      "database_mode_suffix",
+      "fixed_securevan_origin",
+      "current_api_reference_registry"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "EVERYACTION_APPLICATION_NAME",
+        "label": "EveryAction application name",
+        "secret": false,
+        "required": true,
+        "helpText": "Use the application name paired with the client-requested EveryAction API key. Relay sends it only as the Basic-auth username to api.securevan.com."
+      },
+      {
+        "key": "EVERYACTION_API_KEY",
+        "label": "EveryAction API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a client-requested production key for the intended My Voters or My Campaign database. Relay encrypts it and sends it only as the Basic-auth password to api.securevan.com."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "everyaction_read",
+      "label": "Read organizing and nonprofit CRM data",
+      "description": "Use all 123 current official API reads.",
+      "defaultSelected": true
+    },
+    {
+      "id": "everyaction_manage",
+      "label": "Manage organizing and nonprofit CRM data",
+      "description": "Use all 94 current official non-payment mutations.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "everyaction_read",
+        "label": "Read EveryAction",
+        "description": "Read authorized people, canvass, activist-code, contribution, event, signup, target, survey and worksite data."
+      }
+    ],
+    "approvalRequired": [
+      {
+        "id": "everyaction_manage",
+        "label": "Manage EveryAction",
+        "description": "Create, update or delete authorized EveryAction records; Safe mode requires approval."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "everyaction_process_payments",
+        "label": "Process payments",
+        "description": "Card and EFT payment processing is excluded because it uses a separate PCI-sensitive API host and data boundary."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "everyaction_safe",
+      "label": "Safe",
+      "description": "All 123 reads run directly; all 94 non-payment mutations require approval; payment processing remains blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["everyaction_read"],
+      "approvalRequiredActions": ["everyaction_manage"],
+      "blockedActions": ["everyaction_process_payments"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "All 217 pinned non-payment operations run without Relay per-action approval; payment processing remains blocked and API-key permissions, fixed routes, audits, bounds and provider limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["everyaction_read", "everyaction_manage"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["everyaction_process_payments"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Relay mounts 217 current official non-payment operations with fixed-origin server-side Basic authentication."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Relay mounts 217 current official non-payment operations with fixed-origin server-side Basic authentication."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Live acceptance requires an authorized EveryAction client, a production API key requested by that client, its paired application name, the intended My Voters or My Campaign database context, suitable permissions and representative records.",
+    "nextAction": "The authorized client requests and stores a least-privilege production key and paired application name through Relay Console, then validates reads, approved reversible mutations, database-context isolation, throttling, credential replacement/deletion, disconnect and post-disconnect denial in Railway staging."
+  },
+  "evidence": [
+    {
+      "url": "https://docs.everyaction.com/reference",
+      "checkedAt": "2026-07-18",
+      "supports": "The official current API reference documents 218 routes under the v4 securevan API; Relay pins 217 after excluding the separate payment route."
+    },
+    {
+      "url": "https://docs.everyaction.com/docs/authentication",
+      "checkedAt": "2026-07-18",
+      "supports": "EveryAction uses HTTP Basic authentication with the application name as username and a database-context API key as password."
+    },
+    {
+      "url": "https://docs.everyaction.com/docs/key-generation",
+      "checkedAt": "2026-07-18",
+      "supports": "Production keys are requested by the authorized client, inherit sandbox permissions and must be protected like passwords."
+    },
+    {
+      "url": "https://docs.everyaction.com/reference/postcontributionpayment",
+      "checkedAt": "2026-07-18",
+      "supports": "Payment processing uses a separate payments-api.securevan.com origin and handles card or EFT data with PCI responsibilities, so Relay blocks it."
+    }
+  ]
+}

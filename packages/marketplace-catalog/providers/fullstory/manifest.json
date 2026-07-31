@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "fullstory",
+  "name": "FullStory",
+  "category": "crm_support",
+  "description": "FullStory is a digital-experience intelligence platform for session replay, product analytics, funnels, segments, user and event data, search, exports, privacy controls, and web and mobile capture.",
+  "agentUseSummary": "Add a customer-owned Fullstory Standard API key, then let selected agents verify only the connected organization ID and normalized key permission level. Relay discards seat email, client and scope details and blocks users, sessions, events, segments, exports, searches, privacy settings, block rules, arbitrary API access, and every mutation.",
+  "provider": {
+    "websiteUrl": "https://www.fullstory.com/",
+    "docsUrl": "https://developer.fullstory.com/server/authentication/",
+    "developerConsoleUrl": "https://app.fullstory.com/",
+    "termsUrl": "https://www.fullstory.com/legal/terms-and-conditions/",
+    "privacyUrl": "https://www.fullstory.com/legal/privacy-policy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_api_key",
+      "standard_permission_level_only",
+      "data_residency_auto_routed"
+    ],
+    "credentialRequirements": [
+      {
+        "key": "FULLSTORY_API_KEY",
+        "label": "Fullstory Standard API key",
+        "secret": true,
+        "required": true,
+        "helpText": "Use a customer-owned Standard key; Architect and Admin permissions are unnecessary for Relay's V1 contract. Relay encrypts it server-side."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "fullstory_read",
+      "label": "Read connection summary",
+      "description": "Use only parameter-free GET /me and return organization ID plus normalized key permission level.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "fullstory_read",
+        "label": "Read Fullstory connection summary",
+        "description": "Return only the connected organization ID and normalized API-key permission level without seat email, client details, scopes, users, sessions, events, or exports."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "fullstory_manage",
+        "label": "Change Fullstory",
+        "description": "User, event, annotation, extraction, privacy, block-rule, and every other mutation are blocked."
+      },
+      {
+        "id": "fullstory_sensitive_or_export_data",
+        "label": "Read users, sessions, or exports",
+        "description": "Users, emails, custom properties, sessions, recordings, events, segments, search and raw exports, privacy settings, and capture configuration are blocked."
+      },
+      {
+        "id": "fullstory_arbitrary_api",
+        "label": "Use arbitrary API access",
+        "description": "Filters, identifiers, additional routes, pagination, asynchronous operations, arbitrary endpoints, and custom arguments are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "fullstory_safe",
+      "label": "Safe",
+      "description": "One minimized identity check runs directly. Users, sessions, events, segments, exports, privacy settings, arbitrary API access, and mutations remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["fullstory_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "fullstory_manage",
+        "fullstory_sensitive_or_export_data",
+        "fullstory_arbitrary_api"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized connection-summary tool through the encrypted customer-owned Fullstory Standard key."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed minimized connection-summary tool through the encrypted customer-owned Fullstory Standard key."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "No customer Fullstory organization, Standard-role key creator, active Standard API key, representative organization fixture, role matrix, or key-rotation procedure is available in this workspace.",
+    "nextAction": "A Fullstory Standard user creates a dedicated Standard API key, saves its one-time value through Relay Console, then verifies minimized identity output, rejection of Architect and Admin-only data paths, regional routing, agent assignment, key replacement, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.fullstory.com/server/authentication/",
+      "checkedAt": "2026-07-17",
+      "supports": "Fullstory documents the Basic API-key header, one-time key display, Standard, Architect, and Admin permission hierarchy, role-based key creation and visibility, Standard access to identity and settings, and higher permissions for user exports and privacy rules."
+    },
+    {
+      "url": "https://developer.fullstory.com/server/v1/authentication/me/",
+      "checkedAt": "2026-07-17",
+      "supports": "The official parameter-free GET /me reference documents Standard-key access, organization ID, seat email, client ID, scopes and role response fields, role-to-permission mappings, Basic authentication, and Retry-After on rate limits."
+    },
+    {
+      "url": "https://developer.fullstory.com/server/getting-started/",
+      "checkedAt": "2026-07-17",
+      "supports": "Fullstory documents server API data sensitivity, user and event writes, exports retained in v1, automatic data-residency routing through api.fullstory.com, key region prefixes, and quota-related 429 responses."
+    }
+  ]
+}

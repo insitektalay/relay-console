@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "getaccept",
+  "name": "GetAccept",
+  "category": "knowledge_documents",
+  "description": "GetAccept is a digital sales room and document automation platform for creating, sharing, tracking, and signing business documents. Sales teams use it to prepare proposals and contracts, collaborate with buyers, monitor engagement, and complete electronic signatures.",
+  "agentUseSummary": "Connect a customer-owned support-provisioned API token, then let agents create bounded unsent document drafts from public HTTPS file URLs and explicit signer recipients under Safe or Dangerous policy. Relay forces automatic sending off and blocks undocumented API operations, raw access, file uploads, private URL fetches, and response pass-through.",
+  "provider": {
+    "websiteUrl": "https://www.getaccept.com/",
+    "docsUrl": "https://help.getaccept.com/en/articles/2393314-how-to-use-the-getaccept-public-api",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://www.getaccept.com/terms-of-use",
+    "privacyUrl": "https://www.getaccept.com/privacy-policy"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": [],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": [
+      "customer_owned_access_token",
+      "support_provisioned",
+      "bearer_token",
+      "railway_brokered"
+    ],
+    "credentialRequirements": [
+      {
+        "name": "GETACCEPT_ACCESS_TOKEN",
+        "label": "GetAccept API access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Request a customer-owned API token and current parameter reference from the customer's GetAccept representative."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "document_draft_create",
+      "label": "Create document drafts",
+      "description": "Create one bounded draft from a public HTTPS file URL and explicit signer recipients without sending it.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "getaccept_document_create_draft",
+        "label": "Create document draft",
+        "description": "Create one bounded GetAccept document draft from a public HTTPS file URL without sending it."
+      }
+    ],
+    "blocked": [
+      {
+        "id": "getaccept_automatic_send",
+        "label": "Send documents automatically",
+        "description": "Relay always forces is_automatic_sending to false and never sends, shares, reminds, signs, or publishes the created draft."
+      },
+      {
+        "id": "getaccept_private_file_source",
+        "label": "Fetch private file sources",
+        "description": "File sources must be public HTTPS hostnames; credentials, loopback names, IP literals, fragments, and non-HTTPS URLs are blocked."
+      },
+      {
+        "id": "getaccept_undocumented_api",
+        "label": "Use undocumented API operations",
+        "description": "Reads, updates, deletion, templates, analytics, contacts, users, webhooks, raw paths, and arbitrary parameters remain blocked until GetAccept supplies the current parameter reference."
+      },
+      {
+        "id": "getaccept_raw_bulk",
+        "label": "Use raw or bulk access",
+        "description": "Raw requests, arbitrary fields, pagination, polling, retries, batches, exports, and response pass-through are blocked."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "getaccept_safe",
+      "label": "Safe",
+      "description": "Creating a GetAccept draft requires approval because it stores document and recipient data with the provider.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": ["getaccept_document_create_draft"],
+      "blockedActions": [
+        "getaccept_automatic_send",
+        "getaccept_private_file_source",
+        "getaccept_undocumented_api",
+        "getaccept_raw_bulk"
+      ]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected draft creation runs without Relay per-action approval; ownership, fixed origin, public-file URL checks, payload bounds, forced unsent state, token secrecy, and audits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["getaccept_document_create_draft"],
+      "approvalRequiredActions": [],
+      "blockedActions": [
+        "getaccept_automatic_send",
+        "getaccept_private_file_source",
+        "getaccept_undocumented_api",
+        "getaccept_raw_bulk"
+      ]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed bounded draft-creation wrapper and never exposes the GetAccept token, recipient identities, file URL, or raw response to the agent."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one typed bounded draft-creation wrapper and never exposes the GetAccept token, recipient identities, file URL, or raw response to the agent."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "GetAccept provisions API access and the current parameter reference through a customer representative; no customer token, parameter reference, eligible plan confirmation, or live provider session is available in this worker task.",
+    "nextAction": "An authorized customer requests a dedicated API token and current parameter reference from GetAccept, stores the token through Relay's encrypted connection flow, then separately validates presence-only connection setup, Safe approval, Dangerous draft creation, forced unsent state, public-file URL denial, response redaction, token revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://help.getaccept.com/en/articles/2393314-how-to-use-the-getaccept-public-api",
+      "checkedAt": "2026-07-17",
+      "supports": "GetAccept's current official help center states that Public API access is provisioned by GetAccept, authenticates with a token or OAuth, and requires the customer representative for credentials, plan details, and the current parameter reference."
+    },
+    {
+      "url": "https://www.getaccept.com/api",
+      "checkedAt": "2026-07-17",
+      "supports": "GetAccept's official API page documents Bearer-token POST https://api.getaccept.com/v1/documents with name, public file_url, signer recipients, optional custom fields, and is_automatic_sending false."
+    },
+    {
+      "url": "https://help.getaccept.com/en/articles/2393292-getaccept-rest-api-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "GetAccept's current REST overview confirms token or support-configured OAuth 2.0, explicitly says the API does not use API keys despite older labels, and directs developers to GetAccept for current parameters and webhook setup."
+    }
+  ]
+}

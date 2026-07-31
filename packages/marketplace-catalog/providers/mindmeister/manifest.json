@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "mindmeister",
+  "name": "MindMeister",
+  "category": "content_creative",
+  "description": "MindMeister is an online mind-mapping application for capturing ideas, organizing research, planning projects, and presenting connected information visually. Teams use collaborative maps to develop topics together, attach files and notes, assign work, share access, and export finished maps.",
+  "agentUseSummary": "Connect a MindMeister account once, then let agents read maps and exports or create, organize, share, import, publish, and administer supported mind-map resources under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://www.mindmeister.com/",
+    "docsUrl": "https://developers.mindmeister.com/",
+    "developerConsoleUrl": "https://www.mindmeister.com/api",
+    "termsUrl": "https://www.mindmeister.com/legal/terms-of-service",
+    "privacyUrl": "https://www.mindmeister.com/legal/privacy"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["userinfo.profile", "userinfo.email", "mindmeister"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": "https://www.mindmeister.com/oauth2/authorize",
+    "tokenUrl": "https://www.mindmeister.com/oauth2/token",
+    "revocationUrl": "https://www.mindmeister.com/oauth2/revoke"
+  },
+  "connection": {
+    "types": ["oauth2"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/mindmeister/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "maps_read", "label": "Read maps and exports", "description": "List and inspect maps, map rights, presentations, attachments, images, and supported document exports.", "defaultSelected": true },
+    { "id": "maps_manage", "label": "Create and organize maps", "description": "Create, duplicate, import, move, rename, revise, publish, unpublish, and delete maps and folders.", "defaultSelected": true },
+    { "id": "sharing_manage", "label": "Manage collaboration", "description": "Inspect collaborators and manage map sharing, notifications, invitations, and public availability.", "defaultSelected": true },
+    { "id": "team_admin", "label": "Administer supported teams", "description": "Use MindMeister's documented provisioning operations for eligible team accounts, including users, plans, status, and membership.", "defaultSelected": false }
+  ],
+  "actions": {
+    "allowed": [{ "id": "mindmeister_api_read", "label": "Read MindMeister data", "description": "Use an exact supported read-only MindMeister v2 route or OAuth-compatible v1 method." }],
+    "approvalRequired": [{ "id": "mindmeister_api_write", "label": "Change MindMeister data", "description": "Create, import, organize, share, publish, delete, or administer supported MindMeister resources." }],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    { "id": "mindmeister_safe", "label": "Safe", "description": "Profile, map, export, attachment, rights, collaborator, and team reads run directly; every mutation requires approval.", "defaultSelected": true, "allowedActions": ["mindmeister_api_read"], "approvalRequiredActions": ["mindmeister_api_write"], "blockedActions": [] },
+    { "id": "dangerously_skip_permissions", "label": "Dangerously skip permissions", "description": "Every selected OAuth-authorized MindMeister operation runs without Relay per-action approval; exact operation allowlists, fixed origins, bounds, audits, redaction, provider permissions, plan limits, and rate limits still apply.", "defaultSelected": false, "allowedActions": ["mindmeister_api_read", "mindmeister_api_write"], "approvalRequiredActions": [], "blockedActions": [] }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts exact read and write wrappers for the supported MindMeister API surface." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts exact read and write wrappers for the supported MindMeister API surface." }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay Console needs a registered MindMeister OAuth application, exact production callback, client ID, client secret, and any provider integration approval.",
+    "nextAction": "Register Relay Console at https://www.mindmeister.com/api with https://api.relayconsole.work/api/v1/marketplace/oauth/mindmeister/callback, store MINDMEISTER_CLIENT_ID and MINDMEISTER_CLIENT_SECRET in Railway, then complete OAuth and bounded runtime acceptance."
+  },
+  "evidence": [
+    { "url": "https://developers.mindmeister.com/docs/oauth-2", "checkedAt": "2026-07-14", "supports": "MindMeister documents confidential OAuth 2.0 authorization code exchange at its authorize and token endpoints." },
+    { "url": "https://developers.mindmeister.com/docs/scopes", "checkedAt": "2026-07-14", "supports": "MindMeister documents profile, email, read-only map, and full read-write map scopes." },
+    { "url": "https://developers.mindmeister.com/docs/overview", "checkedAt": "2026-07-14", "supports": "The current REST v2 API uses the fixed https://www.mindmeister.com/api/v2/ origin and exposes Users, Maps, and Files resources." },
+    { "url": "https://developers.mindmeister.com/docs/api-v1-with-oauth-20", "checkedAt": "2026-07-14", "supports": "MindMeister still documents OAuth 2.0 access to v1 methods, with the mindmeister scope replacing legacy write and delete permissions." },
+    { "url": "https://developers.mindmeister.com/docs/register-application", "checkedAt": "2026-07-14", "supports": "A registered application receives a client ID and client secret and may configure one or more redirect URIs." }
+  ]
+}

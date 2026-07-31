@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "microsoft-dynamics-365-customer-service",
+  "name": "Microsoft Dynamics 365 Customer Service",
+  "category": "customer_support",
+  "description": "Microsoft Dynamics 365 Customer Service is an AI-assisted service platform for cases, customer interactions, knowledge, unified routing, digital channels, voice, service-level agreements, entitlements, analytics, and representative productivity on Microsoft Dataverse.",
+  "agentUseSummary": "Choose the Dataverse environment hosting Customer Service, connect through Relay-owned Microsoft OAuth, and let selected agents verify only the bound environment and minimized user, organization, and business-unit IDs. Relay does not expose cases, customers, conversations, knowledge, channels, routing, analytics, arbitrary Dataverse operations, or mutations in V1.",
+  "provider": {
+    "websiteUrl": "https://www.microsoft.com/en-us/dynamics-365/products/customer-service",
+    "docsUrl": "https://learn.microsoft.com/en-us/dynamics365/customer-service/implement/overview",
+    "developerConsoleUrl": "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+    "termsUrl": "https://www.microsoft.com/servicesagreement",
+    "privacyUrl": "https://privacy.microsoft.com/privacystatement"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["offline_access", "user_impersonation"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+    "tokenUrl": "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "customer_selected_dataverse_environment"],
+    "credentialRequirements": [
+      {
+        "name": "DYNAMICS_365_CUSTOMER_SERVICE_ENVIRONMENT_URL",
+        "label": "Customer Service environment URL",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the exact Dataverse environment origin hosting Dynamics 365 Customer Service."
+      }
+    ],
+    "callbackPath": "/api/v1/marketplace/oauth/microsoft-dynamics-365-customer-service/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "microsoft_dynamics_365_customer_service_read",
+      "label": "Read connection summary",
+      "description": "Verify the selected environment and return minimized Dataverse user, organization, and business-unit IDs.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [
+      {
+        "id": "microsoft_dynamics_365_customer_service_read",
+        "label": "Read Customer Service connection summary",
+        "description": "Call only environment-bound WhoAmI and return its three identity IDs."
+      }
+    ],
+    "approvalRequired": [],
+    "blocked": [
+      {
+        "id": "microsoft_dynamics_365_customer_service_manage",
+        "label": "Access support data or change Customer Service",
+        "description": "Cases, customers, interactions, conversations, channels, knowledge, routing, SLAs, entitlements, analytics, arbitrary Dataverse access, and mutations are unavailable."
+      }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "microsoft_dynamics_365_customer_service_safe",
+      "label": "Safe",
+      "description": "One environment-bound WhoAmI check runs directly. Customer and support data, arbitrary Dataverse access, and every mutation remain blocked.",
+      "defaultSelected": true,
+      "allowedActions": ["microsoft_dynamics_365_customer_service_read"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["microsoft_dynamics_365_customer_service_manage"]
+    }
+  ],
+  "riskLevel": "critical",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts one environment-bound Dataverse WhoAmI wrapper through Relay-owned Microsoft OAuth."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts one environment-bound Dataverse WhoAmI wrapper through Relay-owned Microsoft OAuth."
+    }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay's multi-tenant Entra application has not been configured and accepted for production Dynamics CRM user_impersonation and the exact Customer Service callback, and no licensed customer environment has completed consent and acceptance.",
+    "nextAction": "The provider-console owner updates Relay's verified multi-tenant Entra application, adds the exact callback, grants delegated Dynamics CRM user_impersonation, stores the client ID and secret in Railway, then validates OAuth, refresh, WhoAmI, disconnect, and post-disconnect denial in a licensed non-production customer environment."
+  },
+  "evidence": [
+    {
+      "url": "https://learn.microsoft.com/en-us/dynamics365/customer-service/implement/overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents Customer Service capabilities spanning cases, interactions, knowledge, routing, channels, voice, SLAs, entitlements, analytics, and Copilot agents over customer-service data."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/reference/whoami?view=dataverse-latest",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents WhoAmI as the Dataverse function that retrieves the current system-user context."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/power-apps/developer/data-platform/authenticate-oauth",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft requires OAuth for Dataverse Web API clients and documents environment-qualified delegated user_impersonation."
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/dynamics365/customer-service/develop/mcp-tools-overview",
+      "checkedAt": "2026-07-17",
+      "supports": "Microsoft documents broad Customer Service MCP actions over cases, knowledge, email, and service operations and warns about privilege enforcement, external data flow, cascading failure, and human oversight; Relay does not expose that broad surface in V1."
+    }
+  ]
+}

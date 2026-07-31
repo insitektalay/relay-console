@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "gitlab",
+  "name": "GitLab",
+  "category": "developer",
+  "description": "GitLab is a DevSecOps platform for hosting Git repositories and collaborating through issues, merge requests, and continuous integration. Teams use it to plan software work, review code, and understand delivery activity in one place.",
+  "agentUseSummary": "Connect GitLab once, then choose which agents may find projects, read issues and merge requests, prepare comments, or post comments under Safe or Dangerous policy.",
+  "provider": {
+    "websiteUrl": "https://gitlab.com/",
+    "docsUrl": "https://docs.gitlab.com/api/oauth2/",
+    "developerConsoleUrl": "https://gitlab.com/-/user_settings/applications",
+    "termsUrl": "https://about.gitlab.com/terms/",
+    "privacyUrl": "https://about.gitlab.com/privacy/"
+  },
+  "authentication": {
+    "model": "oauth2",
+    "relayOwned": true,
+    "scopes": ["api"],
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://gitlab.com/oauth/authorize",
+    "tokenUrl": "https://gitlab.com/oauth/token",
+    "revocationUrl": "https://gitlab.com/oauth/revoke"
+  },
+  "connection": {
+    "types": ["relay_owned_oauth", "gitlab_com_user_authorization"],
+    "credentialRequirements": [],
+    "callbackPath": "/api/v1/marketplace/oauth/gitlab/callback",
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    { "id": "project_search", "label": "Find projects", "description": "Search up to twenty-five projects visible to the authorized GitLab user.", "defaultSelected": true },
+    { "id": "issue_read", "label": "Read issues", "description": "List up to fifty issues from one explicit GitLab project.", "defaultSelected": true },
+    { "id": "merge_request_read", "label": "Read merge requests", "description": "List up to fifty merge requests from one explicit GitLab project.", "defaultSelected": true },
+    { "id": "comment_draft", "label": "Prepare comments", "description": "Prepare one bounded issue or merge-request comment locally without changing GitLab.", "defaultSelected": true },
+    { "id": "issue_comment_write", "label": "Comment on issues", "description": "Post one exact comment to an explicit GitLab issue.", "defaultSelected": true },
+    { "id": "merge_request_comment_write", "label": "Comment on merge requests", "description": "Post one exact comment to an explicit GitLab merge request.", "defaultSelected": true }
+  ],
+  "actions": {
+    "allowed": [
+      { "id": "gitlab_project_search", "label": "Search projects", "description": "Search a bounded set of projects visible to the authorized GitLab user." },
+      { "id": "gitlab_issue_list", "label": "List issues", "description": "List a bounded set of issues in one explicit GitLab project." },
+      { "id": "gitlab_merge_request_list", "label": "List merge requests", "description": "List a bounded set of merge requests in one explicit GitLab project." },
+      { "id": "gitlab_issue_comment_prepare", "label": "Prepare a comment", "description": "Prepare one issue or merge-request comment locally without changing GitLab." }
+    ],
+    "approvalRequired": [
+      { "id": "gitlab_issue_comment_create", "label": "Comment on an issue", "description": "Post one exact comment to an explicit GitLab issue; Safe mode requires matching approval." },
+      { "id": "gitlab_merge_request_comment_create", "label": "Comment on a merge request", "description": "Post one exact comment to an explicit GitLab merge request; Safe mode requires matching approval." }
+    ],
+    "blocked": [
+      { "id": "gitlab_project_admin", "label": "Administer projects or groups", "description": "Project, group, member, and instance administration are outside the bounded V1 connector." },
+      { "id": "gitlab_cicd_write", "label": "Change CI/CD", "description": "Pipeline mutation, variables, secrets, runners, deployments, and protected-environment changes are outside V1." },
+      { "id": "gitlab_repository_mutation", "label": "Change repository contents", "description": "Branches, tags, files, protected refs, merges, force pushes, and repository deletion are outside V1." },
+      { "id": "gitlab_raw_api", "label": "Use arbitrary GitLab API calls", "description": "Raw URLs, arbitrary operations, tokens, and unbounded pagination are never exposed to agents." }
+    ]
+  },
+  "approvalProfiles": [
+    {
+      "id": "gitlab_safe",
+      "label": "Safe",
+      "description": "Project searches, bounded reads, and local drafts run directly; each posted comment requires matching approval.",
+      "defaultSelected": true,
+      "allowedActions": ["gitlab_project_search", "gitlab_issue_list", "gitlab_merge_request_list", "gitlab_issue_comment_prepare"],
+      "approvalRequiredActions": ["gitlab_issue_comment_create", "gitlab_merge_request_comment_create"],
+      "blockedActions": ["gitlab_project_admin", "gitlab_cicd_write", "gitlab_repository_mutation", "gitlab_raw_api"]
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Every selected GitLab operation supported by this connector runs without Relay per-action approval; connection ownership, GitLab user authority, request bounds, audits, redaction, and GitLab limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": ["gitlab_project_search", "gitlab_issue_list", "gitlab_merge_request_list", "gitlab_issue_comment_prepare", "gitlab_issue_comment_create", "gitlab_merge_request_comment_create"],
+      "approvalRequiredActions": [],
+      "blockedActions": ["gitlab_project_admin", "gitlab_cicd_write", "gitlab_repository_mutation", "gitlab_raw_api"]
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    { "format": "openclaw", "installSupport": "installable", "description": "Railway mounts six typed GitLab tools and attaches the connected GitLab user token server-side without exposing it to the agent." },
+    { "format": "hermes", "installSupport": "installable", "description": "Railway mounts six typed GitLab tools and attaches the connected GitLab user token server-side without exposing it to the agent." }
+  ],
+  "availability": "awaiting_provider_setup",
+  "providerSetup": {
+    "status": "blocked",
+    "blocker": "Relay Console's GitLab OAuth application, production callback, api scope, client credentials, and a fresh production authorization have not been configured and verified.",
+    "nextAction": "Create a confidential GitLab OAuth application, register https://api.relayconsole.work/api/v1/marketplace/oauth/gitlab/callback, grant api, configure GITLAB_CLIENT_ID and GITLAB_CLIENT_SECRET on Railway, then verify state, PKCE, user binding, refresh, bounded reads, Safe comment approval, Dangerous comment posting, revocation, disconnect, and post-disconnect denial."
+  },
+  "evidence": [
+    { "url": "https://docs.gitlab.com/api/oauth2/", "checkedAt": "2026-07-16", "supports": "GitLab documents OAuth application registration, authorization code with PKCE S256, state, HTTPS callbacks, token refresh, bearer-token API access, token inspection, and OAuth token revocation." },
+    { "url": "https://docs.gitlab.com/api/rest/authentication/", "checkedAt": "2026-07-16", "supports": "GitLab documents OAuth bearer authentication for the REST API, two-hour access-token lifetime, and refresh-token use." },
+    { "url": "https://docs.gitlab.com/api/projects/", "checkedAt": "2026-07-16", "supports": "GitLab documents project search and metadata endpoints; Relay restricts search to memberships, page one, and twenty-five results." },
+    { "url": "https://docs.gitlab.com/api/issues/", "checkedAt": "2026-07-16", "supports": "GitLab documents project issue listing with URL-encoded project IDs or paths; Relay follows only page one and caps output at fifty." },
+    { "url": "https://docs.gitlab.com/api/merge_requests/", "checkedAt": "2026-07-16", "supports": "GitLab documents project merge-request listing, states, detailed merge status, and bounded pagination; Relay returns only shaped page-one metadata." },
+    { "url": "https://docs.gitlab.com/api/notes/", "checkedAt": "2026-07-16", "supports": "GitLab documents issue and merge-request note creation; Relay wraps one exact bounded comment and never exposes arbitrary note endpoints." }
+  ]
+}

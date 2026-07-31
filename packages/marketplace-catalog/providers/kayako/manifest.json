@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "relay.marketplace-provider.v1",
+  "slug": "kayako",
+  "name": "Kayako",
+  "category": "crm_support",
+  "description": "Kayako is a customer-service platform for conversations, shared inboxes, messaging, help centers, routing, automation, customer context, and support operations.",
+  "agentUseSummary": "Enter one Kayako tenant and customer-owned OAuth access token, then let selected agents use content-free case operations or approved documented API v1 requests under Safe or Dangerously skip permissions.",
+  "provider": {
+    "websiteUrl": "https://kayako.com/",
+    "docsUrl": "https://developer.kayako.com/api/v1/reference/introduction/",
+    "developerConsoleUrl": null,
+    "termsUrl": "https://kayako.com/terms/",
+    "privacyUrl": "https://kayako.com/privacy/"
+  },
+  "authentication": {
+    "model": "api_key",
+    "relayOwned": false,
+    "scopes": ["conversations:read", "conversations:write"],
+    "pkce": false,
+    "refreshTokens": false,
+    "authorizationUrl": null,
+    "tokenUrl": null,
+    "revocationUrl": null
+  },
+  "connection": {
+    "types": ["customer_owned_api_key", "api_connector"],
+    "credentialRequirements": [
+      {
+        "name": "KAYAKO_DOMAIN",
+        "label": "Kayako domain",
+        "required": true,
+        "secret": false,
+        "helpText": "Enter the tenant hostname label before .kayako.com."
+      },
+      {
+        "name": "KAYAKO_ACCESS_TOKEN",
+        "label": "Kayako OAuth access token",
+        "required": true,
+        "secret": true,
+        "helpText": "Supply a customer-owned OAuth token with conversations:read and only explicitly needed write scopes."
+      }
+    ],
+    "callbackPath": null,
+    "webhookRequirements": []
+  },
+  "capabilities": [
+    {
+      "id": "case_metadata_read",
+      "label": "Read case operations",
+      "description": "List and inspect bounded case operational metadata without subjects, requester/creator identities, posts, messages, channels, teams, agents, tags, forms, custom fields, ratings, or raw records.",
+      "defaultSelected": true
+    },
+    {
+      "id": "full_api",
+      "label": "Kayako API v1",
+      "description": "Use documented tenant-bound API v1 paths and methods allowed by the token's scopes and user permissions.",
+      "defaultSelected": true
+    }
+  ],
+  "actions": {
+    "allowed": [],
+    "approvalRequired": [
+      {
+        "id": "kayako_case_list",
+        "label": "List case metadata",
+        "description": "List one fixed first page of content-free Kayako case summaries."
+      },
+      {
+        "id": "kayako_case_get",
+        "label": "Read case metadata",
+        "description": "Read one exact Kayako case through Relay's content-free projection."
+      },
+      {
+        "id": "kayako_full_api",
+        "label": "Use Kayako API v1",
+        "description": "Use a documented Kayako API v1 operation authorized by the supplied OAuth token; Safe mode requires approval."
+      }
+    ],
+    "blocked": []
+  },
+  "approvalProfiles": [
+    {
+      "id": "kayako_safe",
+      "label": "Safe",
+      "description": "Content-free case reads and every broader API operation require approval; tenant/version binding, OAuth-token isolation, scope/user context, bounds, and limits remain enforced.",
+      "defaultSelected": true,
+      "allowedActions": [],
+      "approvalRequiredActions": [
+        "kayako_case_list",
+        "kayako_case_get",
+        "kayako_full_api"
+      ],
+      "blockedActions": []
+    },
+    {
+      "id": "dangerously_skip_permissions",
+      "label": "Dangerously skip permissions",
+      "description": "Selected token-authorized operations run without Relay per-action approval; tenant/version binding, OAuth-token isolation, bounds, audits, scopes, user permissions, and Kayako limits still apply.",
+      "defaultSelected": false,
+      "allowedActions": [
+        "kayako_case_list",
+        "kayako_case_get",
+        "kayako_full_api"
+      ],
+      "approvalRequiredActions": [],
+      "blockedActions": []
+    }
+  ],
+  "riskLevel": "high",
+  "runtimeSupport": [
+    {
+      "format": "openclaw",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted OAuth access token only to the tenant-bound Kayako API v1 origin."
+    },
+    {
+      "format": "hermes",
+      "installSupport": "installable",
+      "description": "Railway mounts typed wrappers and attaches the encrypted OAuth access token only to the tenant-bound Kayako API v1 origin."
+    }
+  ],
+  "availability": "available",
+  "providerSetup": {
+    "status": "customer_action_required",
+    "blocker": "A customer Kayako tenant and customer-owned OAuth access token are required for live acceptance.",
+    "nextAction": "Supply a customer-owned Kayako OAuth token with conversations:read and only explicitly needed write scopes, enter the tenant/token in Relay, and verify bounded reads, Safe approval, Dangerous broader operations, scope/user changes, rate limits, expiration, refresh/rotation, revocation, and disconnect denial."
+  },
+  "evidence": [
+    {
+      "url": "https://developer.kayako.com/api/v1/reference/authentication/",
+      "checkedAt": "2026-07-18",
+      "supports": "Kayako documents tenant-local OAuth 2.0 Bearer access tokens, authorization-code and refresh-token grants, and conversations:read/write scopes enforced alongside user access."
+    },
+    {
+      "url": "https://developer.kayako.com/api/v1/cases/cases/",
+      "checkedAt": "2026-07-18",
+      "supports": "Kayako documents case listing and exact retrieval at /api/v1/cases.json and /api/v1/cases/{id}.json, ordered by update time and protected by the conversations scope."
+    },
+    {
+      "url": "https://developer.kayako.com/api/v1/reference/pagination/",
+      "checkedAt": "2026-07-18",
+      "supports": "Kayako documents default offset-zero pagination, a default limit of ten, and explicit offset/limit controls."
+    },
+    {
+      "url": "https://developer.kayako.com/api/v1/reference/rate_limiting/",
+      "checkedAt": "2026-07-18",
+      "supports": "Kayako documents per-minute action/resource rate limits and HTTP 429 responses carrying Retry-After."
+    }
+  ]
+}
