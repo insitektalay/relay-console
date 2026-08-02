@@ -167,10 +167,15 @@ jobs:
           UPDATES="$RUNNER_TEMP/updates"
           mkdir -p "$UPDATES"
           ARCHIVE="RelayConsole-${VERSION}-b${BUILD}.zip"
+          GENERATE_APPCAST="RelayConsoleSwift/.build/release-arm64/artifacts/sparkle/Sparkle/bin/generate_appcast"
+          [[ -x "$GENERATE_APPCAST" ]] || {
+            echo "Pinned Sparkle generate_appcast tool is missing from the release scratch directory" >&2
+            exit 1
+          }
           ditto -c -k --sequesterRsrc --keepParent "RelayConsoleSwift/.build/sparkle-release/work/Relay Console.app" "$UPDATES/$ARCHIVE"
           cp "RelayConsoleSwift/Release/RELEASE_NOTES.md" "$UPDATES/RelayConsole-${VERSION}-b${BUILD}.md"
           [[ ! -s "$RUNNER_TEMP/previous-appcast.xml" ]] || cp "$RUNNER_TEMP/previous-appcast.xml" "$UPDATES/appcast.xml"
-          printf '%s' "$SPARKLE_PRIVATE_KEY" | RelayConsoleSwift/.build/artifacts/sparkle/Sparkle/bin/generate_appcast \
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$GENERATE_APPCAST" \
             --ed-key-file - \
             --download-url-prefix "https://github.com/insitektalay/relay-console/releases/download/${RELEASE_TAG}/" \
             --embed-release-notes --maximum-versions 0 -o appcast.xml "$UPDATES"

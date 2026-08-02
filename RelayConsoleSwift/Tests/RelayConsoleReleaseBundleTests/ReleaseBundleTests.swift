@@ -29,7 +29,7 @@ struct RelayConsoleReleaseBundleTests {
         let metadata = RelayConsoleReleaseMetadata.current
         try expect(metadata.productName == "Relay Console", "product name mismatch")
         try expect(metadata.bundleIdentifier == "com.relayconsole.app", "production bundle identifier mismatch")
-        try expect(metadata.version == "0.1.1" && metadata.build == "9", "version/build mismatch")
+        try expect(metadata.version == "0.1.1" && metadata.build == "10", "version/build mismatch")
         try expect(metadata.releaseChannel == "public-beta", "release channel mismatch")
         try expect(metadata.minimumMacOSVersion == "14.0", "minimum macOS mismatch")
     }

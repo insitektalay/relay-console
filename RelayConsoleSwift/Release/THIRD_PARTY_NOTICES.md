@@ -1,6 +1,6 @@
 # Relay Console Third-Party Notices
 
-Release candidate: 0.1.1 build 9
+Release candidate: 0.1.1 build 10
 
 Legal review status: pending. The release owner must compare this file with the
 locked build graph before signing a candidate.
