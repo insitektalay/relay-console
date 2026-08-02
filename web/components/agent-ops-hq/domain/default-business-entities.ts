@@ -34,7 +34,7 @@ export const DEFAULT_AGENTOPS_OUTPUT_TYPES: AgentOpsOutputType[] = [
 ]
 
 export const DEFAULT_AGENTOPS_WEBSITES: AgentOpsWebsite[] = [
-  { id: "alexkerss_website", label: "alexkerss.com", url: "https://alexkerss.com", businessUnitId: "operations", appIds: [], visualTheme: "operations" },
+  { id: "company_website", label: "Company Website", url: "https://example.com", businessUnitId: "operations", appIds: [], visualTheme: "operations" },
   { id: "ai_tube_watch_website", label: "AI Tube Watch Website", businessUnitId: "youtube", departmentId: "youtube_department", appIds: ["ai_tube_watch"], visualTheme: "youtube" },
   { id: "financial_tube_watch", label: "Financial Tube Watch", businessUnitId: "youtube", departmentId: "youtube_department", appIds: ["ai_tube_watch"], visualTheme: "youtube" },
   { id: "affiliate_websites", label: "Affiliate Websites", businessUnitId: "affiliate_factory", departmentId: "affiliate_website_factory", appIds: ["gapminer", "pagejourney", "rankscope"], visualTheme: "affiliate" },

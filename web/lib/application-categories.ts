@@ -45,7 +45,7 @@ export const DEFAULT_APPLICATION_CLASSIFICATIONS: ApplicationClassifications = {
   localappconnector: { category: "business", subgroup: "" },
   agentmint: { category: "business", subgroup: "" },
   clawchat: { category: "business", subgroup: "" },
-  alexkerssweb: { category: "business", subgroup: "" },
+  companywebsite: { category: "business", subgroup: "" },
   youtube: { category: "business", subgroup: "" },
   videogrowthlab: { category: "business", subgroup: "" },
   theoremscope: { category: "personal", subgroup: "" },

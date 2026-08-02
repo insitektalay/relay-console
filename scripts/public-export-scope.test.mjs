@@ -36,7 +36,7 @@ test("public archive excludes private, historical, and confirmed non-runtime mat
     "web/components/landing-pages",
     "web/agent_images",
     "Relay Console landing page/public",
-    "ios/ClawChat/Assets.xcassets/AlexKerssAvatar.imageset",
+    "ios/ClawChat/Assets.xcassets/OwnerAvatar.imageset",
     "docs/relay-cloud",
     "docs/open-source-release-roadmap.md",
     "RelayConsoleSwift/HANDOFF.md",
