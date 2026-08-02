@@ -20,7 +20,7 @@ type RuntimeProfileInput = {
   connectionMetadata?: Record<string, unknown> | null;
 };
 
-const LINKCREST_RUNTIME_HARD_STOPS = [
+const LOCAL_APP_CONNECTOR_RUNTIME_HARD_STOPS = [
   "install",
   "migration",
   "reset",
@@ -32,26 +32,26 @@ const LINKCREST_RUNTIME_HARD_STOPS = [
   "unknown interactive prompt",
 ];
 
-export const LINKCREST_DEFAULT_RUNTIME_PROFILE: LocalAppRuntimeProfile = {
-  repoPath: "/home/alexkerss/repos/LinkCrest",
+export const LOCAL_APP_CONNECTOR_DEFAULT_RUNTIME_PROFILE: LocalAppRuntimeProfile = {
+  repoPath: "/home/example/repos/LocalAppConnector",
   appUrl: "http://localhost:3052",
   agentApiUrl: "http://localhost:3052/api/openclaw",
   startCommand: "pnpm dev",
   healthCheckUrl: "http://localhost:3052",
   backendHealthCheckUrl: "http://localhost:3210",
   autoStartAllowed: true,
-  hardStopConditions: LINKCREST_RUNTIME_HARD_STOPS,
+  hardStopConditions: LOCAL_APP_CONNECTOR_RUNTIME_HARD_STOPS,
   expectedPorts: [3052, 3210],
   sourceHostId: null,
 };
 
-export function isLinkCrestLocalApp(input: {
+export function isLocalAppConnectorLocalApp(input: {
   appSlug?: string | null;
   appName?: string | null;
 }) {
   return `${input.appSlug ?? ""} ${input.appName ?? ""}`
     .toLowerCase()
-    .includes("linkcrest");
+    .includes("localappconnector");
 }
 
 export function resolveLocalAppRuntimeProfile(
@@ -69,12 +69,12 @@ export function resolveLocalAppRuntimeProfile(
     objectOrNull(metadata.lifecycle) ??
     objectOrNull(apiStyleMetadata.lifecycle) ??
     {};
-  const isLinkCrest = isLinkCrestLocalApp({
+  const isLocalAppConnector = isLocalAppConnectorLocalApp({
     appSlug: input.appSlug,
     appName: input.appName,
   });
-  const fallback = isLinkCrest
-    ? LINKCREST_DEFAULT_RUNTIME_PROFILE
+  const fallback = isLocalAppConnector
+    ? LOCAL_APP_CONNECTOR_DEFAULT_RUNTIME_PROFILE
     : {
         repoPath: null,
         appUrl: null,
@@ -102,7 +102,7 @@ export function resolveLocalAppRuntimeProfile(
     stringOrNull(explicit?.repoPath) ??
     stringOrNull(connectionMetadata.localRepoPath) ??
     stringOrNull(metadata.localRepoPath) ??
-    (isLinkCrest ? null : stringOrNull(input.repoPath)) ??
+    (isLocalAppConnector ? null : stringOrNull(input.repoPath)) ??
     fallback.repoPath;
   const appUrl =
     stringOrNull(explicit?.appUrl) ??
@@ -113,9 +113,9 @@ export function resolveLocalAppRuntimeProfile(
     stringOrNull(explicit?.agentApiUrl) ??
     stringOrNull(connectionMetadata.agentApiUrl) ??
     stringOrNull(metadata.agentApiUrl) ??
-    deriveLinkCrestAgentApiUrl(
-      stringOrNull(metadata.linkcrestOpenClawBaseUrl) ??
-        stringOrNull(apiStyleMetadata.linkcrestOpenClawBaseUrl) ??
+    deriveLocalAppConnectorAgentApiUrl(
+      stringOrNull(metadata.localappconnectorOpenClawBaseUrl) ??
+        stringOrNull(apiStyleMetadata.localappconnectorOpenClawBaseUrl) ??
         appUrl,
     ) ??
     fallback.agentApiUrl;
@@ -184,7 +184,7 @@ export function localAppRuntimeRecoveryDoctrine() {
   ].join("\n");
 }
 
-function deriveLinkCrestAgentApiUrl(baseUrl: string | null) {
+function deriveLocalAppConnectorAgentApiUrl(baseUrl: string | null) {
   if (!baseUrl) return null;
   const trimmed = baseUrl.replace(/\/+$/, "");
   if (/\/api\/openclaw$/i.test(trimmed)) return trimmed;

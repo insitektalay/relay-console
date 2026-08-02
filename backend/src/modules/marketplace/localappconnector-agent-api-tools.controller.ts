@@ -33,9 +33,9 @@ const MARKETPLACE_RUNTIME_TOOL_RATE_LIMIT = {
 @Throttle(MARKETPLACE_RUNTIME_TOOL_RATE_LIMIT)
 @BridgeAuthenticated()
 @Controller("bridge/runtime-dispatches/:dispatchId/marketplace-tools")
-export class LinkCrestAgentApiBridgeToolsController {
+export class LocalAppConnectorAgentApiBridgeToolsController {
   private readonly logger = new Logger(
-    LinkCrestAgentApiBridgeToolsController.name,
+    LocalAppConnectorAgentApiBridgeToolsController.name,
   );
 
   constructor(
@@ -50,7 +50,7 @@ export class LinkCrestAgentApiBridgeToolsController {
     private readonly runtimeBindingService: RuntimeBindingService,
   ) {}
 
-  @Post("linkcrest-agent-api/:appSlug/:toolName")
+  @Post("localappconnector-agent-api/:appSlug/:toolName")
   async executeDedicatedTool(
     @Param("dispatchId") dispatchId: string,
     @Param("appSlug") appSlug: string,
@@ -58,7 +58,7 @@ export class LinkCrestAgentApiBridgeToolsController {
     @Headers() headers: Record<string, string>,
     @Body() body: Record<string, unknown>,
   ) {
-    return this.executeLinkCrestAgentApiTool(
+    return this.executeLocalAppConnectorAgentApiTool(
       dispatchId,
       appSlug,
       toolName,
@@ -85,7 +85,7 @@ export class LinkCrestAgentApiBridgeToolsController {
       );
     }
     if (
-      !this.isLinkCrestAlias(appSlug) ||
+      !this.isLocalAppConnectorAlias(appSlug) ||
       !this.isSupportedToolName(toolName)
     ) {
       const bridge = await this.bridgeService.authenticateBridgeAccessToken(
@@ -112,7 +112,7 @@ export class LinkCrestAgentApiBridgeToolsController {
         throw error;
       }
     }
-    return this.executeLinkCrestAgentApiTool(
+    return this.executeLocalAppConnectorAgentApiTool(
       dispatchId,
       appSlug,
       toolName,
@@ -185,7 +185,7 @@ export class LinkCrestAgentApiBridgeToolsController {
     });
   }
 
-  private async executeLinkCrestAgentApiTool(
+  private async executeLocalAppConnectorAgentApiTool(
     dispatchId: string,
     appSlug: string,
     toolName: string,
@@ -204,7 +204,7 @@ export class LinkCrestAgentApiBridgeToolsController {
     await this.assertBridgeAuthorizedDispatch(bridge, dispatch);
     if (!this.isSupportedToolName(toolName)) {
       throw new NotFoundException(
-        `Unsupported LinkCrest Agent API tool: ${toolName}`,
+        `Unsupported LocalAppConnector Agent API tool: ${toolName}`,
       );
     }
     const { linked, install, connectionId, resolvedAppSlug } =
@@ -224,7 +224,7 @@ export class LinkCrestAgentApiBridgeToolsController {
     });
     this.logger.log(
       JSON.stringify({
-        event: "marketplace.tool_executor.linkcrest_agent_api",
+        event: "marketplace.tool_executor.localappconnector_agent_api",
         dispatchId,
         workspaceId: dispatch.workspaceId,
         agentId: dispatch.agentId,
@@ -250,7 +250,7 @@ export class LinkCrestAgentApiBridgeToolsController {
     );
 
     try {
-      return await this.bridgeService.callLinkCrestAgentApi({
+      return await this.bridgeService.callLocalAppConnectorAgentApi({
         workspaceId: dispatch.workspaceId,
         connectionId,
         method: this.method(normalizedBody.method),
@@ -286,7 +286,7 @@ export class LinkCrestAgentApiBridgeToolsController {
     } catch (error) {
       this.logger.warn(
         JSON.stringify({
-          event: "marketplace.tool_executor.linkcrest_agent_api.error",
+          event: "marketplace.tool_executor.localappconnector_agent_api.error",
           dispatchId,
           workspaceId: dispatch.workspaceId,
           agentId: dispatch.agentId,
@@ -313,7 +313,7 @@ export class LinkCrestAgentApiBridgeToolsController {
     }
   }
 
-  @Post("linkcrest-agent-api/:appSlug/_runtime-secret/fetch")
+  @Post("localappconnector-agent-api/:appSlug/_runtime-secret/fetch")
   async fetchRuntimeSecret(
     @Param("dispatchId") dispatchId: string,
     @Param("appSlug") appSlug: string,
@@ -331,7 +331,7 @@ export class LinkCrestAgentApiBridgeToolsController {
     await this.assertBridgeAuthorizedDispatch(bridge, dispatch);
     this.logger.log(
       JSON.stringify({
-        event: "marketplace.tool_executor.linkcrest_agent_api.secret_fetch",
+        event: "marketplace.tool_executor.localappconnector_agent_api.secret_fetch",
         dispatchId,
         workspaceId: dispatch.workspaceId,
         agentId: dispatch.agentId,
@@ -341,7 +341,7 @@ export class LinkCrestAgentApiBridgeToolsController {
         tokenExposure: "returned_to_authenticated_hermes_bridge_only",
       }),
     );
-    const secret = await this.bridgeService.getLinkCrestAgentApiRuntimeSecret({
+    const secret = await this.bridgeService.getLocalAppConnectorAgentApiRuntimeSecret({
       workspaceId: dispatch.workspaceId,
       connectionId,
     });
@@ -366,9 +366,9 @@ export class LinkCrestAgentApiBridgeToolsController {
 
   private isSupportedToolName(toolName: string) {
     return new Set([
-      "linkcrest_agent_api",
-      "linkcrest.agentApi",
-      "linkcrest-agent-api",
+      "localappconnector_agent_api",
+      "localappconnector.agentApi",
+      "localappconnector-agent-api",
       "agentApi",
     ]).has(typeof toolName === "string" ? toolName.trim() : "");
   }
@@ -394,8 +394,8 @@ export class LinkCrestAgentApiBridgeToolsController {
     ]).has(typeof toolName === "string" ? toolName.trim() : "");
   }
 
-  private isLinkCrestAlias(appSlug: string) {
-    return new Set(["linkcrest", "local-linkcrest"]).has(
+  private isLocalAppConnectorAlias(appSlug: string) {
+    return new Set(["localappconnector", "local-localappconnector"]).has(
       typeof appSlug === "string" ? appSlug.trim() : "",
     );
   }
@@ -451,13 +451,13 @@ export class LinkCrestAgentApiBridgeToolsController {
     });
   }
 
-  private isLinkCrestApp(
+  private isLocalAppConnectorApp(
     appSlug: string,
     linkedApp?: LinkedApplicationEntity | null,
   ) {
     const haystack =
       `${appSlug} ${linkedApp?.name ?? ""} ${linkedApp?.slug ?? ""}`.toLowerCase();
-    return haystack.includes("linkcrest");
+    return haystack.includes("localappconnector");
   }
 
   private async requireDispatchInstall(input: {
@@ -473,14 +473,14 @@ export class LinkCrestAgentApiBridgeToolsController {
         `Runtime dispatch ${input.dispatchId} not found`,
       );
     }
-    const linked = await this.resolveLinkCrestLinkedApp(
+    const linked = await this.resolveLocalAppConnectorLinkedApp(
       dispatch.workspaceId,
       input.requestedAppSlug,
     );
     const appSlugCandidates = [
       input.requestedAppSlug,
       linked?.slug,
-      input.requestedAppSlug === "linkcrest" ? "local-linkcrest" : null,
+      input.requestedAppSlug === "localappconnector" ? "local-localappconnector" : null,
     ]
       .map((value) => this.stringOrNull(value))
       .filter(
@@ -504,19 +504,19 @@ export class LinkCrestAgentApiBridgeToolsController {
     }
     if (!install) {
       throw new ForbiddenException(
-        "LinkCrest is not installed for this runtime agent",
+        "LocalAppConnector is not installed for this runtime agent",
       );
     }
     const resolvedAppSlug = linked?.slug ?? install.appSlug;
-    if (!this.isLinkCrestApp(input.requestedAppSlug, linked)) {
+    if (!this.isLocalAppConnectorApp(input.requestedAppSlug, linked)) {
       throw new NotFoundException(
-        "This Agent API tool is only available for LinkCrest local apps",
+        "This Agent API tool is only available for LocalAppConnector local apps",
       );
     }
     const connectionId =
-      this.stringOrNull(linked?.metadata?.linkcrestOpenClawConnectionId) ??
+      this.stringOrNull(linked?.metadata?.localappconnectorOpenClawConnectionId) ??
       this.stringOrNull(
-        linked?.apiStyleMetadata?.linkcrestOpenClawConnectionId,
+        linked?.apiStyleMetadata?.localappconnectorOpenClawConnectionId,
       );
     return { dispatch, install, linked, connectionId, resolvedAppSlug };
   }
@@ -583,7 +583,7 @@ export class LinkCrestAgentApiBridgeToolsController {
     return Number.isFinite(timestamp) ? timestamp : 0;
   }
 
-  private async resolveLinkCrestLinkedApp(
+  private async resolveLocalAppConnectorLinkedApp(
     workspaceId: string,
     requestedAppSlug: string,
   ) {
@@ -591,20 +591,20 @@ export class LinkCrestAgentApiBridgeToolsController {
     const candidates = await this.linkedApplicationRepo.find({
       where: { workspaceId },
     });
-    const linkcrestApps = candidates.filter((candidate) =>
-      this.isLinkCrestApp(requestedAppSlug, candidate),
+    const localappconnectorApps = candidates.filter((candidate) =>
+      this.isLocalAppConnectorApp(requestedAppSlug, candidate),
     );
     return (
-      linkcrestApps.find(
+      localappconnectorApps.find(
         (candidate) => candidate.slug.toLowerCase() === requested,
       ) ??
-      linkcrestApps.find(
+      localappconnectorApps.find(
         (candidate) =>
-          requested === "linkcrest" &&
-          candidate.slug.toLowerCase() === "local-linkcrest",
+          requested === "localappconnector" &&
+          candidate.slug.toLowerCase() === "local-localappconnector",
       ) ??
-      linkcrestApps.find((candidate) =>
-        candidate.slug.toLowerCase().includes("linkcrest"),
+      localappconnectorApps.find((candidate) =>
+        candidate.slug.toLowerCase().includes("localappconnector"),
       ) ??
       null
     );

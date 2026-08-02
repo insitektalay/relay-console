@@ -1430,9 +1430,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railwayOrigin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railwayOrigin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railwayOrigin.map { $0 + "/api/v1/oauth/canva/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label =

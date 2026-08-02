@@ -48,9 +48,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let origin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = origin.map { $0 + "/api/v1/marketplace/oauth/shopify/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label = shopName?.providerConnectionNilIfEmpty ?? shop
@@ -202,9 +200,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(keyRef.id)
       throw error
     }
-    let railwayOrigin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railwayOrigin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railwayOrigin.map { $0 + "/api/v1/oauth/woocommerce/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label =
@@ -331,9 +327,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let origin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = origin.map { $0 + "/api/v1/oauth/stripe/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label = accountLabel?.providerConnectionNilIfEmpty ?? "Stripe " + account
@@ -491,9 +485,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let origin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = origin.map { $0 + "/api/v1/oauth/xero/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label = tenantName?.providerConnectionNilIfEmpty ?? "Xero organisation"
@@ -651,9 +643,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let origin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = origin.map { $0 + "/api/v1/oauth/quickbooks/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label = companyName?.providerConnectionNilIfEmpty ?? "QuickBooks company " + realm
@@ -826,9 +816,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let origin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = origin.map { $0 + "/api/v1/oauth/freshbooks/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label = businessName?.providerConnectionNilIfEmpty ?? "FreshBooks business " + business
@@ -988,9 +976,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let origin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = origin.map { $0 + "/api/v1/oauth/wave/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label = businessName?.providerConnectionNilIfEmpty ?? "Wave business"
@@ -1133,9 +1119,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let origin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = origin.map { $0 + "/api/v1/oauth/freeagent/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label = companyName?.providerConnectionNilIfEmpty ?? "FreeAgent company \(companyId)"
@@ -1294,9 +1278,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let origin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = origin.map { $0 + "/api/v1/oauth/salesforce/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label = orgLabel?.providerConnectionNilIfEmpty ?? "Salesforce org " + org

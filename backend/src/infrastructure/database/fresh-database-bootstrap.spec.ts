@@ -10,11 +10,9 @@ describe("fresh database migration bootstrap", () => {
     const migrationDirectory = path.resolve(__dirname, "../../migrations");
     const files = listOrderedMigrationFileNames(migrationDirectory);
 
-    expect(files).toHaveLength(77);
+    expect(files).toHaveLength(81);
     expect(files[0]).toBe("001_initial_schema.ts");
-    expect(files.at(-1)).toBe(
-      "075_invalidate_legacy_jwt_sessions.ts",
-    );
+    expect(files.at(-1)).toBe("079_add_installation_secret_lifecycle.ts");
     expect(files).toEqual([...files].sort(compareMigrationFileNames));
     expect(files.filter((file) => file.startsWith("036_"))).toEqual([
       "036_add_response_presentation.ts",

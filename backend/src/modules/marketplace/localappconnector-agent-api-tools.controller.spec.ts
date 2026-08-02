@@ -18,8 +18,8 @@ import { MarketplaceConnectorExecutionService } from "./connectors/connector-exe
 import { ConnectorExecutionError } from "./connectors/execution/connector-execution.error";
 import {
   BridgeAgentMarketplaceToolsController,
-  LinkCrestAgentApiBridgeToolsController,
-} from "./linkcrest-agent-api-tools.controller";
+  LocalAppConnectorAgentApiBridgeToolsController,
+} from "./localappconnector-agent-api-tools.controller";
 
 function repoMock(overrides: Record<string, unknown> = {}) {
   const mockRepo = {
@@ -41,7 +41,7 @@ function createController(
     linkedSlug?: string;
     requestedInstallSlug?: string;
     connectionId?: string | null;
-    callLinkCrestAgentApi?: jest.Mock;
+    callLocalAppConnectorAgentApi?: jest.Mock;
     executeDispatchTool?: jest.Mock;
   } = {},
 ) {
@@ -51,10 +51,10 @@ function createController(
       deviceId: "bridge-device-id",
     })),
     assertBridgeDeviceRuntimeDispatchBinding: jest.fn(async () => undefined),
-    callLinkCrestAgentApi:
-      overrides.callLinkCrestAgentApi ??
+    callLocalAppConnectorAgentApi:
+      overrides.callLocalAppConnectorAgentApi ??
       jest.fn(async () => ({ ok: true, status: 200, data: { ok: true } })),
-    getLinkCrestAgentApiRuntimeSecret: jest.fn(async () => ({
+    getLocalAppConnectorAgentApiRuntimeSecret: jest.fn(async () => ({
       type: "bearer",
       connectionId: "openclaw-connection-id",
       instanceUrl: "http://localhost:3052",
@@ -80,7 +80,7 @@ function createController(
   };
   const marketplaceInstallRepo = repoMock({
     findOne: jest.fn(async ({ where }) => {
-      const expectedSlug = overrides.requestedInstallSlug ?? "local-linkcrest";
+      const expectedSlug = overrides.requestedInstallSlug ?? "local-localappconnector";
       if (where.appSlug !== expectedSlug) return null;
       return {
         id: "install-id",
@@ -96,10 +96,10 @@ function createController(
       {
         id: "linked-id",
         workspaceId: "workspace-id",
-        slug: overrides.linkedSlug ?? "local-linkcrest",
-        name: "LinkCrest",
+        slug: overrides.linkedSlug ?? "local-localappconnector",
+        name: "LocalAppConnector",
         metadata: {
-          linkcrestOpenClawConnectionId:
+          localappconnectorOpenClawConnectionId:
             overrides.connectionId === undefined
               ? "openclaw-connection-id"
               : overrides.connectionId,
@@ -120,7 +120,7 @@ function createController(
       }),
   };
 
-  const controller = new LinkCrestAgentApiBridgeToolsController(
+  const controller = new LocalAppConnectorAgentApiBridgeToolsController(
     bridgeService as any,
     runtimeDispatchRepo as any,
     marketplaceInstallRepo as any,
@@ -140,7 +140,7 @@ function createController(
   };
 }
 
-describe("LinkCrestAgentApiBridgeToolsController", () => {
+describe("LocalAppConnectorAgentApiBridgeToolsController", () => {
   let routeApp: INestApplication | null = null;
 
   afterEach(async () => {
@@ -152,7 +152,7 @@ describe("LinkCrestAgentApiBridgeToolsController", () => {
 
   it("mounts the exact Hermes generic route under the api/v1 bridge prefix", async () => {
     const moduleRef = await Test.createTestingModule({
-      controllers: [LinkCrestAgentApiBridgeToolsController],
+      controllers: [LocalAppConnectorAgentApiBridgeToolsController],
       providers: [
         {
           provide: BridgeService,
@@ -205,26 +205,26 @@ describe("LinkCrestAgentApiBridgeToolsController", () => {
       "/api/v1/bridge/runtime-dispatches/:dispatchId/marketplace-tools/:appSlug/:toolName",
     );
 
-    const controller = moduleRef.get(LinkCrestAgentApiBridgeToolsController);
+    const controller = moduleRef.get(LocalAppConnectorAgentApiBridgeToolsController);
     await expect(
       controller.executeGenericTool(
         "test-dispatch",
-        "linkcrest",
-        "linkcrest_agent_api",
+        "localappconnector",
+        "localappconnector_agent_api",
         {},
         { method: "GET", path: "/api/openclaw/settings" },
       ),
     ).rejects.toThrow("Missing bridge bearer token");
   });
 
-  it("resolves generic /marketplace-tools/linkcrest/linkcrest_agent_api through local-linkcrest install", async () => {
+  it("resolves generic /marketplace-tools/localappconnector/localappconnector_agent_api through local-localappconnector install", async () => {
     const { controller, bridgeService, marketplaceInstallRepo } =
       createController();
 
     const result = await controller.executeGenericTool(
       "dispatch-id",
-      "linkcrest",
-      "linkcrest_agent_api",
+      "localappconnector",
+      "localappconnector_agent_api",
       { authorization: "Bearer bridge-token" },
       { arguments: { method: "GET", path: "settings" } },
     );
@@ -232,10 +232,10 @@ describe("LinkCrestAgentApiBridgeToolsController", () => {
     expect(result).toEqual({ ok: true, status: 200, data: { ok: true } });
     expect(marketplaceInstallRepo.findOne).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({ appSlug: "local-linkcrest" }),
+        where: expect.objectContaining({ appSlug: "local-localappconnector" }),
       }),
     );
-    expect(bridgeService.callLinkCrestAgentApi).toHaveBeenCalledWith(
+    expect(bridgeService.callLocalAppConnectorAgentApi).toHaveBeenCalledWith(
       expect.objectContaining({
         workspaceId: "workspace-id",
         connectionId: "openclaw-connection-id",
@@ -259,11 +259,11 @@ describe("LinkCrestAgentApiBridgeToolsController", () => {
       }),
     );
     expect(
-      JSON.stringify(bridgeService.callLinkCrestAgentApi.mock.calls),
+      JSON.stringify(bridgeService.callLocalAppConnectorAgentApi.mock.calls),
     ).not.toContain("secret-token");
   });
 
-  it("rejects LinkCrest tool execution when the bridge device is not bound to the dispatch", async () => {
+  it("rejects LocalAppConnector tool execution when the bridge device is not bound to the dispatch", async () => {
     const { controller, bridgeService } = createController();
     bridgeService.assertBridgeDeviceRuntimeDispatchBinding.mockRejectedValueOnce(
       new ForbiddenException("Bridge device is not authorized"),
@@ -272,28 +272,28 @@ describe("LinkCrestAgentApiBridgeToolsController", () => {
     await expect(
       controller.executeGenericTool(
         "dispatch-id",
-        "linkcrest",
-        "linkcrest_agent_api",
+        "localappconnector",
+        "localappconnector_agent_api",
         { authorization: "Bearer bridge-token" },
         { arguments: { method: "GET", path: "settings" } },
       ),
     ).rejects.toThrow(ForbiddenException);
 
-    expect(bridgeService.callLinkCrestAgentApi).not.toHaveBeenCalled();
+    expect(bridgeService.callLocalAppConnectorAgentApi).not.toHaveBeenCalled();
   });
 
-  it("resolves generic /marketplace-tools/local-linkcrest/linkcrest_agent_api", async () => {
+  it("resolves generic /marketplace-tools/local-localappconnector/localappconnector_agent_api", async () => {
     const { controller, bridgeService } = createController();
 
     await controller.executeGenericTool(
       "dispatch-id",
-      "local-linkcrest",
-      "linkcrest_agent_api",
+      "local-localappconnector",
+      "localappconnector_agent_api",
       { authorization: "Bearer bridge-token" },
       { args: { path: "campaigns" } },
     );
 
-    expect(bridgeService.callLinkCrestAgentApi).toHaveBeenCalledWith(
+    expect(bridgeService.callLocalAppConnectorAgentApi).toHaveBeenCalledWith(
       expect.objectContaining({ path: "campaigns" }),
     );
   });
@@ -364,20 +364,20 @@ describe("LinkCrestAgentApiBridgeToolsController", () => {
     });
   });
 
-  it.each(["linkcrest.agentApi", "linkcrest-agent-api", "agentApi"])(
-    "accepts LinkCrest tool name alias %s",
+  it.each(["localappconnector.agentApi", "localappconnector-agent-api", "agentApi"])(
+    "accepts LocalAppConnector tool name alias %s",
     async (toolName) => {
       const { controller, bridgeService } = createController();
 
       await controller.executeGenericTool(
         "dispatch-id",
-        "linkcrest",
+        "localappconnector",
         toolName,
         { authorization: "Bearer bridge-token" },
         { arguments: { path: "tasks" } },
       );
 
-      expect(bridgeService.callLinkCrestAgentApi).toHaveBeenCalled();
+      expect(bridgeService.callLocalAppConnectorAgentApi).toHaveBeenCalled();
     },
   );
 
@@ -386,7 +386,7 @@ describe("LinkCrestAgentApiBridgeToolsController", () => {
 
     const result = await controller.fetchRuntimeSecret(
       "dispatch-id",
-      "local-linkcrest",
+      "local-localappconnector",
       { authorization: "Bearer bridge-token" },
     );
 
@@ -400,7 +400,7 @@ describe("LinkCrestAgentApiBridgeToolsController", () => {
       }),
     );
     expect(
-      bridgeService.getLinkCrestAgentApiRuntimeSecret,
+      bridgeService.getLocalAppConnectorAgentApiRuntimeSecret,
     ).toHaveBeenCalledWith({
       workspaceId: "workspace-id",
       connectionId: "openclaw-connection-id",
@@ -449,21 +449,21 @@ describe("LinkCrestAgentApiBridgeToolsController", () => {
   });
 
   it("missing bearer returns actionable error from proxy", async () => {
-    const callLinkCrestAgentApi = jest.fn(async () => {
+    const callLocalAppConnectorAgentApi = jest.fn(async () => {
       throw new UnauthorizedException(
-        "LinkCrest Agent API bearer key is missing. Save a valid LinkCrest Agent API bearer key before using LinkCrest Agent API tools.",
+        "LocalAppConnector Agent API bearer key is missing. Save a valid LocalAppConnector Agent API bearer key before using LocalAppConnector Agent API tools.",
       );
     });
     const { controller } = createController({
       connectionId: null,
-      callLinkCrestAgentApi,
+      callLocalAppConnectorAgentApi,
     });
 
     await expect(
       controller.executeGenericTool(
         "dispatch-id",
-        "linkcrest",
-        "linkcrest_agent_api",
+        "localappconnector",
+        "localappconnector_agent_api",
         { authorization: "Bearer bridge-token" },
         { arguments: { path: "settings" } },
       ),

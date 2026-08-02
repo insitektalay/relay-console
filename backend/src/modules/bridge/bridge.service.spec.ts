@@ -199,7 +199,7 @@ async function buildService() {
       authTag: "tag",
       keyVersion: "v1",
     }),
-    decryptString: jest.fn().mockReturnValue("decrypted-linkcrest-bearer"),
+    decryptString: jest.fn().mockReturnValue("decrypted-localappconnector-bearer"),
   };
   const auditLogService = {
     record: jest.fn().mockResolvedValue(undefined),
@@ -778,7 +778,7 @@ describe("BridgeService", () => {
     });
   });
 
-  it("returns a structured setup error instead of calling user-local LinkCrest from Railway", async () => {
+  it("returns a structured setup error instead of calling user-local LocalAppConnector from Railway", async () => {
     const { service, connectionRepo } = await buildService();
     connectionRepo.findOne.mockResolvedValue({
       id: "openclaw-connection-1",
@@ -793,7 +793,7 @@ describe("BridgeService", () => {
     });
 
     await expect(
-      service.callLinkCrestAgentApi({
+      service.callLocalAppConnectorAgentApi({
         workspaceId: "ws-1",
         connectionId: "openclaw-connection-1",
         method: "GET",
@@ -816,7 +816,7 @@ describe("BridgeService", () => {
     });
   });
 
-  it("executes local LinkCrest Agent API calls through the Hermes source-host bridge", async () => {
+  it("executes local LocalAppConnector Agent API calls through the Hermes source-host bridge", async () => {
     const { service, connectionRepo, eventsGateway, bridgeControlCoordinator } =
       await buildService();
     connectionRepo.findOne.mockResolvedValue({
@@ -842,7 +842,7 @@ describe("BridgeService", () => {
       },
     });
 
-    const result = await service.callLinkCrestAgentApi({
+    const result = await service.callLocalAppConnectorAgentApi({
       workspaceId: "ws-1",
       connectionId: "openclaw-connection-1",
       method: "GET",
@@ -850,7 +850,7 @@ describe("BridgeService", () => {
       contractVersion: "2026-03-18",
       sourceHostId: "bridge-1",
       sourceHostType: "hermes_bridge",
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       linkedAppId: "linked-1",
     });
 
@@ -865,7 +865,7 @@ describe("BridgeService", () => {
       "ws-1",
       "marketplace.localAppAgentApiRequest",
       expect.objectContaining({
-        appSlug: "local-linkcrest",
+        appSlug: "local-localappconnector",
         linkedAppId: "linked-1",
         baseUrl: "http://localhost:3052",
         endpoint:
@@ -875,26 +875,26 @@ describe("BridgeService", () => {
         headers: { "content-type": "application/json" },
         credential: expect.objectContaining({
           type: "bearer",
-          authorizationHeader: "Bearer decrypted-linkcrest-bearer",
+          authorizationHeader: "Bearer decrypted-localappconnector-bearer",
           tokenExposure: "bridge_only",
         }),
         bridgeOnlyCredential: expect.objectContaining({
           type: "bearer",
-          authorizationHeader: "Bearer decrypted-linkcrest-bearer",
+          authorizationHeader: "Bearer decrypted-localappconnector-bearer",
           tokenExposure: "bridge_only",
         }),
         bridgeOnlyBearerCredential: expect.objectContaining({
-          authorizationHeader: "Bearer decrypted-linkcrest-bearer",
+          authorizationHeader: "Bearer decrypted-localappconnector-bearer",
           tokenExposure: "bridge_only",
         }),
       }),
       "clawchat.marketplace.tools",
       "bridge-1",
     );
-    expect(JSON.stringify(result)).not.toContain("decrypted-linkcrest-bearer");
+    expect(JSON.stringify(result)).not.toContain("decrypted-localappconnector-bearer");
   });
 
-  it("requests source-host runtime recovery before local LinkCrest Agent API calls when approved", async () => {
+  it("requests source-host runtime recovery before local LocalAppConnector Agent API calls when approved", async () => {
     const {
       service,
       connectionRepo,
@@ -928,7 +928,7 @@ describe("BridgeService", () => {
       metadata: {
         provider: "registered_local_app_runtime",
         action: "localApp.ensureRunning",
-        appSlug: "local-linkcrest",
+        appSlug: "local-localappconnector",
         linkedAppId: "linked-1",
         sourceHostId: "bridge-1",
         sourceHostType: "hermes_bridge",
@@ -956,17 +956,17 @@ describe("BridgeService", () => {
         },
       });
 
-    await service.callLinkCrestAgentApi({
+    await service.callLocalAppConnectorAgentApi({
       workspaceId: "ws-1",
       connectionId: "openclaw-connection-1",
       method: "GET",
       path: "settings",
       sourceHostId: "bridge-1",
       sourceHostType: "hermes_bridge",
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       linkedAppId: "linked-1",
       runtimeProfile: {
-        repoPath: "/home/alexkerss/repos/LinkCrest",
+        repoPath: "/home/example/repos/LocalAppConnector",
         appUrl: "http://localhost:3052",
         agentApiUrl: "http://localhost:3052/api/openclaw",
         startCommand: "pnpm dev",
@@ -987,11 +987,11 @@ describe("BridgeService", () => {
       "ws-1",
       "localApp.ensureRunning",
       expect.objectContaining({
-        appSlug: "local-linkcrest",
+        appSlug: "local-localappconnector",
         linkedAppId: "linked-1",
         input: { approvalId: "approval-1" },
         runtimeProfile: expect.objectContaining({
-          repoPath: "/home/alexkerss/repos/LinkCrest",
+          repoPath: "/home/example/repos/LocalAppConnector",
           startCommand: "pnpm dev",
           autoStartAllowed: true,
           hardStopConditions: expect.arrayContaining([
@@ -1055,17 +1055,17 @@ describe("BridgeService", () => {
       },
     });
 
-    await service.callLinkCrestAgentApi({
+    await service.callLocalAppConnectorAgentApi({
       workspaceId: "ws-1",
       connectionId: "openclaw-connection-1",
       method: "GET",
       path: "settings",
       sourceHostId: "bridge-1",
       sourceHostType: "hermes_bridge",
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       linkedAppId: "linked-1",
       runtimeProfile: {
-        repoPath: "/home/alexkerss/repos/LinkCrest",
+        repoPath: "/home/example/repos/LocalAppConnector",
         appUrl: "http://localhost:3052",
         agentApiUrl: "http://localhost:3052/api/openclaw",
         startCommand: "pnpm dev",
@@ -1111,7 +1111,7 @@ describe("BridgeService", () => {
       metadata: {
         provider: "registered_local_app_runtime",
         action: "localApp.start",
-        appSlug: "local-linkcrest",
+        appSlug: "local-localappconnector",
         linkedAppId: "linked-1",
         sourceHostId: "bridge-1",
         sourceHostType: "hermes_bridge",
@@ -1130,7 +1130,7 @@ describe("BridgeService", () => {
 
     const result = await service.executeLocalAppRuntimeTool({
       workspaceId: "ws-1",
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       linkedAppId: "linked-1",
       sourceHostId: "bridge-1",
       sourceHostType: "hermes_bridge",
@@ -1139,7 +1139,7 @@ describe("BridgeService", () => {
       toolName: "localApp.start",
       input: { approvalId: "approval-1" },
       runtimeProfile: {
-        repoPath: "/home/alexkerss/repos/LinkCrest",
+        repoPath: "/home/example/repos/LocalAppConnector",
         appUrl: "http://localhost:3052",
         agentApiUrl: "http://localhost:3052/api/openclaw",
         startCommand: "pnpm dev",
@@ -1167,7 +1167,7 @@ describe("BridgeService", () => {
       "ws-1",
       "localApp.start",
       expect.objectContaining({
-        appSlug: "local-linkcrest",
+        appSlug: "local-localappconnector",
         linkedAppId: "linked-1",
         input: { approvalId: "approval-1" },
       }),
@@ -1180,7 +1180,7 @@ describe("BridgeService", () => {
     const { service, eventsGateway, approvalRepo } = await buildService();
     eventsGateway.hasHermesBridgeWorkspaceCapability.mockReturnValue(true);
     const runtimeProfile = {
-      repoPath: "/home/alexkerss/repos/LinkCrest",
+      repoPath: "/home/example/repos/LocalAppConnector",
       appUrl: "http://localhost:3052",
       agentApiUrl: "http://localhost:3052/api/openclaw",
       startCommand: "pnpm dev",
@@ -1195,7 +1195,7 @@ describe("BridgeService", () => {
     await expect(
       service.executeLocalAppRuntimeTool({
         workspaceId: "ws-1",
-        appSlug: "local-linkcrest",
+        appSlug: "local-localappconnector",
         linkedAppId: "linked-1",
         sourceHostId: "bridge-1",
         sourceHostType: "hermes_bridge",
@@ -1225,7 +1225,7 @@ describe("BridgeService", () => {
     await expect(
       service.executeLocalAppRuntimeTool({
         workspaceId: "ws-1",
-        appSlug: "local-linkcrest",
+        appSlug: "local-localappconnector",
         linkedAppId: "linked-1",
         sourceHostId: "bridge-1",
         sourceHostType: "hermes_bridge",
@@ -1251,7 +1251,7 @@ describe("BridgeService", () => {
       metadata: {
         provider: "registered_local_app_runtime",
         action: "localApp.ensureRunning",
-        appSlug: "local-linkcrest",
+        appSlug: "local-localappconnector",
         linkedAppId: "linked-1",
         sourceHostId: "bridge-1",
         sourceHostType: "hermes_bridge",
@@ -1271,7 +1271,7 @@ describe("BridgeService", () => {
     await expect(
       service.executeLocalAppRuntimeTool({
         workspaceId: "ws-1",
-        appSlug: "local-linkcrest",
+        appSlug: "local-localappconnector",
         linkedAppId: "linked-1",
         sourceHostId: "bridge-1",
         sourceHostType: "hermes_bridge",
@@ -1279,7 +1279,7 @@ describe("BridgeService", () => {
         toolName: "localApp.ensureRunning",
         input: { approvalId: "approval-1" },
         runtimeProfile: {
-          repoPath: "/home/alexkerss/repos/LinkCrest",
+          repoPath: "/home/example/repos/LocalAppConnector",
           appUrl: "http://localhost:3052",
           agentApiUrl: "http://localhost:3052/api/openclaw",
           startCommand: "pnpm dev",
@@ -1300,7 +1300,7 @@ describe("BridgeService", () => {
     );
   });
 
-  it("maps source-host LinkCrest 401 responses to linkcrest_auth_failed", async () => {
+  it("maps source-host LocalAppConnector 401 responses to localappconnector_auth_failed", async () => {
     const { service, connectionRepo, eventsGateway, bridgeControlCoordinator } =
       await buildService();
     connectionRepo.findOne.mockResolvedValue({
@@ -1326,7 +1326,7 @@ describe("BridgeService", () => {
     });
 
     await expect(
-      service.callLinkCrestAgentApi({
+      service.callLocalAppConnectorAgentApi({
         workspaceId: "ws-1",
         connectionId: "openclaw-connection-1",
         method: "GET",
@@ -1336,17 +1336,17 @@ describe("BridgeService", () => {
       }),
     ).rejects.toMatchObject({
       response: expect.objectContaining({
-        code: "linkcrest_auth_failed",
+        code: "localappconnector_auth_failed",
       }),
     });
   });
 
-  it("rejects invalid LinkCrest Agent API targets before proxying", async () => {
+  it("rejects invalid LocalAppConnector Agent API targets before proxying", async () => {
     const { service, connectionRepo } = await buildService();
     connectionRepo.findOne.mockResolvedValue({
       id: "openclaw-connection-1",
       workspaceId: "ws-1",
-      instanceUrl: "file:///tmp/linkcrest",
+      instanceUrl: "file:///tmp/localappconnector",
       apiKeyCiphertext: "cipher",
       apiKeyIv: "iv",
       apiKeyAuthTag: "tag",
@@ -1356,7 +1356,7 @@ describe("BridgeService", () => {
     });
 
     await expect(
-      service.callLinkCrestAgentApi({
+      service.callLocalAppConnectorAgentApi({
         workspaceId: "ws-1",
         connectionId: "openclaw-connection-1",
         method: "GET",
@@ -1369,12 +1369,12 @@ describe("BridgeService", () => {
     });
   });
 
-  it("proxies non-local LinkCrest Agent API calls with the stored bearer without returning the token", async () => {
+  it("proxies non-local LocalAppConnector Agent API calls with the stored bearer without returning the token", async () => {
     const { service, connectionRepo } = await buildService();
     connectionRepo.findOne.mockResolvedValue({
       id: "openclaw-connection-1",
       workspaceId: "ws-1",
-      instanceUrl: "https://linkcrest.example.com",
+      instanceUrl: "https://localappconnector.example.com",
       apiKeyCiphertext: "cipher",
       apiKeyIv: "iv",
       apiKeyAuthTag: "tag",
@@ -1388,7 +1388,7 @@ describe("BridgeService", () => {
       text: jest.fn().mockResolvedValue(JSON.stringify({ data: { ok: true } })),
     } as any);
 
-    const result = await service.callLinkCrestAgentApi({
+    const result = await service.callLocalAppConnectorAgentApi({
       workspaceId: "ws-1",
       connectionId: "openclaw-connection-1",
       method: "GET",
@@ -1398,15 +1398,15 @@ describe("BridgeService", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        href: "https://linkcrest.example.com/api/openclaw/settings?contractVersion=2026-03-18",
+        href: "https://localappconnector.example.com/api/openclaw/settings?contractVersion=2026-03-18",
       }),
       expect.objectContaining({
         headers: expect.objectContaining({
-          authorization: "Bearer decrypted-linkcrest-bearer",
+          authorization: "Bearer decrypted-localappconnector-bearer",
         }),
       }),
     );
-    expect(JSON.stringify(result)).not.toContain("decrypted-linkcrest-bearer");
+    expect(JSON.stringify(result)).not.toContain("decrypted-localappconnector-bearer");
     fetchMock.mockRestore();
   });
 

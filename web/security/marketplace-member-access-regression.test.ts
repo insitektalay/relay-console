@@ -99,7 +99,7 @@ test("Marketplace member detail view is read-only", () => {
   assert.match(
     sourceBlock(
       marketplaceSource,
-      "const configureLinkCrestOpenClawMutation = useMutation({",
+      "const configureLocalAppConnectorOpenClawMutation = useMutation({",
       "const persistAutonomyPolicy ="
     ),
     /assertCanManageMarketplace\(\)/

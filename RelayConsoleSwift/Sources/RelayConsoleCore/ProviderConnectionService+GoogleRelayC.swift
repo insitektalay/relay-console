@@ -511,7 +511,12 @@ extension ProviderConnectionService {
   }
 
   public static func defaultCallbackURL(for app: MarketplaceCatalogApp) -> String {
-    railwayOAuthCallbackURL(appSlug: app.slug, environment: ProcessInfo.processInfo.environment)
+    railwayOAuthCallbackURL(
+      appSlug: app.slug,
+      environment: [
+        RelayDeploymentConfiguration.railwayOriginEnvironmentKey:
+          RelayCloudLaunchContract.configuredRailwayOrigin ?? ""
+      ])
       ?? ""
   }
 

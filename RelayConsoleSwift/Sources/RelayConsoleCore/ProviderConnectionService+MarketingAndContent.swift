@@ -47,9 +47,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/klaviyo/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let name = accountName?.providerConnectionNilIfEmpty.map { String($0.prefix(200)) }
@@ -193,9 +191,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/convertkit/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let name = accountName?.providerConnectionNilIfEmpty.map { String($0.prefix(200)) }
@@ -338,9 +334,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/campaign-monitor/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [
@@ -481,9 +475,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/constant-contact/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [
@@ -622,9 +614,7 @@ extension ProviderConnectionService {
     let accessRef = try secrets.set(
       scope: "provider_connection", scopeId: id, label: "Webflow OAuth access token",
       secretValue: access)
-    let railwayOrigin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railwayOrigin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railwayOrigin.map { $0 + "/api/v1/oauth/webflow/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let sites = authorizedSiteIds.compactMap(\.providerConnectionNilIfEmpty)
@@ -729,9 +719,7 @@ extension ProviderConnectionService {
     let accessRef = try secrets.set(
       scope: "provider_connection", scopeId: id, label: "WordPress.com OAuth access token",
       secretValue: access)
-    let railwayOrigin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railwayOrigin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railwayOrigin.map { $0 + "/api/v1/oauth/wordpress-com/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label =
@@ -846,9 +834,7 @@ extension ProviderConnectionService {
     let ref = try secrets.set(
       scope: "provider_connection", scopeId: id, label: "Contentful OAuth access token",
       secretValue: access)
-    let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let origin = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = origin.map { $0 + "/api/v1/oauth/contentful/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let names = authorizedSpaceNames.compactMap(\.providerConnectionNilIfEmpty)

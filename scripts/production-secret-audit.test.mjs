@@ -492,12 +492,28 @@ test("Railway startup and CI execute the audit before migrations", () => {
     resolve(root, ".github/workflows/backend-beta-readiness.yml"),
     "utf8",
   );
+  const bootstrap = readFileSync(
+    resolve(root, "backend/security/railway-template-bootstrap.mjs"),
+    "utf8",
+  );
   const start = backendPackage.scripts["railway:start:prod"];
 
-  assert.match(
-    start,
-    /^pnpm run security:audit:production && node dist\/scripts\/run-migrations\.js && node dist\/main$/,
+  assert.equal(start, "node security/railway-template-bootstrap.mjs");
+  const templateStartup = bootstrap.slice(
+    bootstrap.indexOf("export async function runTemplateBootstrap"),
   );
+  const auditIndex = templateStartup.indexOf(
+    '"security/production-secret-audit.mjs"',
+  );
+  const migrationIndex = templateStartup.indexOf(
+    '"dist/scripts/run-migrations.js"',
+  );
+  const applicationIndex = templateStartup.indexOf(
+    "startApplication(runtimeEnv)",
+  );
+  assert.ok(auditIndex >= 0);
+  assert.ok(migrationIndex > auditIndex);
+  assert.ok(applicationIndex > migrationIndex);
   assert.match(
     backendPackage.scripts["security:audit:production"],
     /^node security\/production-secret-audit\.mjs$/,

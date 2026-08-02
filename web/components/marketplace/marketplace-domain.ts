@@ -2,7 +2,7 @@
 
 import type {
   Agent,
-  LinkCrestPolicySyncStatus,
+  LocalAppConnectorPolicySyncStatus,
   LocalAppAutonomyMode,
   LocalAppAutonomyPolicy,
   MarketplaceApp,
@@ -333,12 +333,12 @@ export function policyFromApp(
   return defaultAutonomyPolicy()
 }
 
-export function linkcrestSyncFromApp(
+export function localappconnectorSyncFromApp(
   app: MarketplaceApp | null
-): LinkCrestPolicySyncStatus | null {
-  const raw = app?.sourceMetadata?.linkcrestPolicySync
+): LocalAppConnectorPolicySyncStatus | null {
+  const raw = app?.sourceMetadata?.localappconnectorPolicySync
   return raw && typeof raw === "object" && !Array.isArray(raw)
-    ? (raw as LinkCrestPolicySyncStatus)
+    ? (raw as LocalAppConnectorPolicySyncStatus)
     : null
 }
 
@@ -442,35 +442,35 @@ export function runtimeProfileFromApp(app: MarketplaceApp | null) {
     !Array.isArray(source.runtimeProfile)
       ? (source.runtimeProfile as Record<string, unknown>)
       : {}
-  const isLinkCrest = `${app?.slug ?? ""} ${app?.name ?? ""}`
+  const isLocalAppConnector = `${app?.slug ?? ""} ${app?.name ?? ""}`
     .toLowerCase()
-    .includes("linkcrest")
+    .includes("localappconnector")
   return {
     repoPath: String(
       profile.repoPath ??
         source.repoPath ??
-        (isLinkCrest ? "/home/alexkerss/repos/LinkCrest" : "")
+        (isLocalAppConnector ? "/home/example/repos/LocalAppConnector" : "")
     ),
     appUrl: String(
       profile.appUrl ??
         source.localAppUrl ??
-        (isLinkCrest ? "http://localhost:3052" : "")
+        (isLocalAppConnector ? "http://localhost:3052" : "")
     ),
     agentApiUrl: String(
       profile.agentApiUrl ??
-        (isLinkCrest ? "http://localhost:3052/api/openclaw" : "")
+        (isLocalAppConnector ? "http://localhost:3052/api/openclaw" : "")
     ),
     startCommand: String(
-      profile.startCommand ?? (isLinkCrest ? "pnpm dev" : "")
+      profile.startCommand ?? (isLocalAppConnector ? "pnpm dev" : "")
     ),
     healthCheckUrl: String(
       profile.healthCheckUrl ??
         source.localAppUrl ??
-        (isLinkCrest ? "http://localhost:3052" : "")
+        (isLocalAppConnector ? "http://localhost:3052" : "")
     ),
     backendHealthCheckUrl: String(
       profile.backendHealthCheckUrl ??
-        (isLinkCrest ? "http://localhost:3210" : "")
+        (isLocalAppConnector ? "http://localhost:3210" : "")
     ),
     autoStartAllowed:
       profile.autoStartAllowed === true ||
@@ -481,7 +481,7 @@ export function runtimeProfileFromApp(app: MarketplaceApp | null) {
           true),
     hardStopConditions: Array.isArray(profile.hardStopConditions)
       ? profile.hardStopConditions.map(String)
-      : isLinkCrest
+      : isLocalAppConnector
         ? [
             "install",
             "migration",
@@ -496,7 +496,7 @@ export function runtimeProfileFromApp(app: MarketplaceApp | null) {
         : [],
     expectedPorts: Array.isArray(profile.expectedPorts)
       ? profile.expectedPorts.map(String)
-      : isLinkCrest
+      : isLocalAppConnector
         ? ["3052", "3210"]
         : [],
     sourceHostId: String(

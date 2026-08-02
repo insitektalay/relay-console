@@ -1001,7 +1001,7 @@ extension HarnessInstallManager {
     func resolveHermesPython(_ installPath: URL) -> URL? {
         for relativePath in [".venv/bin/python", "venv/bin/python"] {
             let python = installPath.appendingPathComponent(relativePath)
-            if FileManager.default.fileExists(atPath: python.path) {
+            if FileManager.default.isExecutableFile(atPath: python.path) {
                 return python
             }
         }
@@ -1043,7 +1043,10 @@ extension HarnessInstallManager {
             }
         } else {
             guard FileManager.default.fileExists(atPath: path.appendingPathComponent("openclaw.mjs").path),
-                  FileManager.default.fileExists(atPath: path.appendingPathComponent("package.json").path)
+                  let packageData = try? Data(contentsOf: path.appendingPathComponent("package.json"), options: [.mappedIfSafe]),
+                  packageData.count <= 1_048_576,
+                  let package = try? JSONSerialization.jsonObject(with: packageData) as? [String: Any],
+                  (package["name"] as? String)?.lowercased() == "openclaw"
             else {
                 throw RelayError(.harnessMissing, "Selected folder is not an OpenClaw checkout.")
             }

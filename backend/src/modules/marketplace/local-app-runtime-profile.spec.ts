@@ -1,16 +1,16 @@
 import {
-  LINKCREST_DEFAULT_RUNTIME_PROFILE,
+  LOCAL_APP_CONNECTOR_DEFAULT_RUNTIME_PROFILE,
   resolveLocalAppRuntimeProfile,
 } from "./local-app-runtime-profile";
 
 describe("local app runtime profile", () => {
-  it("provides the LinkCrest runtime recovery defaults", () => {
+  it("provides the LocalAppConnector runtime recovery defaults", () => {
     expect(
       resolveLocalAppRuntimeProfile({
-        appSlug: "local-linkcrest",
-        appName: "LinkCrest",
+        appSlug: "local-localappconnector",
+        appName: "LocalAppConnector",
       }),
-    ).toEqual(LINKCREST_DEFAULT_RUNTIME_PROFILE);
+    ).toEqual(LOCAL_APP_CONNECTOR_DEFAULT_RUNTIME_PROFILE);
   });
 
   it("preserves hard-stop prompts and source-host details from metadata", () => {

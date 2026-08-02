@@ -458,7 +458,7 @@ extension AppViewModel {
     panel.prompt = "Connect"
     panel.message =
       record.harnessKey == .hermes
-      ? "Choose the Hermes Agent folder that contains run_agent.py and .venv."
+      ? "Choose the Hermes Agent folder that contains run_agent.py."
       : "Choose the OpenClaw folder that contains openclaw.mjs, or the openclaw command."
     panel.begin { response in
       guard response == .OK, let url = panel.url else { return }
@@ -468,7 +468,7 @@ extension AppViewModel {
         relativeTo: nil
       ).base64EncodedString()
       Task { @MainActor in
-        self.runAction("connect-existing-\(record.harnessKey.rawValue)", refresh: .agents) {
+        self.runAction("connect-existing-\(record.harnessKey.rawValue)", refresh: .full) {
           guard let services = self.services else { return nil }
           let accessed = url.startAccessingSecurityScopedResource()
           defer { if accessed { url.stopAccessingSecurityScopedResource() } }
@@ -480,6 +480,31 @@ extension AppViewModel {
           return nil
         }
       }
+    }
+  }
+
+  func discoverExistingHarnesses(force: Bool = false) async {
+    guard force || (!runtimeDiscoveryInProgress && !runtimeDiscoveryCompleted) else { return }
+    runtimeDiscoveryInProgress = true
+    runtimeDiscoveryCompleted = false
+    let candidates = await RuntimeInstallationDiscovery.discover()
+    guard !Task.isCancelled else {
+      runtimeDiscoveryInProgress = false
+      return
+    }
+    runtimeDiscoveryCandidates = candidates
+    runtimeDiscoveryInProgress = false
+    runtimeDiscoveryCompleted = true
+  }
+
+  func connectDiscoveredHarness(_ candidate: RuntimeDiscoveryCandidate) {
+    runAction("connect-discovered-\(candidate.harnessKey.rawValue)", refresh: .full) {
+      guard let services = self.services else { return nil }
+      _ = try await services.harnessInstall.connectExisting(
+        harnessKey: candidate.harnessKey,
+        location: candidate.location
+      )
+      return nil
     }
   }
 

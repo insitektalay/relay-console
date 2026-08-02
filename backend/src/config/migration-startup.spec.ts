@@ -18,10 +18,7 @@ describe("Railway migration startup contract", () => {
     ) as { deploy: { startCommand: string } };
     const mainSource = readSource("main.ts");
     const migrationRunnerSource = readSource("scripts/run-migrations.ts");
-    const dockerfile = readFileSync(
-      resolve(backendRoot, "Dockerfile"),
-      "utf8",
-    );
+    const dockerfile = readFileSync(resolve(backendRoot, "Dockerfile"), "utf8");
     const secretAuditSource = readFileSync(
       resolve(backendRoot, "security/production-secret-audit.mjs"),
       "utf8",
@@ -40,12 +37,18 @@ describe("Railway migration startup contract", () => {
       "node security/production-secret-audit.mjs",
     );
     expect(backendPackage.scripts["railway:start:prod"]).toBe(
-      "pnpm run security:audit:production && node dist/scripts/run-migrations.js && node dist/main",
+      "node security/railway-template-bootstrap.mjs",
     );
     expect(dockerfile).toContain(
       "COPY --chown=node:node --from=base /app/security ./security",
     );
     expect(secretAuditSource).toContain("auditProductionSecrets");
+    expect(
+      readFileSync(
+        resolve(backendRoot, "security/railway-template-bootstrap.mjs"),
+        "utf8",
+      ),
+    ).toContain('"dist/scripts/run-migrations.js"');
     expect(secretPolicy.lifecycle.registryVariable).toBe(
       "RELAY_SECRET_LIFECYCLE_JSON",
     );

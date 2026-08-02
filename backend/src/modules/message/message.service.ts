@@ -914,18 +914,18 @@ export class MessageService {
           .filter(Boolean),
         toolCount: tools.length,
         toolNames: tools.map((tool) => tool.name),
-        linkcrestAgentApiDescriptorSent: tools.some((tool) => {
+        localappconnectorAgentApiDescriptorSent: tools.some((tool) => {
           const name =
             this.stringOrNull(tool.name) ??
             this.stringOrNull(tool.functionName);
           return [
-            "linkcrest.agentApi",
-            "linkcrest_agent_api",
-            "linkcrest-agent-api",
+            "localappconnector.agentApi",
+            "localappconnector_agent_api",
+            "localappconnector-agent-api",
             "agentApi",
           ].includes(name ?? "");
         }),
-        linkcrestAgentApiAliasesSent: tools
+        localappconnectorAgentApiAliasesSent: tools
           .map(
             (tool) =>
               this.stringOrNull(tool.name) ??
@@ -933,9 +933,9 @@ export class MessageService {
           )
           .filter((name): name is string =>
             [
-              "linkcrest.agentApi",
-              "linkcrest_agent_api",
-              "linkcrest-agent-api",
+              "localappconnector.agentApi",
+              "localappconnector_agent_api",
+              "localappconnector-agent-api",
               "agentApi",
             ].includes(name ?? ""),
           ),
@@ -965,33 +965,33 @@ export class MessageService {
               application.localRuntimeLayer?.runtimeProfile?.sourceHostId ??
               null,
             toolsSent: (application.connectorTools ?? []).length,
-            linkcrestAgentApiDescriptorSent: (
+            localappconnectorAgentApiDescriptorSent: (
               application.connectorTools ?? []
             ).some((tool) => {
               const name =
                 this.stringOrNull(tool.name) ??
                 this.stringOrNull(tool.functionName);
               return [
-                "linkcrest.agentApi",
-                "linkcrest_agent_api",
-                "linkcrest-agent-api",
+                "localappconnector.agentApi",
+                "localappconnector_agent_api",
+                "localappconnector-agent-api",
                 "agentApi",
               ].includes(name ?? "");
             }),
-            reasonOmitted: this.isLinkCrestApp(application.appSlug)
+            reasonOmitted: this.isLocalAppConnectorApp(application.appSlug)
               ? (application.connectorTools ?? []).some((tool) => {
                   const name =
                     this.stringOrNull(tool.name) ??
                     this.stringOrNull(tool.functionName);
                   return [
-                    "linkcrest.agentApi",
-                    "linkcrest_agent_api",
-                    "linkcrest-agent-api",
+                    "localappconnector.agentApi",
+                    "localappconnector_agent_api",
+                    "localappconnector-agent-api",
                     "agentApi",
                   ].includes(name ?? "");
                 })
                 ? null
-                : "linkcrest_agent_api_descriptor_not_built"
+                : "localappconnector_agent_api_descriptor_not_built"
               : null,
           };
         }),
@@ -1900,9 +1900,9 @@ export class MessageService {
       "local_repo.checkIndex",
       "Check indexed state when an index checking tool is configured.",
     );
-    if (this.isLinkCrestApp(input.appSlug, input.linkedApp)) {
+    if (this.isLocalAppConnectorApp(input.appSlug, input.linkedApp)) {
       descriptors.push(
-        ...this.buildLinkCrestAgentApiTools({
+        ...this.buildLocalAppConnectorAgentApiTools({
           workspaceId: input.workspaceId,
           appSlug: input.appSlug,
           linkedApp: input.linkedApp ?? null,
@@ -2028,7 +2028,7 @@ export class MessageService {
     ];
   }
 
-  private buildLinkCrestAgentApiTools(input: {
+  private buildLocalAppConnectorAgentApiTools(input: {
     workspaceId: string;
     appSlug: string;
     linkedApp: LinkedApplicationEntity | null;
@@ -2044,53 +2044,53 @@ export class MessageService {
       apiStyleMetadata: apiMetadata,
     });
     const connectionId =
-      this.stringOrNull(metadata.linkcrestOpenClawConnectionId) ??
-      this.stringOrNull(apiMetadata.linkcrestOpenClawConnectionId);
+      this.stringOrNull(metadata.localappconnectorOpenClawConnectionId) ??
+      this.stringOrNull(apiMetadata.localappconnectorOpenClawConnectionId);
     const baseUrl =
-      this.stringOrNull(metadata.linkcrestOpenClawBaseUrl) ??
-      this.stringOrNull(apiMetadata.linkcrestOpenClawBaseUrl) ??
+      this.stringOrNull(metadata.localappconnectorOpenClawBaseUrl) ??
+      this.stringOrNull(apiMetadata.localappconnectorOpenClawBaseUrl) ??
       this.stringOrNull(metadata.localApiUrl) ??
       this.stringOrNull(apiMetadata.localApiUrl);
     const status =
-      metadata.linkcrestOpenClawStatus &&
-      typeof metadata.linkcrestOpenClawStatus === "object" &&
-      !Array.isArray(metadata.linkcrestOpenClawStatus)
-        ? (metadata.linkcrestOpenClawStatus as Record<string, unknown>)
-        : apiMetadata.linkcrestOpenClawStatus &&
-            typeof apiMetadata.linkcrestOpenClawStatus === "object" &&
-            !Array.isArray(apiMetadata.linkcrestOpenClawStatus)
-          ? (apiMetadata.linkcrestOpenClawStatus as Record<string, unknown>)
+      metadata.localappconnectorOpenClawStatus &&
+      typeof metadata.localappconnectorOpenClawStatus === "object" &&
+      !Array.isArray(metadata.localappconnectorOpenClawStatus)
+        ? (metadata.localappconnectorOpenClawStatus as Record<string, unknown>)
+        : apiMetadata.localappconnectorOpenClawStatus &&
+            typeof apiMetadata.localappconnectorOpenClawStatus === "object" &&
+            !Array.isArray(apiMetadata.localappconnectorOpenClawStatus)
+          ? (apiMetadata.localappconnectorOpenClawStatus as Record<string, unknown>)
           : {};
     const endpointBasePath = `/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/${input.appSlug}`;
-    const dedicatedEndpointBasePath = `/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/linkcrest-agent-api/${input.appSlug}`;
+    const dedicatedEndpointBasePath = `/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/localappconnector-agent-api/${input.appSlug}`;
     const base = {
       appSlug: input.appSlug,
-      provider: "linkcrest_agent_api",
+      provider: "localappconnector_agent_api",
       connectionId,
       workspaceId: input.workspaceId,
-      auth: "clawchat_linkcrest_agent_api_proxy",
+      auth: "clawchat_localappconnector_agent_api_proxy",
       tokenExposure: "never_exposed_to_agent",
       credential: {
         bearerConfigured: status.hasBearerKey === true || Boolean(connectionId),
         secretRef: connectionId
-          ? `linkcrest-agent-api:${connectionId}`
-          : "linkcrest-agent-api:missing",
+          ? `localappconnector-agent-api:${connectionId}`
+          : "localappconnector-agent-api:missing",
         secretFetchEndpoint: `${dedicatedEndpointBasePath}/_runtime-secret/fetch`,
         secretMaterialSentToHermes: false,
       },
-      linkcrest: {
+      localappconnector: {
         baseUrl,
         campaignId:
-          this.stringOrNull(metadata.linkcrestCampaignId) ??
-          this.stringOrNull(apiMetadata.linkcrestCampaignId),
+          this.stringOrNull(metadata.localappconnectorCampaignId) ??
+          this.stringOrNull(apiMetadata.localappconnectorCampaignId),
         campaignName:
-          this.stringOrNull(metadata.linkcrestCampaignName) ??
-          this.stringOrNull(apiMetadata.linkcrestCampaignName),
+          this.stringOrNull(metadata.localappconnectorCampaignName) ??
+          this.stringOrNull(apiMetadata.localappconnectorCampaignName),
         policySync:
-          metadata.linkcrestPolicySync &&
-          typeof metadata.linkcrestPolicySync === "object" &&
-          !Array.isArray(metadata.linkcrestPolicySync)
-            ? metadata.linkcrestPolicySync
+          metadata.localappconnectorPolicySync &&
+          typeof metadata.localappconnectorPolicySync === "object" &&
+          !Array.isArray(metadata.localappconnectorPolicySync)
+            ? metadata.localappconnectorPolicySync
             : null,
       },
       runtimeProfile,
@@ -2116,10 +2116,10 @@ export class MessageService {
       },
     };
     const aliases = [
-      { name: "linkcrest.agentApi", functionName: "linkcrest_agent_api" },
-      { name: "linkcrest_agent_api", functionName: "linkcrest_agent_api" },
-      { name: "linkcrest-agent-api", functionName: "linkcrest_agent_api" },
-      { name: "agentApi", functionName: "linkcrest_agent_api" },
+      { name: "localappconnector.agentApi", functionName: "localappconnector_agent_api" },
+      { name: "localappconnector_agent_api", functionName: "localappconnector_agent_api" },
+      { name: "localappconnector-agent-api", functionName: "localappconnector_agent_api" },
+      { name: "agentApi", functionName: "localappconnector_agent_api" },
     ];
     return aliases.map((alias) => ({
       ...base,
@@ -2127,9 +2127,9 @@ export class MessageService {
       functionName: alias.functionName,
       aliases: aliases.map((entry) => entry.name),
       action: "agent_api",
-      capability: "linkcrest_openclaw_tools",
+      capability: "localappconnector_openclaw_tools",
       description:
-        "Call the LinkCrest Agent API through ClawChat. ClawChat attaches the stored bearer server-side; never ask for or print the bearer token.",
+        "Call the LocalAppConnector Agent API through ClawChat. ClawChat attaches the stored bearer server-side; never ask for or print the bearer token.",
       inputSchema: {
         type: "object",
         properties: {
@@ -2149,13 +2149,13 @@ export class MessageService {
     }));
   }
 
-  private isLinkCrestApp(
+  private isLocalAppConnectorApp(
     appSlug: string,
     linkedApp?: LinkedApplicationEntity | null,
   ) {
     const haystack =
       `${appSlug} ${linkedApp?.name ?? ""} ${linkedApp?.slug ?? ""}`.toLowerCase();
-    return haystack.includes("linkcrest");
+    return haystack.includes("localappconnector");
   }
 
   private isXConnectionUsable(connection: MarketplaceConnectionEntity | null) {

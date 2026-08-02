@@ -157,7 +157,7 @@ extension AppViewModel {
           "Google Docs is not enabled because the Relay-owned Google OAuth client is not configured."
         )
       }
-      guard let railwayOrigin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let railwayOrigin = RelayCloudLaunchContract.configuredRailwayOrigin,
         railwayOrigin.lowercased().hasPrefix("https://")
       else {
         throw RelayError(.unsupported, "Google Docs must use the authenticated Railway broker.")
@@ -360,7 +360,7 @@ extension AppViewModel {
           "Google Calendar is not enabled because the Relay-owned Google OAuth client is not configured."
         )
       }
-      guard let railwayOrigin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let railwayOrigin = RelayCloudLaunchContract.configuredRailwayOrigin,
         railwayOrigin.lowercased().hasPrefix("https://")
       else {
         throw RelayError(
@@ -558,7 +558,7 @@ extension AppViewModel {
           "Google Drive is not enabled because the Relay-owned Google OAuth client is not configured."
         )
       }
-      guard let railwayOrigin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let railwayOrigin = RelayCloudLaunchContract.configuredRailwayOrigin,
         railwayOrigin.lowercased().hasPrefix("https://")
       else {
         throw RelayError(.unsupported, "Google Drive must use the authenticated Railway broker.")
@@ -687,7 +687,7 @@ extension AppViewModel {
       guard app.slug == "google-sheets" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -795,7 +795,7 @@ extension AppViewModel {
       guard app.slug == "google-slides" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -896,7 +896,7 @@ extension AppViewModel {
       guard app.slug == "google-forms" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -997,7 +997,7 @@ extension AppViewModel {
       guard app.slug == "google-tasks" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1097,7 +1097,7 @@ extension AppViewModel {
       guard app.slug == "google-contacts" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1204,7 +1204,7 @@ extension AppViewModel {
       guard app.slug == "google-photos" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1313,7 +1313,7 @@ extension AppViewModel {
       guard app.slug == "google-meet" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1420,7 +1420,7 @@ extension AppViewModel {
       guard app.slug == "google-chat" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1532,7 +1532,7 @@ extension AppViewModel {
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
         environment["RELAY_GOOGLE_ADS_DEVELOPER_TOKEN"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1645,7 +1645,7 @@ extension AppViewModel {
       guard app.slug == "google-analytics" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1806,7 +1806,7 @@ extension AppViewModel {
       guard app.slug == "google-merchant-center" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(

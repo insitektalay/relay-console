@@ -55,9 +55,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/wrike/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [
@@ -207,9 +205,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/smartsheet/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [
@@ -353,9 +349,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/todoist/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [
@@ -511,9 +505,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/harvest/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [
@@ -672,9 +664,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/calendly/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [
@@ -823,9 +813,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/cal-com/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [
@@ -974,9 +962,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/docusign/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [
@@ -1123,9 +1109,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/dropbox-sign/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let display =
@@ -1282,9 +1266,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/pandadoc/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let display = safeWorkspaceName ?? "PandaDoc workspace " + String(exactWorkspaceId.suffix(8))

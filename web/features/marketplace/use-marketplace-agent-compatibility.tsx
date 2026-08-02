@@ -36,7 +36,7 @@ export function useMarketplaceAgentCompatibility({
   dangerousPolicyAcknowledged,
   existingOperatorInstalled,
   generatedPackPublicationStatus,
-  isLinkCrestApp,
+  isLocalAppConnectorApp,
   onCreateCompatibleAgent,
   onOpenRuntimePairing,
   packPreviewFiles,
@@ -69,7 +69,7 @@ export function useMarketplaceAgentCompatibility({
   dangerousPolicyAcknowledged: boolean
   existingOperatorInstalled: boolean
   generatedPackPublicationStatus: string | null
-  isLinkCrestApp: boolean
+  isLocalAppConnectorApp: boolean
   onCreateCompatibleAgent?: (input: MarketplaceAgentRecoveryRequest) => void
   onOpenRuntimePairing?: (input: MarketplaceAgentRecoveryRequest) => void
   packPreviewFiles: MarketplacePackPreviewFile[]
@@ -280,11 +280,11 @@ export function useMarketplaceAgentCompatibility({
                         : selectedOperatorAgentCard &&
                             !selectedOperatorAgentCard.installable
                           ? "Selected operator agent cannot install this app pack."
-                          : !isLinkCrestApp && !hasRequiredCredentialDrafts
+                          : !isLocalAppConnectorApp && !hasRequiredCredentialDrafts
                             ? "Enter the required credentials."
                             : null
-  const connectButtonLabel = isLinkCrestApp
-    ? "Connect LinkCrest to agents"
+  const connectButtonLabel = isLocalAppConnectorApp
+    ? "Connect LocalAppConnector to agents"
     : selectedAuditorAgentId || selectedManagerAgentId
       ? `Connect ${selectedApp?.name ?? "app"} to agents`
       : `Connect ${selectedApp?.name ?? "app"} to agent`

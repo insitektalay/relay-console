@@ -48,9 +48,9 @@ export function useMarketplaceConnectApp({
   environment,
   isReplacingConnectionCredentials,
   existingOperatorInstalled,
-  isLinkCrestApp,
-  linkcrestCampaignIdDraft,
-  linkcrestCampaignNameDraft,
+  isLocalAppConnectorApp,
+  localappconnectorCampaignIdDraft,
+  localappconnectorCampaignNameDraft,
   onConnectionComplete,
   outlookSenderEmail,
   queryClient,
@@ -85,9 +85,9 @@ export function useMarketplaceConnectApp({
   environment: string
   isReplacingConnectionCredentials: boolean
   existingOperatorInstalled: boolean
-  isLinkCrestApp: boolean
-  linkcrestCampaignIdDraft: string
-  linkcrestCampaignNameDraft: string
+  isLocalAppConnectorApp: boolean
+  localappconnectorCampaignIdDraft: string
+  localappconnectorCampaignNameDraft: string
   onConnectionComplete?: (
     input: ConnectionCompleteInput
   ) => void | Promise<void>
@@ -126,7 +126,7 @@ export function useMarketplaceConnectApp({
       if (!operatorAgentId && !supportAgentSelected) {
         throw new Error("Select an agent to connect.")
       }
-      if (isLinkCrestApp && selectedApp.sourceType === "local_repo") {
+      if (isLocalAppConnectorApp && selectedApp.sourceType === "local_repo") {
         const autoConnectResult = await sdk.marketplace.autoConnectLocalApp(
           workspaceId,
           selectedApp.slug,
@@ -136,8 +136,8 @@ export function useMarketplaceConnectApp({
             auditorAgentId: selectedAuditorAgentId || null,
             autonomyMode: autonomyPolicy.mode,
             autonomyPolicy,
-            campaignId: linkcrestCampaignIdDraft || null,
-            campaignName: linkcrestCampaignNameDraft || null,
+            campaignId: localappconnectorCampaignIdDraft || null,
+            campaignName: localappconnectorCampaignNameDraft || null,
             approvalProfileId: approvalProfileId || null,
             acknowledgeDangerouslySkipPermissions:
               dangerousAutonomyAcknowledged || dangerousPolicyAcknowledged,

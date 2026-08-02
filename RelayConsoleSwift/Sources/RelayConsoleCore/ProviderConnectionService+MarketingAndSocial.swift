@@ -52,9 +52,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/typeform/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let accountName = accountLabel?.providerConnectionNilIfEmpty.map { String($0.prefix(200)) }
@@ -188,9 +186,7 @@ extension ProviderConnectionService {
     let ref = try secrets.set(
       scope: "provider_connection", scopeId: id, label: "SurveyMonkey OAuth access token",
       secretValue: token)
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/surveymonkey/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let name = userName?.providerConnectionNilIfEmpty.map { String($0.prefix(200)) }
@@ -277,9 +273,7 @@ extension ProviderConnectionService {
     let ref = try secrets.set(
       scope: "provider_connection", scopeId: id, label: "Fillout OAuth access token",
       secretValue: token)
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/fillout/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label = authorizationLabel?.providerConnectionNilIfEmpty.map { String($0.prefix(200)) }
@@ -376,9 +370,7 @@ extension ProviderConnectionService {
     let ref = try secrets.set(
       scope: "provider_connection", scopeId: id, label: "Mailchimp OAuth access token",
       secretValue: token)
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/oauth/mailchimp/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [
@@ -466,9 +458,7 @@ extension ProviderConnectionService {
     let ref = try secrets.set(
       scope: "provider_connection", scopeId: id, label: "SendFox OAuth access token",
       secretValue: token)
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/marketplace/oauth/sendfox/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [
@@ -568,9 +558,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(accessRef.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/marketplace/oauth/beehiiv/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let label =
@@ -760,9 +748,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(a.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/marketplace/oauth/hootsuite/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [
@@ -853,9 +839,7 @@ extension ProviderConnectionService {
       _ = try? secrets.delete(a.id)
       throw error
     }
-    let railway = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?
-      .providerConnectionNilIfEmpty?
-      .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    let railway = RelayCloudLaunchContract.configuredRailwayOrigin
     let callback = railway.map { $0 + "/api/v1/marketplace/oauth/buffer/callback" }
     let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
     let requirements = [

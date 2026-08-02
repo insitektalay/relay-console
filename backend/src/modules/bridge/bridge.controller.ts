@@ -951,7 +951,7 @@ export class BridgeController {
       `Policy allows ${requestedCapability}, but no executable tool is connected or granted.`;
     return this.toolRequestService.createToolRequest(workspaceId, {
       linkedAppId: this.stringOrNull(body.linkedAppId),
-      appSlug: this.stringOrNull(body.appSlug) ?? "local-linkcrest",
+      appSlug: this.stringOrNull(body.appSlug) ?? "local-localappconnector",
       teamId: this.stringOrNull(body.teamId),
       threadId: this.stringOrNull(body.threadId) ?? dispatch.threadId,
       campaignId: this.stringOrNull(body.campaignId),

@@ -5,8 +5,8 @@ import { type MarketplaceGeneratedPack } from "./types";
 
 function app(mode: "safe_default" | "dangerously_skip_permissions"): MarketplaceAppDefinition {
   return {
-    slug: "local-linkcrest",
-    name: "LinkCrest",
+    slug: "local-localappconnector",
+    name: "LocalAppConnector",
     sourceType: "local_repo",
     category: "developer",
     description: "Local app",
@@ -47,8 +47,8 @@ function app(mode: "safe_default" | "dangerously_skip_permissions"): Marketplace
 
 function pack(): MarketplaceGeneratedPack {
   return {
-    appSlug: "local-linkcrest",
-    name: "LinkCrest",
+    appSlug: "local-localappconnector",
+    name: "LocalAppConnector",
     category: "developer",
     riskLevel: "medium",
     approvalProfiles: [
@@ -105,7 +105,7 @@ describe("generated pack autonomy policy", () => {
       pack: pack(),
       runtimeFormat: "hermes",
       selectedCapabilities: ["read", "draft", "write_internal", "email_send"],
-      libraryTargetFolder: "marketplace/local-linkcrest",
+      libraryTargetFolder: "marketplace/local-localappconnector",
     });
     const skill = compiled.files.find((file) => file.relativePath.endsWith("SKILL.md"))?.content ?? "";
     expect(skill).toContain("CURRENT LOCAL APP AUTONOMY MODE: dangerously_skip_permissions");

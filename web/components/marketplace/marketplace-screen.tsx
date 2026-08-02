@@ -144,15 +144,15 @@ export function MarketplaceScreen({
     credentialDrafts,
     environment,
     isReplacingConnectionCredentials,
-    linkcrestBearerKeyDraft,
-    linkcrestOpenClawBaseUrlDraft,
+    localappconnectorBearerKeyDraft,
+    localappconnectorOpenClawBaseUrlDraft,
     microsoftAuthorityMode,
     microsoftTenantId,
     outlookInstallSenderDrafts,
     outlookSenderEmail,
     retainUnverifiedCredentials,
     revealedCredentialDrafts,
-    revealedLinkcrestBearerKeySlug,
+    revealedLocalAppConnectorBearerKeySlug,
     selectedAgentIds,
     selectedAuditorAgentId,
     selectedCapabilities,
@@ -167,15 +167,15 @@ export function MarketplaceScreen({
     setCredentialDrafts,
     setEnvironment,
     setIsReplacingConnectionCredentials,
-    setLinkcrestBearerKeyDraft,
-    setLinkcrestOpenClawBaseUrlDraft,
+    setLocalAppConnectorBearerKeyDraft,
+    setLocalAppConnectorOpenClawBaseUrlDraft,
     setMicrosoftAuthorityMode,
     setMicrosoftTenantId,
     setOutlookInstallSenderDrafts,
     setOutlookSenderEmail,
     setRetainUnverifiedCredentials,
     setRevealedCredentialDrafts,
-    setRevealedLinkcrestBearerKeySlug,
+    setRevealedLocalAppConnectorBearerKeySlug,
     setSelectedAgentIds,
     setSelectedAuditorAgentId,
     setSelectedCapabilities,
@@ -197,8 +197,8 @@ export function MarketplaceScreen({
     useState(false)
   const [dangerousAutonomyAcknowledged, setDangerousAutonomyAcknowledged] =
     useState(false)
-  const [linkcrestCampaignIdDraft, setLinkcrestCampaignIdDraft] = useState("")
-  const [linkcrestCampaignNameDraft, setLinkcrestCampaignNameDraft] =
+  const [localappconnectorCampaignIdDraft, setLocalAppConnectorCampaignIdDraft] = useState("")
+  const [localappconnectorCampaignNameDraft, setLocalAppConnectorCampaignNameDraft] =
     useState("")
   const [runtimeFormat, setRuntimeFormat] =
     useState<MarketplaceRuntimeFormat>("openclaw")
@@ -284,9 +284,9 @@ export function MarketplaceScreen({
     defaultOperatorAgentId,
     effectiveCapabilities,
     existingOperatorInstalled,
-    isLinkCrestApp,
-    linkcrestOpenClawStatus,
-    linkcrestPolicySync,
+    isLocalAppConnectorApp,
+    localappconnectorOpenClawStatus,
+    localappconnectorPolicySync,
     marketplaceAudit,
     ordinaryApprovalProfiles,
     selectedAppActiveInstalls,
@@ -403,16 +403,16 @@ export function MarketplaceScreen({
     setAutonomyPolicy(policyFromApp(selectedApp))
     setDangerousAutonomyAdvancedOpen(false)
     setDangerousAutonomyAcknowledged(false)
-    setLinkcrestCampaignIdDraft(
-      String(selectedApp.sourceMetadata?.linkcrestCampaignId ?? "")
+    setLocalAppConnectorCampaignIdDraft(
+      String(selectedApp.sourceMetadata?.localappconnectorCampaignId ?? "")
     )
-    setLinkcrestCampaignNameDraft(
-      String(selectedApp.sourceMetadata?.linkcrestCampaignName ?? "")
+    setLocalAppConnectorCampaignNameDraft(
+      String(selectedApp.sourceMetadata?.localappconnectorCampaignName ?? "")
     )
-    setLinkcrestOpenClawBaseUrlDraft(
-      String(selectedApp.sourceMetadata?.linkcrestOpenClawBaseUrl ?? "")
+    setLocalAppConnectorOpenClawBaseUrlDraft(
+      String(selectedApp.sourceMetadata?.localappconnectorOpenClawBaseUrl ?? "")
     )
-    setLinkcrestBearerKeyDraft("")
+    setLocalAppConnectorBearerKeyDraft("")
     setRuntimeFormat(selectedApp.runtimeSupport[0]?.format ?? "openclaw")
     setLastInstallResult(null)
     setAcknowledgeGeneratedDraftRisk(false)
@@ -684,9 +684,9 @@ export function MarketplaceScreen({
       environment,
       isReplacingConnectionCredentials,
       existingOperatorInstalled,
-      isLinkCrestApp,
-      linkcrestCampaignIdDraft,
-      linkcrestCampaignNameDraft,
+      isLocalAppConnectorApp,
+      localappconnectorCampaignIdDraft,
+      localappconnectorCampaignNameDraft,
       onConnectionComplete,
       outlookSenderEmail,
       queryClient,
@@ -723,11 +723,11 @@ export function MarketplaceScreen({
   const {
     analyzeLocalRepoDocsMutation,
     applyLocalRepoDocsProposalMutation,
-    configureLinkCrestOpenClawMutation,
+    configureLocalAppConnectorOpenClawMutation,
     createLocalAppMutation,
     persistAutonomyPolicy,
     refreshAgentDocsMutation,
-    syncLinkCrestPolicyMutation,
+    syncLocalAppConnectorPolicyMutation,
     updateDocumentationAutomationMutation,
     updateLocalAppSourceMutation,
     updatePackMutation,
@@ -740,7 +740,7 @@ export function MarketplaceScreen({
     selectedApp,
     setAddAppMode,
     setAutonomyPolicy,
-    setLinkcrestBearerKeyDraft,
+    setLocalAppConnectorBearerKeyDraft,
     setLocalAppDraft,
     workspaceId,
   })
@@ -776,7 +776,7 @@ export function MarketplaceScreen({
     existingOperatorInstalled,
     generatedPackPublicationStatus:
       generatedPackDetailQuery.data?.publicationStatus ?? null,
-    isLinkCrestApp,
+    isLocalAppConnectorApp,
     onCreateCompatibleAgent,
     onOpenRuntimePairing,
     packPreviewFiles: previewQuery.data?.files ?? [],
@@ -2342,7 +2342,7 @@ export function MarketplaceScreen({
                             granular tool categories; unavailable tools must be
                             reported as tool unavailable.
                           </div>
-                          {!isLinkCrestApp ? (
+                          {!isLocalAppConnectorApp ? (
                             <details className="mt-3 rounded-[4px] border border-[color-mix(in_srgb,var(--claw-border)_34%,transparent)] p-3">
                               <summary className="cursor-pointer text-sm font-medium">
                                 Advanced / Runtime
@@ -2405,12 +2405,12 @@ export function MarketplaceScreen({
                         </div>
                       ) : null}
 
-                      {isLinkCrestApp ? (
+                      {isLocalAppConnectorApp ? (
                         <div className="rounded-[6px] border border-[color-mix(in_srgb,var(--claw-border)_34%,transparent)] bg-[var(--claw-bg-surface)] p-3">
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
                               <div className="text-base font-semibold">
-                                LinkCrest Agent API connection
+                                LocalAppConnector Agent API connection
                               </div>
                               <div className="mt-1 text-xs text-[var(--claw-text-secondary)]">
                                 Use Connect to auto-detect the local app,
@@ -2421,13 +2421,13 @@ export function MarketplaceScreen({
                             </div>
                             <Badge
                               variant={
-                                linkcrestPolicySync?.status === "synced" &&
-                                !linkcrestPolicySync.mismatch
+                                localappconnectorPolicySync?.status === "synced" &&
+                                !localappconnectorPolicySync.mismatch
                                   ? "secondary"
                                   : "outline"
                               }
                             >
-                              {linkcrestPolicySync?.status ?? "unsynced"}
+                              {localappconnectorPolicySync?.status ?? "unsynced"}
                             </Badge>
                           </div>
                           {lastAutoConnectResult ? (
@@ -2464,27 +2464,27 @@ export function MarketplaceScreen({
                           <div className="mt-3 grid gap-2 text-xs text-[var(--claw-text-secondary)] md:grid-cols-4">
                             <div>
                               Agent API:{" "}
-                              {linkcrestOpenClawStatus?.connected
+                              {localappconnectorOpenClawStatus?.connected
                                 ? "connected"
                                 : "not configured"}
                             </div>
                             <div>
                               Connection:{" "}
-                              {linkcrestOpenClawStatus?.useMockMode
+                              {localappconnectorOpenClawStatus?.useMockMode
                                 ? "mock"
-                                : linkcrestOpenClawStatus?.connected
+                                : localappconnectorOpenClawStatus?.connected
                                   ? "real"
                                   : "none"}
                             </div>
                             <div>
                               Bearer key:{" "}
-                              {linkcrestOpenClawStatus?.hasBearerKey
+                              {localappconnectorOpenClawStatus?.hasBearerKey
                                 ? "stored"
                                 : "missing"}
                             </div>
                             <div>
                               Hermes credential attached:{" "}
-                              {linkcrestOpenClawStatus?.hermesCredentialAttached
+                              {localappconnectorOpenClawStatus?.hermesCredentialAttached
                                 ? "yes"
                                 : "not confirmed"}
                             </div>
@@ -2586,9 +2586,9 @@ export function MarketplaceScreen({
                             </div>
                             <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_auto]">
                               <Input
-                                value={linkcrestOpenClawBaseUrlDraft}
+                                value={localappconnectorOpenClawBaseUrlDraft}
                                 onChange={(event) =>
-                                  setLinkcrestOpenClawBaseUrlDraft(
+                                  setLocalAppConnectorOpenClawBaseUrlDraft(
                                     event.target.value
                                   )
                                 }
@@ -2596,19 +2596,19 @@ export function MarketplaceScreen({
                               />
                               <SecretCredentialInput
                                 inputName={`${selectedApp.slug}__bearer_key`}
-                                value={linkcrestBearerKeyDraft}
+                                value={localappconnectorBearerKeyDraft}
                                 revealed={
-                                  revealedLinkcrestBearerKeySlug ===
+                                  revealedLocalAppConnectorBearerKeySlug ===
                                   selectedApp.slug
                                 }
                                 label={
-                                  linkcrestOpenClawStatus?.hasBearerKey
+                                  localappconnectorOpenClawStatus?.hasBearerKey
                                     ? "Bearer key saved"
                                     : "Bearer key"
                                 }
-                                onChange={setLinkcrestBearerKeyDraft}
+                                onChange={setLocalAppConnectorBearerKeyDraft}
                                 onToggleReveal={() =>
-                                  setRevealedLinkcrestBearerKeySlug(
+                                  setRevealedLocalAppConnectorBearerKeySlug(
                                     (current) =>
                                       current === selectedApp.slug
                                         ? null
@@ -2619,20 +2619,20 @@ export function MarketplaceScreen({
                               <Button
                                 type="button"
                                 disabled={
-                                  configureLinkCrestOpenClawMutation.isPending ||
-                                  !linkcrestOpenClawBaseUrlDraft.trim()
+                                  configureLocalAppConnectorOpenClawMutation.isPending ||
+                                  !localappconnectorOpenClawBaseUrlDraft.trim()
                                 }
                                 onClick={() => {
                                   if (!selectedApp) return
-                                  configureLinkCrestOpenClawMutation.mutate({
+                                  configureLocalAppConnectorOpenClawMutation.mutate({
                                     appSlug: selectedApp.slug,
                                     openclawBaseUrl:
-                                      linkcrestOpenClawBaseUrlDraft,
-                                    bearerKey: linkcrestBearerKeyDraft || null,
+                                      localappconnectorOpenClawBaseUrlDraft,
+                                    bearerKey: localappconnectorBearerKeyDraft || null,
                                     campaignId:
-                                      linkcrestCampaignIdDraft || null,
+                                      localappconnectorCampaignIdDraft || null,
                                     campaignName:
-                                      linkcrestCampaignNameDraft || null,
+                                      localappconnectorCampaignNameDraft || null,
                                   })
                                 }}
                               >
@@ -2642,21 +2642,21 @@ export function MarketplaceScreen({
                             <div className="mt-2 grid gap-2 text-xs text-[var(--claw-text-secondary)] md:grid-cols-3">
                               <div>
                                 Agent API:{" "}
-                                {linkcrestOpenClawStatus?.connected
+                                {localappconnectorOpenClawStatus?.connected
                                   ? "connected"
                                   : "not configured"}
                               </div>
                               <div>
                                 Connection:{" "}
-                                {linkcrestOpenClawStatus?.useMockMode
+                                {localappconnectorOpenClawStatus?.useMockMode
                                   ? "mock"
-                                  : linkcrestOpenClawStatus?.connected
+                                  : localappconnectorOpenClawStatus?.connected
                                     ? "real"
                                     : "none"}
                               </div>
                               <div>
                                 Bearer key:{" "}
-                                {linkcrestOpenClawStatus?.hasBearerKey
+                                {localappconnectorOpenClawStatus?.hasBearerKey
                                   ? "stored"
                                   : "missing"}
                               </div>
@@ -2672,10 +2672,10 @@ export function MarketplaceScreen({
                               </div>
                               <div>
                                 <div className="text-xs text-[var(--claw-text-secondary)]">
-                                  LinkCrest campaign mode
+                                  LocalAppConnector campaign mode
                                 </div>
                                 <div className="font-mono">
-                                  {linkcrestPolicySync?.linkcrestMode ??
+                                  {localappconnectorPolicySync?.localappconnectorMode ??
                                     "not synced"}
                                 </div>
                               </div>
@@ -2684,7 +2684,7 @@ export function MarketplaceScreen({
                                   Last sync
                                 </div>
                                 <div>
-                                  {linkcrestPolicySync?.lastSyncAt ?? "never"}
+                                  {localappconnectorPolicySync?.lastSyncAt ?? "never"}
                                 </div>
                               </div>
                               <div>
@@ -2692,31 +2692,31 @@ export function MarketplaceScreen({
                                   Result
                                 </div>
                                 <div>
-                                  {linkcrestPolicySync?.message ??
-                                    "Relay Console mode set, but LinkCrest campaign policy not synced."}
+                                  {localappconnectorPolicySync?.message ??
+                                    "Relay Console mode set, but LocalAppConnector campaign policy not synced."}
                                 </div>
                               </div>
                             </div>
-                            {linkcrestPolicySync?.mismatch ? (
+                            {localappconnectorPolicySync?.mismatch ? (
                               <div className="mt-3 rounded-[4px] border border-yellow-400/35 bg-yellow-500/10 p-3 text-sm text-yellow-100">
-                                Relay Console mode and LinkCrest campaign policy
+                                Relay Console mode and LocalAppConnector campaign policy
                                 may not match.
                               </div>
                             ) : null}
                             <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_auto]">
                               <Input
-                                value={linkcrestCampaignIdDraft}
+                                value={localappconnectorCampaignIdDraft}
                                 onChange={(event) =>
-                                  setLinkcrestCampaignIdDraft(
+                                  setLocalAppConnectorCampaignIdDraft(
                                     event.target.value
                                   )
                                 }
-                                placeholder="LinkCrest campaign ID"
+                                placeholder="LocalAppConnector campaign ID"
                               />
                               <Input
-                                value={linkcrestCampaignNameDraft}
+                                value={localappconnectorCampaignNameDraft}
                                 onChange={(event) =>
-                                  setLinkcrestCampaignNameDraft(
+                                  setLocalAppConnectorCampaignNameDraft(
                                     event.target.value
                                   )
                                 }
@@ -2724,15 +2724,15 @@ export function MarketplaceScreen({
                               />
                               <Button
                                 type="button"
-                                disabled={syncLinkCrestPolicyMutation.isPending}
+                                disabled={syncLocalAppConnectorPolicyMutation.isPending}
                                 onClick={() => {
                                   if (!selectedApp) return
-                                  syncLinkCrestPolicyMutation.mutate({
+                                  syncLocalAppConnectorPolicyMutation.mutate({
                                     appSlug: selectedApp.slug,
                                     campaignId:
-                                      linkcrestCampaignIdDraft || null,
+                                      localappconnectorCampaignIdDraft || null,
                                     campaignName:
-                                      linkcrestCampaignNameDraft || null,
+                                      localappconnectorCampaignNameDraft || null,
                                   })
                                 }}
                               >

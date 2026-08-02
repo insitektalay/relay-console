@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "relay.railway-template.v1",
+  "templateName": "Relay Console",
+  "dashboardPublishingRequired": true,
+  "services": {
+    "backend": {
+      "source": "https://github.com/insitektalay/clawchat",
+      "rootDirectory": "/backend",
+      "configFilePath": "/backend/railway.json",
+      "publicHttpDomain": true,
+      "variables": {
+        "NODE_ENV": "production",
+        "PORT": "3000",
+        "WS_PORT": "3000",
+        "API_PREFIX": "api/v1",
+        "SEED_ON_START": "false",
+        "RELAY_RAILWAY_TEMPLATE_BOOTSTRAP": "true",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
+        "DATABASE_CA_BOOTSTRAP_URL": "http://${{Postgres.RAILWAY_PRIVATE_DOMAIN}}:8081/ca",
+        "DATABASE_CA_BOOTSTRAP_SECRET": "${{Postgres.DATABASE_CA_BOOTSTRAP_SECRET}}",
+        "REDIS_URL": "${{Redis.REDIS_URL}}",
+        "CORS_ORIGINS": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
+        "JWT_ISSUER": "https://${{RAILWAY_PUBLIC_DOMAIN}}/api/v1",
+        "JWT_SECRET": "${{secret(48)}}",
+        "JWT_REFRESH_SECRET": "${{secret(48)}}",
+        "JWT_WS_SECRET": "${{secret(48)}}",
+        "APP_ENCRYPTION_KEY_VERSION": "v1",
+        "APP_ENCRYPTION_KEY": "utf8:${{secret(32)}}",
+        "ATTACHMENT_PROVENANCE_SECRET": "${{secret(48)}}",
+        "ATTACHMENT_SIGNING_SECRET": "${{secret(48)}}",
+        "CONNECTION_DESCRIPTOR_SEED": "${{secret(64, \"0123456789abcdef\")}}",
+        "RELAY_OPERATOR_API_SECRET": "${{secret(48)}}",
+        "AUDIT_IDENTIFIER_HASH_SECRET": "${{secret(48)}}",
+        "CLAWCHAT_BETA_INVITE_HASH_SECRET": "${{secret(48)}}",
+        "CLAWCHAT_BETA_INVITE_CODES": "${{secret(32)}}",
+        "CLAWCHAT_BETA_SIGNUP_MODE": "invite",
+        "CLAWCHAT_API_DOCS_ENABLED": "false",
+        "CLAWCHAT_INTERNAL_API_DOCS_ENABLED": "false",
+        "CLAWCHAT_MARKETPLACE_BETA_MODE": "true",
+        "CLAWCHAT_MARKETPLACE_ALLOWED_APPS": "github,gitlab,linear,notion",
+        "CLAWCHAT_MARKETPLACE_BLOCKED_APPS": "x,linkedin,stripe,railway,vercel,supabase",
+        "RELAY_BILLING_ENABLED": "false",
+        "RELAY_MANAGED_CLOUD_ENABLED": "false",
+        "RELAY_TRANSACTIONAL_EMAIL_ENABLED": "false",
+        "RELAY_APPLE_BILLING_ENABLED": "false"
+      }
+    },
+    "Postgres": {
+      "source": "https://github.com/insitektalay/clawchat",
+      "rootDirectory": "/railway/postgres",
+      "publicNetworking": false,
+      "privatePorts": [5432, 8081],
+      "volumeMountPath": "/var/lib/postgresql/data",
+      "variables": {
+        "PGDATA": "/var/lib/postgresql/data/pgdata",
+        "POSTGRES_DB": "railway",
+        "POSTGRES_USER": "postgres",
+        "POSTGRES_PASSWORD": "${{secret(64, \"0123456789abcdef\")}}",
+        "PGDATABASE": "${{POSTGRES_DB}}",
+        "PGUSER": "${{POSTGRES_USER}}",
+        "PGPASSWORD": "${{POSTGRES_PASSWORD}}",
+        "PGHOST": "${{RAILWAY_PRIVATE_DOMAIN}}",
+        "PGPORT": "5432",
+        "DATABASE_URL": "postgresql://${{POSTGRES_USER}}:${{POSTGRES_PASSWORD}}@${{RAILWAY_PRIVATE_DOMAIN}}:5432/${{POSTGRES_DB}}",
+        "DATABASE_CA_BOOTSTRAP_SECRET": "${{secret(64, \"0123456789abcdef\")}}"
+      }
+    },
+    "Redis": {
+      "source": "Railway Redis database",
+      "publicNetworking": false,
+      "persistentVolume": true,
+      "requiredReferenceVariables": ["REDIS_URL"]
+    }
+  }
+}

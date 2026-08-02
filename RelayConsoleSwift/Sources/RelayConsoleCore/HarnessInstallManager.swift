@@ -549,6 +549,12 @@ public final class HarnessInstallManager {
         let selected = location.standardizedFileURL
         let installPath = try resolveExistingHarnessRoot(harnessKey: harnessKey, selected: selected)
         try assertHarnessFolder(entry: entry, installPath)
+        if harnessKey == .hermes, resolveHermesPython(installPath) == nil {
+            throw RelayError(
+                .harnessMissing,
+                "This Hermes Agent folder needs its Python environment. Relay supports both .venv and venv layouts."
+            )
+        }
 
         var update: JSONRecord = [
             "source": .string(HarnessInstallSource.located.rawValue),

@@ -1,0 +1,146 @@
+name: macOS Sparkle Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Protected annotated tag (macos-v<version>-b<build>)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-15
+    permissions:
+      contents: write
+    environment: macos-production-release
+    steps:
+      - name: Validate requested release tag
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          [[ "$RELEASE_TAG" =~ ^macos-v[0-9]+\.[0-9]+\.[0-9]+-b[1-9][0-9]*$ ]] || {
+            echo "Tag must match macos-v<version>-b<build>" >&2
+            exit 1
+          }
+
+      - name: Check out exact tagged commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify tag, clean source, and release metadata
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          git cat-file -e "$RELEASE_TAG^{tag}"
+          [[ -z "$(git status --porcelain)" ]]
+          [[ "$(git rev-parse HEAD)" == "$(git rev-list -n 1 "$RELEASE_TAG")" ]]
+          VERSION="$(/usr/bin/plutil -extract version raw -o - RelayConsoleSwift/Sources/RelayConsoleCore/Resources/relay-console-release.json)"
+          BUILD="$(/usr/bin/plutil -extract build raw -o - RelayConsoleSwift/Sources/RelayConsoleCore/Resources/relay-console-release.json)"
+          ! grep -q 'Replace this file with reviewed' RelayConsoleSwift/Release/RELEASE_NOTES.md || {
+            echo "Release-specific notes are required" >&2
+            exit 1
+          }
+          [[ "$RELEASE_TAG" == "macos-v${VERSION}-b${BUILD}" ]]
+          curl --fail --silent --show-error https://insitektalay.github.io/clawchat/appcast.xml -o "$RUNNER_TEMP/previous-appcast.xml" || true
+          if [[ -s "$RUNNER_TEMP/previous-appcast.xml" ]]; then
+            PREVIOUS_BUILD="$(xmllint --xpath 'string((//*[local-name()="version"])[1])' "$RUNNER_TEMP/previous-appcast.xml")"
+            [[ -z "$PREVIOUS_BUILD" || "$BUILD" -gt "$PREVIOUS_BUILD" ]] || {
+              echo "CFBundleVersion must be newer than the public appcast" >&2
+              exit 1
+            }
+          fi
+
+      - name: Import Developer ID and notarization credentials
+        env:
+          CERTIFICATE_P12: ${{ secrets.MACOS_DEVELOPER_ID_CERTIFICATE_P12_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+          NOTARY_KEY: ${{ secrets.APPLE_NOTARY_PRIVATE_KEY }}
+          NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/release.keychain-db"
+          security create-keychain -p "" "$KEYCHAIN"
+          security unlock-keychain -p "" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          echo "$CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/developer-id.p12"
+          security import "$RUNNER_TEMP/developer-id.p12" -k "$KEYCHAIN" -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security list-keychains -d user -s "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" "$KEYCHAIN"
+          printf '%s' "$NOTARY_KEY" > "$RUNNER_TEMP/notary-key.p8"
+          xcrun notarytool store-credentials relay-console-notary --key "$RUNNER_TEMP/notary-key.p8" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID"
+
+      - name: Build, sign, notarize, staple, and validate
+        working-directory: RelayConsoleSwift
+        env:
+          RELAY_CONSOLE_DEVELOPER_ID_APPLICATION: ${{ secrets.MACOS_DEVELOPER_ID_APPLICATION }}
+          RELAY_CONSOLE_NOTARY_KEYCHAIN_PROFILE: relay-console-notary
+          RELAY_SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
+          CLAWCHAT_RAILWAY_ORIGIN: ${{ vars.CLAWCHAT_RAILWAY_ORIGIN }}
+          NEXT_PUBLIC_RAILWAY_WS_BASE_URL: ${{ vars.NEXT_PUBLIC_RAILWAY_WS_BASE_URL }}
+        run: Scripts/build-distribution.sh --architecture arm64 --output .build/sparkle-release
+
+      - name: Create signed appcast and immutable release payload
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_EDDSA_PRIVATE_KEY }}
+        run: |
+          VERSION="$(/usr/bin/plutil -extract version raw -o - RelayConsoleSwift/Sources/RelayConsoleCore/Resources/relay-console-release.json)"
+          BUILD="$(/usr/bin/plutil -extract build raw -o - RelayConsoleSwift/Sources/RelayConsoleCore/Resources/relay-console-release.json)"
+          UPDATES="$RUNNER_TEMP/updates"
+          mkdir -p "$UPDATES"
+          ARCHIVE="RelayConsole-${VERSION}-b${BUILD}.zip"
+          ditto -c -k --sequesterRsrc --keepParent "RelayConsoleSwift/.build/sparkle-release/work/Relay Console.app" "$UPDATES/$ARCHIVE"
+          cp "RelayConsoleSwift/Release/RELEASE_NOTES.md" "$UPDATES/RelayConsole-${VERSION}-b${BUILD}.md"
+          [[ ! -s "$RUNNER_TEMP/previous-appcast.xml" ]] || cp "$RUNNER_TEMP/previous-appcast.xml" "$UPDATES/appcast.xml"
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | RelayConsoleSwift/.build/artifacts/sparkle/Sparkle/bin/generate_appcast \
+            --ed-key-file - \
+            --download-url-prefix "https://github.com/insitektalay/clawchat/releases/download/${RELEASE_TAG}/" \
+            --embed-release-notes --maximum-versions 0 -o appcast.xml "$UPDATES"
+          shasum -a 256 "$UPDATES/$ARCHIVE" "RelayConsoleSwift/.build/sparkle-release/RelayConsole-public-beta.dmg" > "$UPDATES/SHA256SUMS"
+          xmllint --noout "$UPDATES/appcast.xml"
+          grep -q "https://github.com/insitektalay/clawchat/releases/download/${RELEASE_TAG}/${ARCHIVE}" "$UPDATES/appcast.xml"
+          grep -q 'sparkle:edSignature=' "$UPDATES/appcast.xml"
+
+      - name: Publish immutable GitHub Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          VERSION="$(/usr/bin/plutil -extract version raw -o - RelayConsoleSwift/Sources/RelayConsoleCore/Resources/relay-console-release.json)"
+          BUILD="$(/usr/bin/plutil -extract build raw -o - RelayConsoleSwift/Sources/RelayConsoleCore/Resources/relay-console-release.json)"
+          ARCHIVE="$RUNNER_TEMP/updates/RelayConsole-${VERSION}-b${BUILD}.zip"
+          gh release create "$RELEASE_TAG" --verify-tag --title "Relay Console ${VERSION}" --notes-file RelayConsoleSwift/Release/RELEASE_NOTES.md \
+            "$ARCHIVE" RelayConsoleSwift/.build/sparkle-release/RelayConsole-public-beta.dmg "$RUNNER_TEMP/updates/SHA256SUMS"
+          mkdir -p "$RUNNER_TEMP/verify"
+          gh release download "$RELEASE_TAG" --pattern "$(basename "$ARCHIVE")" --dir "$RUNNER_TEMP/verify"
+          [[ "$(shasum -a 256 "$ARCHIVE" | awk '{print $1}')" == "$(shasum -a 256 "$RUNNER_TEMP/verify/$(basename "$ARCHIVE")" | awk '{print $1}')" ]]
+
+      - name: Publish appcast last to GitHub Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git clone --depth 1 --branch gh-pages "https://x-access-token:${GH_TOKEN}@github.com/insitektalay/clawchat.git" "$RUNNER_TEMP/pages"
+          cp "$RUNNER_TEMP/updates/appcast.xml" "$RUNNER_TEMP/pages/appcast.xml"
+          cd "$RUNNER_TEMP/pages"
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add appcast.xml
+          git commit -m "Publish Relay Console Sparkle appcast for ${{ inputs.tag }}"
+          git push origin gh-pages
+
+      - name: Preserve private dSYMs and release evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: relay-console-${{ inputs.tag }}-private-evidence
+          path: |
+            RelayConsoleSwift/.build/sparkle-release/app/*.dSYM
+            RelayConsoleSwift/.build/sparkle-release/*.json
+          retention-days: 90

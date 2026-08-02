@@ -48,8 +48,8 @@ import {
 } from "./x-marketplace.controller";
 import {
   BridgeAgentMarketplaceToolsController,
-  LinkCrestAgentApiBridgeToolsController,
-} from "./linkcrest-agent-api-tools.controller";
+  LocalAppConnectorAgentApiBridgeToolsController,
+} from "./localappconnector-agent-api-tools.controller";
 import { MarketplaceConnectorOAuthCallbackController } from "./connector-oauth-callback.controller";
 import { XMarketplaceService } from "./x-marketplace.service";
 import { MarketplaceConnectorCredentialService } from "./connectors/connector-credential.service";
@@ -549,7 +549,7 @@ import { BlueskyActionService } from "./bluesky/bluesky-action.service";
     XMarketplaceBridgeToolsController,
     XMarketplaceOAuthCallbackController,
     MarketplaceConnectorOAuthCallbackController,
-    LinkCrestAgentApiBridgeToolsController,
+    LocalAppConnectorAgentApiBridgeToolsController,
     BridgeAgentMarketplaceToolsController,
   ],
   providers: [

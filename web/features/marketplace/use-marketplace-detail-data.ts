@@ -4,7 +4,7 @@ import {
   capabilitiesFromAutonomyPolicy,
   DANGEROUSLY_SKIP_PERMISSIONS_POLICY_ID,
   getPackQuality,
-  linkcrestSyncFromApp,
+  localappconnectorSyncFromApp,
   marketplaceAppUsesConnectorOAuth,
   marketplaceAppUsesNativeConnector,
   marketplacePolicyActions,
@@ -93,17 +93,17 @@ export function useMarketplaceDetailData({
     () => marketplaceRoles(selectedApp),
     [selectedApp]
   )
-  const linkcrestPolicySync = linkcrestSyncFromApp(selectedApp)
-  const isLinkCrestApp =
+  const localappconnectorPolicySync = localappconnectorSyncFromApp(selectedApp)
+  const isLocalAppConnectorApp =
     selectedApp?.sourceType === "local_repo" &&
     `${selectedApp.slug} ${selectedApp.name}`
       .toLowerCase()
-      .includes("linkcrest")
+      .includes("localappconnector")
   const selectedRuntimeProfile = runtimeProfileFromApp(selectedApp)
-  const linkcrestOpenClawStatus =
-    selectedApp?.sourceMetadata?.linkcrestOpenClawStatus &&
-    typeof selectedApp.sourceMetadata.linkcrestOpenClawStatus === "object"
-      ? (selectedApp.sourceMetadata.linkcrestOpenClawStatus as Record<
+  const localappconnectorOpenClawStatus =
+    selectedApp?.sourceMetadata?.localappconnectorOpenClawStatus &&
+    typeof selectedApp.sourceMetadata.localappconnectorOpenClawStatus === "object"
+      ? (selectedApp.sourceMetadata.localappconnectorOpenClawStatus as Record<
           string,
           unknown
         >)
@@ -255,9 +255,9 @@ export function useMarketplaceDetailData({
     defaultOperatorAgentId,
     effectiveCapabilities,
     existingOperatorInstalled,
-    isLinkCrestApp,
-    linkcrestOpenClawStatus,
-    linkcrestPolicySync,
+    isLocalAppConnectorApp,
+    localappconnectorOpenClawStatus,
+    localappconnectorPolicySync,
     marketplaceAudit,
     ordinaryApprovalProfiles,
     selectedAppActiveInstalls,

@@ -5,6 +5,14 @@ Release candidate: 0.1.1 build 4
 Legal review status: pending. The release owner must compare this file with the
 locked build graph before signing a candidate.
 
+## Sparkle 2.9.4
+
+Source: https://github.com/sparkle-project/Sparkle
+
+MIT License and bundled-component notices. Copyright (c) 2006-2017 Sparkle
+contributors. The app bundle includes the complete upstream notice as
+`Sparkle-LICENSE`.
+
 ## Swift Markdown UI 2.4.1
 
 Source: https://github.com/gonzalezreal/swift-markdown-ui

@@ -20,7 +20,7 @@ import { ResponseInterceptor } from "../../common/interceptors/response.intercep
 import { UserEntity } from "../../entities/user.entity";
 import { WorkspaceMembershipService } from "../workspace-membership/workspace-membership.service";
 import {
-  ConfigureLinkCrestOpenClawDto,
+  ConfigureLocalAppConnectorOpenClawDto,
   AutoConnectLocalAppDto,
   CreateLocalMarketplaceAppDto,
   ApplyLocalRepoDocsProposalDto,
@@ -29,7 +29,7 @@ import {
   InstallMarketplaceAppDto,
   PreviewMarketplacePackDto,
   RecordMarketplacePackReviewDto,
-  SyncLinkCrestPolicyDto,
+  SyncLocalAppConnectorPolicyDto,
   UpdateLocalMarketplaceAppDto,
   UpdateMarketplaceConnectionDto,
   UpdateMarketplaceInstallDto,
@@ -224,18 +224,18 @@ export class MarketplaceController {
     );
   }
 
-  @Post("apps/:slug/linkcrest-policy/sync")
-  async syncLinkCrestPolicy(
+  @Post("apps/:slug/localappconnector-policy/sync")
+  async syncLocalAppConnectorPolicy(
     @Param("workspaceId") workspaceId: string,
     @Param("slug") slug: string,
     @CurrentUser() user: UserEntity,
-    @Body() dto: SyncLinkCrestPolicyDto,
+    @Body() dto: SyncLocalAppConnectorPolicyDto,
   ) {
     await this.workspaceMembershipService.ensureWorkspaceAdminAccess(
       workspaceId,
       user.id,
     );
-    return this.marketplaceService.syncLinkCrestCampaignPolicy(
+    return this.marketplaceService.syncLocalAppConnectorCampaignPolicy(
       workspaceId,
       slug,
       user.id,
@@ -243,19 +243,19 @@ export class MarketplaceController {
     );
   }
 
-  @Post("apps/:slug/linkcrest-agent-api/configure")
-  @Post("apps/:slug/linkcrest-openclaw/configure")
-  async configureLinkCrestOpenClaw(
+  @Post("apps/:slug/localappconnector-agent-api/configure")
+  @Post("apps/:slug/localappconnector-openclaw/configure")
+  async configureLocalAppConnectorOpenClaw(
     @Param("workspaceId") workspaceId: string,
     @Param("slug") slug: string,
     @CurrentUser() user: UserEntity,
-    @Body() dto: ConfigureLinkCrestOpenClawDto,
+    @Body() dto: ConfigureLocalAppConnectorOpenClawDto,
   ) {
     await this.workspaceMembershipService.ensureWorkspaceAdminAccess(
       workspaceId,
       user.id,
     );
-    return this.marketplaceService.configureLinkCrestOpenClaw(
+    return this.marketplaceService.configureLocalAppConnectorOpenClaw(
       workspaceId,
       slug,
       user.id,

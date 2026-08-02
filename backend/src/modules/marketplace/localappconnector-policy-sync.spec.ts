@@ -39,22 +39,22 @@ function makeService(bridgeService: { callOpenClawOperation: jest.Mock }) {
   };
 }
 
-function linkcrestLinked(overrides: Record<string, unknown> = {}) {
+function localappconnectorLinked(overrides: Record<string, unknown> = {}) {
   return {
     id: "linked_1",
     workspaceId: "ws_1",
-    name: "LinkCrest",
-    slug: "local-linkcrest",
+    name: "LocalAppConnector",
+    slug: "local-localappconnector",
     metadata: {
-      linkcrestCampaignId: "campaign_1",
-      linkcrestCampaignName: "AI YouTube Channels Backlink Campaign",
+      localappconnectorCampaignId: "campaign_1",
+      localappconnectorCampaignName: "AI YouTube Channels Backlink Campaign",
       ...overrides,
     },
     apiStyleMetadata: {},
   };
 }
 
-describe("LinkCrest campaign policy sync", () => {
+describe("LocalAppConnector campaign policy sync", () => {
   it("mode change sync calls get_policy, update_policy, and explain_effective_policy", async () => {
     const bridgeService = {
       callOpenClawOperation: jest
@@ -74,7 +74,7 @@ describe("LinkCrest campaign policy sync", () => {
 
     const result = await (
       service as any
-    ).syncLinkCrestCampaignPolicyForLinkedApp("ws_1", linkcrestLinked(), {
+    ).syncLocalAppConnectorCampaignPolicyForLinkedApp("ws_1", localappconnectorLinked(), {
       policy,
       reason: "autonomy_policy_update",
     });
@@ -106,9 +106,9 @@ describe("LinkCrest campaign policy sync", () => {
     };
     const { service } = makeService(bridgeService);
 
-    await (service as any).syncLinkCrestCampaignPolicyForLinkedApp(
+    await (service as any).syncLocalAppConnectorCampaignPolicyForLinkedApp(
       "ws_1",
-      linkcrestLinked(),
+      localappconnectorLinked(),
       { policy: defaultLocalAppAutonomyPolicy("safe_default"), reason: "test" },
     );
 
@@ -123,11 +123,11 @@ describe("LinkCrest campaign policy sync", () => {
 
     const result = await (
       service as any
-    ).syncLinkCrestCampaignPolicyForLinkedApp(
+    ).syncLocalAppConnectorCampaignPolicyForLinkedApp(
       "ws_1",
-      linkcrestLinked({
-        linkcrestCampaignId: null,
-        linkcrestCampaignName: null,
+      localappconnectorLinked({
+        localappconnectorCampaignId: null,
+        localappconnectorCampaignName: null,
       }),
       { policy: defaultLocalAppAutonomyPolicy("safe_default"), reason: "test" },
     );
@@ -149,7 +149,7 @@ describe("LinkCrest campaign policy sync", () => {
 
     const result = await (
       service as any
-    ).syncLinkCrestCampaignPolicyForLinkedApp("ws_1", linkcrestLinked(), {
+    ).syncLocalAppConnectorCampaignPolicyForLinkedApp("ws_1", localappconnectorLinked(), {
       policy: defaultLocalAppAutonomyPolicy("safe_default"),
       reason: "test",
     });
@@ -198,7 +198,7 @@ describe("LinkCrest campaign policy sync", () => {
     const result = (service as any).buildLocalAppAutoConnectResult({
       status: "connected",
       message: "connected",
-      app: { slug: "local-linkcrest", name: "LinkCrest" },
+      app: { slug: "local-localappconnector", name: "LocalAppConnector" },
       connectionId: "connection_1",
       setup: {
         requestId: "request_1",

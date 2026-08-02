@@ -3074,7 +3074,7 @@ describe("Marketplace local repo .clawchat ingestion", () => {
     const readMarketplaceLocalRepoDocs = jest.fn().mockResolvedValue({
       requestId: "req-1",
       status: "ok",
-      repoPath: "/home/alexkerss/repos/GapMiner",
+      repoPath: "/home/example/repos/GapMiner",
       docsSourcePath: ".clawchat/",
       gitCommit: "abc123",
       dirtyState: "dirty",
@@ -3231,7 +3231,7 @@ describe("Marketplace local repo .clawchat ingestion", () => {
       workspaceId: "workspace-1",
       name: "GapMiner",
       slug: "local-gapminer",
-      repoPath: "/home/alexkerss/repos/GapMiner",
+      repoPath: "/home/example/repos/GapMiner",
       frameworkMetadata: { sourceType: "local_repo" },
       apiStyleMetadata: {},
       metadata: {
@@ -3271,7 +3271,7 @@ describe("Marketplace local repo .clawchat ingestion", () => {
       "workspace-1",
       expect.objectContaining({
         bridgeDeviceId: "bridge-1",
-        repoPath: "/home/alexkerss/repos/GapMiner",
+        repoPath: "/home/example/repos/GapMiner",
         docsSourcePath: ".clawchat/",
         includeGlobs: expect.arrayContaining([
           ".clawchat/auditor-docs-source/*.md",
@@ -3460,7 +3460,7 @@ describe("Marketplace local repo .clawchat ingestion", () => {
     const readMarketplaceLocalRepoDocs = jest.fn().mockResolvedValue({
       requestId: "req-1",
       status: "ok",
-      repoPath: "/home/alexkerss/repos/LinkCrest",
+      repoPath: "/home/example/repos/LocalAppConnector",
       docsSourcePath: ".clawchat/clawchat.config.json",
       gitCommit: "abc123",
       dirtyState: "clean",
@@ -3481,11 +3481,11 @@ describe("Marketplace local repo .clawchat ingestion", () => {
       readMarketplaceLocalRepoDocs,
     });
     const linked = {
-      id: "linked-linkcrest",
+      id: "linked-localappconnector",
       workspaceId: "workspace-1",
-      name: "LinkCrest",
-      slug: "local-linkcrest",
-      repoPath: "/home/alexkerss/repos/LinkCrest",
+      name: "LocalAppConnector",
+      slug: "local-localappconnector",
+      repoPath: "/home/example/repos/LocalAppConnector",
       frameworkMetadata: { sourceType: "local_repo" },
       apiStyleMetadata: {},
       metadata: {
@@ -3506,7 +3506,7 @@ describe("Marketplace local repo .clawchat ingestion", () => {
     expect(readMarketplaceLocalRepoDocs).toHaveBeenCalledWith(
       "workspace-1",
       expect.objectContaining({
-        repoPath: "/home/alexkerss/repos/LinkCrest",
+        repoPath: "/home/example/repos/LocalAppConnector",
         docsSourcePath: ".clawchat/",
       }),
     );
@@ -3653,7 +3653,7 @@ describe("Marketplace local repo .clawchat ingestion", () => {
       workspaceId: "workspace-1",
       name: "GapMiner",
       slug: "local-gapminer",
-      repoPath: "/home/alexkerss/repos/GapMiner",
+      repoPath: "/home/example/repos/GapMiner",
       frameworkMetadata: { sourceType: "local_repo" },
       apiStyleMetadata: {},
       metadata: {

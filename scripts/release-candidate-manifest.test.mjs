@@ -1037,6 +1037,8 @@ function macOSPublicationEvidence() {
     signatureMode: distribution.signing.mode,
     notarizationStatus: "accepted-stapled",
     distributionEvidenceSHA256: hashJson(distribution),
+    sparkleArchiveURL: "https://github.com/insitektalay/clawchat/releases/download/macos-v0.1.0-b1/RelayConsole-0.1.0-b1.zip",
+    sparkleEdSignature: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
   };
   return {
     schemaVersion: "relay.macos-publication-evidence.v1",
@@ -1066,7 +1068,9 @@ function macOSPublicationEvidence() {
         schemaVersion: "relay.macos-update-manifest.v1",
         channel: "public-beta",
         generatedAt: "2026-07-14T22:09:00.000Z",
-        manualUpdate: true,
+        manualUpdate: false,
+        updateMechanism: "sparkle-2",
+        appcastURL: "https://insitektalay.github.io/clawchat/appcast.xml",
         current,
         previous: null,
         previousDMGMinimumRetentionDays: 30,

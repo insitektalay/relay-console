@@ -16,7 +16,7 @@ result, and evidence location. Do not reuse evidence from another artifact.
 | Connect independently installed OpenClaw, health, model selection, agent dispatch | Pending | Pending | detected version, compatibility result, redacted dispatch | Pending |
 | Relay bridge update failure and rollback | Pending | Pending | bridge before/after versions, failure, restored health, unchanged runtime version | Pending |
 | Enabled provider OAuth start, callback, status, reconnect, revoke | Pending | Pending | provider account class, redacted state/PKCE and status evidence | Pending |
-| Manual app update and rollback | Pending | Pending | old/new build, manifest hash, replacement and rollback result | Pending |
+| Sparkle update N → N+1 and safe relaunch | Pending | Pending | old/new build, signed appcast, immutable archive URL/signature, release notes, preserved data/Keychain, current result after relaunch | Pending |
 | Redacted export | Pending | Pending | file mode, schema, redaction inspection | Pending |
 | Reset and profile removal | Pending | Pending | typed confirmation, post-relaunch state | Pending |
 | Prepare for app removal and reinstall | Pending | Pending | stopped services, Keychain/data cleanup, clean reinstall | Pending |
@@ -48,7 +48,7 @@ cannot authorize a final release.
 - Developer ID identity:
 - Notarization request/result:
 - Release notes URL:
-- Update manifest URL and SHA-256:
+- Sparkle appcast URL, signature, and enclosure SHA-256:
 - Known-issues revision:
 - Privacy/terms/notices approval references:
 

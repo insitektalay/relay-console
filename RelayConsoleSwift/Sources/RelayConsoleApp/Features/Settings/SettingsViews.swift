@@ -12,6 +12,10 @@ struct SettingsScreen: View {
         switch model.settingsPanel {
         case .account:
           AccountSettingsPanel()
+        case .setupConnections:
+          SetupConnectionsSettingsPanel()
+        case .updates:
+          UpdatesSettingsPanel()
         case .cloud:
           CloudRelaySettingsPanel()
         case .appearance:
@@ -34,6 +38,83 @@ struct SettingsScreen: View {
       }
       .frame(maxWidth: 760, alignment: .leading)
       .padding(24)
+    }
+  }
+}
+
+struct UpdatesSettingsPanel: View {
+  @EnvironmentObject var updateController: RelayConsoleUpdateController
+
+  private static let lastCheckFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateStyle = .medium
+    formatter.timeStyle = .short
+    return formatter
+  }()
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      NativeGroupedSection(
+        title: "Updates",
+        subtitle: "Relay Console periodically contacts its signed update feed. Installation always requires your confirmation."
+      ) {
+        NativeSettingsRow(title: "Installed version", value: updateController.installedVersionAndBuild)
+        NativeDivider()
+        NativeSettingsRow(title: "Update channel", value: updateController.snapshot.channel)
+        NativeDivider()
+        NativeSettingsRow(
+          title: "Last successful check",
+          value: updateController.snapshot.lastSuccessfulCheck.map(Self.lastCheckFormatter.string(from:)) ?? "Not yet"
+        )
+        if let version = updateController.snapshot.availableVersion {
+          NativeDivider()
+          NativeSettingsRow(title: "Available version", value: version)
+        }
+        NativeDivider()
+        NativeSettingsRow(
+          title: "Automatically check for updates",
+          subtitle: "Checks the signed Relay Console appcast about once every 24 hours.",
+          value: updateController.automaticallyChecksForUpdates ? "On" : "Off"
+        ) {
+          Toggle(
+            "Automatically check for updates",
+            isOn: Binding(
+              get: { updateController.automaticallyChecksForUpdates },
+              set: { updateController.setAutomaticallyChecksForUpdates($0) }
+            )
+          )
+          .labelsHidden()
+          .toggleStyle(.switch)
+          .disabled(updateController.snapshot.state == .unavailableConfiguration
+            || updateController.snapshot.state == .unavailableOutsideInstalledBundle)
+        }
+
+        if let failure = updateController.snapshot.failureMessage {
+          Text(failure)
+            .font(.caption)
+            .foregroundStyle(RCTheme.muted)
+            .accessibilityLabel("Update check failed. \(failure)")
+        } else if updateController.snapshot.state == .developmentBuildNewer {
+          Text("This development build is newer than the public update feed.")
+            .font(.caption)
+            .foregroundStyle(RCTheme.muted)
+        } else if updateController.snapshot.state == .unavailableOutsideInstalledBundle {
+          Text("Updates are available after Relay Console is installed in an Applications folder.")
+            .font(.caption)
+            .foregroundStyle(RCTheme.muted)
+        } else if updateController.snapshot.state == .unavailableConfiguration {
+          Text("Secure updates are unavailable because this build has no approved feed or public signing key.")
+            .font(.caption)
+            .foregroundStyle(RCTheme.muted)
+        }
+
+        Button(updateController.snapshot.failureMessage == nil ? "Check for Updates" : "Try Again") {
+          updateController.checkForUpdates()
+        }
+        .buttonStyle(PrimaryLightButtonStyle())
+        .disabled(!updateController.canCheckForUpdates || updateController.snapshot.state == .checking)
+        .accessibilityHint("Checks the signed Relay Console update feed")
+      }
     }
   }
 }
@@ -794,6 +875,9 @@ struct HarnessesPanel: View {
       }
     }
     .padding(24)
+    .task {
+      await model.discoverExistingHarnesses()
+    }
   }
 }
 
@@ -858,6 +942,7 @@ struct HarnessCard: View {
   @EnvironmentObject var model: AppViewModel
   let record: HarnessInstallRecord
   @State private var showLegacyRemovalConfirmation = false
+  @State private var showsLocationHelp = false
 
   var body: some View {
     FormCard {
@@ -899,6 +984,9 @@ struct HarnessCard: View {
             .textSelection(.enabled)
         }
       }
+      if record.source == .missing {
+        discoveryContent
+      }
       HStack {
         if record.lifecycleState == .connected && record.modelAuthStatus == .connected {
           if !hasUsableAgent {
@@ -918,10 +1006,10 @@ struct HarnessCard: View {
           .buttonStyle(SecondaryLightButtonStyle())
           .disabled(model.busy != nil)
         } else if record.source == .missing {
-          Button(record.harnessKey == .openclaw ? "Connect OpenClaw" : "Connect Hermes Agent") {
-            model.connectExistingHarness(record)
+          Button("Choose Another Location…") {
+            showsLocationHelp.toggle()
           }
-          .buttonStyle(PrimaryLightButtonStyle())
+          .buttonStyle(SecondaryLightButtonStyle())
           .disabled(model.busy != nil)
         } else {
           Button(model.busy == "check-\(record.harnessKey.rawValue)" ? "Checking..." : "Re-check") {
@@ -936,6 +1024,9 @@ struct HarnessCard: View {
           .disabled(model.busy != nil)
         }
         Spacer()
+      }
+      if record.source == .missing, showsLocationHelp {
+        locationHelpCard
       }
       Link(
         "Official install guide",
@@ -988,6 +1079,98 @@ struct HarnessCard: View {
 
   private var hasUsableAgent: Bool {
     model.usableAgents.contains { $0.harness.id == record.harnessId }
+  }
+
+  @ViewBuilder
+  private var discoveryContent: some View {
+    let candidates = model.runtimeDiscoveryCandidates.filter { $0.harnessKey == record.harnessKey }
+    if model.runtimeDiscoveryInProgress {
+      HStack(spacing: 8) {
+        ProgressView().controlSize(.small)
+        Text("Looking for \(record.displayName)…")
+          .font(.callout)
+          .foregroundStyle(RCTheme.muted)
+      }
+      .accessibilityElement(children: .combine)
+    } else if !candidates.isEmpty {
+      VStack(alignment: .leading, spacing: 10) {
+        ForEach(candidates) { candidate in
+          VStack(alignment: .leading, spacing: 7) {
+            HStack(alignment: .firstTextBaseline) {
+              VStack(alignment: .leading, spacing: 3) {
+                Text(candidate.runtimeName)
+                  .font(.system(size: 13, weight: .semibold))
+                Text(candidate.displayLocation)
+                  .font(.caption.monospaced())
+                  .foregroundStyle(RCTheme.muted)
+                  .lineLimit(2)
+                  .textSelection(.enabled)
+              }
+              Spacer()
+              StatusBadge(
+                title: "Compatible",
+                tone: .green,
+                accessibilityLabelText: "\(candidate.runtimeName) compatible"
+              )
+            }
+            HStack(spacing: 8) {
+              Text(candidate.version.map { "Version \($0)" } ?? "Version not reported")
+                .font(.caption)
+                .foregroundStyle(RCTheme.muted)
+              Text("•")
+                .foregroundStyle(RCTheme.muted)
+              Text(candidate.healthMessage)
+                .font(.caption)
+                .foregroundStyle(RCTheme.accentGreen)
+              Spacer()
+              Button("Connect") {
+                model.connectDiscoveredHarness(candidate)
+              }
+              .buttonStyle(PrimaryLightButtonStyle())
+              .disabled(model.busy != nil)
+              .accessibilityLabel("Connect \(candidate.runtimeName) at \(candidate.displayLocation)")
+            }
+          }
+          .padding(10)
+          .background(RCTheme.sidebarSurface)
+          .clipShape(RoundedRectangle(cornerRadius: 8))
+          .overlay(RoundedRectangle(cornerRadius: 8).stroke(RCTheme.borderSoft))
+        }
+      }
+    } else if model.runtimeDiscoveryCompleted {
+      Text("Relay could not find an existing \(record.displayName) installation on this Mac. You can choose another location or follow the official install guide below.")
+        .font(.callout)
+        .foregroundStyle(RCTheme.muted)
+    }
+  }
+
+  @ViewBuilder
+  private var locationHelpCard: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      if record.harnessKey == .hermes {
+        Text("Hermes Agent is normally in ~/.hermes/hermes-agent. The .hermes folder is hidden by macOS; press Command–Shift–Period (⌘⇧.) in Finder to show or hide hidden files. Select the inner hermes-agent folder containing run_agent.py.")
+          .font(.caption)
+          .foregroundStyle(RCTheme.muted)
+        Button("Choose Hermes Folder…") {
+          model.connectExistingHarness(record)
+        }
+        .buttonStyle(SecondaryLightButtonStyle())
+        .disabled(model.busy != nil)
+      } else {
+        Text("Global OpenClaw installations may be under Homebrew or npm locations and may not be obvious in Finder. Select the OpenClaw command or a folder containing openclaw.mjs.")
+          .font(.caption)
+          .foregroundStyle(RCTheme.muted)
+        Button("Choose OpenClaw Location…") {
+          model.connectExistingHarness(record)
+        }
+        .buttonStyle(SecondaryLightButtonStyle())
+        .disabled(model.busy != nil)
+      }
+    }
+    .padding(10)
+    .background(RCTheme.sidebarSurface)
+    .clipShape(RoundedRectangle(cornerRadius: 8))
+    .overlay(RoundedRectangle(cornerRadius: 8).stroke(RCTheme.borderSoft))
   }
 
   private var noAgentMessage: String {

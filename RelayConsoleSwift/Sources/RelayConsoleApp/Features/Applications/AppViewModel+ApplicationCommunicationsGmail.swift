@@ -1605,7 +1605,7 @@ extension AppViewModel {
   func startLinkedInOAuthConnect(for app: MarketplaceCatalogApp) {
     runAction("connect-linkedin-oauth", refresh: .applications) {
       guard app.slug == "linkedin" else { return self.selectedThreadId }
-      guard let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(.unsupported, "LinkedIn must use the authenticated Railway OAuth broker.")
@@ -1799,7 +1799,7 @@ extension AppViewModel {
       guard app.slug == "gmail" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(

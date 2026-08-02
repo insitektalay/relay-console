@@ -2426,7 +2426,7 @@ private let forbiddenProductSourceFragments = [
   "Alex Kerss",
   "kerss79",
   "gmail.com",
-  "/Users/alexkerss",
+  "/Users/example",
   "Documents/Projects/Active/ClawChat",
 ]
 

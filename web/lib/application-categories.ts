@@ -42,7 +42,7 @@ export const DEFAULT_APPLICATION_CLASSIFICATIONS: ApplicationClassifications = {
   "cleaning-ops-guide": { category: "business", subgroup: "Affiliate Website" },
   "campaign-switchboard": { category: "business", subgroup: "Affiliate Website" },
   saasgrowth: { category: "business", subgroup: "" },
-  linkcrest: { category: "business", subgroup: "" },
+  localappconnector: { category: "business", subgroup: "" },
   agentmint: { category: "business", subgroup: "" },
   clawchat: { category: "business", subgroup: "" },
   alexkerssweb: { category: "business", subgroup: "" },

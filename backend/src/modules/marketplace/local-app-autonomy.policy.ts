@@ -512,7 +512,7 @@ export function localAppAutonomyRuntimeInstruction(
     "",
     "When a policy-allowed capability is unavailable, emit a structured `run.missing_tool_request` event or POST to `/api/v1/bridge/runtime-dispatches/{dispatchId}/tool-requests` with `requestedCapability`, `requiredForAction`, `reason`, `appSlug`, campaign/task/record context when known, and `policyAllowed: true`. Do this even if the local app Agent API write path is unavailable.",
     "",
-    "Do not only mention missing tools in prose. Missing tools are ClawChat orchestration records and do not require LinkCrest Agent API write access.",
+    "Do not only mention missing tools in prose. Missing tools are ClawChat orchestration records and do not require LocalAppConnector Agent API write access.",
     "",
     "## Local App Runtime Recovery",
     "",

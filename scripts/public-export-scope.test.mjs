@@ -43,6 +43,8 @@ test("public archive excludes private, historical, and confirmed non-runtime mat
     "RelayConsoleSwift/Scripts/com.clawchat.relay-oauth-batch-controller.plist",
     "web/YouTube video",
     "web/docs/hermes-payload-dumps",
+    "web/docs/railway-handoff",
+    "docs/private-owner-configuration.md",
     "web/public/avatars/illustrated-originals",
     "web/public/avatars/need-cropping",
   ]

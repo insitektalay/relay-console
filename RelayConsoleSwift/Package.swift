@@ -47,6 +47,7 @@ let package = Package(
     .executable(
       name: "RelayConsoleLocalSecurityTests", targets: ["RelayConsoleLocalSecurityTests"]),
     .executable(name: "RelayConsoleEntitlementTests", targets: ["RelayConsoleEntitlementTests"]),
+    .executable(name: "RelayConsoleSetupAssistantTests", targets: ["RelayConsoleSetupAssistantTests"]),
     .executable(
       name: "RelayConsoleAccessibilityReleaseTests",
       targets: ["RelayConsoleAccessibilityReleaseTests"]),
@@ -70,6 +71,7 @@ let package = Package(
       targets: ["RelayConsoleAppAccessibilityInventoryHarness"]),
   ],
   dependencies: [
+    .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.9.4"),
     .package(url: "https://github.com/gonzalezreal/swift-markdown-ui", from: "2.4.1"),
     .package(url: "https://github.com/PostHog/posthog-ios.git", from: "3.67.1"),
     .package(url: "https://github.com/getsentry/sentry-cocoa.git", from: "9.23.0"),
@@ -88,6 +90,7 @@ let package = Package(
       name: "RelayConsoleAppUI",
       dependencies: [
         "RelayConsoleCore",
+        .product(name: "Sparkle", package: "Sparkle"),
         .product(name: "MarkdownUI", package: "swift-markdown-ui"),
         .product(name: "PostHog", package: "posthog-ios"),
         .product(name: "Sentry", package: "sentry-cocoa"),
@@ -173,7 +176,7 @@ let package = Package(
     ),
     .executableTarget(
       name: "RelayConsoleAppUpdateTests",
-      dependencies: ["RelayConsoleCore"],
+      dependencies: ["RelayConsoleCore", "RelayConsoleSourceTestSupport"],
       path: "Tests/RelayConsoleAppUpdateTests"
     ),
     .executableTarget(
@@ -220,6 +223,11 @@ let package = Package(
       name: "RelayConsoleEntitlementTests",
       dependencies: ["RelayConsoleCore"],
       path: "Tests/RelayConsoleEntitlementTests"
+    ),
+    .executableTarget(
+      name: "RelayConsoleSetupAssistantTests",
+      dependencies: ["RelayConsoleCore", "RelayConsoleSourceTestSupport"],
+      path: "Tests/RelayConsoleSetupAssistantTests"
     ),
     .executableTarget(
       name: "RelayConsoleAccessibilityReleaseTests",

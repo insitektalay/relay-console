@@ -1,9 +1,50 @@
 # Self-host Relay Console
 
 Relay Console is an early-alpha source release. You provide the Railway
-project, web host, Apple signing and one supported agent runtime. The setup
-below starts from a new Railway account and uses no maintainer service, domain
-or secret.
+project, Apple signing and one supported agent runtime. Every installation uses
+its own database, cache, domain and secrets.
+
+## One-click Railway deployment
+
+The official template configuration is complete, but Railway requires the
+public repository owner to publish it once through the Railway dashboard before
+there is a real template URL. No URL has been invented here. The exact composer
+fields and acceptance test are in
+[`docs/RAILWAY_TEMPLATE_PUBLISHING.md`](docs/RAILWAY_TEMPLATE_PUBLISHING.md).
+
+After that owner action, the user journey is:
+
+1. Click **Deploy on Railway**, sign in and click **Deploy**. No configuration
+   fields are required.
+2. Wait for the backend, PostgreSQL and Redis services to become healthy.
+3. Open the backend service, copy its generated HTTPS domain and use it as
+   `CLAWCHAT_RAILWAY_ORIGIN` when building Relay Console Swift, as shown below.
+4. Copy the generated `CLAWCHAT_BETA_INVITE_CODES` value from the backend
+   Variables view to create the first account.
+5. In Relay Console Swift **Settings**, connect the Hermes or OpenClaw
+   installation already running on the same Mac. The Swift app is the adapter;
+   do not install the bridge-plugin flow for this setup.
+
+Railway generates every installation secret independently while creating the
+template. At backend startup, a private HMAC challenge retrieves only that
+installation's PostgreSQL CA, the matching Ed25519 descriptor pair is derived
+from its one-time Railway seed, and the lifecycle registry is inserted once in
+PostgreSQL under an advisory lock. Restarts, redeployments and additional
+backend replicas reuse those persisted values. PostgreSQL data and its CA use
+the database volume; Redis uses Railway's persistent Redis volume. Server leaf
+certificates renew under the stable installation CA without disabling hostname
+or chain verification.
+
+The production audit deliberately keeps its existing lifecycle policy. The
+persisted registry schedules its first review for 60 days after installation;
+an operator must review and, where required, rotate Railway variables before
+recording new lifecycle dates. A stale registry blocks a later deployment
+rather than silently resetting its own dates. The ten-year PostgreSQL root CA
+also never rotates unattended: ordinary leaf renewal is automatic, while root
+rotation becomes an explicit operator action in its final 180 days.
+
+The manual procedure below remains available until the template URL is
+published and as an operator recovery path.
 
 The first working conversation needs four parts:
 
@@ -21,7 +62,7 @@ and managed runtimes are optional. Leave them disabled for the first setup.
 - a Railway account with a plan that can run three services;
 - Node.js 20 and pnpm 10 on the machine used to generate secrets;
 - OpenSSL; and
-- a public HTTPS origin for the web client you plan to deploy.
+- a public HTTPS origin only if you also plan to deploy the browser client.
 
 Install the Railway CLI and sign in by following Railway's
 [`railway` CLI guide](https://docs.railway.com/cli). The dashboard can perform

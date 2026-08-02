@@ -113,7 +113,7 @@ extension AppViewModel {
       guard app.slug == "youtube" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -226,7 +226,7 @@ extension AppViewModel {
       guard app.slug == "google-classroom" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -341,7 +341,7 @@ extension AppViewModel {
       guard app.slug == "outlook" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_MICROSOFT_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -451,7 +451,7 @@ extension AppViewModel {
       guard app.slug == "microsoft-teams" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_MICROSOFT_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -564,7 +564,7 @@ extension AppViewModel {
       guard app.slug == "onedrive" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_MICROSOFT_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -672,7 +672,7 @@ extension AppViewModel {
       guard app.slug == "sharepoint" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_MICROSOFT_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -780,7 +780,7 @@ extension AppViewModel {
       guard app.slug == "microsoft-planner" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_MICROSOFT_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -885,7 +885,7 @@ extension AppViewModel {
       guard app.slug == "microsoft-to-do" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_MICROSOFT_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -991,7 +991,7 @@ extension AppViewModel {
       guard app.slug == "microsoft-lists" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_MICROSOFT_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1102,7 +1102,7 @@ extension AppViewModel {
       guard app.slug == "onenote" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_MICROSOFT_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1205,7 +1205,7 @@ extension AppViewModel {
       guard app.slug == "microsoft-bookings" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_MICROSOFT_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1316,7 +1316,7 @@ extension AppViewModel {
       guard app.slug == "microsoft-power-bi" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_MICROSOFT_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1428,7 +1428,7 @@ extension AppViewModel {
       guard app.slug == "microsoft-dynamics-365" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_MICROSOFT_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1544,7 +1544,7 @@ extension AppViewModel {
       guard app.slug == "microsoft-viva-engage" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_MICROSOFT_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1653,7 +1653,7 @@ extension AppViewModel {
   func startZoomOAuthConnect(for app: MarketplaceCatalogApp) {
     runAction("connect-zoom-oauth", refresh: .applications) {
       guard app.slug == "zoom" else { return self.selectedThreadId }
-      guard let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(.unsupported, "Zoom must use the authenticated Railway OAuth broker.")
@@ -1750,7 +1750,7 @@ extension AppViewModel {
   func startDiscordBotConnect(for app: MarketplaceCatalogApp) {
     runAction("connect-discord-bot", refresh: .applications) {
       guard app.slug == "discord" else { return self.selectedThreadId }
-      guard let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(

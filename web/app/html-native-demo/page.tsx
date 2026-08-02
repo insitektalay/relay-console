@@ -31,7 +31,7 @@ function buildDemoHtml(variantClass: string) {
       <div>
         <div class="cc-html-kicker">Linc Hermes · Capability Brief</div>
         <h2 class="cc-html-title">Ready for careful local operations</h2>
-        <p class="cc-html-subtitle">A concise view of what I can inspect, draft, validate, and operate for LinkCrest while keeping approval gates intact.</p>
+        <p class="cc-html-subtitle">A concise view of what I can inspect, draft, validate, and operate for LocalAppConnector while keeping approval gates intact.</p>
       </div>
       <div class="cc-html-pill-row">
         <span class="cc-html-pill">Read-only first</span>
@@ -41,7 +41,7 @@ function buildDemoHtml(variantClass: string) {
     </header>
 
     <div class="cc-html-summary">
-      I can help manage LinkCrest by reviewing files, explaining workflows, drafting safe payloads, and carrying out approved local app changes. I will not bypass auth, expose secrets, or perform state-changing operations without explicit approval.
+      I can help manage LocalAppConnector by reviewing files, explaining workflows, drafting safe payloads, and carrying out approved local app changes. I will not bypass auth, expose secrets, or perform state-changing operations without explicit approval.
     </div>
 
     <div class="cc-html-callout cc-html-callout-warning">

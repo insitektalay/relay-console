@@ -217,7 +217,7 @@ export interface OpenClawOperationResult {
   data: unknown;
 }
 
-export interface LinkCrestAgentApiCallResult {
+export interface LocalAppConnectorAgentApiCallResult {
   ok: boolean;
   status: number;
   endpoint: string;
@@ -833,17 +833,17 @@ export class BridgeService {
     const bearerToken = this.decryptOpenClawApiKey(connection);
     if (!bearerToken) {
       throw new UnauthorizedException(
-        "OpenClaw bearer key is missing. Save a valid OpenClaw connection bearer key before syncing LinkCrest campaign policy.",
+        "OpenClaw bearer key is missing. Save a valid OpenClaw connection bearer key before syncing LocalAppConnector campaign policy.",
       );
     }
     const baseUrl = connection.instanceUrl.replace(/\/+$/, "");
-    const linkCrestEndpoint = this.linkCrestOpenClawEndpoint(
+    const localAppConnectorEndpoint = this.localAppConnectorOpenClawEndpoint(
       baseUrl,
       input.operation,
     );
-    if (linkCrestEndpoint) {
-      return this.callLinkCrestOpenClawEndpoint({
-        endpoint: linkCrestEndpoint,
+    if (localAppConnectorEndpoint) {
+      return this.callLocalAppConnectorOpenClawEndpoint({
+        endpoint: localAppConnectorEndpoint,
         operation: input.operation,
         bearerToken,
         payload: input.payload ?? {},
@@ -872,7 +872,7 @@ export class BridgeService {
         const data = text ? this.safeJsonParse(text) : null;
         if (response.status === 401 || response.status === 403) {
           throw new UnauthorizedException(
-            "OpenClaw rejected the bearer key. Update the OpenClaw connection with a valid bearer key before syncing LinkCrest campaign policy.",
+            "OpenClaw rejected the bearer key. Update the OpenClaw connection with a valid bearer key before syncing LocalAppConnector campaign policy.",
           );
         }
         if (response.ok) {
@@ -896,7 +896,7 @@ export class BridgeService {
     );
   }
 
-  async callLinkCrestAgentApi(input: {
+  async callLocalAppConnectorAgentApi(input: {
     workspaceId: string;
     connectionId?: string | null;
     method: "GET" | "POST";
@@ -912,7 +912,7 @@ export class BridgeService {
     runtimeRecoveryApprovalId?: string | null;
     agentId?: string | null;
     dispatchId?: string | null;
-  }): Promise<LinkCrestAgentApiCallResult> {
+  }): Promise<LocalAppConnectorAgentApiCallResult> {
     const connection = await this.resolveOpenClawConnectionForOperation(
       input.workspaceId,
       input.connectionId,
@@ -922,7 +922,7 @@ export class BridgeService {
       bearerToken = this.decryptOpenClawApiKey(connection);
       this.logger.log(
         JSON.stringify({
-          event: "linkcrest.agent_api.credential_decrypt",
+          event: "localappconnector.agent_api.credential_decrypt",
           workspaceId: input.workspaceId,
           connectionId: connection.id,
           bearerConfigured: Boolean(bearerToken),
@@ -933,7 +933,7 @@ export class BridgeService {
     } catch (error) {
       this.logger.warn(
         JSON.stringify({
-          event: "linkcrest.agent_api.credential_decrypt_failed",
+          event: "localappconnector.agent_api.credential_decrypt_failed",
           workspaceId: input.workspaceId,
           connectionId: connection.id,
           errorClass:
@@ -942,18 +942,18 @@ export class BridgeService {
           tokenExposure: "never_logged",
         }),
       );
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.UNAUTHORIZED,
         "credential_decrypt_failed",
-        "LinkCrest Agent API bearer key could not be decrypted. Re-save the LinkCrest Agent API bearer key.",
+        "LocalAppConnector Agent API bearer key could not be decrypted. Re-save the LocalAppConnector Agent API bearer key.",
         { connectionId: connection.id },
       );
     }
     if (!bearerToken) {
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.UNAUTHORIZED,
         "credential_missing",
-        "LinkCrest Agent API bearer key is missing. Save a valid LinkCrest Agent API bearer key before using LinkCrest Agent API tools.",
+        "LocalAppConnector Agent API bearer key is missing. Save a valid LocalAppConnector Agent API bearer key before using LocalAppConnector Agent API tools.",
         { connectionId: connection.id },
       );
     }
@@ -964,7 +964,7 @@ export class BridgeService {
       .replace(/^api\/openclaw\/?/i, "");
     if (!normalizedPath || normalizedPath.includes("..")) {
       throw new BadRequestException(
-        "A valid LinkCrest Agent API path is required.",
+        "A valid LocalAppConnector Agent API path is required.",
       );
     }
 
@@ -973,18 +973,18 @@ export class BridgeService {
     try {
       endpoint = new URL(`${baseUrl}/api/openclaw/${normalizedPath}`);
     } catch {
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.BAD_REQUEST,
         "source_host_rejected_target",
-        "LinkCrest Agent API base URL is invalid. Update the connected app Agent API base URL.",
+        "LocalAppConnector Agent API base URL is invalid. Update the connected app Agent API base URL.",
         { baseUrl },
       );
     }
     if (!["http:", "https:"].includes(endpoint.protocol)) {
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.BAD_REQUEST,
         "source_host_rejected_target",
-        "LinkCrest Agent API target protocol is not allowed.",
+        "LocalAppConnector Agent API target protocol is not allowed.",
         { protocol: endpoint.protocol },
       );
     }
@@ -1001,7 +1001,7 @@ export class BridgeService {
       : "railway_direct";
     this.logger.log(
       JSON.stringify({
-        event: "linkcrest.agent_api.outbound_preflight",
+        event: "localappconnector.agent_api.outbound_preflight",
         workspaceId: input.workspaceId,
         connectionId: connection.id,
         method: input.method,
@@ -1015,9 +1015,9 @@ export class BridgeService {
       }),
     );
     if (isLocalTarget) {
-      return this.callLinkCrestAgentApiViaSourceHost({
+      return this.callLocalAppConnectorAgentApiViaSourceHost({
         workspaceId: input.workspaceId,
-        appSlug: input.appSlug ?? "linkcrest",
+        appSlug: input.appSlug ?? "localappconnector",
         linkedAppId: input.linkedAppId ?? null,
         sourceHostId: input.sourceHostId ?? null,
         sourceHostType: input.sourceHostType ?? null,
@@ -1057,7 +1057,7 @@ export class BridgeService {
     } catch (error) {
       this.logger.warn(
         JSON.stringify({
-          event: "linkcrest.agent_api.fetch_failed",
+          event: "localappconnector.agent_api.fetch_failed",
           workspaceId: input.workspaceId,
           connectionId: connection.id,
           executionMode,
@@ -1070,10 +1070,10 @@ export class BridgeService {
           tokenExposure: "never_logged",
         }),
       );
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.SERVICE_UNAVAILABLE,
         "source_host_unavailable",
-        "LinkCrest Agent API could not be reached from the selected execution path.",
+        "LocalAppConnector Agent API could not be reached from the selected execution path.",
         {
           executionMode,
           outboundTarget: this.redactEndpoint(endpoint),
@@ -1085,10 +1085,10 @@ export class BridgeService {
     const text = await response.text();
     const data = text ? this.safeJsonParse(text) : null;
     if (response.status === 401 || response.status === 403) {
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.UNAUTHORIZED,
-        "linkcrest_auth_failed",
-        "LinkCrest Agent API rejected the stored bearer key. Update the LinkCrest Agent API connection with a valid bearer key.",
+        "localappconnector_auth_failed",
+        "LocalAppConnector Agent API rejected the stored bearer key. Update the LocalAppConnector Agent API connection with a valid bearer key.",
         {
           status: response.status,
           outboundTarget: this.redactEndpoint(endpoint),
@@ -1096,10 +1096,10 @@ export class BridgeService {
       );
     }
     if (!response.ok) {
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.BAD_GATEWAY,
-        "linkcrest_agent_api_error",
-        `LinkCrest Agent API call failed with ${response.status}.`,
+        "localappconnector_agent_api_error",
+        `LocalAppConnector Agent API call failed with ${response.status}.`,
         {
           status: response.status,
           outboundTarget: this.redactEndpoint(endpoint),
@@ -1115,7 +1115,7 @@ export class BridgeService {
     };
   }
 
-  async getLinkCrestAgentApiRuntimeSecret(input: {
+  async getLocalAppConnectorAgentApiRuntimeSecret(input: {
     workspaceId: string;
     connectionId?: string | null;
   }) {
@@ -1127,18 +1127,18 @@ export class BridgeService {
     try {
       bearerToken = this.decryptOpenClawApiKey(connection);
     } catch {
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.UNAUTHORIZED,
         "credential_decrypt_failed",
-        "LinkCrest Agent API bearer key could not be decrypted. Re-save the LinkCrest Agent API bearer key.",
+        "LocalAppConnector Agent API bearer key could not be decrypted. Re-save the LocalAppConnector Agent API bearer key.",
         { connectionId: connection.id },
       );
     }
     if (!bearerToken) {
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.UNAUTHORIZED,
         "credential_missing",
-        "LinkCrest Agent API bearer key is missing. Save a valid LinkCrest Agent API bearer key before using LinkCrest Agent API tools.",
+        "LocalAppConnector Agent API bearer key is missing. Save a valid LocalAppConnector Agent API bearer key before using LocalAppConnector Agent API tools.",
         { connectionId: connection.id },
       );
     }
@@ -1420,7 +1420,7 @@ export class BridgeService {
     return saved;
   }
 
-  private linkCrestOpenClawEndpoint(baseUrl: string, operation: string) {
+  private localAppConnectorOpenClawEndpoint(baseUrl: string, operation: string) {
     const map: Record<string, string> = {
       "autonomy.get_policy": "autonomy/get_policy",
       "autonomy.update_policy": "autonomy/update_policy",
@@ -1430,7 +1430,7 @@ export class BridgeService {
     return path ? `${baseUrl}/api/openclaw/${path}` : null;
   }
 
-  private async callLinkCrestOpenClawEndpoint(input: {
+  private async callLocalAppConnectorOpenClawEndpoint(input: {
     endpoint: string;
     operation: string;
     bearerToken: string;
@@ -1444,14 +1444,14 @@ export class BridgeService {
       },
       body: JSON.stringify({
         contractVersion: String(input.payload.contractVersion ?? "2026-03-18"),
-        input: this.linkCrestOperationInput(input.operation, input.payload),
+        input: this.localAppConnectorOperationInput(input.operation, input.payload),
       }),
     });
     const text = await response.text();
     const data = text ? this.safeJsonParse(text) : null;
     if (response.status === 401 || response.status === 403) {
       throw new UnauthorizedException(
-        "OpenClaw rejected the bearer key. Update the OpenClaw connection with a valid bearer key before syncing LinkCrest campaign policy.",
+        "OpenClaw rejected the bearer key. Update the OpenClaw connection with a valid bearer key before syncing LocalAppConnector campaign policy.",
       );
     }
     if (!response.ok) {
@@ -1468,7 +1468,7 @@ export class BridgeService {
     };
   }
 
-  private linkCrestOperationInput(
+  private localAppConnectorOperationInput(
     operation: string,
     payload: Record<string, unknown>,
   ) {
@@ -1505,7 +1505,7 @@ export class BridgeService {
     });
     if (!connection) {
       throw new NotFoundException(
-        "No OpenClaw connection found. Save an OpenClaw connection with a valid bearer key before syncing LinkCrest campaign policy.",
+        "No OpenClaw connection found. Save an OpenClaw connection with a valid bearer key before syncing LocalAppConnector campaign policy.",
       );
     }
     return connection;
@@ -1528,7 +1528,7 @@ export class BridgeService {
     });
   }
 
-  private linkCrestAgentApiError(
+  private localAppConnectorAgentApiError(
     status: HttpStatus,
     code: string,
     message: string,
@@ -1537,7 +1537,7 @@ export class BridgeService {
     return new HttpException(
       {
         statusCode: status,
-        error: "LinkCrest Agent API setup error",
+        error: "LocalAppConnector Agent API setup error",
         code,
         message,
         details,
@@ -3685,7 +3685,7 @@ export class BridgeService {
         )
       ) {
         throw new ServiceUnavailableException(
-          `The selected Hermes runtime host does not advertise ${MARKETPLACE_LOCAL_APP_AGENT_API_SETUP_CAPABILITY}. Update the Hermes bridge before using one-click LinkCrest Agent API setup.`,
+          `The selected Hermes runtime host does not advertise ${MARKETPLACE_LOCAL_APP_AGENT_API_SETUP_CAPABILITY}. Update the Hermes bridge before using one-click LocalAppConnector Agent API setup.`,
         );
       }
       const requestId = randomUUID();
@@ -4055,7 +4055,7 @@ export class BridgeService {
     }
   }
 
-  private async callLinkCrestAgentApiViaSourceHost(input: {
+  private async callLocalAppConnectorAgentApiViaSourceHost(input: {
     workspaceId: string;
     appSlug: string;
     linkedAppId?: string | null;
@@ -4074,7 +4074,7 @@ export class BridgeService {
     runtimeRecoveryApprovalId?: string | null;
     agentId?: string | null;
     dispatchId?: string | null;
-  }): Promise<LinkCrestAgentApiCallResult> {
+  }): Promise<LocalAppConnectorAgentApiCallResult> {
     const bridgeDeviceId = input.sourceHostId?.trim() || null;
     const isHermesHost =
       input.sourceHostType === "hermes_bridge" ||
@@ -4091,10 +4091,10 @@ export class BridgeService {
       bridgeDeviceId,
     );
     if (!hasHermesProxy && !hasBridgeProxy) {
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.SERVICE_UNAVAILABLE,
         "source_host_proxy_required",
-        "LinkCrest Agent API is configured with a local host URL. ClawChat Railway cannot call user-local LinkCrest directly, and no source-host bridge currently advertises local Agent API request execution.",
+        "LocalAppConnector Agent API is configured with a local host URL. ClawChat Railway cannot call user-local LocalAppConnector directly, and no source-host bridge currently advertises local Agent API request execution.",
         {
           executionMode: "source_host_proxy",
           capability: MARKETPLACE_LOCAL_APP_AGENT_API_REQUEST_CAPABILITY,
@@ -4117,7 +4117,7 @@ export class BridgeService {
         agentId: input.agentId ?? null,
         dispatchId: input.dispatchId ?? null,
         reason:
-          "LinkCrest Agent API tool call is about to execute against a local app target.",
+          "LocalAppConnector Agent API tool call is about to execute against a local app target.",
       });
     }
 
@@ -4186,7 +4186,7 @@ export class BridgeService {
 
     this.logger.log(
       JSON.stringify({
-        event: "linkcrest.agent_api.source_host_request",
+        event: "localappconnector.agent_api.source_host_request",
         workspaceId: input.workspaceId,
         connectionId: input.connectionId,
         appSlug: input.appSlug,
@@ -4247,7 +4247,7 @@ export class BridgeService {
     } catch (error) {
       this.logger.warn(
         JSON.stringify({
-          event: "linkcrest.agent_api.source_host_request_failed",
+          event: "localappconnector.agent_api.source_host_request_failed",
           workspaceId: input.workspaceId,
           connectionId: input.connectionId,
           appSlug: input.appSlug,
@@ -4262,10 +4262,10 @@ export class BridgeService {
           tokenExposure: "never_logged",
         }),
       );
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.SERVICE_UNAVAILABLE,
         "source_host_unavailable",
-        "The configured source host did not complete the LinkCrest Agent API request.",
+        "The configured source host did not complete the LocalAppConnector Agent API request.",
         {
           executionMode: "source_host_proxy",
           outboundTarget: this.redactEndpoint(input.endpoint),
@@ -4282,11 +4282,11 @@ export class BridgeService {
         typeof response.errorCode === "string"
           ? response.errorCode
           : "source_host_proxy_failed";
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.BAD_GATEWAY,
         code,
         response.error ||
-          "The source host failed to execute the LinkCrest Agent API request.",
+          "The source host failed to execute the LocalAppConnector Agent API request.",
         {
           executionMode: "source_host_proxy",
           outboundTarget: this.redactEndpoint(input.endpoint),
@@ -4297,10 +4297,10 @@ export class BridgeService {
       );
     }
     if (httpStatus === 401 || httpStatus === 403) {
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.UNAUTHORIZED,
-        "linkcrest_auth_failed",
-        "LinkCrest Agent API rejected the stored bearer key. Update the LinkCrest Agent API connection with a valid bearer key.",
+        "localappconnector_auth_failed",
+        "LocalAppConnector Agent API rejected the stored bearer key. Update the LocalAppConnector Agent API connection with a valid bearer key.",
         {
           status: httpStatus,
           executionMode: "source_host_proxy",
@@ -4309,10 +4309,10 @@ export class BridgeService {
       );
     }
     if (!Number.isFinite(httpStatus) || httpStatus < 200 || httpStatus >= 300) {
-      throw this.linkCrestAgentApiError(
+      throw this.localAppConnectorAgentApiError(
         HttpStatus.BAD_GATEWAY,
-        "linkcrest_agent_api_error",
-        `LinkCrest Agent API call failed with ${Number.isFinite(httpStatus) ? httpStatus : "unknown status"}.`,
+        "localappconnector_agent_api_error",
+        `LocalAppConnector Agent API call failed with ${Number.isFinite(httpStatus) ? httpStatus : "unknown status"}.`,
         {
           status: Number.isFinite(httpStatus) ? httpStatus : null,
           executionMode: "source_host_proxy",

@@ -16,7 +16,7 @@ const MOCK_SEQUENCE: Array<{
   { type: "agent.context.warning", appId: "pagejourney", summary: "Page intent thread is near context limit.", severity: "warning" },
   { type: "agent.task.completed", appId: "gapminer", summary: "Affiliate opportunity packet completed.", severity: "success" },
   { type: "revenue.event", appId: "saasgrowth", summary: "Revenue signal received for SaaS marketing plan.", severity: "revenue" },
-  { type: "agent.error", appId: "linkcrest", summary: "Backlink source rejected a request.", severity: "error" },
+  { type: "agent.error", appId: "localappconnector", summary: "Backlink source rejected a request.", severity: "error" },
 ]
 
 export function createSeededMockEvent(input: {

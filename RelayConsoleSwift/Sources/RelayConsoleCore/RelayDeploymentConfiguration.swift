@@ -22,20 +22,36 @@ public enum RelayDeploymentConfiguration {
   public static let websocketOriginEnvironmentKey = "NEXT_PUBLIC_RAILWAY_WS_BASE_URL"
   public static let railwayOriginInfoKey = "RelayConsoleRailwayOrigin"
   public static let websocketOriginInfoKey = "RelayConsoleWebSocketBaseURL"
+  public static let persistedRailwayOriginSettingKey = "setup.railwayOrigin.v1"
 
   public static let exampleRailwayOrigin = "https://your-backend.up.railway.app"
   public static let exampleWebsocketOrigin = "wss://your-backend.up.railway.app"
 
   public static func resolve(
     environment: [String: String] = ProcessInfo.processInfo.environment,
-    infoDictionary: [String: Any] = Bundle.main.infoDictionary ?? [:]
+    infoDictionary: [String: Any] = Bundle.main.infoDictionary ?? [:],
+    persistedRailwayOrigin: String? = nil
   ) throws -> RelayDeploymentOrigins {
-    let rawRailway = clean(environment[railwayOriginEnvironmentKey])
+    let rawRailway = clean(persistedRailwayOrigin)
+      ?? clean(environment[railwayOriginEnvironmentKey])
       ?? clean(infoDictionary[railwayOriginInfoKey] as? String)
       ?? exampleRailwayOrigin
-    let rawWebsocket = clean(environment[websocketOriginEnvironmentKey])
+    let rawWebsocket = clean(persistedRailwayOrigin).flatMap { deriveWebsocketOrigin(from: $0) }
+      ?? clean(environment[websocketOriginEnvironmentKey])
       ?? clean(infoDictionary[websocketOriginInfoKey] as? String)
       ?? exampleWebsocketOrigin
+
+    return try validate(railwayOrigin: rawRailway, websocketOrigin: rawWebsocket)
+  }
+
+  public static func origins(forRailwayOrigin rawOrigin: String) throws -> RelayDeploymentOrigins {
+    guard let websocket = deriveWebsocketOrigin(from: rawOrigin) else {
+      throw RelayDeploymentConfigurationError.malformed
+    }
+    return try validate(railwayOrigin: rawOrigin, websocketOrigin: websocket)
+  }
+
+  private static func validate(railwayOrigin rawRailway: String, websocketOrigin rawWebsocket: String) throws -> RelayDeploymentOrigins {
 
     guard
       var railway = URLComponents(string: rawRailway),
@@ -88,6 +104,17 @@ public enum RelayDeploymentConfiguration {
       apiOrigin: railwayOrigin + "/api/v1",
       websocketOrigin: websocketOrigin
     )
+  }
+
+  private static func deriveWebsocketOrigin(from rawOrigin: String) -> String? {
+    guard var components = URLComponents(string: rawOrigin), components.scheme?.lowercased() == "https" else {
+      return nil
+    }
+    components.scheme = "wss"
+    components.path = ""
+    components.query = nil
+    components.fragment = nil
+    return components.url?.absoluteString
   }
 
   private static func clean(_ value: String?) -> String? {

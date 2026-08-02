@@ -349,7 +349,7 @@ extension AppViewModel {
   func startXOAuthConnect(for app: MarketplaceCatalogApp) {
     runAction("connect-x-oauth", refresh: .applications) {
       guard app.slug == "x" else { return self.selectedThreadId }
-      guard let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(.unsupported, "X must use the authenticated Railway OAuth broker.")
@@ -364,7 +364,7 @@ extension AppViewModel {
   func startFacebookPagesOAuthConnect(for app: MarketplaceCatalogApp) {
     runAction("connect-facebook-pages-oauth", refresh: .applications) {
       guard app.slug == "facebook-pages" else { return self.selectedThreadId }
-      guard let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -482,7 +482,7 @@ extension AppViewModel {
   func startInstagramBusinessOAuthConnect(for app: MarketplaceCatalogApp) {
     runAction("connect-instagram-business-oauth", refresh: .applications) {
       guard app.slug == "instagram-business" else { return self.selectedThreadId }
-      guard let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -572,7 +572,7 @@ extension AppViewModel {
   func startThreadsOAuthConnect(for app: MarketplaceCatalogApp) {
     runAction("connect-threads-oauth", refresh: .applications) {
       guard app.slug == "threads" else { return self.selectedThreadId }
-      guard let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(.unsupported, "Threads must use the authenticated Railway OAuth broker.")
@@ -659,7 +659,7 @@ extension AppViewModel {
   func startPinterestOAuthConnect(for app: MarketplaceCatalogApp) {
     runAction("connect-pinterest-oauth", refresh: .applications) {
       guard app.slug == "pinterest" else { return self.selectedThreadId }
-      guard let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(.unsupported, "Pinterest must use the authenticated Railway OAuth broker.")
@@ -745,7 +745,7 @@ extension AppViewModel {
   func startTumblrOAuthConnect(for app: MarketplaceCatalogApp) {
     runAction("connect-tumblr-oauth", refresh: .applications) {
       guard app.slug == "tumblr" else { return self.selectedThreadId }
-      guard let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https",
         url.host?.nilIfEmpty != nil
       else {
@@ -847,7 +847,7 @@ extension AppViewModel {
           "Enter one public HTTPS Mastodon server origin without a path, query, credentials, or custom port."
         )
       }
-      guard let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https",
         url.host?.nilIfEmpty != nil
       else {
@@ -941,7 +941,7 @@ extension AppViewModel {
       guard !handle.isEmpty, handle.count <= 253, !handle.contains("/") else {
         throw RelayError(.invalidInput, "Enter the Bluesky or AT Protocol handle to authorize.")
       }
-      guard let origin = ProcessInfo.processInfo.environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+      guard let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(.unsupported, "Bluesky must use the authenticated Railway OAuth broker.")

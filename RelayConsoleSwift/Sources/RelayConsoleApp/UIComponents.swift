@@ -1903,6 +1903,7 @@ struct AgentDeleteActionButton: View {
 
 struct ShellIconRail: View {
     @EnvironmentObject var model: AppViewModel
+    @EnvironmentObject var updateController: RelayConsoleUpdateController
     private let railWidth = RCChromeMetrics.railWidth
     private let itemSize = CGSize(width: 48, height: 44)
     private let itemCornerRadius: CGFloat = 8
@@ -1920,11 +1921,49 @@ struct ShellIconRail: View {
             .padding(.top, 26)
 
             Spacer(minLength: 16)
+
+            if updateController.snapshot.showsUpdatePill {
+                updatePill
+                    .padding(.bottom, 18)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
         .frame(minWidth: railWidth, idealWidth: railWidth, maxWidth: railWidth, maxHeight: .infinity)
         .background(RCTheme.railSurface)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("App sections")
+        .animation(.easeInOut(duration: 0.18), value: updateController.snapshot.showsUpdatePill)
+    }
+
+    private var updatePill: some View {
+        let version = updateController.snapshot.availableVersion ?? ""
+        return Button {
+            updateController.showDiscoveredUpdate()
+        } label: {
+            RCHoverFocusReader { state in
+                Label("Update", systemImage: "arrow.down.circle.fill")
+                    .font(.system(size: 11, weight: .semibold))
+                    .labelStyle(.titleAndIcon)
+                    .foregroundStyle(state.isActive() ? RCTheme.text : RCTheme.accentBlue)
+                    .padding(.horizontal, 8)
+                    .frame(width: 72, height: 30)
+                    .background(state.isActive() ? RCTheme.surfaceHover : RCTheme.accentBlue.opacity(0.13))
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule().stroke(
+                            state.isFocused ? RCTheme.accentBlue : RCTheme.accentBlue.opacity(0.46),
+                            lineWidth: state.isFocused ? 1.5 : 1
+                        )
+                    )
+                    .contentShape(Capsule())
+                    .animation(state.animation, value: state.isActive())
+            }
+        }
+        .buttonStyle(.plain)
+        .help("Relay Console \(version) is available")
+        .accessibilityLabel("Update Relay Console")
+        .accessibilityValue(updateController.snapshot.updateAccessibilityValue)
+        .accessibilityHint("Opens the secure update installer")
     }
 
     private var railBrandMark: some View {

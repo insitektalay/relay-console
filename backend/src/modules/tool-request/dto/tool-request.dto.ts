@@ -26,7 +26,7 @@ export const TOOL_REQUEST_CAPABILITIES = [
   "index_checking",
   "lifecycle_contacted_submitted",
   "lifecycle_live_indexed",
-  "linkcrest_openclaw_tools",
+  "localappconnector_openclaw_tools",
   "local_app_record_write",
   "other",
 ] as const;

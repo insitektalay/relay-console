@@ -67,16 +67,21 @@ BUILD_NUMBER="$(metadata_value build)"
 RELEASE_CHANNEL="$(metadata_value releaseChannel)"
 MINIMUM_MACOS="$(metadata_value minimumMacOSVersion)"
 APPLICATION_CATEGORY="$(metadata_value applicationCategory)"
+SPARKLE_FEED_URL="${RELAY_SPARKLE_FEED_URL:-https://insitektalay.github.io/clawchat/appcast.xml}"
+SPARKLE_PUBLIC_ED_KEY="${RELAY_SPARKLE_PUBLIC_ED_KEY:-}"
 RAILWAY_ORIGIN="${CLAWCHAT_RAILWAY_ORIGIN:-https://your-backend.up.railway.app}"
 WEBSOCKET_ORIGIN="${NEXT_PUBLIC_RAILWAY_WS_BASE_URL:-wss://your-backend.up.railway.app}"
 
 [[ "$RAILWAY_ORIGIN" == https://* ]] || { echo "CLAWCHAT_RAILWAY_ORIGIN must use HTTPS" >&2; exit 1; }
 [[ "$WEBSOCKET_ORIGIN" == wss://* ]] || { echo "NEXT_PUBLIC_RAILWAY_WS_BASE_URL must use WSS" >&2; exit 1; }
+[[ "$SPARKLE_FEED_URL" == "https://insitektalay.github.io/clawchat/appcast.xml" ]] || { echo "RELAY_SPARKLE_FEED_URL must be the approved immutable-control appcast URL" >&2; exit 1; }
+[[ "$SPARKLE_PUBLIC_ED_KEY" =~ ^[A-Za-z0-9+/]{43}=$ ]] || { echo "RELAY_SPARKLE_PUBLIC_ED_KEY must contain the Sparkle generate_keys public EdDSA key" >&2; exit 1; }
 
 APP_PATH="$OUTPUT_ROOT/$PRODUCT_NAME.app"
 CONTENTS_PATH="$APP_PATH/Contents"
 MACOS_PATH="$CONTENTS_PATH/MacOS"
 RESOURCES_PATH="$CONTENTS_PATH/Resources"
+FRAMEWORKS_PATH="$CONTENTS_PATH/Frameworks"
 MAIN_EXECUTABLE="$MACOS_PATH/$PRODUCT_NAME"
 BRIDGE_EXECUTABLE="$MACOS_PATH/RelayMarketplaceToolBridge"
 
@@ -107,7 +112,7 @@ mkdir -p "$OUTPUT_ROOT"
 if [[ -e "$APP_PATH" ]]; then
   rm -rf "$APP_PATH"
 fi
-mkdir -p "$MACOS_PATH" "$RESOURCES_PATH"
+mkdir -p "$MACOS_PATH" "$RESOURCES_PATH" "$FRAMEWORKS_PATH"
 
 if [[ "$ARCHITECTURE_POLICY" == "universal2" ]]; then
   /usr/bin/lipo -create "$ARM_BIN_PATH/$PRODUCT_NAME" "$INTEL_BIN_PATH/$PRODUCT_NAME" -output "$MAIN_EXECUTABLE"
@@ -117,6 +122,15 @@ else
   cp "$BIN_PATH/RelayMarketplaceToolBridge" "$BRIDGE_EXECUTABLE"
 fi
 chmod 755 "$MAIN_EXECUTABLE" "$BRIDGE_EXECUTABLE"
+
+SPARKLE_FRAMEWORK_SOURCE="$ROOT_DIR/.build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
+[[ -d "$SPARKLE_FRAMEWORK_SOURCE" ]] || { echo "Resolved Sparkle.framework not found; run swift package resolve" >&2; exit 1; }
+/usr/bin/ditto "$SPARKLE_FRAMEWORK_SOURCE" "$FRAMEWORKS_PATH/Sparkle.framework"
+# Relay Console is not sandboxed, so Sparkle's optional sandbox XPC services are deliberately omitted.
+rm -rf "$FRAMEWORKS_PATH/Sparkle.framework/Versions/B/XPCServices" "$FRAMEWORKS_PATH/Sparkle.framework/XPCServices"
+if ! /usr/bin/otool -l "$MAIN_EXECUTABLE" | grep -q '@executable_path/../Frameworks'; then
+  /usr/bin/install_name_tool -add_rpath '@executable_path/../Frameworks' "$MAIN_EXECUTABLE"
+fi
 
 RESOURCE_COUNT=0
 while IFS= read -r bundle; do
@@ -130,6 +144,7 @@ cp "$ROOT_DIR/Sources/RelayConsoleApp/Resources/Assets/AppIcon/icon.icns" "$RESO
 cp "$ROOT_DIR/Release/PrivacyInfo.xcprivacy" "$RESOURCES_PATH/PrivacyInfo.xcprivacy"
 cp "$ROOT_DIR/Release/THIRD_PARTY_NOTICES.md" "$RESOURCES_PATH/THIRD_PARTY_NOTICES.md"
 cp "$ROOT_DIR/Release/swift-cmark-COPYING" "$RESOURCES_PATH/swift-cmark-COPYING"
+cp "$ROOT_DIR/Release/Sparkle-LICENSE" "$RESOURCES_PATH/Sparkle-LICENSE"
 printf 'APPL????' > "$CONTENTS_PATH/PkgInfo"
 
 cat > "$CONTENTS_PATH/Info.plist" <<PLIST
@@ -188,6 +203,20 @@ cat > "$CONTENTS_PATH/Info.plist" <<PLIST
   <string>$RELEASE_CHANNEL</string>
   <key>RelayConsoleArchitecturePolicy</key>
   <string>$ARCHITECTURE_POLICY</string>
+  <key>SUFeedURL</key>
+  <string>$SPARKLE_FEED_URL</string>
+  <key>SUPublicEDKey</key>
+  <string>$SPARKLE_PUBLIC_ED_KEY</string>
+  <key>SURequireSignedFeed</key>
+  <true/>
+  <key>SUEnableAutomaticChecks</key>
+  <true/>
+  <key>SUScheduledCheckInterval</key>
+  <integer>86400</integer>
+  <key>SUAllowsAutomaticUpdates</key>
+  <false/>
+  <key>SUAutomaticallyUpdate</key>
+  <false/>
 </dict>
 </plist>
 PLIST
@@ -249,9 +278,13 @@ elif [[ -d "$DSYM_PATH" ]]; then
 fi
 
 if [[ "$ADHOC_SIGN" == "1" ]] && command -v codesign >/dev/null 2>&1; then
+  SPARKLE_FRAMEWORK="$FRAMEWORKS_PATH/Sparkle.framework"
+  codesign --force --options runtime --timestamp=none --sign - "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate"
+  codesign --force --options runtime --timestamp=none --sign - "$SPARKLE_FRAMEWORK/Versions/B/Updater.app"
+  codesign --force --options runtime --timestamp=none --sign - "$SPARKLE_FRAMEWORK"
   codesign --force --sign - "$BRIDGE_EXECUTABLE"
   codesign --force --sign - "$MAIN_EXECUTABLE"
-  codesign --force --deep --sign - "$APP_PATH"
+  codesign --force --sign - "$APP_PATH"
 fi
 
 if [[ "$ADHOC_SIGN" == "1" ]]; then

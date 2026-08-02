@@ -29,7 +29,7 @@ export const DEFAULT_AGENTOPS_OUTPUT_TYPES: AgentOpsOutputType[] = [
   { id: "video_idea", label: "YouTube Video Ideas", businessUnitId: "youtube", departmentId: "youtube_department", visualTheme: "youtube" },
   { id: "youtube_video", label: "YouTube Videos", businessUnitId: "youtube", departmentId: "youtube_department", visualTheme: "youtube" },
   { id: "short", label: "Shorts", businessUnitId: "youtube", departmentId: "short_relay_studio", visualTheme: "studio" },
-  { id: "backlink_opportunity", label: "Backlink Opportunities", businessUnitId: "seo_growth", departmentId: "linkcrest_department", visualTheme: "link" },
+  { id: "backlink_opportunity", label: "Backlink Opportunities", businessUnitId: "seo_growth", departmentId: "localappconnector_department", visualTheme: "link" },
   { id: "saas_marketing_plan", label: "SaaS Marketing Plans", businessUnitId: "saas_growth", departmentId: "growthos_department", visualTheme: "growth" },
 ]
 
@@ -47,7 +47,7 @@ export const DEFAULT_AGENTOPS_APPLICATIONS: AgentOpsApplication[] = [
   { appId: "youtube", label: "YouTube Department", businessUnitId: "youtube", defaultDepartmentId: "youtube_department", outputTypes: ["video_idea", "youtube_video"], publicProperties: ["ai_tube_watch_website", "financial_tube_watch"], agentIds: [], visualTheme: "youtube", status: "active" },
   { appId: "short_relay", label: "Short Relay", businessUnitId: "youtube", defaultDepartmentId: "short_relay_studio", outputTypes: ["short"], publicProperties: ["ai_tube_watch_website"], agentIds: [], visualTheme: "studio", status: "active" },
   { appId: "gapminer", label: "GapMiner", businessUnitId: "seo_growth", defaultDepartmentId: "gapminer_office", outputTypes: ["opportunity", "affiliate_research", "serp_gap"], publicProperties: [], agentIds: [], visualTheme: "research", status: "active" },
-  { appId: "linkcrest", label: "LinkCrest", businessUnitId: "seo_growth", defaultDepartmentId: "linkcrest_department", outputTypes: ["backlink_opportunity"], publicProperties: [], agentIds: [], visualTheme: "link", status: "active" },
+  { appId: "localappconnector", label: "LocalAppConnector", businessUnitId: "seo_growth", defaultDepartmentId: "localappconnector_department", outputTypes: ["backlink_opportunity"], publicProperties: [], agentIds: [], visualTheme: "link", status: "active" },
   { appId: "pagejourney", label: "Page Journey", businessUnitId: "seo_growth", defaultDepartmentId: "page_journey_intent_lab", outputTypes: ["page_intent_report"], publicProperties: [], agentIds: [], visualTheme: "lab", status: "active" },
   { appId: "rankscope", label: "RankScope", businessUnitId: "seo_growth", defaultDepartmentId: "rankscope_seo_office", outputTypes: ["seo_report"], publicProperties: [], agentIds: [], visualTheme: "seo", status: "active" },
   { appId: "visualforge", label: "Visual Forge", businessUnitId: "creative", defaultDepartmentId: "visual_design_department", outputTypes: ["visual_layout"], publicProperties: [], agentIds: [], visualTheme: "creative", status: "active" },
@@ -59,6 +59,6 @@ export const DEFAULT_AGENTOPS_APPLICATIONS: AgentOpsApplication[] = [
 export const DEFAULT_AGENTOPS_WORKFLOWS: AgentOpsWorkflow[] = [
   { id: "youtube_idea_to_video", label: "YouTube Idea to Video", businessUnitId: "youtube", departmentId: "youtube_department", appIds: ["ai_tube_watch", "youtube", "visualforge", "copyloop", "short_relay"], outputTypeIds: ["video_idea", "youtube_video", "short"], visualTheme: "youtube" },
   { id: "affiliate_site_factory", label: "Affiliate Site Factory", businessUnitId: "affiliate_factory", departmentId: "affiliate_website_factory", appIds: ["gapminer", "pagejourney", "rankscope", "visualforge", "copyloop"], outputTypeIds: ["affiliate_research", "serp_gap", "page_intent_report", "copy_improvement", "visual_layout"], visualTheme: "affiliate" },
-  { id: "seo_growth_loop", label: "SEO Growth Loop", businessUnitId: "seo_growth", departmentId: "seo_department", appIds: ["gapminer", "rankscope", "linkcrest", "pagejourney"], outputTypeIds: ["opportunity", "seo_report", "backlink_opportunity", "page_intent_report"], visualTheme: "seo" },
+  { id: "seo_growth_loop", label: "SEO Growth Loop", businessUnitId: "seo_growth", departmentId: "seo_department", appIds: ["gapminer", "rankscope", "localappconnector", "pagejourney"], outputTypeIds: ["opportunity", "seo_report", "backlink_opportunity", "page_intent_report"], visualTheme: "seo" },
   { id: "saas_growth_plan", label: "SaaS Growth Plan", businessUnitId: "saas_growth", departmentId: "growthos_department", appIds: ["saasgrowth"], outputTypeIds: ["saas_marketing_plan"], visualTheme: "growth" },
 ]

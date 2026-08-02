@@ -617,8 +617,8 @@ export interface CreateLocalMarketplaceAppInput {
   openApiSpecPath?: string;
   docsSourcePath?: string;
   lifecycle?: Record<string, unknown>;
-  linkcrestCampaignId?: string;
-  linkcrestCampaignName?: string;
+  localappconnectorCampaignId?: string;
+  localappconnectorCampaignName?: string;
   documentationAutomationMode?:
     | "manual_review"
     | "auto_apply_safe"
@@ -640,8 +640,8 @@ export interface UpdateLocalMarketplaceAppInput {
   openApiSpecPath?: string | null;
   docsSourcePath?: string;
   lifecycle?: Record<string, unknown> | null;
-  linkcrestCampaignId?: string | null;
-  linkcrestCampaignName?: string | null;
+  localappconnectorCampaignId?: string | null;
+  localappconnectorCampaignName?: string | null;
   documentationAutomationMode?:
     | "manual_review"
     | "auto_apply_safe"
@@ -725,19 +725,19 @@ export interface NeededToolsSummary {
   }>;
 }
 
-export interface LinkCrestPolicySyncStatus {
+export interface LocalAppConnectorPolicySyncStatus {
   status: "synced" | "unsynced" | "failed" | "skipped";
   message: string;
   campaignId: string | null;
   campaignName: string | null;
   clawchatMode: string;
-  linkcrestMode: string | null;
+  localappconnectorMode: string | null;
   lastSyncAt: string;
   mismatch: boolean;
   errorCode?: string | null;
 }
 
-export interface ConfigureLinkCrestOpenClawInput {
+export interface ConfigureLocalAppConnectorOpenClawInput {
   openclawBaseUrl: string;
   bearerKey?: string | null;
   campaignId?: string | null;
@@ -777,7 +777,7 @@ export interface AutoConnectLocalAppResult {
     status?: string | null;
     metadata?: Record<string, unknown>;
   } | null;
-  policySync: LinkCrestPolicySyncStatus | Record<string, unknown> | null;
+  policySync: LocalAppConnectorPolicySyncStatus | Record<string, unknown> | null;
   installResults: Array<Record<string, unknown>>;
   neededToolsSummary: Record<string, unknown> | null;
   userActionRequired: string | null;

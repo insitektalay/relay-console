@@ -724,7 +724,7 @@ extension AppViewModel {
       guard app.slug == "datadog" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_DATADOG_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -829,7 +829,7 @@ extension AppViewModel {
       guard app.slug == "pagerduty" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_PAGERDUTY_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -933,7 +933,7 @@ extension AppViewModel {
       guard app.slug == "cloudflare" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_CLOUDFLARE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1037,7 +1037,7 @@ extension AppViewModel {
       guard app.slug == "vercel" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_VERCEL_INTEGRATION_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1134,7 +1134,7 @@ extension AppViewModel {
       guard app.slug == "heroku" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_HEROKU_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1230,7 +1230,7 @@ extension AppViewModel {
       guard app.slug == "digitalocean" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_DIGITALOCEAN_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1332,7 +1332,7 @@ extension AppViewModel {
       guard app.slug == "firebase" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_FIREBASE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1428,7 +1428,7 @@ extension AppViewModel {
       guard app.slug == "supabase" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_SUPABASE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1621,7 +1621,7 @@ extension AppViewModel {
       guard app.slug == "bamboohr" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_BAMBOOHR_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -1718,7 +1718,7 @@ extension AppViewModel {
       guard app.slug == "greenhouse" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GREENHOUSE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(

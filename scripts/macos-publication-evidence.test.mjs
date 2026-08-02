@@ -72,7 +72,9 @@ function updateManifest({ previous = null } = {}) {
     schemaVersion: "relay.macos-update-manifest.v1",
     channel: "public-beta",
     generatedAt: "2026-07-14T22:06:00.000Z",
-    manualUpdate: true,
+    manualUpdate: false,
+    updateMechanism: "sparkle-2",
+    appcastURL: "https://insitektalay.github.io/clawchat/appcast.xml",
     current: {
       version: "0.1.0",
       build: "1",
@@ -86,6 +88,8 @@ function updateManifest({ previous = null } = {}) {
       signatureMode: "developer-id-hardened-runtime",
       notarizationStatus: "accepted-stapled",
       distributionEvidenceSHA256: hashMacOSPublicationJSON(macOSDistribution()),
+      sparkleArchiveURL: "https://github.com/insitektalay/clawchat/releases/download/macos-v0.1.0-b1/RelayConsole-0.1.0-b1.zip",
+      sparkleEdSignature: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
     },
     previous,
     previousDMGMinimumRetentionDays: 30,
@@ -112,6 +116,8 @@ function previousArtifact() {
     notarizationStatus: "accepted-stapled",
     retainedUntil: "2026-08-14T22:05:00.000Z",
     distributionEvidenceSHA256: hashMacOSPublicationJSON(distribution),
+    sparkleArchiveURL: "https://github.com/insitektalay/clawchat/releases/download/macos-v0.0.9-b9/RelayConsole-0.0.9-b9.zip",
+    sparkleEdSignature: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
   };
 }
 

@@ -75,12 +75,12 @@ function makeRepo<T extends { id?: string }>() {
           return (
             rows.find((row: any) => {
               if (row.workspaceId !== params.workspaceId) return false;
-              if (params.campaignId && row.metadata?.linkcrestCampaignId === params.campaignId) {
+              if (params.campaignId && row.metadata?.localappconnectorCampaignId === params.campaignId) {
                 return true;
               }
               if (
                 params.campaignName &&
-                row.metadata?.linkcrestCampaignName === params.campaignName
+                row.metadata?.localappconnectorCampaignName === params.campaignName
               ) {
                 return true;
               }
@@ -119,7 +119,7 @@ describe("ToolRequestService", () => {
   it("creates a policy-allowed missing email_send tool request", async () => {
     const { service } = setup();
     const result = await service.createToolRequest("ws_1", {
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       requestedCapability: "email_send",
       requiredForAction: "outreach.record_sent",
       reason: "Send approved outreach",
@@ -165,11 +165,11 @@ describe("ToolRequestService", () => {
   ])("creates a policy-allowed missing %s tool request", async (capability, suggestions) => {
     const { service } = setup();
     const result = await service.createToolRequest("ws_1", {
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       campaignName: "AI YouTube Channels Backlink Campaign",
       requestedCapability: capability,
       requiredForAction: `${capability}.execute`,
-      reason: `Need ${capability} for LinkCrest campaign execution`,
+      reason: `Need ${capability} for LocalAppConnector campaign execution`,
       policyAllowed: true,
       toolAvailable: false,
       autonomyModeAtRequest: "dangerously_skip_permissions",
@@ -183,7 +183,7 @@ describe("ToolRequestService", () => {
   it("deduplicates repeated open missing-tool requests", async () => {
     const { service, toolRequestRepo } = setup();
     const payload = {
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       teamId: "team_1",
       requestedCapability: "email_send",
       requiredForAction: "outreach.record_sent",
@@ -205,7 +205,7 @@ describe("ToolRequestService", () => {
   it("does not create a request for policy-blocked actions", async () => {
     const { service, toolRequestRepo } = setup();
     const result = await service.createToolRequest("ws_1", {
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       requestedCapability: "public_form_submit",
       requiredForAction: "directory.submit",
       reason: "Submit listing",
@@ -220,7 +220,7 @@ describe("ToolRequestService", () => {
   it("marks matching requests connected or granted when a tool connection appears", async () => {
     const { service, toolRequestRepo } = setup();
     await service.createToolRequest("ws_1", {
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       requestedCapability: "email_send",
       requiredForAction: "outreach.record_sent",
       reason: "Send approved outreach",
@@ -238,10 +238,10 @@ describe("ToolRequestService", () => {
     expect(toolRequestRepo.rows[0].toolGranted).toBe(true);
   });
 
-  it("marks LinkCrest external_search granted when Exa search is connected", async () => {
+  it("marks LocalAppConnector external_search granted when Exa search is connected", async () => {
     const { service, toolRequestRepo } = setup();
     await service.createToolRequest("ws_1", {
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       requestedCapability: "external_search",
       requiredForAction: "prospects.search",
       reason: "Search for backlink prospects",
@@ -262,14 +262,14 @@ describe("ToolRequestService", () => {
   it("grants Exa capability aliases for content and evidence requests", async () => {
     const { service, toolRequestRepo } = setup();
     await service.createToolRequest("ws_1", {
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       requestedCapability: "content_extraction",
       requiredForAction: "prospects.extract",
       reason: "Extract candidate page content",
       policyAllowed: true,
     });
     await service.createToolRequest("ws_1", {
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       requestedCapability: "evidence_gathering",
       requiredForAction: "prospects.evidence",
       reason: "Gather cited evidence",
@@ -298,7 +298,7 @@ describe("ToolRequestService", () => {
     });
 
     await service.createToolRequest("ws_1", {
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
       requestedCapability: "backlink_verification",
       requiredForAction: "backlink.verify_live",
       reason: "Verify live backlink",
@@ -313,21 +313,21 @@ describe("ToolRequestService", () => {
     );
   });
 
-  it("lists LinkCrest requests created with appSlug=linkcrest when filtering local-linkcrest", async () => {
+  it("lists LocalAppConnector requests created with appSlug=localappconnector when filtering local-localappconnector", async () => {
     const { service, linkedAppRepo } = setup();
     linkedAppRepo.rows.push({
-      id: "linked-linkcrest",
+      id: "linked-localappconnector",
       workspaceId: "ws_1",
-      slug: "local-linkcrest",
-      name: "LinkCrest",
+      slug: "local-localappconnector",
+      name: "LocalAppConnector",
       metadata: {
-        linkcrestCampaignId: "campaign-1",
-        linkcrestCampaignName: "AI YouTube Channels Backlink Campaign",
+        localappconnectorCampaignId: "campaign-1",
+        localappconnectorCampaignName: "AI YouTube Channels Backlink Campaign",
       },
     });
 
     const created = await service.createToolRequest("ws_1", {
-      appSlug: "linkcrest",
+      appSlug: "localappconnector",
       requestedCapability: "email_send",
       requiredForAction: "outreach.record_sent",
       reason: "Send approved outreach",
@@ -335,31 +335,31 @@ describe("ToolRequestService", () => {
       campaignName: "AI YouTube Channels Backlink Campaign",
       policyAllowed: true,
     });
-    expect(created.request?.appSlug).toBe("local-linkcrest");
-    expect(created.request?.linkedAppId).toBe("linked-linkcrest");
+    expect(created.request?.appSlug).toBe("local-localappconnector");
+    expect(created.request?.linkedAppId).toBe("linked-localappconnector");
 
     const requests = await service.listToolRequests("ws_1", {
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
     });
     expect(requests.map((request) => request.requestedCapability)).toEqual([
       "email_send",
     ]);
   });
 
-  it("shows legacy LinkCrest requests stored as appSlug=linkcrest under local-linkcrest filters", async () => {
+  it("shows legacy LocalAppConnector requests stored as appSlug=localappconnector under local-localappconnector filters", async () => {
     const { service, toolRequestRepo, linkedAppRepo } = setup();
     linkedAppRepo.rows.push({
-      id: "linked-linkcrest",
+      id: "linked-localappconnector",
       workspaceId: "ws_1",
-      slug: "local-linkcrest",
-      name: "LinkCrest",
+      slug: "local-localappconnector",
+      name: "LocalAppConnector",
       metadata: {},
     });
     toolRequestRepo.rows.push({
       id: "legacy-1",
       workspaceId: "ws_1",
       linkedAppId: null,
-      appSlug: "linkcrest",
+      appSlug: "localappconnector",
       requestedCapability: "external_search",
       requiredForAction: "prospects.search",
       reason: "Search",
@@ -367,9 +367,9 @@ describe("ToolRequestService", () => {
     });
 
     const requests = await service.listToolRequests("ws_1", {
-      appSlug: "local-linkcrest",
+      appSlug: "local-localappconnector",
     });
     expect(requests).toHaveLength(1);
-    expect(requests[0].appSlug).toBe("linkcrest");
+    expect(requests[0].appSlug).toBe("localappconnector");
   });
 });

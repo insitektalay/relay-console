@@ -3,6 +3,7 @@ import * as path from "path";
 import { DataSource, MigrationInterface } from "typeorm";
 
 const BOOTSTRAP_STATE_TABLE = "relay_fresh_migration_bootstrap";
+const INSTALLATION_LIFECYCLE_TABLE = "relay_installation_secret_lifecycle";
 const BOOTSTRAP_VERSION = 1;
 
 export interface FreshDatabaseState {
@@ -102,7 +103,11 @@ async function inspectFreshDatabaseState(
         FROM information_schema.tables
         WHERE table_schema = 'public'
           AND table_type = 'BASE TABLE'
-          AND table_name NOT IN ('migrations', '${BOOTSTRAP_STATE_TABLE}')
+          AND table_name NOT IN (
+            'migrations',
+            '${BOOTSTRAP_STATE_TABLE}',
+            '${INSTALLATION_LIFECYCLE_TABLE}'
+          )
       ) AS "applicationTableCount"
   `)) as Array<Record<string, unknown>>;
 

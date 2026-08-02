@@ -892,7 +892,7 @@ export class HermesRuntimeAdapter implements RuntimeAdapter, OnModuleInit {
             "unknown",
         ),
         localAppRuntimeToolNames: input.localAppRuntimeTools,
-        linkcrestAgentApi: this.linkCrestAgentApiDiagnostics(
+        localappconnectorAgentApi: this.localAppConnectorAgentApiDiagnostics(
           input.marketplaceTools,
         ),
       }),
@@ -904,12 +904,12 @@ export class HermesRuntimeAdapter implements RuntimeAdapter, OnModuleInit {
     return typeof value === "string" && value.trim() ? value.trim() : null;
   }
 
-  private linkCrestAgentApiDiagnostics(tools: Array<Record<string, unknown>>) {
+  private localAppConnectorAgentApiDiagnostics(tools: Array<Record<string, unknown>>) {
     const tool = tools.find((candidate) => {
       const name =
         this.objectString(candidate, "name") ??
         this.objectString(candidate, "functionName");
-      return name === "linkcrest.agentApi" || name === "linkcrest_agent_api";
+      return name === "localappconnector.agentApi" || name === "localappconnector_agent_api";
     });
     if (!tool) {
       return {

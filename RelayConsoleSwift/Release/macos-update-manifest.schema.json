@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "macos-update-manifest.schema.json",
-  "title": "Relay Console public beta macOS update manifest",
+  "title": "Relay Console public beta macOS Sparkle publication evidence",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -9,6 +9,8 @@
     "channel",
     "generatedAt",
     "manualUpdate",
+    "updateMechanism",
+    "appcastURL",
     "current",
     "previous",
     "previousDMGMinimumRetentionDays",
@@ -21,7 +23,9 @@
     "schemaVersion": { "const": "relay.macos-update-manifest.v1" },
     "channel": { "const": "public-beta" },
     "generatedAt": { "type": "string", "format": "date-time" },
-    "manualUpdate": { "const": true },
+    "manualUpdate": { "const": false },
+    "updateMechanism": { "const": "sparkle-2" },
+    "appcastURL": { "const": "https://insitektalay.github.io/clawchat/appcast.xml" },
     "current": { "$ref": "#/$defs/currentArtifact" },
     "previous": {
       "anyOf": [
@@ -58,6 +62,8 @@
         "signatureMode",
         "notarizationStatus",
         "distributionEvidenceSHA256"
+        ,"sparkleArchiveURL"
+        ,"sparkleEdSignature"
       ],
       "properties": {
         "version": { "type": "string", "minLength": 1 },
@@ -77,6 +83,11 @@
         "signatureMode": { "const": "developer-id-hardened-runtime" },
         "notarizationStatus": { "const": "accepted-stapled" },
         "distributionEvidenceSHA256": { "$ref": "#/$defs/sha256" }
+        ,"sparkleArchiveURL": {
+          "type": "string",
+          "pattern": "^https://github\\.com/insitektalay/clawchat/releases/download/macos-v[^/]+/RelayConsole-[^/]+\\.zip$"
+        }
+        ,"sparkleEdSignature": { "type": "string", "pattern": "^[A-Za-z0-9+/]{86}==$" }
       }
     },
     "currentArtifact": { "$ref": "#/$defs/artifactBase" },

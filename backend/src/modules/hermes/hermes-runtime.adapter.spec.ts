@@ -10,7 +10,7 @@ import { HermesRuntimeAdapter } from "./hermes-runtime.adapter";
 import { HermesWorkerClient } from "./hermes-worker.client";
 
 const LOCAL_HERMES_PYTHON =
-  "/Users/alexkerss/Documents/Projects/Active/hermes-agent/.venv/bin/python";
+  "/Users/example/Documents/Projects/Active/hermes-agent/.venv/bin/python";
 const PYTHON_BIN =
   process.env.HERMES_TEST_PYTHON_BIN?.trim() ||
   (fs.existsSync(LOCAL_HERMES_PYTHON) ? LOCAL_HERMES_PYTHON : "python3");

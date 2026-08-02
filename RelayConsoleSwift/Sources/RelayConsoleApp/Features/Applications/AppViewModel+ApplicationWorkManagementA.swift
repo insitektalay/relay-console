@@ -11,7 +11,7 @@ extension AppViewModel {
       guard app.slug == "lever" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_LEVER_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin), url.scheme == "https", url.host?.nilIfEmpty != nil
       else {
         throw RelayError(
@@ -421,7 +421,7 @@ extension AppViewModel {
       guard app.slug == "google-search-console" else { return self.selectedThreadId }
       let environment = ProcessInfo.processInfo.environment
       guard environment["RELAY_GOOGLE_OAUTH_CLIENT_ID"]?.nilIfEmpty != nil,
-        let origin = environment["CLAWCHAT_RAILWAY_ORIGIN"]?.nilIfEmpty,
+        let origin = RelayCloudLaunchContract.configuredRailwayOrigin,
         let url = URL(string: origin),
         url.scheme == "https",
         url.host?.nilIfEmpty != nil

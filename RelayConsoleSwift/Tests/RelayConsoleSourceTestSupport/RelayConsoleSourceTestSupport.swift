@@ -143,7 +143,10 @@ public enum RelayConsoleSourceTestSupport {
     let featureFiles = orderedFeaturePaths.map {
       featureRoot.appendingPathComponent($0)
     }
-    return [appRoot.appendingPathComponent("Views.swift")] + featureFiles
+    return [
+      appRoot.appendingPathComponent("Views.swift"),
+      appRoot.appendingPathComponent("SetupAssistantView.swift"),
+    ] + featureFiles
   }
 
   private static func appViewModelSourceURLs(root: URL) throws -> [URL] {
@@ -155,6 +158,7 @@ public enum RelayConsoleSourceTestSupport {
       "Features/Chats/AppViewModel+Chats.swift",
       "Features/Agents/AppViewModel+Agents.swift",
       "Features/Settings/AppViewModel+Settings.swift",
+      "Features/Settings/AppViewModel+SetupAssistant.swift",
       "Features/Applications/AppViewModel+ApplicationCatalogCredentials.swift",
       "Features/Applications/AppViewModel+ApplicationKnowledgeBusiness.swift",
       "Features/Applications/AppViewModel+ApplicationSocialCommunicationsA.swift",

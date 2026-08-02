@@ -804,7 +804,7 @@ public final class AgentOpsService {
             ("seo", "seo_department"),
             ("rank", "rankscope_seo_office"),
             ("affiliate", "affiliate_website_factory"),
-            ("link", "linkcrest_department"),
+            ("link", "localappconnector_department"),
             ("research", "research"),
             ("admin", "admin"),
             ("approval", "human_approval_room"),

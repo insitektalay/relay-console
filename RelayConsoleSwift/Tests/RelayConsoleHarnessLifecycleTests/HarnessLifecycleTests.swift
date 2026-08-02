@@ -31,6 +31,7 @@ struct RelayConsoleHarnessLifecycleTests {
 
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("relay-harness-update-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: root) }
+        try await testRuntimeDiscovery(root: root)
         let install = root.appendingPathComponent("install", isDirectory: true)
         let state = root.appendingPathComponent("state", isDirectory: true)
         let backups = root.appendingPathComponent("backups", isDirectory: true)
@@ -74,6 +75,32 @@ struct RelayConsoleHarnessLifecycleTests {
             refreshInstalledHarnessesOnLaunch: false,
             openExternal: { _ in }
         )
+
+        let incompleteHermes = userRoot.appendingPathComponent("incomplete-hermes", isDirectory: true)
+        try FileManager.default.createDirectory(at: incompleteHermes, withIntermediateDirectories: true)
+        try Data("# marker without an environment".utf8).write(to: incompleteHermes.appendingPathComponent("run_agent.py"))
+        do {
+            _ = try await services.harnessInstall.connectExisting(harnessKey: .hermes, location: incompleteHermes)
+            throw HarnessLifecycleTestFailure(description: "Hermes selection without .venv or venv should fail")
+        } catch let error as HarnessLifecycleTestFailure {
+            throw error
+        } catch {
+            try expect(error.localizedDescription.contains("both .venv and venv"), "invalid Hermes selection should explain both supported layouts")
+        }
+
+        let invalidOpenClaw = userRoot.appendingPathComponent("not-openclaw", isDirectory: true)
+        try FileManager.default.createDirectory(at: invalidOpenClaw, withIntermediateDirectories: true)
+        try Data("// untrusted entry point".utf8).write(to: invalidOpenClaw.appendingPathComponent("openclaw.mjs"))
+        try Data(#"{"name":"different-package","version":"1.0.0"}"#.utf8).write(to: invalidOpenClaw.appendingPathComponent("package.json"))
+        do {
+            _ = try await services.harnessInstall.connectExisting(harnessKey: .openclaw, location: invalidOpenClaw)
+            throw HarnessLifecycleTestFailure(description: "an unrelated package should not connect as OpenClaw")
+        } catch let error as HarnessLifecycleTestFailure {
+            throw error
+        } catch {
+            try expect(error.localizedDescription.contains("not an OpenClaw checkout"), "invalid OpenClaw selection should have an actionable error")
+        }
+
         let connected = try await services.harnessInstall.connectExisting(
             harnessKey: .hermes,
             location: hermesInstall,
@@ -158,6 +185,67 @@ struct RelayConsoleHarnessLifecycleTests {
             try expect(FileManager.default.fileExists(atPath: outsideLegacySource.path), "refused migration must preserve the user-owned folder")
         }
         print("RelayConsoleHarnessLifecycleTests passed")
+    }
+
+    private static func testRuntimeDiscovery(root: URL) async throws {
+        let home = root.appendingPathComponent("discovery-home", isDirectory: true)
+        let dotVenvHermes = home.appendingPathComponent(".hermes/hermes-agent", isDirectory: true)
+        let venvHermes = home.appendingPathComponent("Projects/hermes-agent", isDirectory: true)
+        let invalidHermes = home.appendingPathComponent("Developer/hermes-agent", isDirectory: true)
+        try makeHermes(at: dotVenvHermes, environment: ".venv", version: "0.20.1")
+        try makeHermes(at: venvHermes, environment: "venv", version: nil)
+        try FileManager.default.createDirectory(at: invalidHermes, withIntermediateDirectories: true)
+        try Data("# missing Python environment".utf8).write(to: invalidHermes.appendingPathComponent("run_agent.py"))
+
+        let openClaw = home.appendingPathComponent(".npm-global/lib/node_modules/openclaw", isDirectory: true)
+        try FileManager.default.createDirectory(at: openClaw, withIntermediateDirectories: true)
+        try Data("// official entry point".utf8).write(to: openClaw.appendingPathComponent("openclaw.mjs"))
+        try Data(#"{"name":"openclaw","version":"2026.7.1"}"#.utf8).write(to: openClaw.appendingPathComponent("package.json"))
+        let command = home.appendingPathComponent(".npm-global/bin/openclaw")
+        try FileManager.default.createDirectory(at: command.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: command, withDestinationURL: openClaw.appendingPathComponent("openclaw.mjs"))
+
+        let node = home.appendingPathComponent("bin/node")
+        try FileManager.default.createDirectory(at: node.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data("#!/bin/sh\nexit 0\n".utf8).write(to: node)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: node.path)
+
+        let configuration = RuntimeDiscoverySearchConfiguration(
+            homeDirectory: home,
+            hermesLocations: [dotVenvHermes, venvHermes, invalidHermes, dotVenvHermes],
+            openClawCommandLocations: [command],
+            openClawPackageLocations: [openClaw],
+            nodeLocations: [node]
+        )
+        let candidates = await RuntimeInstallationDiscovery.discover(configuration: configuration)
+        let hermesCandidates = candidates.filter { $0.harnessKey == .hermes }
+        let openClawCandidates = candidates.filter { $0.harnessKey == .openclaw }
+        try expect(hermesCandidates.count == 2, "discovery should accept .venv and venv, reject incomplete installs, and remove duplicates")
+        try expect(hermesCandidates.first(where: { $0.location == dotVenvHermes })?.version == "0.20.1", "Hermes discovery should report a pyproject version when available")
+        try expect(openClawCandidates.count == 1, "OpenClaw command symlink and package path should resolve to one candidate")
+        try expect(openClawCandidates.first?.location == openClaw.resolvingSymlinksInPath().standardizedFileURL, "OpenClaw discovery should resolve the command to its package")
+        try expect(openClawCandidates.first?.version == "2026.7.1", "OpenClaw discovery should report the package version")
+        try expect(candidates.allSatisfy { $0.compatibility == .ready }, "only validated ready candidates should be shown")
+
+        let missing = await RuntimeInstallationDiscovery.discover(configuration: RuntimeDiscoverySearchConfiguration(
+            homeDirectory: home,
+            hermesLocations: [home.appendingPathComponent("missing-hermes")],
+            openClawCommandLocations: [home.appendingPathComponent("missing-openclaw")],
+            openClawPackageLocations: [],
+            nodeLocations: [node]
+        ))
+        try expect(missing.isEmpty, "missing installations should produce no candidates")
+    }
+
+    private static func makeHermes(at root: URL, environment: String, version: String?) throws {
+        let python = root.appendingPathComponent("\(environment)/bin/python")
+        try FileManager.default.createDirectory(at: python.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data("# official entry point".utf8).write(to: root.appendingPathComponent("run_agent.py"))
+        try Data("#!/bin/sh\nexit 0\n".utf8).write(to: python)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: python.path)
+        if let version {
+            try Data("[project]\nname = \"hermes-agent\"\nversion = \"\(version)\"\n".utf8).write(to: root.appendingPathComponent("pyproject.toml"))
+        }
     }
 
     private static func expect(_ condition: @autoclosure () throws -> Bool, _ message: String) throws {

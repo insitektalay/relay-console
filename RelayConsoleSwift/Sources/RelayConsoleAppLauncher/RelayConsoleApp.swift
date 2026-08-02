@@ -14,6 +14,12 @@ struct RelayConsoleApp: App {
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1700, height: 1180)
         .commands {
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") {
+                    controller.updateController.checkForUpdates()
+                }
+                .disabled(!controller.updateController.canCheckForUpdates)
+            }
             CommandGroup(replacing: .newItem) {
                 Button("New Chat") {
                     controller.startNewChat()

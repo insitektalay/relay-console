@@ -46,10 +46,10 @@ export function useMarketplaceConnectionFormState(
   const [outlookInstallSenderDrafts, setOutlookInstallSenderDrafts] = useState<
     Record<string, string>
   >({})
-  const [linkcrestOpenClawBaseUrlDraft, setLinkcrestOpenClawBaseUrlDraft] =
+  const [localappconnectorOpenClawBaseUrlDraft, setLocalAppConnectorOpenClawBaseUrlDraft] =
     useState("")
-  const [linkcrestBearerKeyDraft, setLinkcrestBearerKeyDraft] = useState("")
-  const [revealedLinkcrestBearerKeySlug, setRevealedLinkcrestBearerKeySlug] =
+  const [localappconnectorBearerKeyDraft, setLocalAppConnectorBearerKeyDraft] = useState("")
+  const [revealedLocalAppConnectorBearerKeySlug, setRevealedLocalAppConnectorBearerKeySlug] =
     useState<string | null>(null)
 
   const selectMarketplaceApp = useCallback((app: MarketplaceApp) => {
@@ -73,9 +73,9 @@ export function useMarketplaceConnectionFormState(
     setMicrosoftTenantId("")
     setOutlookSenderEmail("")
     setOutlookInstallSenderDrafts({})
-    setLinkcrestOpenClawBaseUrlDraft("")
-    setLinkcrestBearerKeyDraft("")
-    setRevealedLinkcrestBearerKeySlug(null)
+    setLocalAppConnectorOpenClawBaseUrlDraft("")
+    setLocalAppConnectorBearerKeyDraft("")
+    setRevealedLocalAppConnectorBearerKeySlug(null)
   }, [])
 
   return {
@@ -86,15 +86,15 @@ export function useMarketplaceConnectionFormState(
     credentialDrafts,
     environment,
     isReplacingConnectionCredentials,
-    linkcrestBearerKeyDraft,
-    linkcrestOpenClawBaseUrlDraft,
+    localappconnectorBearerKeyDraft,
+    localappconnectorOpenClawBaseUrlDraft,
     microsoftAuthorityMode,
     microsoftTenantId,
     outlookInstallSenderDrafts,
     outlookSenderEmail,
     retainUnverifiedCredentials,
     revealedCredentialDrafts,
-    revealedLinkcrestBearerKeySlug,
+    revealedLocalAppConnectorBearerKeySlug,
     selectedAgentIds,
     selectedAuditorAgentId,
     selectedCapabilities,
@@ -109,15 +109,15 @@ export function useMarketplaceConnectionFormState(
     setCredentialDrafts,
     setEnvironment,
     setIsReplacingConnectionCredentials,
-    setLinkcrestBearerKeyDraft,
-    setLinkcrestOpenClawBaseUrlDraft,
+    setLocalAppConnectorBearerKeyDraft,
+    setLocalAppConnectorOpenClawBaseUrlDraft,
     setMicrosoftAuthorityMode,
     setMicrosoftTenantId,
     setOutlookInstallSenderDrafts,
     setOutlookSenderEmail,
     setRetainUnverifiedCredentials,
     setRevealedCredentialDrafts,
-    setRevealedLinkcrestBearerKeySlug,
+    setRevealedLocalAppConnectorBearerKeySlug,
     setSelectedAgentIds,
     setSelectedAuditorAgentId,
     setSelectedCapabilities,

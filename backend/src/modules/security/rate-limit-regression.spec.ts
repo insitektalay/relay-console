@@ -98,8 +98,8 @@ describe("rate limit regressions", () => {
     const marketplace = readBackendFile(
       "src/modules/marketplace/marketplace.controller.ts",
     );
-    const linkcrestTools = readBackendFile(
-      "src/modules/marketplace/linkcrest-agent-api-tools.controller.ts",
+    const localappconnectorTools = readBackendFile(
+      "src/modules/marketplace/localappconnector-agent-api-tools.controller.ts",
     );
     const xTools = readBackendFile(
       "src/modules/marketplace/x-marketplace.controller.ts",
@@ -107,8 +107,8 @@ describe("rate limit regressions", () => {
 
     expectThrottleNear(marketplace, '@Post("tool-requests")');
     expectThrottleNear(
-      linkcrestTools,
-      "export class LinkCrestAgentApiBridgeToolsController",
+      localappconnectorTools,
+      "export class LocalAppConnectorAgentApiBridgeToolsController",
     );
     expectThrottleNear(
       xTools,

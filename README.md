@@ -1,139 +1,108 @@
-# Relay Console / ClawChat
+# Relay Console
 
-## Project status
+Relay Console is an early-alpha, MIT-licensed, self-hosted console for Hermes
+Agent and OpenClaw. This repository contains the native macOS app, native
+iPhone and iPad app, web client, and Railway backend, together with the shared
+packages and runtime components needed to build and operate them.
 
-Relay Console is an early-alpha open-source project for AI enthusiasts, developers and tinkerers running Hermes or OpenClaw. It is not currently distributed through the App Store or provided as a hosted service. Users build the macOS and iOS clients from source, run the web interface locally, and deploy and fund their own backend.
+The project is intended for technical early adopters. You provide your own
+agent runtimes, hosting and credentials, and currently build the clients from
+source.
 
-Relay Console is an MIT-licensed, self-hosted AI console with native Apple
-clients, a browser app and a Railway control plane. The Railway backend is the
-source of truth. Browser API requests stay on `/api/v1` and are rewritten to
-Railway; realtime traffic uses the configured Railway websocket origin.
+## Current distribution status
 
-Start with [`SELF_HOSTING.md`](SELF_HOSTING.md). This is a technical alpha: you
-provide the hosting, credentials, Apple signing and agent runtime. There is no
-shared backend or App Store binary. Maintainer production-launch documents are
-historical operating material, not the self-host installation path.
-The exact Hermes, OpenClaw and paired CLI runtime steps are in
+| Item | Status |
+| --- | --- |
+| Public source | Available under the MIT License |
+| macOS application | Build from source; no signed public DMG or GitHub Release is available |
+| iPhone and iPad application | Build from source; no App Store release is available |
+| Web application and backend | Self-host from this repository |
+| Railway template | Infrastructure is present in source, but no verified public template URL is available yet |
+| Sparkle updates | Supported in source, but no public update is available until a signed DMG, GitHub Release and appcast are published |
+| Windows | Not supported yet |
+
+Public source availability does not mean that an installable application
+release exists. Do not expect the macOS update checker to offer an update from
+this source snapshot.
+
+## Choose how to connect
+
+The macOS app includes automatic local Hermes Agent and OpenClaw discovery and
+a first-launch setup assistant.
+
+- For local-only macOS use, Hermes Agent or OpenClaw can run on the same Mac
+  and connect directly. Railway is optional for this path.
+- For a runtime on another macOS or Linux computer, Mac mini, server or VPS,
+  deploy your own Railway backend and install the bridge beside the runtime.
+  Railway is required for this remote-machine connection flow and for the web
+  and iPhone/iPad clients.
+- The bridge plugins are maintained separately in
+  [`relay-console-bridge-plugins`](https://github.com/insitektalay/relay-console-bridge-plugins).
+
+Start with [`SELF_HOSTING.md`](SELF_HOSTING.md). Runtime-specific setup is in
 [`docs/RUNTIME_SETUP.md`](docs/RUNTIME_SETUP.md).
-Asset licensing and provider trademark boundaries are documented in
-[`ASSET_LICENSES.md`](ASSET_LICENSES.md).
 
-## Maintained product surfaces
+## Railway deployment status
 
-| Surface | Path | Ownership and release status |
-| --- | --- | --- |
-| Railway API and control plane | `backend/` | Shipping NestJS service and production data authority. Deploy from this directory so `backend/railway.json` and startup migrations apply. |
-| Vercel web client | `web/` | Shipping Next.js client. HTTP stays on `/api/v1`, rewritten with `CLAWCHAT_RAILWAY_ORIGIN`; realtime uses `NEXT_PUBLIC_RAILWAY_WS_BASE_URL`. |
-| Native macOS client | `RelayConsoleSwift/` | Canonical desktop implementation and distribution source. |
-| Native iPhone and iPad client | `ios/` | Maintained Xcode project and App Store source. |
-| Marketing site | `Relay Console landing page/` | Maintained landing-page package. It does not own application API state. |
-| Canonical contracts and generated inputs | `packages/` | Shared contracts, web SDK and Marketplace provider catalog. |
-| Paired CLI runtime | `claude-runtime/` | Supported local runtime for Claude Code and Codex-style dispatch through Railway. |
-| Hermes runtime worker | `hermes-runtime/` | Supported external Python worker and bridge contract. It remains outside the NestJS process and outside the pnpm workspace. |
+The repository contains the secure three-service Railway template
+infrastructure for the backend, PostgreSQL and Redis. The template still
+requires a one-time publication by the repository owner, so this README does
+not include an unverified **Deploy on Railway** button. See
+[`docs/RAILWAY_TEMPLATE_PUBLISHING.md`](docs/RAILWAY_TEMPLATE_PUBLISHING.md)
+for the publication and fresh-account acceptance procedure.
 
-Detailed ownership, archival and evidence-retention rules are in
-[`docs/repository-ownership-and-retention.md`](docs/repository-ownership-and-retention.md).
+Manual self-hosting instructions are in [`SELF_HOSTING.md`](SELF_HOSTING.md).
+For web deployments, browser requests remain on `/api/v1` and are rewritten to
+the configured Railway origin; realtime traffic uses the configured Railway
+websocket origin.
 
-## Historical and non-shipping surfaces
+## Repository map
 
-| Surface | Path | Status |
-| --- | --- | --- |
-| Electron desktop prototype | `relay-console/` | Archived reference implementation. Native `RelayConsoleSwift/` supersedes it. It is deliberately excluded from `pnpm-workspace.yaml` and normal installation. |
-| Root Swift prototype | `ClawChat/`, `ClawChat.xcodeproj/` | Legacy prototype/compatibility snapshot. Do not use it for release builds; maintained mobile work belongs in `ios/`. |
-| Agent-loop launch folders | `agent-loop*` | Historical program evidence, not runtime application code. |
-| Archived launch evidence | `docs/archive/` | Historical evidence only. It does not determine current launch state. |
+| Surface | Path |
+| --- | --- |
+| Native macOS client and local runtime manager | `RelayConsoleSwift/` |
+| Native iPhone and iPad client | `ios/` |
+| Next.js web client | `web/` |
+| NestJS Railway backend | `backend/` |
+| Shared contracts, SDK and Marketplace catalog | `packages/` |
+| Paired CLI runtime | `claude-runtime/` |
+| Hermes runtime worker | `hermes-runtime/` |
+| Marketing site | `Relay Console landing page/` |
 
-## Architecture
+The supported iOS project is `ios/ClawChat.xcodeproj`. The macOS Swift package
+is under `RelayConsoleSwift/`.
 
-```text
-macOS / iPhone / iPad / web
-             |
-      REST /api/v1 + websocket
-             |
-       Railway backend
-       /      |       \
-PostgreSQL  Redis   paired runtimes
-                    /             \
-             claude-runtime   Hermes worker
-```
+## Privacy and telemetry
 
-The clients do not substitute a local backend for the Railway API. Provider
-catalog and Marketplace release facts originate in
-`packages/marketplace-catalog/` and are generated into backend and Apple
-snapshots.
+PostHog product analytics and Sentry crash reporting are optional, opt-in and
+disabled until the user consents. Self-hosters do not need either service.
+Configuration values are not included in this source snapshot.
 
-For a beginner-friendly explanation of this architecture, its failure modes,
-and the evidence that should trigger future scaling work, see the
-[`docs/system-design-and-scaling/`](docs/system-design-and-scaling/README.md)
-handbook.
+- [Telemetry and privacy behavior](RelayConsoleSwift/docs/PUBLIC_BETA_TELEMETRY.md)
+- [Telemetry configuration](docs/TELEMETRY_CONFIGURATION.md)
+- [iOS privacy disclosures](ios/APP_STORE_PRIVACY_DISCLOSURES.md)
+- [Security policy](SECURITY.md)
+- [Asset licences and trademark boundaries](ASSET_LICENSES.md)
+- [Third-party notices](RelayConsoleSwift/Release/THIRD_PARTY_NOTICES.md)
 
-## Repository development
+## Build from source
 
-Prerequisites are Node.js 20+, pnpm 10, Xcode 16+ for Apple work and Python 3.11+
-for the Hermes worker.
-
-Common non-deployment checks:
+Prerequisites are Node.js 20+, pnpm 10, Xcode 16+ for Apple work, and Python
+3.11+ for the Hermes worker.
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm goal:codebase-remediation
-pnpm verify:backend:beta
-pnpm verify:web:beta:full
 swift build --package-path RelayConsoleSwift
 ```
 
-The supported iOS project is `ios/ClawChat.xcodeproj`. Regenerate it from
-`ios/project.yml` with XcodeGen when the project specification changes.
+For backend and web setup, follow [`SELF_HOSTING.md`](SELF_HOSTING.md). Deploy
+the backend from `backend/` so `backend/railway.json` applies and startup
+migrations run.
 
-Backend behavior, DTO, entity, migration, runtime-dispatch or persisted
-web-consumed changes are not live until deployed from `backend/` and verified
-against Railway. Web behavior changes are not live until the production Vercel
-deployment and `/api/v1` rewrite are verified.
+## Contributing
 
-## Repository controls
+Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a change. Security
+reports should follow [`SECURITY.md`](SECURITY.md). The public export boundary
+is documented in [`PUBLIC_RELEASE_SCOPE.md`](PUBLIC_RELEASE_SCOPE.md).
 
-- `pnpm goal:codebase-remediation` runs structural, catalog, semantic, asset and
-  repository-ownership gates.
-- `pnpm repository:ownership:check` validates maintained and archived surface
-  declarations.
-- `pnpm clean:repository-caches` lists only known disposable build caches.
-- `pnpm clean:repository-caches:apply` removes those exact caches; it never
-  targets source, evidence, environment files or workspace roots.
-
-Operational configuration and production verification are documented in
-[`docs/BETA_OPERATIONS.md`](docs/BETA_OPERATIONS.md) and
-[`docs/production-launch-architecture.md`](docs/production-launch-architecture.md).
-
-## Self-hosted web posture
-
-Each installation uses its owner's Railway deployment:
-
-```text
-CLAWCHAT_RAILWAY_ORIGIN=https://your-backend.up.railway.app
-NEXT_PUBLIC_RAILWAY_WS_BASE_URL=wss://your-backend.up.railway.app
-```
-
-The hosts must match and use HTTPS/WSS. Loopback backend targets are not a
-supported web deployment. See [`SELF_HOSTING.md`](SELF_HOSTING.md) for the
-Railway, web, macOS, iOS and runtime sequence.
-
-## Avatar assets
-
-The public source archive includes six offline fallbacks, not the full avatar
-artwork catalogue. Operators may publish the catalogue in any public HTTPS
-object store or CDN with an `illustrated/` directory and configure its directory
-URL:
-
-```text
-# Vercel / Next.js
-NEXT_PUBLIC_RELAY_AVATAR_ASSET_BASE_URL=https://assets.example.com/avatars
-
-# macOS launch environment or application Info.plist
-RELAY_CONSOLE_AVATAR_ASSET_BASE_URL=https://assets.example.com/avatars
-
-# iOS owner xcconfig
-RELAY_CONSOLE_AVATAR_ASSET_BASE_URL = https:/$()/assets.example.com/avatars
-```
-
-This URL is public configuration, not a secret. With no avatar asset URL, the
-clients continue to work using the bundled fallback set and initials.
+Relay Console is provided under the [MIT License](LICENSE).

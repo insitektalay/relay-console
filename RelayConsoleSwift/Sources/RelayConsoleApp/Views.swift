@@ -9,9 +9,13 @@ struct ContentView: View {
   var body: some View {
     ZStack {
       RCTheme.surfaceLevel0.ignoresSafeArea()
-      if model.loading || model.relayLaunchAccessCheckInProgress {
+      if model.loading {
         RelayLaunchView()
-      } else if !model.relayEntitlementAccess.allowsOrdinaryUse {
+      } else if model.setupAssistantPresented {
+        SetupAssistantView()
+      } else if model.relayLaunchAccessCheckInProgress && !model.canUseMainInterface {
+        RelayLaunchView()
+      } else if !model.canUseMainInterface {
         RelayEntitlementGateView(access: model.relayEntitlementAccess)
       } else {
         HStack(spacing: 0) {
@@ -40,7 +44,8 @@ struct ContentView: View {
       }
       if !model.loading
         && !model.relayLaunchAccessCheckInProgress
-        && model.relayEntitlementAccess.allowsOrdinaryUse
+        && model.canUseMainInterface
+        && !model.setupAssistantPresented
         && model.telemetryChoiceRequired
       {
         TelemetryConsentOnboardingView()

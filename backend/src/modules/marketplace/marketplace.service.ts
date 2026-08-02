@@ -91,7 +91,7 @@ import {
   type MarketplacePackSource,
 } from "./pack-factory/types";
 import {
-  ConfigureLinkCrestOpenClawDto,
+  ConfigureLocalAppConnectorOpenClawDto,
   AutoConnectLocalAppDto,
   CreateMarketplaceConnectionDto,
   CreateLocalMarketplaceAppDto,
@@ -247,21 +247,21 @@ type LocalAppRuntimeConnectionMetadata = {
   lifecycle?: Record<string, unknown>;
   runtimeProfile?: Record<string, unknown> | null;
   autonomyPolicy?: LocalAppAutonomyPolicy;
-  linkcrestCampaignId?: string | null;
-  linkcrestCampaignName?: string | null;
-  linkcrestOpenClawBaseUrl?: string | null;
-  linkcrestOpenClawConnectionId?: string | null;
-  linkcrestOpenClawStatus?: Record<string, unknown> | null;
-  linkcrestPolicySync?: Record<string, unknown> | null;
+  localappconnectorCampaignId?: string | null;
+  localappconnectorCampaignName?: string | null;
+  localappconnectorOpenClawBaseUrl?: string | null;
+  localappconnectorOpenClawConnectionId?: string | null;
+  localappconnectorOpenClawStatus?: Record<string, unknown> | null;
+  localappconnectorPolicySync?: Record<string, unknown> | null;
 };
 
-type LinkCrestPolicySyncResult = {
+type LocalAppConnectorPolicySyncResult = {
   status: "synced" | "unsynced" | "failed" | "skipped";
   message: string;
   campaignId: string | null;
   campaignName: string | null;
   clawchatMode: string;
-  linkcrestMode: string | null;
+  localappconnectorMode: string | null;
   lastSyncAt: string;
   mismatch: boolean;
   getPolicyResult?: unknown;
@@ -305,7 +305,7 @@ type LocalAppAutoConnectResult = {
   };
   campaigns: MarketplaceLocalAppCampaignPayload[];
   selectedCampaign: MarketplaceLocalAppCampaignPayload | null;
-  policySync: LinkCrestPolicySyncResult | Record<string, unknown> | null;
+  policySync: LocalAppConnectorPolicySyncResult | Record<string, unknown> | null;
   installResults: Array<Record<string, unknown>>;
   neededToolsSummary: Record<string, unknown> | null;
   userActionRequired: string | null;
@@ -678,8 +678,8 @@ export class MarketplaceService {
         userId,
       ),
       lifecycle: this.sanitizeLocalAppLifecycleMetadata(dto.lifecycle),
-      linkcrestCampaignId: dto.linkcrestCampaignId?.trim() || null,
-      linkcrestCampaignName: dto.linkcrestCampaignName?.trim() || null,
+      localappconnectorCampaignId: dto.localappconnectorCampaignId?.trim() || null,
+      localappconnectorCampaignName: dto.localappconnectorCampaignName?.trim() || null,
     };
     localRepoMetadata.runtimeProfile = resolveLocalAppRuntimeProfile({
       appSlug: slug,
@@ -799,11 +799,11 @@ export class MarketplaceService {
                 : null,
           }
         : {}),
-      ...(dto.linkcrestCampaignId !== undefined
-        ? { linkcrestCampaignId: dto.linkcrestCampaignId?.trim() || null }
+      ...(dto.localappconnectorCampaignId !== undefined
+        ? { localappconnectorCampaignId: dto.localappconnectorCampaignId?.trim() || null }
         : {}),
-      ...(dto.linkcrestCampaignName !== undefined
-        ? { linkcrestCampaignName: dto.linkcrestCampaignName?.trim() || null }
+      ...(dto.localappconnectorCampaignName !== undefined
+        ? { localappconnectorCampaignName: dto.localappconnectorCampaignName?.trim() || null }
         : {}),
       ...(dto.documentationAutomationMode !== undefined
         ? {
@@ -868,7 +868,7 @@ export class MarketplaceService {
       );
     }
     if (dto.autonomyPolicy !== undefined) {
-      await this.syncLinkCrestCampaignPolicyForLinkedApp(workspaceId, linked, {
+      await this.syncLocalAppConnectorCampaignPolicyForLinkedApp(workspaceId, linked, {
         policy: nextAutonomyPolicy,
         reason: "autonomy_policy_update",
       });
@@ -2448,7 +2448,7 @@ export class MarketplaceService {
     );
   }
 
-  async syncLinkCrestCampaignPolicy(
+  async syncLocalAppConnectorCampaignPolicy(
     workspaceId: string,
     appSlug: string,
     userId: string,
@@ -2459,10 +2459,10 @@ export class MarketplaceService {
       linked.metadata = {
         ...(linked.metadata ?? {}),
         ...(input.campaignId !== undefined
-          ? { linkcrestCampaignId: input.campaignId?.trim() || null }
+          ? { localappconnectorCampaignId: input.campaignId?.trim() || null }
           : {}),
         ...(input.campaignName !== undefined
-          ? { linkcrestCampaignName: input.campaignName?.trim() || null }
+          ? { localappconnectorCampaignName: input.campaignName?.trim() || null }
           : {}),
       };
       linked.apiStyleMetadata = {
@@ -2471,7 +2471,7 @@ export class MarketplaceService {
       };
       await this.linkedApplicationRepo.save(linked);
     }
-    const result = await this.syncLinkCrestCampaignPolicyForLinkedApp(
+    const result = await this.syncLocalAppConnectorCampaignPolicyForLinkedApp(
       workspaceId,
       linked,
       {
@@ -2483,7 +2483,7 @@ export class MarketplaceService {
       actorType: "user",
       actorId: userId,
       workspaceId,
-      eventType: "marketplace.linkcrest_policy.sync_requested",
+      eventType: "marketplace.localappconnector_policy.sync_requested",
       resourceType: "marketplace_app",
       resourceId: appSlug,
       metadata: {
@@ -2494,16 +2494,16 @@ export class MarketplaceService {
     return result;
   }
 
-  async configureLinkCrestOpenClaw(
+  async configureLocalAppConnectorOpenClaw(
     workspaceId: string,
     appSlug: string,
     userId: string,
-    input: ConfigureLinkCrestOpenClawDto,
+    input: ConfigureLocalAppConnectorOpenClawDto,
   ) {
     const linked = await this.getLocalLinkedApplication(workspaceId, appSlug);
-    if (!this.isLinkCrestApp(linked.slug, linked.name)) {
+    if (!this.isLocalAppConnectorApp(linked.slug, linked.name)) {
       throw new BadRequestException(
-        "This OpenClaw configuration is only available for LinkCrest local apps.",
+        "This OpenClaw configuration is only available for LocalAppConnector local apps.",
       );
     }
     const baseUrl = input.openclawBaseUrl.trim().replace(/\/+$/, "");
@@ -2511,8 +2511,8 @@ export class MarketplaceService {
       throw new BadRequestException("OpenClaw base URL is required.");
     }
     const existingConnectionId =
-      this.stringOrNull(linked.metadata?.linkcrestOpenClawConnectionId) ??
-      this.stringOrNull(linked.apiStyleMetadata?.linkcrestOpenClawConnectionId);
+      this.stringOrNull(linked.metadata?.localappconnectorOpenClawConnectionId) ??
+      this.stringOrNull(linked.apiStyleMetadata?.localappconnectorOpenClawConnectionId);
     const connection =
       await this.bridgeService.configureWorkspaceOpenClawConnection({
         workspaceId,
@@ -2531,14 +2531,14 @@ export class MarketplaceService {
     };
     linked.metadata = {
       ...(linked.metadata ?? {}),
-      linkcrestOpenClawBaseUrl: baseUrl,
-      linkcrestOpenClawConnectionId: connection.id,
-      linkcrestOpenClawStatus: status,
+      localappconnectorOpenClawBaseUrl: baseUrl,
+      localappconnectorOpenClawConnectionId: connection.id,
+      localappconnectorOpenClawStatus: status,
       ...(input.campaignId !== undefined
-        ? { linkcrestCampaignId: input.campaignId?.trim() || null }
+        ? { localappconnectorCampaignId: input.campaignId?.trim() || null }
         : {}),
       ...(input.campaignName !== undefined
-        ? { linkcrestCampaignName: input.campaignName?.trim() || null }
+        ? { localappconnectorCampaignName: input.campaignName?.trim() || null }
         : {}),
     };
     linked.apiStyleMetadata = {
@@ -2550,15 +2550,15 @@ export class MarketplaceService {
       actorType: "user",
       actorId: userId,
       workspaceId,
-      eventType: "marketplace.linkcrest_openclaw.configured",
+      eventType: "marketplace.localappconnector_openclaw.configured",
       resourceType: "marketplace_app",
       resourceId: appSlug,
       metadata: {
         appSlug,
         baseUrl,
         connectionId: connection.id,
-        campaignId: linked.metadata.linkcrestCampaignId ?? null,
-        campaignName: linked.metadata.linkcrestCampaignName ?? null,
+        campaignId: linked.metadata.localappconnectorCampaignId ?? null,
+        campaignName: linked.metadata.localappconnectorCampaignName ?? null,
         bearerKeyUpdated: Boolean(input.bearerKey?.trim()),
       },
     });
@@ -2572,9 +2572,9 @@ export class MarketplaceService {
     input: AutoConnectLocalAppDto,
   ): Promise<LocalAppAutoConnectResult> {
     const linked = await this.getLocalLinkedApplication(workspaceId, appSlug);
-    if (!this.isLinkCrestApp(linked.slug, linked.name)) {
+    if (!this.isLocalAppConnectorApp(linked.slug, linked.name)) {
       throw new BadRequestException(
-        "One-click Agent API setup is currently available for LinkCrest local apps.",
+        "One-click Agent API setup is currently available for LocalAppConnector local apps.",
       );
     }
     const app = await this.resolveMarketplaceApp(workspaceId, appSlug);
@@ -2612,7 +2612,7 @@ export class MarketplaceService {
       ...(linked.apiStyleMetadata ?? {}),
       ...(linked.metadata ?? {}),
     };
-    const agentApiBaseUrl = this.deriveLinkCrestAgentApiBaseUrl(source);
+    const agentApiBaseUrl = this.deriveLocalAppConnectorAgentApiBaseUrl(source);
     const setup = await this.bridgeService.setupMarketplaceLocalAppAgentApi(
       workspaceId,
       {
@@ -2628,10 +2628,10 @@ export class MarketplaceService {
         legacyRouteNamespace: "/api/openclaw",
         desiredCampaignId:
           input.campaignId?.trim() ||
-          this.stringOrNull(source.linkcrestCampaignId),
+          this.stringOrNull(source.localappconnectorCampaignId),
         desiredCampaignName:
           input.campaignName?.trim() ||
-          this.stringOrNull(source.linkcrestCampaignName),
+          this.stringOrNull(source.localappconnectorCampaignName),
         autonomyPolicy: policy,
       },
     );
@@ -2643,7 +2643,7 @@ export class MarketplaceService {
       input,
     );
     const existingConnectionId =
-      this.resolveLinkCrestOpenClawConnectionId(linked);
+      this.resolveLocalAppConnectorOpenClawConnectionId(linked);
     const bearer =
       typeof setup.bearerKey === "string" ? setup.bearerKey.trim() : "";
     const connection =
@@ -2664,15 +2664,15 @@ export class MarketplaceService {
     linked.metadata = {
       ...(linked.metadata ?? {}),
       autonomyPolicy: policy,
-      linkcrestOpenClawBaseUrl: baseUrl || null,
-      linkcrestOpenClawConnectionId:
+      localappconnectorOpenClawBaseUrl: baseUrl || null,
+      localappconnectorOpenClawConnectionId:
         connection?.id ?? existingConnectionId ?? null,
-      linkcrestOpenClawStatus: {
+      localappconnectorOpenClawStatus: {
         connected: Boolean(connection),
         useMockMode: false,
         hasBearerKey: hasStoredBearer,
         checkedAt: new Date().toISOString(),
-        label: "LinkCrest Agent API",
+        label: "LocalAppConnector Agent API",
         legacyRouteNamespace: "/api/openclaw",
         source: "bridge_auto_connect",
         sourceHostReachable: setup.sourceHostReachable === true,
@@ -2681,12 +2681,12 @@ export class MarketplaceService {
         authenticatedSettingsStatus: setup.authenticatedSettingsStatus ?? null,
         hermesCredentialAttached: false,
       },
-      linkcrestCampaigns: campaigns,
+      localappconnectorCampaigns: campaigns,
       ...(selectedCampaign
         ? {
-            linkcrestCampaignId: selectedCampaign.id,
-            linkcrestCampaignName: selectedCampaign.name,
-            linkcrestCampaign: selectedCampaign,
+            localappconnectorCampaignId: selectedCampaign.id,
+            localappconnectorCampaignName: selectedCampaign.name,
+            localappconnectorCampaign: selectedCampaign,
           }
         : {}),
     };
@@ -2701,8 +2701,8 @@ export class MarketplaceService {
         status: "action_required",
         message:
           campaigns.length > 1
-            ? "Multiple LinkCrest campaigns were found. Select one campaign, then continue the connection."
-            : "No LinkCrest campaign was found. Create or select a campaign before installing agent packs.",
+            ? "Multiple LocalAppConnector campaigns were found. Select one campaign, then continue the connection."
+            : "No LocalAppConnector campaign was found. Create or select a campaign before installing agent packs.",
         app: await this.resolveMarketplaceApp(workspaceId, appSlug),
         connectionId: connection?.id ?? existingConnectionId ?? null,
         setup,
@@ -2724,7 +2724,7 @@ export class MarketplaceService {
         actorId: userId,
         workspaceId,
         eventType:
-          "marketplace.linkcrest_agent_api.auto_connect.action_required",
+          "marketplace.localappconnector_agent_api.auto_connect.action_required",
         resourceType: "marketplace_app",
         resourceId: appSlug,
         metadata: {
@@ -2741,7 +2741,7 @@ export class MarketplaceService {
       selectedCampaign,
       policy,
     );
-    await this.persistLinkCrestPolicySyncResult(linked, policySync);
+    await this.persistLocalAppConnectorPolicySyncResult(linked, policySync);
 
     let docsRefreshed = false;
     const installResults: Array<Record<string, unknown>> = [];
@@ -2792,8 +2792,8 @@ export class MarketplaceService {
       status,
       message:
         status === "connected"
-          ? "LinkCrest Agent API connected, campaign policy synced, and agent packs installed."
-          : "LinkCrest Agent API setup finished with follow-up required. Check diagnostics before using the app.",
+          ? "LocalAppConnector Agent API connected, campaign policy synced, and agent packs installed."
+          : "LocalAppConnector Agent API setup finished with follow-up required. Check diagnostics before using the app.",
       app: await this.resolveMarketplaceApp(workspaceId, appSlug),
       connectionId: marketplaceConnection.id,
       setup,
@@ -2811,7 +2811,7 @@ export class MarketplaceService {
       actorType: "user",
       actorId: userId,
       workspaceId,
-      eventType: "marketplace.linkcrest_agent_api.auto_connect.completed",
+      eventType: "marketplace.localappconnector_agent_api.auto_connect.completed",
       resourceType: "marketplace_app",
       resourceId: appSlug,
       metadata: {
@@ -2828,59 +2828,59 @@ export class MarketplaceService {
     return result;
   }
 
-  private async syncLinkCrestCampaignPolicyForLinkedApp(
+  private async syncLocalAppConnectorCampaignPolicyForLinkedApp(
     workspaceId: string,
     linked: LinkedApplicationEntity,
     input: { policy: LocalAppAutonomyPolicy; reason: string },
-  ): Promise<LinkCrestPolicySyncResult> {
-    if (!this.isLinkCrestApp(linked.slug, linked.name)) {
+  ): Promise<LocalAppConnectorPolicySyncResult> {
+    if (!this.isLocalAppConnectorApp(linked.slug, linked.name)) {
       return {
         status: "skipped",
-        message: "Not a LinkCrest local app.",
+        message: "Not a LocalAppConnector local app.",
         campaignId: null,
         campaignName: null,
         clawchatMode: input.policy.mode,
-        linkcrestMode: null,
+        localappconnectorMode: null,
         lastSyncAt: new Date().toISOString(),
         mismatch: false,
       };
     }
-    const campaign = this.resolveLinkCrestCampaign(linked);
+    const campaign = this.resolveLocalAppConnectorCampaign(linked);
     if (!campaign.campaignId && !campaign.campaignName) {
-      const result: LinkCrestPolicySyncResult = {
+      const result: LocalAppConnectorPolicySyncResult = {
         status: "unsynced",
         message:
-          "ClawChat mode set, but LinkCrest campaign policy not synced. Select a LinkCrest campaign and sync once.",
+          "ClawChat mode set, but LocalAppConnector campaign policy not synced. Select a LocalAppConnector campaign and sync once.",
         campaignId: null,
         campaignName: null,
         clawchatMode: input.policy.mode,
-        linkcrestMode: null,
+        localappconnectorMode: null,
         lastSyncAt: new Date().toISOString(),
         mismatch: true,
       };
-      await this.persistLinkCrestPolicySyncResult(linked, result);
+      await this.persistLocalAppConnectorPolicySyncResult(linked, result);
       return result;
     }
     if (!campaign.campaignId) {
-      const result: LinkCrestPolicySyncResult = {
+      const result: LocalAppConnectorPolicySyncResult = {
         status: "unsynced",
         message:
-          "ClawChat mode set, but LinkCrest campaign policy not synced. Select a LinkCrest campaign ID and sync again.",
+          "ClawChat mode set, but LocalAppConnector campaign policy not synced. Select a LocalAppConnector campaign ID and sync again.",
         campaignId: null,
         campaignName: campaign.campaignName,
         clawchatMode: input.policy.mode,
-        linkcrestMode: null,
+        localappconnectorMode: null,
         lastSyncAt: new Date().toISOString(),
         mismatch: true,
       };
-      await this.persistLinkCrestPolicySyncResult(linked, result);
+      await this.persistLocalAppConnectorPolicySyncResult(linked, result);
       return result;
     }
 
     const payload = {
       campaignId: campaign.campaignId,
       campaignName: campaign.campaignName,
-      mode: this.mapClawChatModeToLinkCrestMode(input.policy.mode),
+      mode: this.mapClawChatModeToLocalAppConnectorMode(input.policy.mode),
       clawchatAutonomyPolicy: input.policy,
       hardStops: input.policy.hardStops,
       evidenceRequired: input.policy.evidenceRequired,
@@ -2892,7 +2892,7 @@ export class MarketplaceService {
       const getPolicy = await this.bridgeService.callOpenClawOperation({
         workspaceId,
         operation: "autonomy.get_policy",
-        connectionId: this.resolveLinkCrestOpenClawConnectionId(linked),
+        connectionId: this.resolveLocalAppConnectorOpenClawConnectionId(linked),
         payload: {
           campaignId: campaign.campaignId,
         },
@@ -2900,50 +2900,50 @@ export class MarketplaceService {
       const updatePolicy = await this.bridgeService.callOpenClawOperation({
         workspaceId,
         operation: "autonomy.update_policy",
-        connectionId: this.resolveLinkCrestOpenClawConnectionId(linked),
+        connectionId: this.resolveLocalAppConnectorOpenClawConnectionId(linked),
         payload: {
-          policy: this.toLinkCrestAutonomyPolicy(payload, input.policy),
+          policy: this.toLocalAppConnectorAutonomyPolicy(payload, input.policy),
         },
       });
       const explainPolicy = await this.bridgeService.callOpenClawOperation({
         workspaceId,
         operation: "autonomy.explain_effective_policy",
-        connectionId: this.resolveLinkCrestOpenClawConnectionId(linked),
+        connectionId: this.resolveLocalAppConnectorOpenClawConnectionId(linked),
         payload: {
           campaignId: campaign.campaignId,
         },
       });
-      const linkcrestMode =
+      const localappconnectorMode =
         this.extractPolicyMode(explainPolicy.data) ??
         this.extractPolicyMode(updatePolicy.data) ??
         payload.mode;
-      const result: LinkCrestPolicySyncResult = {
+      const result: LocalAppConnectorPolicySyncResult = {
         status: "synced",
         message:
-          "LinkCrest campaign policy synced from ClawChat autonomy mode.",
+          "LocalAppConnector campaign policy synced from ClawChat autonomy mode.",
         campaignId: campaign.campaignId,
         campaignName: campaign.campaignName,
         clawchatMode: input.policy.mode,
-        linkcrestMode,
+        localappconnectorMode,
         lastSyncAt: new Date().toISOString(),
-        mismatch: linkcrestMode !== payload.mode,
+        mismatch: localappconnectorMode !== payload.mode,
         getPolicyResult: getPolicy.data,
         updatePolicyResult: updatePolicy.data,
         explainEffectivePolicyResult: explainPolicy.data,
       };
-      await this.persistLinkCrestPolicySyncResult(linked, result);
+      await this.persistLocalAppConnectorPolicySyncResult(linked, result);
       return result;
     } catch (error) {
-      const result: LinkCrestPolicySyncResult = {
+      const result: LocalAppConnectorPolicySyncResult = {
         status: "failed",
         message:
           error instanceof Error
             ? error.message
-            : "LinkCrest campaign policy sync failed.",
+            : "LocalAppConnector campaign policy sync failed.",
         campaignId: campaign.campaignId,
         campaignName: campaign.campaignName,
         clawchatMode: input.policy.mode,
-        linkcrestMode: null,
+        localappconnectorMode: null,
         lastSyncAt: new Date().toISOString(),
         mismatch: true,
         errorCode:
@@ -2955,60 +2955,60 @@ export class MarketplaceService {
               )
             : null,
       };
-      await this.persistLinkCrestPolicySyncResult(linked, result);
+      await this.persistLocalAppConnectorPolicySyncResult(linked, result);
       return result;
     }
   }
 
-  private async persistLinkCrestPolicySyncResult(
+  private async persistLocalAppConnectorPolicySyncResult(
     linked: LinkedApplicationEntity,
-    result: LinkCrestPolicySyncResult,
+    result: LocalAppConnectorPolicySyncResult,
   ) {
     linked.metadata = {
       ...(linked.metadata ?? {}),
-      linkcrestCampaignId: result.campaignId,
-      linkcrestCampaignName: result.campaignName,
-      linkcrestPolicySync: result,
+      localappconnectorCampaignId: result.campaignId,
+      localappconnectorCampaignName: result.campaignName,
+      localappconnectorPolicySync: result,
     };
     linked.apiStyleMetadata = {
       ...(linked.apiStyleMetadata ?? {}),
-      linkcrestCampaignId: result.campaignId,
-      linkcrestCampaignName: result.campaignName,
-      linkcrestPolicySync: result,
+      localappconnectorCampaignId: result.campaignId,
+      localappconnectorCampaignName: result.campaignName,
+      localappconnectorPolicySync: result,
     };
     await this.linkedApplicationRepo.save(linked);
   }
 
-  private isLinkCrestApp(appSlug: string, appName?: string | null) {
+  private isLocalAppConnectorApp(appSlug: string, appName?: string | null) {
     const normalized = `${appSlug} ${appName ?? ""}`.toLowerCase();
-    return normalized.includes("linkcrest");
+    return normalized.includes("localappconnector");
   }
 
-  private resolveLinkCrestCampaign(linked: LinkedApplicationEntity) {
+  private resolveLocalAppConnectorCampaign(linked: LinkedApplicationEntity) {
     const metadata = {
       ...(linked.apiStyleMetadata ?? {}),
       ...(linked.metadata ?? {}),
     };
     const campaign =
-      this.objectOrNull(metadata.linkcrestCampaign) ??
+      this.objectOrNull(metadata.localappconnectorCampaign) ??
       this.objectOrNull(metadata.campaign) ??
       this.objectOrNull(metadata.campaignMapping) ??
       {};
     return {
       campaignId:
-        this.stringOrNull(metadata.linkcrestCampaignId) ??
+        this.stringOrNull(metadata.localappconnectorCampaignId) ??
         this.stringOrNull(metadata.campaignId) ??
         this.stringOrNull(campaign.id) ??
         this.stringOrNull(campaign.campaignId),
       campaignName:
-        this.stringOrNull(metadata.linkcrestCampaignName) ??
+        this.stringOrNull(metadata.localappconnectorCampaignName) ??
         this.stringOrNull(metadata.campaignName) ??
         this.stringOrNull(campaign.name) ??
         this.stringOrNull(campaign.campaignName),
     };
   }
 
-  private mapClawChatModeToLinkCrestMode(mode: string) {
+  private mapClawChatModeToLocalAppConnectorMode(mode: string) {
     if (mode === "supervised_external") return "supervised_external";
     if (mode === "internal_write") return "internal_write";
     if (mode === "custom_policy") return "custom_policy";
@@ -3017,18 +3017,18 @@ export class MarketplaceService {
     return "safe_default";
   }
 
-  private resolveLinkCrestOpenClawConnectionId(
+  private resolveLocalAppConnectorOpenClawConnectionId(
     linked: LinkedApplicationEntity,
   ) {
     return (
-      this.stringOrNull(linked.metadata?.linkcrestOpenClawConnectionId) ??
-      this.stringOrNull(linked.apiStyleMetadata?.linkcrestOpenClawConnectionId)
+      this.stringOrNull(linked.metadata?.localappconnectorOpenClawConnectionId) ??
+      this.stringOrNull(linked.apiStyleMetadata?.localappconnectorOpenClawConnectionId)
     );
   }
 
-  private deriveLinkCrestAgentApiBaseUrl(source: Record<string, unknown>) {
+  private deriveLocalAppConnectorAgentApiBaseUrl(source: Record<string, unknown>) {
     const explicit =
-      this.stringOrNull(source.linkcrestOpenClawBaseUrl) ??
+      this.stringOrNull(source.localappconnectorOpenClawBaseUrl) ??
       this.stringOrNull(source.agentApiBaseUrl);
     const candidate =
       explicit ??
@@ -3036,7 +3036,7 @@ export class MarketplaceService {
       this.stringOrNull(source.localAppUrl);
     if (!candidate) {
       throw new BadRequestException(
-        "LinkCrest Agent API base URL could not be derived. Set the local app URL or Agent API base URL in Advanced.",
+        "LocalAppConnector Agent API base URL could not be derived. Set the local app URL or Agent API base URL in Advanced.",
       );
     }
     try {
@@ -3106,9 +3106,9 @@ export class MarketplaceService {
     raw: Record<string, unknown> | null | undefined,
     campaign: MarketplaceLocalAppCampaignPayload,
     policy: LocalAppAutonomyPolicy,
-  ): LinkCrestPolicySyncResult {
-    const expectedMode = this.mapClawChatModeToLinkCrestMode(policy.mode);
-    const linkcrestMode = this.extractPolicyMode(raw) ?? expectedMode;
+  ): LocalAppConnectorPolicySyncResult {
+    const expectedMode = this.mapClawChatModeToLocalAppConnectorMode(policy.mode);
+    const localappconnectorMode = this.extractPolicyMode(raw) ?? expectedMode;
     const status =
       raw && String(raw.status ?? "synced") !== "failed"
         ? "synced"
@@ -3117,14 +3117,14 @@ export class MarketplaceService {
       status,
       message:
         status === "synced"
-          ? "LinkCrest campaign policy synced from ClawChat autonomy mode."
-          : "ClawChat mode set, but LinkCrest campaign policy not synced by the runtime host.",
+          ? "LocalAppConnector campaign policy synced from ClawChat autonomy mode."
+          : "ClawChat mode set, but LocalAppConnector campaign policy not synced by the runtime host.",
       campaignId: campaign.id,
       campaignName: campaign.name,
       clawchatMode: policy.mode,
-      linkcrestMode: status === "synced" ? linkcrestMode : null,
+      localappconnectorMode: status === "synced" ? localappconnectorMode : null,
       lastSyncAt: new Date().toISOString(),
-      mismatch: status !== "synced" || linkcrestMode !== expectedMode,
+      mismatch: status !== "synced" || localappconnectorMode !== expectedMode,
       updatePolicyResult: raw ?? null,
     };
   }
@@ -3150,7 +3150,7 @@ export class MarketplaceService {
     connection.displayName = `${app.name} Agent API`;
     connection.environment = "default";
     connection.authType = "local_agent_api";
-    connection.credentialNames = ["linkcrest_agent_api_bearer"];
+    connection.credentialNames = ["localappconnector_agent_api_bearer"];
     connection.secretCiphertext = encrypted.ciphertext;
     connection.secretIv = encrypted.iv;
     connection.secretAuthTag = encrypted.authTag;
@@ -3164,7 +3164,7 @@ export class MarketplaceService {
     connection.metadata = this.buildConnectionMetadata(app, {
       ...(app.sourceMetadata ?? {}),
       autonomyPolicy: app.sourceMetadata?.autonomyPolicy,
-      agentApiConnectionLabel: "LinkCrest Agent API",
+      agentApiConnectionLabel: "LocalAppConnector Agent API",
       legacyRouteNamespace: "/api/openclaw",
     });
     connection.updatedByUserId = userId;
@@ -3206,7 +3206,7 @@ export class MarketplaceService {
         {
           status: "failed",
           stage: "install",
-          message: "Select at least one agent before installing LinkCrest.",
+          message: "Select at least one agent before installing LocalAppConnector.",
         },
       ];
     }
@@ -3271,7 +3271,7 @@ export class MarketplaceService {
     setup: MarketplaceLocalAppAgentApiSetupResponsePayload;
     campaigns: MarketplaceLocalAppCampaignPayload[];
     selectedCampaign: MarketplaceLocalAppCampaignPayload | null;
-    policySync: LinkCrestPolicySyncResult | Record<string, unknown> | null;
+    policySync: LocalAppConnectorPolicySyncResult | Record<string, unknown> | null;
     installResults: Array<Record<string, unknown>>;
     docsRefreshed: boolean;
     agentPacksInstalled: boolean;
@@ -3317,7 +3317,7 @@ export class MarketplaceService {
       diagnostics: {
         setup: safeSetup,
         bridgeCapability: MARKETPLACE_LOCAL_APP_AGENT_API_SETUP_CAPABILITY,
-        agentApiTerminology: "LinkCrest Agent API",
+        agentApiTerminology: "LocalAppConnector Agent API",
         legacyRouteNamespace: "/api/openclaw",
         bearerMaterialReturnedToFrontend: false,
         hermesCredentialAttached: false,
@@ -3325,7 +3325,7 @@ export class MarketplaceService {
     };
   }
 
-  private toLinkCrestAutonomyPolicy(
+  private toLocalAppConnectorAutonomyPolicy(
     payload: {
       campaignId: string | null;
       mode: string;
@@ -6511,30 +6511,30 @@ export class MarketplaceService {
       autonomyPolicy: normalizeLocalAppAutonomyPolicy(
         metadata.autonomyPolicy ?? source.autonomyPolicy,
       ),
-      linkcrestCampaignId:
-        metadata.linkcrestCampaignId ??
-        this.stringOrNull(source.linkcrestCampaignId),
-      linkcrestCampaignName:
-        metadata.linkcrestCampaignName ??
-        this.stringOrNull(source.linkcrestCampaignName),
-      linkcrestOpenClawBaseUrl:
-        metadata.linkcrestOpenClawBaseUrl ??
-        this.stringOrNull(source.linkcrestOpenClawBaseUrl),
-      linkcrestOpenClawConnectionId:
-        metadata.linkcrestOpenClawConnectionId ??
-        this.stringOrNull(source.linkcrestOpenClawConnectionId),
-      linkcrestOpenClawStatus:
-        metadata.linkcrestOpenClawStatus &&
-        typeof metadata.linkcrestOpenClawStatus === "object"
-          ? (metadata.linkcrestOpenClawStatus as Record<string, unknown>)
-          : source.linkcrestOpenClawStatus &&
-              typeof source.linkcrestOpenClawStatus === "object"
-            ? (source.linkcrestOpenClawStatus as Record<string, unknown>)
+      localappconnectorCampaignId:
+        metadata.localappconnectorCampaignId ??
+        this.stringOrNull(source.localappconnectorCampaignId),
+      localappconnectorCampaignName:
+        metadata.localappconnectorCampaignName ??
+        this.stringOrNull(source.localappconnectorCampaignName),
+      localappconnectorOpenClawBaseUrl:
+        metadata.localappconnectorOpenClawBaseUrl ??
+        this.stringOrNull(source.localappconnectorOpenClawBaseUrl),
+      localappconnectorOpenClawConnectionId:
+        metadata.localappconnectorOpenClawConnectionId ??
+        this.stringOrNull(source.localappconnectorOpenClawConnectionId),
+      localappconnectorOpenClawStatus:
+        metadata.localappconnectorOpenClawStatus &&
+        typeof metadata.localappconnectorOpenClawStatus === "object"
+          ? (metadata.localappconnectorOpenClawStatus as Record<string, unknown>)
+          : source.localappconnectorOpenClawStatus &&
+              typeof source.localappconnectorOpenClawStatus === "object"
+            ? (source.localappconnectorOpenClawStatus as Record<string, unknown>)
             : null,
-      linkcrestPolicySync:
-        metadata.linkcrestPolicySync &&
-        typeof metadata.linkcrestPolicySync === "object"
-          ? (metadata.linkcrestPolicySync as Record<string, unknown>)
+      localappconnectorPolicySync:
+        metadata.localappconnectorPolicySync &&
+        typeof metadata.localappconnectorPolicySync === "object"
+          ? (metadata.localappconnectorPolicySync as Record<string, unknown>)
           : null,
     };
   }
@@ -6739,23 +6739,23 @@ export class MarketplaceService {
         metadata: input,
       }),
       autonomyPolicy: normalizeLocalAppAutonomyPolicy(input?.autonomyPolicy),
-      linkcrestCampaignId: this.stringOrNull(input?.linkcrestCampaignId),
-      linkcrestCampaignName: this.stringOrNull(input?.linkcrestCampaignName),
-      linkcrestOpenClawBaseUrl: this.stringOrNull(
-        input?.linkcrestOpenClawBaseUrl,
+      localappconnectorCampaignId: this.stringOrNull(input?.localappconnectorCampaignId),
+      localappconnectorCampaignName: this.stringOrNull(input?.localappconnectorCampaignName),
+      localappconnectorOpenClawBaseUrl: this.stringOrNull(
+        input?.localappconnectorOpenClawBaseUrl,
       ),
-      linkcrestOpenClawConnectionId: this.stringOrNull(
-        input?.linkcrestOpenClawConnectionId,
+      localappconnectorOpenClawConnectionId: this.stringOrNull(
+        input?.localappconnectorOpenClawConnectionId,
       ),
-      linkcrestOpenClawStatus:
-        input?.linkcrestOpenClawStatus &&
-        typeof input.linkcrestOpenClawStatus === "object"
-          ? (input.linkcrestOpenClawStatus as Record<string, unknown>)
+      localappconnectorOpenClawStatus:
+        input?.localappconnectorOpenClawStatus &&
+        typeof input.localappconnectorOpenClawStatus === "object"
+          ? (input.localappconnectorOpenClawStatus as Record<string, unknown>)
           : null,
-      linkcrestPolicySync:
-        input?.linkcrestPolicySync &&
-        typeof input.linkcrestPolicySync === "object"
-          ? (input.linkcrestPolicySync as Record<string, unknown>)
+      localappconnectorPolicySync:
+        input?.localappconnectorPolicySync &&
+        typeof input.localappconnectorPolicySync === "object"
+          ? (input.localappconnectorPolicySync as Record<string, unknown>)
           : null,
     };
   }

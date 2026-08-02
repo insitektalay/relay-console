@@ -146,12 +146,12 @@ export class CreateLocalMarketplaceAppDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  linkcrestCampaignId?: string;
+  localappconnectorCampaignId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  linkcrestCampaignName?: string;
+  localappconnectorCampaignName?: string;
 
   @ApiPropertyOptional({
     enum: ["manual_review", "auto_apply_safe", "auto_apply_full"],
@@ -249,12 +249,12 @@ export class UpdateLocalMarketplaceAppDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  linkcrestCampaignId?: string | null;
+  localappconnectorCampaignId?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  linkcrestCampaignName?: string | null;
+  localappconnectorCampaignName?: string | null;
 
   @ApiPropertyOptional({
     enum: ["manual_review", "auto_apply_safe", "auto_apply_full"],
@@ -280,7 +280,7 @@ export class UpdateLocalMarketplaceAppDto {
   acknowledgeDangerouslySkipPermissions?: boolean;
 }
 
-export class SyncLinkCrestPolicyDto {
+export class SyncLocalAppConnectorPolicyDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
@@ -292,7 +292,7 @@ export class SyncLinkCrestPolicyDto {
   campaignName?: string | null;
 }
 
-export class ConfigureLinkCrestOpenClawDto {
+export class ConfigureLocalAppConnectorOpenClawDto {
   @ApiProperty()
   @IsString()
   openclawBaseUrl!: string;

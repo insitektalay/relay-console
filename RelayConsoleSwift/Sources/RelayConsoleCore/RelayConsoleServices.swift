@@ -78,21 +78,27 @@ public final class RelayConsoleServices {
         try runMigrations(database: database)
         let eventBus = RelayEventBus()
         let data = LocalDataService(database: database, eventBus: eventBus, appVersion: appVersion)
+        let persistedRailwayOrigin = try? data.getAppSetting(
+            RelayDeploymentConfiguration.persistedRailwayOriginSettingKey,
+            fallback: ""
+        )
+        let deploymentOrigins = try RelayDeploymentConfiguration.resolve(
+            environment: environment,
+            infoDictionary: Bundle.main.infoDictionary ?? [:],
+            persistedRailwayOrigin: persistedRailwayOrigin?.isEmpty == false ? persistedRailwayOrigin : nil
+        )
+        RelayCloudLaunchContract.configure(origins: deploymentOrigins)
         let chat = ChatService(data: data, eventBus: eventBus)
         let organization = AgentOrganizationService(data: data)
         let work = AgentWorkDashboardService(data: data)
         let agentOps = AgentOpsService(data: data)
-        let marketplaceOrigin = try RelayDeploymentConfiguration.resolve(
-            environment: environment,
-            infoDictionary: Bundle.main.infoDictionary ?? [:]
-        ).railwayOrigin
         let applications = ApplicationsService(
             data: data,
             betaPolicyOverride: applicationsBetaPolicyOverride,
             catalogRefreshDataLoader: effectiveUserDataPath == nil ? {
                 do {
                     return try await ApplicationsService.loadRailwayMarketplaceCatalogData(
-                        origin: marketplaceOrigin
+                        origin: RelayCloudLaunchContract.railwayOrigin
                     )
                 } catch {
                     return try ApplicationsService.loadBundledMarketplaceCatalogData()
@@ -102,7 +108,7 @@ public final class RelayConsoleServices {
                 query, category, cursor, limit in
                 do {
                     return try await ApplicationsService.loadRailwayMarketplaceCatalogPageData(
-                        origin: marketplaceOrigin,
+                        origin: RelayCloudLaunchContract.railwayOrigin,
                         query: query,
                         category: category,
                         cursor: cursor,
@@ -114,7 +120,7 @@ public final class RelayConsoleServices {
             } : nil,
             catalogDetailDataLoader: effectiveUserDataPath == nil ? { slug in
                 try await ApplicationsService.loadRailwayMarketplaceAppData(
-                    origin: marketplaceOrigin,
+                    origin: RelayCloudLaunchContract.railwayOrigin,
                     slug: slug
                 )
             } : nil

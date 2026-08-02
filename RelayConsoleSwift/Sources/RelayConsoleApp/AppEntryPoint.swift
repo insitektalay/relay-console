@@ -17,10 +17,12 @@ public struct RelayConsoleCapturePage: Identifiable, Codable, Equatable, Sendabl
 @MainActor
 public final class RelayConsoleAppController: ObservableObject {
     private let model: AppViewModel
+    public let updateController: RelayConsoleUpdateController
     private var captureTasks: [AgentTask] = []
 
     public init(userDataPath: URL? = nil) {
         self.model = AppViewModel(userDataPath: userDataPath)
+        self.updateController = RelayConsoleUpdateController()
     }
 
     public var isLoading: Bool {
@@ -455,6 +457,7 @@ public struct RelayConsoleRootView: View {
     public var body: some View {
         ContentView()
             .environmentObject(controller.appModel)
+            .environmentObject(controller.updateController)
             .frame(minWidth: 980, minHeight: 640, alignment: .topLeading)
             .background {
                 WindowChromeConfigurator { window in
@@ -464,6 +467,7 @@ public struct RelayConsoleRootView: View {
             }
             .onAppear {
                 controller.appModel.configureWindow()
+                controller.updateController.startAfterApplicationShellIsReady()
             }
     }
 }

@@ -35,21 +35,50 @@ public enum CloudExecutionAuthority: String, Codable, CaseIterable, Sendable {
     case swift, railway
 }
 
+private final class RelayCloudOriginState: @unchecked Sendable {
+    private let lock = NSLock()
+    private var origins: RelayDeploymentOrigins
+
+    init(origins: RelayDeploymentOrigins) {
+        self.origins = origins
+    }
+
+    func get() -> RelayDeploymentOrigins {
+        lock.lock()
+        defer { lock.unlock() }
+        return origins
+    }
+
+    func set(_ value: RelayDeploymentOrigins) {
+        lock.lock()
+        origins = value
+        lock.unlock()
+    }
+}
+
 public enum RelayCloudLaunchContract {
     public static let deploymentOwnership = "relay_managed"
-    private static let configuredOrigins: RelayDeploymentOrigins = {
+    private static let originState: RelayCloudOriginState = {
         do {
-            return try RelayDeploymentConfiguration.resolve()
+            return RelayCloudOriginState(origins: try RelayDeploymentConfiguration.resolve())
         } catch {
             preconditionFailure(
                 "Invalid Relay Console deployment configuration: \(error). Set CLAWCHAT_RAILWAY_ORIGIN and NEXT_PUBLIC_RAILWAY_WS_BASE_URL."
             )
         }
     }()
-    public static let railwayOrigin = configuredOrigins.railwayOrigin
-    public static let apiOrigin = configuredOrigins.apiOrigin
-    public static let websocketOrigin = configuredOrigins.websocketOrigin
+    public static var railwayOrigin: String { originState.get().railwayOrigin }
+    public static var apiOrigin: String { originState.get().apiOrigin }
+    public static var websocketOrigin: String { originState.get().websocketOrigin }
+    public static var configuredRailwayOrigin: String? {
+        let value = railwayOrigin
+        return value == RelayDeploymentConfiguration.exampleRailwayOrigin ? nil : value
+    }
     public static let clientKind = "relayConsoleSwift"
+
+    public static func configure(origins: RelayDeploymentOrigins) {
+        originState.set(origins)
+    }
 
     public static func validate(_ manifest: CloudDeploymentManifest) throws {
         guard manifest.ownershipType == deploymentOwnership,
@@ -105,12 +134,51 @@ public struct CloudDeploymentManifest: Codable, Equatable, Sendable {
     public struct Origins: Codable, Equatable, Sendable {
         public var api: String
         public var websocket: String
+
+        public init(api: String, websocket: String) {
+            self.api = api
+            self.websocket = websocket
+        }
     }
 
     public struct Signing: Codable, Equatable, Sendable {
         public var algorithm: String
         public var keyId: String
         public var publicKey: String?
+
+        public init(algorithm: String, keyId: String, publicKey: String? = nil) {
+            self.algorithm = algorithm
+            self.keyId = keyId
+            self.publicKey = publicKey
+        }
+    }
+
+    public init(
+        deploymentId: String,
+        deploymentKey: String,
+        displayName: String,
+        ownershipType: String,
+        apiVersion: String,
+        syncContractVersion: String,
+        runtimeContractVersion: String,
+        marketplaceContractVersion: String,
+        minimumClients: [String: String],
+        origins: Origins,
+        features: [String: JSONValue],
+        connectionDescriptorSigning: Signing? = nil
+    ) {
+        self.deploymentId = deploymentId
+        self.deploymentKey = deploymentKey
+        self.displayName = displayName
+        self.ownershipType = ownershipType
+        self.apiVersion = apiVersion
+        self.syncContractVersion = syncContractVersion
+        self.runtimeContractVersion = runtimeContractVersion
+        self.marketplaceContractVersion = marketplaceContractVersion
+        self.minimumClients = minimumClients
+        self.origins = origins
+        self.features = features
+        self.connectionDescriptorSigning = connectionDescriptorSigning
     }
 }
 
@@ -410,6 +478,48 @@ public final class CloudRelayConnectionService: @unchecked Sendable {
             if let id = row[key]?.string { _ = try? secrets.delete(id) }
         }
         try database.run("UPDATE cloud_accounts SET status='signed_out',access_secret_reference_id=NULL,refresh_secret_reference_id=NULL,updated_at=? WHERE id=?", [.text(nowIso()), .text(accountId)])
+    }
+
+    /// Removes backend-bound credentials and links before a different control plane becomes active.
+    /// Tokens from one customer deployment must never be offered to another deployment.
+    public func isolateCredentialsForBackendSwitch(newAPIOrigin: String) throws {
+        let runtimeDevices = try database.all(
+            "SELECT rd.id,rd.credential_secret_reference_id FROM cloud_runtime_devices rd JOIN workspace_sync_links l ON l.id=rd.sync_link_id JOIN cloud_deployments d ON d.id=l.deployment_id WHERE d.api_base_url<>? AND rd.revoked_at IS NULL",
+            [.text(newAPIOrigin)]
+        )
+        for device in runtimeDevices {
+            if let reference = device["credential_secret_reference_id"]?.string {
+                _ = try? secrets.delete(reference)
+            }
+            if let deviceId = device["id"]?.string {
+                try database.run(
+                    "UPDATE cloud_runtime_bindings SET publication_state='revoked',owner_lease_state='revoked',updated_at=? WHERE runtime_device_id=?",
+                    [.text(nowIso()), .text(deviceId)]
+                )
+            }
+        }
+        try database.run(
+            "UPDATE cloud_runtime_devices SET state='revoked',revoked_at=?,credential_secret_reference_id=NULL,updated_at=? WHERE sync_link_id IN (SELECT l.id FROM workspace_sync_links l JOIN cloud_deployments d ON d.id=l.deployment_id WHERE d.api_base_url<>?) AND revoked_at IS NULL",
+            [.text(nowIso()), .text(nowIso()), .text(newAPIOrigin)]
+        )
+        let accounts = try database.all(
+            "SELECT a.id,a.access_secret_reference_id,a.refresh_secret_reference_id FROM cloud_accounts a JOIN cloud_deployments d ON d.id=a.deployment_id WHERE d.api_base_url<>? AND a.status='signed_in'",
+            [.text(newAPIOrigin)]
+        )
+        for account in accounts {
+            for key in ["access_secret_reference_id", "refresh_secret_reference_id"] {
+                if let reference = account[key]?.string { _ = try? secrets.delete(reference) }
+            }
+        }
+        try database.run(
+            "UPDATE cloud_accounts SET status='signed_out',access_secret_reference_id=NULL,refresh_secret_reference_id=NULL,updated_at=? WHERE deployment_id IN (SELECT id FROM cloud_deployments WHERE api_base_url<>?)",
+            [.text(nowIso()), .text(newAPIOrigin)]
+        )
+        try database.run(
+            "UPDATE workspace_sync_links SET state='unlinked',updated_at=? WHERE deployment_id IN (SELECT id FROM cloud_deployments WHERE api_base_url<>?) AND state NOT IN ('unlinked','revoked')",
+            [.text(nowIso()), .text(newAPIOrigin)]
+        )
+        try database.run("UPDATE cloud_deployments SET is_active=CASE WHEN api_base_url=? THEN 1 ELSE 0 END", [.text(newAPIOrigin)])
     }
 
     public func installationPublicId() throws -> String {

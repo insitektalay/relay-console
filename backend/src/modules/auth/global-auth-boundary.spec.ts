@@ -154,22 +154,22 @@ describe("production controller authentication inventory", () => {
       expect({
         route: route.id,
         authenticatesBridge:
-          /authenticateBridgeAccessToken|redeemEnrollment|authenticateDevice|rotateDeviceCredential|executeLinkCrestAgentApiTool|executeLocalAppRuntimeTool/.test(
+          /authenticateBridgeAccessToken|redeemEnrollment|authenticateDevice|rotateDeviceCredential|executeLocalAppConnectorAgentApiTool|executeLocalAppRuntimeTool/.test(
             route.body,
           ),
       }).toEqual({ route: route.id, authenticatesBridge: true });
     }
-    const linkCrestSource = readFileSync(
+    const localAppConnectorSource = readFileSync(
       join(
         process.cwd(),
-        "src/modules/marketplace/linkcrest-agent-api-tools.controller.ts",
+        "src/modules/marketplace/localappconnector-agent-api-tools.controller.ts",
       ),
       "utf8",
     );
-    expect(linkCrestSource).toMatch(
-      /private async executeLinkCrestAgentApiTool[\s\S]*?authenticateBridgeAccessToken/,
+    expect(localAppConnectorSource).toMatch(
+      /private async executeLocalAppConnectorAgentApiTool[\s\S]*?authenticateBridgeAccessToken/,
     );
-    expect(linkCrestSource).toMatch(
+    expect(localAppConnectorSource).toMatch(
       /private async executeLocalAppRuntimeTool[\s\S]*?authenticateBridgeAccessToken/,
     );
   });

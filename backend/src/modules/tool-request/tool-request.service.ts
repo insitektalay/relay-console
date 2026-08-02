@@ -56,10 +56,10 @@ const CAPABILITY_APP_SUGGESTIONS: Record<string, string[]> = {
   external_publishing: ["wordpress", "webflow", "linkedin", "x"],
   backlink_verification: ["ahrefs", "semrush", "screaming-frog", "crawler"],
   index_checking: ["google-search-console", "serpapi", "crawler"],
-  lifecycle_contacted_submitted: ["local-linkcrest"],
-  lifecycle_live_indexed: ["local-linkcrest", "crawler"],
-  linkcrest_openclaw_tools: ["local-linkcrest"],
-  local_app_record_write: ["local-linkcrest"],
+  lifecycle_contacted_submitted: ["local-localappconnector"],
+  lifecycle_live_indexed: ["local-localappconnector", "crawler"],
+  localappconnector_openclaw_tools: ["local-localappconnector"],
+  local_app_record_write: ["local-localappconnector"],
   other: [],
 };
 
@@ -88,7 +88,7 @@ const CAPABILITY_CATEGORIES: Record<string, string[]> = {
   index_checking: ["seo", "index_check"],
   lifecycle_contacted_submitted: ["local_app_lifecycle"],
   lifecycle_live_indexed: ["local_app_lifecycle", "verification"],
-  linkcrest_openclaw_tools: ["local_repo", "openclaw"],
+  localappconnector_openclaw_tools: ["local_repo", "openclaw"],
   local_app_record_write: ["local_app_write"],
   other: [],
 };
@@ -510,7 +510,7 @@ export class ToolRequestService {
     );
     return {
       linkedAppId: linkedApp?.id ?? null,
-      canonicalAppSlug: linkedApp?.slug ?? (requestedSlug === "linkcrest" ? "local-linkcrest" : requestedSlug),
+      canonicalAppSlug: linkedApp?.slug ?? (requestedSlug === "localappconnector" ? "local-localappconnector" : requestedSlug),
       appSlugs,
     };
   }
@@ -527,20 +527,20 @@ export class ToolRequestService {
       qb.andWhere(
         '(linked.metadata ->> :campaignIdKey = :campaignId OR linked.metadata ->> :campaignNameKey = :campaignName)',
         {
-          campaignIdKey: "linkcrestCampaignId",
+          campaignIdKey: "localappconnectorCampaignId",
           campaignId: input.campaignId,
-          campaignNameKey: "linkcrestCampaignName",
+          campaignNameKey: "localappconnectorCampaignName",
           campaignName: input.campaignName,
         },
       );
     } else if (input.campaignId) {
       qb.andWhere('linked.metadata ->> :campaignIdKey = :campaignId', {
-        campaignIdKey: "linkcrestCampaignId",
+        campaignIdKey: "localappconnectorCampaignId",
         campaignId: input.campaignId,
       });
     } else {
       qb.andWhere('linked.metadata ->> :campaignNameKey = :campaignName', {
-        campaignNameKey: "linkcrestCampaignName",
+        campaignNameKey: "localappconnectorCampaignName",
         campaignName: input.campaignName,
       });
     }
@@ -551,8 +551,8 @@ export class ToolRequestService {
     if (!appSlug) return [];
     const normalized = appSlug.trim();
     const aliases = new Set([normalized]);
-    if (normalized === "linkcrest") aliases.add("local-linkcrest");
-    if (normalized === "local-linkcrest") aliases.add("linkcrest");
+    if (normalized === "localappconnector") aliases.add("local-localappconnector");
+    if (normalized === "local-localappconnector") aliases.add("localappconnector");
     return Array.from(aliases);
   }
 

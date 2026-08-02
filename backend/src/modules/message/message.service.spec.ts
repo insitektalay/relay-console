@@ -1834,7 +1834,7 @@ describe("MessageService", () => {
     );
   });
 
-  it("exposes executable LinkCrest Agent API proxy tools without bearer values", async () => {
+  it("exposes executable LocalAppConnector Agent API proxy tools without bearer values", async () => {
     const {
       service,
       marketplaceInstallRepo,
@@ -1844,25 +1844,25 @@ describe("MessageService", () => {
 
     marketplaceInstallRepo.find.mockResolvedValue([
       {
-        id: "install-linkcrest-1",
+        id: "install-localappconnector-1",
         workspaceId: "ws-1",
-        appSlug: "local-linkcrest",
-        connectionId: "connection-linkcrest-1",
+        appSlug: "local-localappconnector",
+        connectionId: "connection-localappconnector-1",
         agentId: "agent-1",
         role: "worker",
         selectedCapabilities: ["read", "draft", "write_internal", "email_send"],
         installStatus: "installed",
         metadata: {
-          targetRoot: "skills/linkcrest-router",
-          skillName: "linkcrest-router",
+          targetRoot: "skills/localappconnector-router",
+          skillName: "localappconnector-router",
         },
       },
     ]);
     marketplaceConnectionRepo.findByIds.mockResolvedValue([
       {
-        id: "connection-linkcrest-1",
-        appSlug: "local-linkcrest",
-        displayName: "LinkCrest local",
+        id: "connection-localappconnector-1",
+        appSlug: "local-localappconnector",
+        displayName: "LocalAppConnector local",
         environment: "default",
         authType: "local_repo",
         status: "ready",
@@ -1878,15 +1878,15 @@ describe("MessageService", () => {
       andWhere: jest.fn().mockReturnThis(),
       getMany: jest.fn().mockResolvedValue([
         {
-          slug: "local-linkcrest",
-          name: "LinkCrest",
-          repoPath: "/mnt/c/LinkCrest",
+          slug: "local-localappconnector",
+          name: "LocalAppConnector",
+          repoPath: "/mnt/c/LocalAppConnector",
           metadata: {
-            linkcrestOpenClawBaseUrl: "http://localhost:3052",
-            linkcrestOpenClawConnectionId: "openclaw-connection-1",
-            linkcrestOpenClawStatus: { hasBearerKey: true, useMockMode: false },
-            linkcrestCampaignId: "campaign-1",
-            linkcrestCampaignName: "AI YouTube Channels Backlink Campaign",
+            localappconnectorOpenClawBaseUrl: "http://localhost:3052",
+            localappconnectorOpenClawConnectionId: "openclaw-connection-1",
+            localappconnectorOpenClawStatus: { hasBearerKey: true, useMockMode: false },
+            localappconnectorCampaignId: "campaign-1",
+            localappconnectorCampaignName: "AI YouTube Channels Backlink Campaign",
           },
         },
       ]),
@@ -1900,12 +1900,12 @@ describe("MessageService", () => {
     expect(context.marketplaceRuntimeContext.tools).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          name: "linkcrest.agentApi",
-          functionName: "linkcrest_agent_api",
+          name: "localappconnector.agentApi",
+          functionName: "localappconnector_agent_api",
           aliases: expect.arrayContaining([
-            "linkcrest.agentApi",
-            "linkcrest_agent_api",
-            "linkcrest-agent-api",
+            "localappconnector.agentApi",
+            "localappconnector_agent_api",
+            "localappconnector-agent-api",
             "agentApi",
           ]),
           execution: expect.objectContaining({
@@ -1917,7 +1917,7 @@ describe("MessageService", () => {
             secretMaterialSentToHermes: false,
           }),
           runtimeProfile: expect.objectContaining({
-            repoPath: "/home/alexkerss/repos/LinkCrest",
+            repoPath: "/home/example/repos/LocalAppConnector",
             appUrl: "http://localhost:3052",
             agentApiUrl: "http://localhost:3052/api/openclaw",
             startCommand: "pnpm dev",
@@ -1934,16 +1934,16 @@ describe("MessageService", () => {
     );
     expect(context.marketplaceRuntimeContext.tools).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: "linkcrest_agent_api" }),
-        expect.objectContaining({ name: "linkcrest-agent-api" }),
+        expect.objectContaining({ name: "localappconnector_agent_api" }),
+        expect.objectContaining({ name: "localappconnector-agent-api" }),
         expect.objectContaining({ name: "agentApi" }),
       ]),
     );
     expect(JSON.stringify(context)).toContain(
-      "/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/local-linkcrest",
+      "/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/local-localappconnector",
     );
     expect(JSON.stringify(context)).toContain(
-      "/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/linkcrest-agent-api/local-linkcrest/_runtime-secret/fetch",
+      "/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/localappconnector-agent-api/local-localappconnector/_runtime-secret/fetch",
     );
     expect(JSON.stringify(context)).not.toContain("Bearer ");
     expect(JSON.stringify(context)).not.toContain("must-not-leak");

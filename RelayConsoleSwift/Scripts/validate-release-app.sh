@@ -16,6 +16,7 @@ INFO_PLIST="$CONTENTS_PATH/Info.plist"
 MAIN_EXECUTABLE="$CONTENTS_PATH/MacOS/Relay Console"
 BRIDGE_EXECUTABLE="$CONTENTS_PATH/MacOS/RelayMarketplaceToolBridge"
 RESOURCES_PATH="$CONTENTS_PATH/Resources"
+SPARKLE_FRAMEWORK="$CONTENTS_PATH/Frameworks/Sparkle.framework"
 
 [[ -d "$APP_PATH" ]] || { echo "App bundle not found: $APP_PATH" >&2; exit 1; }
 [[ -f "$INFO_PLIST" ]] || { echo "Info.plist missing" >&2; exit 1; }
@@ -24,11 +25,17 @@ RESOURCES_PATH="$CONTENTS_PATH/Resources"
 [[ -f "$RESOURCES_PATH/PrivacyInfo.xcprivacy" ]] || { echo "Privacy manifest missing from Contents/Resources" >&2; exit 1; }
 [[ -f "$RESOURCES_PATH/THIRD_PARTY_NOTICES.md" ]] || { echo "Third-party notices missing" >&2; exit 1; }
 [[ -f "$RESOURCES_PATH/swift-cmark-COPYING" ]] || { echo "swift-cmark component notices missing" >&2; exit 1; }
+[[ -f "$RESOURCES_PATH/Sparkle-LICENSE" ]] || { echo "Sparkle licence missing" >&2; exit 1; }
+[[ -d "$SPARKLE_FRAMEWORK" ]] || { echo "Sparkle.framework missing" >&2; exit 1; }
+[[ -x "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate" ]] || { echo "Sparkle Autoupdate helper missing" >&2; exit 1; }
+[[ -x "$SPARKLE_FRAMEWORK/Versions/B/Updater.app/Contents/MacOS/Updater" ]] || { echo "Sparkle Updater.app missing" >&2; exit 1; }
+[[ ! -e "$SPARKLE_FRAMEWORK/Versions/B/XPCServices" ]] || { echo "Sandbox-only Sparkle XPC services must not ship in this non-sandboxed app" >&2; exit 1; }
 grep -q 'Swift Markdown UI 2.4.1' "$RESOURCES_PATH/THIRD_PARTY_NOTICES.md" || { echo "Swift Markdown UI notice missing" >&2; exit 1; }
 grep -q 'NetworkImage 6.0.1' "$RESOURCES_PATH/THIRD_PARTY_NOTICES.md" || { echo "NetworkImage notice missing" >&2; exit 1; }
 grep -q 'swift-cmark 0.8.0' "$RESOURCES_PATH/THIRD_PARTY_NOTICES.md" || { echo "swift-cmark notice missing" >&2; exit 1; }
 grep -q 'PostHog Apple SDK 3.67.1' "$RESOURCES_PATH/THIRD_PARTY_NOTICES.md" || { echo "PostHog notice missing" >&2; exit 1; }
 grep -q 'Sentry Cocoa 9.23.0' "$RESOURCES_PATH/THIRD_PARTY_NOTICES.md" || { echo "Sentry notice missing" >&2; exit 1; }
+grep -q 'Sparkle 2.9.4' "$RESOURCES_PATH/THIRD_PARTY_NOTICES.md" || { echo "Sparkle notice missing" >&2; exit 1; }
 [[ ! -e "$CONTENTS_PATH/MacOS/Relay Console Launcher" ]] || { echo "Development rebuild launcher must not ship" >&2; exit 1; }
 /usr/bin/plutil -lint "$RESOURCES_PATH/PrivacyInfo.xcprivacy" >/dev/null || { echo "Privacy manifest is invalid" >&2; exit 1; }
 /usr/bin/plutil -extract NSPrivacyTracking raw -o - "$RESOURCES_PATH/PrivacyInfo.xcprivacy" | grep -qx 'false' || { echo "Privacy manifest must disable tracking" >&2; exit 1; }
@@ -46,6 +53,11 @@ EXPECTED_CHANNEL="$(/usr/bin/plutil -extract releaseChannel raw -o - "$METADATA_
 [[ "$(/usr/bin/plutil -extract CFBundleShortVersionString raw -o - "$INFO_PLIST")" == "$EXPECTED_VERSION" ]] || { echo "CFBundleShortVersionString mismatch" >&2; exit 1; }
 [[ "$(/usr/bin/plutil -extract CFBundleVersion raw -o - "$INFO_PLIST")" == "$EXPECTED_BUILD" ]] || { echo "CFBundleVersion mismatch" >&2; exit 1; }
 [[ "$(/usr/bin/plutil -extract RelayConsoleReleaseChannel raw -o - "$INFO_PLIST")" == "$EXPECTED_CHANNEL" ]] || { echo "Release channel mismatch" >&2; exit 1; }
+[[ "$(/usr/bin/plutil -extract SUFeedURL raw -o - "$INFO_PLIST")" == "https://insitektalay.github.io/clawchat/appcast.xml" ]] || { echo "Approved Sparkle HTTPS feed missing" >&2; exit 1; }
+SPARKLE_PUBLIC_KEY="$(/usr/bin/plutil -extract SUPublicEDKey raw -o - "$INFO_PLIST")"
+[[ "$SPARKLE_PUBLIC_KEY" =~ ^[A-Za-z0-9+/]{43}=$ ]] || { echo "Valid Sparkle public EdDSA key missing" >&2; exit 1; }
+[[ "$(/usr/bin/plutil -extract SURequireSignedFeed raw -o - "$INFO_PLIST")" == "true" ]] || { echo "Sparkle signed-appcast enforcement missing" >&2; exit 1; }
+[[ "$(/usr/bin/plutil -extract SUAllowsAutomaticUpdates raw -o - "$INFO_PLIST")" == "false" ]] || { echo "Sparkle automatic installation must remain disabled" >&2; exit 1; }
 
 ARCHITECTURE_POLICY="$(/usr/bin/plutil -extract RelayConsoleArchitecturePolicy raw -o - "$INFO_PLIST")"
 MAIN_ARCHITECTURES="$(/usr/bin/lipo -archs "$MAIN_EXECUTABLE")"
@@ -71,9 +83,14 @@ ROOT_RESOURCE_COUNT="$(find "$APP_PATH" -maxdepth 1 -type d -name 'RelayConsoleS
 /usr/bin/file "$BRIDGE_EXECUTABLE" | grep -q 'Mach-O' || { echo "Bridge executable is not Mach-O" >&2; exit 1; }
 /usr/bin/otool -L "$MAIN_EXECUTABLE" >/dev/null
 /usr/bin/otool -L "$BRIDGE_EXECUTABLE" >/dev/null
+/usr/bin/otool -L "$MAIN_EXECUTABLE" | grep -q 'Sparkle.framework/Versions/B/Sparkle' || { echo "Main executable is not linked to embedded Sparkle" >&2; exit 1; }
+/usr/bin/otool -l "$MAIN_EXECUTABLE" | grep -q '@executable_path/../Frameworks' || { echo "Sparkle framework rpath missing" >&2; exit 1; }
 
 if [[ "$SKIP_SIGNATURE_VERIFICATION" == "0" ]] && command -v codesign >/dev/null 2>&1; then
   codesign --verify --deep --strict "$APP_PATH"
+  codesign --verify --strict "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate"
+  codesign --verify --strict "$SPARKLE_FRAMEWORK/Versions/B/Updater.app"
+  codesign --verify --strict "$SPARKLE_FRAMEWORK"
 fi
 
 echo "Standalone release app validation passed"

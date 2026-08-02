@@ -36,7 +36,7 @@ export function useMarketplaceLocalActions({
   selectedApp,
   setAddAppMode,
   setAutonomyPolicy,
-  setLinkcrestBearerKeyDraft,
+  setLocalAppConnectorBearerKeyDraft,
   setLocalAppDraft,
   workspaceId,
 }: {
@@ -47,7 +47,7 @@ export function useMarketplaceLocalActions({
   selectedApp: MarketplaceApp | null
   setAddAppMode: Dispatch<SetStateAction<"choice" | "local" | null>>
   setAutonomyPolicy: Dispatch<SetStateAction<LocalAppAutonomyPolicy>>
-  setLinkcrestBearerKeyDraft: Dispatch<SetStateAction<string>>
+  setLocalAppConnectorBearerKeyDraft: Dispatch<SetStateAction<string>>
   setLocalAppDraft: Dispatch<SetStateAction<LocalAppDraft>>
   workspaceId: string
 }) {
@@ -375,14 +375,14 @@ export function useMarketplaceLocalActions({
         error instanceof Error ? error.message : "Failed to update tool request"
       ),
   })
-  const syncLinkCrestPolicyMutation = useMutation({
+  const syncLocalAppConnectorPolicyMutation = useMutation({
     mutationFn: (input: {
       appSlug: string
       campaignId?: string | null
       campaignName?: string | null
     }) => {
       assertCanManageMarketplace()
-      return sdk.marketplace.syncLinkCrestPolicy(workspaceId, input.appSlug, {
+      return sdk.marketplace.syncLocalAppConnectorPolicy(workspaceId, input.appSlug, {
         campaignId: input.campaignId,
         campaignName: input.campaignName,
       })
@@ -391,12 +391,12 @@ export function useMarketplaceLocalActions({
       await queryClient.invalidateQueries({
         queryKey: ["marketplace", workspaceId],
       })
-      if (result.status === "synced") toast.success("LinkCrest policy synced")
+      if (result.status === "synced") toast.success("LocalAppConnector policy synced")
       else toast.warning(result.message)
     },
     onError: showError,
   })
-  const configureLinkCrestOpenClawMutation = useMutation({
+  const configureLocalAppConnectorOpenClawMutation = useMutation({
     mutationFn: (input: {
       appSlug: string
       openclawBaseUrl: string
@@ -405,7 +405,7 @@ export function useMarketplaceLocalActions({
       campaignName?: string | null
     }) => {
       assertCanManageMarketplace()
-      return sdk.marketplace.configureLinkCrestOpenClaw(
+      return sdk.marketplace.configureLocalAppConnectorOpenClaw(
         workspaceId,
         input.appSlug,
         {
@@ -417,11 +417,11 @@ export function useMarketplaceLocalActions({
       )
     },
     onSuccess: async () => {
-      setLinkcrestBearerKeyDraft("")
+      setLocalAppConnectorBearerKeyDraft("")
       await queryClient.invalidateQueries({
         queryKey: ["marketplace", workspaceId],
       })
-      toast.success("LinkCrest Agent API configured")
+      toast.success("LocalAppConnector Agent API configured")
     },
     onError: showError,
   })
@@ -441,11 +441,11 @@ export function useMarketplaceLocalActions({
   return {
     analyzeLocalRepoDocsMutation,
     applyLocalRepoDocsProposalMutation,
-    configureLinkCrestOpenClawMutation,
+    configureLocalAppConnectorOpenClawMutation,
     createLocalAppMutation,
     persistAutonomyPolicy,
     refreshAgentDocsMutation,
-    syncLinkCrestPolicyMutation,
+    syncLocalAppConnectorPolicyMutation,
     updateAutonomyPolicyMutation,
     updateDocumentationAutomationMutation,
     updateLocalAppSourceMutation,

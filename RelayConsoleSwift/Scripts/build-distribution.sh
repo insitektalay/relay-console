@@ -108,12 +108,14 @@ MANIFEST_PATH="$OUTPUT_ROOT/RelayConsole-public-beta-manifest.json"
 mkdir -p "$OUTPUT_ROOT"
 rm -rf "$WORK_ROOT"
 mkdir -p "$WORK_ROOT" "$DMG_STAGE"
-cp -R "$SOURCE_APP" "$APP_PATH"
+/usr/bin/ditto "$SOURCE_APP" "$APP_PATH"
 /usr/libexec/PlistBuddy -c "Delete :RelayConsoleArchitecturePolicy" "$APP_PATH/Contents/Info.plist" >/dev/null 2>&1 || true
 /usr/libexec/PlistBuddy -c "Add :RelayConsoleArchitecturePolicy string $ARCHITECTURE_POLICY" "$APP_PATH/Contents/Info.plist"
 
 MAIN_EXECUTABLE="$APP_PATH/Contents/MacOS/Relay Console"
 BRIDGE_EXECUTABLE="$APP_PATH/Contents/MacOS/RelayMarketplaceToolBridge"
+SPARKLE_FRAMEWORK="$APP_PATH/Contents/Frameworks/Sparkle.framework"
+[[ -d "$SPARKLE_FRAMEWORK" ]] || { echo "Sparkle.framework missing from packaged app" >&2; exit 1; }
 MAIN_ARCHS="$(/usr/bin/lipo -archs "$MAIN_EXECUTABLE")"
 BRIDGE_ARCHS="$(/usr/bin/lipo -archs "$BRIDGE_EXECUTABLE")"
 if [[ "$ARCHITECTURE_POLICY" == "universal2" ]]; then
@@ -124,13 +126,16 @@ else
   [[ "$MAIN_ARCHS" == "$ARCHITECTURE_POLICY" && "$BRIDGE_ARCHS" == "$ARCHITECTURE_POLICY" ]] || { echo "Architecture policy does not match embedded executables" >&2; exit 1; }
 fi
 
+codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --sign "$SIGN_IDENTITY" "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate"
+codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --sign "$SIGN_IDENTITY" "$SPARKLE_FRAMEWORK/Versions/B/Updater.app"
+codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --sign "$SIGN_IDENTITY" "$SPARKLE_FRAMEWORK"
 codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --sign "$SIGN_IDENTITY" "$BRIDGE_EXECUTABLE"
 codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --sign "$SIGN_IDENTITY" "$MAIN_EXECUTABLE"
 codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --entitlements "$ENTITLEMENTS" --sign "$SIGN_IDENTITY" "$APP_PATH"
 codesign --verify --deep --strict "$APP_PATH"
 SIGN_DETAILS="$(codesign -dv --verbose=4 "$APP_PATH" 2>&1)"
 grep -q 'flags=.*runtime' <<<"$SIGN_DETAILS" || { echo "Hardened runtime flag missing" >&2; exit 1; }
-for SIGNED_EXECUTABLE in "$BRIDGE_EXECUTABLE" "$MAIN_EXECUTABLE"; do
+for SIGNED_EXECUTABLE in "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate" "$SPARKLE_FRAMEWORK/Versions/B/Updater.app" "$SPARKLE_FRAMEWORK" "$BRIDGE_EXECUTABLE" "$MAIN_EXECUTABLE"; do
   codesign --verify --strict "$SIGNED_EXECUTABLE"
   NESTED_SIGN_DETAILS="$(codesign -dv --verbose=4 "$SIGNED_EXECUTABLE" 2>&1)"
   grep -q 'flags=.*runtime' <<<"$NESTED_SIGN_DETAILS" || { echo "Nested executable hardened runtime flag missing" >&2; exit 1; }
@@ -162,7 +167,7 @@ if [[ "$DRY_RUN" == "0" ]]; then
   ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ZIP_PATH"
 fi
 
-cp -R "$APP_PATH" "$DMG_STAGE/Relay Console.app"
+/usr/bin/ditto "$APP_PATH" "$DMG_STAGE/Relay Console.app"
 ln -s /Applications "$DMG_STAGE/Applications"
 rm -f "$DMG_PATH"
 hdiutil create -volname "Relay Console" -srcfolder "$DMG_STAGE" -format UDZO -ov "$DMG_PATH"
@@ -202,6 +207,9 @@ hdiutil detach "$MOUNT_POINT" >/dev/null
 
 APP_SHA="$(shasum -a 256 "$MAIN_EXECUTABLE" | awk '{print $1}')"
 BRIDGE_SHA="$(shasum -a 256 "$BRIDGE_EXECUTABLE" | awk '{print $1}')"
+SPARKLE_SHA="$(shasum -a 256 "$SPARKLE_FRAMEWORK/Versions/B/Sparkle" | awk '{print $1}')"
+SPARKLE_PUBLIC_KEY="$(/usr/bin/plutil -extract SUPublicEDKey raw -o - "$APP_PATH/Contents/Info.plist")"
+SPARKLE_APPCAST_URL="$(/usr/bin/plutil -extract SUFeedURL raw -o - "$APP_PATH/Contents/Info.plist")"
 ZIP_SHA="$(shasum -a 256 "$ZIP_PATH" | awk '{print $1}')"
 DMG_SHA="$(shasum -a 256 "$DMG_PATH" | awk '{print $1}')"
 APP_KIB="$(du -sk "$APP_PATH" | awk '{print $1}')"
@@ -234,6 +242,9 @@ if [[ "$DRY_RUN" == "0" ]]; then
     --argjson architectures "$ARCHITECTURES_JSON" \
     --arg mainExecutableSHA256 "$APP_SHA" \
     --arg bridgeExecutableSHA256 "$BRIDGE_SHA" \
+    --arg sparkleFrameworkSHA256 "$SPARKLE_SHA" \
+    --arg sparklePublicKey "$SPARKLE_PUBLIC_KEY" \
+    --arg appcastURL "$SPARKLE_APPCAST_URL" \
     --arg authority "$SIGN_AUTHORITY" \
     --arg teamIdentifier "$TEAM_IDENTIFIER" \
     --arg appCDHash "$APP_CDHASH" \
@@ -254,7 +265,9 @@ if [[ "$DRY_RUN" == "0" ]]; then
         bundleIdentifier: $bundleIdentifier, minimumOS: $minimumOS,
         architectures: $architectures,
         mainExecutableSHA256: $mainExecutableSHA256,
-        bridgeExecutableSHA256: $bridgeExecutableSHA256
+        bridgeExecutableSHA256: $bridgeExecutableSHA256,
+        sparkleVersion: "2.9.4", sparkleFrameworkSHA256: $sparkleFrameworkSHA256,
+        sparklePublicKey: $sparklePublicKey, appcastURL: $appcastURL
       },
       signing: {
         mode: "developer-id-hardened-runtime", authority: $authority,

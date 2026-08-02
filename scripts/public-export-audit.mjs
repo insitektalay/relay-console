@@ -92,6 +92,23 @@ try {
     if (!filePaths.has(path)) failures.push(`large-file declaration is stale: ${path}`)
   }
 
+  const forbiddenText = (manifest.forbiddenTextBase64 ?? []).map((value) =>
+    Buffer.from(String(value), "base64")
+      .toString("utf8")
+      .toLocaleLowerCase("en-US"),
+  )
+  for (const file of files) {
+    const absolutePath = join(extractedPath, file.path)
+    const contents = readFileSync(absolutePath)
+    if (contents.includes(0)) continue
+    const normalizedContents = contents.toString("utf8").toLocaleLowerCase("en-US")
+    for (const forbiddenValue of forbiddenText) {
+      if (normalizedContents.includes(forbiddenValue)) {
+        failures.push(`forbidden owner-specific text \"${forbiddenValue}\" is present: ${file.path}`)
+      }
+    }
+  }
+
   const exportedSourceCommit = readFileSync(
     join(extractedPath, "SOURCE_COMMIT"),
     "utf8",

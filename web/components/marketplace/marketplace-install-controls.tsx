@@ -570,7 +570,7 @@ export function NeededToolsPanel({
             tool is missing, disconnected, or not granted.
           </div>
           <div className="mt-1 text-xs text-[var(--claw-text-secondary)]">
-            Filter: appSlug={appSlug}; aliases such as linkcrest/local-linkcrest
+            Filter: appSlug={appSlug}; aliases such as localappconnector/local-localappconnector
             are resolved server-side. Query: {queryStatus}.
           </div>
         </div>

@@ -2225,22 +2225,22 @@ export class ClawChatWebSdk {
         `/workspaces/${workspaceId}/marketplace/apps/${appSlug}/refresh-agent-docs`,
         { method: "POST" },
       ),
-    syncLinkCrestPolicy: (
+    syncLocalAppConnectorPolicy: (
       workspaceId: string,
       appSlug: string,
       input?: { campaignId?: string | null; campaignName?: string | null },
     ) =>
-      this.request<import("@clawchat/contracts").LinkCrestPolicySyncStatus>(
-        `/workspaces/${workspaceId}/marketplace/apps/${appSlug}/linkcrest-policy/sync`,
+      this.request<import("@clawchat/contracts").LocalAppConnectorPolicySyncStatus>(
+        `/workspaces/${workspaceId}/marketplace/apps/${appSlug}/localappconnector-policy/sync`,
         { method: "POST", body: JSON.stringify(input ?? {}) },
       ),
-    configureLinkCrestOpenClaw: (
+    configureLocalAppConnectorOpenClaw: (
       workspaceId: string,
       appSlug: string,
-      input: import("@clawchat/contracts").ConfigureLinkCrestOpenClawInput,
+      input: import("@clawchat/contracts").ConfigureLocalAppConnectorOpenClawInput,
     ) =>
       this.request<MarketplaceCatalog>(
-        `/workspaces/${workspaceId}/marketplace/apps/${appSlug}/linkcrest-agent-api/configure`,
+        `/workspaces/${workspaceId}/marketplace/apps/${appSlug}/localappconnector-agent-api/configure`,
         { method: "POST", body: JSON.stringify(input) },
       ),
     autoConnectLocalApp: (
