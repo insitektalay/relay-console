@@ -29,7 +29,7 @@ struct RelayConsoleReleaseBundleTests {
         let metadata = RelayConsoleReleaseMetadata.current
         try expect(metadata.productName == "Relay Console", "product name mismatch")
         try expect(metadata.bundleIdentifier == "com.relayconsole.app", "production bundle identifier mismatch")
-        try expect(metadata.version == "0.1.1" && metadata.build == "6", "version/build mismatch")
+        try expect(metadata.version == "0.1.1" && metadata.build == "7", "version/build mismatch")
         try expect(metadata.releaseChannel == "public-beta", "release channel mismatch")
         try expect(metadata.minimumMacOSVersion == "14.0", "minimum macOS mismatch")
     }
@@ -74,6 +74,12 @@ struct RelayConsoleReleaseBundleTests {
         ] {
             try expect(distribution.contains(expected), "distribution pipeline missing \(expected)")
         }
+        try expect(
+            distribution.contains("DISTRIBUTION_AUTHORIZATION=\"$OUTPUT_ROOT/public-release-authorization.json\"")
+                && distribution.contains("--candidate \"$DISTRIBUTION_AUTHORIZATION\"")
+                && !distribution.contains("--candidate \"$RELEASE_CANDIDATE_MANIFEST\""),
+            "public tag releases must validate distribution evidence against their generated authorization"
+        )
         try expect(
             appBuilder.contains("--skip-signature-verification")
                 && validator.contains("SKIP_SIGNATURE_VERIFICATION"),

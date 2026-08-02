@@ -84,7 +84,37 @@ else
     [[ -z "$(git -C "$REPOSITORY_ROOT" status --porcelain)" ]] || { echo "Public release checkout must be clean" >&2; exit 1; }
     CANDIDATE_RELEASE_ID="$RELAY_CONSOLE_RELEASE_TAG"
     CANDIDATE_SOURCE_COMMIT="$RELAY_CONSOLE_RELEASE_SOURCE_COMMIT"
-    CANDIDATE_SHA256="$(printf '%s\n%s\n' "$CANDIDATE_RELEASE_ID" "$CANDIDATE_SOURCE_COMMIT" | shasum -a 256 | awk '{print $1}')"
+    RELEASE_METADATA="$ROOT_DIR/Sources/RelayConsoleCore/Resources/relay-console-release.json"
+    [[ -f "$RELEASE_METADATA" ]] || { echo "Central release metadata is required for a public tag release" >&2; exit 1; }
+    DISTRIBUTION_AUTHORIZATION="$OUTPUT_ROOT/public-release-authorization.json"
+    mkdir -p "$OUTPUT_ROOT"
+    if [[ "$ARCHITECTURE_POLICY" == "universal2" ]]; then
+      AUTHORIZED_ARCHITECTURES='["arm64","x86_64"]'
+    else
+      AUTHORIZED_ARCHITECTURES="$(jq -cn --arg architecture "$ARCHITECTURE_POLICY" '[$architecture]')"
+    fi
+    jq -n \
+      --arg releaseId "$CANDIDATE_RELEASE_ID" \
+      --arg createdAt "$(git -C "$REPOSITORY_ROOT" show -s --format=%cI HEAD)" \
+      --arg sourceCommit "$CANDIDATE_SOURCE_COMMIT" \
+      --arg version "$(jq -er '.version' "$RELEASE_METADATA")" \
+      --arg build "$(jq -er '.build' "$RELEASE_METADATA")" \
+      --arg bundleIdentifier "$(jq -er '.bundleIdentifier' "$RELEASE_METADATA")" \
+      --arg minimumOS "$(jq -er '.minimumMacOSVersion' "$RELEASE_METADATA")" \
+      --argjson architectures "$AUTHORIZED_ARCHITECTURES" \
+      '{
+        releaseId: $releaseId,
+        createdAt: $createdAt,
+        source: { commit: $sourceCommit },
+        components: { macOS: {
+          version: $version,
+          build: $build,
+          bundleIdentifier: $bundleIdentifier,
+          minimumOS: $minimumOS,
+          architectures: $architectures
+        } }
+      }' > "$DISTRIBUTION_AUTHORIZATION"
+    CANDIDATE_SHA256="$(shasum -a 256 "$DISTRIBUTION_AUTHORIZATION" | awk '{print $1}')"
   else
     if [[ -n "${RELAY_CONSOLE_RELEASE_CANDIDATE_MANIFEST:-}" ]]; then
       RELEASE_CANDIDATE_MANIFEST="$RELAY_CONSOLE_RELEASE_CANDIDATE_MANIFEST"
@@ -101,7 +131,8 @@ else
     [[ "$(jq -r '.status' "$RELEASE_CANDIDATE_MANIFEST")" == "candidate" ]] || { echo "Artifact creation requires an authorized candidate manifest, not a draft or final manifest" >&2; exit 1; }
     CANDIDATE_RELEASE_ID="$(jq -r '.releaseId' "$RELEASE_CANDIDATE_MANIFEST")"
     CANDIDATE_SOURCE_COMMIT="$(jq -r '.source.commit' "$RELEASE_CANDIDATE_MANIFEST")"
-    CANDIDATE_SHA256="$(shasum -a 256 "$RELEASE_CANDIDATE_MANIFEST" | awk '{print $1}')"
+    DISTRIBUTION_AUTHORIZATION="$RELEASE_CANDIDATE_MANIFEST"
+    CANDIDATE_SHA256="$(shasum -a 256 "$DISTRIBUTION_AUTHORIZATION" | awk '{print $1}')"
   fi
   : "${RELAY_CONSOLE_DEVELOPER_ID_APPLICATION:?Developer ID Application identity is required}"
   : "${RELAY_CONSOLE_APPLE_TEAM_ID:?Apple Team ID is required}"
@@ -248,11 +279,11 @@ MINIMUM_MACOS="$(/usr/bin/plutil -extract LSMinimumSystemVersion raw -o - "$APP_
 ARCHITECTURES_JSON="$(tr ' ' '\n' <<<"$MAIN_ARCHS" | jq -R 'select(length > 0)' | jq -s .)"
 
 if [[ "$DRY_RUN" == "0" ]]; then
-  [[ "$APP_VERSION" == "$(jq -r '.components.macOS.version' "$RELEASE_CANDIDATE_MANIFEST")" ]] || { echo "Packaged macOS version differs from the authorized candidate" >&2; exit 1; }
-  [[ "$APP_BUILD" == "$(jq -r '.components.macOS.build' "$RELEASE_CANDIDATE_MANIFEST")" ]] || { echo "Packaged macOS build differs from the authorized candidate" >&2; exit 1; }
-  [[ "$BUNDLE_IDENTIFIER" == "$(jq -r '.components.macOS.bundleIdentifier' "$RELEASE_CANDIDATE_MANIFEST")" ]] || { echo "Packaged macOS bundle identifier differs from the authorized candidate" >&2; exit 1; }
-  [[ "$MINIMUM_MACOS" == "$(jq -r '.components.macOS.minimumOS' "$RELEASE_CANDIDATE_MANIFEST")" ]] || { echo "Packaged macOS minimum OS differs from the authorized candidate" >&2; exit 1; }
-  [[ "$(jq -c 'sort' <<<"$ARCHITECTURES_JSON")" == "$(jq -c '.components.macOS.architectures | sort' "$RELEASE_CANDIDATE_MANIFEST")" ]] || { echo "Packaged macOS architectures differ from the authorized candidate" >&2; exit 1; }
+  [[ "$APP_VERSION" == "$(jq -r '.components.macOS.version' "$DISTRIBUTION_AUTHORIZATION")" ]] || { echo "Packaged macOS version differs from the authorized release" >&2; exit 1; }
+  [[ "$APP_BUILD" == "$(jq -r '.components.macOS.build' "$DISTRIBUTION_AUTHORIZATION")" ]] || { echo "Packaged macOS build differs from the authorized release" >&2; exit 1; }
+  [[ "$BUNDLE_IDENTIFIER" == "$(jq -r '.components.macOS.bundleIdentifier' "$DISTRIBUTION_AUTHORIZATION")" ]] || { echo "Packaged macOS bundle identifier differs from the authorized release" >&2; exit 1; }
+  [[ "$MINIMUM_MACOS" == "$(jq -r '.components.macOS.minimumOS' "$DISTRIBUTION_AUTHORIZATION")" ]] || { echo "Packaged macOS minimum OS differs from the authorized release" >&2; exit 1; }
+  [[ "$(jq -c 'sort' <<<"$ARCHITECTURES_JSON")" == "$(jq -c '.components.macOS.architectures | sort' "$DISTRIBUTION_AUTHORIZATION")" ]] || { echo "Packaged macOS architectures differ from the authorized release" >&2; exit 1; }
   jq -n \
     --arg releaseId "$CANDIDATE_RELEASE_ID" \
     --arg capturedAt "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
@@ -314,7 +345,7 @@ if [[ "$DRY_RUN" == "0" ]]; then
         quarantinedMountGatekeeperAccepted: true
       }
     }' > "$MANIFEST_PATH"
-  node "$ROOT_DIR/../scripts/apple-distribution-evidence.mjs" --validate-macos "$MANIFEST_PATH" --candidate "$RELEASE_CANDIDATE_MANIFEST"
+  node "$ROOT_DIR/../scripts/apple-distribution-evidence.mjs" --validate-macos "$MANIFEST_PATH" --candidate "$DISTRIBUTION_AUTHORIZATION"
   rm -rf "$NOTARY_RESULT_ROOT"
 else
   jq -n \
