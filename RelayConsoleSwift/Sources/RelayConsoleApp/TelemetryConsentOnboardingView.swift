@@ -2,8 +2,8 @@ import SwiftUI
 
 struct TelemetryConsentOnboardingView: View {
     @EnvironmentObject private var model: AppViewModel
-    @State private var productAnalyticsEnabled = false
-    @State private var crashReportingEnabled = false
+    @State private var productAnalyticsChoice: Bool?
+    @State private var crashReportingChoice: Bool?
 
     var body: some View {
         ZStack {
@@ -24,9 +24,8 @@ struct TelemetryConsentOnboardingView: View {
                                 model.productAnalyticsAvailable
                                     ? "Messages, files, credentials, and URLs are never included."
                                     : "Unavailable in this build",
-                            isRecommended: model.productAnalyticsAvailable,
                             isAvailable: model.productAnalyticsAvailable,
-                            isOn: $productAnalyticsEnabled
+                            selection: $productAnalyticsChoice
                         )
 
                         TelemetryConsentOption(
@@ -38,15 +37,14 @@ struct TelemetryConsentOnboardingView: View {
                                 model.crashReportingAvailable
                                     ? "Screenshots, messages, files, and email are never included."
                                     : "Unavailable in this build",
-                            isRecommended: model.crashReportingAvailable,
                             isAvailable: model.crashReportingAvailable,
-                            isOn: $crashReportingEnabled
+                            selection: $crashReportingChoice
                         )
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
                         Label(
-                            "Both choices are off unless you actively enable them.",
+                            "Select Yes or No for each choice to continue.",
                             systemImage: "lock.shield"
                         )
                         .font(.system(size: 12, weight: .semibold))
@@ -76,11 +74,12 @@ struct TelemetryConsentOnboardingView: View {
 
                     HStack(spacing: 10) {
                         Button {
-                            productAnalyticsEnabled = true
-                            crashReportingEnabled = true
+                            guard let productAnalyticsChoice, let crashReportingChoice else {
+                                return
+                            }
                             model.completeTelemetryChoice(
-                                productAnalytics: true,
-                                crashReporting: true
+                                productAnalytics: productAnalyticsChoice,
+                                crashReporting: crashReportingChoice
                             )
                         } label: {
                             if model.telemetryChoiceSaving {
@@ -88,27 +87,18 @@ struct TelemetryConsentOnboardingView: View {
                                     .controlSize(.small)
                                 Text("Saving choices…")
                             } else {
-                                Image(systemName: "heart.fill")
-                                Text("Enable both and continue")
+                                Text("Continue")
                             }
                         }
                         .buttonStyle(PrimaryLightButtonStyle())
-                        .disabled(model.telemetryChoiceSaving)
+                        .disabled(
+                            model.telemetryChoiceSaving
+                                || productAnalyticsChoice == nil
+                                || crashReportingChoice == nil
+                        )
                         .keyboardShortcut(.defaultAction)
                         .accessibilityHint(
-                            "Enables PostHog product analytics and Sentry crash reporting, then continues."
-                        )
-
-                        Button("Continue with my choices") {
-                            model.completeTelemetryChoice(
-                                productAnalytics: productAnalyticsEnabled,
-                                crashReporting: crashReportingEnabled
-                            )
-                        }
-                        .buttonStyle(SecondaryLightButtonStyle())
-                        .disabled(model.telemetryChoiceSaving)
-                        .accessibilityHint(
-                            "Saves the two switches exactly as shown, then continues."
+                            "Saves both explicit privacy choices, then continues."
                         )
 
                         Spacer()
@@ -166,37 +156,24 @@ private struct TelemetryConsentOption: View {
     let title: String
     let benefit: String
     let detail: String
-    let isRecommended: Bool
     let isAvailable: Bool
-    @Binding var isOn: Bool
+    @Binding var selection: Bool?
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: icon)
                 .font(.system(size: 19, weight: .semibold))
-                .foregroundStyle(isOn ? RCTheme.accentGreen : RCTheme.accentBlue)
+                .foregroundStyle(selection == true ? RCTheme.accentGreen : RCTheme.accentBlue)
                 .frame(width: 30, height: 30)
                 .background(
-                    (isOn ? RCTheme.accentGreen : RCTheme.accentBlue).opacity(0.12)
+                    (selection == true ? RCTheme.accentGreen : RCTheme.accentBlue).opacity(0.12)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 7))
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 7) {
-                HStack(spacing: 8) {
-                    Text(title)
-                        .font(.system(size: 14, weight: .bold))
-
-                    if isRecommended {
-                        Text("RECOMMENDED")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(RCTheme.accentGreen)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(RCTheme.accentGreen.opacity(0.10))
-                            .clipShape(Capsule())
-                    }
-                }
+                Text(title)
+                    .font(.system(size: 14, weight: .bold))
 
                 Text(benefit)
                     .font(.system(size: 13, weight: .semibold))
@@ -211,22 +188,43 @@ private struct TelemetryConsentOption: View {
 
             Spacer(minLength: 12)
 
-            Toggle(title, isOn: $isOn)
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .disabled(!isAvailable)
-                .accessibilityLabel(title)
-                .accessibilityValue(isOn ? "On" : "Off")
+            HStack(spacing: 8) {
+                choiceButton("Yes", value: true, disabled: !isAvailable)
+                choiceButton("No", value: false)
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(title)
         }
         .padding(16)
-        .background(isOn ? RCTheme.accentGreen.opacity(0.07) : RCTheme.surfaceInset)
+        .background(selection != nil ? RCTheme.accentBlue.opacity(0.07) : RCTheme.surfaceInset)
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(
             RoundedRectangle(cornerRadius: 10)
                 .stroke(
-                    isOn ? RCTheme.accentGreen.opacity(0.40) : RCTheme.borderSoft,
+                    selection != nil ? RCTheme.accentBlue.opacity(0.40) : RCTheme.borderSoft,
                     lineWidth: 1
                 )
         )
+    }
+
+    private func choiceButton(_ label: String, value: Bool, disabled: Bool = false) -> some View {
+        Button(label) {
+            selection = value
+        }
+        .buttonStyle(.plain)
+        .font(.system(size: 12, weight: .semibold))
+        .foregroundStyle(selection == value ? RCTheme.surfaceLevel0 : RCTheme.text)
+        .frame(minWidth: 48)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(selection == value ? RCTheme.text : RCTheme.surfaceLevel1)
+        .clipShape(RoundedRectangle(cornerRadius: 7))
+        .overlay(
+            RoundedRectangle(cornerRadius: 7)
+                .stroke(RCTheme.borderStrong, lineWidth: 1)
+        )
+        .disabled(disabled)
+        .opacity(disabled ? 0.45 : 1)
+        .accessibilityAddTraits(selection == value ? .isSelected : [])
     }
 }

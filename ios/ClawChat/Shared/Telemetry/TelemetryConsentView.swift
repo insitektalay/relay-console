@@ -2,8 +2,8 @@ import SwiftUI
 
 @MainActor
 struct TelemetryConsentView: View {
-    @State private var productAnalyticsEnabled = false
-    @State private var crashReportsEnabled = false
+    @State private var productAnalyticsChoice: Bool?
+    @State private var crashReportsChoice: Bool?
     @State private var isSaving = false
 
     var body: some View {
@@ -25,7 +25,7 @@ struct TelemetryConsentView: View {
                                     ? "Messages, files, credentials, and URLs are never included."
                                     : "Unavailable in this build",
                             available: Telemetry.productAnalyticsAvailable,
-                            isOn: $productAnalyticsEnabled
+                            selection: $productAnalyticsChoice
                         )
 
                         consentOption(
@@ -38,13 +38,13 @@ struct TelemetryConsentView: View {
                                     ? "Screenshots, messages, files, and email are never included."
                                     : "Unavailable in this build",
                             available: Telemetry.crashReportsAvailable,
-                            isOn: $crashReportsEnabled
+                            selection: $crashReportsChoice
                         )
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
                         Label(
-                            "Both choices are off unless you actively enable them.",
+                            "Select Yes or No for each choice to continue.",
                             systemImage: "lock.shield"
                         )
                         .font(.footnote.weight(.semibold))
@@ -65,35 +65,28 @@ struct TelemetryConsentView: View {
 
                     VStack(spacing: 10) {
                         Button {
-                            productAnalyticsEnabled = true
-                            crashReportsEnabled = true
-                            save(productAnalytics: true, crashReports: true)
-                        } label: {
-                            Label(
-                                isSaving ? "Saving choices…" : "Enable both and continue",
-                                systemImage: isSaving ? "hourglass" : "heart.fill"
+                            guard let productAnalyticsChoice, let crashReportsChoice else {
+                                return
+                            }
+                            save(
+                                productAnalytics: productAnalyticsChoice,
+                                crashReports: crashReportsChoice
                             )
+                        } label: {
+                            Text(isSaving ? "Saving choices…" : "Continue")
                             .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
                         .tint(ClawColors.accent)
-                        .disabled(isSaving)
-                        .accessibilityHint(
-                            "Enables PostHog product analytics and Sentry crash reporting."
+                        .disabled(
+                            isSaving
+                                || productAnalyticsChoice == nil
+                                || crashReportsChoice == nil
                         )
-
-                        Button("Continue with my choices") {
-                            save(
-                                productAnalytics: productAnalyticsEnabled,
-                                crashReports: crashReportsEnabled
-                            )
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.large)
-                        .frame(maxWidth: .infinity)
-                        .disabled(isSaving)
-                        .accessibilityHint("Saves both switches exactly as shown.")
+                        .accessibilityHint(
+                            "Saves both explicit privacy choices, then continues."
+                        )
                     }
                 }
                 .padding(.horizontal, 20)
@@ -139,16 +132,16 @@ struct TelemetryConsentView: View {
         benefit: String,
         detail: String,
         available: Bool,
-        isOn: Binding<Bool>
+        selection: Binding<Bool?>
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
                 Image(systemName: icon)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(isOn.wrappedValue ? ClawColors.accentGreen : ClawColors.accent)
+                    .foregroundStyle(selection.wrappedValue == true ? ClawColors.accentGreen : ClawColors.accent)
                     .frame(width: 32, height: 32)
                     .background(
-                        (isOn.wrappedValue ? ClawColors.accentGreen : ClawColors.accent)
+                        (selection.wrappedValue == true ? ClawColors.accentGreen : ClawColors.accent)
                             .opacity(0.12)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -158,22 +151,7 @@ struct TelemetryConsentView: View {
                     .font(.headline)
                     .foregroundStyle(ClawColors.textPrimary)
 
-                if available {
-                    Text("RECOMMENDED")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(ClawColors.accentGreen)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 4)
-                        .background(ClawColors.accentGreen.opacity(0.10))
-                        .clipShape(Capsule())
-                }
-
                 Spacer()
-
-                Toggle(title, isOn: isOn)
-                    .labelsHidden()
-                    .accessibilityLabel(title)
-                    .disabled(!available)
             }
 
             Text(benefit)
@@ -183,23 +161,55 @@ struct TelemetryConsentView: View {
             Text(detail)
                 .font(.caption)
                 .foregroundStyle(ClawColors.textSecondary)
+
+            HStack(spacing: 10) {
+                choiceButton("Yes", value: true, selection: selection)
+                    .disabled(!available)
+                    .opacity(available ? 1 : 0.45)
+                choiceButton("No", value: false, selection: selection)
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(title)
         }
         .padding(16)
         .background(
-            isOn.wrappedValue
-                ? ClawColors.accentGreen.opacity(0.07)
+            selection.wrappedValue != nil
+                ? ClawColors.accent.opacity(0.07)
                 : ClawColors.backgroundCard
         )
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
                 .stroke(
-                    isOn.wrappedValue
-                        ? ClawColors.accentGreen.opacity(0.40)
+                    selection.wrappedValue != nil
+                        ? ClawColors.accent.opacity(0.40)
                         : ClawColors.borderSoft,
                     lineWidth: 1
                 )
         )
+    }
+
+    private func choiceButton(
+        _ label: String,
+        value: Bool,
+        selection: Binding<Bool?>
+    ) -> some View {
+        Button(label) {
+            selection.wrappedValue = value
+        }
+        .buttonStyle(.plain)
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(selection.wrappedValue == value ? ClawColors.backgroundPrimary : ClawColors.textPrimary)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(selection.wrappedValue == value ? ClawColors.textPrimary : ClawColors.backgroundPrimary)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(ClawColors.borderSoft, lineWidth: 1)
+        )
+        .accessibilityAddTraits(selection.wrappedValue == value ? .isSelected : [])
     }
 
     private func save(productAnalytics: Bool, crashReports: Bool) {

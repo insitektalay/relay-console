@@ -42,41 +42,49 @@ export function useTelemetryPreferences() {
 }
 
 function TelemetryChoice({
-  checked,
   description,
-  disabled = false,
+  yesDisabled = false,
   label,
+  selection,
   onChange,
 }: {
-  checked: boolean
   description: string
-  disabled?: boolean
+  yesDisabled?: boolean
   label: string
+  selection: boolean | null
   onChange: (checked: boolean) => void
 }) {
   return (
-    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/10 bg-white/[0.035] p-4 transition hover:border-white/20">
-      <input
-        type="checkbox"
-        className="mt-1 size-4 accent-violet-500"
-        checked={checked}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.checked)}
-      />
+    <div className="flex flex-col items-stretch gap-4 rounded-lg border border-white/10 bg-white/[0.035] p-4 sm:flex-row sm:items-start sm:justify-between">
       <span className="min-w-0">
-        <span className="flex flex-wrap items-center gap-2 text-sm font-medium text-zinc-100">
-          {label}
-          {!disabled ? (
-            <span className="claw-caption rounded-full bg-violet-500/15 px-2 py-0.5 font-semibold tracking-wide text-violet-200 uppercase">
-              Recommended
-            </span>
-          ) : null}
-        </span>
+        <span className="block text-sm font-medium text-zinc-100">{label}</span>
         <span className="mt-1 block text-sm leading-6 text-zinc-400">
           {description}
         </span>
       </span>
-    </label>
+      <div className="flex shrink-0 gap-2" role="radiogroup" aria-label={label}>
+        {[
+          { text: "Yes", value: true, disabled: yesDisabled },
+          { text: "No", value: false, disabled: false },
+        ].map((choice) => (
+          <button
+            key={choice.text}
+            type="button"
+            role="radio"
+            aria-checked={selection === choice.value}
+            disabled={choice.disabled}
+            className={`min-w-12 flex-1 rounded-md border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none ${
+              selection === choice.value
+                ? "border-zinc-100 bg-zinc-100 text-zinc-950"
+                : "border-white/15 bg-transparent text-zinc-200 hover:bg-white/5"
+            }`}
+            onClick={() => onChange(choice.value)}
+          >
+            {choice.text}
+          </button>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -85,8 +93,9 @@ function TelemetryConsentDialog({
 }: {
   onSave: (productAnalytics: boolean, crashReports: boolean) => void
 }) {
-  const [productAnalytics, setProductAnalytics] = useState(false)
-  const [crashReports, setCrashReports] = useState(false)
+  const [productAnalytics, setProductAnalytics] = useState<boolean | null>(null)
+  const [crashReports, setCrashReports] = useState<boolean | null>(null)
+  const choicesComplete = productAnalytics !== null && crashReports !== null
 
   return (
     <div
@@ -107,14 +116,15 @@ function TelemetryConsentDialog({
         </h1>
         <p className="mt-3 text-sm leading-6 text-zinc-400">
           These optional signals help us see which parts of Relay are useful and
-          diagnose crashes faster. Both choices start off. Relay works normally
-          if you leave them off, and you can change them later in Settings.
+          diagnose crashes faster. Select Yes or No for each choice to continue.
+          Relay works normally either way, and you can change your choices later
+          in Settings.
         </p>
 
         <div className="mt-5 space-y-3">
           <TelemetryChoice
-            checked={Boolean(appConfig.postHogProjectId) && productAnalytics}
-            disabled={!appConfig.postHogProjectId}
+            selection={productAnalytics}
+            yesDisabled={!appConfig.postHogProjectId}
             label="Share product analytics"
             description={
               appConfig.postHogProjectId
@@ -124,8 +134,8 @@ function TelemetryConsentDialog({
             onChange={setProductAnalytics}
           />
           <TelemetryChoice
-            checked={Boolean(appConfig.sentryDsn) && crashReports}
-            disabled={!appConfig.sentryDsn}
+            selection={crashReports}
+            yesDisabled={!appConfig.sentryDsn}
             label="Share crash and error reports"
             description={
               appConfig.sentryDsn
@@ -136,20 +146,17 @@ function TelemetryConsentDialog({
           />
         </div>
 
-        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <div className="mt-6 flex justify-end">
           <button
             type="button"
-            className="rounded-md border border-white/15 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:bg-white/5"
-            onClick={() => onSave(productAnalytics, crashReports)}
+            disabled={!choicesComplete}
+            className="rounded-md border border-white/20 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
+            onClick={() => {
+              if (productAnalytics === null || crashReports === null) return
+              onSave(productAnalytics, crashReports)
+            }}
           >
-            Continue with my choices
-          </button>
-          <button
-            type="button"
-            className="rounded-md bg-violet-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-400"
-            onClick={() => onSave(true, true)}
-          >
-            Enable both and continue
+            Continue
           </button>
         </div>
       </div>

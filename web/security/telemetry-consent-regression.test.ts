@@ -45,15 +45,18 @@ test("telemetry defaults off until an explicit completed choice", () => {
   )
 })
 
-test("first app launch requires a clear independent privacy choice", () => {
+test("first app launch requires two neutral explicit privacy choices", () => {
   assert.match(layoutSource, /<TelemetryConsentProvider>/)
   assert.match(consentSource, /pathname\.startsWith\("\/app"\)/)
-  assert.match(consentSource, /Both choices start off/)
+  assert.match(consentSource, /useState<boolean \| null>\(null\)/)
+  assert.match(consentSource, /Select Yes or No for each choice to continue/)
   assert.match(consentSource, /Share product analytics/)
   assert.match(consentSource, /Share crash and error reports/)
-  assert.match(consentSource, /Enable both and continue/)
-  assert.match(consentSource, /Continue with my choices/)
-  assert.match(consentSource, /useState\(false\)/)
+  assert.match(consentSource, /role="radiogroup"/)
+  assert.match(consentSource, /aria-checked=/)
+  assert.match(consentSource, /disabled=\{!choicesComplete\}/)
+  assert.doesNotMatch(consentSource, /Recommended/)
+  assert.doesNotMatch(consentSource, /Enable both and continue/)
 })
 
 test("PostHog collection is manual and excludes invasive capture", () => {

@@ -46,14 +46,16 @@ test("iOS telemetry defaults off until the first-launch choice is complete", () 
   assert.doesNotMatch(app, /Telemetry\.startSentry\(\)/)
 })
 
-test("iOS first launch offers independent, unselected choices", () => {
-  assert.match(consent, /productAnalyticsEnabled = false/)
-  assert.match(consent, /crashReportsEnabled = false/)
+test("iOS first launch requires independent neutral explicit choices", () => {
+  assert.match(consent, /productAnalyticsChoice: Bool\?/)
+  assert.match(consent, /crashReportsChoice: Bool\?/)
   assert.match(consent, /Share product analytics/)
   assert.match(consent, /Share crash and error reports/)
-  assert.match(consent, /Enable both and continue/)
-  assert.match(consent, /Continue with my choices/)
-  assert.match(consent, /Both choices are off unless you actively enable them/)
+  assert.match(consent, /Select Yes or No for each choice to continue/)
+  assert.match(consent, /productAnalyticsChoice == nil/)
+  assert.match(consent, /crashReportsChoice == nil/)
+  assert.doesNotMatch(consent, /RECOMMENDED/)
+  assert.doesNotMatch(consent, /Enable both and continue/)
 })
 
 test("iOS PostHog and Sentry collection stays bounded", () => {

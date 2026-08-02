@@ -133,15 +133,14 @@ enum RelayConsoleTelemetryReleaseTests {
             "first-launch telemetry choice is not durably gated"
         )
         try expect(
-            onboarding.contains("@State private var productAnalyticsEnabled = false")
-                && onboarding.contains("@State private var crashReportingEnabled = false")
-                && onboarding.contains("Both choices are off unless you actively enable them."),
-            "first-launch telemetry choices do not default off"
+            onboarding.contains("@State private var productAnalyticsChoice: Bool?")
+                && onboarding.contains("@State private var crashReportingChoice: Bool?")
+                && onboarding.contains("Select Yes or No for each choice to continue."),
+            "first-launch telemetry choices are not explicitly unanswered"
         )
         for consentCopy in [
             "Help us make Relay better",
-            "Enable both and continue",
-            "Continue with my choices",
+            "Continue",
             "You can use every Relay feature either way",
             "Share basic usage data to help improve Relay.",
             "Share crash and error data to help improve stability.",
@@ -159,9 +158,16 @@ enum RelayConsoleTelemetryReleaseTests {
             "first-launch telemetry choice is not persisted and applied"
         )
         try expect(
-            onboarding.contains("productAnalytics: productAnalyticsEnabled")
-                && onboarding.contains("crashReporting: crashReportingEnabled"),
+            onboarding.contains("productAnalytics: productAnalyticsChoice")
+                && onboarding.contains("crashReporting: crashReportingChoice")
+                && onboarding.contains("productAnalyticsChoice == nil")
+                && onboarding.contains("crashReportingChoice == nil"),
             "the continue action does not preserve independent telemetry choices"
+        )
+        try expect(
+            !onboarding.contains("RECOMMENDED")
+                && !onboarding.contains("Enable both and continue"),
+            "first-launch telemetry choice still visually privileges consent"
         )
 
         for configurationKey in [
