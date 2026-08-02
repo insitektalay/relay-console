@@ -23,6 +23,10 @@ jobs:
         env:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |
+          [[ "$GITHUB_REPOSITORY" == "insitektalay/relay-console" ]] || {
+            echo "Public macOS releases must run from insitektalay/relay-console" >&2
+            exit 1
+          }
           [[ "$RELEASE_TAG" =~ ^macos-v[0-9]+\.[0-9]+\.[0-9]+-b[1-9][0-9]*$ ]] || {
             echo "Tag must match macos-v<version>-b<build>" >&2
             exit 1
@@ -49,7 +53,7 @@ jobs:
             exit 1
           }
           [[ "$RELEASE_TAG" == "macos-v${VERSION}-b${BUILD}" ]]
-          curl --fail --silent --show-error https://insitektalay.github.io/clawchat/appcast.xml -o "$RUNNER_TEMP/previous-appcast.xml" || true
+          curl --fail --silent --show-error https://insitektalay.github.io/relay-console/appcast.xml -o "$RUNNER_TEMP/previous-appcast.xml" || true
           if [[ -s "$RUNNER_TEMP/previous-appcast.xml" ]]; then
             PREVIOUS_BUILD="$(xmllint --xpath 'string((//*[local-name()="version"])[1])' "$RUNNER_TEMP/previous-appcast.xml")"
             [[ -z "$PREVIOUS_BUILD" || "$BUILD" -gt "$PREVIOUS_BUILD" ]] || {
@@ -57,6 +61,47 @@ jobs:
               exit 1
             }
           fi
+
+      - name: Validate production release configuration
+        env:
+          CERTIFICATE_P12: ${{ secrets.MACOS_DEVELOPER_ID_CERTIFICATE_P12_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+          DEVELOPER_ID_APPLICATION: ${{ secrets.MACOS_DEVELOPER_ID_APPLICATION }}
+          NOTARY_KEY: ${{ secrets.APPLE_NOTARY_PRIVATE_KEY }}
+          NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_EDDSA_PRIVATE_KEY }}
+          SPARKLE_PUBLIC_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          RELAY_POSTHOG_PROJECT_TOKEN: ${{ vars.RELAY_POSTHOG_PROJECT_TOKEN }}
+          RELAY_POSTHOG_HOST: ${{ vars.RELAY_POSTHOG_HOST }}
+          RELAY_SENTRY_DSN: ${{ vars.RELAY_SENTRY_DSN }}
+          CLAWCHAT_RAILWAY_ORIGIN: ${{ vars.CLAWCHAT_RAILWAY_ORIGIN }}
+          NEXT_PUBLIC_RAILWAY_WS_BASE_URL: ${{ vars.NEXT_PUBLIC_RAILWAY_WS_BASE_URL }}
+        run: |
+          for name in \
+            CERTIFICATE_P12 CERTIFICATE_PASSWORD DEVELOPER_ID_APPLICATION \
+            NOTARY_KEY NOTARY_KEY_ID NOTARY_ISSUER_ID APPLE_TEAM_ID \
+            SPARKLE_PRIVATE_KEY SPARKLE_PUBLIC_KEY \
+            SENTRY_AUTH_TOKEN SENTRY_ORG SENTRY_PROJECT \
+            RELAY_POSTHOG_PROJECT_TOKEN RELAY_POSTHOG_HOST RELAY_SENTRY_DSN \
+            CLAWCHAT_RAILWAY_ORIGIN NEXT_PUBLIC_RAILWAY_WS_BASE_URL
+          do
+            [[ -n "${!name:-}" ]] || {
+              echo "Required macos-production-release value is missing: $name" >&2
+              exit 1
+            }
+          done
+          [[ "$APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]] || { echo "APPLE_TEAM_ID must be a 10-character Apple Team ID" >&2; exit 1; }
+          [[ "$SPARKLE_PUBLIC_KEY" =~ ^[A-Za-z0-9+/]{43}=$ ]] || { echo "SPARKLE_PUBLIC_ED_KEY is malformed" >&2; exit 1; }
+          [[ "$RELAY_POSTHOG_PROJECT_TOKEN" == phc_* ]] || { echo "RELAY_POSTHOG_PROJECT_TOKEN must be a PostHog project token" >&2; exit 1; }
+          [[ "$RELAY_POSTHOG_HOST" == https://* ]] || { echo "RELAY_POSTHOG_HOST must use HTTPS" >&2; exit 1; }
+          [[ "$RELAY_SENTRY_DSN" == https://* ]] || { echo "RELAY_SENTRY_DSN must use HTTPS" >&2; exit 1; }
+          [[ "$CLAWCHAT_RAILWAY_ORIGIN" == https://* ]] || { echo "CLAWCHAT_RAILWAY_ORIGIN must use HTTPS" >&2; exit 1; }
+          [[ "$NEXT_PUBLIC_RAILWAY_WS_BASE_URL" == wss://* ]] || { echo "NEXT_PUBLIC_RAILWAY_WS_BASE_URL must use WSS" >&2; exit 1; }
 
       - name: Import Developer ID and notarization credentials
         env:
@@ -77,15 +122,34 @@ jobs:
           printf '%s' "$NOTARY_KEY" > "$RUNNER_TEMP/notary-key.p8"
           xcrun notarytool store-credentials relay-console-notary --key "$RUNNER_TEMP/notary-key.p8" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID"
 
+      - name: Install pinned Sentry symbol uploader
+        run: |
+          npm install --prefix "$RUNNER_TEMP/sentry-cli" --no-save @sentry/cli@2.58.6
+          "$RUNNER_TEMP/sentry-cli/node_modules/.bin/sentry-cli" --version
+
       - name: Build, sign, notarize, staple, and validate
         working-directory: RelayConsoleSwift
         env:
           RELAY_CONSOLE_DEVELOPER_ID_APPLICATION: ${{ secrets.MACOS_DEVELOPER_ID_APPLICATION }}
+          RELAY_CONSOLE_APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           RELAY_CONSOLE_NOTARY_KEYCHAIN_PROFILE: relay-console-notary
+          RELAY_CONSOLE_PUBLIC_TAG_RELEASE: "1"
+          RELAY_CONSOLE_RELEASE_TAG: ${{ inputs.tag }}
           RELAY_SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
+          RELAY_REQUIRE_PRODUCTION_TELEMETRY: "1"
+          RELAY_POSTHOG_PROJECT_TOKEN: ${{ vars.RELAY_POSTHOG_PROJECT_TOKEN }}
+          RELAY_POSTHOG_HOST: ${{ vars.RELAY_POSTHOG_HOST }}
+          RELAY_SENTRY_DSN: ${{ vars.RELAY_SENTRY_DSN }}
+          RELAY_TELEMETRY_ENVIRONMENT: production
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          SENTRY_CLI_BIN: ${{ runner.temp }}/sentry-cli/node_modules/.bin/sentry-cli
           CLAWCHAT_RAILWAY_ORIGIN: ${{ vars.CLAWCHAT_RAILWAY_ORIGIN }}
           NEXT_PUBLIC_RAILWAY_WS_BASE_URL: ${{ vars.NEXT_PUBLIC_RAILWAY_WS_BASE_URL }}
-        run: Scripts/build-distribution.sh --architecture arm64 --output .build/sparkle-release
+        run: |
+          export RELAY_CONSOLE_RELEASE_SOURCE_COMMIT="$(git rev-parse HEAD)"
+          Scripts/build-distribution.sh --architecture arm64 --output .build/sparkle-release
 
       - name: Create signed appcast and immutable release payload
         env:
@@ -102,11 +166,11 @@ jobs:
           [[ ! -s "$RUNNER_TEMP/previous-appcast.xml" ]] || cp "$RUNNER_TEMP/previous-appcast.xml" "$UPDATES/appcast.xml"
           printf '%s' "$SPARKLE_PRIVATE_KEY" | RelayConsoleSwift/.build/artifacts/sparkle/Sparkle/bin/generate_appcast \
             --ed-key-file - \
-            --download-url-prefix "https://github.com/insitektalay/clawchat/releases/download/${RELEASE_TAG}/" \
+            --download-url-prefix "https://github.com/insitektalay/relay-console/releases/download/${RELEASE_TAG}/" \
             --embed-release-notes --maximum-versions 0 -o appcast.xml "$UPDATES"
           shasum -a 256 "$UPDATES/$ARCHIVE" "RelayConsoleSwift/.build/sparkle-release/RelayConsole-public-beta.dmg" > "$UPDATES/SHA256SUMS"
           xmllint --noout "$UPDATES/appcast.xml"
-          grep -q "https://github.com/insitektalay/clawchat/releases/download/${RELEASE_TAG}/${ARCHIVE}" "$UPDATES/appcast.xml"
+          grep -q "https://github.com/insitektalay/relay-console/releases/download/${RELEASE_TAG}/${ARCHIVE}" "$UPDATES/appcast.xml"
           grep -q 'sparkle:edSignature=' "$UPDATES/appcast.xml"
 
       - name: Publish immutable GitHub Release assets
@@ -127,14 +191,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git clone --depth 1 --branch gh-pages "https://x-access-token:${GH_TOKEN}@github.com/insitektalay/clawchat.git" "$RUNNER_TEMP/pages"
+          REPOSITORY_URL="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads "$REPOSITORY_URL" gh-pages >/dev/null 2>&1; then
+            git clone --depth 1 --branch gh-pages "$REPOSITORY_URL" "$RUNNER_TEMP/pages"
+          else
+            git init "$RUNNER_TEMP/pages"
+            cd "$RUNNER_TEMP/pages"
+            git checkout --orphan gh-pages
+            git remote add origin "$REPOSITORY_URL"
+          fi
           cp "$RUNNER_TEMP/updates/appcast.xml" "$RUNNER_TEMP/pages/appcast.xml"
           cd "$RUNNER_TEMP/pages"
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add appcast.xml
-          git commit -m "Publish Relay Console Sparkle appcast for ${{ inputs.tag }}"
-          git push origin gh-pages
+          if git diff --cached --quiet; then
+            echo "The published appcast already matches the generated appcast"
+          else
+            git commit -m "Publish Relay Console Sparkle appcast for ${{ inputs.tag }}"
+            git push origin gh-pages
+          fi
 
       - name: Preserve private dSYMs and release evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

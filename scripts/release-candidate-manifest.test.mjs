@@ -1037,7 +1037,7 @@ function macOSPublicationEvidence() {
     signatureMode: distribution.signing.mode,
     notarizationStatus: "accepted-stapled",
     distributionEvidenceSHA256: hashJson(distribution),
-    sparkleArchiveURL: "https://github.com/insitektalay/clawchat/releases/download/macos-v0.1.0-b1/RelayConsole-0.1.0-b1.zip",
+    sparkleArchiveURL: "https://github.com/insitektalay/relay-console/releases/download/macos-v0.1.0-b1/RelayConsole-0.1.0-b1.zip",
     sparkleEdSignature: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
   };
   return {
@@ -1070,7 +1070,7 @@ function macOSPublicationEvidence() {
         generatedAt: "2026-07-14T22:09:00.000Z",
         manualUpdate: false,
         updateMechanism: "sparkle-2",
-        appcastURL: "https://insitektalay.github.io/clawchat/appcast.xml",
+        appcastURL: "https://insitektalay.github.io/relay-console/appcast.xml",
         current,
         previous: null,
         previousDMGMinimumRetentionDays: 30,

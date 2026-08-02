@@ -91,10 +91,13 @@ STALE_DIST_APP_DIR="$ROOT_DIR/dist/Relay Console.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
+FRAMEWORKS_DIR="$CONTENTS_DIR/Frameworks"
 LAUNCHER_NAME="Relay Console Launcher"
 RUNTIME_NAME="Relay Console.bin"
 BRIDGE_NAME="RelayMarketplaceToolBridge"
 RESOURCE_BUNDLE_GLOB="RelayConsoleSwift_*.bundle"
+SPARKLE_FRAMEWORK_SOURCE="$ROOT_DIR/.build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
+SPARKLE_FRAMEWORK_DESTINATION="$FRAMEWORKS_DIR/Sparkle.framework"
 LOCK_DIR="${TMPDIR:-/tmp}/relay-console-swift-launcher.lock"
 LOCK_OWNER_FILE="$LOCK_DIR/pid"
 LOCK_ACQUIRED=0
@@ -192,6 +195,41 @@ sign_local_executable() {
     || true
 }
 
+sign_local_bundle() {
+  local target="$1"
+  local identity
+  if ! command -v codesign >/dev/null 2>&1 || [[ ! -e "$target" ]]; then
+    return 0
+  fi
+  identity="$(codesign_identity)"
+  if [[ -z "$identity" ]]; then
+    identity="-"
+  fi
+  codesign --force --deep --timestamp=none --sign "$identity" "$target" >/dev/null 2>&1 \
+    || codesign --force --deep --sign - "$target" >/dev/null 2>&1 \
+    || true
+}
+
+add_framework_rpath() {
+  local executable="$1"
+  if ! /usr/bin/otool -l "$executable" | grep -q '@executable_path/../Frameworks'; then
+    /usr/bin/install_name_tool -add_rpath '@executable_path/../Frameworks' "$executable"
+  fi
+}
+
+install_sparkle_framework() {
+  [[ -d "$SPARKLE_FRAMEWORK_SOURCE" ]] || {
+    echo "Resolved Sparkle.framework not found; run swift package resolve" >&2
+    return 1
+  }
+  mkdir -p "$FRAMEWORKS_DIR"
+  rm -rf "$SPARKLE_FRAMEWORK_DESTINATION"
+  /usr/bin/ditto "$SPARKLE_FRAMEWORK_SOURCE" "$SPARKLE_FRAMEWORK_DESTINATION"
+  # Relay Console is not sandboxed, so Sparkle's optional sandbox XPC services are omitted.
+  rm -rf "$SPARKLE_FRAMEWORK_DESTINATION/Versions/B/XPCServices" "$SPARKLE_FRAMEWORK_DESTINATION/XPCServices"
+  sign_local_bundle "$SPARKLE_FRAMEWORK_DESTINATION"
+}
+
 run_swift_build_once() {
   if [[ "$CONFIGURATION" == "release" ]]; then
     swift build --jobs 2 -c release --product "Relay Console" || return $?
@@ -277,9 +315,12 @@ APP_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")/../.." && pwd)"
 CONTENTS_DIR="\$APP_DIR/Contents"
 MACOS_DIR="\$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="\$CONTENTS_DIR/Resources"
+FRAMEWORKS_DIR="\$CONTENTS_DIR/Frameworks"
 RESOURCE_BUNDLE_GLOB="$RESOURCE_BUNDLE_GLOB"
 RUNTIME_EXECUTABLE="\$MACOS_DIR/$RUNTIME_NAME"
 BRIDGE_EXECUTABLE="\$MACOS_DIR/$BRIDGE_NAME"
+SPARKLE_FRAMEWORK_SOURCE="\$ROOT_DIR/.build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
+SPARKLE_FRAMEWORK_DESTINATION="\$FRAMEWORKS_DIR/Sparkle.framework"
 LOG_DIR="\$HOME/Library/Logs/Relay Console"
 LOG_FILE="\$LOG_DIR/launcher.log"
 LOCK_DIR="\${TMPDIR:-/tmp}/relay-console-swift-launcher.lock"
@@ -382,6 +423,41 @@ sign_local_executable() {
     || true
 }
 
+sign_local_bundle() {
+  local target="\$1"
+  local identity
+  if ! command -v codesign >/dev/null 2>&1 || [[ ! -e "\$target" ]]; then
+    return 0
+  fi
+  identity="\$(codesign_identity)"
+  if [[ -z "\$identity" ]]; then
+    identity="-"
+  fi
+  codesign --force --deep --timestamp=none --sign "\$identity" "\$target" >/dev/null 2>&1 \\
+    || codesign --force --deep --sign - "\$target" >/dev/null 2>&1 \\
+    || true
+}
+
+add_framework_rpath() {
+  local executable="\$1"
+  if ! /usr/bin/otool -l "\$executable" | grep -q '@executable_path/../Frameworks'; then
+    /usr/bin/install_name_tool -add_rpath '@executable_path/../Frameworks' "\$executable"
+  fi
+}
+
+install_sparkle_framework() {
+  [[ -d "\$SPARKLE_FRAMEWORK_SOURCE" ]] || {
+    echo "Resolved Sparkle.framework not found; run swift package resolve"
+    return 1
+  }
+  mkdir -p "\$FRAMEWORKS_DIR"
+  rm -rf "\$SPARKLE_FRAMEWORK_DESTINATION"
+  /usr/bin/ditto "\$SPARKLE_FRAMEWORK_SOURCE" "\$SPARKLE_FRAMEWORK_DESTINATION"
+  # Relay Console is not sandboxed, so Sparkle's optional sandbox XPC services are omitted.
+  rm -rf "\$SPARKLE_FRAMEWORK_DESTINATION/Versions/B/XPCServices" "\$SPARKLE_FRAMEWORK_DESTINATION/XPCServices"
+  sign_local_bundle "\$SPARKLE_FRAMEWORK_DESTINATION"
+}
+
 run_swift_build_once() {
   if [[ "\$CONFIGURATION" == "release" ]]; then
     swift build --jobs 2 --package-path "\$ROOT_DIR" -c release --product "Relay Console" || return \$?
@@ -463,9 +539,11 @@ if [[ -z "\${RESOURCE_BUNDLES:-}" ]]; then
   exit 1
 fi
 
-mkdir -p "\$MACOS_DIR" "\$RESOURCES_DIR"
+mkdir -p "\$MACOS_DIR" "\$RESOURCES_DIR" "\$FRAMEWORKS_DIR"
+install_sparkle_framework
 cp "\$EXECUTABLE" "\$RUNTIME_EXECUTABLE.tmp.\$\$"
 chmod +x "\$RUNTIME_EXECUTABLE.tmp.\$\$"
+add_framework_rpath "\$RUNTIME_EXECUTABLE.tmp.\$\$"
 sign_local_executable "\$RUNTIME_EXECUTABLE.tmp.\$\$" "Relay Console"
 mv "\$RUNTIME_EXECUTABLE.tmp.\$\$" "\$RUNTIME_EXECUTABLE"
 cp "\$BRIDGE_SOURCE" "\$BRIDGE_EXECUTABLE.tmp.\$\$"
@@ -610,10 +688,12 @@ if [[ -e "$APP_DIR" && ! -d "$APP_DIR" ]]; then
 fi
 mkdir -p "$APP_DIR"
 rm -rf "$CONTENTS_DIR"
-mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
+mkdir -p "$MACOS_DIR" "$RESOURCES_DIR" "$FRAMEWORKS_DIR"
 
+install_sparkle_framework
 cp "$EXECUTABLE" "$MACOS_DIR/$RUNTIME_NAME"
 chmod +x "$MACOS_DIR/$RUNTIME_NAME"
+add_framework_rpath "$MACOS_DIR/$RUNTIME_NAME"
 sign_local_executable "$MACOS_DIR/$RUNTIME_NAME" "Relay Console"
 cp "$BRIDGE_EXECUTABLE" "$MACOS_DIR/$BRIDGE_NAME"
 chmod +x "$MACOS_DIR/$BRIDGE_NAME"

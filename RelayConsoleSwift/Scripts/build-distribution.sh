@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPOSITORY_ROOT="$(cd "$ROOT_DIR/.." && pwd)"
 OUTPUT_ROOT="$ROOT_DIR/.build/distribution"
 SOURCE_APP=""
 DRY_RUN=0
@@ -14,7 +15,13 @@ Usage: Scripts/build-distribution.sh [--app PATH] [--output DIR] [--architecture
 
 Environment for a real notarized build:
   RELAY_CONSOLE_DEVELOPER_ID_APPLICATION
+  RELAY_CONSOLE_APPLE_TEAM_ID
   RELAY_CONSOLE_NOTARY_KEYCHAIN_PROFILE
+
+The public GitHub release workflow additionally sets:
+  RELAY_CONSOLE_PUBLIC_TAG_RELEASE=1
+  RELAY_CONSOLE_RELEASE_TAG
+  RELAY_CONSOLE_RELEASE_SOURCE_COMMIT
 
 Dry-run mode uses an ad-hoc hardened-runtime signature, exercises DMG and
 quarantine verification, and never submits to Apple.
@@ -57,6 +64,8 @@ done
 case "$ARCHITECTURE_POLICY" in arm64|x86_64|universal2) ;; *) echo "Unsupported architecture policy" >&2; exit 2 ;; esac
 
 command -v jq >/dev/null 2>&1 || { echo "jq is required to build distribution evidence" >&2; exit 1; }
+PUBLIC_TAG_RELEASE="${RELAY_CONSOLE_PUBLIC_TAG_RELEASE:-0}"
+case "$PUBLIC_TAG_RELEASE" in 0|1) ;; *) echo "RELAY_CONSOLE_PUBLIC_TAG_RELEASE must be 0 or 1" >&2; exit 1 ;; esac
 
 if [[ "$DRY_RUN" == "1" ]]; then
   SIGN_IDENTITY="-"
@@ -64,23 +73,39 @@ if [[ "$DRY_RUN" == "1" ]]; then
   NOTARY_STATUS="not-run-dry-run"
 else
   [[ -z "$SOURCE_APP" ]] || { echo "A real distribution build must compile its app from the validated candidate checkout; --app is dry-run only" >&2; exit 1; }
-  if [[ -n "${RELAY_CONSOLE_RELEASE_CANDIDATE_MANIFEST:-}" ]]; then
-    RELEASE_CANDIDATE_MANIFEST="$RELAY_CONSOLE_RELEASE_CANDIDATE_MANIFEST"
+  if [[ "$PUBLIC_TAG_RELEASE" == "1" ]]; then
+    : "${RELAY_CONSOLE_RELEASE_TAG:?Public release tag is required}"
+    : "${RELAY_CONSOLE_RELEASE_SOURCE_COMMIT:?Public release source commit is required}"
+    [[ "$RELAY_CONSOLE_RELEASE_TAG" =~ ^macos-v[0-9]+\.[0-9]+\.[0-9]+-b[1-9][0-9]*$ ]] || { echo "Public release tag is malformed" >&2; exit 1; }
+    [[ "$RELAY_CONSOLE_RELEASE_SOURCE_COMMIT" =~ ^[a-f0-9]{40}$ ]] || { echo "Public release source commit is malformed" >&2; exit 1; }
+    [[ "$(git -C "$REPOSITORY_ROOT" rev-parse HEAD)" == "$RELAY_CONSOLE_RELEASE_SOURCE_COMMIT" ]] || { echo "Public release source commit does not match HEAD" >&2; exit 1; }
+    [[ "$(git -C "$REPOSITORY_ROOT" rev-list -n 1 "$RELAY_CONSOLE_RELEASE_TAG")" == "$RELAY_CONSOLE_RELEASE_SOURCE_COMMIT" ]] || { echo "Public release tag does not point at the release source commit" >&2; exit 1; }
+    git -C "$REPOSITORY_ROOT" cat-file -e "$RELAY_CONSOLE_RELEASE_TAG^{tag}"
+    [[ -z "$(git -C "$REPOSITORY_ROOT" status --porcelain)" ]] || { echo "Public release checkout must be clean" >&2; exit 1; }
+    CANDIDATE_RELEASE_ID="$RELAY_CONSOLE_RELEASE_TAG"
+    CANDIDATE_SOURCE_COMMIT="$RELAY_CONSOLE_RELEASE_SOURCE_COMMIT"
+    CANDIDATE_SHA256="$(printf '%s\n%s\n' "$CANDIDATE_RELEASE_ID" "$CANDIDATE_SOURCE_COMMIT" | shasum -a 256 | awk '{print $1}')"
   else
-    RELEASE_CANDIDATE_MANIFEST="$ROOT_DIR/Release/release-candidate-manifest.json"
+    if [[ -n "${RELAY_CONSOLE_RELEASE_CANDIDATE_MANIFEST:-}" ]]; then
+      RELEASE_CANDIDATE_MANIFEST="$RELAY_CONSOLE_RELEASE_CANDIDATE_MANIFEST"
+    else
+      RELEASE_CANDIDATE_MANIFEST="$ROOT_DIR/Release/release-candidate-manifest.json"
+    fi
+    [[ -f "$RELEASE_CANDIDATE_MANIFEST" ]] || { echo "A release-candidate manifest is required for a real distribution build: $RELEASE_CANDIDATE_MANIFEST" >&2; exit 1; }
+    CANDIDATE_SCHEMA_VERSION="$(jq -er '.schemaVersion' "$RELEASE_CANDIDATE_MANIFEST")"
+    [[ "$CANDIDATE_SCHEMA_VERSION" == "relay.release-candidate.v1" ]] || {
+      echo "Unsupported release-candidate schema: $CANDIDATE_SCHEMA_VERSION" >&2
+      exit 1
+    }
+    node "$ROOT_DIR/../scripts/release-candidate-manifest.mjs" --validate "$RELEASE_CANDIDATE_MANIFEST" --require candidate
+    [[ "$(jq -r '.status' "$RELEASE_CANDIDATE_MANIFEST")" == "candidate" ]] || { echo "Artifact creation requires an authorized candidate manifest, not a draft or final manifest" >&2; exit 1; }
+    CANDIDATE_RELEASE_ID="$(jq -r '.releaseId' "$RELEASE_CANDIDATE_MANIFEST")"
+    CANDIDATE_SOURCE_COMMIT="$(jq -r '.source.commit' "$RELEASE_CANDIDATE_MANIFEST")"
+    CANDIDATE_SHA256="$(shasum -a 256 "$RELEASE_CANDIDATE_MANIFEST" | awk '{print $1}')"
   fi
-  [[ -f "$RELEASE_CANDIDATE_MANIFEST" ]] || { echo "A release-candidate manifest is required for a real distribution build: $RELEASE_CANDIDATE_MANIFEST" >&2; exit 1; }
-  CANDIDATE_SCHEMA_VERSION="$(jq -er '.schemaVersion' "$RELEASE_CANDIDATE_MANIFEST")"
-  [[ "$CANDIDATE_SCHEMA_VERSION" == "relay.release-candidate.v1" ]] || {
-    echo "Unsupported release-candidate schema: $CANDIDATE_SCHEMA_VERSION" >&2
-    exit 1
-  }
-  node "$ROOT_DIR/../scripts/release-candidate-manifest.mjs" --validate "$RELEASE_CANDIDATE_MANIFEST" --require candidate
-  [[ "$(jq -r '.status' "$RELEASE_CANDIDATE_MANIFEST")" == "candidate" ]] || { echo "Artifact creation requires an authorized candidate manifest, not a draft or final manifest" >&2; exit 1; }
-  CANDIDATE_RELEASE_ID="$(jq -r '.releaseId' "$RELEASE_CANDIDATE_MANIFEST")"
-  CANDIDATE_SOURCE_COMMIT="$(jq -r '.source.commit' "$RELEASE_CANDIDATE_MANIFEST")"
-  CANDIDATE_SHA256="$(shasum -a 256 "$RELEASE_CANDIDATE_MANIFEST" | awk '{print $1}')"
   : "${RELAY_CONSOLE_DEVELOPER_ID_APPLICATION:?Developer ID Application identity is required}"
+  : "${RELAY_CONSOLE_APPLE_TEAM_ID:?Apple Team ID is required}"
+  [[ "$RELAY_CONSOLE_APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]] || { echo "Apple Team ID is malformed" >&2; exit 1; }
   : "${RELAY_CONSOLE_NOTARY_KEYCHAIN_PROFILE:?Notary keychain profile is required}"
   SIGN_IDENTITY="$RELAY_CONSOLE_DEVELOPER_ID_APPLICATION"
   SIGN_IDENTITY_RECORD="$(security find-identity -v -p codesigning | grep -F "$SIGN_IDENTITY" | head -n 1 || true)"
@@ -147,6 +172,7 @@ APP_CDHASH="$(sed -n 's/^CDHash=//p' <<<"$SIGN_DETAILS" | head -n 1)"
 if [[ "$DRY_RUN" == "0" ]]; then
   [[ "$SIGN_AUTHORITY" == "Developer ID Application:"* ]] || { echo "Signed app authority is not Developer ID Application" >&2; exit 1; }
   [[ "$TEAM_IDENTIFIER" =~ ^[A-Z0-9]{10}$ ]] || { echo "Signed app TeamIdentifier is invalid" >&2; exit 1; }
+  [[ "$TEAM_IDENTIFIER" == "$RELAY_CONSOLE_APPLE_TEAM_ID" ]] || { echo "Signed app TeamIdentifier does not match RELAY_CONSOLE_APPLE_TEAM_ID" >&2; exit 1; }
   [[ "$APP_CDHASH" =~ ^[A-Fa-f0-9]{40,64}$ ]] || { echo "Signed app CDHash is invalid" >&2; exit 1; }
   grep -q '^Timestamp=' <<<"$SIGN_DETAILS" || { echo "Signed app lacks a trusted timestamp" >&2; exit 1; }
 fi

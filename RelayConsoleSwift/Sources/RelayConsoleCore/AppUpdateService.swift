@@ -56,7 +56,7 @@ public struct RelayConsoleUpdateSnapshot: Equatable, Sendable {
 
 public struct RelayConsoleUpdateConfiguration: Equatable, Sendable {
     public static let approvedFeedHost = "insitektalay.github.io"
-    public static let approvedFeedPath = "/clawchat/appcast.xml"
+    public static let approvedFeedPath = "/relay-console/appcast.xml"
 
     public var feedURL: String?
     public var publicEdKey: String?

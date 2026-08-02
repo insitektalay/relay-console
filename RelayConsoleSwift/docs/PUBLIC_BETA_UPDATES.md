@@ -12,9 +12,9 @@ open a browser, or ask users to replace the application manually.
   positive integer and must increase for every published build.
 - Releases use annotated tags matching `macos-v<version>-b<build>` and must point
   at the authorized clean commit. A normal commit or pull request cannot publish.
-- The appcast is `https://insitektalay.github.io/clawchat/appcast.xml`. GitHub
-  Pages must serve the `gh-pages` branch for the repository before the first
-  release. Enclosures use immutable, tag-bound GitHub Release asset URLs.
+- The appcast is `https://insitektalay.github.io/relay-console/appcast.xml`.
+  Enclosures use immutable, tag-bound assets from the public
+  `insitektalay/relay-console` GitHub repository.
 - Apple Developer ID signing, Apple notarization, and Sparkle EdDSA signing are
   separate gates. The app embeds only the EdDSA public key.
 - Relay Console is not sandboxed. The packaged framework therefore omits
@@ -35,6 +35,22 @@ Configure these GitHub Actions secrets:
 - `APPLE_NOTARY_KEY_ID`, `APPLE_NOTARY_ISSUER_ID`, `APPLE_NOTARY_PRIVATE_KEY`
 - `SPARKLE_EDDSA_PRIVATE_KEY`
 - `SPARKLE_PUBLIC_ED_KEY`
+- `SENTRY_AUTH_TOKEN`
+
+Configure these variables in the same `macos-production-release` GitHub
+environment:
+
+- `RELAY_POSTHOG_PROJECT_TOKEN`
+- `RELAY_POSTHOG_HOST`
+- `RELAY_SENTRY_DSN`
+- `SENTRY_ORG`
+- `SENTRY_PROJECT`
+- `CLAWCHAT_RAILWAY_ORIGIN`
+- `NEXT_PUBLIC_RAILWAY_WS_BASE_URL`
+
+The release workflow creates `gh-pages` on the first successful publication if
+the branch does not already exist. GitHub Pages must still be enabled in the
+repository settings with `gh-pages` and `/ (root)` selected as its source.
 
 The release build requires `RELAY_SPARKLE_PUBLIC_ED_KEY`; a missing, malformed,
 or wrong-host feed fails packaging. Forks must generate their own key and change
@@ -54,6 +70,14 @@ the `macOS Sparkle Release` workflow manually with the exact protected tag. It:
 5. runs Sparkle `generate_appcast`, creates the GitHub Release, uploads and
    downloads the immutable asset, and verifies its checksum; then
 6. publishes the new appcast to GitHub Pages last.
+
+The workflow refuses to run outside `insitektalay/relay-console`, installs a
+pinned Sentry CLI for dSYM upload, and fails before signing if any required
+production PostHog, Sentry, Apple, Sparkle, or Railway value is absent.
+For public tagged builds it binds distribution evidence directly to the clean
+annotated tag and exact checked-out commit; it does not depend on the private
+release-candidate manifest that is intentionally absent from the public source
+snapshot.
 
 The workflow uses `contents: write` only in its release job, never runs for pull
 requests, and does not expose release secrets to untrusted code. Keep previous

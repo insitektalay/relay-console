@@ -49,7 +49,7 @@ struct RelayConsoleAppUpdateTests {
         try expect(development.snapshot.state == .developmentBuildNewer, "newer development builds never offer a downgrade")
 
         let valid = RelayConsoleUpdateConfiguration(
-            feedURL: "https://insitektalay.github.io/clawchat/appcast.xml",
+            feedURL: "https://insitektalay.github.io/relay-console/appcast.xml",
             publicEdKey: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
             bundleURL: URL(fileURLWithPath: "/Applications/Relay Console.app")
         )
@@ -65,14 +65,14 @@ struct RelayConsoleAppUpdateTests {
         }
 
         let missingKey = RelayConsoleUpdateConfiguration(
-            feedURL: "https://insitektalay.github.io/clawchat/appcast.xml",
+            feedURL: "https://insitektalay.github.io/relay-console/appcast.xml",
             publicEdKey: nil,
             bundleURL: URL(fileURLWithPath: "/Applications/Relay Console.app")
         )
         try expect(missingKey.availability == .unavailableConfiguration, "missing public key fails closed")
 
         let swiftRun = RelayConsoleUpdateConfiguration(
-            feedURL: "https://insitektalay.github.io/clawchat/appcast.xml",
+            feedURL: "https://insitektalay.github.io/relay-console/appcast.xml",
             publicEdKey: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
             bundleURL: URL(fileURLWithPath: "/private/tmp/RelayConsoleSwift/.build/debug")
         )
@@ -83,6 +83,7 @@ struct RelayConsoleAppUpdateTests {
         let settings = try RelayConsoleSourceTestSupport.read(root: root, path: "Sources/RelayConsoleApp/Features/Settings/SettingsViews.swift")
         let launcher = try RelayConsoleSourceTestSupport.read(root: root, path: "Sources/RelayConsoleAppLauncher/RelayConsoleApp.swift")
         let controller = try RelayConsoleSourceTestSupport.read(root: root, path: "Sources/RelayConsoleApp/SparkleUpdateController.swift")
+        let developmentBuilder = try RelayConsoleSourceTestSupport.read(root: root, path: "Scripts/open-relay-console.sh")
         try expect(components.contains("if updateController.snapshot.showsUpdatePill"), "rail pill is gated by confirmed update state")
         try expect(components.contains("Update Relay Console") && components.contains("updateAccessibilityValue"), "rail pill has versioned accessibility metadata")
         try expect(components.contains("updateController.showDiscoveredUpdate()"), "rail pill invokes the updater controller")
@@ -91,6 +92,20 @@ struct RelayConsoleAppUpdateTests {
         try expect(settings.contains("Try Again") && settings.contains("Last successful check"), "Settings exposes non-alarming failure recovery and check history")
         try expect(controller.contains("SPUStandardUpdaterController") && controller.contains("checkForUpdateInformation"), "Sparkle owns manual and scheduled checks")
         try expect(controller.contains("standardUserDriverShouldHandleShowingScheduledUpdate"), "scheduled updates use Sparkle gentle reminders")
+        try expect(
+            developmentBuilder.contains("FRAMEWORKS_DIR=\"$CONTENTS_DIR/Frameworks\"")
+                && developmentBuilder.contains("SPARKLE_FRAMEWORK_DESTINATION=\"$FRAMEWORKS_DIR/Sparkle.framework\"")
+                && developmentBuilder.contains("SPARKLE_FRAMEWORK_SOURCE"),
+            "development app installer does not embed Sparkle.framework"
+        )
+        try expect(
+            developmentBuilder.components(separatedBy: "install_sparkle_framework").count >= 5,
+            "development app cold-launch refresh does not keep the embedded Sparkle framework current"
+        )
+        try expect(
+            developmentBuilder.components(separatedBy: "@executable_path/../Frameworks").count >= 3,
+            "development app installer and cold-launch refresh do not add the Sparkle runtime search path"
+        )
 
         print("RelayConsoleAppUpdateTests passed")
     }

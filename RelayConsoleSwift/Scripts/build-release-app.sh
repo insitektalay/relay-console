@@ -67,15 +67,45 @@ BUILD_NUMBER="$(metadata_value build)"
 RELEASE_CHANNEL="$(metadata_value releaseChannel)"
 MINIMUM_MACOS="$(metadata_value minimumMacOSVersion)"
 APPLICATION_CATEGORY="$(metadata_value applicationCategory)"
-SPARKLE_FEED_URL="${RELAY_SPARKLE_FEED_URL:-https://insitektalay.github.io/clawchat/appcast.xml}"
+SPARKLE_FEED_URL="${RELAY_SPARKLE_FEED_URL:-https://insitektalay.github.io/relay-console/appcast.xml}"
 SPARKLE_PUBLIC_ED_KEY="${RELAY_SPARKLE_PUBLIC_ED_KEY:-}"
 RAILWAY_ORIGIN="${CLAWCHAT_RAILWAY_ORIGIN:-https://your-backend.up.railway.app}"
 WEBSOCKET_ORIGIN="${NEXT_PUBLIC_RAILWAY_WS_BASE_URL:-wss://your-backend.up.railway.app}"
+POSTHOG_TOKEN="${RELAY_POSTHOG_PROJECT_TOKEN:-}"
+POSTHOG_HOST="${RELAY_POSTHOG_HOST:-https://eu.i.posthog.com}"
+SENTRY_DSN="${RELAY_SENTRY_DSN:-}"
+TELEMETRY_ENVIRONMENT="${RELAY_TELEMETRY_ENVIRONMENT:-$RELEASE_CHANNEL}"
+REQUIRE_PRODUCTION_TELEMETRY="${RELAY_REQUIRE_PRODUCTION_TELEMETRY:-0}"
 
 [[ "$RAILWAY_ORIGIN" == https://* ]] || { echo "CLAWCHAT_RAILWAY_ORIGIN must use HTTPS" >&2; exit 1; }
 [[ "$WEBSOCKET_ORIGIN" == wss://* ]] || { echo "NEXT_PUBLIC_RAILWAY_WS_BASE_URL must use WSS" >&2; exit 1; }
-[[ "$SPARKLE_FEED_URL" == "https://insitektalay.github.io/clawchat/appcast.xml" ]] || { echo "RELAY_SPARKLE_FEED_URL must be the approved immutable-control appcast URL" >&2; exit 1; }
+[[ "$SPARKLE_FEED_URL" == "https://insitektalay.github.io/relay-console/appcast.xml" ]] || { echo "RELAY_SPARKLE_FEED_URL must be the approved immutable-control appcast URL" >&2; exit 1; }
 [[ "$SPARKLE_PUBLIC_ED_KEY" =~ ^[A-Za-z0-9+/]{43}=$ ]] || { echo "RELAY_SPARKLE_PUBLIC_ED_KEY must contain the Sparkle generate_keys public EdDSA key" >&2; exit 1; }
+
+case "$REQUIRE_PRODUCTION_TELEMETRY" in
+  0|1) ;;
+  *) echo "RELAY_REQUIRE_PRODUCTION_TELEMETRY must be 0 or 1" >&2; exit 1 ;;
+esac
+
+if [[ "$REQUIRE_PRODUCTION_TELEMETRY" == "1" ]]; then
+  [[ "$POSTHOG_TOKEN" == phc_* ]] || { echo "RELAY_POSTHOG_PROJECT_TOKEN must contain a PostHog project token for a production release" >&2; exit 1; }
+  [[ "$POSTHOG_HOST" == https://* ]] || { echo "RELAY_POSTHOG_HOST must use HTTPS for a production release" >&2; exit 1; }
+  [[ "$SENTRY_DSN" == https://* ]] || { echo "RELAY_SENTRY_DSN must use HTTPS for a production release" >&2; exit 1; }
+  [[ "$TELEMETRY_ENVIRONMENT" == "production" ]] || { echo "RELAY_TELEMETRY_ENVIRONMENT must be production for a production release" >&2; exit 1; }
+  [[ -n "${SENTRY_AUTH_TOKEN:-}" && -n "${SENTRY_ORG:-}" && -n "${SENTRY_PROJECT:-}" ]] || {
+    echo "SENTRY_AUTH_TOKEN, SENTRY_ORG, and SENTRY_PROJECT are required for a production release" >&2
+    exit 1
+  }
+fi
+
+SENTRY_UPLOAD_CONFIGURATION_COUNT=0
+for value in "${SENTRY_AUTH_TOKEN:-}" "${SENTRY_ORG:-}" "${SENTRY_PROJECT:-}"; do
+  [[ -z "$value" ]] || SENTRY_UPLOAD_CONFIGURATION_COUNT=$((SENTRY_UPLOAD_CONFIGURATION_COUNT + 1))
+done
+if [[ "$SENTRY_UPLOAD_CONFIGURATION_COUNT" -ne 0 && "$SENTRY_UPLOAD_CONFIGURATION_COUNT" -ne 3 ]]; then
+  echo "SENTRY_AUTH_TOKEN, SENTRY_ORG, and SENTRY_PROJECT must be configured together" >&2
+  exit 1
+fi
 
 APP_PATH="$OUTPUT_ROOT/$PRODUCT_NAME.app"
 CONTENTS_PATH="$APP_PATH/Contents"
@@ -221,11 +251,6 @@ cat > "$CONTENTS_PATH/Info.plist" <<PLIST
 </plist>
 PLIST
 
-POSTHOG_TOKEN="${RELAY_POSTHOG_PROJECT_TOKEN:-}"
-POSTHOG_HOST="${RELAY_POSTHOG_HOST:-https://eu.i.posthog.com}"
-SENTRY_DSN="${RELAY_SENTRY_DSN:-}"
-TELEMETRY_ENVIRONMENT="${RELAY_TELEMETRY_ENVIRONMENT:-$RELEASE_CHANNEL}"
-
 if [[ -n "$POSTHOG_TOKEN" ]]; then
   [[ "$POSTHOG_HOST" == https://* ]] || { echo "RELAY_POSTHOG_HOST must use HTTPS" >&2; exit 1; }
   /usr/bin/plutil -insert RelayPostHogProjectToken -string "$POSTHOG_TOKEN" "$CONTENTS_PATH/Info.plist"
@@ -264,12 +289,13 @@ if [[ -n "${SENTRY_AUTH_TOKEN:-}" ]]; then
     echo "SENTRY_ORG and SENTRY_PROJECT are required when SENTRY_AUTH_TOKEN is set" >&2
     exit 1
   }
-  command -v sentry-cli >/dev/null 2>&1 || {
+  SENTRY_CLI_BIN="${SENTRY_CLI_BIN:-sentry-cli}"
+  command -v "$SENTRY_CLI_BIN" >/dev/null 2>&1 || {
     echo "sentry-cli is required to upload release symbols" >&2
     exit 1
   }
   [[ -d "$DSYM_PATH" ]] || { echo "Relay Console dSYM was not generated" >&2; exit 1; }
-  sentry-cli debug-files upload \
+  "$SENTRY_CLI_BIN" debug-files upload \
     --org "$SENTRY_ORG" \
     --project "$SENTRY_PROJECT" \
     "$DSYM_PATH"

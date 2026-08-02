@@ -23,6 +23,10 @@ enum RelayConsoleTelemetryReleaseTests {
         let developmentBuilder = try read(root, "Scripts/open-relay-console.sh")
         let privacy = try read(root, "Release/PrivacyInfo.xcprivacy")
         let documentation = try read(root, "Release/TELEMETRY_CONFIGURATION.md")
+        let releaseWorkflow = try read(
+            root.deletingLastPathComponent(),
+            ".github/workflows/macos-sparkle-release.yml"
+        )
 
         for source in [models, data, appModel] {
             try expect(
@@ -182,9 +186,26 @@ enum RelayConsoleTelemetryReleaseTests {
         try expect(
             builder.contains("dsymutil")
                 && builder.contains("dwarfdump --uuid")
-                && builder.contains("sentry-cli debug-files upload")
+                && builder.contains("\"$SENTRY_CLI_BIN\" debug-files upload")
                 && builder.contains("SENTRY_AUTH_TOKEN"),
             "release symbol generation/upload is incomplete"
+        )
+        for productionReleaseBinding in [
+            "RELAY_REQUIRE_PRODUCTION_TELEMETRY: \"1\"",
+            "RELAY_POSTHOG_PROJECT_TOKEN: ${{ vars.RELAY_POSTHOG_PROJECT_TOKEN }}",
+            "RELAY_SENTRY_DSN: ${{ vars.RELAY_SENTRY_DSN }}",
+            "SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}",
+            "@sentry/cli@2.58.6",
+        ] {
+            try expect(
+                releaseWorkflow.contains(productionReleaseBinding),
+                "production release workflow omits \(productionReleaseBinding)"
+            )
+        }
+        try expect(
+            builder.contains("RELAY_REQUIRE_PRODUCTION_TELEMETRY")
+                && builder.contains("must be configured together"),
+            "production release telemetry does not fail closed"
         )
         try expect(
             builder.contains("--product \"$PRODUCT_NAME\" >&2 || return $?")

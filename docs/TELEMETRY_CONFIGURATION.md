@@ -61,6 +61,12 @@ The builder writes public values to the app Info.plist. When all three
 build-only Sentry values are present, it uploads the generated dSYM with
 `sentry-cli`; a partially configured upload fails the release build.
 
+For the public DMG workflow, store the PostHog token/host, Sentry DSN,
+`SENTRY_ORG`, and `SENTRY_PROJECT` as variables in the
+`macos-production-release` GitHub environment. Store `SENTRY_AUTH_TOKEN` as an
+environment secret. The workflow deliberately fails rather than publishing a
+production DMG with missing analytics, crash routing, or symbol-upload values.
+
 ### iPhone and iPad
 
 Set these Xcode build settings for the release configuration:

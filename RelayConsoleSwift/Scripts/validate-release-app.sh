@@ -53,7 +53,7 @@ EXPECTED_CHANNEL="$(/usr/bin/plutil -extract releaseChannel raw -o - "$METADATA_
 [[ "$(/usr/bin/plutil -extract CFBundleShortVersionString raw -o - "$INFO_PLIST")" == "$EXPECTED_VERSION" ]] || { echo "CFBundleShortVersionString mismatch" >&2; exit 1; }
 [[ "$(/usr/bin/plutil -extract CFBundleVersion raw -o - "$INFO_PLIST")" == "$EXPECTED_BUILD" ]] || { echo "CFBundleVersion mismatch" >&2; exit 1; }
 [[ "$(/usr/bin/plutil -extract RelayConsoleReleaseChannel raw -o - "$INFO_PLIST")" == "$EXPECTED_CHANNEL" ]] || { echo "Release channel mismatch" >&2; exit 1; }
-[[ "$(/usr/bin/plutil -extract SUFeedURL raw -o - "$INFO_PLIST")" == "https://insitektalay.github.io/clawchat/appcast.xml" ]] || { echo "Approved Sparkle HTTPS feed missing" >&2; exit 1; }
+[[ "$(/usr/bin/plutil -extract SUFeedURL raw -o - "$INFO_PLIST")" == "https://insitektalay.github.io/relay-console/appcast.xml" ]] || { echo "Approved Sparkle HTTPS feed missing" >&2; exit 1; }
 SPARKLE_PUBLIC_KEY="$(/usr/bin/plutil -extract SUPublicEDKey raw -o - "$INFO_PLIST")"
 [[ "$SPARKLE_PUBLIC_KEY" =~ ^[A-Za-z0-9+/]{43}=$ ]] || { echo "Valid Sparkle public EdDSA key missing" >&2; exit 1; }
 [[ "$(/usr/bin/plutil -extract SURequireSignedFeed raw -o - "$INFO_PLIST")" == "true" ]] || { echo "Sparkle signed-appcast enforcement missing" >&2; exit 1; }

@@ -6,7 +6,7 @@ repository-owned [`railway/template-spec.json`](../railway/template-spec.json)
 is therefore the exact, reviewable source for the dashboard fields; it is not
 presented as a Railway-importable file.
 
-An owner of the public `insitektalay/clawchat` repository must perform this one
+An owner of the public `insitektalay/relay-console` repository must perform this one
 publishing action:
 
 1. In the authorised Railway workspace, open **Templates**, choose **New

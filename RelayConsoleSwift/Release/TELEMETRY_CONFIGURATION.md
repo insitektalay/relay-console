@@ -55,6 +55,26 @@ These three values are used by the build process only and are not embedded in
 the app. If `SENTRY_AUTH_TOKEN` is present, the build fails closed when the
 other values, `sentry-cli`, or the dSYM are missing.
 
+The public GitHub release workflow reads production values from the
+`macos-production-release` environment. Configure these environment variables:
+
+- `RELAY_POSTHOG_PROJECT_TOKEN`
+- `RELAY_POSTHOG_HOST`
+- `RELAY_SENTRY_DSN`
+- `SENTRY_ORG`
+- `SENTRY_PROJECT`
+- `CLAWCHAT_RAILWAY_ORIGIN`
+- `NEXT_PUBLIC_RAILWAY_WS_BASE_URL`
+
+Configure `SENTRY_AUTH_TOKEN` as an environment secret. The workflow pins the
+Sentry CLI used for the dSYM upload and sets
+`RELAY_REQUIRE_PRODUCTION_TELEMETRY=1`, so a public release cannot silently
+ship without PostHog, Sentry, or symbol upload configuration.
+
+The same environment stores the Apple Team ID as `APPLE_TEAM_ID`; the release
+workflow passes it to the distribution builder and verifies that it matches the
+TeamIdentifier in the signed application.
+
 ## Data boundary
 
 PostHog receives only:
