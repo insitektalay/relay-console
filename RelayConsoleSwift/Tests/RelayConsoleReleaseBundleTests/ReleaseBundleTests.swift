@@ -29,7 +29,7 @@ struct RelayConsoleReleaseBundleTests {
         let metadata = RelayConsoleReleaseMetadata.current
         try expect(metadata.productName == "Relay Console", "product name mismatch")
         try expect(metadata.bundleIdentifier == "com.relayconsole.app", "production bundle identifier mismatch")
-        try expect(metadata.version == "0.1.1" && metadata.build == "5", "version/build mismatch")
+        try expect(metadata.version == "0.1.1" && metadata.build == "6", "version/build mismatch")
         try expect(metadata.releaseChannel == "public-beta", "release channel mismatch")
         try expect(metadata.minimumMacOSVersion == "14.0", "minimum macOS mismatch")
     }
@@ -145,7 +145,7 @@ struct RelayConsoleReleaseBundleTests {
             "revokeAccountSession",
             "deviceName\": \"Mac",
             "platform\": \"macOS",
-            "Task { await signOut(link) }",
+            "Task { await signOutCurrentAccount() }",
             "RelayCloudSessionSecurityService",
             "clearCloudAccountViewState",
             "Signed out on this Mac, but Relay could not confirm remote session revocation",
