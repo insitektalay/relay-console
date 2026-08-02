@@ -29,7 +29,7 @@ struct RelayConsoleReleaseBundleTests {
         let metadata = RelayConsoleReleaseMetadata.current
         try expect(metadata.productName == "Relay Console", "product name mismatch")
         try expect(metadata.bundleIdentifier == "com.relayconsole.app", "production bundle identifier mismatch")
-        try expect(metadata.version == "0.1.1" && metadata.build == "4", "version/build mismatch")
+        try expect(metadata.version == "0.1.1" && metadata.build == "5", "version/build mismatch")
         try expect(metadata.releaseChannel == "public-beta", "release channel mismatch")
         try expect(metadata.minimumMacOSVersion == "14.0", "minimum macOS mismatch")
     }
@@ -82,6 +82,10 @@ struct RelayConsoleReleaseBundleTests {
             appBuilder.contains("--scratch-path")
                 && appBuilder.contains("RELEASE_TEST_ARCHITECTURE"),
             "release bundle tests must reuse the optimized architecture build cache")
+        try expect(
+            appBuilder.contains(".build/release-$architecture/$relative_path")
+                && appBuilder.contains(".build/$relative_path"),
+            "release builder must resolve Sparkle from its custom scratch directory before the default SwiftPM build directory")
         try expect(entitlements.contains("<dict/>"), "hardened-runtime entitlement set should remain minimal")
     }
 

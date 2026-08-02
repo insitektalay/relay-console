@@ -125,6 +125,23 @@ build_architecture() {
   swift build --package-path "$ROOT_DIR" --scratch-path "$scratch" -c release --arch "$architecture" --show-bin-path || return $?
 }
 
+resolve_sparkle_framework_source() {
+  local architecture="$1"
+  local relative_path="artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
+  local candidate
+
+  for candidate in \
+    "$ROOT_DIR/.build/release-$architecture/$relative_path" \
+    "$ROOT_DIR/.build/$relative_path"; do
+    if [[ -d "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 if [[ "$ARCHITECTURE_POLICY" == "universal2" ]]; then
   ARM_BIN_PATH="$(build_architecture arm64)"
   INTEL_BIN_PATH="$(build_architecture x86_64)"
@@ -153,8 +170,16 @@ else
 fi
 chmod 755 "$MAIN_EXECUTABLE" "$BRIDGE_EXECUTABLE"
 
-SPARKLE_FRAMEWORK_SOURCE="$ROOT_DIR/.build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
-[[ -d "$SPARKLE_FRAMEWORK_SOURCE" ]] || { echo "Resolved Sparkle.framework not found; run swift package resolve" >&2; exit 1; }
+SPARKLE_ARTIFACT_ARCHITECTURE="$ARCHITECTURE_POLICY"
+if [[ "$SPARKLE_ARTIFACT_ARCHITECTURE" == "universal2" ]]; then
+  # Sparkle's binary artifact is already universal, so either architecture's
+  # fresh SwiftPM scratch directory contains the framework needed by the app.
+  SPARKLE_ARTIFACT_ARCHITECTURE="arm64"
+fi
+if ! SPARKLE_FRAMEWORK_SOURCE="$(resolve_sparkle_framework_source "$SPARKLE_ARTIFACT_ARCHITECTURE")"; then
+  echo "Resolved Sparkle.framework not found in the release scratch directory or default SwiftPM build directory" >&2
+  exit 1
+fi
 /usr/bin/ditto "$SPARKLE_FRAMEWORK_SOURCE" "$FRAMEWORKS_PATH/Sparkle.framework"
 # Relay Console is not sandboxed, so Sparkle's optional sandbox XPC services are deliberately omitted.
 rm -rf "$FRAMEWORKS_PATH/Sparkle.framework/Versions/B/XPCServices" "$FRAMEWORKS_PATH/Sparkle.framework/XPCServices"
