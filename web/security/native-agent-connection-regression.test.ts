@@ -15,6 +15,10 @@ const sdk = source("packages/web-sdk/src/index.ts")
 const iosSettings = source(
   "ios/ClawChat/Features/Operations/SettingsView.swift"
 )
+const iosCoordinator = source("ios/ClawChat/App/AppCoordinator.swift")
+const webNativeRuntimeActions = source(
+  "web/features/runtime/use-relay-native-runtime-actions.tsx"
+)
 const iosEndpoints = source(
   "ios/ClawChat/Infrastructure/Network/APIEndpoints.swift"
 )
@@ -34,13 +38,26 @@ const macMigrations = source(
 test("existing-agent controls are permanent Settings features on every client", () => {
   for (const client of [webApp, iosSettings, macSettings]) {
     assert.match(client, /Existing agents/i)
-    assert.match(client, /Connect all/)
-    assert.match(client, /Choose agents/)
     assert.match(client, /Select all/)
+    assert.match(client, /Connect .*selected agent/)
     assert.match(client, /Disconnect/)
     assert.match(client, /Hide/)
     assert.match(client, /Retry/)
     assert.match(client, /conversation/i)
+  }
+})
+
+test("native discovery never opens an unsolicited existing-agent prompt", () => {
+  for (const client of [
+    webNativeRuntimeActions,
+    iosCoordinator,
+    iosSettings,
+    macSettings,
+  ]) {
+    assert.doesNotMatch(client, /Existing agents found/)
+    assert.doesNotMatch(client, /showExistingAgentsPrompt/)
+    assert.doesNotMatch(client, /existingAgentsPrompt/)
+    assert.doesNotMatch(client, /existing-agents-prompt/)
   }
 })
 

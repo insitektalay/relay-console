@@ -63,6 +63,7 @@ import { WorkspaceArtifactService } from "../workspace/workspace-artifact.servic
 import { WorkspaceArtifactSyncDto } from "../workspace/dto/artifact.dto";
 import {
   BridgeDeviceCredentialDto,
+  CheckBridgeCompatibilityDto,
   CreateBridgeEnrollmentDto,
   RedeemBridgeEnrollmentDto,
 } from "./dto/bridge-auth.dto";
@@ -188,6 +189,25 @@ export class BridgeController {
     @InjectRepository(RelayExecutionOwnerLeaseEntity)
     private readonly executionOwnerLeases?: Repository<RelayExecutionOwnerLeaseEntity>,
   ) {}
+
+  @Post("compatibility/check")
+  @Throttle(BRIDGE_DEVICE_AUTH_RATE_LIMIT)
+  @HttpCode(HttpStatus.OK)
+  @Header("Cache-Control", "no-store")
+  @ApiOperation({
+    summary: "Preflight a runtime and bridge compatibility tuple",
+  })
+  checkCompatibility(@Body() body: CheckBridgeCompatibilityDto) {
+    return this.bridgeService.checkCompatibility({
+      pluginVersion: body.pluginVersion,
+      openCoreVersion: body.openCoreVersion,
+      runtimeType: body.runtimeType,
+      hostType: body.hostType,
+      apiContractVersion: body.apiContractVersion,
+      websocketContractVersion: body.websocketContractVersion,
+      capabilities: body.capabilities ?? [],
+    });
+  }
 
   @Post("artifacts/sync")
   @HttpCode(HttpStatus.OK)

@@ -15,9 +15,6 @@ struct SetupAssistantView: View {
           Label("Setup & Connections", systemImage: "point.3.connected.trianglepath.dotted")
             .font(.headline)
           Spacer()
-          Text(progressLabel)
-            .font(.caption.monospacedDigit())
-            .foregroundStyle(RCTheme.muted)
         }
         Divider()
         ScrollView {
@@ -51,12 +48,6 @@ struct SetupAssistantView: View {
     }
     .accessibilityElement(children: .contain)
     .accessibilityLabel("Relay Console setup assistant")
-  }
-
-  private var progressLabel: String {
-    let steps = SetupAssistantStep.allCases
-    let position = (steps.firstIndex(of: model.setupAssistant.step) ?? 0) + 1
-    return "Step \(position) of \(steps.count)"
   }
 
   @ViewBuilder private var stepContent: some View {
@@ -124,6 +115,7 @@ struct SetupAssistantView: View {
           .buttonStyle(PrimaryLightButtonStyle())
       } else {
         ForEach(model.runtimeDiscoveryCandidates) { candidate in
+          let presentation = model.runtimeDiscoveryPresentation(for: candidate)
           setupCard {
             HStack {
               VStack(alignment: .leading, spacing: 4) {
@@ -133,10 +125,53 @@ struct SetupAssistantView: View {
                 Text(candidate.displayLocation).font(.caption.monospaced()).textSelection(.enabled)
               }
               Spacer()
-              Button("Connect") { model.connectDiscoveredHarness(candidate) }
-                .buttonStyle(PrimaryLightButtonStyle())
-                .disabled(model.busy != nil)
-                .accessibilityLabel("Connect \(candidate.runtimeName) at \(candidate.displayLocation)")
+              switch presentation.state {
+              case .available:
+                Button("Connect") { model.connectDiscoveredHarness(candidate) }
+                  .buttonStyle(PrimaryLightButtonStyle())
+                  .accessibilityLabel("Connect \(candidate.runtimeName) at \(candidate.displayLocation)")
+              case .connecting:
+                HStack(spacing: 8) {
+                  ProgressView()
+                    .controlSize(.small)
+                  Text(presentation.message ?? "Connecting…")
+                }
+                .font(.callout.weight(.semibold))
+                .foregroundStyle(RCTheme.muted)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Connecting \(candidate.runtimeName)")
+              case .connected:
+                Label("Connected locally", systemImage: "checkmark.circle.fill")
+                  .font(.callout.weight(.semibold))
+                  .foregroundStyle(RCTheme.accentGreen)
+              case .needsAttention:
+                Label("Needs setup", systemImage: "exclamationmark.triangle.fill")
+                  .font(.callout.weight(.semibold))
+                  .foregroundStyle(RCTheme.accentAmber)
+              }
+            }
+            if presentation.state != .connecting,
+              let message = presentation.message,
+              !message.isEmpty
+            {
+              Label(
+                message,
+                systemImage: presentation.state == .connected
+                  ? "checkmark.circle"
+                  : "info.circle"
+              )
+              .font(.caption)
+              .foregroundStyle(
+                presentation.state == .connected ? RCTheme.accentGreen : RCTheme.muted
+              )
+            }
+            if presentation.needsOpenClawGatewaySetup {
+              openClawGatewaySetupHelp(for: candidate)
+            }
+            if presentation.state == .connected {
+              Text("Remote access and Marketplace agent assignment require an active Relay bridge.")
+                .font(.caption)
+                .foregroundStyle(RCTheme.muted)
             }
           }
         }
@@ -187,38 +222,71 @@ struct SetupAssistantView: View {
   }
 
   private var localRailwayOfferStep: some View {
-    setupPage(
-      title: "Would you like to connect Railway?",
-      subtitle: "Railway is optional for this local setup. It enables hosted backend features, server-backed Marketplace connections and connecting other devices later."
-    ) {
-      Button("Set Up Railway") { model.setupAdvance(.railwayConnection) }
-        .buttonStyle(PrimaryLightButtonStyle())
-      Button("Connect Existing Backend") { model.setupAdvance(.railwayURL) }
-        .buttonStyle(SecondaryLightButtonStyle())
-      Button("Not Now") { model.finishSetupAssistant() }
-        .buttonStyle(SecondaryLightButtonStyle()).keyboardShortcut(.defaultAction)
-      Text("Local-only use does not require Railway login, a subscription or an entitlement check.")
-        .font(.caption).foregroundStyle(RCTheme.muted)
+    Group {
+      if let origin = model.setupConfiguredRailwayOrigin {
+        setupPage(
+          title: "Railway is already connected",
+          subtitle: "Relay Console is using \(origin). Railway connection alone does not make a local runtime remotely available."
+        ) {
+          Label("Railway backend connected", systemImage: "checkmark.circle.fill")
+            .foregroundStyle(RCTheme.accentGreen)
+          Text("Remote access and Marketplace agent assignment require an active Relay bridge on the computer running Hermes Agent or OpenClaw.")
+            .font(.caption).foregroundStyle(RCTheme.muted)
+          Button("Continue") { model.finishSetupAssistant() }
+            .buttonStyle(PrimaryLightButtonStyle()).keyboardShortcut(.defaultAction)
+          Button("Review Railway Connection") { model.setupAdvance(.railwayConnection) }
+            .buttonStyle(SecondaryLightButtonStyle())
+        }
+      } else {
+        setupPage(
+          title: "Would you like to connect a Railway backend?",
+          subtitle: "Railway is optional for local use. It enables cloud sync, web and mobile access, and server-backed Marketplace connections."
+        ) {
+          Button("Connect Railway Backend") { model.setupAdvance(.railwayConnection) }
+            .buttonStyle(PrimaryLightButtonStyle())
+          Button("Not Now") { model.finishSetupAssistant() }
+            .buttonStyle(SecondaryLightButtonStyle()).keyboardShortcut(.defaultAction)
+          Text("Local conversations on this Mac do not require Railway. Remote execution also requires a Relay bridge beside the runtime.")
+            .font(.caption).foregroundStyle(RCTheme.muted)
+        }
+      }
     }
   }
 
   private var railwayConnectionStep: some View {
-    setupPage(
-      title: "Connect your Railway backend",
-      subtitle: "The remote bridge and Relay Console meet through your Railway backend."
-    ) {
-      if let templateURL = AppViewModel.railwayTemplateURL {
-        Button("Deploy on Railway") {
-          NSWorkspace.shared.open(templateURL)
-          model.setupAdvance(.railwayBrowser)
-        }.buttonStyle(PrimaryLightButtonStyle())
+    Group {
+      if let origin = model.setupConfiguredRailwayOrigin {
+        setupPage(
+          title: "Railway backend connected",
+          subtitle: "Relay Console is currently using \(origin)."
+        ) {
+          Label("Backend connection configured", systemImage: "checkmark.circle.fill")
+            .foregroundStyle(RCTheme.accentGreen)
+          Text("A separate active Relay bridge is still required for Railway to reach Hermes Agent or OpenClaw on another computer—or this Mac when Relay Console is closed.")
+            .font(.caption).foregroundStyle(RCTheme.muted)
+          Button("Continue") { model.setupAdvance(.relayAccount) }
+            .buttonStyle(PrimaryLightButtonStyle()).keyboardShortcut(.defaultAction)
+          Button("Change Railway Backend…") { model.setupAdvance(.railwayURL) }
+            .buttonStyle(SecondaryLightButtonStyle())
+        }
       } else {
-        Button("Deploy on Railway") {}.buttonStyle(PrimaryLightButtonStyle()).disabled(true)
-        Label("The official template has not been publicly published yet. Relay will not open a guessed or broken deployment link.", systemImage: "exclamationmark.triangle")
-          .font(.caption).foregroundStyle(RCTheme.accentAmber)
+        setupPage(
+          title: "Connect a Railway backend",
+          subtitle: "Use an existing Relay backend. The backend and an installed Relay bridge work together to provide remote runtime access."
+        ) {
+          if let templateURL = AppViewModel.railwayTemplateURL {
+            Button("Deploy on Railway") {
+              NSWorkspace.shared.open(templateURL)
+              model.setupAdvance(.railwayBrowser)
+            }.buttonStyle(PrimaryLightButtonStyle())
+          } else {
+            Label("One-click Railway deployment is not available in this build.", systemImage: "info.circle")
+              .font(.caption).foregroundStyle(RCTheme.muted)
+          }
+          Button("Connect Existing Railway Backend") { model.setupAdvance(.railwayURL) }
+            .buttonStyle(PrimaryLightButtonStyle())
+        }
       }
-      Button("Connect Existing Backend") { model.setupAdvance(.railwayURL) }
-        .buttonStyle(SecondaryLightButtonStyle())
     }
   }
 
@@ -314,20 +382,86 @@ struct SetupAssistantView: View {
   private var remoteInstallationStep: some View {
     setupPage(
       title: "Install the Relay bridge",
-      subtitle: "Install one independent bridge beside each selected runtime. Relay never installs or updates Hermes Agent or OpenClaw, configures model providers, or asks for provider API keys."
+      subtitle: "Install one bridge beside each selected runtime. Relay does not install or update Hermes Agent or OpenClaw, configure model providers, or ask for provider API keys."
     ) {
       ForEach(Array(model.setupAssistant.selectedRemoteRuntimes).sorted { $0.rawValue < $1.rawValue }, id: \.self) { runtime in
         setupCard {
-          Text(runtime.displayName).font(.headline)
-          Label(AppViewModel.bridgeInstallerUnavailableReason, systemImage: "exclamationmark.triangle")
+          HStack {
+            Text(runtime.displayName).font(.headline)
+            Spacer()
+            Text("BRIDGE PREVIEW")
+              .font(.caption2.weight(.bold))
+              .foregroundStyle(RCTheme.accentAmber)
+          }
+          Label(AppViewModel.bridgeInstallerPreviewNotice, systemImage: "checkmark.shield")
             .font(.caption).foregroundStyle(RCTheme.accentAmber)
-          Link("Open reviewed manual installation guide", destination: URL(string: "https://github.com/insitektalay/relay-console-bridge-plugins/blob/main/docs/INSTALL.md")!)
+
+          if model.setupAssistant.remoteOperatingSystem == .macOS,
+            model.hasLocalRuntimeForBridge(runtime)
+          {
+            Text("On this Mac")
+              .font(.callout.weight(.semibold))
+            Text("Relay can install, pair, start and check this bridge automatically beside the \(runtime.displayName) installation it already found.")
+              .font(.caption).foregroundStyle(RCTheme.muted)
+            if model.setupBridgeInstallInProgress.contains(runtime) {
+              HStack(spacing: 8) {
+                ProgressView().controlSize(.small)
+                Text("Installing and checking the bridge…")
+              }.font(.caption)
+            } else {
+              Button("Install \(runtime.displayName) Bridge on This Mac") {
+                Task { await model.installSetupBridgeOnThisMac(for: runtime) }
+              }
+              .buttonStyle(PrimaryLightButtonStyle())
+            }
+            pairingOutcome(for: runtime)
+          }
+
+          Divider()
+          Text(model.setupAssistant.remoteOperatingSystem == .linux
+            ? "On a Linux VPS or server"
+            : "On another Mac, Mac mini or Linux VPS")
+            .font(.callout.weight(.semibold))
+          Text("Copy this command, paste it into Terminal on the runtime computer, then paste the one-time pairing code when it asks. The code is not included in the command or saved in shell history.")
+            .font(.caption).foregroundStyle(RCTheme.muted)
+          if let command = model.setupTerminalInstallCommand(for: runtime) {
+            Text(command)
+              .font(.caption.monospaced())
+              .textSelection(.enabled)
+              .padding(10)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .background(RCTheme.surfaceInset)
+              .clipShape(RoundedRectangle(cornerRadius: 8))
+            HStack {
+              Button("Copy Terminal Command") {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(command, forType: .string)
+              }.buttonStyle(PrimaryLightButtonStyle())
+              Button("Generate Pairing Code") {
+                Task { await model.generateSetupPairingCode(for: runtime) }
+              }
+              .buttonStyle(SecondaryLightButtonStyle())
+              .disabled(model.setupPairingInProgress.contains(runtime))
+            }
+            let pairing = model.setupAssistant.pairing[runtime] ?? SetupPairingCode()
+            if pairing.state == .ready && !pairing.isExpired {
+              HStack {
+                Text(pairing.code).font(.title3.monospaced()).textSelection(.enabled)
+                Button("Copy Code") {
+                  NSPasteboard.general.clearContents()
+                  NSPasteboard.general.setString(pairing.code, forType: .string)
+                }.buttonStyle(SecondaryLightButtonStyle())
+              }
+            }
+            if !model.hasLocalRuntimeForBridge(runtime) {
+              pairingOutcome(for: runtime)
+            }
+          }
+          Link("View advanced manual instructions", destination: URL(string: "https://github.com/insitektalay/relay-console-bridge-plugins/blob/main/docs/INSTALL.md")!)
         }
       }
-      Button("I Installed the Bridges Manually") { model.setupAdvance(.remotePairing) }
+      Button("Continue to Check Bridge Status") { model.setupAdvance(.remotePairing) }
         .buttonStyle(PrimaryLightButtonStyle())
-      Text("A one-command installer will appear here only after a stable immutable release, checksum file and clean-host acceptance are published.")
-        .font(.caption).foregroundStyle(RCTheme.muted)
     }
   }
 
@@ -339,11 +473,8 @@ struct SetupAssistantView: View {
       ForEach(Array(model.setupAssistant.selectedRemoteRuntimes).sorted { $0.rawValue < $1.rawValue }, id: \.self) { runtime in
         pairingCard(runtime)
       }
-      Button("Check Bridge Status") { Task { await model.refreshSetupBridgeStatus() } }
-        .buttonStyle(PrimaryLightButtonStyle())
-      if let message = model.setupPairingMessage {
-        Text(message).font(.caption).foregroundStyle(RCTheme.accentAmber)
-      }
+      bridgeStatusButton()
+      bridgeStatusLastCheckedLabel()
       if model.setupAssistant.selectedRemoteRuntimes.allSatisfy({ model.setupAssistant.pairing[$0]?.state == .connected }) {
         Button("Finish Setup") { model.finishSetupAssistant() }
           .buttonStyle(PrimaryLightButtonStyle()).keyboardShortcut(.defaultAction)
@@ -368,6 +499,7 @@ struct SetupAssistantView: View {
           NSPasteboard.general.setString(pairing.code, forType: .string)
         }.buttonStyle(SecondaryLightButtonStyle())
       }
+      pairingOutcome(for: runtime)
       HStack {
         Button(pairing.code.isEmpty ? "Generate Pairing Code" : "Generate New Code") {
           Task { await model.generateSetupPairingCode(for: runtime) }
@@ -378,6 +510,124 @@ struct SetupAssistantView: View {
     })
   }
 
+  @ViewBuilder
+  private func pairingOutcome(for runtime: SetupRemoteRuntime) -> some View {
+    let pairing = model.setupAssistant.pairing[runtime] ?? SetupPairingCode()
+    if let message = pairing.detailMessage, !message.isEmpty {
+      VStack(alignment: .leading, spacing: 8) {
+        Label(pairingOutcomeTitle(pairing), systemImage: pairing.state == .connected ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+          .font(.callout.weight(.semibold))
+          .foregroundStyle(pairing.state == .connected ? RCTheme.accentGreen : RCTheme.accentAmber)
+        Text(message)
+          .font(.caption)
+          .foregroundStyle(RCTheme.muted)
+          .fixedSize(horizontal: false, vertical: true)
+        if let compatibility = pairing.compatibility {
+          HStack(spacing: 6) {
+            Image(systemName: compatibility.level == .verified
+              ? "checkmark.seal.fill"
+              : compatibility.level == .compatible
+                ? "shield.lefthalf.filled"
+                : "xmark.octagon.fill")
+            Text(compatibility.level == .verified
+              ? "Verified · Full functionality"
+              : compatibility.level == .compatible
+                ? "Compatible · Safe mode"
+                : "Unsupported")
+          }
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(compatibility.level == .unsupported ? RCTheme.accentAmber : RCTheme.accentGreen)
+          if !compatibility.disabledCapabilities.isEmpty {
+            Text("Disabled until this runtime version is verified: \(compatibility.disabledCapabilities.joined(separator: ", "))")
+              .font(.caption2)
+              .foregroundStyle(RCTheme.muted)
+              .textSelection(.enabled)
+          }
+        }
+        pairingRecoveryButton(for: runtime, pairing: pairing)
+      }
+      .padding(12)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(RCTheme.surfaceInset)
+      .overlay(
+        RoundedRectangle(cornerRadius: 8)
+          .stroke(pairing.state == .connected ? RCTheme.accentGreen.opacity(0.35) : RCTheme.accentAmber.opacity(0.35))
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+  }
+
+  @ViewBuilder
+  private func pairingRecoveryButton(for runtime: SetupRemoteRuntime, pairing: SetupPairingCode) -> some View {
+    switch pairing.recoveryAction {
+    case .reconnectRailway:
+      Button("Reconnect Railway Account") { model.presentSetupAssistant(at: .relayAccount) }
+        .buttonStyle(PrimaryLightButtonStyle())
+    case .retryInstallation:
+      Button("Try Installation Again") {
+        Task { await model.installSetupBridgeOnThisMac(for: runtime) }
+      }
+      .buttonStyle(PrimaryLightButtonStyle())
+    case .retryPairing:
+      Button(model.hasLocalRuntimeForBridge(runtime) ? "Try Installation Again" : "Generate New Pairing Code") {
+        Task {
+          if model.hasLocalRuntimeForBridge(runtime) {
+            await model.installSetupBridgeOnThisMac(for: runtime)
+          } else {
+            await model.generateSetupPairingCode(for: runtime)
+          }
+        }
+      }
+      .buttonStyle(PrimaryLightButtonStyle())
+    case .checkStatus:
+      bridgeStatusButton()
+      bridgeStatusLastCheckedLabel()
+    case nil:
+      EmptyView()
+    }
+  }
+
+  private func bridgeStatusButton() -> some View {
+    Button {
+      Task { await model.refreshSetupBridgeStatus() }
+    } label: {
+      HStack(spacing: 8) {
+        if model.setupBridgeStatusRefreshInProgress {
+          ProgressView().controlSize(.small)
+        }
+        Text(model.setupBridgeStatusRefreshInProgress ? "Checking Bridge Status…" : "Check Bridge Status")
+      }
+    }
+    .buttonStyle(PrimaryLightButtonStyle())
+    .disabled(model.setupBridgeStatusRefreshInProgress)
+  }
+
+  @ViewBuilder
+  private func bridgeStatusLastCheckedLabel() -> some View {
+    if let checkedAt = model.setupBridgeStatusLastCheckedAt {
+      Text("Last checked \(checkedAt.formatted(date: .omitted, time: .standard))")
+        .font(.caption2)
+        .foregroundStyle(RCTheme.muted)
+    }
+  }
+
+  private func pairingOutcomeTitle(_ pairing: SetupPairingCode) -> String {
+    switch pairing.state {
+    case .permissionDenied: return "Couldn’t authorize installation"
+    case .backendUnreachable: return "Couldn’t reach Railway"
+    case .installationFailed: return "Bridge installation failed"
+    case .activationRolledBack: return "Bridge update rolled back safely"
+    case .healthCheckFailed: return "Couldn’t start installation"
+    case .bridgeOffline: return "Bridge started · connecting to Railway"
+    case .incompatible: return "Bridge update required"
+    case .expired: return "Pairing code expired"
+    case .connected: return "Bridge connected"
+    case .ready: return "Ready to install"
+    case .used: return "Pairing code already used"
+    case .notGenerated: return "Pairing not started"
+    }
+  }
+
   private func pairingStateLabel(_ pairing: SetupPairingCode) -> String {
     if pairing.isExpired { return "Expired" }
     switch pairing.state {
@@ -386,10 +636,11 @@ struct SetupAssistantView: View {
     case .expired: return "Expired"
     case .used: return "Code already used"
     case .permissionDenied: return "Permission required"
-    case .bridgeOffline: return "Enrolled · Offline"
+    case .bridgeOffline: return "Paired · Offline"
     case .incompatible: return "Incompatible version"
     case .backendUnreachable: return "Railway unreachable"
     case .installationFailed: return "Installation failed"
+    case .activationRolledBack: return "Previous bridge restored"
     case .healthCheckFailed: return "Health check failed"
     case .connected: return "Connected"
     }
@@ -458,6 +709,64 @@ struct SetupAssistantView: View {
     }
   }
 
+  private func openClawGatewaySetupHelp(
+    for candidate: RuntimeDiscoveryCandidate
+  ) -> some View {
+    let command = openClawGatewaySetupCommand(for: candidate)
+    return VStack(alignment: .leading, spacing: 8) {
+      Text("Relay found and saved this OpenClaw installation, but its background gateway service is not running.")
+        .font(.callout.weight(.semibold))
+      Text("In Terminal, install and start the gateway, then return here and re-check OpenClaw:")
+        .font(.caption)
+        .foregroundStyle(RCTheme.muted)
+      Text("The command runs OpenClaw’s gateway install and gateway start steps using the detected installation.")
+        .font(.caption)
+        .foregroundStyle(RCTheme.muted)
+      Text(command)
+        .font(.caption.monospaced())
+        .textSelection(.enabled)
+        .padding(8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RCTheme.surfaceLevel0)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+      HStack {
+        Button("Copy gateway setup command") {
+          NSPasteboard.general.clearContents()
+          NSPasteboard.general.setString(command, forType: .string)
+        }
+        .buttonStyle(SecondaryLightButtonStyle())
+        if let record = model.runtimeDiscoveryRecord(for: candidate) {
+          Button("Re-check") {
+            model.recheckDiscoveredHarness(record, candidate: candidate)
+          }
+          .buttonStyle(PrimaryLightButtonStyle())
+        }
+      }
+    }
+    .padding(10)
+    .background(RCTheme.accentAmber.opacity(0.10))
+    .clipShape(RoundedRectangle(cornerRadius: 8))
+  }
+
+  private func openClawGatewaySetupCommand(
+    for candidate: RuntimeDiscoveryCandidate
+  ) -> String {
+    let record = model.runtimeDiscoveryRecord(for: candidate)
+    let node = record?.openClawNodePath ?? "/opt/homebrew/bin/node"
+    let entryPoint = candidate.location.appendingPathComponent("openclaw.mjs").path
+    let invocation = "\(shellQuoted(node)) \(shellQuoted(entryPoint)) gateway"
+    return "\(invocation) install && \(invocation) start"
+  }
+
+  private func shellQuoted(_ value: String) -> String {
+    let escaped = value
+      .replacingOccurrences(of: "\\", with: "\\\\")
+      .replacingOccurrences(of: "\"", with: "\\\"")
+      .replacingOccurrences(of: "$", with: "\\$")
+      .replacingOccurrences(of: "`", with: "\\`")
+    return "\"\(escaped)\""
+  }
+
   private func setupCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
     VStack(alignment: .leading, spacing: 10) { content() }
       .padding(14).frame(maxWidth: .infinity, alignment: .leading)
@@ -470,68 +779,191 @@ struct SetupConnectionsSettingsPanel: View {
   @EnvironmentObject private var model: AppViewModel
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
-      NativeGroupedSection(
-        title: "Setup & Connections",
-        subtitle: "Review local runtimes, Railway and remote bridge devices."
-      ) {
-        NativeSettingsRow(title: "Current setup mode", subtitle: "First-launch setup can always be reopened.", value: modeLabel)
-        NativeDivider()
-        NativeSettingsRow(title: "Hermes Agent", subtitle: localStatus(.hermes), value: recordStatus(.hermes))
-        NativeDivider()
-        NativeSettingsRow(title: "OpenClaw", subtitle: localStatus(.openclaw), value: recordStatus(.openclaw))
-        NativeDivider()
-        NativeSettingsRow(
-          title: "Railway",
-          subtitle: model.setupConfiguredRailwayOrigin ?? "No backend configured",
-          value: model.setupConfiguredRailwayOrigin == nil ? "Optional" : "Configured"
-        )
-        NativeDivider()
-        NativeSettingsRow(
-          title: "Remote machines",
-          subtitle: "Hermes Agent and OpenClaw use separate bridge devices.",
-          value: remoteStatus
-        )
+    VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: 5) {
+        Text("Setup & Connections")
+          .font(.title3.weight(.semibold))
+        Text("See how Relay reaches your runtimes and set up only the connections you need.")
+          .font(.callout)
+          .foregroundStyle(RCTheme.muted)
       }
-      HStack {
-        Button("Run Setup Assistant") { model.presentSetupAssistant() }.buttonStyle(PrimaryLightButtonStyle())
-        Button("Find Local Runtime") { model.beginLocalSetup(); model.setupAssistantPresented = true }.buttonStyle(SecondaryLightButtonStyle())
-        Button("Connect Railway") { model.setupAdvance(.railwayConnection); model.setupAssistantPresented = true }.buttonStyle(SecondaryLightButtonStyle())
-      }
-      HStack {
-        if model.setupConfiguredRailwayOrigin != nil {
-          Button("Change Backend…") { model.setupAdvance(.railwayURL); model.setupAssistantPresented = true }.buttonStyle(SecondaryLightButtonStyle())
-        }
-        Button("Connect Remote Machine") { model.beginRemoteSetup(); model.setupAssistantPresented = true }.buttonStyle(SecondaryLightButtonStyle())
-      }
+
+      localRuntimeCard
+      relayCloudCard
+      remoteAccessCard
+
       if model.setupAssistant.reviewRecommended {
-        Label("Existing connections were preserved. Review setup when convenient.", systemImage: "info.circle")
-          .font(.caption).foregroundStyle(RCTheme.muted)
+        Label("Existing connections were preserved. Review the cards above when convenient.", systemImage: "info.circle")
+          .font(.caption)
+          .foregroundStyle(RCTheme.muted)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .task {
+      await model.refreshSetupBridgeStatus()
+    }
+  }
+
+  private var localRuntimeCard: some View {
+    connectionCard(
+      icon: "desktopcomputer",
+      title: "On this Mac",
+      status: connectedLocalRuntimes.isEmpty ? "Needs setup" : "Ready",
+      tone: connectedLocalRuntimes.isEmpty ? .amber : .green,
+      headerPills: connectedLocalRuntimes.map { $0 == .hermes ? "Hermes Agent" : "OpenClaw" },
+      description: "Relay Console can communicate directly with Hermes Agent and OpenClaw installed on this Mac. This route does not travel through Railway and does not use the Relay runtime bridge."
+    ) {
+      routeLabel(
+        "Relay Console on this Mac → local Hermes Agent or OpenClaw",
+        tone: .green
+      )
+      if connectedLocalRuntimes.isEmpty {
+        Text("No local runtime is connected yet.")
+          .font(.caption)
+          .foregroundStyle(RCTheme.muted)
+      }
+      cardAction(connectedLocalRuntimes.isEmpty ? "Find a Local Runtime" : "Manage Local Runtimes") {
+        if connectedLocalRuntimes.isEmpty {
+          model.presentLocalRuntimeSetup()
+        } else {
+          model.selectSettingsPanel(.harnesses)
+        }
       }
     }
   }
 
-  private var modeLabel: String {
-    switch model.setupAssistant.mode {
-    case .undecided: return model.setupAssistant.lifecycle == .skipped ? "Set up later" : "Not configured"
-    case .local: return "On this Mac"
-    case .remote: return "Remote machine"
-    case .localAndRemote: return "Local and remote"
+  private var relayCloudCard: some View {
+    let configured = model.setupConfiguredRailwayOrigin != nil
+    return connectionCard(
+      icon: "cloud",
+      title: "Relay cloud services",
+      status: configured ? "Configured" : "Optional",
+      tone: configured ? .blue : .neutral,
+      description: configured
+        ? "This Mac is configured to use the Railway backend shown below for Relay account sync, web and mobile access, server-backed Marketplace connections and remote runtime access."
+        : "A Railway backend provides Relay account sync, web and mobile access, server-backed Marketplace connections and remote runtime access. Local conversations on this Mac do not require it."
+    ) {
+      if let origin = model.setupConfiguredRailwayOrigin {
+        routeLabel("Railway backend address · \(origin)", tone: .blue, icon: "checkmark.circle")
+      } else {
+        routeLabel("No Railway backend configured", tone: .neutral, icon: "minus.circle")
+      }
+      cardAction(configured ? "View Railway Connection" : "Connect Railway Backend") {
+        model.presentSetupAssistant(at: .railwayConnection)
+      }
     }
   }
 
-  private func localStatus(_ key: HarnessKey) -> String {
-    model.records.first(where: { $0.harnessKey == key })?.selectedLocalPath ?? "No local location selected"
+  private var remoteAccessCard: some View {
+    let backendConfigured = model.setupConfiguredRailwayOrigin != nil
+    let bridgeReady = !model.setupBridgeOnlineRuntimes.isEmpty
+    let tone: ComponentTone = bridgeReady ? .purple : .amber
+    return connectionCard(
+      icon: "point.3.connected.trianglepath.dotted",
+      title: "Remote runtime access",
+      status: bridgeReady ? "Connected" : (backendConfigured ? "No active bridge" : "Railway required"),
+      tone: tone,
+      description: "The Relay bridge provides a different route. Install and pair it on the computer running Hermes Agent or OpenClaw so Railway can reach that runtime when you use Relay from the web, iPhone or iPad."
+    ) {
+      routeLabel(
+        "Railway backend → Relay bridge → Hermes Agent or OpenClaw",
+        tone: .purple
+      )
+      if !backendConfigured {
+        Text("Connect a Railway backend before setting up a runtime bridge.")
+          .font(.caption)
+          .foregroundStyle(RCTheme.accentAmber)
+      } else if !bridgeReady {
+        Text("Install or reconnect the Relay bridge on the computer running Hermes Agent or OpenClaw.")
+          .font(.caption)
+          .foregroundStyle(RCTheme.accentAmber)
+      } else {
+        Text("Railway has confirmed an online bridge. Remote runtime access is available.")
+          .font(.caption)
+          .foregroundStyle(RCTheme.muted)
+      }
+      cardAction(
+        backendConfigured ? (bridgeReady ? "Manage Bridge" : "Set Up Remote Access") : "Connect Railway First"
+      ) {
+        model.presentRemoteAccessSetup()
+      }
+    }
   }
 
-  private func recordStatus(_ key: HarnessKey) -> String {
-    model.records.first(where: { $0.harnessKey == key })?.lifecycleState == .connected ? "Connected" : "Not connected"
+  private var connectedLocalRuntimes: [HarnessKey] {
+    [.hermes, .openclaw].filter { key in
+      model.records.contains { $0.harnessKey == key && $0.lifecycleState == .connected }
+    }
   }
 
-  private var remoteStatus: String {
-    let states = model.setupAssistant.pairing.values.map(\.state)
-    if states.contains(.connected) { return states.allSatisfy { $0 == .connected } ? "Connected" : "Partly connected" }
-    if states.contains(.bridgeOffline) { return "Enrolled · Offline" }
-    return "Not connected"
+  private func connectionCard<Content: View>(
+    icon: String,
+    title: String,
+    status: String,
+    tone: ComponentTone,
+    headerPills: [String] = [],
+    description: String,
+    @ViewBuilder content: () -> Content
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack(alignment: .center, spacing: 10) {
+        Image(systemName: icon)
+          .font(.system(size: 15, weight: .semibold))
+          .foregroundStyle(tone.color)
+          .frame(width: 34, height: 34)
+          .background(tone.color.opacity(0.12))
+          .clipShape(RoundedRectangle(cornerRadius: 6))
+          .overlay(RoundedRectangle(cornerRadius: 6).stroke(tone.color.opacity(0.25)))
+        Text(title)
+          .font(.headline)
+        Spacer()
+        ForEach(headerPills, id: \.self) { pill in
+          StatusBadge(
+            title: pill,
+            tone: .green,
+            accessibilityLabelText: "\(pill) connected locally"
+          )
+        }
+        StatusBadge(title: status, tone: tone, accessibilityLabelText: "\(title): \(status)")
+      }
+      Text(description)
+        .font(.callout)
+        .foregroundStyle(RCTheme.muted)
+        .fixedSize(horizontal: false, vertical: true)
+      content()
+    }
+    .padding(16)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(tone.color.opacity(0.055))
+    .clipShape(RoundedRectangle(cornerRadius: 8))
+    .overlay(RoundedRectangle(cornerRadius: 8).stroke(tone.color.opacity(0.24)))
   }
+
+  private func cardAction(
+    _ title: String,
+    action: @escaping () -> Void
+  ) -> some View {
+    HStack {
+      Spacer()
+      Button(title, action: action)
+        .buttonStyle(PrimaryLightButtonStyle())
+    }
+    .frame(maxWidth: .infinity)
+  }
+
+  private func routeLabel(
+    _ text: String,
+    tone: ComponentTone,
+    icon: String = "arrow.right"
+  ) -> some View {
+    Label(text, systemImage: icon)
+      .font(.caption.monospaced())
+      .foregroundStyle(tone.color)
+      .padding(.horizontal, 10)
+      .padding(.vertical, 8)
+      .background(tone.color.opacity(0.08))
+      .clipShape(RoundedRectangle(cornerRadius: 6))
+      .overlay(RoundedRectangle(cornerRadius: 6).stroke(tone.color.opacity(0.22)))
+  }
+
 }

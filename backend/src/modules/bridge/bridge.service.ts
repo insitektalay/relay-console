@@ -1420,7 +1420,10 @@ export class BridgeService {
     return saved;
   }
 
-  private localAppConnectorOpenClawEndpoint(baseUrl: string, operation: string) {
+  private localAppConnectorOpenClawEndpoint(
+    baseUrl: string,
+    operation: string,
+  ) {
     const map: Record<string, string> = {
       "autonomy.get_policy": "autonomy/get_policy",
       "autonomy.update_policy": "autonomy/update_policy",
@@ -1444,7 +1447,10 @@ export class BridgeService {
       },
       body: JSON.stringify({
         contractVersion: String(input.payload.contractVersion ?? "2026-03-18"),
-        input: this.localAppConnectorOperationInput(input.operation, input.payload),
+        input: this.localAppConnectorOperationInput(
+          input.operation,
+          input.payload,
+        ),
       }),
     });
     const text = await response.text();
@@ -2246,7 +2252,7 @@ export class BridgeService {
         devicePublicId: `bdev_${randomUUID()}`,
         credentialHash: this.bridgeCredentials.hashOpaqueSecret(deviceToken),
         status: BridgeDeviceStatus.ACTIVE,
-        capabilities: this.normalizeBridgeCapabilities(input.capabilities),
+        capabilities: compatibility.enabledCapabilities,
         openCoreVersion: input.openCoreVersion ?? null,
         pluginVersion: input.pluginVersion ?? null,
         runtimeType: compatibility.runtimeType,
@@ -2277,6 +2283,8 @@ export class BridgeService {
         openCoreVersion: device.openCoreVersion,
         runtimeType: device.runtimeType,
         hostType: device.hostType,
+        compatibilityLevel: compatibility.level,
+        operatingMode: compatibility.operatingMode,
       },
     });
 
@@ -6003,6 +6011,7 @@ export class BridgeService {
     compatibility: {
       runtimeType: string | null;
       hostType: string | null;
+      enabledCapabilities: string[];
     },
     eventType:
       | "bridge.device.auth.success"
@@ -6011,7 +6020,7 @@ export class BridgeService {
   ) {
     const result = await this.bridgeCredentials.rotateAndIssueTokens(
       device,
-      metadata,
+      { ...metadata, capabilities: compatibility.enabledCapabilities },
       compatibility,
       eventType,
       requestContext,
@@ -6050,6 +6059,7 @@ export class BridgeService {
       runtimeVersion: device.openCoreVersion,
       apiContractVersion: BRIDGE_API_CONTRACT,
       websocketContractVersion: BRIDGE_WEBSOCKET_CONTRACT,
+      capabilities: device.capabilities ?? [],
     });
     const health =
       device.status === BridgeDeviceStatus.REVOKED || device.revokedAt
@@ -6074,6 +6084,13 @@ export class BridgeService {
         code: compatibility.code,
         release: compatibility.release,
         releaseStatus: compatibility.releaseStatus,
+        level: compatibility.level,
+        operatingMode: compatibility.operatingMode,
+        verifiedRuntime: compatibility.verifiedRuntime,
+        enabledCapabilities: compatibility.enabledCapabilities,
+        disabledCapabilities: compatibility.disabledCapabilities,
+        warnings: compatibility.warnings,
+        runtimePolicy: compatibility.runtimePolicy,
       },
       credentialVersion: device.credentialVersion ?? 1,
       credentialRotatedAt: device.credentialRotatedAt ?? null,
@@ -6092,6 +6109,7 @@ export class BridgeService {
       runtimeVersion: input.openCoreVersion,
       apiContractVersion: input.apiContractVersion,
       websocketContractVersion: input.websocketContractVersion,
+      capabilities: input.capabilities,
     });
     if (!compatibility.compatible) {
       throw new HttpException(
@@ -6121,6 +6139,18 @@ export class BridgeService {
       );
     }
     return compatibility;
+  }
+
+  checkCompatibility(input: BridgeDeviceMetadata) {
+    return evaluateBridgeCompatibility({
+      runtimeType: input.runtimeType,
+      hostType: input.hostType,
+      pluginVersion: input.pluginVersion,
+      runtimeVersion: input.openCoreVersion,
+      apiContractVersion: input.apiContractVersion,
+      websocketContractVersion: input.websocketContractVersion,
+      capabilities: input.capabilities,
+    });
   }
 
   private isClaudeCodeAgent(agent?: Pick<AgentEntity, "source"> | null) {

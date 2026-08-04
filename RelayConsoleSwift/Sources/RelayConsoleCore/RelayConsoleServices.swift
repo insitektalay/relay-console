@@ -46,6 +46,7 @@ public final class RelayConsoleServices {
     public let registry: RuntimeBridgeRegistry
     public let dispatch: DispatchService
     public let harnessInstall: HarnessInstallManager
+    public let bridgeInstaller: RelayBridgeInstaller
     public let provisioning: AgentProvisioningService
     public let agentTeardown: AgentTeardownService
     public let dataLifecycle: LocalDataLifecycleService
@@ -732,6 +733,7 @@ public final class RelayConsoleServices {
             hermesProfileBackups: hermesProfileBackups,
             openExternal: openExternal
         )
+        let bridgeInstaller = RelayBridgeInstaller(cacheDirectory: paths.cacheDir, runner: runner)
         harnessInstall.runHermesLegacyRuntimeOverrideMigrationIfNeeded()
         let provisioning = AgentProvisioningService(data: data, harnessInstall: harnessInstall)
         let agentTeardown = AgentTeardownService(data: data, harnessInstall: harnessInstall)
@@ -801,6 +803,7 @@ public final class RelayConsoleServices {
         self.registry = registry
         self.dispatch = dispatch
         self.harnessInstall = harnessInstall
+        self.bridgeInstaller = bridgeInstaller
         self.provisioning = provisioning
         self.agentTeardown = agentTeardown
         self.dataLifecycle = dataLifecycle

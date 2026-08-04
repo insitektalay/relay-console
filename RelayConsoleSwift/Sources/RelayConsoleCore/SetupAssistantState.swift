@@ -59,19 +59,111 @@ public enum SetupPairingState: String, Codable, Sendable {
     case incompatible
     case backendUnreachable
     case installationFailed
+    case activationRolledBack
     case healthCheckFailed
     case connected
+}
+
+public enum SetupPairingRecoveryAction: String, Codable, Sendable {
+    case reconnectRailway
+    case retryPairing
+    case retryInstallation
+    case checkStatus
+}
+
+public struct SetupPairingResponse: Equatable, Sendable {
+    public let code: String
+    public let expiresAt: Date
+
+    public init(code: String, expiresAt: Date) {
+        self.code = code
+        self.expiresAt = expiresAt
+    }
+}
+
+public enum SetupBridgeCompatibilityLevel: String, Codable, Equatable, Sendable {
+    case verified
+    case compatible
+    case unsupported
+}
+
+public struct SetupBridgeCompatibilitySummary: Codable, Equatable, Sendable {
+    public var level: SetupBridgeCompatibilityLevel
+    public var operatingMode: String
+    public var runtimeVersion: String?
+    public var enabledCapabilities: [String]
+    public var disabledCapabilities: [String]
+    public var warnings: [String]
+
+    public init(
+        level: SetupBridgeCompatibilityLevel,
+        operatingMode: String,
+        runtimeVersion: String?,
+        enabledCapabilities: [String],
+        disabledCapabilities: [String],
+        warnings: [String]
+    ) {
+        self.level = level
+        self.operatingMode = operatingMode
+        self.runtimeVersion = runtimeVersion
+        self.enabledCapabilities = enabledCapabilities
+        self.disabledCapabilities = disabledCapabilities
+        self.warnings = warnings
+    }
+
+    public var allowsInstallation: Bool { level != .unsupported }
+}
+
+public enum SetupBridgeCompatibilityParser {
+    public static func parse(_ response: [String: Any]) -> SetupBridgeCompatibilitySummary? {
+        guard let rawLevel = response["level"] as? String,
+              let level = SetupBridgeCompatibilityLevel(rawValue: rawLevel),
+              let operatingMode = response["operatingMode"] as? String
+        else { return nil }
+        return SetupBridgeCompatibilitySummary(
+            level: level,
+            operatingMode: operatingMode,
+            runtimeVersion: response["runtimeVersion"] as? String,
+            enabledCapabilities: response["enabledCapabilities"] as? [String] ?? [],
+            disabledCapabilities: response["disabledCapabilities"] as? [String] ?? [],
+            warnings: response["warnings"] as? [String] ?? []
+        )
+    }
+}
+
+public enum SetupPairingResponseParser {
+    public static func parse(_ response: [String: Any]) -> SetupPairingResponse? {
+        guard let code = response["code"] as? String,
+              let expiresText = response["expiresAt"] as? String,
+              let expiresAt = ISO8601DateFormatter.relayConsole.date(from: expiresText)
+                ?? ISO8601DateFormatter().date(from: expiresText)
+        else { return nil }
+        return SetupPairingResponse(code: code, expiresAt: expiresAt)
+    }
 }
 
 public struct SetupPairingCode: Codable, Equatable, Sendable {
     public var code: String
     public var expiresAt: Date
     public var state: SetupPairingState
+    public var detailMessage: String?
+    public var recoveryAction: SetupPairingRecoveryAction?
+    public var compatibility: SetupBridgeCompatibilitySummary?
 
-    public init(code: String = "", expiresAt: Date = .distantPast, state: SetupPairingState = .notGenerated) {
+    public init(
+        code: String = "",
+        expiresAt: Date = .distantPast,
+        state: SetupPairingState = .notGenerated,
+        detailMessage: String? = nil,
+        recoveryAction: SetupPairingRecoveryAction? = nil,
+        compatibility: SetupBridgeCompatibilitySummary? = nil
+    ) {
         self.code = code
         self.expiresAt = expiresAt
         self.state = state
+        self.detailMessage = detailMessage
+        self.recoveryAction = recoveryAction
+        self.compatibility = compatibility
     }
 
     public var isExpired: Bool { state == .ready && expiresAt <= Date() }
@@ -163,7 +255,12 @@ public struct SetupAssistantSnapshot: Codable, Equatable, Sendable {
         hasLocalConnection: Bool,
         configuredRailwayOrigin: String?
     ) -> SetupAssistantSnapshot {
-        if let saved { return saved }
+        if var saved {
+            // The backend setting is the runtime source of truth. Older setup snapshots may
+            // predate it or may have been saved before a backend was connected.
+            saved.configuredRailwayOrigin = configuredRailwayOrigin
+            return saved
+        }
         guard hasLocalConnection || configuredRailwayOrigin != nil else { return SetupAssistantSnapshot() }
         let inferredMode: SetupAssistantMode
         if hasLocalConnection && configuredRailwayOrigin != nil {

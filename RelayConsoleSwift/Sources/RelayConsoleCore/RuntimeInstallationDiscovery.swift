@@ -4,6 +4,13 @@ public enum RuntimeDiscoveryCompatibility: String, Codable, Equatable, Sendable 
     case ready
 }
 
+public enum RuntimeDiscoveryConnectionStatus: String, Codable, Equatable, Sendable {
+    case available
+    case connecting
+    case connected
+    case needsAttention = "needs_attention"
+}
+
 public struct RuntimeDiscoveryCandidate: Identifiable, Codable, Equatable, Sendable {
     public var id: String { "\(harnessKey.rawValue):\(location.path)" }
     public var harnessKey: HarnessKey
@@ -90,6 +97,34 @@ public struct RuntimeDiscoverySearchConfiguration: Sendable {
 }
 
 public enum RuntimeInstallationDiscovery {
+    public static func connectionStatus(
+        for candidate: RuntimeDiscoveryCandidate,
+        records: [HarnessInstallRecord],
+        connecting: Bool
+    ) -> RuntimeDiscoveryConnectionStatus {
+        if connecting { return .connecting }
+        guard let record = matchingRecord(for: candidate, records: records) else {
+            return .available
+        }
+        return record.lifecycleState == .connected ? .connected : .needsAttention
+    }
+
+    public static func matchingRecord(
+        for candidate: RuntimeDiscoveryCandidate,
+        records: [HarnessInstallRecord]
+    ) -> HarnessInstallRecord? {
+        let candidatePath = candidate.location.resolvingSymlinksInPath().standardizedFileURL.path
+        return records.first { record in
+            guard record.harnessKey == candidate.harnessKey else { return false }
+            let storedPaths = [record.installPath, record.selectedLocalPath]
+                .compactMap { $0 }
+                .map {
+                    URL(fileURLWithPath: $0).resolvingSymlinksInPath().standardizedFileURL.path
+                }
+            return storedPaths.contains(candidatePath)
+        }
+    }
+
     public static func discover(
         configuration: RuntimeDiscoverySearchConfiguration = .standard()
     ) async -> [RuntimeDiscoveryCandidate] {

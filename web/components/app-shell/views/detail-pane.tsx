@@ -1,4 +1,6 @@
 "use client"
+import { useEffect, useState } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type {
   Agent,
   Paginated,
@@ -43,6 +45,57 @@ import { RelayConsoleAgentTasksDetail } from "@/components/app-shell/views/agent
 import { RelayConsoleSettingsDetailPane } from "@/components/app-shell/views/settings-detail-pane"
 import { RelayConsoleOperationsDetailPane } from "@/components/app-shell/views/operations-detail-pane"
 import { RelayConsoleGroupsDetail } from "@/components/app-shell/views/groups-detail"
+
+function AgentRoleEditor({ agent }: { agent: Agent }) {
+  const queryClient = useQueryClient()
+  const resolvedRole = agent.role?.trim() || agent.description?.trim() || ""
+  const [role, setRole] = useState(resolvedRole)
+
+  useEffect(() => {
+    setRole(resolvedRole)
+  }, [agent.id, resolvedRole])
+
+  const mutation = useMutation({
+    mutationFn: () => sdk.agents.update(agent.id, { role: role.trim() }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["agents"] }),
+        queryClient.invalidateQueries({ queryKey: ["agent", agent.id] }),
+      ])
+      toast.success("Agent role saved")
+    },
+    onError: (error: Error) => toast.error(error.message),
+  })
+
+  return (
+    <div
+      aria-label="Agent role editor"
+      className="flex flex-wrap items-center gap-3 rounded-[4px] border border-[color-mix(in_srgb,var(--claw-accent-blue)_34%,transparent)] bg-[color-mix(in_srgb,var(--claw-accent-blue)_12%,var(--claw-bg-page))] p-3.5"
+    >
+      <label
+        className="w-28 shrink-0 text-sm font-semibold text-[var(--claw-text-primary)]"
+        htmlFor="agent-role"
+      >
+        Role
+      </label>
+      <Input
+        id="agent-role"
+        className="h-[38px] max-w-[360px] min-w-[220px] flex-1 bg-[var(--claw-bg-inset)] px-3"
+        placeholder="What does this agent do?"
+        value={role}
+        onChange={(event) => setRole(event.target.value)}
+      />
+      <Button
+        className="h-9 px-4"
+        disabled={mutation.isPending}
+        onClick={() => mutation.mutate()}
+        type="button"
+      >
+        {mutation.isPending ? "Saving…" : "Save"}
+      </Button>
+    </div>
+  )
+}
 
 function DetailThreadsSection({
   controller,
@@ -601,7 +654,7 @@ function DetailAgentsSection({
       }
       subtitle={
         controller.agentIsEditing || controller.agentsManagementTab === "edit"
-          ? "Display name and avatar"
+          ? "Display name, role, and avatar"
           : "Library, profile, and runtime workspace"
       }
       hideHeader={
@@ -721,6 +774,11 @@ function DetailAgentsSection({
                   Save
                 </Button>
               </div>
+              <AgentRoleEditor
+                agent={
+                  controller.selectedAgentRecord ?? controller.selectedAgent
+                }
+              />
             </div>
           ) : (
             <>

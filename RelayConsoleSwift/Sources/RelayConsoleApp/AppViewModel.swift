@@ -296,11 +296,21 @@ enum AgentWorkCalendarGroupFilter: String, CaseIterable, Identifiable {
   }
 }
 
+struct SettingsPanelGroup: Identifiable {
+  let title: String
+  let panels: [SettingsPanelKey]
+
+  var id: String { title }
+}
+
 enum SettingsPanelKey: String, CaseIterable, Identifiable {
   case account
   case setupConnections
   case updates
   case cloud
+  case importAgents
+  case relayDiagnostics
+  case dataPrivacy
   case appearance
   case workspace
   case team
@@ -311,7 +321,15 @@ enum SettingsPanelKey: String, CaseIterable, Identifiable {
   case runtime
 
   static let visiblePanels: [SettingsPanelKey] = [
-    .account, .setupConnections, .updates, .cloud, .security, .harnesses, .runtime,
+    .account, .setupConnections, .updates, .cloud, .importAgents, .relayDiagnostics,
+    .security, .dataPrivacy, .harnesses, .runtime,
+  ]
+
+  static let visibleGroups: [SettingsPanelGroup] = [
+    SettingsPanelGroup(title: "General", panels: [.account, .setupConnections, .updates]),
+    SettingsPanelGroup(title: "Relay", panels: [.cloud, .importAgents, .relayDiagnostics]),
+    SettingsPanelGroup(title: "Privacy & Security", panels: [.security, .dataPrivacy]),
+    SettingsPanelGroup(title: "Runtimes", panels: [.harnesses, .runtime]),
   ]
 
   var id: String { rawValue }
@@ -326,12 +344,15 @@ enum SettingsPanelKey: String, CaseIterable, Identifiable {
     case .setupConnections: return "Setup & Connections"
     case .updates: return "Updates"
     case .cloud: return "Relay"
+    case .importAgents: return "Import existing agents"
+    case .relayDiagnostics: return "Advanced diagnostics"
+    case .dataPrivacy: return "Data & privacy"
     case .appearance: return "Appearance"
     case .workspace: return "Workspace"
     case .team: return "Team & members"
     case .integrations: return "Integrations"
     case .notifications: return "Notifications"
-    case .security: return "Security"
+    case .security: return "Account & security"
     case .harnesses: return "Harnesses"
     case .runtime: return "Runtime"
     }
@@ -350,12 +371,15 @@ enum SettingsPanelKey: String, CaseIterable, Identifiable {
     case .setupConnections: return "Local runtimes, Railway and remote machines."
     case .updates: return "Version, update channel, and automatic checking."
     case .cloud: return "Cross-device sync, offline data, and user-managed runtime bridges."
+    case .importAgents: return "Connect Hermes and OpenClaw agents already on your computers."
+    case .relayDiagnostics: return "Runtime authority, bridge details, and sync troubleshooting."
+    case .dataPrivacy: return "Privacy choices, exports, and data deletion."
     case .appearance: return "Theme colors and interface presentation."
     case .workspace: return "Workspace name and shared workspace details."
     case .team: return "Manage groups, teammates, and who belongs where."
     case .integrations: return "Connected services and workspace integrations."
     case .notifications: return "How updates reach you in the app."
-    case .security: return "Local data, privacy choices, and account security."
+    case .security: return "Password, signed-in devices, and Relay account access."
     case .harnesses: return "Hermes Agent, OpenClaw"
     case .runtime: return "Activity and action approvals"
     }
@@ -367,6 +391,9 @@ enum SettingsPanelKey: String, CaseIterable, Identifiable {
     case .setupConnections: return "point.3.connected.trianglepath.dotted"
     case .updates: return "arrow.down.circle"
     case .cloud: return "cloud"
+    case .importAgents: return "square.and.arrow.down.on.square"
+    case .relayDiagnostics: return "stethoscope"
+    case .dataPrivacy: return "hand.raised"
     case .appearance: return "paintpalette"
     case .workspace: return "building.2"
     case .team: return "person.3"
@@ -385,6 +412,12 @@ enum SettingsPanelKey: String, CaseIterable, Identifiable {
     case .updates: return "Manage secure application update checks and view the installed version."
     case .cloud:
       return "Use Relay on this Mac and connect customer-operated hosts for remote access."
+    case .importAgents:
+      return "Import native Hermes and OpenClaw agents discovered on your runtime hosts."
+    case .relayDiagnostics:
+      return "Review runtime authority, bridge compatibility, and synchronization controls."
+    case .dataPrivacy:
+      return "Manage privacy choices, local and Relay exports, and data deletion."
     case .appearance: return "Choose how the interface is rendered across the app."
     case .workspace: return "Workspace settings are durable and read-only until service edits land."
     case .team: return "Organize the people and groups that make up this workspace."
@@ -392,7 +425,7 @@ enum SettingsPanelKey: String, CaseIterable, Identifiable {
       return "Connected services remain unavailable until retained integration services land."
     case .notifications: return "In-app alerts are retained; delivery controls stay unavailable."
     case .security:
-      return "Local-first security state is retained; cloud account lifecycle is decision-gated."
+      return "Manage your password, active sessions, and this Mac’s Relay account access."
     case .harnesses: return "Manage local Hermes Agent and OpenClaw harness lifecycle."
     case .runtime:
       return "Control live runtime activity and consequential-action approval preferences."
@@ -401,9 +434,10 @@ enum SettingsPanelKey: String, CaseIterable, Identifiable {
 
   var isUnavailableFoundation: Bool {
     switch self {
-    case .integrations, .notifications, .security:
+    case .integrations, .notifications:
       return true
-    case .account, .setupConnections, .updates, .cloud, .appearance, .workspace, .team, .harnesses, .runtime:
+    case .account, .setupConnections, .updates, .cloud, .importAgents, .relayDiagnostics,
+         .dataPrivacy, .appearance, .workspace, .team, .security, .harnesses, .runtime:
       return false
     }
   }
@@ -618,11 +652,17 @@ final class AppViewModel: ObservableObject {
   @Published var setupBackendCheckInProgress = false
   @Published var setupPairingMessage: String?
   @Published var setupPairingInProgress: Set<SetupRemoteRuntime> = []
+  @Published var setupBridgeInstallInProgress: Set<SetupRemoteRuntime> = []
+  @Published var setupBridgeStatusRefreshInProgress = false
+  @Published var setupBridgeStatusLastCheckedAt: Date?
+  @Published var setupBridgeOnlineRuntimes: Set<SetupRemoteRuntime> = []
   @Published var appState: AppState?
   @Published var records: [HarnessInstallRecord] = []
   @Published var runtimeDiscoveryInProgress = false
   @Published var runtimeDiscoveryCompleted = false
   @Published var runtimeDiscoveryCandidates: [RuntimeDiscoveryCandidate] = []
+  @Published var runtimeConnectionsInProgress: Set<HarnessKey> = []
+  @Published var runtimeConnectionMessages: [HarnessKey: String] = [:]
   @Published var runtimeModelCatalogs: [RuntimeType: HarnessRuntimeModelCatalog] = [:]
   @Published var installProgress: [HarnessKey: HarnessInstallProgressEvent] = [:]
   @Published var agents: [AgentWithBinding] = [] {
@@ -1373,6 +1413,7 @@ final class AppViewModel: ObservableObject {
   @Published var agentOpsLayoutPathEdges: [AgentOpsLayoutEdge] = []
   @Published var agentOpsLayoutStatus: String?
   @Published var agentDisplayNameSuccess: [String: String] = [:]
+  @Published var agentRoleSuccess: [String: String] = [:]
   @Published var agentClassificationSuccess: [String: String] = [:]
   @Published var pendingAgentDeletionImpact: AgentDeletionImpact?
   @Published var userProfile: UserProfilePreference
@@ -1879,17 +1920,25 @@ final class AppViewModel: ObservableObject {
         RelayDeploymentConfiguration.persistedRailwayOriginSettingKey,
         fallback: ""
       )) ?? ""
+      let activeDeployment = (try? services.cloudConnections.listDeployments())?
+        .first(where: { $0.active })
+      let activeDeploymentOrigin = activeDeployment.flatMap { deployment in
+        try? RelayDeploymentConfiguration.origins(
+          forRailwayOrigin: deployment.apiBaseURL
+        ).railwayOrigin
+      }
+      let configuredRailwayOrigin = persistedOrigin.nilIfEmpty ?? activeDeploymentOrigin
       let hasLocalConnection = (try? services.harnessInstall.listRecords().contains {
         $0.lifecycleState == .connected
       }) == true
       self.setupAssistant = SetupAssistantSnapshot.migrateExistingUser(
         saved: savedSetup,
         hasLocalConnection: hasLocalConnection,
-        configuredRailwayOrigin: persistedOrigin.nilIfEmpty
+        configuredRailwayOrigin: configuredRailwayOrigin
       )
       self.setupAssistantPresented = self.setupAssistant.requiresFirstLaunchPresentation
-      self.setupBackendInput = self.setupAssistant.configuredRailwayOrigin ?? persistedOrigin
-      if savedSetup == nil, self.setupAssistant.lifecycle == .completed {
+      self.setupBackendInput = self.setupAssistant.configuredRailwayOrigin ?? configuredRailwayOrigin ?? ""
+      if savedSetup != self.setupAssistant {
         try? services.data.setAppSetting(
           SetupAssistantSnapshot.persistenceKey,
           value: self.setupAssistant

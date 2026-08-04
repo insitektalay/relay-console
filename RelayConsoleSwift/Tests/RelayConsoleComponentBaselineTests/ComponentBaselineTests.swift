@@ -19,6 +19,9 @@ struct RelayConsoleComponentBaselineTests {
       "agent identity preference controls are source backed",
       testAgentIdentityPreferenceControlsAreSourceBacked)
     try run(
+      "agent deletion immediately reconciles macOS UI state",
+      testAgentDeletionImmediatelyReconcilesMacOSUIState)
+    try run(
       "agent picker create and classification controls are source backed",
       testAgentPickerCreateClassificationControlsAreSourceBacked)
     try run("AgentOps entry controls are source backed", testAgentOpsEntryControlsAreSourceBacked)
@@ -1195,6 +1198,22 @@ struct RelayConsoleComponentBaselineTests {
     ] {
       try expect(
         manifest.contains(expected), "agent create/classification UI manifest must link \(expected)"
+      )
+    }
+  }
+
+  private static func testAgentDeletionImmediatelyReconcilesMacOSUIState() throws {
+    let appModel = try readPackageFile("Sources/RelayConsoleApp/AppViewModel.swift")
+
+    for expected in [
+      "runAction(\"delete-agent-\\(agent.id)\", refresh: .full)",
+      "self.agents.removeAll { $0.id == agent.id }",
+      "self.threads.removeAll { result.deletedDirectThreadIds.contains($0.id) }",
+      "self.showToast(\"Agent deleted\", message: deletedAgentName, tone: .success)",
+    ] {
+      try expect(
+        sourceContainsIgnoringWhitespace(appModel, containsIgnoringWhitespace: expected),
+        "agent deletion should immediately reconcile visible state: \(expected)"
       )
     }
   }

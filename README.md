@@ -1,5 +1,20 @@
 # Relay Console
 
+> DISCLAIMER: This is rough, not production-ready, and packed with AI slop. I’m not a senior software engineer, just some dude in his PJs who’s never been to San Francisco and doesn’t own a VC-funded espresso machine. Bring a sledgehammer. I love this stuff, so I’m sharing it anyway. Enjoy.
+
+> **IMPORTANT SETUP ADVICE:** Your best bet is the native Relay Console app for macOS. It is the version I have worked on and tested the most. If an installable DMG is available in [GitHub Releases](https://github.com/insitektalay/relay-console/releases), use that. I do not recommend starting with the web or iPhone versions. Both require more setup and are harder to get running.
+
+> **CHOOSE YOUR SETUP:**
+>
+> **Basic local use on one Mac:** Install Relay Console and Hermes Agent or OpenClaw on the same Mac. For basic local conversations, you do not need Railway or the Relay bridge. Relay Console connects to the runtime directly.
+>
+> **Remote or cloud-backed setup:** Railway runs in the cloud. You do not install it on your Mac. You need two things:
+>
+> 1. Deploy a [Railway backend](SELF_HOSTING.md).
+> 2. Set up Hermes Agent or OpenClaw wherever you want it to run, then install and authenticate the [Relay bridge plugin](docs/RUNTIME_SETUP.md) on that same machine.
+>
+> The runtime can run on a Mac mini, VPS, or another computer. Configure the Relay Console macOS app to use the same Railway backend. The app then reaches the bridged runtime through Railway. Cloud sync, web and iPhone access, remote execution, and server-backed Marketplace applications require this setup.
+
 Relay Console is an early-alpha, MIT-licensed, self-hosted console for Hermes
 Agent and OpenClaw. This repository contains the native macOS app, native
 iPhone and iPad app, web client, and Railway backend, together with the shared
@@ -71,6 +86,10 @@ websocket origin.
 
 The supported iOS project is `ios/ClawChat.xcodeproj`. The macOS Swift package
 is under `RelayConsoleSwift/`.
+
+## Application connection status
+
+> APPLICATIONS DISCLAIMER: The Applications page includes hundreds of app connections. I have tested only one of them so far, so I cannot confirm whether the others work. See the [verified application connections](docs/verified-application-connections/README.md) for the definitive list of connections I have personally tested and confirmed.
 
 ## Privacy and telemetry
 

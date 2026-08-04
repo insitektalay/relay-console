@@ -1,11 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
 import type { QueryClient } from "@tanstack/react-query"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { toast } from "sonner"
 import type { AppSection } from "@/components/app-shell/app-sidebar"
-import { Button } from "@/components/ui/button"
 import { sdk } from "@/lib/sdk"
 
 export function useRelayNativeRuntimeActions({
@@ -16,9 +14,7 @@ export function useRelayNativeRuntimeActions({
   queryClient,
   sessionActive,
   setNativeDocumentConsent,
-  setSection,
   setSelectedNativeObservationIds,
-  setSettingsView,
 }: {
   canAccessOperations: boolean
   effectiveSection: AppSection
@@ -27,9 +23,7 @@ export function useRelayNativeRuntimeActions({
   queryClient: QueryClient
   sessionActive: boolean
   setNativeDocumentConsent: (value: boolean) => void
-  setSection: (value: AppSection) => void
   setSelectedNativeObservationIds: (value: Set<string>) => void
-  setSettingsView: (value: "existing_agents") => void
 }) {
   const bridgeDevicesQuery = useQuery({
     queryKey: ["bridge-devices", effectiveWorkspaceId],
@@ -40,6 +34,7 @@ export function useRelayNativeRuntimeActions({
       (canAccessOperations || effectiveSection === "settings")
     ),
     queryFn: () => sdk.bridge.devices(effectiveWorkspaceId!),
+    refetchInterval: effectiveSection === "settings" ? 5_000 : false,
   })
 
   const runtimeAuthorityQuery = useQuery({
@@ -203,86 +198,6 @@ export function useRelayNativeRuntimeActions({
         error instanceof Error ? error.message : "Host selection failed"
       ),
   })
-
-  useEffect(() => {
-    if (!effectiveWorkspaceId || !isWorkspaceAdmin) {
-      return
-    }
-    const candidates = (nativeObservationsQuery.data ?? []).filter(
-      (observation) =>
-        observation.origin === "customer_existing" &&
-        !observation.isDismissed &&
-        ["discovered", "disconnected"].includes(observation.connectionState)
-    )
-    if (!candidates.length) return
-    const promptKey = `relay-existing-agents-prompt:${effectiveWorkspaceId}`
-    if (window.localStorage.getItem(promptKey)) return
-    window.localStorage.setItem(promptKey, "shown")
-    toast.custom(
-      (toastId) => (
-        <div className="w-[420px] rounded-[4px] border border-[var(--claw-border)] bg-[var(--claw-bg-surface)] p-4 shadow-2xl">
-          <div className="text-sm font-medium text-zinc-100">
-            Existing agents found
-          </div>
-          <div className="mt-2 text-xs leading-5 text-zinc-400">
-            {candidates.length} Hermes or OpenClaw agent
-            {candidates.length === 1 ? " is" : "s are"} available. Connecting
-            shares only allowlisted instructions, memory, and Markdown skills
-            with Relay and lets supported edits sync both ways. Native skills
-            keep running on your runtime host; secrets, logs, caches, generated
-            files, and previous conversations stay outside Relay. Disconnecting
-            later leaves the native agents and their files in place.
-          </div>
-          <div className="mt-4 flex flex-wrap justify-end gap-2">
-            <Button
-              size="sm"
-              type="button"
-              variant="ghost"
-              onClick={() => toast.dismiss(toastId)}
-            >
-              Not now
-            </Button>
-            <Button
-              size="sm"
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setSection("settings")
-                setSettingsView("existing_agents")
-                toast.dismiss(toastId)
-              }}
-            >
-              Choose agents
-            </Button>
-            <Button
-              size="sm"
-              type="button"
-              onClick={() => {
-                setNativeDocumentConsent(true)
-                connectNativeObservationsMutation.mutate(
-                  candidates.map((candidate) => candidate.id)
-                )
-                toast.dismiss(toastId)
-              }}
-            >
-              Connect all
-            </Button>
-          </div>
-        </div>
-      ),
-      {
-        duration: Number.POSITIVE_INFINITY,
-      }
-    )
-  }, [
-    effectiveWorkspaceId,
-    isWorkspaceAdmin,
-    nativeObservationsQuery.data,
-    connectNativeObservationsMutation,
-    setNativeDocumentConsent,
-    setSection,
-    setSettingsView,
-  ])
 
   return {
     bridgeDevicesQuery,

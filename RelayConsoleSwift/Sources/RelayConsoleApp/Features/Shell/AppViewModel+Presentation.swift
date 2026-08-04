@@ -91,6 +91,13 @@ extension AppViewModel {
       ?? agent.name
   }
 
+  func resolveAgentRoleText(_ agent: AgentWithBinding?) -> String? {
+    guard let agent else { return nil }
+    return [agent.role, agent.description]
+      .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty }
+      .first
+  }
+
   func resolveThreadDisplayTitle(_ thread: ThreadSummary) -> String {
     if thread.threadType == .direct,
       let selectedAgentId = thread.selectedAgentId,

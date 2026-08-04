@@ -479,6 +479,7 @@ struct EditAgentPanel: View {
   @EnvironmentObject var model: AppViewModel
   let agent: AgentWithBinding
   @State private var displayName: String = ""
+  @State private var role: String = ""
   @State private var showingDeleteAgentConfirmation = false
 
   var deleteBusy: Bool {
@@ -507,39 +508,64 @@ struct EditAgentPanel: View {
       AvatarEditor(value: model.agentAvatar(agent.id)) { next in
         model.saveAgentAvatar(agent.id, value: next)
       }
-      HStack(alignment: .center, spacing: 12) {
-        Text("Display name")
-          .font(.headline)
-          .frame(width: 112, alignment: .leading)
-        TextField(agent.name, text: $displayName)
-          .textFieldStyle(.plain)
-          .rcTextFieldChrome(height: 38)
-          .frame(minWidth: 220, maxWidth: 360)
-          .onChange(of: displayName) { _, _ in
-            model.agentDisplayNameSuccess[agent.id] = nil
+      VStack(alignment: .leading, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
+          Text("Display name")
+            .font(.headline)
+            .frame(width: 112, alignment: .leading)
+          TextField(agent.name, text: $displayName)
+            .textFieldStyle(.plain)
+            .rcTextFieldChrome(height: 38)
+            .frame(minWidth: 220, maxWidth: 360)
+            .onChange(of: displayName) { _, _ in
+              model.agentDisplayNameSuccess[agent.id] = nil
+            }
+          Button("Save") { model.saveAgentDisplayName(agent, value: displayName) }
+            .buttonStyle(PrimaryLightButtonStyle())
+            .disabled(model.busy == "save-agent-display-name")
+            .help("Save display name")
+            .accessibilityLabel("Save display name")
+          if let success = model.agentDisplayNameSuccess[agent.id] {
+            StatusBadge(title: success, tone: .green, accessibilityLabelText: "Display name saved")
           }
-        Button("Save") { model.saveAgentDisplayName(agent, value: displayName) }
-          .buttonStyle(PrimaryLightButtonStyle())
-          .disabled(model.busy == "save-agent-display-name")
-          .help("Save display name")
-          .accessibilityLabel("Save display name")
-        if let success = model.agentDisplayNameSuccess[agent.id] {
-          StatusBadge(title: success, tone: .green, accessibilityLabelText: "Display name saved")
+          Spacer(minLength: 0)
         }
-        Spacer(minLength: 0)
+        Divider().overlay(RCTheme.borderSoft)
+        HStack(alignment: .center, spacing: 12) {
+          Text("Role")
+            .font(.headline)
+            .frame(width: 112, alignment: .leading)
+          TextField("Role", text: $role)
+            .textFieldStyle(.plain)
+            .rcTextFieldChrome(height: 38)
+            .frame(minWidth: 220, maxWidth: 360)
+            .onChange(of: role) { _, _ in
+              model.agentRoleSuccess[agent.id] = nil
+            }
+          Button("Save") { model.saveAgentRole(agent, value: role) }
+            .buttonStyle(PrimaryLightButtonStyle())
+            .disabled(model.busy == "save-agent-role-\(agent.id)")
+            .help("Save role")
+            .accessibilityLabel("Save role")
+          if let success = model.agentRoleSuccess[agent.id] {
+            StatusBadge(title: success, tone: .green, accessibilityLabelText: "Agent role saved")
+          }
+          Spacer(minLength: 0)
+        }
+        .accessibilityLabel("Agent role editor")
       }
       .padding(14)
       .background(RCTheme.accentBlue.opacity(0.12))
       .clipShape(RoundedRectangle(cornerRadius: 4))
       .overlay(RoundedRectangle(cornerRadius: 4).stroke(RCTheme.accentBlue.opacity(0.34)))
-      .accessibilityLabel("Display name editor")
+      .accessibilityElement(children: .contain)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .onAppear {
-      syncDisplayNameFromAgent()
+      syncIdentityFromAgent()
     }
     .onChange(of: agent.id) { _, _ in
-      syncDisplayNameFromAgent()
+      syncIdentityFromAgent()
     }
     .alert(
       "Delete \(model.resolveAgentDisplayName(agent))?",
@@ -558,8 +584,9 @@ struct EditAgentPanel: View {
     }
   }
 
-  private func syncDisplayNameFromAgent() {
+  private func syncIdentityFromAgent() {
     displayName = model.resolveAgentDisplayName(agent)
+    role = model.resolveAgentRoleText(agent) ?? ""
   }
 }
 

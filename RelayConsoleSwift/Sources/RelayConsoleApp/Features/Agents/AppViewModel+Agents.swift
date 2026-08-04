@@ -1358,7 +1358,8 @@ extension AppViewModel {
   }
 
   func deleteAgent(_ agent: AgentWithBinding) {
-    runAction("delete-agent-\(agent.id)", refresh: .agents) {
+    let deletedAgentName = resolveAgentDisplayName(agent)
+    runAction("delete-agent-\(agent.id)", refresh: .full) {
       guard let services = self.services, let workspace = self.workspace else {
         return self.selectedThreadId
       }
@@ -1368,6 +1369,8 @@ extension AppViewModel {
         agentId: agent.id
       )
       self.pendingAgentDeletionImpact = nil
+      self.agents.removeAll { $0.id == agent.id }
+      self.threads.removeAll { result.deletedDirectThreadIds.contains($0.id) }
       if self.selectedAgentId == agent.id {
         self.selectedAgentId = ""
       }
@@ -1378,6 +1381,7 @@ extension AppViewModel {
       self.newChatSelectedAgentId =
         self.newChatSelectedAgentId == agent.id ? "" : self.newChatSelectedAgentId
       self.newChatTeamAgentIds.remove(agent.id)
+      self.showToast("Agent deleted", message: deletedAgentName, tone: .success)
       let selectedThreadWasDeleted =
         self.selectedThreadId.map { result.deletedDirectThreadIds.contains($0) } ?? false
       let selectedThreadWasAgentDirect =
@@ -1406,6 +1410,20 @@ extension AppViewModel {
       )
       self.agentPreferences[agent.id] = saved
       self.agentDisplayNameSuccess[agent.id] = "Saved"
+      return self.selectedThreadId
+    }
+  }
+
+  func saveAgentRole(_ agent: AgentWithBinding, value: String) {
+    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+    agentRoleSuccess[agent.id] = nil
+    runAction("save-agent-role-\(agent.id)", refresh: .agents) {
+      guard let services = self.services else { return self.selectedThreadId }
+      _ = try services.data.updateAgentRole(
+        agentId: agent.id,
+        role: trimmed.nilIfEmpty
+      )
+      self.agentRoleSuccess[agent.id] = "Saved"
       return self.selectedThreadId
     }
   }

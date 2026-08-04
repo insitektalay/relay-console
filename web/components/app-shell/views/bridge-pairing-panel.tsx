@@ -51,8 +51,11 @@ export function RelayConsoleBridgePairingPanel({
   const activeEnrollmentExpired = activeEnrollmentExpiresAt
     ? activeEnrollmentExpiresAt.getTime() <= currentTime
     : false
-  const activeDevices = bridgeDevices.filter(
+  const pairedDevices = bridgeDevices.filter(
     (device) => device.status !== "revoked"
+  )
+  const onlineDevices = pairedDevices.filter(
+    (device) => device.health === "online"
   )
 
   return (
@@ -69,9 +72,11 @@ export function RelayConsoleBridgePairingPanel({
           </div>
         </div>
         <Badge variant="secondary">
-          {activeDevices.length
-            ? `${activeDevices.length} paired`
-            : "No active devices"}
+          {onlineDevices.length
+            ? `${onlineDevices.length} online`
+            : pairedDevices.length
+              ? `${pairedDevices.length} paired · offline`
+              : "No paired devices"}
         </Badge>
       </div>
 
@@ -119,7 +124,7 @@ export function RelayConsoleBridgePairingPanel({
               <div className="rounded-[4px] border border-[color-mix(in_srgb,var(--claw-border)_34%,transparent)] bg-black/10 p-4 text-sm leading-6 text-zinc-400">
                 Generate a pairing code, paste it into the local bridge
                 installer or runtime enrollment command, then return here to
-                confirm the device appears as active.
+                confirm the device appears as online.
               </div>
             )}
 
@@ -133,6 +138,7 @@ export function RelayConsoleBridgePairingPanel({
                 bridgeDevices.map((device: BridgeDevice) => {
                   const isRevoked = device.status === "revoked"
                   const runtimeType = bridgeDeviceRuntimeLabel(device)
+                  const compatibility = device.compatibility
                   const versionDetails = [
                     device.pluginVersion
                       ? `plugin ${device.pluginVersion}`
@@ -153,9 +159,18 @@ export function RelayConsoleBridgePairingPanel({
                               {device.label}
                             </div>
                             <Badge variant="secondary">{runtimeType}</Badge>
+                            {compatibility ? (
+                              <Badge variant="secondary">
+                                {compatibility.level === "verified"
+                                  ? "Verified · Full"
+                                  : compatibility.level === "compatible"
+                                    ? "Compatible · Safe mode"
+                                    : "Unsupported"}
+                              </Badge>
+                            ) : null}
                           </div>
                           <div className="mt-1 text-xs leading-5 text-zinc-500">
-                            {titleCase(device.status)} ·{" "}
+                            {titleCase(device.health ?? "offline")} · {titleCase(device.status)} ·{" "}
                             {device.lastSeenAt
                               ? `last seen ${formatDistanceToNowStrict(
                                   new Date(device.lastSeenAt),
@@ -175,6 +190,15 @@ export function RelayConsoleBridgePairingPanel({
                               ? device.capabilities.join(", ")
                               : "No capabilities reported"}
                           </div>
+                          {compatibility?.operatingMode === "safe" ? (
+                            <div className="mt-2 text-xs leading-5 text-amber-300/80">
+                              Core messaging remains enabled. Disabled until
+                              this runtime is verified: {" "}
+                              {compatibility.disabledCapabilities.length
+                                ? compatibility.disabledCapabilities.join(", ")
+                                : "advanced runtime features"}
+                            </div>
+                          ) : null}
                         </div>
                         <Button
                           disabled={

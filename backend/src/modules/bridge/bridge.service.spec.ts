@@ -199,7 +199,9 @@ async function buildService() {
       authTag: "tag",
       keyVersion: "v1",
     }),
-    decryptString: jest.fn().mockReturnValue("decrypted-localappconnector-bearer"),
+    decryptString: jest
+      .fn()
+      .mockReturnValue("decrypted-localappconnector-bearer"),
   };
   const auditLogService = {
     record: jest.fn().mockResolvedValue(undefined),
@@ -891,7 +893,9 @@ describe("BridgeService", () => {
       "clawchat.marketplace.tools",
       "bridge-1",
     );
-    expect(JSON.stringify(result)).not.toContain("decrypted-localappconnector-bearer");
+    expect(JSON.stringify(result)).not.toContain(
+      "decrypted-localappconnector-bearer",
+    );
   });
 
   it("requests source-host runtime recovery before local LocalAppConnector Agent API calls when approved", async () => {
@@ -1406,7 +1410,9 @@ describe("BridgeService", () => {
         }),
       }),
     );
-    expect(JSON.stringify(result)).not.toContain("decrypted-localappconnector-bearer");
+    expect(JSON.stringify(result)).not.toContain(
+      "decrypted-localappconnector-bearer",
+    );
     fetchMock.mockRestore();
   });
 
@@ -2457,37 +2463,27 @@ describe("BridgeService", () => {
     expect(jwtService.signAsync).not.toHaveBeenCalled();
   });
 
-  it("fails closed before minting tokens when bridge compatibility is incomplete", async () => {
-    const {
-      service,
-      bridgeEnrollmentRepo,
-      bridgeDeviceRepo,
-      workspaceRepo,
-      jwtService,
-    } = await buildService();
-    bridgeEnrollmentRepo.findOne.mockResolvedValue({
-      id: "enroll-1",
-      workspaceId: "ws-1",
-      createdByUserId: "user-1",
-      status: "active",
-      expiresAt: new Date(Date.now() + 60_000),
-    });
-    workspaceRepo.findOne.mockResolvedValue({ id: "ws-1", name: "Workspace" });
+  it("preflights missing runtime metadata in restricted safe mode", async () => {
+    const { service } = await buildService();
 
-    await expect(
-      service.redeemEnrollment("PAIRME", {
-        ...compatibleHermesMetadata(),
+    expect(
+      service.checkCompatibility({
+        ...compatibleHermesMetadata({
+          capabilities: [
+            "clawchat.runtime.hermes",
+            "clawchat.runtime.structured_jobs",
+          ],
+        }),
         openCoreVersion: undefined,
       }),
-    ).rejects.toMatchObject({
-      status: 426,
-      response: expect.objectContaining({
-        code: "BRIDGE_RUNTIME_VERSION_UNSUPPORTED",
-      }),
+    ).toMatchObject({
+      compatible: true,
+      level: "compatible",
+      operatingMode: "safe",
+      enabledCapabilities: ["clawchat.runtime.hermes"],
+      disabledCapabilities: ["clawchat.runtime.structured_jobs"],
+      warnings: expect.arrayContaining(["BRIDGE_RUNTIME_VERSION_UNKNOWN"]),
     });
-    expect(bridgeEnrollmentRepo.update).not.toHaveBeenCalled();
-    expect(bridgeDeviceRepo.save).not.toHaveBeenCalled();
-    expect(jwtService.signAsync).not.toHaveBeenCalled();
   });
 
   it("refuses pre-v2 clients before consuming their device credential", async () => {

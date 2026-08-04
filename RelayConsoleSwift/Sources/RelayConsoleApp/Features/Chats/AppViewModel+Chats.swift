@@ -498,14 +498,105 @@ extension AppViewModel {
   }
 
   func connectDiscoveredHarness(_ candidate: RuntimeDiscoveryCandidate) {
-    runAction("connect-discovered-\(candidate.harnessKey.rawValue)", refresh: .full) {
-      guard let services = self.services else { return nil }
-      _ = try await services.harnessInstall.connectExisting(
-        harnessKey: candidate.harnessKey,
-        location: candidate.location
-      )
-      return nil
+    let key = candidate.harnessKey
+    guard !runtimeConnectionsInProgress.contains(key) else { return }
+    let label = "connect-discovered-\(key.rawValue)"
+    let startedAt = Date()
+    runtimeConnectionsInProgress.insert(key)
+    runtimeConnectionMessages[key] = "Checking the \(candidate.runtimeName) installation…"
+    error = nil
+    settingsFeatureStore.begin(label)
+    telemetry.actionStarted(label)
+    Task {
+      do {
+        guard let services = self.services else {
+          throw RelayError(.internalError, "Relay services are unavailable.")
+        }
+        let result = try await services.harnessInstall.connectExisting(
+          harnessKey: key,
+          location: candidate.location
+        )
+        runtimeConnectionMessages[key] = discoveredHarnessConnectionMessage(
+          result,
+          runtimeName: candidate.runtimeName
+        )
+        settingsFeatureStore.finish()
+        runtimeConnectionsInProgress.remove(key)
+        await refresh()
+        telemetry.actionSucceeded(label, elapsed: Date().timeIntervalSince(startedAt))
+      } catch {
+        let message = "Relay could not connect \(candidate.runtimeName): \(error.localizedDescription)"
+        runtimeConnectionMessages[key] = message
+        self.error = message
+        settingsFeatureStore.fail(message)
+        runtimeConnectionsInProgress.remove(key)
+        telemetry.actionFailed(
+          label,
+          elapsed: Date().timeIntervalSince(startedAt),
+          error: error
+        )
+      }
     }
+  }
+
+  func recheckDiscoveredHarness(
+    _ record: HarnessInstallRecord,
+    candidate: RuntimeDiscoveryCandidate
+  ) {
+    let key = candidate.harnessKey
+    guard !runtimeConnectionsInProgress.contains(key) else { return }
+    let label = "check-discovered-\(key.rawValue)"
+    let startedAt = Date()
+    runtimeConnectionsInProgress.insert(key)
+    runtimeConnectionMessages[key] = "Checking \(candidate.runtimeName) and its gateway…"
+    error = nil
+    settingsFeatureStore.begin(label)
+    telemetry.actionStarted(label)
+    Task {
+      do {
+        guard let services = self.services else {
+          throw RelayError(.internalError, "Relay services are unavailable.")
+        }
+        let result = try await services.harnessInstall.check(harnessKey: record.harnessKey)
+        runtimeConnectionMessages[key] = discoveredHarnessConnectionMessage(
+          result,
+          runtimeName: candidate.runtimeName
+        )
+        settingsFeatureStore.finish()
+        runtimeConnectionsInProgress.remove(key)
+        await refresh()
+        telemetry.actionSucceeded(label, elapsed: Date().timeIntervalSince(startedAt))
+      } catch {
+        let message = "Relay could not re-check \(candidate.runtimeName): \(error.localizedDescription)"
+        runtimeConnectionMessages[key] = message
+        self.error = message
+        settingsFeatureStore.fail(message)
+        runtimeConnectionsInProgress.remove(key)
+        telemetry.actionFailed(
+          label,
+          elapsed: Date().timeIntervalSince(startedAt),
+          error: error
+        )
+      }
+    }
+  }
+
+  private func discoveredHarnessConnectionMessage(
+    _ result: HarnessActionResult,
+    runtimeName: String
+  ) -> String {
+    if result.health?.status == .healthy || result.record.lifecycleState == .connected {
+      return "\(runtimeName) is connected and ready."
+    }
+    if result.record.harnessKey == .openclaw,
+      let detail = result.health?.message ?? result.record.lastError,
+      detail.localizedCaseInsensitiveContains("gateway")
+    {
+      return "Relay found and saved this OpenClaw installation. Its gateway service still needs to be installed and started."
+    }
+    return result.health?.message
+      ?? result.record.lastError
+      ?? "Relay saved the \(runtimeName) installation, but it is not ready yet."
   }
 
   func recheckHarness(_ record: HarnessInstallRecord) {

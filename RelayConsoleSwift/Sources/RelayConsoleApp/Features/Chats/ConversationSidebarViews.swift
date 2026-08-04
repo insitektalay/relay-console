@@ -396,6 +396,10 @@ struct ThreadRow: View {
   var body: some View {
     let threadAgents = model.agents(for: thread)
     let installedApps = model.installedApps(for: thread)
+    let directAgentRole =
+      thread.threadType == .direct
+      ? model.resolveAgentRoleText(threadAgents.first)
+      : nil
     Button {
       model.selectThread(thread.id)
     } label: {
@@ -405,14 +409,19 @@ struct ThreadRow: View {
           agents: threadAgents,
           isTeamThread: thread.threadType == .team
         )
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 3) {
           Text(model.resolveThreadDisplayTitle(thread))
             .font(RCTypography.sidebarName)
             .lineLimit(1)
-          Spacer(minLength: 6)
+          if let directAgentRole {
+            Text(directAgentRole)
+              .font(.system(size: 10.5, weight: .regular))
+              .foregroundStyle(RCTheme.muted)
+              .lineLimit(1)
+          }
           ThreadInstalledAppsRow(apps: installedApps)
         }
-        .frame(height: 40, alignment: .top)
+        .frame(minHeight: directAgentRole == nil ? 40 : 54, alignment: .top)
         Spacer()
         VStack(alignment: .trailing, spacing: 5) {
           ThreadRuntimeKindLabel(
@@ -434,14 +443,20 @@ struct ThreadRow: View {
       "Open \(thread.threadType == .team ? "team" : "direct") conversation \(model.resolveThreadDisplayTitle(thread))"
     )
     .accessibilityValue(
-      threadAccessibilityValue(apps: installedApps, selected: model.selectedThreadId == thread.id))
+      threadAccessibilityValue(
+        role: directAgentRole,
+        apps: installedApps,
+        selected: model.selectedThreadId == thread.id))
   }
 
-  private func threadAccessibilityValue(apps: [MarketplaceCatalogApp], selected: Bool) -> String {
+  private func threadAccessibilityValue(
+    role: String?, apps: [MarketplaceCatalogApp], selected: Bool
+  ) -> String {
+    let roleValue = role.map { "Role: \($0). " } ?? ""
     let appValue =
       apps.isEmpty
       ? "No apps installed" : "Installed apps: \(apps.map(\.name).joined(separator: ", "))"
-    return selected ? "Selected. \(appValue)" : appValue
+    return selected ? "Selected. \(roleValue)\(appValue)" : "\(roleValue)\(appValue)"
   }
 
   private func runtimeTypes(for agents: [AgentWithBinding]) -> [RuntimeType] {

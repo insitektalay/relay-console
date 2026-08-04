@@ -1681,6 +1681,36 @@ struct SecondaryLightButtonStyle: ButtonStyle {
     }
 }
 
+struct TintedActionButtonStyle: ButtonStyle {
+    let tone: ComponentTone
+
+    func makeBody(configuration: Configuration) -> some View {
+        RCHoverFocusReader { state in
+            let active = state.isActive(isPressed: configuration.isPressed)
+            configuration.label
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(tone.color)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    tone.color.opacity(
+                        configuration.isPressed ? 0.18 : (active ? 0.14 : 0.09)
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(
+                            state.isFocused ? RCTheme.borderFocus : tone.color.opacity(active ? 0.52 : 0.32),
+                            lineWidth: state.isFocused ? 1.4 : 1
+                        )
+                )
+                .opacity(state.isEnabled ? 1 : 0.52)
+                .animation(state.animation, value: configuration.isPressed)
+        }
+    }
+}
+
 struct StablePlainButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         RCHoverFocusReader { state in

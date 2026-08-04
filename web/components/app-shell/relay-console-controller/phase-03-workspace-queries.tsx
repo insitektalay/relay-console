@@ -48,9 +48,7 @@ export function useRelayConsoleWorkspaceQueries(
     setNativeDocumentConsent,
     setProvisionAgentModelDraft,
     setRuntimeAgentModelDraft,
-    setSection,
     setSelectedNativeObservationIds,
-    setSettingsView,
   } = input
 
   const [agentDisplayNames, setAgentDisplayNames] = usePersistentStringMap(
@@ -349,9 +347,7 @@ export function useRelayConsoleWorkspaceQueries(
     queryClient,
     sessionActive: Boolean(session),
     setNativeDocumentConsent,
-    setSection,
     setSelectedNativeObservationIds,
-    setSettingsView,
   })
 
   const [threadPatchOverrides, setThreadPatchOverrides] = useState<

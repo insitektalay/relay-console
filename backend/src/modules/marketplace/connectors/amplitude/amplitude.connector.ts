@@ -117,13 +117,19 @@ export const AMPLITUDE_CONNECTOR_MANIFEST: MarketplaceConnectorManifest = {
     credentialSchema: [
       {
         name: "AMPLITUDE_DASHBOARD_REST_ORIGIN",
-        label: "Amplitude Dashboard REST origin",
+        label: "Amplitude data region",
         required: true,
         secret: false,
         storedIn: "encrypted_secret",
         requiredForAuthTypes: ["api_key"],
+        inputType: "select",
+        options: [
+          { value: "https://amplitude.com", label: "Standard" },
+          { value: "https://analytics.eu.amplitude.com", label: "EU" },
+        ],
+        defaultValue: "https://amplitude.com",
         helpText:
-          "Enter https://amplitude.com for the default region or https://analytics.eu.amplitude.com for EU data residency. Relay rejects the browser analytics host and every other origin.",
+          "Choose Standard unless the Amplitude project uses EU data residency. Relay sends Dashboard REST requests only to the selected official Amplitude region.",
       },
       {
         name: "AMPLITUDE_PROJECT_API_KEY",
@@ -133,7 +139,7 @@ export const AMPLITUDE_CONNECTOR_MANIFEST: MarketplaceConnectorManifest = {
         storedIn: "encrypted_secret",
         requiredForAuthTypes: ["api_key"],
         helpText:
-          "Enter the API key for the exact Analytics Project. Do not use an ingestion, Data, Experiment, Management, or organization token.",
+          "Enter the API key for the exact Analytics Project, including the project API key shown during onboarding. Do not use a Data, Experiment, Management, or organization token.",
       },
       {
         name: "AMPLITUDE_PROJECT_SECRET_KEY",
@@ -143,7 +149,7 @@ export const AMPLITUDE_CONNECTOR_MANIFEST: MarketplaceConnectorManifest = {
         storedIn: "encrypted_secret",
         requiredForAuthTypes: ["api_key"],
         helpText:
-          "Enter the matching one-time Project Secret key. Rotate or revoke the key pair in Amplitude Project settings.",
+          "Generate the matching Secret Key in Amplitude under Settings > Projects > your project > General. Amplitude shows it only when generated; Relay needs it to read analytics through the Dashboard REST API.",
       },
     ],
   },

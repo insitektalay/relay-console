@@ -57,7 +57,6 @@ else
   HERMES_PYTHON="$PWD/venv/bin/python"
 fi
 uv pip install --python "$HERMES_PYTHON" -e '.[all,messaging]'
-"$HERMES_PYTHON" -m pip show aiohttp | grep 'Version: 3.14.1'
 hermes setup
 hermes version
 ```
@@ -82,6 +81,9 @@ From the bridge checkout created above:
 ```bash
 scripts/install-hermes-agent-bridge.sh \
   "${HERMES_HOME:-$HOME/.hermes}/hermes-agent"
+HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}/hermes-agent" \
+HERMES_PYTHON="$HERMES_PYTHON" \
+  scripts/manage-hermes-agent-bridge.sh prepare-runtime
 ```
 
 In Relay Console, click **Generate pairing code**. Enter the code without
@@ -90,12 +92,15 @@ placing it in shell history:
 ```bash
 cd "${HERMES_HOME:-$HOME/.hermes}/hermes-agent"
 read -r -s RELAY_ENROLLMENT_CODE
-"$HERMES_PYTHON" -m clawchat_bridge.main enroll \
+"$HOME/.hermes/clawchat_bridge/runtime/bin/python" -m clawchat_bridge.main enroll \
   --api-url https://YOUR-BACKEND.up.railway.app \
   --code "$RELAY_ENROLLMENT_CODE" \
   --device-label "My Hermes bridge"
 unset RELAY_ENROLLMENT_CODE
 ```
+
+The bridge owns that runtime environment and installs `aiohttp>=3.10,<4`
+inside it. Hermes keeps its existing dependency versions unchanged.
 
 Return to the bridge checkout and install its background service:
 

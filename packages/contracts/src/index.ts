@@ -777,7 +777,10 @@ export interface AutoConnectLocalAppResult {
     status?: string | null;
     metadata?: Record<string, unknown>;
   } | null;
-  policySync: LocalAppConnectorPolicySyncStatus | Record<string, unknown> | null;
+  policySync:
+    | LocalAppConnectorPolicySyncStatus
+    | Record<string, unknown>
+    | null;
   installResults: Array<Record<string, unknown>>;
   neededToolsSummary: Record<string, unknown> | null;
   userActionRequired: string | null;
@@ -2926,6 +2929,20 @@ export interface BridgeDevice {
     code: string | null;
     release: string;
     releaseStatus: string;
+    level: "verified" | "compatible" | "unsupported";
+    operatingMode: "full" | "safe" | "blocked";
+    verifiedRuntime: boolean;
+    enabledCapabilities: string[];
+    disabledCapabilities: string[];
+    warnings: string[];
+    runtimePolicy?: {
+      verifiedVersions: string[];
+      ranges: Array<{
+        scheme: "semver" | "calendar";
+        minimum: string;
+        maximumExclusive?: string;
+      }>;
+    } | null;
   };
   credentialVersion?: number;
   credentialRotatedAt?: string | null;

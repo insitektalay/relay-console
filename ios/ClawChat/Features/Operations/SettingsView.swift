@@ -52,7 +52,6 @@ final class SettingsViewState: ObservableObject {
     @Published var selectedNativeObservationIds: Set<String> = []
     @Published var nativeDocumentConsent = false
     @Published var isUpdatingNativeAgents = false
-    @Published var showExistingAgentsPrompt = false
     @Published var workspaces: [Workspace] = []
     @Published var showEditProfile: Bool = false
     @Published var revokingBridgeDeviceId: String?
@@ -96,7 +95,7 @@ final class SettingsViewState: ObservableObject {
         }
     }
 
-    func loadNativeAgents(workspaceId: String, allowPrompt: Bool = true) async {
+    func loadNativeAgents(workspaceId: String) async {
         do {
             async let authority: RuntimeAuthoritySummary = APIClient.shared.request(
                 .runtimeAuthority(workspaceId: workspaceId)
@@ -113,13 +112,6 @@ final class SettingsViewState: ObservableObject {
             runtimeProvisioningTargets = loaded.2
             let candidateIds = Set(existingNativeCandidates.map(\.id))
             selectedNativeObservationIds.formIntersection(candidateIds)
-            if allowPrompt, !existingNativeCandidates.isEmpty {
-                let key = "relay.existingAgentsPrompt.\(workspaceId)"
-                if !UserDefaults.standard.bool(forKey: key) {
-                    UserDefaults.standard.set(true, forKey: key)
-                    showExistingAgentsPrompt = true
-                }
-            }
         } catch {
             self.error = (error as? APIError)?.errorDescription ?? error.localizedDescription
         }
@@ -159,7 +151,7 @@ final class SettingsViewState: ObservableObject {
             let failures = result.results.filter { $0.status == "failed" }
             selectedNativeObservationIds.removeAll()
             nativeDocumentConsent = false
-            await loadNativeAgents(workspaceId: workspaceId, allowPrompt: false)
+            await loadNativeAgents(workspaceId: workspaceId)
             notice = failures.isEmpty
                 ? "Existing agents connected."
                 : "\(failures.count) selected agent\(failures.count == 1 ? "" : "s") could not be connected."
@@ -179,7 +171,7 @@ final class SettingsViewState: ObservableObject {
                     observationId: observation.id
                 )
             )
-            await loadNativeAgents(workspaceId: workspaceId, allowPrompt: false)
+            await loadNativeAgents(workspaceId: workspaceId)
             notice = "\(observation.displayName) disconnected. Its native files were preserved."
         } catch {
             self.error = (error as? APIError)?.errorDescription ?? error.localizedDescription
@@ -200,7 +192,7 @@ final class SettingsViewState: ObservableObject {
                 )
             )
             nativeDocumentConsent = false
-            await loadNativeAgents(workspaceId: workspaceId, allowPrompt: false)
+            await loadNativeAgents(workspaceId: workspaceId)
             notice = "\(observation.displayName) connected."
         } catch {
             self.error = (error as? APIError)?.errorDescription ?? error.localizedDescription
@@ -218,7 +210,7 @@ final class SettingsViewState: ObservableObject {
                     observationId: observation.id
                 )
             )
-            await loadNativeAgents(workspaceId: workspaceId, allowPrompt: false)
+            await loadNativeAgents(workspaceId: workspaceId)
             notice = "\(observation.displayName) hidden. Its native identity was not suppressed."
         } catch {
             self.error = (error as? APIError)?.errorDescription ?? error.localizedDescription
@@ -234,7 +226,7 @@ final class SettingsViewState: ObservableObject {
                 .scanRuntimeHost(workspaceId: workspaceId, runtimeHostId: host.id)
             )
             try? await _Concurrency.Task.sleep(for: .seconds(1))
-            await loadNativeAgents(workspaceId: workspaceId, allowPrompt: false)
+            await loadNativeAgents(workspaceId: workspaceId)
             notice = "Fresh agent scan requested from \(host.displayName)."
         } catch {
             self.error = (error as? APIError)?.errorDescription ?? error.localizedDescription
@@ -250,7 +242,7 @@ final class SettingsViewState: ObservableObject {
                     runtimeHostId: runtimeHostId
                 )
             )
-            await loadNativeAgents(workspaceId: workspaceId, allowPrompt: false)
+            await loadNativeAgents(workspaceId: workspaceId)
             notice = "Default \(runtimeType == "hermes" ? "Hermes" : "OpenClaw") creation host updated."
         } catch {
             self.error = (error as? APIError)?.errorDescription ?? error.localizedDescription
@@ -411,20 +403,6 @@ struct SettingsView: View {
                 Button("Cancel", role: .cancel) { bridgeDevicePendingRevocation = nil }
             } message: { device in
                 Text("The bridge on \(device.label) will be disconnected and its current credential will stop working. This does not uninstall Hermes Agent or OpenClaw.")
-            }
-            .alert("Existing agents found", isPresented: $vm.showExistingAgentsPrompt) {
-                Button("Connect all") {
-                    vm.selectAllNativeCandidates()
-                    vm.nativeDocumentConsent = true
-                    guard let workspaceId = appStore.selectedWorkspace?.id else { return }
-                    _Concurrency.Task {
-                        await vm.connectSelectedNativeAgents(workspaceId: workspaceId)
-                    }
-                }
-                Button("Choose agents") {}
-                Button("Not now", role: .cancel) {}
-            } message: {
-                Text("\(vm.existingNativeCandidates.count) Hermes or OpenClaw agent\(vm.existingNativeCandidates.count == 1 ? " is" : "s are") available. Connecting shares only allowlisted instructions, memory, and Markdown skills with Relay and lets supported edits sync both ways. Native skills keep running on your runtime host; secrets, logs, caches, generated files, and previous conversations stay outside Relay. Disconnecting later leaves the native agents and their files in place.")
             }
             .confirmationDialog(
                 "Disconnect this agent from Relay?",
@@ -734,6 +712,20 @@ struct SettingsView: View {
                             Label("Update required", systemImage: "exclamationmark.triangle.fill")
                                 .font(ClawFonts.caption)
                                 .foregroundStyle(ClawColors.accentOrange)
+                        } else if device.compatibility.operatingMode == "safe" {
+                            Label("Compatible · Safe mode", systemImage: "shield.lefthalf.filled")
+                                .font(ClawFonts.caption)
+                                .foregroundStyle(ClawColors.accentOrange)
+                            if let disabled = device.compatibility.disabledCapabilities,
+                               !disabled.isEmpty {
+                                Text("Unverified advanced capabilities disabled: \(disabled.joined(separator: ", "))")
+                                    .font(ClawFonts.caption)
+                                    .foregroundStyle(ClawColors.textSecondary)
+                            }
+                        } else if device.compatibility.level == "verified" {
+                            Label("Verified · Full functionality", systemImage: "checkmark.seal.fill")
+                                .font(ClawFonts.caption)
+                                .foregroundStyle(ClawColors.accentGreen)
                         }
                     }
                 }

@@ -18,6 +18,10 @@ struct SettingsScreen: View {
           UpdatesSettingsPanel()
         case .cloud:
           CloudRelaySettingsPanel()
+        case .importAgents:
+          CloudRelaySettingsPanel(presentation: .importAgents)
+        case .relayDiagnostics:
+          CloudRelaySettingsPanel(presentation: .advancedDiagnostics)
         case .appearance:
           AppearanceSettingsPanel()
         case .workspace:
@@ -29,7 +33,9 @@ struct SettingsScreen: View {
         case .notifications:
           NotificationsSettingsPanel()
         case .security:
-          SecuritySettingsPanel()
+          CloudRelaySettingsPanel(presentation: .accountSecurity)
+        case .dataPrivacy:
+          DataPrivacySettingsPanel()
         case .harnesses:
           HarnessesPanel()
         case .runtime:
@@ -167,64 +173,6 @@ struct AccountSettingsPanel: View {
             }
           }
 
-          VStack(alignment: .leading, spacing: 12) {
-            Text("Privacy and diagnostics")
-              .font(.system(size: 13, weight: .semibold))
-
-            NativeSettingsRow(
-              title: "Share product analytics",
-              subtitle:
-                "Share basic usage data to help improve Relay. Messages, files, credentials, and URLs are never included.",
-              value: model.productAnalyticsAvailable && model.userProfile.telemetryEnabled
-                ? "On" : "Off"
-            ) {
-              Toggle(
-                "Share product analytics",
-                isOn: Binding(
-                  get: {
-                    model.productAnalyticsAvailable && model.userProfile.telemetryEnabled
-                  },
-                  set: { model.setProductAnalyticsEnabled($0) }
-                )
-              )
-              .labelsHidden()
-              .toggleStyle(.switch)
-              .disabled(!model.productAnalyticsAvailable)
-            }
-            if !model.productAnalyticsAvailable {
-              Text("Unavailable in this build")
-                .font(.caption)
-                .foregroundStyle(RCTheme.muted)
-            }
-
-            NativeDivider()
-
-            NativeSettingsRow(
-              title: "Share crash and error reports",
-              subtitle:
-                "Share crash and error data to help improve stability. Screenshots, messages, files, and email are never included.",
-              value: model.crashReportingAvailable && model.userProfile.crashReportingEnabled
-                ? "On" : "Off"
-            ) {
-              Toggle(
-                "Share crash and error reports",
-                isOn: Binding(
-                  get: {
-                    model.crashReportingAvailable && model.userProfile.crashReportingEnabled
-                  },
-                  set: { model.setCrashReportingEnabled($0) }
-                )
-              )
-              .labelsHidden()
-              .toggleStyle(.switch)
-              .disabled(!model.crashReportingAvailable)
-            }
-            if !model.crashReportingAvailable {
-              Text("Unavailable in this build")
-                .font(.caption)
-                .foregroundStyle(RCTheme.muted)
-            }
-          }
           VStack(alignment: .leading, spacing: 8) {
             if model.settingsStatus == "Profile updated" {
               Text("Profile updated")
@@ -667,7 +615,7 @@ struct SettingsAlertRow: View {
   }
 }
 
-struct SecuritySettingsPanel: View {
+struct DataPrivacySettingsPanel: View {
   @EnvironmentObject var model: AppViewModel
   @State private var pendingCleanup: LocalDataCleanupKind?
   @State private var cleanupConfirmation = ""
@@ -676,22 +624,63 @@ struct SecuritySettingsPanel: View {
     VStack(alignment: .leading, spacing: 16) {
       FormCard {
         HStack(alignment: .top, spacing: 12) {
-          Image(systemName: "lock.shield")
+          Image(systemName: "hand.raised")
             .frame(width: 34, height: 34)
             .foregroundStyle(RCTheme.accentGreen)
             .background(RCTheme.accentGreen.opacity(0.12))
             .clipShape(RoundedRectangle(cornerRadius: 4))
           VStack(alignment: .leading, spacing: 6) {
-            Text("Your data and security")
+            Text("Data & privacy")
               .font(.headline)
             Text(
-              "Relay stores data locally on this Mac. Connected workspaces can also sync to Relay. Credentials are stored in macOS Keychain."
+              "Control optional diagnostics, export your data, or remove local and Relay account data. Credentials are never included in exports."
             )
             .font(.callout)
             .foregroundStyle(RCTheme.muted)
             .fixedSize(horizontal: false, vertical: true)
           }
         }
+      }
+      FormCard {
+        Text("Privacy choices")
+          .font(.headline)
+        Text("Product analytics and crash reporting are optional and independently controlled. Both start off.")
+          .font(.callout)
+          .foregroundStyle(RCTheme.muted)
+        NativeSettingsRow(
+          title: "Share product analytics",
+          subtitle: "Share basic usage data to help improve Relay. Messages, files, credentials, and URLs are never included.",
+          value: model.productAnalyticsAvailable && model.userProfile.telemetryEnabled ? "On" : "Off"
+        ) {
+          Toggle(
+            "Share product analytics",
+            isOn: Binding(
+              get: { model.productAnalyticsAvailable && model.userProfile.telemetryEnabled },
+              set: { model.setProductAnalyticsEnabled($0) }
+            )
+          )
+          .labelsHidden()
+          .toggleStyle(.switch)
+          .disabled(!model.productAnalyticsAvailable)
+        }
+        NativeDivider()
+        NativeSettingsRow(
+          title: "Share crash and error reports",
+          subtitle: "Share crash and error data to help improve stability. Screenshots, messages, files, and email are never included.",
+          value: model.crashReportingAvailable && model.userProfile.crashReportingEnabled ? "On" : "Off"
+        ) {
+          Toggle(
+            "Share crash and error reports",
+            isOn: Binding(
+              get: { model.crashReportingAvailable && model.userProfile.crashReportingEnabled },
+              set: { model.setCrashReportingEnabled($0) }
+            )
+          )
+          .labelsHidden()
+          .toggleStyle(.switch)
+          .disabled(!model.crashReportingAvailable)
+        }
+        Link("Read privacy policy", destination: URL(string: "https://relayconsole.work/privacy")!)
       }
       FormCard {
         Text("Local data")
@@ -733,31 +722,10 @@ struct SecuritySettingsPanel: View {
           SettingsInfoRow(label: "Includes secrets", value: export.includesSecrets ? "Yes" : "No")
         }
       }
-      FormCard {
-        Text("Privacy choices")
-          .font(.headline)
-        Text(
-          "Product analytics and crash reporting are optional and independently controlled. Both start off."
-        )
-        .font(.callout)
-        .foregroundStyle(RCTheme.muted)
-        .fixedSize(horizontal: false, vertical: true)
-        HStack(spacing: 10) {
-          Button("Review privacy choices") {
-            model.selectSettingsPanel(.account)
-          }
-          .buttonStyle(SecondaryLightButtonStyle())
-          .help("Open privacy and diagnostics choices")
-          .accessibilityLabel("Review privacy choices")
-
-          Link(
-            "Read privacy policy",
-            destination: URL(string: "https://relayconsole.work/privacy")!
-          )
-          .help("Open Relay’s privacy policy in your browser")
-          .accessibilityLabel("Read privacy policy")
-        }
-      }
+      CloudRelaySettingsPanel(presentation: .dataPrivacy)
+    }
+    .onAppear {
+      model.disableUnavailableTelemetryPreferences()
     }
     .padding(24)
     .sheet(item: $pendingCleanup) { kind in
@@ -794,6 +762,10 @@ struct SecuritySettingsPanel: View {
     }
   }
 }
+
+// Retained for source-level release inventory compatibility while the visible
+// destination is now named Data & privacy.
+typealias SecuritySettingsPanel = DataPrivacySettingsPanel
 
 struct SettingsUnavailablePanel: View {
   var title: String

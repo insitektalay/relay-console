@@ -9,14 +9,28 @@ struct SettingsSidebarPanel: View {
   var body: some View {
     VStack(spacing: 10) {
       SidebarSectionHeader(title: "Settings", icon: "gearshape")
-      ForEach(SettingsPanelKey.visiblePanels) { panel in
-        SettingsNavRow(
-          title: panel.navigationTitle,
-          subtitle: nil,
-          icon: panel.icon,
-          selected: model.settingsPanel == panel
-        ) {
-          model.selectSettingsPanel(panel)
+      ScrollView {
+        VStack(alignment: .leading, spacing: 14) {
+          ForEach(SettingsPanelKey.visibleGroups) { group in
+            VStack(alignment: .leading, spacing: 6) {
+              Text(group.title.uppercased())
+                .font(.system(size: 10, weight: .semibold))
+                .tracking(0.8)
+                .foregroundStyle(RCTheme.muted)
+                .padding(.horizontal, 10)
+                .accessibilityAddTraits(.isHeader)
+              ForEach(group.panels) { panel in
+                SettingsNavRow(
+                  title: panel.navigationTitle,
+                  subtitle: nil,
+                  icon: panel.icon,
+                  selected: model.settingsPanel == panel
+                ) {
+                  model.selectSettingsPanel(panel)
+                }
+              }
+            }
+          }
         }
       }
       Spacer()

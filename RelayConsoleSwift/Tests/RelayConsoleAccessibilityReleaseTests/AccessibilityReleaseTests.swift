@@ -11,6 +11,9 @@ enum RelayConsoleAccessibilityReleaseTests {
         let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         let ui = try read(root, "Sources/RelayConsoleApp/UIComponents.swift")
         let model = try read(root, "Sources/RelayConsoleApp/AppViewModel.swift")
+        let settingsSidebar = try read(root, "Sources/RelayConsoleApp/Features/Settings/SettingsSidebarView.swift")
+        let settingsViews = try read(root, "Sources/RelayConsoleApp/Features/Settings/SettingsViews.swift")
+        let relaySettings = try read(root, "Sources/RelayConsoleApp/CloudRelaySettingsView.swift")
         let visualHarness = try read(root, "Tests/RelayConsoleAppVisualSnapshotHarness/AppVisualSnapshotHarness.swift")
         let accessibilityHarness = try read(root, "Tests/RelayConsoleAppAccessibilityInventoryHarness/AppAccessibilityInventoryHarness.swift")
         let visual = try read(root, "agent-loops/agent-loop-relayconsole-swift-public-beta-launch/loop-runs/001-audit-baseline-and-release-foundation/evidence/BETA-001-018/visual/retained-surface-visual-snapshots.json")
@@ -21,11 +24,29 @@ enum RelayConsoleAccessibilityReleaseTests {
             in: model
         )
         try expect(
-            [".account", ".cloud", ".security", ".harnesses", ".runtime"].allSatisfy {
+            [".account", ".cloud", ".importAgents", ".relayDiagnostics", ".security", ".dataPrivacy", ".harnesses", ".runtime"].allSatisfy {
                 visiblePanels.contains($0)
             },
             "Security settings are not reachable"
         )
+        for heading in ["General", "Relay", "Privacy & Security", "Runtimes"] {
+            try expect(model.contains("SettingsPanelGroup(title: \"\(heading)\""), "settings navigation omits the \(heading) group")
+        }
+        try expect(settingsSidebar.contains("SettingsPanelKey.visibleGroups"), "settings sidebar does not render grouped destinations")
+        for route in [".importAgents", ".advancedDiagnostics", ".accountSecurity", ".dataPrivacy"] {
+            try expect(settingsViews.contains(route), "settings screen omits route \(route)")
+        }
+        guard let relayStart = relaySettings.range(of: "private var settingsContent"),
+              let importStart = relaySettings.range(of: "private var importAgentsContent", range: relayStart.upperBound..<relaySettings.endIndex) else {
+            throw AccessibilityReleaseTestFailure(description: "Relay settings content boundaries are missing")
+        }
+        let ordinaryRelay = relaySettings[relayStart.lowerBound..<importStart.lowerBound]
+        for movedSection in ["runtimeAuthoritySection", "existingAgentsSection", "bridgeDevicesSection", "advancedSection", "cloudAccountDataSection"] {
+            try expect(!ordinaryRelay.contains(movedSection), "ordinary Relay settings still include \(movedSection)")
+        }
+        for requiredSection in ["connectedSection", "runtimeHostHealthSection", "connectAgentOwnershipSection"] {
+            try expect(ordinaryRelay.contains(requiredSection), "ordinary Relay settings omit \(requiredSection)")
+        }
         for required in ["artifacts", "approvals", "settings-security"] {
             try expect(visualHarness.contains("id: \"\(required)\""), "visual capture omits \(required)")
         }

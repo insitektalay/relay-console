@@ -61,6 +61,8 @@ export class RedeemBridgeEnrollmentDto extends BridgeCompatibilityMetadataDto {
   deviceLabel?: string;
 }
 
+export class CheckBridgeCompatibilityDto extends BridgeCompatibilityMetadataDto {}
+
 export class BridgeDeviceCredentialDto extends BridgeCompatibilityMetadataDto {
   @IsString()
   @Matches(

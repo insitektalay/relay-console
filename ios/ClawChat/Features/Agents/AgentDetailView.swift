@@ -474,7 +474,11 @@ struct AgentEditSheet: View {
         self.agent = agent
         self.onSave = onSave
         self._name = State(initialValue: agent.name)
-        self._role = State(initialValue: agent.role)
+        self._role = State(
+            initialValue: agent.role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? (agent.description ?? "")
+                : agent.role
+        )
         self._avatarUrl = State(initialValue: agent.avatarUrl)
         self._description = State(initialValue: agent.description ?? "")
         self._workingHoursMode = State(initialValue: agent.workingHoursMode)
@@ -495,6 +499,11 @@ struct AgentEditSheet: View {
                         RelayPanel {
                             relayField(label: "Display name", prompt: "Agent name", text: $name)
                             if !name.isEmpty && trimmedName.isEmpty { validationText("Name cannot contain only spaces.") }
+                        }
+
+                        RelaySectionHeader(title: "Role")
+                        RelayPanel {
+                            relayField(label: "Role", prompt: "What does this agent do?", text: $role)
                         }
 
                         RelaySectionHeader(title: "Upload")
@@ -551,7 +560,7 @@ struct AgentEditSheet: View {
 
     private var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
     private var trimmedRole: String { role.trimmingCharacters(in: .whitespacesAndNewlines) }
-    private var canSave: Bool { !isSaving && !trimmedName.isEmpty && !trimmedRole.isEmpty }
+    private var canSave: Bool { !isSaving && !trimmedName.isEmpty }
 
     private func relayField(label: String, prompt: String, text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: RelaySpacing.xs) {

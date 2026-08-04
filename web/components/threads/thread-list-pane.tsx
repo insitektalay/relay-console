@@ -396,6 +396,12 @@ export function ThreadListPane({
                   ? [primaryAgent, ...threadAgents]
                   : threadAgents
               const threadTitle = resolveThreadTitle(thread)
+              const directAgentRole =
+                thread.type === "direct"
+                  ? primaryAgent?.role?.trim() ||
+                    primaryAgent?.description?.trim() ||
+                    ""
+                  : ""
               const threadTypeMeta = getThreadTypeMeta(thread.type)
               const appBadges = agentAppBadgesForThread(
                 thread,
@@ -408,7 +414,11 @@ export function ThreadListPane({
               return (
                 <div
                   key={thread.id}
-                  className={`relative h-[78px] w-full overflow-hidden rounded-[4px] px-3 py-2.5 text-left transition [contain-intrinsic-size:auto_78px] [content-visibility:auto] ${
+                  className={`relative w-full overflow-hidden rounded-[4px] px-3 py-2.5 text-left transition [content-visibility:auto] ${
+                    directAgentRole
+                      ? "h-[92px] [contain-intrinsic-size:auto_92px]"
+                      : "h-[78px] [contain-intrinsic-size:auto_78px]"
+                  } ${
                     thread.id === selectedThreadId
                       ? "bg-[color-mix(in_srgb,var(--claw-accent-blue)_13%,var(--claw-bg-sidebar-alt))] text-[var(--claw-text-primary)]"
                       : "bg-transparent text-[var(--claw-text-primary)] hover:bg-[var(--claw-bg-sidebar-alt)]"
@@ -431,12 +441,20 @@ export function ThreadListPane({
                               : null
                           }
                         />
-                        <div className="min-w-0 flex-1 space-y-1.5">
+                        <div className="min-w-0 flex-1 space-y-1">
                           <div className="flex min-w-0 items-center gap-2">
                             <div className="claw-caption min-w-0 flex-1 truncate leading-5 font-semibold">
                               {threadTitle}
                             </div>
                           </div>
+                          {directAgentRole ? (
+                            <div
+                              className="claw-meta truncate font-normal text-[var(--claw-text-muted)]"
+                              data-agent-role
+                            >
+                              {directAgentRole}
+                            </div>
+                          ) : null}
                           <AgentAppBadgeStrip badges={appBadges} />
                         </div>
                       </div>
@@ -467,7 +485,11 @@ export function ThreadListPane({
                         {threadTypeMeta.label}
                       </Badge>
                     </div>
-                    <div className="claw-meta absolute top-[54px] right-7 flex w-[82px] justify-end text-right leading-[18px] whitespace-nowrap">
+                    <div
+                      className={`claw-meta absolute right-7 flex w-[82px] justify-end text-right leading-[18px] whitespace-nowrap ${
+                        directAgentRole ? "top-[68px]" : "top-[54px]"
+                      }`}
+                    >
                       <div className="flex items-center justify-end gap-x-1">
                         {thread.unreadCount > 0 ? (
                           <div className="font-medium text-[#b9d6f8]">

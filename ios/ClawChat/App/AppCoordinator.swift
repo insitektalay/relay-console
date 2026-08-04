@@ -180,7 +180,6 @@ struct RootView: View {
     /// True while we attempt to restore a stored session on first launch.
     /// Prevents the login screen flashing before we know if tokens exist.
     @State private var isRestoringSession = true
-    @StateObject private var nativeAgentSetup = SettingsViewState()
 
     var body: some View {
         Group {
@@ -202,22 +201,6 @@ struct RootView: View {
                 coordinator.popToRoot()
             }
         }
-        .alert("Existing agents found", isPresented: $nativeAgentSetup.showExistingAgentsPrompt) {
-            Button("Connect all") {
-                nativeAgentSetup.selectAllNativeCandidates()
-                nativeAgentSetup.nativeDocumentConsent = true
-                guard let workspaceId = appStore.selectedWorkspace?.id else { return }
-                _Concurrency.Task {
-                    await nativeAgentSetup.connectSelectedNativeAgents(workspaceId: workspaceId)
-                }
-            }
-            Button("Choose agents") {
-                coordinator.push(.settings)
-            }
-            Button("Not now", role: .cancel) {}
-        } message: {
-            Text("\(nativeAgentSetup.existingNativeCandidates.count) Hermes or OpenClaw agent\(nativeAgentSetup.existingNativeCandidates.count == 1 ? " is" : "s are") available. Connecting shares only allowlisted instructions, memory, and Markdown skills with Relay and lets supported edits sync both ways. Native skills keep running on your runtime host; secrets, logs, caches, generated files, and previous conversations stay outside Relay. Disconnecting later leaves the native agents and their files in place.")
-        }
         .task {
             appStore.configureCache(modelContext)
             // Restore session from stored tokens (Railway backend).
@@ -226,15 +209,6 @@ struct RootView: View {
                 await appStore.loadWorkspaces()
             }
             isRestoringSession = false
-        }
-        .task(id: appStore.selectedWorkspace?.id) {
-            guard appStore.isAuthenticated,
-                  let workspaceId = appStore.selectedWorkspace?.id else { return }
-            while !_Concurrency.Task.isCancelled,
-                  appStore.selectedWorkspace?.id == workspaceId {
-                await nativeAgentSetup.loadNativeAgents(workspaceId: workspaceId)
-                try? await _Concurrency.Task.sleep(for: .seconds(10))
-            }
         }
     }
 

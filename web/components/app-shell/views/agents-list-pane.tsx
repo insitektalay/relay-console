@@ -280,7 +280,11 @@ export function RelayConsoleAgentsListPane({
                       </span>
                       <span className="mt-0.5 flex min-w-0 items-center gap-1.5">
                         <span className="claw-caption min-w-0 truncate font-medium text-zinc-400">
-                          {selectedAgentRecord?.role ?? selectedAgent.role}
+                          {selectedAgentRecord?.role?.trim() ||
+                            selectedAgentRecord?.description?.trim() ||
+                            selectedAgent.role?.trim() ||
+                            selectedAgent.description?.trim() ||
+                            "Agent"}
                         </span>
                         {selectedAgentRuntimeLabel ? (
                           <>

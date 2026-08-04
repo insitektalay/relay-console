@@ -1441,6 +1441,12 @@ struct BridgeDeviceCompatibility: Codable, Hashable, Sendable {
     let code: String?
     let release: String?
     let releaseStatus: String?
+    let level: String?
+    let operatingMode: String?
+    let verifiedRuntime: Bool?
+    let enabledCapabilities: [String]?
+    let disabledCapabilities: [String]?
+    let warnings: [String]?
 }
 
 struct BridgeDeviceSummary: Codable, Identifiable, Hashable, Sendable {

@@ -72,6 +72,9 @@ export type MarketplaceConnectorAuthConfig = {
     storedIn: "encrypted_secret" | "metadata";
     requiredForAuthTypes?: string[];
     helpText?: string;
+    inputType?: "text" | "select";
+    options?: Array<{ value: string; label: string }>;
+    defaultValue?: string;
   }>;
 };
 

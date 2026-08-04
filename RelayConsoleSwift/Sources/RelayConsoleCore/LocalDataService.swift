@@ -2292,6 +2292,16 @@ public final class LocalDataService {
         return try getAgent(agentId)
     }
 
+    public func updateAgentRole(agentId: String, role: String?) throws -> AgentWithBinding {
+        _ = try getAgent(agentId)
+        let normalizedRole = try optionalTrimmedString(role, field: "Role", maxLength: 160)
+        try database.run(
+            "UPDATE agents SET role = ?, updated_at = ? WHERE id = ?",
+            [normalizedRole.sqliteText, .text(nowIso()), .text(agentId)]
+        )
+        return try getAgent(agentId)
+    }
+
     public func setRuntimeBindingHermesProfile(
         agentId: String,
         profileSlug: String,

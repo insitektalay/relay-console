@@ -80,6 +80,6 @@ test("backend candidate advertises the dependency-bound bridge preview", () => {
   assert.equal(
     backend.plugins.find((plugin) => plugin.id === "hermes-agent-bridge")
       ?.runtimeDependencies?.python?.aiohttp,
-    "3.14.1",
+    ">=3.10,<4",
   );
 });

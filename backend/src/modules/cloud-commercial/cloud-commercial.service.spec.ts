@@ -185,7 +185,7 @@ describe("CloudCommercialService", () => {
           "relay-connector.v3",
         ],
         supportedPluginVersions: {
-          hermes: ["0.3.0-rc.2"],
+          hermes: ["0.3.0-rc.2", "0.3.0-rc.3", "0.3.0-rc.4", "0.3.0-rc.5", "0.3.0-rc.6"],
           openclaw: ["2026.7.31-rc.1"],
         },
       }),

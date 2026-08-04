@@ -17,8 +17,19 @@ test("Chats sidebar matches the Swift hierarchy", () => {
   assert.match(list, />\s*Conversations\s*</)
   assert.match(list, /h-12[^\n]*rounded-\[4px\][^\n]*border/)
   assert.match(list, /placeholder="Search conversations\.\.\."/)
-  assert.match(list, /h-\[78px\]/)
+  assert.match(list, /h-\[92px\]/)
   assert.match(list, /selectedThreadId/)
+})
+
+test("direct conversation cards show the assigned agent role above app icons", () => {
+  assert.match(
+    list,
+    /primaryAgent\?\.role\?\.trim\(\) \|\|\s*primaryAgent\?\.description\?\.trim\(\)/
+  )
+  assert.match(list, /data-agent-role/)
+  assert.ok(
+    list.indexOf("data-agent-role") < list.indexOf("<AgentAppBadgeStrip")
+  )
 })
 
 test("conversation cards show the correct runtime artwork", () => {

@@ -215,9 +215,12 @@ private struct CloudRuntimeReconciliationReport {
 struct CloudRelaySettingsPanel: View {
     enum Presentation {
         case settings
+        case importAgents
+        case advancedDiagnostics
         case accountSignIn
         case accountSession
         case accountSecurity
+        case dataPrivacy
     }
 
     @EnvironmentObject private var model: AppViewModel
@@ -245,8 +248,6 @@ struct CloudRelaySettingsPanel: View {
     @State private var runtimeProvisioningTargets: [CloudRuntimeProvisioningTargetItem] = []
     @State private var selectedNativeObservationIds: Set<String> = []
     @State private var nativeDocumentConsent = false
-    @State private var showExistingAgents = true
-    @State private var showExistingAgentsPrompt = false
     @State private var nativeObservationToDisconnect: CloudRuntimeObservationItem?
     @State private var runtimeReconciliation: CloudRuntimeReconciliationReport?
     @State private var accountSessions: [CloudAccountSessionItem] = []
@@ -258,7 +259,6 @@ struct CloudRelaySettingsPanel: View {
     @State private var destructiveAction: DestructiveAction?
     @State private var showBridgeDevices = true
     @State private var showAdvanced = false
-    @State private var showAccountSessions = false
     @State private var showAccountDeletion = false
     @State private var showRuntimeAuthority = false
     @State private var confirmSafeAuthorityRepairs = false
@@ -301,15 +301,19 @@ struct CloudRelaySettingsPanel: View {
             case .accountSecurity:
                 await loadAccountSessions()
                 return
+            case .dataPrivacy:
+                return
             case .accountSignIn, .accountSession:
                 return
             case .settings:
-                break
+                await loadBridgeDevices()
+            case .importAgents:
+                await loadRuntimeAuthority()
+                await loadNativeAgents()
+            case .advancedDiagnostics:
+                await loadBridgeDevices()
+                await loadRuntimeAuthority()
             }
-            await loadBridgeDevices()
-            await loadRuntimeAuthority()
-            await loadNativeAgents()
-            await loadAccountSessions()
         }
         .confirmationDialog("Are you sure?", isPresented: Binding(get: { destructiveAction != nil }, set: { if !$0 { destructiveAction = nil } }), presenting: destructiveAction) { action in
             Button(action == .deleteCloud ? "Permanently delete cloud workspace" : action == .unlink ? "Disconnect this Mac" : "Remove downloaded cloud data", role: .destructive) {
@@ -321,25 +325,6 @@ struct CloudRelaySettingsPanel: View {
         }
         .sheet(isPresented: $showAccountDeletion) {
             cloudAccountDeletionSheet
-        }
-        .alert("Existing agents found", isPresented: $showExistingAgentsPrompt) {
-            Button("Connect all") {
-                showExistingAgents = true
-                selectedNativeObservationIds = Set(existingNativeCandidates.map(\.id))
-                nativeDocumentConsent = true
-                Task { await connectSelectedNativeAgents() }
-            }
-            Button("Choose agents") { showExistingAgents = true }
-            Button("Not now", role: .cancel) {}
-        } message: {
-                Text(
-                    """
-                    \(existingNativeCandidates.count) Hermes or OpenClaw agent\(existingNativeCandidates.count == 1 ? " is" : "s are") available. \
-                    Connecting shares only allowlisted instructions, memory, and Markdown skills with Relay and lets supported edits sync both ways. \
-                    Native skills keep running on your runtime host; secrets, logs, caches, generated files, and previous conversations stay outside Relay. \
-                    Disconnecting later leaves the native agents and their files in place.
-                    """
-                )
         }
         .confirmationDialog(
             "Disconnect this agent from Relay?",
@@ -391,12 +376,18 @@ struct CloudRelaySettingsPanel: View {
         switch presentation {
         case .settings:
             settingsContent
+        case .importAgents:
+            importAgentsContent
+        case .advancedDiagnostics:
+            advancedDiagnosticsContent
         case .accountSignIn:
             accountSignInContent
         case .accountSession:
             accountSessionContent
         case .accountSecurity:
             accountSecurityContent
+        case .dataPrivacy:
+            dataPrivacyContent
         }
     }
 
@@ -409,11 +400,30 @@ struct CloudRelaySettingsPanel: View {
 
     private var accountSecurityContent: some View {
         VStack(alignment: .leading, spacing: 16) {
+            Text("Account & security").font(.title2.weight(.semibold))
+            Text("Manage your Relay password, signed-in devices, and this Mac’s account access.")
+                .foregroundStyle(.secondary)
             if manifest != nil, accountId != nil {
                 changePasswordSection
-                cloudAccountDataSection
+                accountSessionsSection
             }
             relayAccountSessionSection
+            accountMessage
+        }
+    }
+
+    private var dataPrivacyContent: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if let link = activeLink, isConnected(link) {
+                cloudWorkspaceDataSection
+            }
+            if manifest != nil, accountId != nil {
+                cloudAccountDataSection
+            } else {
+                Text("Sign in to export or delete Relay account data.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
             accountMessage
         }
     }
@@ -503,27 +513,62 @@ struct CloudRelaySettingsPanel: View {
     private var settingsContent: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Relay").font(.title2.weight(.semibold))
-            Text("Reach a runtime you operate from the web, iPhone, and iPad. The host Mac, PC, or server must remain online for agents to run.")
+            Text("See whether Relay, this Mac, and your agents are ready for access from web, iPhone, and iPad.")
                 .foregroundStyle(.secondary)
 
             if manifest == nil {
                 signInSection
             } else if let link = activeLink, isConnected(link) {
                 connectedSection(link)
+                runtimeHostHealthSection
                 connectAgentOwnershipSection
-                runtimeAuthoritySection(link)
-                existingAgentsSection(link)
-                bridgeDevicesSection(link)
-                advancedSection(link)
             } else {
                 workspaceSetupSection
             }
-            if model.relayCloudAgentCount > 0 {
-                cloudAgentVisibilitySection
+            if let message {
+                Label(message, systemImage: message.lowercased().contains("failed") ? "exclamationmark.triangle.fill" : "info.circle")
+                    .font(.callout)
+                    .foregroundStyle(message.lowercased().contains("failed") ? .red : .secondary)
             }
-            if manifest != nil, accountId != nil {
-                relayAccountSessionSection
-                cloudAccountDataSection
+        }
+    }
+
+    private var importAgentsContent: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("Import existing agents").font(.title2.weight(.semibold))
+            Text("Choose native Hermes or OpenClaw agents already configured on one of your runtime hosts.")
+                .foregroundStyle(.secondary)
+            if manifest == nil {
+                signInSection
+            } else if let link = activeLink, isConnected(link) {
+                existingAgentsSection(link)
+            } else {
+                workspaceSetupSection
+            }
+            if let message {
+                Label(message, systemImage: message.lowercased().contains("failed") ? "exclamationmark.triangle.fill" : "info.circle")
+                    .font(.callout)
+                    .foregroundStyle(message.lowercased().contains("failed") ? .red : .secondary)
+            }
+        }
+    }
+
+    private var advancedDiagnosticsContent: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Text("Advanced diagnostics").font(.title2.weight(.semibold))
+            Text("Technical runtime authority, bridge, and synchronization controls for troubleshooting.")
+                .foregroundStyle(.secondary)
+            if manifest == nil {
+                signInSection
+            } else if let link = activeLink, isConnected(link) {
+                runtimeAuthoritySection(link)
+                bridgeDevicesSection(link)
+                advancedSection(link)
+                if model.relayCloudAgentCount > 0 {
+                    cloudAgentVisibilitySection
+                }
+            } else {
+                workspaceSetupSection
             }
             if let message {
                 Label(message, systemImage: message.lowercased().contains("failed") ? "exclamationmark.triangle.fill" : "info.circle")
@@ -775,16 +820,68 @@ struct CloudRelaySettingsPanel: View {
                             .disabled(busy || transport == nil)
                     }
                 }
-                if (status?.pendingMutationCount ?? 0) > 0 {
-                    Text("\(status?.pendingMutationCount ?? 0) changes will sync automatically.")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
                 if (status?.conflictCount ?? 0) > 0 {
-                    Label("\(status?.conflictCount ?? 0) items need attention", systemImage: "exclamationmark.triangle")
+                    Label("Some Relay data could not sync", systemImage: "exclamationmark.triangle")
                         .font(.caption).foregroundStyle(.orange)
+                    Button("Review advanced diagnostics") {
+                        model.selectSettingsPanel(.relayDiagnostics)
+                    }
                 }
             }.padding(.top, 8)
         }
+    }
+
+    private var runtimeHostHealthSection: some View {
+        GroupBox("Runtime host") {
+            VStack(alignment: .leading, spacing: 10) {
+                let activeDevices = bridgeDevices.filter { $0.revokedAt == nil }
+                if activeDevices.isEmpty {
+                    Label("No active runtime host is connected", systemImage: "desktopcomputer.trianglebadge.exclamationmark")
+                        .foregroundStyle(.orange)
+                    Text("Connect or update the Relay bridge on the computer that runs Hermes or OpenClaw.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Link("Open runtime host setup", destination: URL(string: "https://relayconsole.work/install")!)
+                } else {
+                    ForEach(activeDevices) { device in
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: bridgeDeviceSymbol(device))
+                                .foregroundStyle(runtimeHostColor(device))
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(device.label).font(.headline)
+                                Text("\(friendlyRuntime(device.runtimeType)) · \(runtimeHostSummary(device))")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Text(runtimeHostStatus(device))
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(runtimeHostColor(device))
+                        }
+                    }
+                    if activeDevices.contains(where: { !$0.compatible }) {
+                        Link("Update runtime host", destination: URL(string: "https://relayconsole.work/install")!)
+                    }
+                }
+            }
+            .padding(.top, 8)
+        }
+    }
+
+    private func runtimeHostStatus(_ device: CloudBridgeDeviceItem) -> String {
+        if !device.compatible { return "Update required" }
+        return device.health == "online" ? "Ready" : "Offline"
+    }
+
+    private func runtimeHostSummary(_ device: CloudBridgeDeviceItem) -> String {
+        if !device.compatible { return "The Relay bridge needs updating" }
+        return device.health == "online"
+            ? "Available for remote agent execution"
+            : "This computer must be online for agents to run"
+    }
+
+    private func runtimeHostColor(_ device: CloudBridgeDeviceItem) -> Color {
+        device.compatible && device.health == "online" ? .green : .orange
     }
 
     private var cloudAgentVisibilitySection: some View {
@@ -806,9 +903,9 @@ struct CloudRelaySettingsPanel: View {
     }
 
     private var connectAgentOwnershipSection: some View {
-        GroupBox("Agents available through Relay") {
+        GroupBox("Agent availability") {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Linking publishes the canonical agent and assigns this Mac as its sole execution owner. It does not upload credentials or make the agent always-on.")
+                Text("Choose which current agents run on this Mac when you use them from web, iPhone, or iPad.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 let candidates = model.agents.filter {
@@ -830,15 +927,15 @@ struct CloudRelaySettingsPanel: View {
                             }
                             Spacer()
                             if agent.binding.connectLinked {
-                                Label("Linked", systemImage: "link")
+                                Label("Available remotely", systemImage: "checkmark.circle.fill")
                                     .font(.caption)
                                     .foregroundStyle(.green)
-                                Button("Unlink") {
+                                Button("Stop using this Mac") {
                                     Task { await setAgentConnectLink(agent.id, linked: false) }
                                 }
                                 .disabled(busy)
                             } else {
-                                Button("Link") {
+                                Button("Use this Mac") {
                                     Task { await setAgentConnectLink(agent.id, linked: true) }
                                 }
                                 .buttonStyle(.borderedProminent)
@@ -980,7 +1077,7 @@ struct CloudRelaySettingsPanel: View {
     }
 
     private func existingAgentsSection(_ link: CloudSavedLink) -> some View {
-        DisclosureGroup("Existing agents", isExpanded: $showExistingAgents) {
+        GroupBox("Agents found on your runtime hosts") {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Discovery reads safe metadata only. Relay reads allowlisted instructions, memory, and Markdown skills only after you explicitly select and connect an agent. Secrets and previous conversations are excluded.")
                     .font(.callout)
@@ -1089,7 +1186,7 @@ struct CloudRelaySettingsPanel: View {
                                         if observation.origin == "customer_existing",
                                            !observation.isDismissed,
                                            ["discovered", "disconnected"].contains(observation.connectionState) {
-                                            Button("Hide") {
+                                            Button("Ignore") {
                                                 Task { await dismissNativeAgent(observation) }
                                             }
                                             .disabled(busy)
@@ -1152,7 +1249,7 @@ struct CloudRelaySettingsPanel: View {
                     )
                 }
 
-                Button("Refresh existing agents") {
+                Button("Refresh discovered agents") {
                     Task { await loadNativeAgents(showFailure: true) }
                 }
                 .disabled(busy || transport == nil || link.remoteWorkspaceId.isEmpty)
@@ -1218,9 +1315,24 @@ struct CloudRelaySettingsPanel: View {
                 }
                 Divider()
                 Button("Disconnect this Mac", role: .destructive) { destructiveAction = .unlink }
-                Button("Remove downloaded cloud data from this Mac", role: .destructive) { destructiveAction = .clearCache }
-                Button("Permanently delete cloud workspace", role: .destructive) { destructiveAction = .deleteCloud }
             }.padding(.top, 8)
+        }
+    }
+
+    private var cloudWorkspaceDataSection: some View {
+        GroupBox("Relay workspace data") {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Manage downloaded Relay data on this Mac or permanently delete the online workspace for every connected device.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                Button("Remove downloaded cloud data from this Mac", role: .destructive) {
+                    destructiveAction = .clearCache
+                }
+                Button("Permanently delete cloud workspace", role: .destructive) {
+                    destructiveAction = .deleteCloud
+                }
+            }
+            .padding(.top, 8)
         }
     }
 
@@ -1239,51 +1351,6 @@ struct CloudRelaySettingsPanel: View {
                 .disabled(busy || transport == nil || accountId == nil)
                 .help("Save a secret-free export of the data stored for your Relay account")
                 .accessibilityLabel("Export Relay account data")
-                DisclosureGroup("Signed-in devices and browsers", isExpanded: $showAccountSessions) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Review active and revoked Relay account sessions. Revoking another session ends its API and realtime access immediately.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        if !accountSessionsLoaded {
-                            ProgressView("Loading sessions…")
-                                .controlSize(.small)
-                        } else if accountSessions.isEmpty {
-                            Text("No Relay account sessions were returned.")
-                                .font(.callout)
-                                .foregroundStyle(.secondary)
-                        } else {
-                            ForEach(accountSessions) { session in
-                                HStack(alignment: .top, spacing: 10) {
-                                    Image(systemName: session.kind == .device ? "desktopcomputer" : "globe")
-                                        .foregroundStyle(session.active ? .green : .secondary)
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        HStack(spacing: 6) {
-                                            Text(session.title).font(.callout.weight(.medium))
-                                            if session.current { Text("This Mac").font(.caption).foregroundStyle(.secondary) }
-                                        }
-                                        Text("\(session.subtitle) · Last seen \(friendlyTimestamp(session.lastSeenAt))")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    Spacer()
-                                    statusBadge(session.active ? "online" : "revoked")
-                                    if session.active && !session.current {
-                                        Button("Revoke", role: .destructive) {
-                                            Task { await revokeAccountSession(session) }
-                                        }
-                                        .disabled(busy)
-                                    }
-                                }
-                                .padding(8)
-                                .background(.quaternary.opacity(0.25))
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                            }
-                        }
-                        Button("Refresh sessions") { Task { await loadAccountSessions() } }
-                            .disabled(busy || transport == nil || accountId == nil)
-                    }
-                    .padding(.top, 8)
-                }
                 Divider()
                 Button("Delete Relay account…", role: .destructive) {
                     accountDeletionPassword = ""
@@ -1294,6 +1361,57 @@ struct CloudRelaySettingsPanel: View {
                 Text("This deletes your Relay account and owned online workspaces. Cancel your Relay subscription first, then leave or transfer shared workspaces. Data stored on this Mac remains available.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+            .padding(.top, 8)
+        }
+    }
+
+    private var accountSessionsSection: some View {
+        GroupBox("Signed-in devices and browsers") {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Review active Relay account sessions. Revoking another session ends its API and realtime access immediately.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if !accountSessionsLoaded {
+                    ProgressView("Loading sessions…")
+                        .controlSize(.small)
+                } else {
+                    let activeSessions = accountSessions.filter(\.active)
+                    if activeSessions.isEmpty {
+                        Text("No active Relay account sessions were returned.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(activeSessions) { session in
+                            HStack(alignment: .top, spacing: 10) {
+                                Image(systemName: session.kind == .device ? "desktopcomputer" : "globe")
+                                    .foregroundStyle(.green)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack(spacing: 6) {
+                                        Text(session.title).font(.callout.weight(.medium))
+                                        if session.current { Text("This Mac").font(.caption).foregroundStyle(.secondary) }
+                                    }
+                                    Text("\(session.subtitle) · Last seen \(friendlyTimestamp(session.lastSeenAt))")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                statusBadge("online")
+                                if !session.current {
+                                    Button("Revoke", role: .destructive) {
+                                        Task { await revokeAccountSession(session) }
+                                    }
+                                    .disabled(busy)
+                                }
+                            }
+                            .padding(8)
+                            .background(.quaternary.opacity(0.25))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                    }
+                }
+                Button("Refresh sessions") { Task { await loadAccountSessions() } }
+                    .disabled(busy || transport == nil || accountId == nil)
             }
             .padding(.top, 8)
         }
@@ -1342,7 +1460,7 @@ struct CloudRelaySettingsPanel: View {
         guard let workspaceId = model.workspace?.id else { return nil }
         return links.first {
             $0.localWorkspaceId == workspaceId
-                && $0.state != .unlinked
+                && ![.unlinked, .revoked].contains($0.state)
         }
     }
 
@@ -1363,7 +1481,7 @@ struct CloudRelaySettingsPanel: View {
         case .offline: return "Waiting for a connection"
         case .conflicted: return "Some items need attention"
         case .revoked: return "This Mac no longer has access"
-        default: return "Connected"
+        default: return "Relay account connected"
         }
     }
 
@@ -1985,12 +2103,6 @@ struct CloudRelaySettingsPanel: View {
             runtimeProvisioningTargets = targets.compactMap(CloudRuntimeProvisioningTargetItem.init)
             let candidateIds = Set(existingNativeCandidates.map(\.id))
             selectedNativeObservationIds.formIntersection(candidateIds)
-            let promptKey = "relay.existingAgentsPrompt.\(link.remoteWorkspaceId)"
-            if !existingNativeCandidates.isEmpty,
-               !UserDefaults.standard.bool(forKey: promptKey) {
-                UserDefaults.standard.set(true, forKey: promptKey)
-                showExistingAgentsPrompt = true
-            }
         } catch {
             nativeAgentObservations = []
             runtimeProvisioningTargets = []
