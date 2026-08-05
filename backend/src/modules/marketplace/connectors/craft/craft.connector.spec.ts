@@ -8,6 +8,10 @@ import { CRAFT_CONNECTOR_MANIFEST } from "./craft.connector";
 import { MarketplaceConnectorRegistry } from "../connector-registry";
 
 const credentials = {
+  apiUrl: "https://connect.craft.do/links/example_connection_123/api/v1",
+};
+
+const legacyCredentials = {
   apiUrl: "https://connect.craft.do/link/example_connection_123/api/v1",
 };
 
@@ -31,6 +35,9 @@ describe("Craft connector", () => {
     expect(CRAFT_READ_OPERATIONS).toHaveLength(9);
     expect(CRAFT_MANAGE_OPERATIONS).toHaveLength(16);
     expect(
+      CRAFT_CONNECTOR_MANIFEST.auth.credentialSchema[0]?.helpText,
+    ).toContain("https://connect.craft.do/links/.../api/v1");
+    expect(
       CRAFT_CONNECTOR_MANIFEST.approvalProfiles.find(
         (profile) => profile.id === "dangerously_skip_permissions",
       )?.approvalRequiredActions,
@@ -49,6 +56,18 @@ describe("Craft connector", () => {
       `${credentials.apiUrl}/folders`,
     );
     expect(JSON.stringify(result)).not.toContain("example_connection_123");
+  });
+
+  it("retains the documented singular connection URL for backward compatibility", async () => {
+    const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ items: [] }), { status: 200 }),
+    );
+    await expect(
+      new CraftApiAdapter().health(legacyCredentials),
+    ).resolves.toMatchObject({ providerRequestCount: 1 });
+    expect(fetchMock.mock.calls[0]?.[0].toString()).toBe(
+      `${legacyCredentials.apiUrl}/folders`,
+    );
   });
 
   it("maps exact read and manage operations without exposing a raw path", async () => {
@@ -80,13 +99,29 @@ describe("Craft connector", () => {
     expect((fetchMock.mock.calls[1]?.[1] as RequestInit).method).toBe("POST");
   });
 
-  it("rejects untrusted authorities, cross-policy operations, and credential fields", async () => {
+  it("rejects untrusted authorities and malformed connection paths", async () => {
     const adapter = new CraftApiAdapter();
-    await expect(
-      adapter.health({ apiUrl: "https://example.com/link/not-craft/api/v1" }),
-    ).rejects.toMatchObject<Partial<CraftApiError>>({
-      code: "provider_validation_error",
-    });
+    const invalidUrls = [
+      "https://example.com/links/example_connection_123/api/v1",
+      "http://connect.craft.do/links/example_connection_123/api/v1",
+      "https://user:password@connect.craft.do/links/example_connection_123/api/v1",
+      "https://connect.craft.do:444/links/example_connection_123/api/v1",
+      "https://connect.craft.do/links/example_connection_123/api/v1?query=1",
+      "https://connect.craft.do/links/example_connection_123/api/v1#fragment",
+      "https://connect.craft.do/links/short/api/v1",
+      `https://connect.craft.do/links/${"a".repeat(201)}/api/v1`,
+      "https://connect.craft.do/links/example_connection_123/api/v2",
+      "https://connect.craft.do/other/example_connection_123/api/v1",
+    ];
+    for (const apiUrl of invalidUrls) {
+      await expect(adapter.health({ apiUrl })).rejects.toMatchObject<
+        Partial<CraftApiError>
+      >({ code: "provider_validation_error" });
+    }
+  });
+
+  it("rejects cross-policy operations and credential fields", async () => {
+    const adapter = new CraftApiAdapter();
     expect(() =>
       adapter.callRead(credentials, { operation: "delete_documents" }),
     ).toThrow("Craft operation is not supported by this Relay action.");

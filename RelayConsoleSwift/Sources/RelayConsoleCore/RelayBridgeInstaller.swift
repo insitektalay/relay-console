@@ -51,14 +51,14 @@ public enum RelayBridgeInstallerError: LocalizedError {
 
 public final class RelayBridgeInstaller: @unchecked Sendable {
     public static let repositoryURL = "https://github.com/insitektalay/relay-console-bridge-plugins.git"
-    public static let pinnedRevision = "c030b8ee6eb5b23f370b9086b61dc574179f7465"
+    public static let pinnedRevision = "ff2c52e3858c71bebde400c008dd2a441e0b861b"
     public static let apiContractVersion = "v2"
     public static let websocketContractVersion = "bridge.v1"
 
     public static func pluginVersion(for runtime: RelayBridgeInstallRuntime) -> String {
         switch runtime {
         case .hermes: return "0.3.0-rc.6"
-        case .openclaw: return "2026.7.31-rc.1"
+        case .openclaw: return "2026.7.31-rc.4"
         }
     }
 

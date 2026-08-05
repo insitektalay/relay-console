@@ -357,6 +357,33 @@ describe("BridgeService", () => {
   });
 
   describe("bridge runtime authority", () => {
+    it("explains when an OpenClaw marketplace target is not live in this workspace", async () => {
+      const { service, eventsGateway } = await buildService();
+
+      await expect(
+        service.openClawMarketplaceInstallAvailability("ws-1", [
+          { name: "Luca Signoff", externalId: "luca_signoff" },
+        ]),
+      ).resolves.toEqual({
+        available: false,
+        message:
+          "Luca Signoff's OpenClaw runtime is not connected to this Railway workspace. Start or reconnect the OpenClaw bridge for this workspace, then try again.",
+      });
+
+      eventsGateway.getWorkspaceBridgeRuntime.mockReturnValueOnce({
+        connectedBridgeDeviceCount: 1,
+        bridgeControlSubscriberCount: 1,
+        liveRegisteredAgentCount: 1,
+        liveRegisteredExternalAgentIds: ["luca_signoff"],
+      });
+      eventsGateway.hasBridgeControlSubscribers.mockReturnValueOnce(true);
+      await expect(
+        service.openClawMarketplaceInstallAvailability("ws-1", [
+          { name: "Luca Signoff", externalId: "luca_signoff" },
+        ]),
+      ).resolves.toEqual({ available: true, message: null });
+    });
+
     it("requires live bridge device registration for external agents", async () => {
       const { service, eventsGateway } = await buildService();
 
@@ -704,6 +731,48 @@ describe("BridgeService", () => {
         ["library.write.result"],
         60_000,
       );
+    });
+
+    it("allows generated JSON metadata in the OpenClaw documentation library", async () => {
+      const { service } = await buildService();
+      const requestSpy = jest
+        .spyOn(service as any, "sendBridgeLibraryRequest")
+        .mockResolvedValue({
+          folder: "marketplace/amplitude",
+          written: ["roles_manifest.json"],
+          createdFolder: false,
+        });
+
+      await service.writeLibraryFiles("ws-1", "marketplace/amplitude", [
+        {
+          filename: "roles_manifest.json",
+          content: "{}",
+          contentEncoding: "utf8",
+        },
+      ]);
+
+      expect(requestSpy).toHaveBeenCalledWith(
+        "ws-1",
+        "library.write",
+        expect.objectContaining({
+          files: [expect.objectContaining({ filename: "roles_manifest.json" })],
+        }),
+        ["library.write.result"],
+        60_000,
+      );
+    });
+
+    it("keeps arbitrary JSON blocked from OpenClaw agent workspaces", async () => {
+      const { service } = await buildService();
+      const requestSpy = jest.spyOn(service as any, "sendBridgeControlRequest");
+
+      await expect(
+        service.writeAgentWorkspaceFiles("ws-1", "agent-1", "", [
+          { filename: "secrets.json", content: "{}" },
+        ]),
+      ).rejects.toThrow("Enter a markdown, env, or PNG filename");
+
+      expect(requestSpy).not.toHaveBeenCalled();
     });
 
     it.each([

@@ -305,7 +305,10 @@ type LocalAppAutoConnectResult = {
   };
   campaigns: MarketplaceLocalAppCampaignPayload[];
   selectedCampaign: MarketplaceLocalAppCampaignPayload | null;
-  policySync: LocalAppConnectorPolicySyncResult | Record<string, unknown> | null;
+  policySync:
+    | LocalAppConnectorPolicySyncResult
+    | Record<string, unknown>
+    | null;
   installResults: Array<Record<string, unknown>>;
   neededToolsSummary: Record<string, unknown> | null;
   userActionRequired: string | null;
@@ -678,8 +681,10 @@ export class MarketplaceService {
         userId,
       ),
       lifecycle: this.sanitizeLocalAppLifecycleMetadata(dto.lifecycle),
-      localappconnectorCampaignId: dto.localappconnectorCampaignId?.trim() || null,
-      localappconnectorCampaignName: dto.localappconnectorCampaignName?.trim() || null,
+      localappconnectorCampaignId:
+        dto.localappconnectorCampaignId?.trim() || null,
+      localappconnectorCampaignName:
+        dto.localappconnectorCampaignName?.trim() || null,
     };
     localRepoMetadata.runtimeProfile = resolveLocalAppRuntimeProfile({
       appSlug: slug,
@@ -800,10 +805,16 @@ export class MarketplaceService {
           }
         : {}),
       ...(dto.localappconnectorCampaignId !== undefined
-        ? { localappconnectorCampaignId: dto.localappconnectorCampaignId?.trim() || null }
+        ? {
+            localappconnectorCampaignId:
+              dto.localappconnectorCampaignId?.trim() || null,
+          }
         : {}),
       ...(dto.localappconnectorCampaignName !== undefined
-        ? { localappconnectorCampaignName: dto.localappconnectorCampaignName?.trim() || null }
+        ? {
+            localappconnectorCampaignName:
+              dto.localappconnectorCampaignName?.trim() || null,
+          }
         : {}),
       ...(dto.documentationAutomationMode !== undefined
         ? {
@@ -868,10 +879,14 @@ export class MarketplaceService {
       );
     }
     if (dto.autonomyPolicy !== undefined) {
-      await this.syncLocalAppConnectorCampaignPolicyForLinkedApp(workspaceId, linked, {
-        policy: nextAutonomyPolicy,
-        reason: "autonomy_policy_update",
-      });
+      await this.syncLocalAppConnectorCampaignPolicyForLinkedApp(
+        workspaceId,
+        linked,
+        {
+          policy: nextAutonomyPolicy,
+          reason: "autonomy_policy_update",
+        },
+      );
       await this.refreshInstalledAgentDocs(workspaceId, appSlug, userId, {
         trigger: "autonomy_policy_update",
       });
@@ -2462,7 +2477,9 @@ export class MarketplaceService {
           ? { localappconnectorCampaignId: input.campaignId?.trim() || null }
           : {}),
         ...(input.campaignName !== undefined
-          ? { localappconnectorCampaignName: input.campaignName?.trim() || null }
+          ? {
+              localappconnectorCampaignName: input.campaignName?.trim() || null,
+            }
           : {}),
       };
       linked.apiStyleMetadata = {
@@ -2511,8 +2528,12 @@ export class MarketplaceService {
       throw new BadRequestException("OpenClaw base URL is required.");
     }
     const existingConnectionId =
-      this.stringOrNull(linked.metadata?.localappconnectorOpenClawConnectionId) ??
-      this.stringOrNull(linked.apiStyleMetadata?.localappconnectorOpenClawConnectionId);
+      this.stringOrNull(
+        linked.metadata?.localappconnectorOpenClawConnectionId,
+      ) ??
+      this.stringOrNull(
+        linked.apiStyleMetadata?.localappconnectorOpenClawConnectionId,
+      );
     const connection =
       await this.bridgeService.configureWorkspaceOpenClawConnection({
         workspaceId,
@@ -2811,7 +2832,8 @@ export class MarketplaceService {
       actorType: "user",
       actorId: userId,
       workspaceId,
-      eventType: "marketplace.localappconnector_agent_api.auto_connect.completed",
+      eventType:
+        "marketplace.localappconnector_agent_api.auto_connect.completed",
       resourceType: "marketplace_app",
       resourceId: appSlug,
       metadata: {
@@ -3021,12 +3043,18 @@ export class MarketplaceService {
     linked: LinkedApplicationEntity,
   ) {
     return (
-      this.stringOrNull(linked.metadata?.localappconnectorOpenClawConnectionId) ??
-      this.stringOrNull(linked.apiStyleMetadata?.localappconnectorOpenClawConnectionId)
+      this.stringOrNull(
+        linked.metadata?.localappconnectorOpenClawConnectionId,
+      ) ??
+      this.stringOrNull(
+        linked.apiStyleMetadata?.localappconnectorOpenClawConnectionId,
+      )
     );
   }
 
-  private deriveLocalAppConnectorAgentApiBaseUrl(source: Record<string, unknown>) {
+  private deriveLocalAppConnectorAgentApiBaseUrl(
+    source: Record<string, unknown>,
+  ) {
     const explicit =
       this.stringOrNull(source.localappconnectorOpenClawBaseUrl) ??
       this.stringOrNull(source.agentApiBaseUrl);
@@ -3107,7 +3135,9 @@ export class MarketplaceService {
     campaign: MarketplaceLocalAppCampaignPayload,
     policy: LocalAppAutonomyPolicy,
   ): LocalAppConnectorPolicySyncResult {
-    const expectedMode = this.mapClawChatModeToLocalAppConnectorMode(policy.mode);
+    const expectedMode = this.mapClawChatModeToLocalAppConnectorMode(
+      policy.mode,
+    );
     const localappconnectorMode = this.extractPolicyMode(raw) ?? expectedMode;
     const status =
       raw && String(raw.status ?? "synced") !== "failed"
@@ -3206,7 +3236,8 @@ export class MarketplaceService {
         {
           status: "failed",
           stage: "install",
-          message: "Select at least one agent before installing LocalAppConnector.",
+          message:
+            "Select at least one agent before installing LocalAppConnector.",
         },
       ];
     }
@@ -3271,7 +3302,10 @@ export class MarketplaceService {
     setup: MarketplaceLocalAppAgentApiSetupResponsePayload;
     campaigns: MarketplaceLocalAppCampaignPayload[];
     selectedCampaign: MarketplaceLocalAppCampaignPayload | null;
-    policySync: LocalAppConnectorPolicySyncResult | Record<string, unknown> | null;
+    policySync:
+      | LocalAppConnectorPolicySyncResult
+      | Record<string, unknown>
+      | null;
     installResults: Array<Record<string, unknown>>;
     docsRefreshed: boolean;
     agentPacksInstalled: boolean;
@@ -5679,6 +5713,60 @@ export class MarketplaceService {
       targetMode,
       app,
     );
+    if (!workspaceAgents.length) {
+      throw new BadRequestException("Select at least one target agent");
+    }
+
+    if (runtimeFormat === "openclaw") {
+      const nonOpenClawAgent = workspaceAgents.find(
+        (agent) => this.resolveAgentRuntimeType(agent) !== "openclaw",
+      );
+      const availability = nonOpenClawAgent
+        ? {
+            available: false,
+            message:
+              "Select an OpenClaw agent before installing an OpenClaw marketplace app.",
+          }
+        : await this.bridgeService.openClawMarketplaceInstallAvailability(
+            workspaceId,
+            workspaceAgents.map((agent) => ({
+              name: agent.name,
+              externalId: agent.externalId,
+            })),
+          );
+      if (!availability.available) {
+        await this.auditLogService.record({
+          actorType: "user",
+          actorId: userId,
+          workspaceId,
+          eventType: "marketplace.openclaw_install.unavailable",
+          resourceType: "marketplace_app",
+          resourceId: app.slug,
+          metadata: {
+            appSlug: app.slug,
+            runtimeFormat,
+            targetMode,
+            role: installRole,
+            agentIds: workspaceAgents.map((agent) => agent.id),
+            reason: availability.message,
+          },
+        });
+        return {
+          app,
+          pack: null,
+          syncedFiles: [],
+          installs: [],
+          runtimeFormat,
+          status: "unavailable",
+          message: availability.message,
+          requiredCapability: null,
+          bridgeRequest: null,
+          bridgeResponse: null,
+          createdAgent: null,
+        };
+      }
+    }
+
     await this.auditLogService.record({
       actorType: "user",
       actorId: userId,
@@ -5694,9 +5782,6 @@ export class MarketplaceService {
         agentIds: workspaceAgents.map((agent) => agent.id),
       },
     });
-    if (!workspaceAgents.length) {
-      throw new BadRequestException("Select at least one target agent");
-    }
 
     if (runtimeFormat === "hermes") {
       return this.installHermesPack({
@@ -6526,10 +6611,16 @@ export class MarketplaceService {
       localappconnectorOpenClawStatus:
         metadata.localappconnectorOpenClawStatus &&
         typeof metadata.localappconnectorOpenClawStatus === "object"
-          ? (metadata.localappconnectorOpenClawStatus as Record<string, unknown>)
+          ? (metadata.localappconnectorOpenClawStatus as Record<
+              string,
+              unknown
+            >)
           : source.localappconnectorOpenClawStatus &&
               typeof source.localappconnectorOpenClawStatus === "object"
-            ? (source.localappconnectorOpenClawStatus as Record<string, unknown>)
+            ? (source.localappconnectorOpenClawStatus as Record<
+                string,
+                unknown
+              >)
             : null,
       localappconnectorPolicySync:
         metadata.localappconnectorPolicySync &&
@@ -6739,8 +6830,12 @@ export class MarketplaceService {
         metadata: input,
       }),
       autonomyPolicy: normalizeLocalAppAutonomyPolicy(input?.autonomyPolicy),
-      localappconnectorCampaignId: this.stringOrNull(input?.localappconnectorCampaignId),
-      localappconnectorCampaignName: this.stringOrNull(input?.localappconnectorCampaignName),
+      localappconnectorCampaignId: this.stringOrNull(
+        input?.localappconnectorCampaignId,
+      ),
+      localappconnectorCampaignName: this.stringOrNull(
+        input?.localappconnectorCampaignName,
+      ),
       localappconnectorOpenClawBaseUrl: this.stringOrNull(
         input?.localappconnectorOpenClawBaseUrl,
       ),

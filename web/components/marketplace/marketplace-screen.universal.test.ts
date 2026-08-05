@@ -124,6 +124,67 @@ test("all three generic clients render Railway-defined select credentials", asyn
   assert.match(jotform, /"defaultValue": "standard"/)
 })
 
+test("PayPal delegates its bounded environment selector to the generic clients", async () => {
+  const [paypal, railwayCatalog, macCatalog] = await Promise.all([
+    source("packages/marketplace-catalog/providers/paypal/manifest.json").then(
+      JSON.parse
+    ),
+    source(
+      "backend/src/modules/marketplace/catalog/generated-provider-catalog.json"
+    ).then(JSON.parse),
+    source(
+      "RelayConsoleSwift/Sources/RelayConsoleCore/Resources/marketplace-provider-catalog.json"
+    ).then(JSON.parse),
+  ])
+  type CredentialOption = {
+    value: string
+    label: string
+  }
+  type CredentialRequirement = {
+    name: string
+    inputType?: "text" | "select"
+    options?: CredentialOption[]
+    defaultValue?: string
+  }
+  type MarketplaceManifest = {
+    slug: string
+    connection: {
+      credentialRequirements: CredentialRequirement[]
+    }
+  }
+  const environmentFrom = (provider: {
+    slug: string
+    connection: { credentialRequirements: CredentialRequirement[] }
+  } | undefined) => {
+    assert.ok(provider, "PayPal provider must be present")
+    const environment = provider.connection.credentialRequirements.find(
+      (credential) => credential.name === "PAYPAL_ENVIRONMENT"
+    )
+    assert.ok(environment, "PayPal environment credential must be present")
+    return environment
+  }
+  const environment = environmentFrom(paypal)
+  const railwayEnvironment = environmentFrom(
+    railwayCatalog.manifests.find(
+      (provider: MarketplaceManifest) => provider.slug === "paypal"
+    )
+  )
+  const macEnvironment = environmentFrom(
+    macCatalog.manifests.find(
+      (provider: MarketplaceManifest) => provider.slug === "paypal"
+    )
+  )
+
+  assert.deepEqual(environment.options, [
+    { value: "sandbox", label: "Sandbox" },
+    { value: "live", label: "Live" },
+  ])
+  assert.equal(environment.inputType, "select")
+  assert.equal(environment.defaultValue, "sandbox")
+  assert.deepEqual(railwayEnvironment, environment)
+  assert.deepEqual(macEnvironment, environment)
+})
+
 test("all three clients render one state-appropriate OAuth action", async () => {
   const [mac, iphone, webSetup, jotform] = await Promise.all([
     source(
@@ -233,4 +294,36 @@ test("generic agent switches persist assignments directly on all three clients",
     iphone,
     /connection: selectedConnection \?\? preferredConnection/
   )
+})
+
+test("the Mac connected-app and conversation projections survive catalog filtering", async () => {
+  const [refresh, credentials, sidebar, conversations] = await Promise.all([
+    source(
+      "RelayConsoleSwift/Sources/RelayConsoleApp/Features/Applications/AppViewModel+ApplicationRefresh.swift"
+    ),
+    source(
+      "RelayConsoleSwift/Sources/RelayConsoleApp/Features/Applications/AppViewModel+ApplicationCatalogCredentials.swift"
+    ),
+    source(
+      "RelayConsoleSwift/Sources/RelayConsoleApp/Features/Applications/ApplicationCatalogViews.swift"
+    ),
+    source("RelayConsoleSwift/Sources/RelayConsoleApp/AppViewModel.swift"),
+  ])
+
+  assert.match(
+    refresh,
+    /let nextApplicationsCatalogApps = try loadUnfilteredApplicationsCatalogApps/
+  )
+  assert.doesNotMatch(
+    refresh,
+    /let nextApplicationsCatalogApps = nextApplicationsCatalog\.apps/
+  )
+  assert.match(
+    credentials,
+    /applicationsCatalogApps = try self\.loadUnfilteredApplicationsCatalogApps/
+  )
+  assert.doesNotMatch(credentials, /applicationsCatalogApps = next\.apps/)
+  assert.match(sidebar, /catalogApps\.filter/)
+  assert.doesNotMatch(sidebar, /\(snapshot\?\.apps \?\? \[\]\)\.filter/)
+  assert.match(conversations, /let sourceApps =\s*applicationsCatalogApps/)
 })

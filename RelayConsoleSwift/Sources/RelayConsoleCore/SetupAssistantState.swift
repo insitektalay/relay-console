@@ -88,6 +88,7 @@ public enum SetupBridgeCompatibilityLevel: String, Codable, Equatable, Sendable 
 }
 
 public struct SetupBridgeCompatibilitySummary: Codable, Equatable, Sendable {
+    public var code: String?
     public var level: SetupBridgeCompatibilityLevel
     public var operatingMode: String
     public var runtimeVersion: String?
@@ -96,6 +97,7 @@ public struct SetupBridgeCompatibilitySummary: Codable, Equatable, Sendable {
     public var warnings: [String]
 
     public init(
+        code: String? = nil,
         level: SetupBridgeCompatibilityLevel,
         operatingMode: String,
         runtimeVersion: String?,
@@ -103,6 +105,7 @@ public struct SetupBridgeCompatibilitySummary: Codable, Equatable, Sendable {
         disabledCapabilities: [String],
         warnings: [String]
     ) {
+        self.code = code
         self.level = level
         self.operatingMode = operatingMode
         self.runtimeVersion = runtimeVersion
@@ -121,6 +124,7 @@ public enum SetupBridgeCompatibilityParser {
               let operatingMode = response["operatingMode"] as? String
         else { return nil }
         return SetupBridgeCompatibilitySummary(
+            code: response["code"] as? String,
             level: level,
             operatingMode: operatingMode,
             runtimeVersion: response["runtimeVersion"] as? String,

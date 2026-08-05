@@ -6,6 +6,7 @@ struct SetupAssistantView: View {
   @EnvironmentObject private var model: AppViewModel
   @State private var showsLocationHelp = false
   @State private var showBackendConfirmation = false
+  @State private var showsRemoteComputerInstaller = false
 
   var body: some View {
     ZStack {
@@ -15,6 +16,12 @@ struct SetupAssistantView: View {
           Label("Setup & Connections", systemImage: "point.3.connected.trianglepath.dotted")
             .font(.headline)
           Spacer()
+          Button("Close", systemImage: "xmark") {
+            model.dismissSetupAssistant()
+          }
+          .buttonStyle(SecondaryLightButtonStyle())
+          .keyboardShortcut(.cancelAction)
+          .accessibilityLabel("Close setup and connections")
         }
         Divider()
         ScrollView {
@@ -63,7 +70,7 @@ struct SetupAssistantView: View {
     case .remoteRuntimes: remoteRuntimesStep
     case .remoteOperatingSystem: remoteOperatingSystemStep
     case .remoteInstallation: remoteInstallationStep
-    case .remotePairing: remotePairingStep
+    case .remotePairing: remoteInstallationStep
     case .installationGuides: installationGuidesStep
     case .installationGuideReturn: installationGuideReturnStep
     case .complete: completionStep
@@ -381,268 +388,256 @@ struct SetupAssistantView: View {
 
   private var remoteInstallationStep: some View {
     setupPage(
-      title: "Install the Relay bridge",
-      subtitle: "Install one bridge beside each selected runtime. Relay does not install or update Hermes Agent or OpenClaw, configure model providers, or ask for provider API keys."
+      title: "Remote Access",
+      subtitle: "Connect each runtime so Relay can reach its agents from the web, iPhone and iPad."
     ) {
       ForEach(Array(model.setupAssistant.selectedRemoteRuntimes).sorted { $0.rawValue < $1.rawValue }, id: \.self) { runtime in
-        setupCard {
-          HStack {
-            Text(runtime.displayName).font(.headline)
-            Spacer()
-            Text("BRIDGE PREVIEW")
-              .font(.caption2.weight(.bold))
-              .foregroundStyle(RCTheme.accentAmber)
-          }
-          Label(AppViewModel.bridgeInstallerPreviewNotice, systemImage: "checkmark.shield")
-            .font(.caption).foregroundStyle(RCTheme.accentAmber)
+        compactBridgeCard(runtime)
+      }
 
-          if model.setupAssistant.remoteOperatingSystem == .macOS,
-            model.hasLocalRuntimeForBridge(runtime)
-          {
-            Text("On this Mac")
-              .font(.callout.weight(.semibold))
-            Text("Relay can install, pair, start and check this bridge automatically beside the \(runtime.displayName) installation it already found.")
-              .font(.caption).foregroundStyle(RCTheme.muted)
-            if model.setupBridgeInstallInProgress.contains(runtime) {
-              HStack(spacing: 8) {
-                ProgressView().controlSize(.small)
-                Text("Installing and checking the bridge…")
-              }.font(.caption)
-            } else {
-              Button("Install \(runtime.displayName) Bridge on This Mac") {
-                Task { await model.installSetupBridgeOnThisMac(for: runtime) }
-              }
-              .buttonStyle(PrimaryLightButtonStyle())
-            }
-            pairingOutcome(for: runtime)
+      DisclosureGroup(isExpanded: $showsRemoteComputerInstaller) {
+        VStack(alignment: .leading, spacing: 14) {
+          Text("Use this only when the selected runtime is on a different Mac or Linux computer.")
+            .font(.caption)
+            .foregroundStyle(RCTheme.muted)
+          ForEach(Array(model.setupAssistant.selectedRemoteRuntimes).sorted { $0.rawValue < $1.rawValue }, id: \.self) { runtime in
+            remoteComputerInstaller(for: runtime)
           }
-
-          Divider()
-          Text(model.setupAssistant.remoteOperatingSystem == .linux
-            ? "On a Linux VPS or server"
-            : "On another Mac, Mac mini or Linux VPS")
-            .font(.callout.weight(.semibold))
-          Text("Copy this command, paste it into Terminal on the runtime computer, then paste the one-time pairing code when it asks. The code is not included in the command or saved in shell history.")
-            .font(.caption).foregroundStyle(RCTheme.muted)
-          if let command = model.setupTerminalInstallCommand(for: runtime) {
-            Text(command)
-              .font(.caption.monospaced())
-              .textSelection(.enabled)
-              .padding(10)
-              .frame(maxWidth: .infinity, alignment: .leading)
-              .background(RCTheme.surfaceInset)
-              .clipShape(RoundedRectangle(cornerRadius: 8))
-            HStack {
-              Button("Copy Terminal Command") {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(command, forType: .string)
-              }.buttonStyle(PrimaryLightButtonStyle())
-              Button("Generate Pairing Code") {
-                Task { await model.generateSetupPairingCode(for: runtime) }
-              }
-              .buttonStyle(SecondaryLightButtonStyle())
-              .disabled(model.setupPairingInProgress.contains(runtime))
-            }
-            let pairing = model.setupAssistant.pairing[runtime] ?? SetupPairingCode()
-            if pairing.state == .ready && !pairing.isExpired {
-              HStack {
-                Text(pairing.code).font(.title3.monospaced()).textSelection(.enabled)
-                Button("Copy Code") {
-                  NSPasteboard.general.clearContents()
-                  NSPasteboard.general.setString(pairing.code, forType: .string)
-                }.buttonStyle(SecondaryLightButtonStyle())
-              }
-            }
-            if !model.hasLocalRuntimeForBridge(runtime) {
-              pairingOutcome(for: runtime)
-            }
-          }
-          Link("View advanced manual instructions", destination: URL(string: "https://github.com/insitektalay/relay-console-bridge-plugins/blob/main/docs/INSTALL.md")!)
         }
+        .padding(.top, 10)
+      } label: {
+        Label("Install on another computer", systemImage: "desktopcomputer.and.arrow.down")
+          .font(.callout.weight(.semibold))
       }
-      Button("Continue to Check Bridge Status") { model.setupAdvance(.remotePairing) }
-        .buttonStyle(PrimaryLightButtonStyle())
-    }
-  }
+      .padding(14)
+      .background(RCTheme.surfaceInset)
+      .clipShape(RoundedRectangle(cornerRadius: 10))
+      .overlay(RoundedRectangle(cornerRadius: 10).stroke(RCTheme.borderSoft))
 
-  private var remotePairingStep: some View {
-    setupPage(
-      title: "Pair your remote machine",
-      subtitle: "Each pairing code is temporary, expires after ten minutes and can only be used once. Connected appears only after Railway reports the expected bridge online and compatible."
-    ) {
-      ForEach(Array(model.setupAssistant.selectedRemoteRuntimes).sorted { $0.rawValue < $1.rawValue }, id: \.self) { runtime in
-        pairingCard(runtime)
-      }
-      bridgeStatusButton()
-      bridgeStatusLastCheckedLabel()
-      if model.setupAssistant.selectedRemoteRuntimes.allSatisfy({ model.setupAssistant.pairing[$0]?.state == .connected }) {
+      if allSelectedBridgesConnected {
         Button("Finish Setup") { model.finishSetupAssistant() }
-          .buttonStyle(PrimaryLightButtonStyle()).keyboardShortcut(.defaultAction)
+          .buttonStyle(PrimaryLightButtonStyle())
+          .keyboardShortcut(.defaultAction)
+      }
+    }
+    .task {
+      await model.refreshSetupBridgeStatus()
+      while !Task.isCancelled {
+        try? await Task.sleep(nanoseconds: 5_000_000_000)
+        guard !Task.isCancelled else { break }
+        await model.refreshSetupBridgeStatus()
       }
     }
   }
 
-  private func pairingCard(_ runtime: SetupRemoteRuntime) -> some View {
+  private var allSelectedBridgesConnected: Bool {
+    !model.setupAssistant.selectedRemoteRuntimes.isEmpty
+      && model.setupAssistant.selectedRemoteRuntimes.allSatisfy {
+        model.setupBridgeOnlineRuntimes.contains($0)
+      }
+  }
+
+  private func compactBridgeCard(_ runtime: SetupRemoteRuntime) -> some View {
     let pairing = model.setupAssistant.pairing[runtime] ?? SetupPairingCode()
-    return AnyView(setupCard {
-      HStack {
+    let isOnline = model.setupBridgeOnlineRuntimes.contains(runtime)
+    let canInstallLocally = model.setupAssistant.remoteOperatingSystem == .macOS
+      && model.hasLocalRuntimeForBridge(runtime)
+    return setupCard {
+      HStack(alignment: .firstTextBaseline) {
         Text(runtime.displayName).font(.headline)
         Spacer()
-        Text(pairingStateLabel(pairing)).font(.caption.weight(.semibold))
-      }
-      if pairing.state == .ready && !pairing.isExpired {
-        Text(pairing.code).font(.title3.monospaced()).textSelection(.enabled)
-        Text("Expires \(pairing.expiresAt.formatted(date: .omitted, time: .shortened))")
-          .font(.caption).foregroundStyle(RCTheme.muted)
-        Button("Copy Pairing Code") {
-          NSPasteboard.general.clearContents()
-          NSPasteboard.general.setString(pairing.code, forType: .string)
-        }.buttonStyle(SecondaryLightButtonStyle())
-      }
-      pairingOutcome(for: runtime)
-      HStack {
-        Button(pairing.code.isEmpty ? "Generate Pairing Code" : "Generate New Code") {
-          Task { await model.generateSetupPairingCode(for: runtime) }
-        }.buttonStyle(SecondaryLightButtonStyle())
-          .disabled(model.setupPairingInProgress.contains(runtime))
-        Link("Show Installation Instructions", destination: URL(string: "https://github.com/insitektalay/relay-console-bridge-plugins/blob/main/docs/INSTALL.md")!)
-      }
-    })
-  }
-
-  @ViewBuilder
-  private func pairingOutcome(for runtime: SetupRemoteRuntime) -> some View {
-    let pairing = model.setupAssistant.pairing[runtime] ?? SetupPairingCode()
-    if let message = pairing.detailMessage, !message.isEmpty {
-      VStack(alignment: .leading, spacing: 8) {
-        Label(pairingOutcomeTitle(pairing), systemImage: pairing.state == .connected ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-          .font(.callout.weight(.semibold))
-          .foregroundStyle(pairing.state == .connected ? RCTheme.accentGreen : RCTheme.accentAmber)
-        Text(message)
-          .font(.caption)
-          .foregroundStyle(RCTheme.muted)
-          .fixedSize(horizontal: false, vertical: true)
-        if let compatibility = pairing.compatibility {
-          HStack(spacing: 6) {
-            Image(systemName: compatibility.level == .verified
-              ? "checkmark.seal.fill"
-              : compatibility.level == .compatible
-                ? "shield.lefthalf.filled"
-                : "xmark.octagon.fill")
-            Text(compatibility.level == .verified
-              ? "Verified · Full functionality"
-              : compatibility.level == .compatible
-                ? "Compatible · Safe mode"
-                : "Unsupported")
-          }
+        Text(compactBridgeStatus(pairing, isOnline: isOnline))
           .font(.caption.weight(.semibold))
-          .foregroundStyle(compatibility.level == .unsupported ? RCTheme.accentAmber : RCTheme.accentGreen)
-          if !compatibility.disabledCapabilities.isEmpty {
-            Text("Disabled until this runtime version is verified: \(compatibility.disabledCapabilities.joined(separator: ", "))")
-              .font(.caption2)
+          .foregroundStyle(compactBridgeStatusColor(pairing, isOnline: isOnline))
+          .padding(.horizontal, 9)
+          .padding(.vertical, 4)
+          .background(compactBridgeStatusColor(pairing, isOnline: isOnline).opacity(0.12))
+          .clipShape(Capsule())
+      }
+
+      Text(compactBridgeSummary(runtime, pairing: pairing, isOnline: isOnline, canInstallLocally: canInstallLocally))
+        .font(.callout)
+        .foregroundStyle(RCTheme.muted)
+        .fixedSize(horizontal: false, vertical: true)
+
+      if model.setupBridgeInstallInProgress.contains(runtime) {
+        HStack(spacing: 8) {
+          ProgressView().controlSize(.small)
+          Text("Installing, pairing and connecting…")
+        }
+        .font(.callout.weight(.semibold))
+      } else {
+        compactBridgePrimaryAction(
+          runtime,
+          pairing: pairing,
+          isOnline: isOnline,
+          canInstallLocally: canInstallLocally
+        )
+      }
+
+      DisclosureGroup("Details") {
+        VStack(alignment: .leading, spacing: 8) {
+          Label(AppViewModel.bridgeInstallerPreviewNotice, systemImage: "checkmark.shield")
+            .font(.caption)
+            .foregroundStyle(RCTheme.accentAmber)
+          if let compatibility = pairing.compatibility {
+            Text(compactCompatibilitySummary(compatibility))
+              .font(.caption)
+              .foregroundStyle(RCTheme.muted)
+            if !compatibility.disabledCapabilities.isEmpty {
+              DisclosureGroup("Technical details") {
+                Text("Unavailable capabilities: \(compatibility.disabledCapabilities.joined(separator: ", "))")
+                  .font(.caption2.monospaced())
+                  .foregroundStyle(RCTheme.muted)
+                  .textSelection(.enabled)
+              }
+              .font(.caption)
+            }
+          }
+          if let message = pairing.detailMessage, !message.isEmpty,
+            !isOnline
+          {
+            Text(message)
+              .font(.caption)
               .foregroundStyle(RCTheme.muted)
               .textSelection(.enabled)
           }
+          Link("Open manual installation guide", destination: URL(string: "https://github.com/insitektalay/relay-console-bridge-plugins/blob/main/docs/INSTALL.md")!)
+            .font(.caption)
         }
-        pairingRecoveryButton(for: runtime, pairing: pairing)
+        .padding(.top, 6)
       }
-      .padding(12)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .background(RCTheme.surfaceInset)
-      .overlay(
-        RoundedRectangle(cornerRadius: 8)
-          .stroke(pairing.state == .connected ? RCTheme.accentGreen.opacity(0.35) : RCTheme.accentAmber.opacity(0.35))
-      )
-      .clipShape(RoundedRectangle(cornerRadius: 8))
+      .font(.caption.weight(.semibold))
+    }
+  }
+
+  private func remoteComputerInstaller(for runtime: SetupRemoteRuntime) -> some View {
+    let pairing = model.setupAssistant.pairing[runtime] ?? SetupPairingCode()
+    return setupCard {
+      Text(runtime.displayName).font(.callout.weight(.semibold))
+      Text("Copy the command to the runtime computer, run it in Terminal, then enter a one-time pairing code.")
+        .font(.caption)
+        .foregroundStyle(RCTheme.muted)
+      if let command = model.setupTerminalInstallCommand(for: runtime) {
+        HStack {
+          Button("Copy Install Command") {
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(command, forType: .string)
+          }
+          .buttonStyle(PrimaryLightButtonStyle())
+          Button(pairing.code.isEmpty ? "Generate Pairing Code" : "Generate New Code") {
+            Task { await model.generateSetupPairingCode(for: runtime) }
+          }
+          .buttonStyle(SecondaryLightButtonStyle())
+          .disabled(model.setupPairingInProgress.contains(runtime))
+        }
+        if pairing.state == .ready && !pairing.isExpired {
+          HStack {
+            Text(pairing.code).font(.title3.monospaced()).textSelection(.enabled)
+            Button("Copy Code") {
+              NSPasteboard.general.clearContents()
+              NSPasteboard.general.setString(pairing.code, forType: .string)
+            }
+            .buttonStyle(SecondaryLightButtonStyle())
+          }
+        }
+        DisclosureGroup("Show terminal command") {
+          Text(command)
+            .font(.caption.monospaced())
+            .textSelection(.enabled)
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RCTheme.surfaceLevel1)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .font(.caption)
+      }
+    }
+  }
+
+  private func compactBridgeStatus(_ pairing: SetupPairingCode, isOnline: Bool) -> String {
+    if isOnline { return "Connected" }
+    switch pairing.state {
+    case .connected, .bridgeOffline, .ready: return "Connecting"
+    case .notGenerated: return "Not connected"
+    case .incompatible: return "Update needed"
+    default: return "Needs attention"
+    }
+  }
+
+  private func compactBridgeStatusColor(_ pairing: SetupPairingCode, isOnline: Bool) -> Color {
+    if isOnline { return RCTheme.accentGreen }
+    switch pairing.state {
+    case .connected, .bridgeOffline, .ready: return RCTheme.accentAmber
+    case .notGenerated: return RCTheme.muted
+    default: return RCTheme.accentAmber
+    }
+  }
+
+  private func compactBridgeSummary(
+    _ runtime: SetupRemoteRuntime,
+    pairing: SetupPairingCode,
+    isOnline: Bool,
+    canInstallLocally: Bool
+  ) -> String {
+    if isOnline {
+      return "Remote access is ready. Relay can reach this runtime and assign Marketplace apps to its live agents."
+    }
+    switch pairing.state {
+    case .connected:
+      return "Relay is confirming that this bridge is still online. This page checks automatically."
+    case .bridgeOffline, .ready:
+      return "The bridge is starting and making a secure connection to Relay. This page checks automatically."
+    case .incompatible:
+      return "This bridge version must be updated before remote access can work."
+    case .notGenerated:
+      return canInstallLocally
+        ? "Install the bridge on this Mac to enable remote access."
+        : "Install the bridge on the computer running \(runtime.displayName)."
+    default:
+      return "Remote access is not ready. Open Details for the error, then try the setup again."
+    }
+  }
+
+  private func compactBridgeActionTitle(_ pairing: SetupPairingCode, isOnline: Bool) -> String {
+    if isOnline { return "Update or Reinstall Bridge" }
+    switch pairing.state {
+    case .notGenerated: return "Install Bridge"
+    default: return "Try Setup Again"
     }
   }
 
   @ViewBuilder
-  private func pairingRecoveryButton(for runtime: SetupRemoteRuntime, pairing: SetupPairingCode) -> some View {
-    switch pairing.recoveryAction {
-    case .reconnectRailway:
-      Button("Reconnect Railway Account") { model.presentSetupAssistant(at: .relayAccount) }
+  private func compactBridgePrimaryAction(
+    _ runtime: SetupRemoteRuntime,
+    pairing: SetupPairingCode,
+    isOnline: Bool,
+    canInstallLocally: Bool
+  ) -> some View {
+    if pairing.recoveryAction == .reconnectRailway {
+      Button("Reconnect Railway") { model.presentSetupAssistant(at: .relayAccount) }
         .buttonStyle(PrimaryLightButtonStyle())
-    case .retryInstallation:
-      Button("Try Installation Again") {
+    } else if canInstallLocally {
+      Button(compactBridgeActionTitle(pairing, isOnline: isOnline)) {
         Task { await model.installSetupBridgeOnThisMac(for: runtime) }
       }
       .buttonStyle(PrimaryLightButtonStyle())
-    case .retryPairing:
-      Button(model.hasLocalRuntimeForBridge(runtime) ? "Try Installation Again" : "Generate New Pairing Code") {
-        Task {
-          if model.hasLocalRuntimeForBridge(runtime) {
-            await model.installSetupBridgeOnThisMac(for: runtime)
-          } else {
-            await model.generateSetupPairingCode(for: runtime)
-          }
-        }
+    } else if pairing.state != .connected {
+      Button("Set Up on Another Computer") {
+        showsRemoteComputerInstaller = true
       }
       .buttonStyle(PrimaryLightButtonStyle())
-    case .checkStatus:
-      bridgeStatusButton()
-      bridgeStatusLastCheckedLabel()
-    case nil:
-      EmptyView()
     }
   }
 
-  private func bridgeStatusButton() -> some View {
-    Button {
-      Task { await model.refreshSetupBridgeStatus() }
-    } label: {
-      HStack(spacing: 8) {
-        if model.setupBridgeStatusRefreshInProgress {
-          ProgressView().controlSize(.small)
-        }
-        Text(model.setupBridgeStatusRefreshInProgress ? "Checking Bridge Status…" : "Check Bridge Status")
-      }
-    }
-    .buttonStyle(PrimaryLightButtonStyle())
-    .disabled(model.setupBridgeStatusRefreshInProgress)
-  }
-
-  @ViewBuilder
-  private func bridgeStatusLastCheckedLabel() -> some View {
-    if let checkedAt = model.setupBridgeStatusLastCheckedAt {
-      Text("Last checked \(checkedAt.formatted(date: .omitted, time: .standard))")
-        .font(.caption2)
-        .foregroundStyle(RCTheme.muted)
-    }
-  }
-
-  private func pairingOutcomeTitle(_ pairing: SetupPairingCode) -> String {
-    switch pairing.state {
-    case .permissionDenied: return "Couldn’t authorize installation"
-    case .backendUnreachable: return "Couldn’t reach Railway"
-    case .installationFailed: return "Bridge installation failed"
-    case .activationRolledBack: return "Bridge update rolled back safely"
-    case .healthCheckFailed: return "Couldn’t start installation"
-    case .bridgeOffline: return "Bridge started · connecting to Railway"
-    case .incompatible: return "Bridge update required"
-    case .expired: return "Pairing code expired"
-    case .connected: return "Bridge connected"
-    case .ready: return "Ready to install"
-    case .used: return "Pairing code already used"
-    case .notGenerated: return "Pairing not started"
-    }
-  }
-
-  private func pairingStateLabel(_ pairing: SetupPairingCode) -> String {
-    if pairing.isExpired { return "Expired" }
-    switch pairing.state {
-    case .notGenerated: return "Not paired"
-    case .ready: return "Waiting for bridge"
-    case .expired: return "Expired"
-    case .used: return "Code already used"
-    case .permissionDenied: return "Permission required"
-    case .bridgeOffline: return "Paired · Offline"
-    case .incompatible: return "Incompatible version"
-    case .backendUnreachable: return "Railway unreachable"
-    case .installationFailed: return "Installation failed"
-    case .activationRolledBack: return "Previous bridge restored"
-    case .healthCheckFailed: return "Health check failed"
-    case .connected: return "Connected"
+  private func compactCompatibilitySummary(_ compatibility: SetupBridgeCompatibilitySummary) -> String {
+    switch compatibility.level {
+    case .verified: return "Verified for full functionality."
+    case .compatible: return "Compatible in Safe mode. Core messaging and Marketplace assignment remain available."
+    case .unsupported:
+      return compatibility.code == "BRIDGE_PLUGIN_VERSION_UNSUPPORTED"
+        ? "This Relay Console bridge version is not accepted by Railway."
+        : "This runtime version is not supported."
     }
   }
 

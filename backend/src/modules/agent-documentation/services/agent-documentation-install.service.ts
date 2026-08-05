@@ -57,7 +57,7 @@ export class AgentDocumentationInstallService {
     }
     await this.bridgeService.writeAgentWorkspaceFiles(
       workspaceId,
-      input.agentId,
+      agent.externalId?.trim() || input.agentId,
       "",
       files.map((file) => ({ filename: file.filename, content: file.content })),
     );

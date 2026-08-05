@@ -200,6 +200,27 @@ type RequestInitWithRetry = RequestInit & {
 };
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 20_000;
+const RELAY_SERVICE_UNAVAILABLE_MESSAGE =
+  "Relay service is temporarily unavailable. Please try again shortly.";
+
+function railwayServiceErrorMessage(
+  status: number,
+  errorBody: Record<string, unknown> | null,
+): string {
+  const candidate =
+    typeof errorBody?.message === "string" ? errorBody.message.trim() : "";
+  const normalized = candidate.toLowerCase();
+  const infrastructureBoilerplate =
+    !candidate ||
+    normalized === "service unavailable" ||
+    normalized === "bad gateway" ||
+    normalized === "gateway timeout" ||
+    normalized.includes("application failed to respond") ||
+    normalized.includes("upstream connect error");
+  return [502, 503, 504].includes(status) && !infrastructureBoilerplate
+    ? candidate
+    : RELAY_SERVICE_UNAVAILABLE_MESSAGE;
+}
 
 export class ClawChatApiError extends Error {
   constructor(
@@ -2605,7 +2626,7 @@ export class ClawChatWebSdk {
     if (!response.ok) {
       const errorBody = await safeJson(response);
       const message = [502, 503, 504].includes(response.status)
-        ? "Relay service is temporarily unavailable. Please try again shortly."
+        ? railwayServiceErrorMessage(response.status, errorBody)
         : errorBody?.message || `Request failed with status ${response.status}`;
       throw new ClawChatApiError(message, response.status, path, errorBody);
     }

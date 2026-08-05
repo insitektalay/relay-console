@@ -52,6 +52,12 @@ struct RelayConsoleServiceTests {
       "Marketplace requests use the authenticated saved Relay deployment",
       testMarketplaceRequestsUseAuthenticatedSavedDeployment)
     try run(
+      "Marketplace requests preserve actionable Railway service errors",
+      testMarketplaceRequestsPreserveActionableServiceErrors)
+    try run(
+      "Railway mirroring preserves an existing device-local Marketplace connection identity",
+      testRailwayMirrorPreservesDeviceLocalMarketplaceConnectionIdentity)
+    try run(
       "Railway Marketplace approvals decode for the macOS action queue",
       testRailwayMarketplaceApprovalsDecodeForMacActionQueue)
     try run(
@@ -487,6 +493,9 @@ struct RelayConsoleServiceTests {
     try run(
       "Marketplace installs target compatible agents and remove as unconfigured",
       testMarketplaceInstallsTargetCompatibleAgentsAndRemoveAsUnconfigured)
+    try run(
+      "Marketplace installs trust the selected usable connection over stale catalogue state",
+      testMarketplaceInstallTrustsUsableConnectionOverStaleCatalogueState)
     try run(
       "generic provider action persistence round trips and redacts payloads",
       testGenericProviderActionPersistenceRoundTripsAndRedactsPayloads)
@@ -2037,6 +2046,16 @@ struct RelayConsoleServiceTests {
   }
 
   private static func testMarketplaceRequestsUseAuthenticatedSavedDeployment() throws {
+    for method in ["GET", "POST", "DELETE"] {
+      try expect(
+        CloudRelaySyncService.isSupportedRailwayMarketplaceMethod(method),
+        "Marketplace transport rejected the supported \(method) request method"
+      )
+    }
+    try expect(
+      !CloudRelaySyncService.isSupportedRailwayMarketplaceMethod("PATCH"),
+      "Marketplace transport accepted an unsupported request method"
+    )
     let resolved = try CloudRelaySyncService.authenticatedMarketplaceAPIURL(
       savedOrigin: "  \(RelayCloudLaunchContract.apiOrigin)/  "
     )
@@ -2061,6 +2080,233 @@ struct RelayConsoleServiceTests {
           "unapproved Marketplace origins should fail with permission denied")
       }
     }
+  }
+
+  private static func testMarketplaceRequestsPreserveActionableServiceErrors() throws {
+    let message =
+      "Luca Signoff's OpenClaw runtime is not connected to this Railway workspace."
+    let body = try JSONSerialization.data(withJSONObject: ["message": message])
+    try expect(
+      URLSessionRelayCloudTransport.serviceErrorMessage(
+        statusCode: 503, responseData: body) == message,
+      "Marketplace transport hid an actionable Railway 503 explanation")
+    try expect(
+      URLSessionRelayCloudTransport.serviceErrorMessage(
+        statusCode: 502,
+        responseData: try JSONSerialization.data(
+          withJSONObject: ["message": "Application failed to respond"]))
+        == "Relay service is temporarily unavailable. Please try again shortly.",
+      "Marketplace transport exposed infrastructure proxy boilerplate")
+  }
+
+  private static func testMarketplaceInstallTrustsUsableConnectionOverStaleCatalogueState() throws {
+    let services = try makeServices()
+    let workspace = try unwrap(
+      services.data.getAppState().activeWorkspace,
+      "missing stale catalogue connection workspace"
+    )
+    let owner = context(
+      roles: [.owner], workspaceId: workspace.id,
+      correlationId: "marketplace-stale-catalogue-connection-001"
+    )
+    let foundation = try services.providerFoundations.registerExaSearchFoundation(context: owner)
+    let app = try unwrap(
+      try services.data.getMarketplaceCatalogApp(
+        workspaceId: workspace.id, appIdOrSlug: foundation.appId),
+      "missing Exa Search app"
+    )
+    let connection = try services.providerConnections.saveExaAPIKeyConnection(
+      context: owner,
+      appIdOrSlug: app.id,
+      apiKey: "exa_stale_catalogue_regression_secret",
+      validationResult: ExaAPIKeyValidationResult(
+        status: .ready, message: "Exa API key verified.", httpStatusCode: 200)
+    )
+    let harness = try prepareInstalledHarness(services: services, key: .hermes)
+    let agent = try services.data.createAgent(
+      workspaceId: workspace.id,
+      name: "Stale Catalogue Exa Agent",
+      harnessId: harness.id,
+      externalAgentId: "stale-catalogue-exa-agent",
+      hermesProfileSlug: "stale-catalogue-exa-agent",
+      hermesHomePath: services.paths.hermesHomeDir
+        .appendingPathComponent("profiles/stale-catalogue-exa-agent", isDirectory: true).path
+    )
+
+    var staleApp = try unwrap(
+      try services.data.getMarketplaceCatalogApp(
+        workspaceId: workspace.id, appIdOrSlug: app.id),
+      "missing connected Exa Search app"
+    )
+    staleApp.connectionState = .none
+    _ = try services.data.saveMarketplaceCatalogApps([staleApp])
+
+    let install = try services.marketplaceInstalls.createInstall(
+      context: owner,
+      request: MarketplaceInstallRequest(
+        id: "minreq-stale-catalogue-exa",
+        workspaceId: workspace.id,
+        appId: app.id,
+        appSlug: app.slug,
+        connectionId: connection.id,
+        targetAgentId: agent.id,
+        roleId: app.roleManifest.primaryRole,
+        selectedCapabilities: app.capabilities,
+        approvalProfileId: nil,
+        runtimeFormat: .hermes,
+        targetMode: .existingAgent,
+        riskAcknowledged: true,
+        metadata: [:],
+        requestedByActorId: owner.actorId,
+        requestedAt: "2026-08-05T07:51:00Z",
+        redactionStatus: "private-state-excluded"
+      )
+    )
+    try expect(
+      install.installStatus == .installed && install.connectionId == connection.id,
+      "a usable Exa connection did not create the requested agent install"
+    )
+    let reconciledApp = try unwrap(
+      try services.data.getMarketplaceCatalogApp(
+        workspaceId: workspace.id, appIdOrSlug: app.id),
+      "missing reconciled Exa Search app"
+    )
+    try expect(
+      reconciledApp.connectionState == .connected,
+      "a successful install did not reconcile the stale catalogue connection summary"
+    )
+  }
+
+  private static func testRailwayMirrorPreservesDeviceLocalMarketplaceConnectionIdentity() throws {
+    let services = try makeServices()
+    let workspace = try unwrap(
+      services.data.getAppState().activeWorkspace,
+      "missing Marketplace mirror workspace"
+    )
+    let owner = context(
+      roles: [.owner], workspaceId: workspace.id,
+      correlationId: "marketplace-mirror-device-local-001"
+    )
+    let foundation = try services.providerFoundations.registerExaSearchFoundation(
+      context: owner
+    )
+    let app = try unwrap(
+      try services.data.getMarketplaceCatalogApp(
+        workspaceId: workspace.id, appIdOrSlug: foundation.appId),
+      "missing Exa Search app"
+    )
+    let localConnection = try services.providerConnections.saveExaAPIKeyConnection(
+      context: owner,
+      appIdOrSlug: app.id,
+      apiKey: "exa_device_local_secret_123",
+      validationResult: ExaAPIKeyValidationResult(
+        status: .ready, message: "Exa API key verified.", httpStatusCode: 200)
+    )
+    let deployment = try unwrap(
+      services.cloudConnections.listDeployments().first,
+      "missing Relay deployment"
+    )
+    let account = try unwrap(
+      services.cloudConnections.listAccounts().first,
+      "missing Relay account"
+    )
+    let linkId = try services.cloudSync.createLocalLink(
+      localWorkspaceId: workspace.id,
+      deploymentId: deployment.id,
+      accountId: account.id,
+      remoteInstallationId: "remote-installation",
+      remoteWorkspaceId: "remote-workspace",
+      remoteSyncLinkId: "remote-link",
+      attachmentPolicy: .metadataOnly,
+      offlineRetention: true
+    )
+    let remoteConnectionId = "remote-exa-connection"
+    try services.database.run(
+      """
+      INSERT INTO remote_object_versions(
+        sync_link_id,object_type,local_object_id,canonical_object_id,server_version,updated_at
+      ) VALUES(?,'application_connection',?,?, '1',?)
+      """,
+      [
+        .text(linkId), .text(localConnection.id), .text(remoteConnectionId),
+        .text("2026-08-05T06:55:00.000Z"),
+      ]
+    )
+
+    let mirrored = try services.cloudSync.mirrorRailwayMarketplaceConnection(
+      localWorkspaceId: workspace.id,
+      app: app,
+      connectionView: [
+        "id": remoteConnectionId,
+        "status": "needs_credentials",
+        "displayName": "Exa Search",
+        "credentialNames": [],
+        "selectedCapabilities": app.capabilityIds ?? [],
+        "updatedAt": "2026-08-05T06:55:00.000Z",
+      ]
+    )
+
+    try expect(
+      mirrored.id == localConnection.id,
+      "Railway mirroring replaced the existing device-local connection identity"
+    )
+    let connections = try services.data.listProviderConnections(
+      workspaceId: workspace.id, appId: app.id
+    )
+    try expect(
+      connections.count == 1,
+      "one canonical Exa connection was presented as duplicate local and Railway rows"
+    )
+    try expect(
+      connections.first?.resolvedExecutionAuthority == .deviceLocal,
+      "a credential-free Railway mirror displaced the usable device-local authority"
+    )
+
+    var staleRailwayDuplicate = localConnection
+    staleRailwayDuplicate.id = remoteConnectionId
+    staleRailwayDuplicate.providerKey = "exa-search-railway-\(remoteConnectionId)"
+    staleRailwayDuplicate.executionAuthority = .railway
+    staleRailwayDuplicate.secretReferenceIds = []
+    _ = try services.data.saveProviderConnection(staleRailwayDuplicate)
+    try services.database.run(
+      """
+      INSERT INTO remote_object_versions(
+        sync_link_id,object_type,local_object_id,canonical_object_id,server_version,updated_at
+      ) VALUES(?,'application_connection',?,?, '1',?)
+      """,
+      [
+        .text(linkId), .text(remoteConnectionId), .text(remoteConnectionId),
+        .text("2026-08-05T06:56:00.000Z"),
+      ]
+    )
+    let presentableRailwayIds = try services.cloudSync.railwayMarketplaceConnectionIds(
+      localWorkspaceId: workspace.id
+    )
+    try expect(
+      !presentableRailwayIds.contains(remoteConnectionId),
+      "a stale Railway duplicate remained presentable over its mapped device-local connection"
+    )
+
+    let railwayOnlyConnectionId = "remote-amplitude-connection"
+    _ = try services.cloudSync.mirrorRailwayMarketplaceConnection(
+      localWorkspaceId: workspace.id,
+      app: app,
+      connectionView: [
+        "id": railwayOnlyConnectionId,
+        "status": "ready",
+        "displayName": "Railway-only connection",
+        "credentialNames": ["api_key"],
+        "selectedCapabilities": app.capabilityIds ?? [],
+        "updatedAt": "2026-08-05T06:57:00.000Z",
+      ]
+    )
+    let presentableRailwayOnlyIds = try services.cloudSync.railwayMarketplaceConnectionIds(
+      localWorkspaceId: workspace.id
+    )
+    try expect(
+      presentableRailwayOnlyIds.contains(railwayOnlyConnectionId),
+      "a genuine Railway-only connection was hidden from its linked local workspace"
+    )
   }
 
   private static func testRailwayMarketplaceApprovalsDecodeForMacActionQueue() throws {

@@ -89,7 +89,7 @@ export const CRAFT_CONNECTOR_MANIFEST: MarketplaceConnectorManifest = {
         storedIn: "encrypted_secret",
         requiredForAuthTypes: ["api_key"],
         helpText:
-          "Create a least-privilege API Connection in Craft's Imagine tab and paste its full https://connect.craft.do/link/.../api/v1 URL.",
+          "Create a least-privilege API Connection in Craft's Imagine tab and paste its full https://connect.craft.do/links/.../api/v1 URL.",
       },
     ],
   },

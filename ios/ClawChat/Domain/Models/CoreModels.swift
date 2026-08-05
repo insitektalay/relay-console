@@ -1904,6 +1904,8 @@ struct MarketplaceInstall: Codable, Identifiable, Hashable, Sendable {
 struct MarketplaceInstallResult: Codable, Hashable, Sendable {
     var installs: [MarketplaceInstall]?
     var warnings: [String]?
+    var status: String?
+    var message: String?
 }
 
 struct MarketplaceToolRequest: Codable, Identifiable, Hashable, Sendable {

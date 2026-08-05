@@ -54,9 +54,13 @@ extension AppViewModel {
         scheduleApplicationsRefresh()
         return
       }
-      // Keep the in-memory working set bounded to the pages the user has
-      // actually loaded instead of rehydrating every cached provider.
-      let nextApplicationsCatalogApps = nextApplicationsCatalog.apps
+      // The snapshot is the filtered, paginated marketplace view. Keep the
+      // complete cached catalog separate because connected-app and conversation
+      // projections must not lose providers outside the current page or search.
+      let nextApplicationsCatalogApps = try loadUnfilteredApplicationsCatalogApps(
+        services: services,
+        context: context
+      )
       let selectedAppSlug = nextApplicationsCatalog.selectedApp?.slug
       let selectedProviderConnectionId: RelayId?
       if selectedAppSlug == "exa-search" {
@@ -332,10 +336,17 @@ extension AppViewModel {
       } else {
         selectedProviderConnectionId = selectedConnectionId?.nilIfEmpty
       }
-      let nextProviderConnectionSnapshot = try services.providerConnections.snapshot(
+      let linkedRailwayConnectionIds = try services.cloudSync.railwayMarketplaceConnectionIds(
+        localWorkspaceId: workspace.id
+      )
+      let unfilteredProviderConnectionSnapshot = try services.providerConnections.snapshot(
         context: context,
         appIdOrSlug: nextApplicationsCatalog.selectedApp?.id,
         selectedConnectionId: selectedProviderConnectionId
+      )
+      let nextProviderConnectionSnapshot = providerConnectionSnapshot(
+        unfilteredProviderConnectionSnapshot,
+        retainingRailwayConnectionIds: linkedRailwayConnectionIds
       )
       let nextProviderConnectionsByAppId = try loadProviderConnectionsByAppId(
         services: services,
@@ -670,8 +681,15 @@ extension AppViewModel {
     services: RelayConsoleServices,
     workspaceId: RelayId
   ) throws -> [RelayId: MarketplaceProviderConnection] {
+    let retainingRailwayConnectionIds = try services.cloudSync.railwayMarketplaceConnectionIds(
+      localWorkspaceId: workspaceId
+    )
     let connections = try services.data.listProviderConnections(
-      workspaceId: workspaceId, limit: 500)
+      workspaceId: workspaceId, limit: 500
+    ).filter {
+      $0.resolvedExecutionAuthority != .railway
+        || retainingRailwayConnectionIds.contains($0.id)
+    }
     return connections.reduce(into: [RelayId: MarketplaceProviderConnection]()) {
       output, connection in
       guard let existing = output[connection.appId] else {
@@ -680,6 +698,30 @@ extension AppViewModel {
       }
       output[connection.appId] = preferredSidebarConnection(existing, connection)
     }
+  }
+
+  func providerConnectionSnapshot(
+    _ snapshot: ProviderConnectionSnapshot,
+    retainingRailwayConnectionIds: Set<RelayId>
+  ) -> ProviderConnectionSnapshot {
+    var filtered = snapshot
+    filtered.connections = snapshot.connections.filter {
+      $0.resolvedExecutionAuthority != .railway
+        || retainingRailwayConnectionIds.contains($0.id)
+    }
+    if let selected = snapshot.selectedConnection,
+      filtered.connections.contains(where: { $0.id == selected.id })
+    {
+      filtered.selectedConnection = selected
+    } else {
+      filtered.selectedConnection = filtered.connections.first
+    }
+    if snapshot.state != .unavailable {
+      filtered.state = filtered.connections.isEmpty
+        ? .empty
+        : (snapshot.readOnly ? .readOnly : .ready)
+    }
+    return filtered
   }
 
   func preferredSidebarConnection(

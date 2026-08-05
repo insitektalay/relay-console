@@ -365,6 +365,12 @@ final class MarketplaceViewModel: ObservableObject {
             }
             if let connection { params["connectionId"] = connection.id }
             let result: MarketplaceInstallResult = try await api.request(.installMarketplaceApp(workspaceId: workspaceId, params: params))
+            if let status = result.status, status != "installed" {
+                throw APIError.serverError(
+                    statusCode: 409,
+                    message: result.message ?? "\(app.name) could not be assigned to \(agent.name)."
+                )
+            }
             if let newInstalls = result.installs {
                 for install in newInstalls {
                     installs.removeAll { $0.id == install.id }

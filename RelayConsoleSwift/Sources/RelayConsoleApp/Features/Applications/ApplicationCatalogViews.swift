@@ -10,8 +10,13 @@ struct ApplicationsSidebarPanel: View {
     model.applicationsCatalogSnapshot
   }
 
+  private var catalogApps: [MarketplaceCatalogApp] {
+    model.applicationsCatalogApps.isEmpty
+      ? (snapshot?.apps ?? []) : model.applicationsCatalogApps
+  }
+
   private var connectedApps: [MarketplaceCatalogApp] {
-    (snapshot?.apps ?? []).filter { app in
+    catalogApps.filter { app in
       guard let connection = model.marketplaceConnection(for: app) else { return false }
       return connection.status == .connected && connection.health.state == .ready
     }
@@ -76,8 +81,8 @@ struct ApplicationsSidebarPanel: View {
             }
           }
           .padding(.horizontal, 2)
-          if let snapshot {
-            if snapshot.apps.isEmpty {
+          if snapshot != nil {
+            if catalogApps.isEmpty {
               EmptyMini(title: "No apps available", body: "Refresh the marketplace and try again.")
             } else if connectedApps.isEmpty {
               EmptyMini(

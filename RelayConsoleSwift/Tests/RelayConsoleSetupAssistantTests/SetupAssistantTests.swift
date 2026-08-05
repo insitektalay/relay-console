@@ -225,6 +225,10 @@ enum SetupAssistantTests {
       "Hermes compatibility preflight did not advertise the isolated-runtime bridge"
     )
     try expect(
+      RelayBridgeInstaller.pluginVersion(for: .openclaw) == "2026.7.31-rc.4",
+      "OpenClaw compatibility preflight did not advertise reload-safe credentials"
+    )
+    try expect(
       RelayBridgeInstaller.capabilities(for: .hermes).contains(MarketplaceHermesSkillInstaller.capability),
       "Hermes compatibility preflight omitted managed Marketplace skill installation"
     )
@@ -261,6 +265,7 @@ enum SetupAssistantTests {
 
   private static func testBridgeCompatibilityParsing() throws {
     let parsed = SetupBridgeCompatibilityParser.parse([
+      "code": "BRIDGE_RUNTIME_VERSION_UNVERIFIED",
       "level": "compatible",
       "operatingMode": "safe",
       "runtimeVersion": "0.15.2",
@@ -269,6 +274,7 @@ enum SetupAssistantTests {
       "warnings": ["BRIDGE_RUNTIME_VERSION_UNVERIFIED"],
     ])
     try expect(parsed?.allowsInstallation == true, "safe-mode runtime was blocked")
+    try expect(parsed?.code == "BRIDGE_RUNTIME_VERSION_UNVERIFIED", "compatibility error code was discarded")
     try expect(
       parsed?.disabledCapabilities == ["clawchat.runtime.structured_jobs"],
       "disabled capability guidance disappeared"
@@ -386,18 +392,22 @@ enum SetupAssistantTests {
       "local runtime status is still presented as full remote readiness"
     )
     try expect(
-      setup.contains("Install \\(runtime.displayName) Bridge on This Mac")
-        && setup.contains("Copy Terminal Command")
-        && setup.contains("The code is not included in the command or saved in shell history")
-        && setup.contains("pairingOutcome(for: runtime)")
-        && setup.contains("pairingRecoveryButton(for: runtime")
-        && setup.contains("Checking Bridge Status…")
-        && setup.contains("Last checked")
+      setup.contains("title: \"Remote Access\"")
+        && setup.contains("compactBridgeCard(runtime)")
+        && setup.contains("case .remotePairing: remoteInstallationStep")
+        && setup.contains("Update or Reinstall Bridge")
+        && setup.contains("Reconnect Railway")
+        && setup.contains("Install on another computer")
+        && setup.contains("Copy Install Command")
+        && setup.contains("DisclosureGroup(\"Show terminal command\")")
+        && setup.contains("DisclosureGroup(\"Technical details\")")
+        && setup.contains("This page checks automatically")
         && model.contains("installSetupBridgeOnThisMac")
         && model.contains("setupBridgeStatusLastCheckedAt = Date()")
         && model.contains("waitForConnection: true")
         && model.contains("setupBridgeOnlineRuntimes")
         && setup.contains("await model.refreshSetupBridgeStatus()")
+        && setup.contains("Task.sleep(nanoseconds: 5_000_000_000)")
         && installer.contains("externalAgentIds")
         && installer.contains("--agent")
         && model.contains("RelayBridgeInstallRequest"),
@@ -452,6 +462,13 @@ enum SetupAssistantTests {
         && model.contains("func presentLocalRuntimeSetup()")
         && model.contains("func presentRemoteAccessSetup()"),
       "card actions still inherit unrelated navigation history from the full setup assistant"
+    )
+    try expect(
+      setup.contains("Button(\"Close\", systemImage: \"xmark\")")
+        && setup.contains("model.dismissSetupAssistant()")
+        && model.contains("func dismissSetupAssistant()")
+        && model.contains("setupAssistantPresented = false"),
+      "Setup & Connections has no explicit non-destructive close action"
     )
     try expect(setup.contains("connectDiscoveredHarness(candidate)"), "assistant does not reuse discovered-runtime connection")
     try expect(setup.contains("connectExistingHarness(record)"), "assistant does not reuse manual location connection")

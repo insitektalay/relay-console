@@ -177,6 +177,11 @@ extension AppViewModel {
     persistSetupAssistant()
   }
 
+  func dismissSetupAssistant() {
+    setupAssistantPresented = false
+    persistSetupAssistant()
+  }
+
   func skipSetupAssistant() {
     setupAssistant.skip()
     setupAssistantPresented = false
@@ -547,7 +552,14 @@ extension AppViewModel {
       case .compatible:
         detail = "\(runtime.displayName) \(versionLabel) can connect in Safe mode. Core messaging is enabled; unverified advanced capabilities stay off."
       case .unsupported:
-        detail = "\(runtime.displayName) \(versionLabel) is outside Relay’s supported runtime families. Update the runtime or compatibility policy before installing."
+        switch summary.code {
+        case "BRIDGE_PLUGIN_VERSION_UNSUPPORTED":
+          detail = "This Relay Console build requires a newer bridge compatibility policy on Railway. Update Relay’s backend before installing."
+        case "BRIDGE_RUNTIME_VERSION_UNSUPPORTED", "BRIDGE_RUNTIME_VERSION_KNOWN_INCOMPATIBLE":
+          detail = "\(runtime.displayName) \(versionLabel) is outside Relay’s supported runtime families. Update the runtime or compatibility policy before installing."
+        default:
+          detail = "Relay rejected this bridge configuration (\(summary.code ?? "unknown compatibility error"))."
+        }
       }
       setupAssistant.pairing[runtime] = SetupPairingCode(
         state: summary.allowsInstallation ? .notGenerated : .incompatible,

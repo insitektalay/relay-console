@@ -111,6 +111,9 @@ struct RelayConsoleSourceHygieneTests {
       "LINE Applications UI follows its OIDC-bound profile-only contract",
       testLINEApplicationsUIContract)
     try run(
+      "Railway Applications state excludes connections from other workspace links",
+      testRailwayApplicationsStateExcludesConnectionsFromOtherWorkspaceLinks)
+    try run(
       "AgentOps HQ uses bundled assets without mock or backend drift",
       testAgentOpsHqUsesBundledAssetsWithoutMockOrBackendDrift)
     try run("source hygiene manual manifests match schema", testManualManifestsMatchSchema)
@@ -2354,6 +2357,22 @@ struct RelayConsoleSourceHygieneTests {
       try expect(manifest.contains("ITC-0010"), "\(path) must link ITC-0010")
       try expect(manifest.contains("redactionReview:"), "\(path) must record redaction review")
     }
+  }
+
+  private static func testRailwayApplicationsStateExcludesConnectionsFromOtherWorkspaceLinks() throws {
+    let refreshSource = try readPackageFile(
+      "Sources/RelayConsoleApp/Features/Applications/AppViewModel+ApplicationRefresh.swift")
+    let cloudSource = try readPackageFile("Sources/RelayConsoleCore/CloudRelaySync.swift")
+    try expect(
+      cloudSource.contains("func railwayMarketplaceConnectionIds("),
+      "cloud sync must expose Marketplace connection identities for the active workspace link")
+    try expect(
+      refreshSource.contains("retainingRailwayConnectionIds: linkedRailwayConnectionIds")
+        && refreshSource.contains("let retainingRailwayConnectionIds = try services.cloudSync.railwayMarketplaceConnectionIds("),
+      "Applications refresh must exclude Railway connections mirrored by another workspace link")
+    try expect(
+      refreshSource.contains("retainingRailwayConnectionIds.contains($0.id)"),
+      "connection filtering must match the local connection identity to the active Railway link")
   }
 
   private static func productSource() throws -> String {

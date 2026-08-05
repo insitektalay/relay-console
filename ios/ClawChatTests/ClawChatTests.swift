@@ -65,6 +65,13 @@ final class ClawChatTests: XCTestCase {
         )
     }
 
+    func testInfrastructureFailurePreservesActionableServerExplanation() {
+        let message = "Luca Signoff's OpenClaw runtime is not connected to this Railway workspace."
+        let error = APIError.serverError(statusCode: 503, message: message)
+
+        XCTAssertEqual(error.errorDescription, message)
+    }
+
     func testAgentRuntimeTypeAcceptsRailwayAndLegacySpellingsWithoutDroppingRoster() throws {
         let decoder = JSONDecoder()
 

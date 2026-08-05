@@ -53,7 +53,10 @@ extension AppViewModel {
           next.selectedApp = nil
         }
         self.applicationsCatalogSnapshot = next
-        self.applicationsCatalogApps = next.apps
+        self.applicationsCatalogApps = try self.loadUnfilteredApplicationsCatalogApps(
+          services: services,
+          context: context
+        )
       } catch {
         self.showToast(
           "Could not load more applications",

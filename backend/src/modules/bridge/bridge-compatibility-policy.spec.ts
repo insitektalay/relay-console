@@ -178,6 +178,30 @@ describe("bridge compatibility policy", () => {
     });
   });
 
+  it("admits the OpenClaw runtime and bridge shipped by the macOS installer", () => {
+    expect(
+      evaluateBridgeCompatibility({
+        runtimeType: "openclaw",
+        hostType: "macos-launchd",
+        pluginVersion: "2026.7.31-rc.4",
+        runtimeVersion: "2026.7.1-2",
+        apiContractVersion: "v2",
+        websocketContractVersion: "bridge.v1",
+        capabilities: [
+          "clawchat.runtime.openclaw",
+          "clawchat.runtime.structured_jobs",
+        ],
+      }),
+    ).toMatchObject({
+      compatible: true,
+      code: null,
+      level: "compatible",
+      operatingMode: "safe",
+      enabledCapabilities: ["clawchat.runtime.openclaw"],
+      disabledCapabilities: ["clawchat.runtime.structured_jobs"],
+    });
+  });
+
   it.each([
     ["hermes", "0.12.0", "verified", "full", true],
     ["hermes", "0.15.1", "compatible", "safe", true],
@@ -321,8 +345,8 @@ describe("bridge compatibility policy", () => {
           runtimeDependencies: { python: { aiohttp: ">=3.10,<4" } },
         },
         openclaw: {
-          version: "2026.7.31-rc.1",
-          supportedPluginVersions: ["2026.7.31-rc.1"],
+          version: "2026.7.31-rc.4",
+          supportedPluginVersions: ["2026.7.31-rc.4", "2026.7.31-rc.3", "2026.7.31-rc.2", "2026.7.31-rc.1"],
           runtimeVersionPolicy: expect.objectContaining({
             unknownRuntimeMode: "safe",
           }),

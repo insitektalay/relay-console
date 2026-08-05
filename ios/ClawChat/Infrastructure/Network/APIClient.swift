@@ -29,6 +29,7 @@ enum APIError: LocalizedError, Sendable {
             return "The requested resource was not found."
         case .serverError(let code, let msg):
             if [502, 503, 504].contains(code) {
+                if let msg, Self.isActionableServiceMessage(msg) { return msg }
                 return "Relay service is temporarily unavailable. Please try again shortly."
             }
             return msg ?? "Server error (\(code))."
@@ -46,6 +47,16 @@ enum APIError: LocalizedError, Sendable {
         case .uploadFailed(let msg):
             return msg ?? "Upload failed."
         }
+    }
+
+    private static func isActionableServiceMessage(_ message: String) -> Bool {
+        let normalized = message.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !normalized.isEmpty else { return false }
+        return normalized != "service unavailable"
+            && normalized != "bad gateway"
+            && normalized != "gateway timeout"
+            && !normalized.contains("application failed to respond")
+            && !normalized.contains("upstream connect error")
     }
 }
 

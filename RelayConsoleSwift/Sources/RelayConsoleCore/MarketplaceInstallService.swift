@@ -477,13 +477,6 @@ public final class MarketplaceInstallService {
     }
 
     private func validateConnection(_ connectionId: RelayId?, app: MarketplaceCatalogApp, context: ServiceRequestContext) throws -> MarketplaceProviderConnection {
-        guard app.connectionState == .connected else {
-            throw ServiceGuard.unavailable(
-                context: context,
-                reasonCode: .authRequired,
-                message: "Connect \(app.name) before installing it to agents."
-            )
-        }
         guard let connectionId,
               let connection = try data.getProviderConnection(workspaceId: context.workspaceId, connectionId: connectionId),
               connection.appId == app.id,
@@ -766,8 +759,10 @@ public final class MarketplaceInstallService {
 
     private func synchronizeCatalogInstallState(workspaceId: RelayId, app: MarketplaceCatalogApp) throws {
         let installs = try data.listMarketplaceInstalls(workspaceId: workspaceId, appId: app.id)
+        let connections = try data.listProviderConnections(workspaceId: workspaceId, appId: app.id)
         let activeInstalls = installs.filter(isActiveInstall)
         var updated = app
+        updated.connectionState = ProviderConnectionService.catalogConnectionState(for: connections)
         updated.installState = activeInstalls.isEmpty ? .notInstalled : .installed
         updated.installedAgentIds = Array(Set(activeInstalls.map(\.agentId))).sorted()
         updated.installedAgentCount = updated.installedAgentIds.count

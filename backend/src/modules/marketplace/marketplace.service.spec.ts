@@ -236,6 +236,67 @@ describe("Marketplace credential verification reconciliation", () => {
 });
 
 describe("Marketplace configure-only runtime boundary", () => {
+  it("stops an OpenClaw install before pack creation when the target runtime is outside the workspace", async () => {
+    const app = MARKETPLACE_CATALOG.find((entry) => entry.slug === "jotform");
+    expect(app).toBeDefined();
+    const message =
+      "Luca Signoff's OpenClaw runtime is not connected to this Railway workspace. Start or reconnect the OpenClaw bridge for this workspace, then try again.";
+    const auditLogService = { record: jest.fn().mockResolvedValue(undefined) };
+    const bridgeService = {
+      openClawMarketplaceInstallAvailability: jest.fn().mockResolvedValue({
+        available: false,
+        message,
+      }),
+    };
+    const service = createMarketplaceService({
+      bridgeService,
+      auditLogService,
+    });
+    jest.spyOn(service as any, "resolveMarketplaceApp").mockResolvedValue(app);
+    jest
+      .spyOn(service as any, "ensureLocalRepoDocsReadyForInstall")
+      .mockResolvedValue(app);
+    jest
+      .spyOn(service as any, "assertGeneratedDraftInstallAllowed")
+      .mockResolvedValue(undefined);
+    jest.spyOn(service as any, "resolveInstallAgents").mockResolvedValue([
+      {
+        id: "agent-luca",
+        name: "Luca Signoff",
+        externalId: "luca_signoff",
+        source: "openclaw",
+      },
+    ]);
+    const createPack = jest
+      .spyOn(service as any, "createPack")
+      .mockRejectedValue(new Error("pack creation must not run"));
+
+    const result = await service.install("workspace-1", "user-1", {
+      appSlug: "jotform",
+      runtimeFormat: "openclaw",
+      agentIds: ["agent-luca"],
+      role: "worker",
+      targetMode: "existing_agents",
+      acknowledgeGeneratedDraftRisk: true,
+    } as InstallMarketplaceAppDto);
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        status: "unavailable",
+        message,
+        pack: null,
+        installs: [],
+      }),
+    );
+    expect(createPack).not.toHaveBeenCalled();
+    expect(auditLogService.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: "marketplace.openclaw_install.unavailable",
+        resourceId: "jotform",
+      }),
+    );
+  });
+
   it("publishes Exa Search under the Swift-compatible canonical slug", () => {
     const service = createMarketplaceService();
     const exa = service.getPublicApp("exa-search");
@@ -3765,9 +3826,11 @@ describe("Marketplace provider pack compile path", () => {
       create: jest.fn((input) => input),
     };
     const agentRepo = {
-      findOne: jest
-        .fn()
-        .mockResolvedValue({ id: "agent-1", workspaceId: "workspace-1" }),
+      findOne: jest.fn().mockResolvedValue({
+        id: "agent-1",
+        workspaceId: "workspace-1",
+        externalId: "luca_signoff",
+      }),
     };
     const linkedApplicationService = {
       get: jest.fn().mockResolvedValue({
@@ -3828,7 +3891,7 @@ describe("Marketplace provider pack compile path", () => {
     });
     expect(bridgeService.writeAgentWorkspaceFiles).toHaveBeenLastCalledWith(
       "workspace-1",
-      "agent-1",
+      "luca_signoff",
       "",
       [{ filename: "AGENTS.md", content: "# Manager" }],
     );

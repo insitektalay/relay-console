@@ -10,6 +10,8 @@ that no successful test has been recorded here yet.
 
 | Application | Result |
 | --- | --- |
+| PayPal | Connection tested and confirmed working |
+| Amplitude | Connection tested and confirmed working |
 | Jotform | Connection tested and confirmed working |
 
 “Confirmed working” applies to the connection itself. It does not mean that

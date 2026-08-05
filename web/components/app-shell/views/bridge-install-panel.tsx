@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import type { RelayConsoleController } from "@/components/clawchat-web-app"
 
 const BRIDGE_INSTALLER_REVISION =
-  "17cc434c7e59050903510a5a65e0ea29c7b2ca9f"
+  "ff2c52e3858c71bebde400c008dd2a441e0b861b"
 
 function shellQuote(value: string) {
   return `'${value.replaceAll("'", `'"'"'`)}'`

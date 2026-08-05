@@ -2640,7 +2640,7 @@ export class BridgeService {
     filename: string,
   ): Promise<Omit<BridgeLibraryReadPayload, "requestId">> {
     const safeFolder = this.normalizeLibraryFolder(folder);
-    const safeFilename = this.normalizeWorkspaceTextFilename(filename);
+    const safeFilename = this.normalizeLibraryTextFilename(filename);
     const response =
       await this.sendBridgeLibraryRequest<BridgeLibraryReadPayload>(
         workspaceId,
@@ -2667,7 +2667,7 @@ export class BridgeService {
     files: BridgeLibraryFilePayload[],
   ): Promise<Omit<BridgeLibraryWritePayload, "requestId">> {
     const safeFolder = this.normalizeLibraryFolder(folder);
-    const safeFiles = this.normalizeWorkspaceFilePayloads(files);
+    const safeFiles = this.normalizeLibraryFilePayloads(files);
     const response =
       await this.sendBridgeLibraryRequest<BridgeLibraryWritePayload>(
         workspaceId,
@@ -2693,7 +2693,7 @@ export class BridgeService {
     filename: string,
   ): Promise<Omit<BridgeLibraryDeletePayload, "requestId">> {
     const safeFolder = this.normalizeLibraryFolder(folder);
-    const safeFilename = this.normalizeWorkspaceTextFilename(filename);
+    const safeFilename = this.normalizeLibraryTextFilename(filename);
     const response =
       await this.sendBridgeLibraryRequest<BridgeLibraryDeletePayload>(
         workspaceId,
@@ -3473,6 +3473,51 @@ export class BridgeService {
       workspaceId,
       MARKETPLACE_HERMES_SKILL_INSTALL_CAPABILITY,
     );
+  }
+
+  async openClawMarketplaceInstallAvailability(
+    workspaceId: string,
+    agents: Array<{ name: string; externalId?: string | null }>,
+  ): Promise<{ available: boolean; message: string | null }> {
+    const runtime = this.eventsGateway.getWorkspaceBridgeRuntime(
+      workspaceId,
+      OPENCLAW_RUNTIME_TYPE,
+    );
+    const hasLocalControl = this.eventsGateway.hasBridgeControlSubscribers(
+      workspaceId,
+      null,
+      null,
+      OPENCLAW_RUNTIME_TYPE,
+    );
+    const remoteInstanceId = hasLocalControl
+      ? null
+      : await this.bridgeControlBus.resolveRemoteSubscriber({
+          workspaceId,
+          capability: null,
+          targetBridgeDeviceId: null,
+          runtimeType: OPENCLAW_RUNTIME_TYPE,
+        });
+    const missingLocalAgent = agents.find((agent) => {
+      const externalId = agent.externalId?.trim();
+      return (
+        !externalId ||
+        !runtime.liveRegisteredExternalAgentIds.includes(externalId)
+      );
+    });
+    if (
+      (!hasLocalControl && !remoteInstanceId) ||
+      (hasLocalControl && missingLocalAgent)
+    ) {
+      const targetName =
+        missingLocalAgent?.name?.trim() ||
+        agents[0]?.name?.trim() ||
+        "The selected agent";
+      return {
+        available: false,
+        message: `${targetName}'s OpenClaw runtime is not connected to this Railway workspace. Start or reconnect the OpenClaw bridge for this workspace, then try again.`,
+      };
+    }
+    return { available: true, message: null };
   }
 
   hasLocalAppAgentApiSetupCapability(
@@ -4732,6 +4777,19 @@ export class BridgeService {
     return normalized;
   }
 
+  private normalizeLibraryTextFilename(filename?: string | null) {
+    const normalized = this.normalizeWorkspacePathSegment(filename, "filename");
+    const lower = normalized.toLowerCase();
+    if (
+      !lower.endsWith(".md") &&
+      !lower.startsWith(".env") &&
+      !lower.endsWith(".json")
+    ) {
+      throw new BadRequestException("Enter a markdown, env, or JSON filename");
+    }
+    return normalized;
+  }
+
   private normalizeWorkspaceWritableFilename(filename?: string | null) {
     const normalized = this.normalizeWorkspacePathSegment(filename, "filename");
     const lower = normalized.toLowerCase();
@@ -4750,6 +4808,29 @@ export class BridgeService {
       ...file,
       filename: this.normalizeWorkspaceWritableFilename(file.filename),
     }));
+  }
+
+  private normalizeLibraryFilePayloads(files: BridgeLibraryFilePayload[]) {
+    return files.map((file) => ({
+      ...file,
+      filename: this.normalizeLibraryWritableFilename(file.filename),
+    }));
+  }
+
+  private normalizeLibraryWritableFilename(filename?: string | null) {
+    const normalized = this.normalizeWorkspacePathSegment(filename, "filename");
+    const lower = normalized.toLowerCase();
+    if (
+      !lower.endsWith(".md") &&
+      !lower.startsWith(".env") &&
+      !lower.endsWith(".png") &&
+      !lower.endsWith(".json")
+    ) {
+      throw new BadRequestException(
+        "Enter a markdown, env, PNG, or JSON filename",
+      );
+    }
+    return normalized;
   }
 
   private normalizeWorkspacePathSegment(

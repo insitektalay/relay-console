@@ -87,6 +87,118 @@ func marketplaceUsesConnectorOAuthPage(_ app: MarketplaceCatalogApp) -> Bool {
   return !connectionTypes.isDisjoint(with: connectorOAuthTypes)
 }
 
+struct ApplicationsUniversalSavedConnectionsCard: View {
+  @EnvironmentObject private var model: AppViewModel
+  let app: MarketplaceCatalogApp
+  let onEdit: (MarketplaceProviderConnection) -> Void
+
+  private var savedConnections: [MarketplaceProviderConnection] {
+    model.marketplaceConnections(for: app).sorted { $0.updatedAt > $1.updatedAt }
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 9) {
+      Text("Saved connections")
+        .font(.system(size: 13, weight: .bold))
+      if savedConnections.isEmpty {
+        Text("No saved connections yet.")
+          .font(.system(size: 12, weight: .semibold))
+          .foregroundStyle(RCTheme.muted)
+      } else {
+        ForEach(savedConnections) { connection in
+          ApplicationsUniversalSavedConnectionRow(
+            app: app,
+            connection: connection,
+            onEdit: { onEdit(connection) }
+          )
+        }
+      }
+    }
+  }
+}
+
+struct ApplicationsUniversalSavedConnectionRow: View {
+  @EnvironmentObject private var model: AppViewModel
+  let app: MarketplaceCatalogApp
+  let connection: MarketplaceProviderConnection
+  let onEdit: () -> Void
+
+  private var selected: Bool {
+    model.selectedProviderConnection?.id == connection.id
+  }
+
+  private var ready: Bool {
+    connection.status == .connected && connection.health.state == .ready
+  }
+
+  private var configuredCredentialLabels: [String] {
+    connection.credentialRequirements
+      .filter { $0.status == .verified || $0.status == .referenced }
+      .map(\.label)
+  }
+
+  var body: some View {
+    HStack(spacing: 8) {
+      Button {
+        model.selectSharedMarketplaceConnection(connection.id)
+      } label: {
+        HStack(spacing: 11) {
+          ZStack {
+            Circle()
+              .stroke(selected ? RCTheme.accentBlue : RCTheme.borderStrong, lineWidth: 1.5)
+              .frame(width: 17, height: 17)
+            if selected {
+              Circle()
+                .fill(RCTheme.accentBlue)
+                .frame(width: 8, height: 8)
+            }
+          }
+          VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 7) {
+              Text(connection.accountLabel?.nilIfEmpty ?? "\(app.name) connection")
+                .font(.system(size: 12, weight: .bold))
+                .lineLimit(1)
+              if selected {
+                Text("ACTIVE")
+                  .font(.system(size: 8, weight: .bold))
+                  .foregroundStyle(RCTheme.accentBlue)
+              }
+            }
+            Text(
+              configuredCredentialLabels.isEmpty
+                ? "Credentials stored securely by Railway"
+                : "\(configuredCredentialLabels.joined(separator: ", ")) configured"
+            )
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(RCTheme.muted)
+            .lineLimit(1)
+          }
+          Spacer()
+          HStack(spacing: 6) {
+            Image(systemName: ready ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+            Text(ready ? "Connected" : connection.health.message)
+              .lineLimit(1)
+          }
+          .font(.system(size: 11, weight: .semibold))
+          .foregroundStyle(ready ? RCTheme.accentGreen : RCTheme.accentAmber)
+        }
+      }
+      .buttonStyle(.plain)
+      .disabled(!ready)
+      Button("Edit", action: onEdit)
+        .buttonStyle(SecondaryLightButtonStyle())
+        .help("Edit this connection")
+    }
+    .padding(10)
+    .background(selected ? RCTheme.accentBlue.opacity(0.08) : RCTheme.surfaceLevel2)
+    .clipShape(RoundedRectangle(cornerRadius: 7))
+    .overlay(
+      RoundedRectangle(cornerRadius: 7)
+        .stroke(selected ? RCTheme.accentBlue.opacity(0.45) : RCTheme.borderSoft)
+    )
+  }
+}
+
 struct ApplicationsProviderOAuthActions: View {
   @EnvironmentObject private var model: AppViewModel
   @State private var selectedAccessOptionId = ""
@@ -97,6 +209,9 @@ struct ApplicationsProviderOAuthActions: View {
 
   private var accessOptions: [MarketplaceOAuthAccessOption] {
     app.oauthAccessOptions ?? []
+  }
+  private var savedConnections: [MarketplaceProviderConnection] {
+    model.marketplaceConnections(for: app)
   }
   private var selectedAccessOption: MarketplaceOAuthAccessOption? {
     if let selected = accessOptions.first(where: { $0.id == selectedAccessOptionId }) {
@@ -132,6 +247,12 @@ struct ApplicationsProviderOAuthActions: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
+      if !savedConnections.isEmpty {
+        ApplicationsUniversalSavedConnectionsCard(app: app) { _ in
+          model.startProviderSetup(for: app, accessOption: selectedAccessOption)
+        }
+      }
+
       if !isConnected, accessOptions.count > 1 {
         Picker(
           "Access",
@@ -395,29 +516,13 @@ struct ApplicationsProviderConnectionPanel: View {
     snapshot?.authorizationFlows.first
   }
 
-  private var hasInlineCredentials: Bool {
-    [
-      "mailgun", "paypal", "sendgrid", "postmark", "resend", "sparkpost", "brevo", "sinch-mailjet",
-      "nimbus-note", "mem", "readwise", "instapaper", "feedly", "readme", "document360", "archbee",
-      "tettra", "knowledgeowl", "freshdesk", "sanity", "strapi-cloud", "ghost", "coda", "vidyard",
-      "padlet", "descript", "rev", "tl-dv", "slab", "roadmunk", "shortcut", "hive", "paymo",
-      "kraken", "binance", "gemini", "proofhub", "quip", "bynder", "brandfolder", "canto",
-      "frontify", "asset-bank", "widen-collective", "kontainer", "jira-align", "daminion",
-      "ms-project",
-    ].contains(app.slug)
-  }
-
   private var usesManifestCredentialForm: Bool {
     guard !(app.credentialRequirements ?? []).isEmpty else { return false }
     return !marketplaceUsesConnectorOAuthPage(app)
   }
 
   var body: some View {
-    if app.slug == "exa-search" {
-      ApplicationsExaSearchConnectionPanel(app: app)
-    } else {
-      standardProviderPanel
-    }
+    standardProviderPanel
   }
 
   private var standardProviderPanel: some View {
@@ -448,123 +553,21 @@ struct ApplicationsProviderConnectionPanel: View {
         }
       }
 
+      if !usesManifestCredentialForm
+        && !(marketplaceUsesSharedProviderPage(app) || marketplaceUsesConnectorOAuthPage(app))
+        && !model.marketplaceConnections(for: app).isEmpty
+      {
+        ApplicationsUniversalSavedConnectionsCard(app: app) { _ in
+          model.startProviderSetup(for: app)
+        }
+      }
+
       if usesManifestCredentialForm {
         ApplicationsManifestCredentialForm(app: app)
-      } else if app.slug == "x" {
-        ApplicationsXCredentialForm(app: app, connection: connection, latestFlow: latestFlow)
-      } else if app.slug == "linkedin" {
-        ApplicationsLinkedInCredentialForm(app: app, connection: connection, latestFlow: latestFlow)
-      } else if app.slug == "mailgun" {
-        ApplicationsMailgunCredentialForm(app: app)
-      } else if app.slug == "paypal" {
-        ApplicationsPayPalCredentialForm(app: app)
-      } else if app.slug == "sendgrid" {
-        ApplicationsSendGridCredentialForm(app: app)
-      } else if app.slug == "postmark" {
-        ApplicationsPostmarkCredentialForm(app: app)
-      } else if app.slug == "resend" {
-        ApplicationsResendCredentialForm(app: app)
-      } else if app.slug == "sparkpost" {
-        ApplicationsSparkPostCredentialForm(app: app)
-      } else if app.slug == "brevo" {
-        ApplicationsBrevoCredentialForm(app: app)
-      } else if app.slug == "sinch-mailjet" {
-        ApplicationsMailjetCredentialForm(app: app)
-      } else if app.slug == "nimbus-note" {
-        ApplicationsFuseBaseCredentialForm(app: app)
-      } else if app.slug == "mem" {
-        ApplicationsMemCredentialForm(app: app)
-      } else if app.slug == "readwise" {
-        ApplicationsReadwiseCredentialForm(app: app)
-      } else if app.slug == "instapaper" {
-        ApplicationsInstapaperCredentialForm(app: app)
-      } else if app.slug == "feedly" {
-        ApplicationsFeedlyCredentialForm(app: app)
-      } else if app.slug == "readme" {
-        ApplicationsReadMeCredentialForm(app: app)
-      } else if app.slug == "document360" {
-        ApplicationsDocument360CredentialForm(app: app)
-      } else if app.slug == "archbee" {
-        ApplicationsArchbeeCredentialForm(app: app)
-      } else if app.slug == "tettra" {
-        ApplicationsTettraCredentialForm(app: app)
-      } else if app.slug == "knowledgeowl" {
-        ApplicationsKnowledgeOwlCredentialForm(app: app)
-      } else if app.slug == "freshdesk" {
-        ApplicationsFreshdeskCredentialForm(app: app)
-      } else if app.slug == "sanity" {
-        ApplicationsSanityCredentialForm(app: app)
-      } else if app.slug == "strapi-cloud" {
-        ApplicationsStrapiCloudCredentialForm(app: app)
-      } else if app.slug == "ghost" {
-        ApplicationsGhostCredentialForm(app: app)
-      } else if app.slug == "coda" {
-        ApplicationsCodaCredentialForm(app: app)
-      } else if app.slug == "vidyard" {
-        ApplicationsVidyardCredentialForm(app: app)
-      } else if app.slug == "padlet" {
-        ApplicationsPadletCredentialForm(app: app)
-      } else if app.slug == "descript" {
-        ApplicationsDescriptCredentialForm(app: app)
-      } else if app.slug == "rev" {
-        ApplicationsRevCredentialForm(app: app)
-      } else if app.slug == "buzzsprout" {
-        ApplicationsBuzzsproutCredentialForm(app: app)
-      } else if app.slug == "captivate-fm" {
-        ApplicationsCaptivateCredentialForm(app: app)
-      } else if app.slug == "transistor-fm" {
-        ApplicationsTransistorCredentialForm(app: app)
-      } else if app.slug == "riverside-fm" {
-        ApplicationsRiversideCredentialForm(app: app)
-      } else if app.slug == "tl-dv" {
-        ApplicationsTlDvCredentialForm(app: app)
-      } else if app.slug == "slab" {
-        ApplicationsSlabCredentialForm(app: app)
-      } else if app.slug == "roadmunk" {
-        ApplicationsRoadmunkCredentialForm(app: app)
-      } else if app.slug == "shortcut" {
-        ApplicationsShortcutCredentialForm(app: app)
-      } else if app.slug == "hive" {
-        ApplicationsHiveCredentialForm(app: app)
-      } else if app.slug == "paymo" {
-        ApplicationsPaymoCredentialForm(app: app)
-      } else if app.slug == "kraken" {
-        ApplicationsKrakenCredentialForm(app: app)
-      } else if app.slug == "binance" {
-        ApplicationsBinanceCredentialForm(app: app)
-      } else if app.slug == "gemini" {
-        ApplicationsGeminiCredentialForm(app: app)
-      } else if app.slug == "nozbe" {
-        ApplicationsNozbeCredentialForm(app: app)
-      } else if app.slug == "proofhub" {
-        ApplicationsProofHubCredentialForm(app: app)
-      } else if app.slug == "quip" {
-        ApplicationsQuipCredentialForm(app: app)
-      } else if app.slug == "bynder" {
-        ApplicationsBynderCredentialForm(app: app)
-      } else if app.slug == "brandfolder" {
-        ApplicationsBrandfolderCredentialForm(app: app)
-      } else if app.slug == "canto" {
-        ApplicationsCantoCredentialForm(app: app)
-      } else if app.slug == "frontify" {
-        ApplicationsFrontifyCredentialForm(app: app)
-      } else if app.slug == "asset-bank" {
-        ApplicationsAssetBankCredentialForm(app: app)
-      } else if app.slug == "widen-collective" {
-        ApplicationsWidenCollectiveCredentialForm(app: app)
-      } else if app.slug == "kontainer" {
-        ApplicationsKontainerCredentialForm(app: app)
-      } else if app.slug == "jira-align" {
-        ApplicationsJiraAlignCredentialForm(app: app)
-      } else if app.slug == "daminion" {
-        ApplicationsDaminionCredentialForm(app: app)
-      } else if app.slug == "ms-project" {
-        ApplicationsMsProjectCredentialForm(app: app)
       }
 
       if !usesManifestCredentialForm
         && (marketplaceUsesSharedProviderPage(app) || marketplaceUsesConnectorOAuthPage(app))
-        && !hasInlineCredentials
       {
         ApplicationsProviderOAuthActions(
           app: app,
@@ -579,11 +582,7 @@ struct ApplicationsProviderConnectionPanel: View {
             model.startProviderSetup(for: app)
           } label: {
             Label(
-              app.slug == "x"
-                ? (connection == nil ? "Connect X" : "Reconnect X")
-                : (app.slug == "linkedin"
-                  ? (connection == nil ? "Add LinkedIn token" : "Review LinkedIn token")
-                  : (connection == nil ? "Configure connection" : "Review connection")),
+              connection == nil ? "Connect \(app.name)" : "Review \(app.name) connection",
               systemImage: "person.badge.key"
             )
           }
@@ -592,16 +591,14 @@ struct ApplicationsProviderConnectionPanel: View {
           .help("Configure \(app.name) connection")
           .accessibilityLabel("Configure \(app.name) connection")
 
-          if app.slug != "x" && app.slug != "linkedin" {
-            Button {
-            } label: {
-              Label("Re-authorize", systemImage: "arrow.triangle.2.circlepath")
-            }
-            .buttonStyle(SecondaryLightButtonStyle())
-            .disabled(true)
-            .help("Re-authorize")
-            .accessibilityLabel("Re-authorize provider")
+          Button {
+          } label: {
+            Label("Re-authorize", systemImage: "arrow.triangle.2.circlepath")
           }
+          .buttonStyle(SecondaryLightButtonStyle())
+          .disabled(true)
+          .help("Re-authorize")
+          .accessibilityLabel("Re-authorize provider")
 
           Button {
           } label: {
@@ -680,26 +677,17 @@ struct ApplicationsManifestCredentialForm: View {
     model.busy == "connect-manifest-provider-\(app.slug)"
   }
 
-  private var savedConnections: [MarketplaceProviderConnection] {
-    (model.providerConnectionSnapshot?.connections ?? [])
-      .filter { $0.appSlug == app.slug }
-      .sorted { $0.updatedAt > $1.updatedAt }
-  }
-
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      VStack(alignment: .leading, spacing: 9) {
-        Text("Saved connections")
-          .font(.system(size: 13, weight: .bold))
-        if savedConnections.isEmpty {
-          Text("No saved connections yet.")
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(RCTheme.muted)
-        } else {
-          ForEach(savedConnections) { connection in
-            savedConnectionRow(connection)
+      ApplicationsUniversalSavedConnectionsCard(app: app) { connection in
+        editingConnectionId = connection.id
+        displayName = connection.accountLabel?.nilIfEmpty ?? app.name
+        credentials = Dictionary(
+          uniqueKeysWithValues: (app.credentialRequirements ?? []).compactMap { requirement in
+            guard let defaultValue = requirement.defaultValue else { return nil }
+            return (requirement.name, defaultValue)
           }
-        }
+        )
       }
       Divider()
       ApplicationsConnectionFormGrid {
@@ -809,81 +797,6 @@ struct ApplicationsManifestCredentialForm: View {
     .task(id: app.slug) {
       await model.loadManifestDefinedConnections(for: app)
     }
-  }
-
-  private func savedConnectionRow(_ connection: MarketplaceProviderConnection) -> some View {
-    let selected = model.selectedProviderConnection?.id == connection.id
-    let ready = connection.status == .connected && connection.health.state == .ready
-    let configured = connection.credentialRequirements
-      .filter { $0.status == .verified || $0.status == .referenced }
-      .map(\.label)
-    return HStack(spacing: 8) {
-      Button {
-        model.selectSharedMarketplaceConnection(connection.id)
-      } label: {
-        HStack(spacing: 11) {
-          ZStack {
-            Circle()
-              .stroke(selected ? RCTheme.accentBlue : RCTheme.borderStrong, lineWidth: 1.5)
-              .frame(width: 17, height: 17)
-            if selected {
-              Circle()
-                .fill(RCTheme.accentBlue)
-                .frame(width: 8, height: 8)
-            }
-          }
-          VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 7) {
-              Text(connection.accountLabel?.nilIfEmpty ?? "\(app.name) connection")
-                .font(.system(size: 12, weight: .bold))
-                .lineLimit(1)
-              if selected {
-                Text("ACTIVE")
-                  .font(.system(size: 8, weight: .bold))
-                  .foregroundStyle(RCTheme.accentBlue)
-              }
-            }
-            Text(
-              configured.isEmpty
-                ? "Credentials stored securely by Railway"
-                : "\(configured.joined(separator: ", ")) configured"
-            )
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(RCTheme.muted)
-            .lineLimit(1)
-          }
-          Spacer()
-          HStack(spacing: 6) {
-            Image(systemName: ready ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-            Text(ready ? "Connected" : connection.health.message)
-              .lineLimit(1)
-          }
-          .font(.system(size: 11, weight: .semibold))
-          .foregroundStyle(ready ? RCTheme.accentGreen : RCTheme.accentAmber)
-        }
-      }
-      .buttonStyle(.plain)
-      .disabled(!ready)
-      Button("Edit") {
-        editingConnectionId = connection.id
-        displayName = connection.accountLabel?.nilIfEmpty ?? app.name
-        credentials = Dictionary(
-          uniqueKeysWithValues: (app.credentialRequirements ?? []).compactMap { requirement in
-            guard let defaultValue = requirement.defaultValue else { return nil }
-            return (requirement.name, defaultValue)
-          }
-        )
-      }
-      .buttonStyle(SecondaryLightButtonStyle())
-      .help("Edit this connection. Secret values must be entered again.")
-    }
-    .padding(10)
-    .background(selected ? RCTheme.accentBlue.opacity(0.08) : RCTheme.surfaceLevel2)
-    .clipShape(RoundedRectangle(cornerRadius: 7))
-    .overlay(
-      RoundedRectangle(cornerRadius: 7)
-        .stroke(selected ? RCTheme.accentBlue.opacity(0.45) : RCTheme.borderSoft)
-    )
   }
 
   private func credentialBinding(_ name: String) -> Binding<String> {

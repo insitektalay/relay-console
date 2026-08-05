@@ -88,6 +88,28 @@ test("web SDK replaces Railway infrastructure errors with an actionable service 
   )
 })
 
+test("web SDK preserves an actionable Railway 503 explanation", async () => {
+  const sdk = new ClawChatWebSdk({ apiBaseUrl: "/api/v1" }) as unknown as {
+    request: RequestForTest
+  }
+  const message =
+    "Luca Signoff's OpenClaw runtime is not connected to this Railway workspace."
+
+  globalThis.fetch = (async () =>
+    new Response(JSON.stringify({ message }), {
+      status: 503,
+      headers: { "content-type": "application/json" },
+    })) as typeof fetch
+
+  await assert.rejects(
+    () => sdk.request("/marketplace/install", { method: "POST" }),
+    (error) =>
+      error instanceof ClawChatApiError &&
+      error.status === 503 &&
+      error.message === message
+  )
+})
+
 test("SDK requests have conservative defaults and an explicit timeout escape hatch", () => {
   assert.match(sdkSource, /const DEFAULT_REQUEST_TIMEOUT_MS = 20_000/)
   assert.match(sdkSource, /timeoutMs\?: number \| null/)

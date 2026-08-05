@@ -264,6 +264,8 @@ public protocol RelayCloudTransport: Sendable {
 }
 
 public final class URLSessionRelayCloudTransport: RelayCloudTransport, @unchecked Sendable {
+    private static let unavailableMessage =
+        "Relay service is temporarily unavailable. Please try again shortly."
     private let apiBaseURL: URL
     private let session: URLSession
 
@@ -319,7 +321,7 @@ public final class URLSessionRelayCloudTransport: RelayCloudTransport, @unchecke
         if [502, 503, 504].contains(http.statusCode) {
             throw RelayError(
                 .internalError,
-                "Relay service is temporarily unavailable. Please try again shortly."
+                Self.serviceErrorMessage(statusCode: http.statusCode, responseData: data)
             )
         }
         let decoded: Any = data.isEmpty ? [String: Any]() : try JSONSerialization.jsonObject(with: data)
@@ -329,6 +331,25 @@ public final class URLSessionRelayCloudTransport: RelayCloudTransport, @unchecke
             throw RelayError(http.statusCode == 401 ? .permissionDenied : .internalError, message)
         }
         return decoded
+    }
+
+    public static func serviceErrorMessage(statusCode: Int, responseData: Data) -> String {
+        guard [502, 503, 504].contains(statusCode),
+              let object = try? JSONSerialization.jsonObject(with: responseData) as? [String: Any],
+              let rawMessage = object["message"] as? String else {
+            return unavailableMessage
+        }
+        let message = rawMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = message.lowercased()
+        guard !message.isEmpty,
+              normalized != "service unavailable",
+              normalized != "bad gateway",
+              normalized != "gateway timeout",
+              !normalized.contains("application failed to respond"),
+              !normalized.contains("upstream connect error") else {
+            return unavailableMessage
+        }
+        return message
     }
 }
 
@@ -1430,9 +1451,13 @@ public final class CloudRelaySyncService: @unchecked Sendable {
         relativePath: String,
         body: [String: Any]? = nil
     ) async throws -> [String: Any] {
-        guard ["GET", "POST"].contains(method),
-              !relativePath.hasPrefix("/"), !relativePath.contains(".."),
-            let link = try database.get(
+        guard Self.isSupportedRailwayMarketplaceMethod(method) else {
+            throw RelayError(.invalidInput, "The Railway Marketplace request method is unsupported.")
+        }
+        guard !relativePath.hasPrefix("/"), !relativePath.contains("..") else {
+            throw RelayError(.invalidInput, "The Railway Marketplace request path is invalid.")
+        }
+        guard let link = try database.get(
                 "SELECT l.id,l.account_id,l.remote_workspace_id,d.api_base_url FROM workspace_sync_links l JOIN cloud_deployments d ON d.id=l.deployment_id WHERE l.local_workspace_id=? AND l.state NOT IN ('unlinked','revoked') ORDER BY l.updated_at DESC LIMIT 1", [.text(localWorkspaceId)]),
               let accountId = link["account_id"]?.string,
               let remoteWorkspaceId = link["remote_workspace_id"]?.string,
@@ -1477,6 +1502,10 @@ public final class CloudRelaySyncService: @unchecked Sendable {
             path: "workspaces/\(remoteWorkspaceId)/marketplace/\(relativePath)",
             body: nil,
             accessToken: token)
+    }
+
+    public static func isSupportedRailwayMarketplaceMethod(_ method: String) -> Bool {
+        ["GET", "POST", "DELETE"].contains(method)
     }
 
     public static func marketplaceOAuthConnectionView(
@@ -1584,6 +1613,13 @@ public final class CloudRelaySyncService: @unchecked Sendable {
                 [.text(localWorkspaceId)]),
               let syncLinkId = link["id"]?.string else {
             throw RelayError(.invalidInput, "Railway returned an incomplete Marketplace connection.")
+        }
+        if let existing = try mappedDeviceLocalMarketplaceConnection(
+            syncLinkId: syncLinkId,
+            workspaceId: localWorkspaceId,
+            remoteConnectionId: remoteConnectionId
+        ) {
+            return existing
         }
         let rawStatus = connectionView["status"] as? String ?? "unverified"
         let status: ProviderConnectionStatus
@@ -1703,6 +1739,35 @@ public final class CloudRelaySyncService: @unchecked Sendable {
             _ = try? database.run("UPDATE sync_apply_guard SET active=0 WHERE id=1")
             throw error
         }
+    }
+
+    private func mappedDeviceLocalMarketplaceConnection(
+        syncLinkId: String,
+        workspaceId: String,
+        remoteConnectionId: String
+    ) throws -> MarketplaceProviderConnection? {
+        guard let localId = try database.get(
+            """
+            SELECT versions.local_object_id
+            FROM remote_object_versions versions
+            JOIN applications_provider_connections connection
+              ON connection.id=versions.local_object_id
+            WHERE versions.sync_link_id=?
+              AND versions.object_type='application_connection'
+              AND versions.canonical_object_id=?
+              AND connection.workspace_id=?
+              AND connection.execution_authority='swift'
+            ORDER BY versions.updated_at DESC
+            LIMIT 1
+            """,
+            [.text(syncLinkId), .text(remoteConnectionId), .text(workspaceId)]
+        )?["local_object_id"]?.string else {
+            return nil
+        }
+        return try data.getProviderConnection(
+            workspaceId: workspaceId,
+            connectionId: localId
+        )
     }
 
     /// Mirrors Railway Marketplace install views into the local applications
@@ -2022,6 +2087,46 @@ public final class CloudRelaySyncService: @unchecked Sendable {
                 remoteInstallationId: row["remote_installation_id"]?.string ?? "", state: CloudSyncLinkState(rawValue: row["state"]?.string ?? "") ?? .unavailable, attachmentPolicy: CloudAttachmentPolicy(rawValue: row["attachment_policy"]?.string ?? "") ?? .metadataOnly,
                 offlineRetention: row["offline_retention"]?.bool ?? true, hostingEnabled: row["hosting_enabled"]?.bool ?? false)
         }
+    }
+
+    /// Railway-owned connection rows are presentable only when they belong to
+    /// the active workspace link and do not duplicate a mapped device-local
+    /// connection that retains the usable credentials on its owning Mac.
+    public func railwayMarketplaceConnectionIds(
+        localWorkspaceId: String
+    ) throws -> Set<RelayId> {
+        guard let link = try database.get(
+            "SELECT id FROM workspace_sync_links WHERE local_workspace_id=? AND state NOT IN ('unlinked','revoked') ORDER BY updated_at DESC LIMIT 1",
+            [.text(localWorkspaceId)]
+        ), let syncLinkId = link["id"]?.string else {
+            return []
+        }
+        let rows = try database.all(
+            """
+            SELECT versions.local_object_id,versions.canonical_object_id,
+                   connection.execution_authority
+            FROM remote_object_versions versions
+            JOIN applications_provider_connections connection
+              ON connection.id=versions.local_object_id
+            WHERE versions.sync_link_id=?
+              AND versions.object_type='application_connection'
+              AND connection.workspace_id=?
+            """,
+            [.text(syncLinkId), .text(localWorkspaceId)]
+        )
+        let deviceLocalCanonicalIds = Set(rows.compactMap { row in
+            row["execution_authority"]?.string == MarketplaceExecutionAuthority.deviceLocal.rawValue
+                ? row["canonical_object_id"]?.string
+                : nil
+        })
+        return Set(rows.compactMap { row in
+            guard row["execution_authority"]?.string == MarketplaceExecutionAuthority.railway.rawValue,
+                  let canonicalId = row["canonical_object_id"]?.string,
+                  !deviceLocalCanonicalIds.contains(canonicalId) else {
+                return nil
+            }
+            return row["local_object_id"]?.string
+        })
     }
 
     public func setRemoteLinkId(localLinkId: String, remoteLinkId: String) throws {

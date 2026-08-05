@@ -371,7 +371,7 @@ export class CraftApiAdapter {
       url.password ||
       url.search ||
       url.hash ||
-      !/^\/link\/[A-Za-z0-9_-]{8,200}\/api\/v1\/?$/.test(url.pathname)
+      !/^\/links?\/[A-Za-z0-9_-]{8,200}\/api\/v1\/?$/.test(url.pathname)
     )
       throw new CraftApiError(
         "provider_validation_error",
