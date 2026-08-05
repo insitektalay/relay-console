@@ -6551,6 +6551,12 @@ struct RelayConsoleServiceTests {
       runner.openClawAgentRunCwd() == harnessPath,
       "OpenClaw dispatch should run from the harness install path")
     try expect(
+      runner.openClawAgentRunTimeoutMs() == RuntimeDispatchTimeouts.chatTurnMs + 60_000,
+      "OpenClaw dispatch should preserve a diagnostic grace period beyond the agent turn timeout")
+    try expect(
+      (runner.openClawAgentRunTimeoutMs() ?? Int.max) <= CommandResourceLimits.maximumTimeoutMs,
+      "OpenClaw dispatch command timeout must stay within ProcessCommandRunner's accepted maximum")
+    try expect(
       runner.openClawAgentRunEnvValue("EXA_API_KEY") == nil,
       "OpenClaw dispatch should not expose Exa credentials to the agent process")
     try expect(
@@ -37499,6 +37505,24 @@ struct RelayConsoleServiceTests {
       )
     }
 
+    let openClawConfigURL = services.paths.openClawHomeDir.appendingPathComponent("openclaw.json")
+    try FileManager.default.createDirectory(
+      at: openClawConfigURL.deletingLastPathComponent(),
+      withIntermediateDirectories: true
+    )
+    let existingOpenClawConfig: [String: Any] = [
+      "plugins": [
+        "entries": [
+          "clawchat": ["enabled": true],
+          "codex": ["enabled": true],
+          "openai": ["enabled": true],
+          "disabled-plugin": ["enabled": false],
+        ]
+      ]
+    ]
+    try JSONSerialization.data(withJSONObject: existingOpenClawConfig, options: [.sortedKeys])
+      .write(to: openClawConfigURL, options: .atomic)
+
     let openClawHarnessInstall = try services.harnessInstall.prepareMarketplaceRuntimeToolBridge(
       for: openClawAgent,
       request: runtimeRequest(agent: openClawAgent, suffix: "openclaw"),
@@ -37547,7 +37571,6 @@ struct RelayConsoleServiceTests {
     try expect(
       contractTools.contains { $0.hasPrefix("relay_provider_notion_") },
       "OpenClaw harness contracts should include Notion wrapper tools")
-    let openClawConfigURL = services.paths.openClawHomeDir.appendingPathComponent("openclaw.json")
     let openClawConfigData = try Data(contentsOf: openClawConfigURL)
     guard
       let openClawConfig = try JSONSerialization.jsonObject(with: openClawConfigData)
@@ -37567,6 +37590,9 @@ struct RelayConsoleServiceTests {
     try expect(
       openClawAllow.contains("relay-marketplace"),
       "OpenClaw marketplace plugin must be explicitly admitted through plugins.allow")
+    try expect(
+      Set(openClawAllow) == Set(["clawchat", "codex", "openai", "relay-marketplace"]),
+      "creating plugins.allow must preserve enabled OpenClaw plugins without admitting disabled entries")
     try expect(
       openClawLoadPaths.contains(openClawPluginDir.path),
       "OpenClaw marketplace plugin path must be present in plugins.load.paths")
@@ -49209,6 +49235,7 @@ private final class ScriptedProvisioningRunner: CommandRunning, @unchecked Senda
   private var openClawRemoves: [String] = []
   private var openClawAgentRunCwds: [String] = []
   private var openClawAgentRunEnvs: [[String: String]] = []
+  private var openClawAgentRunTimeouts: [Int] = []
   private var hermesProvisionScripts: [String] = []
   private var hermesAuthHomes: [String] = []
 
@@ -49243,6 +49270,12 @@ private final class ScriptedProvisioningRunner: CommandRunning, @unchecked Senda
   func openClawAgentRunEnvValue(_ key: String) -> String? {
     queue.sync {
       openClawAgentRunEnvs.last?[key]
+    }
+  }
+
+  func openClawAgentRunTimeoutMs() -> Int? {
+    queue.sync {
+      openClawAgentRunTimeouts.last
     }
   }
 
@@ -49356,6 +49389,7 @@ private final class ScriptedProvisioningRunner: CommandRunning, @unchecked Senda
       queue.sync {
         openClawAgentRunCwds.append(cwd)
         openClawAgentRunEnvs.append(options.env)
+        openClawAgentRunTimeouts.append(options.timeoutMs)
       }
       guard !cwd.isEmpty,
         FileManager.default.fileExists(

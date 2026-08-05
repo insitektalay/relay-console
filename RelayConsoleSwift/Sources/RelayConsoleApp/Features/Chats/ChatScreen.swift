@@ -211,7 +211,7 @@ struct ChatScreen: View {
           submit()
         }
         .frame(maxWidth: .infinity)
-        .frame(height: model.visibleComposerAttachments.isEmpty ? 88 : 134)
+        .fixedSize(horizontal: false, vertical: true)
         .padding(.horizontal, 24)
         .padding(.top, 10)
         .padding(.bottom, 24)

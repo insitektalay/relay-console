@@ -150,6 +150,12 @@ extension HarnessInstallManager {
         plugins["load"] = .object(load)
 
         var entries = objectValue(plugins["entries"]) ?? [:]
+        let enabledPluginIDsToPreserve = plugins["allow"] == nil
+            ? entries.keys.sorted().filter { pluginID in
+                guard case .object(let entry)? = entries[pluginID] else { return false }
+                return boolValue(entry["enabled"]) == true
+            }
+            : []
         entries["relay-marketplace"] = .object([
             "enabled": .bool(true),
             "config": .object(runtimeConfig)
@@ -157,6 +163,9 @@ extension HarnessInstallManager {
         plugins["entries"] = .object(entries)
 
         var allow = arrayValue(plugins["allow"])
+        for pluginID in enabledPluginIDsToPreserve {
+            appendUniqueString(pluginID, to: &allow)
+        }
         appendUniqueString("relay-marketplace", to: &allow)
         plugins["allow"] = .array(allow)
 

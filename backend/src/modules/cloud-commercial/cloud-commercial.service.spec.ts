@@ -91,6 +91,11 @@ describe("CloudCommercialService", () => {
             RELAY_PUBLIC_WEB_ORIGIN: "https://app.example.com",
             CONNECTION_DESCRIPTOR_PRIVATE_KEY: privateKey,
             CONNECTION_DESCRIPTOR_PUBLIC_KEY: publicKey,
+            RAILWAY_PROJECT_ID: "11111111-1111-4111-8111-111111111111",
+            RAILWAY_ENVIRONMENT_ID: "22222222-2222-4222-8222-222222222222",
+            RAILWAY_SERVICE_ID: "33333333-3333-4333-8333-333333333333",
+            RELAY_SOURCE_REPOSITORY: "insitektalay/relay-console",
+            RAILWAY_GIT_COMMIT_SHA: "0123456789abcdef0123456789abcdef01234567",
           }) as Record<string, string>
         )[key],
     ),
@@ -190,6 +195,20 @@ describe("CloudCommercialService", () => {
         },
       }),
     ]);
+  });
+
+  it("publishes only the Railway identity required for coordinated updates", async () => {
+    const release = await service.releaseManifest();
+    expect(release.coordinatedUpdate).toEqual({
+      schemaVersion: "relay.railway-coordinated-update.v1",
+      provider: "railway",
+      supported: true,
+      projectId: "11111111-1111-4111-8111-111111111111",
+      environmentId: "22222222-2222-4222-8222-222222222222",
+      serviceId: "33333333-3333-4333-8333-333333333333",
+      sourceRepository: "insitektalay/relay-console",
+      sourceCommit: "0123456789abcdef0123456789abcdef01234567",
+    });
   });
 
   it("signs connection descriptors with the advertised Ed25519 key", async () => {

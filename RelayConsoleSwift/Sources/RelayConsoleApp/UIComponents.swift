@@ -1952,7 +1952,9 @@ struct ShellIconRail: View {
 
             Spacer(minLength: 16)
 
-            if updateController.snapshot.showsUpdatePill {
+            if updateController.snapshot.showsUpdatePill
+                || updateController.snapshot.state == .updatingBackend
+            {
                 updatePill
                     .padding(.bottom, 18)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -1967,16 +1969,20 @@ struct ShellIconRail: View {
 
     private var updatePill: some View {
         let version = updateController.snapshot.availableVersion ?? ""
+        let updatingBackend = updateController.snapshot.state == .updatingBackend
         return Button {
             updateController.showDiscoveredUpdate()
         } label: {
             RCHoverFocusReader { state in
-                Label("Update", systemImage: "arrow.down.circle.fill")
+                Label(
+                    updatingBackend ? "Updating" : "Update both",
+                    systemImage: updatingBackend ? "arrow.triangle.2.circlepath" : "arrow.down.circle.fill"
+                )
                     .font(.system(size: 11, weight: .semibold))
                     .labelStyle(.titleAndIcon)
                     .foregroundStyle(state.isActive() ? RCTheme.text : RCTheme.accentBlue)
                     .padding(.horizontal, 8)
-                    .frame(width: 72, height: 30)
+                    .frame(width: 88, height: 30)
                     .background(state.isActive() ? RCTheme.surfaceHover : RCTheme.accentBlue.opacity(0.13))
                     .clipShape(Capsule())
                     .overlay(
@@ -1990,10 +1996,15 @@ struct ShellIconRail: View {
             }
         }
         .buttonStyle(.plain)
-        .help("Relay Console \(version) is available")
-        .accessibilityLabel("Update Relay Console")
+        .disabled(updatingBackend)
+        .help(updatingBackend
+            ? (updateController.snapshot.progressMessage ?? "Updating the Railway backend")
+            : "Update the Railway backend, then Relay Console \(version)")
+        .accessibilityLabel(updatingBackend
+            ? "Updating Railway backend"
+            : "Update Relay Console and Railway backend")
         .accessibilityValue(updateController.snapshot.updateAccessibilityValue)
-        .accessibilityHint("Opens the secure update installer")
+        .accessibilityHint("Updates and verifies the Railway backend before opening the secure app installer")
     }
 
     private var railBrandMark: some View {
@@ -2953,6 +2964,7 @@ struct ComposerTextView: View {
     var onSelectModel: ((String) -> Void)? = nil
     var onRemoveAttachment: (ChatAttachment) -> Void
     var onSubmit: () -> Void
+    @State private var editorHeight = ComposerEditor.minimumHeight
     private let editorInset = EdgeInsets(top: 8, leading: 4, bottom: 0, trailing: 4)
 
     var body: some View {
@@ -2983,9 +2995,16 @@ struct ComposerTextView: View {
                         .font(.system(size: 14))
                         .padding(editorInset)
                 }
-                ComposerEditor(text: $text, disabled: disabled, textInset: NSSize(width: 4, height: 8), onSubmit: onSubmit)
+                ComposerEditor(
+                    text: $text,
+                    measuredHeight: $editorHeight,
+                    disabled: disabled,
+                    textInset: NSSize(width: 4, height: 8),
+                    onSubmit: onSubmit
+                )
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity)
+            .frame(height: editorHeight)
             HStack {
                 HStack(spacing: 6) {
                     Button {
@@ -3257,19 +3276,41 @@ struct ComposerAttachmentChip: View {
 
 struct ComposerEditor: NSViewRepresentable {
     @Binding var text: String
+    @Binding var measuredHeight: CGFloat
     var disabled: Bool
     var textInset: NSSize
     var onSubmit: () -> Void
 
+    static let minimumLineCount = 1
+    static let maximumLineCount = 8
+    static let fontSize: CGFloat = 14
+    static let verticalTextInset: CGFloat = 8
+
+    static var editorFont: NSFont {
+        NSFont.systemFont(ofSize: fontSize, weight: .regular)
+    }
+
+    static var lineHeight: CGFloat {
+        ceil(editorFont.ascender - editorFont.descender + editorFont.leading)
+    }
+
+    static var minimumHeight: CGFloat {
+        lineHeight * CGFloat(minimumLineCount) + verticalTextInset * 2
+    }
+
+    static var maximumHeight: CGFloat {
+        lineHeight * CGFloat(maximumLineCount) + verticalTextInset * 2
+    }
+
     func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text, onSubmit: onSubmit)
+        Coordinator(text: $text, measuredHeight: $measuredHeight, onSubmit: onSubmit)
     }
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSScrollView()
         scrollView.drawsBackground = false
         scrollView.borderType = .noBorder
-        scrollView.hasVerticalScroller = true
+        scrollView.hasVerticalScroller = false
         scrollView.autohidesScrollers = true
 
         let textView = SubmitTextView()
@@ -3280,7 +3321,7 @@ struct ComposerEditor: NSViewRepresentable {
         textView.isAutomaticQuoteSubstitutionEnabled = false
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
-        textView.font = NSFont.systemFont(ofSize: 14, weight: .regular)
+        textView.font = Self.editorFont
         textView.textColor = NSColor(red: 0.835, green: 0.817, blue: 0.760, alpha: 1)
         textView.insertionPointColor = NSColor(red: 0.525, green: 0.695, blue: 0.900, alpha: 1)
         textView.textContainerInset = textInset
@@ -3300,6 +3341,7 @@ struct ComposerEditor: NSViewRepresentable {
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
         context.coordinator.onSubmit = onSubmit
+        context.coordinator.measuredHeight = $measuredHeight
         if let submitTextView = textView as? SubmitTextView {
             submitTextView.onSubmit = { context.coordinator.submit() }
         }
@@ -3310,20 +3352,50 @@ struct ComposerEditor: NSViewRepresentable {
         textView.isEditable = !disabled
         textView.isSelectable = !disabled
         textView.alphaValue = disabled ? 0.55 : 1
+        DispatchQueue.main.async {
+            context.coordinator.updateMeasuredHeight(for: textView)
+        }
     }
 
     final class Coordinator: NSObject, NSTextViewDelegate {
         var text: Binding<String>
+        var measuredHeight: Binding<CGFloat>
         var onSubmit: () -> Void
 
-        init(text: Binding<String>, onSubmit: @escaping () -> Void) {
+        init(
+            text: Binding<String>,
+            measuredHeight: Binding<CGFloat>,
+            onSubmit: @escaping () -> Void
+        ) {
             self.text = text
+            self.measuredHeight = measuredHeight
             self.onSubmit = onSubmit
         }
 
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
             text.wrappedValue = textView.string
+            updateMeasuredHeight(for: textView)
+        }
+
+        func updateMeasuredHeight(for textView: NSTextView) {
+            guard
+                let scrollView = textView.enclosingScrollView,
+                let textContainer = textView.textContainer,
+                let layoutManager = textView.layoutManager
+            else { return }
+
+            layoutManager.ensureLayout(for: textContainer)
+            let laidOutTextHeight = ceil(layoutManager.usedRect(for: textContainer).height)
+            let contentHeight = laidOutTextHeight + textView.textContainerInset.height * 2
+            let minimumHeight = ComposerEditor.minimumHeight
+            let maximumHeight = ComposerEditor.maximumHeight
+            let clampedHeight = min(max(contentHeight, minimumHeight), maximumHeight)
+
+            scrollView.hasVerticalScroller = contentHeight > maximumHeight
+            if abs(measuredHeight.wrappedValue - clampedHeight) > 0.5 {
+                measuredHeight.wrappedValue = clampedHeight
+            }
         }
 
         func submit() {

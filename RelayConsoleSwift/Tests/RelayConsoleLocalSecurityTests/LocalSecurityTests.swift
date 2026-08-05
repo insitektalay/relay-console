@@ -335,6 +335,33 @@ enum RelayConsoleLocalSecurityTests {
 
     private static func testProcessRunnerBoundsOutputAndTime() async throws {
         let runner = ProcessCommandRunner()
+        let immediate = URL(fileURLWithPath: "/usr/bin/true")
+        let maximumDuration = await runner.run(
+            immediate.path,
+            [],
+            options: CommandOptions(
+                timeoutMs: CommandResourceLimits.maximumTimeoutMs,
+                executableAuthorization: .exact(immediate)
+            )
+        )
+        try expect(
+            maximumDuration.code == 0,
+            "maximum supported command timeout was rejected: \(maximumDuration.stderr)"
+        )
+        let excessiveDuration = await runner.run(
+            immediate.path,
+            [],
+            options: CommandOptions(
+                timeoutMs: CommandResourceLimits.maximumTimeoutMs + 1,
+                executableAuthorization: .exact(immediate)
+            )
+        )
+        try expect(
+            excessiveDuration.code == 127
+                && excessiveDuration.stderr == "The command resource limits are invalid.",
+            "command timeout above the supported maximum was accepted"
+        )
+
         let yes = URL(fileURLWithPath: "/usr/bin/yes")
         let noisy = await runner.run(
             yes.path,
@@ -454,6 +481,13 @@ enum RelayConsoleLocalSecurityTests {
                 "non-authentication executable failure was classified as authentication: \(message)"
             )
         }
+        let unavailableModelFailure =
+            "GatewayClientRequestError: FailoverError: Unknown model: openai/gpt-5.5. "
+            + "Found agents.defaults.models, but no matching models.providers entry."
+        try expect(
+            RuntimeFailureClassifier.isOpenClawModelAvailabilityFailure(unavailableModelFailure),
+            "OpenClaw unknown-model failure was not classified before its gateway wrapper"
+        )
     }
 
     private static func testProcessExecutionSourceContract() throws {

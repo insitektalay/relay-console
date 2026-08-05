@@ -153,7 +153,6 @@ test("PayPal delegates its bounded environment selector to the generic clients",
     }
   }
   const environmentFrom = (provider: {
-    slug: string
     connection: { credentialRequirements: CredentialRequirement[] }
   } | undefined) => {
     assert.ok(provider, "PayPal provider must be present")

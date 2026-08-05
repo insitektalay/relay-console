@@ -1,3 +1,4 @@
+import AppKit
 import Combine
 import Foundation
 import RelayConsoleCore
@@ -8,15 +9,28 @@ public final class RelayConsoleUpdateController: NSObject, ObservableObject {
     @Published public private(set) var snapshot: RelayConsoleUpdateSnapshot
     @Published public private(set) var automaticallyChecksForUpdates = false
     @Published public private(set) var canCheckForUpdates = false
+    @Published public private(set) var railwayProjectTokenConfigured = false
+    @Published public private(set) var railwayCredentialMessage: String?
 
     private var stateMachine: RelayConsoleUpdateStateMachine
     private var updaterController: SPUStandardUpdaterController?
+    private let backendUpdater: RailwayBackendUpdateCoordinator
+    private let railwayTokenStore: RailwayProjectTokenStore
+    private var discoveredTarget: RelayCoordinatedUpdateTarget?
+    private var approvedTarget: RelayCoordinatedUpdateTarget?
+    private var backendUpdateTask: Task<Void, Never>?
     private var hasStarted = false
 
-    public override init() {
+    public init(
+        backendUpdater: RailwayBackendUpdateCoordinator = RailwayBackendUpdateCoordinator(),
+        railwayTokenStore: RailwayProjectTokenStore = RailwayProjectTokenStore()
+    ) {
         var stateMachine = RelayConsoleUpdateStateMachine()
         self.stateMachine = stateMachine
         self.snapshot = stateMachine.snapshot
+        self.backendUpdater = backendUpdater
+        self.railwayTokenStore = railwayTokenStore
+        self.railwayProjectTokenConfigured = railwayTokenStore.isConfigured
         super.init()
 
         let configuration = RelayConsoleUpdateConfiguration(
@@ -58,18 +72,96 @@ public final class RelayConsoleUpdateController: NSObject, ObservableObject {
         guard let updaterController else { return }
         stateMachine.beganChecking()
         publishSnapshot()
-        updaterController.checkForUpdates(nil)
+        // Discovery is intentionally non-installing. The update pill is the
+        // only route into the backend-first coordinated installation flow.
+        updaterController.updater.checkForUpdateInformation()
     }
 
     public func showDiscoveredUpdate() {
-        guard snapshot.showsUpdatePill else {
+        guard backendUpdateTask == nil else { return }
+        guard snapshot.showsUpdatePill, let target = discoveredTarget else {
             checkForUpdates()
             return
         }
-        stateMachine.openedUpdateUI()
+        guard let backendOrigin = RelayCloudLaunchContract.configuredRailwayOrigin else {
+            let message = RelayCoordinatedUpdateError.backendNotConfigured.localizedDescription
+            stateMachine.backendUpdateFailed(message)
+            publishSnapshot()
+            presentCoordinatedUpdateFailure(message)
+            return
+        }
+        stateMachine.beganUpdatingBackend("Checking the installed Railway backend…")
         publishSnapshot()
-        // Sparkle revalidates the appcast and discovered item before showing its standard installer UI.
-        updaterController?.checkForUpdates(nil)
+        backendUpdateTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let requirement = try await backendUpdater.requirement(
+                    backendOrigin: backendOrigin,
+                    target: target
+                )
+                switch requirement {
+                case let .alreadyCurrent(identity):
+                    stateMachine.updatedBackendProgress("Verifying app and backend compatibility…")
+                    publishSnapshot()
+                    try await backendUpdater.validateCurrentBackend(
+                        backendOrigin: backendOrigin,
+                        target: target,
+                        identity: identity
+                    )
+                case let .deploymentRequired(identity):
+                    let token = try railwayTokenStore.token()
+                    stateMachine.updatedBackendProgress("Starting the Railway backend deployment…")
+                    publishSnapshot()
+                    try await backendUpdater.deploy(
+                        identity: identity,
+                        target: target,
+                        projectToken: token
+                    )
+                    stateMachine.updatedBackendProgress("Waiting for the updated backend to become healthy…")
+                    publishSnapshot()
+                    try await backendUpdater.waitUntilReady(
+                        backendOrigin: backendOrigin,
+                        target: target,
+                        expectedIdentity: identity
+                    )
+                }
+                guard !Task.isCancelled else { return }
+                approvedTarget = target
+                backendUpdateTask = nil
+                stateMachine.openedUpdateUI()
+                publishSnapshot()
+                // Sparkle revalidates the fully signed appcast. The delegate
+                // rejects any item other than the backend-approved target.
+                updaterController?.checkForUpdates(nil)
+            } catch {
+                backendUpdateTask = nil
+                let message = (error as? LocalizedError)?.errorDescription
+                    ?? "The backend update failed. The macOS app was not updated."
+                stateMachine.backendUpdateFailed(message)
+                publishSnapshot()
+                presentCoordinatedUpdateFailure(message)
+            }
+        }
+    }
+
+    public func saveRailwayProjectToken(_ token: String) {
+        do {
+            try railwayTokenStore.save(token)
+            railwayProjectTokenConfigured = true
+            railwayCredentialMessage = "Railway project token saved in macOS Keychain."
+        } catch {
+            railwayCredentialMessage = error.localizedDescription
+        }
+    }
+
+    public func removeRailwayProjectToken() {
+        do {
+            try railwayTokenStore.remove()
+            railwayProjectTokenConfigured = false
+            railwayCredentialMessage = "Railway project token removed."
+        } catch {
+            railwayCredentialMessage = error.localizedDescription
+        }
     }
 
     public func setAutomaticallyChecksForUpdates(_ enabled: Bool) {
@@ -85,7 +177,7 @@ public final class RelayConsoleUpdateController: NSObject, ObservableObject {
             return
         }
         automaticallyChecksForUpdates = updater.automaticallyChecksForUpdates
-        canCheckForUpdates = updater.canCheckForUpdates
+        canCheckForUpdates = updater.canCheckForUpdates && snapshot.state != .updatingBackend
         if let lastCheck = updater.lastUpdateCheckDate,
            snapshot.lastSuccessfulCheck == nil
         {
@@ -104,12 +196,52 @@ public final class RelayConsoleUpdateController: NSObject, ObservableObject {
         snapshot = stateMachine.snapshot
         syncUpdaterProperties()
     }
+
+    private func presentCoordinatedUpdateFailure(_ message: String) {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = "Update paused"
+        alert.informativeText = message
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
+    }
 }
 
 extension RelayConsoleUpdateController: SPUUpdaterDelegate {
     public func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
-        stateMachine.foundUpdate(version: item.displayVersionString, build: item.versionString)
-        publishSnapshot()
+        do {
+            let target = try coordinatedTarget(from: item)
+            if let approvedTarget, approvedTarget != target {
+                throw RelayCoordinatedUpdateError.invalidReleaseMetadata
+            }
+            discoveredTarget = target
+            stateMachine.foundUpdate(version: item.displayVersionString, build: item.versionString)
+            publishSnapshot()
+        } catch {
+            discoveredTarget = nil
+            approvedTarget = nil
+            stateMachine.failed(
+                RelayCoordinatedUpdateError.invalidReleaseMetadata.localizedDescription,
+                feedUnavailable: false
+            )
+            publishSnapshot()
+        }
+    }
+
+    public func updater(
+        _ updater: SPUUpdater,
+        shouldProceedWithUpdate updateItem: SUAppcastItem,
+        updateCheck: SPUUpdateCheck
+    ) throws {
+        let target = try coordinatedTarget(from: updateItem)
+        if updateCheck == .updates, approvedTarget != target {
+            throw NSError(
+                domain: "work.relayconsole.coordinated-update",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey:
+                    "Relay Console must update and verify the Railway backend before installing this macOS update."]
+            )
+        }
     }
 
     public func updaterDidNotFindUpdate(_ updater: SPUUpdater, error: Error) {
@@ -146,6 +278,17 @@ extension RelayConsoleUpdateController: SPUUpdaterDelegate {
     public func updaterShouldPromptForPermissionToCheck(forUpdates updater: SPUUpdater) -> Bool {
         false
     }
+
+    private func coordinatedTarget(from item: SUAppcastItem) throws -> RelayCoordinatedUpdateTarget {
+        guard item.signingValidationStatus == .succeeded,
+              let backendCommit = item.propertiesDictionary["relay:backendCommit"] as? String
+        else { throw RelayCoordinatedUpdateError.invalidReleaseMetadata }
+        return try RelayCoordinatedUpdateTarget(
+            appVersion: item.displayVersionString,
+            appBuild: item.versionString,
+            backendCommit: backendCommit
+        )
+    }
 }
 
 extension RelayConsoleUpdateController: @preconcurrency SPUStandardUserDriverDelegate {
@@ -170,6 +313,7 @@ extension RelayConsoleUpdateController: @preconcurrency SPUStandardUserDriverDel
     }
 
     public func standardUserDriverWillFinishUpdateSession() {
+        approvedTarget = nil
         if snapshot.state == .updateUIOpen {
             stateMachine.closedUpdateUI()
             publishSnapshot()

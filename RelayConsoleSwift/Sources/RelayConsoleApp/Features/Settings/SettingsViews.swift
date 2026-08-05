@@ -50,6 +50,7 @@ struct SettingsScreen: View {
 
 struct UpdatesSettingsPanel: View {
   @EnvironmentObject var updateController: RelayConsoleUpdateController
+  @State private var railwayProjectToken = ""
 
   private static let lastCheckFormatter: DateFormatter = {
     let formatter = DateFormatter()
@@ -62,7 +63,7 @@ struct UpdatesSettingsPanel: View {
     VStack(alignment: .leading, spacing: 14) {
       NativeGroupedSection(
         title: "Updates",
-        subtitle: "Relay Console periodically contacts its signed update feed. Installation always requires your confirmation."
+        subtitle: "Relay Console updates your Railway backend first, verifies compatibility, then offers the signed macOS update."
       ) {
         NativeSettingsRow(title: "Installed version", value: updateController.installedVersionAndBuild)
         NativeDivider()
@@ -95,6 +96,40 @@ struct UpdatesSettingsPanel: View {
             || updateController.snapshot.state == .unavailableOutsideInstalledBundle)
         }
 
+        NativeDivider()
+        VStack(alignment: .leading, spacing: 8) {
+          Text("Railway project token")
+            .font(.system(size: 13, weight: .medium))
+          Text("Create a project token for the Railway environment that hosts this backend. Relay stores it only in macOS Keychain and uses it only to deploy a signed Relay release commit.")
+            .font(.caption)
+            .foregroundStyle(RCTheme.muted)
+          SecureField(
+            updateController.railwayProjectTokenConfigured ? "Saved in Keychain" : "Paste Railway project token",
+            text: $railwayProjectToken
+          )
+          .textFieldStyle(.roundedBorder)
+          HStack(spacing: 8) {
+            Button(updateController.railwayProjectTokenConfigured ? "Replace Token" : "Save Token") {
+              updateController.saveRailwayProjectToken(railwayProjectToken)
+              if updateController.railwayProjectTokenConfigured {
+                railwayProjectToken = ""
+              }
+            }
+            .disabled(railwayProjectToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            if updateController.railwayProjectTokenConfigured {
+              Button("Remove Token") {
+                updateController.removeRailwayProjectToken()
+                railwayProjectToken = ""
+              }
+            }
+          }
+          if let message = updateController.railwayCredentialMessage {
+            Text(message)
+              .font(.caption)
+              .foregroundStyle(RCTheme.muted)
+          }
+        }
+
         if let failure = updateController.snapshot.failureMessage {
           Text(failure)
             .font(.caption)
@@ -112,13 +147,23 @@ struct UpdatesSettingsPanel: View {
           Text("Secure updates are unavailable because this build has no approved feed or public signing key.")
             .font(.caption)
             .foregroundStyle(RCTheme.muted)
+        } else if let progress = updateController.snapshot.progressMessage {
+          HStack(spacing: 8) {
+            ProgressView()
+              .controlSize(.small)
+            Text(progress)
+              .font(.caption)
+              .foregroundStyle(RCTheme.muted)
+          }
         }
 
         Button(updateController.snapshot.failureMessage == nil ? "Check for Updates" : "Try Again") {
           updateController.checkForUpdates()
         }
         .buttonStyle(PrimaryLightButtonStyle())
-        .disabled(!updateController.canCheckForUpdates || updateController.snapshot.state == .checking)
+        .disabled(!updateController.canCheckForUpdates
+          || updateController.snapshot.state == .checking
+          || updateController.snapshot.state == .updatingBackend)
         .accessibilityHint("Checks the signed Relay Console update feed")
       }
     }

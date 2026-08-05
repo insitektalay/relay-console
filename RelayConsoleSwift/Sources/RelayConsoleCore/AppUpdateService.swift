@@ -5,6 +5,8 @@ public enum RelayConsoleUpdateState: String, Codable, Equatable, Sendable {
     case checking
     case upToDate = "up_to_date"
     case updateAvailable = "update_available"
+    case updatingBackend = "updating_backend"
+    case backendUpdateFailed = "backend_update_failed"
     case updateUIOpen = "update_ui_open"
     case preparing
     case readyToInstall = "ready_to_install"
@@ -24,6 +26,7 @@ public struct RelayConsoleUpdateSnapshot: Equatable, Sendable {
     public var availableBuild: String?
     public var lastSuccessfulCheck: Date?
     public var failureMessage: String?
+    public var progressMessage: String?
 
     public init(
         state: RelayConsoleUpdateState = .initial,
@@ -33,7 +36,8 @@ public struct RelayConsoleUpdateSnapshot: Equatable, Sendable {
         availableVersion: String? = nil,
         availableBuild: String? = nil,
         lastSuccessfulCheck: Date? = nil,
-        failureMessage: String? = nil
+        failureMessage: String? = nil,
+        progressMessage: String? = nil
     ) {
         self.state = state
         self.installedVersion = installedVersion
@@ -43,10 +47,11 @@ public struct RelayConsoleUpdateSnapshot: Equatable, Sendable {
         self.availableBuild = availableBuild
         self.lastSuccessfulCheck = lastSuccessfulCheck
         self.failureMessage = failureMessage
+        self.progressMessage = progressMessage
     }
 
     public var showsUpdatePill: Bool {
-        state == .updateAvailable && availableVersion != nil
+        (state == .updateAvailable || state == .backendUpdateFailed) && availableVersion != nil
     }
 
     public var updateAccessibilityValue: String {
@@ -111,6 +116,7 @@ public struct RelayConsoleUpdateStateMachine: Sendable {
     public mutating func beganChecking() {
         snapshot.state = .checking
         snapshot.failureMessage = nil
+        snapshot.progressMessage = nil
     }
 
     public mutating func foundUpdate(version: String, build: String) {
@@ -119,6 +125,7 @@ public struct RelayConsoleUpdateStateMachine: Sendable {
         snapshot.availableBuild = build
         snapshot.lastSuccessfulCheck = Date()
         snapshot.failureMessage = nil
+        snapshot.progressMessage = nil
     }
 
     public mutating func foundNoUpdate(latestBuild: String?) {
@@ -126,6 +133,7 @@ public struct RelayConsoleUpdateStateMachine: Sendable {
         snapshot.availableBuild = nil
         snapshot.lastSuccessfulCheck = Date()
         snapshot.failureMessage = nil
+        snapshot.progressMessage = nil
         if let latestBuild, let latest = Int(latestBuild), let installed = Int(snapshot.installedBuild), installed > latest {
             snapshot.state = .developmentBuildNewer
         } else {
@@ -140,10 +148,28 @@ public struct RelayConsoleUpdateStateMachine: Sendable {
     public mutating func beganPreparing() { snapshot.state = .preparing }
     public mutating func becameReadyToInstall() { snapshot.state = .readyToInstall }
 
+    public mutating func beganUpdatingBackend(_ message: String) {
+        snapshot.state = .updatingBackend
+        snapshot.failureMessage = nil
+        snapshot.progressMessage = message
+    }
+
+    public mutating func updatedBackendProgress(_ message: String) {
+        guard snapshot.state == .updatingBackend else { return }
+        snapshot.progressMessage = message
+    }
+
+    public mutating func backendUpdateFailed(_ message: String) {
+        snapshot.state = .backendUpdateFailed
+        snapshot.failureMessage = message
+        snapshot.progressMessage = nil
+    }
+
     public mutating func failed(_ message: String, feedUnavailable: Bool) {
         snapshot.state = feedUnavailable ? .feedUnavailable : .checkFailed
         snapshot.availableVersion = nil
         snapshot.availableBuild = nil
         snapshot.failureMessage = message
+        snapshot.progressMessage = nil
     }
 }

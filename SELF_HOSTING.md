@@ -24,6 +24,17 @@ After that owner action, the user journey is:
 5. In Relay Console Swift **Settings**, connect the Hermes or OpenClaw
    installation already running on the same Mac. The Swift app is the adapter;
    do not install the bridge-plugin flow for this setup.
+6. In the Railway project, create a project token scoped to the production
+   environment. Save it once in Relay Console **Settings > Updates**. Relay
+   stores it only in macOS Keychain.
+
+After that one-time credential setup, routine updates are coordinated. The
+signed macOS appcast names an exact backend source commit. Clicking **Update
+both** asks Railway to deploy that commit, waits through startup migrations and
+the health check, verifies that the backend reports the exact commit and accepts
+the new macOS client, and only then opens Sparkle's signed app installer. If any
+backend step fails, the installed macOS app is left unchanged. Users do not run
+separate backup, migration, health or rollback checklists for routine updates.
 
 Railway generates every installation secret independently while creating the
 template. At backend startup, a private HMAC challenge retrieves only that
@@ -81,6 +92,13 @@ the project steps, but the CLI makes certificate retrieval reproducible.
 7. Keep the initial backend deployment stopped or failed until the database,
    Redis and variables below exist. A fail-closed initial deployment is
    expected.
+
+Automatic coordinated updates can deploy a release commit only when that commit
+exists in the repository connected to the Railway service. The official
+template stays connected to `insitektalay/relay-console` and requires no source
+maintenance. If the manual recovery path uses a fork, keep the fork synchronized
+with Relay release commits; otherwise Railway will reject the pinned deployment
+and Relay Console will leave the macOS app unchanged.
 
 `backend/railway.json` selects `backend/Dockerfile`, runs the production secret
 audit, applies database migrations, starts the API and checks

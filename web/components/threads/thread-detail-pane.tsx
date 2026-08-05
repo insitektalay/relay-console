@@ -4,6 +4,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -85,6 +86,7 @@ export type ThreadViewMode = "full" | "condensed"
 const SEEDANCE_PNG_ASSET_INSTRUCTION_MARKER = "Use all attached PNG assets"
 const SEEDANCE_PNG_ASSET_INSTRUCTION =
   "Use all attached PNG assets as visual references for the SeeDance 2 video generation. Do not ignore any attached asset."
+const COMPOSER_MAX_LINES = 8
 
 function composerApprovalModeTitle(mode: RuntimeApprovalMode) {
   switch (mode) {
@@ -677,6 +679,7 @@ export function ThreadDetailPane({
   const attachmentFileRef = useRef<HTMLInputElement | null>(null)
   const imageAttachmentFileRef = useRef<HTMLInputElement | null>(null)
   const seedancePngAssetFileRef = useRef<HTMLInputElement | null>(null)
+  const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null)
   const onViewLiveChatRef = useRef(onViewLiveChat)
   const onOpenWrapUpReportRef = useRef(onOpenWrapUpReport)
   const threadCopiedTimeoutRef = useRef<number | null>(null)
@@ -708,6 +711,37 @@ export function ThreadDetailPane({
   const [teamRelayError, setTeamRelayError] = useState<string | null>(null)
   const [isTeamRelayLoading, setIsTeamRelayLoading] = useState(false)
   const [isTeamRelayMutating, setIsTeamRelayMutating] = useState(false)
+
+  const resizeComposerTextarea = useCallback(
+    (textarea: HTMLTextAreaElement | null = composerTextareaRef.current) => {
+      if (!textarea) return
+
+      textarea.style.height = "auto"
+      const computedLineHeight = Number.parseFloat(
+        window.getComputedStyle(textarea).lineHeight
+      )
+      const lineHeight = Number.isFinite(computedLineHeight)
+        ? computedLineHeight
+        : 20
+      const maximumHeight = lineHeight * COMPOSER_MAX_LINES
+      const contentHeight = textarea.scrollHeight
+
+      textarea.style.height = `${Math.min(contentHeight, maximumHeight)}px`
+      textarea.style.overflowY =
+        contentHeight > maximumHeight ? "auto" : "hidden"
+    },
+    []
+  )
+
+  useLayoutEffect(() => {
+    resizeComposerTextarea()
+  }, [messageDraft, resizeComposerTextarea])
+
+  useEffect(() => {
+    const handleResize = () => resizeComposerTextarea()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [resizeComposerTextarea])
   const [customRelayLimit, setCustomRelayLimit] = useState("50")
 
   async function handleAvatarFileChange(
@@ -3516,7 +3550,7 @@ export function ThreadDetailPane({
             ) : null}
             <div
               className={`px-6 pt-[10px] pb-6 ${
-                pendingAttachments.length ? "h-[168px]" : "h-[122px]"
+                pendingAttachments.length ? "min-h-[168px]" : "min-h-[122px]"
               }`}
             >
               <input
@@ -3592,9 +3626,9 @@ export function ThreadDetailPane({
                   )
                 })()}
               <div
-                className={`flex h-full w-full flex-col rounded-[4px] border bg-[var(--claw-bg-inset)] px-3 py-2 ${
-                  isDraggingAttachment ? "ring-1 ring-[#4f91e8]" : ""
-                }`}
+                className={`flex w-full flex-col rounded-[4px] border bg-[var(--claw-bg-inset)] px-3 py-2 ${
+                  pendingAttachments.length ? "min-h-[134px]" : "min-h-[88px]"
+                } ${isDraggingAttachment ? "ring-1 ring-[#4f91e8]" : ""}`}
                 style={{
                   borderColor:
                     "color-mix(in srgb, var(--claw-border) 62%, transparent)",
@@ -3643,8 +3677,9 @@ export function ThreadDetailPane({
                   </div>
                 ) : null}
                 <Textarea
+                  ref={composerTextareaRef}
                   rows={1}
-                  className="min-h-0 flex-1 resize-none rounded-none border-0 bg-transparent px-0 py-0 text-sm leading-5 shadow-none outline-none placeholder:text-[var(--claw-text-muted)] focus-visible:border-transparent focus-visible:ring-0 dark:bg-transparent"
+                  className="min-h-11 shrink-0 resize-none rounded-none border-0 bg-transparent px-0 py-0 text-sm leading-5 shadow-none outline-none placeholder:text-[var(--claw-text-muted)] focus-visible:border-transparent focus-visible:ring-0 dark:bg-transparent"
                   style={{
                     backgroundColor: "transparent",
                     boxShadow: "none",
@@ -3655,7 +3690,10 @@ export function ThreadDetailPane({
                       : "Send a message to this conversation"
                   }
                   value={messageDraft}
-                  onChange={(event) => onMessageDraftChange(event.target.value)}
+                  onChange={(event) => {
+                    resizeComposerTextarea(event.currentTarget)
+                    onMessageDraftChange(event.target.value)
+                  }}
                   onKeyDown={(event) => {
                     if (event.key !== "Enter" || event.shiftKey) {
                       return

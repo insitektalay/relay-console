@@ -210,6 +210,7 @@ export class CloudCommercialService {
         "backup-required",
       backupRequired: true,
       releaseNotesUrl: manifest.upgrade.releaseNotesUrl,
+      coordinatedUpdate: this.railwayCoordinatedUpdateIdentity(),
     };
   }
 
@@ -1123,6 +1124,56 @@ export class CloudCommercialService {
       websocketConnections: 10,
       dispatchesPerMinute: 60,
       managedRuntimeMinutes: 0,
+    };
+  }
+
+  private railwayCoordinatedUpdateIdentity() {
+    const projectId = this.config.get<string>("RAILWAY_PROJECT_ID")?.trim();
+    const environmentId = this.config
+      .get<string>("RAILWAY_ENVIRONMENT_ID")
+      ?.trim();
+    const serviceId = this.config.get<string>("RAILWAY_SERVICE_ID")?.trim();
+    const configuredRepository = this.config
+      .get<string>("RELAY_SOURCE_REPOSITORY")
+      ?.trim();
+    const railwayRepositoryName = this.config
+      .get<string>("RAILWAY_GIT_REPO_NAME")
+      ?.trim();
+    const railwayRepositoryOwner = this.config
+      .get<string>("RAILWAY_GIT_REPO_OWNER")
+      ?.trim();
+    const sourceRepository = (
+      configuredRepository ||
+      (railwayRepositoryOwner && railwayRepositoryName
+        ? `${railwayRepositoryOwner}/${railwayRepositoryName}`
+        : railwayRepositoryName?.includes("/")
+          ? railwayRepositoryName
+          : "")
+    ).toLowerCase();
+    const sourceCommit = (
+      this.config.get<string>("RAILWAY_GIT_COMMIT_SHA") ||
+      this.config.get<string>("RELAY_RELEASE_COMMIT") ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+    const uuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const supported =
+      uuid.test(projectId || "") &&
+      uuid.test(environmentId || "") &&
+      uuid.test(serviceId || "") &&
+      /^[a-z0-9_.-]+\/[a-z0-9_.-]+$/.test(sourceRepository) &&
+      /^[0-9a-f]{40}$/.test(sourceCommit);
+    return {
+      schemaVersion: "relay.railway-coordinated-update.v1",
+      provider: "railway",
+      supported,
+      projectId: supported ? projectId : null,
+      environmentId: supported ? environmentId : null,
+      serviceId: supported ? serviceId : null,
+      sourceRepository: supported ? sourceRepository : null,
+      sourceCommit: supported ? sourceCommit : null,
     };
   }
   private sign(payload: JsonObject) {

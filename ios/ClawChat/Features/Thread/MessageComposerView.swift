@@ -50,7 +50,8 @@ enum RelayRuntimeApprovalMode: String, CaseIterable, Identifiable {
 // MARK: - MessageComposerView
 
 struct RelayComposer: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    private static let maximumLineCount = 8
+
     @Binding var text: String
     let onSend: () -> Void
     let onAttach: () -> Void
@@ -106,32 +107,20 @@ struct RelayComposer: View {
             }
 
             VStack(spacing: 8) {
-                ZStack(alignment: .topLeading) {
-                    if text.isEmpty {
-                        Text("Send a message to this conversation")
-                            .font(RelayFonts.messageBody)
-                            .foregroundStyle(ClawColors.textTertiary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 10)
-                            .allowsHitTesting(false)
-                    }
+                TextField(
+                    "Send a message to this conversation",
+                    text: $text,
+                    axis: .vertical
+                )
+                .focused($isFocused)
+                .font(RelayFonts.messageBody)
+                .foregroundStyle(ClawColors.textPrimary)
+                .textFieldStyle(.plain)
+                .lineLimit(1...Self.maximumLineCount)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .onChange(of: text) { detectMention() }
 
-                    // Actual editor with dynamic height
-                    TextEditor(text: $text)
-                        .focused($isFocused)
-                        .font(RelayFonts.messageBody)
-                        .foregroundStyle(ClawColors.textPrimary)
-                        .scrollContentBackground(.hidden)
-                        .background(Color.clear)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 6)
-                        .frame(
-                            minHeight: dynamicTypeSize.isAccessibilitySize ? 112 : 76,
-                            maxHeight: dynamicTypeSize.isAccessibilitySize ? 180 : 120
-                        )
-                        .fixedSize(horizontal: false, vertical: true)
-                        .onChange(of: text) { detectMention() }
-                }
                 HStack(spacing: 8) {
                     attachmentMenu
 

@@ -168,8 +168,13 @@ jobs:
           mkdir -p "$UPDATES"
           ARCHIVE="RelayConsole-${VERSION}-b${BUILD}.zip"
           GENERATE_APPCAST="RelayConsoleSwift/.build/release-arm64/artifacts/sparkle/Sparkle/bin/generate_appcast"
+          SIGN_APPCAST="RelayConsoleSwift/.build/release-arm64/artifacts/sparkle/Sparkle/bin/sign_update"
           [[ -x "$GENERATE_APPCAST" ]] || {
             echo "Pinned Sparkle generate_appcast tool is missing from the release scratch directory" >&2
+            exit 1
+          }
+          [[ -x "$SIGN_APPCAST" ]] || {
+            echo "Pinned Sparkle sign_update tool is missing from the release scratch directory" >&2
             exit 1
           }
           ditto -c -k --sequesterRsrc --keepParent "RelayConsoleSwift/.build/sparkle-release/work/Relay Console.app" "$UPDATES/$ARCHIVE"
@@ -179,10 +184,40 @@ jobs:
             --ed-key-file - \
             --download-url-prefix "https://github.com/insitektalay/relay-console/releases/download/${RELEASE_TAG}/" \
             --embed-release-notes --maximum-versions 0 -o "$UPDATES/appcast.xml" "$UPDATES"
+          export RELAY_APPCAST_PATH="$UPDATES/appcast.xml"
+          export RELAY_APP_VERSION="$VERSION"
+          export RELAY_APP_BUILD="$BUILD"
+          export RELAY_BACKEND_COMMIT="$(git rev-parse HEAD)"
+          ruby <<'RUBY'
+          require "rexml/document"
+          path = ENV.fetch("RELAY_APPCAST_PATH")
+          version = ENV.fetch("RELAY_APP_VERSION")
+          build = ENV.fetch("RELAY_APP_BUILD")
+          commit = ENV.fetch("RELAY_BACKEND_COMMIT")
+          abort("Malformed backend commit") unless commit.match?(/\A[0-9a-f]{40}\z/)
+          document = REXML::Document.new(File.read(path))
+          document.root.add_namespace("relay", "https://relayconsole.work/xml-namespaces/update")
+          namespaces = { "sparkle" => "http://www.andymatuschak.org/xml-namespaces/sparkle" }
+          item = REXML::XPath.first(
+            document,
+            "//item[sparkle:version='#{build}' and sparkle:shortVersionString='#{version}']",
+            namespaces
+          )
+          abort("Generated appcast does not contain the release item") unless item
+          item.elements.delete("relay:backendCommit")
+          element = item.add_element("relay:backendCommit")
+          element.text = commit
+          File.open(path, "w") { |file| document.write(file, 2) }
+          RUBY
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$SIGN_APPCAST" \
+            --ed-key-file - --disable-signing-warning "$UPDATES/appcast.xml"
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | "$SIGN_APPCAST" \
+            --verify --ed-key-file - "$UPDATES/appcast.xml"
           shasum -a 256 "$UPDATES/$ARCHIVE" "RelayConsoleSwift/.build/sparkle-release/RelayConsole-public-beta.dmg" > "$UPDATES/SHA256SUMS"
           xmllint --noout "$UPDATES/appcast.xml"
           grep -q "https://github.com/insitektalay/relay-console/releases/download/${RELEASE_TAG}/${ARCHIVE}" "$UPDATES/appcast.xml"
           grep -q 'sparkle:edSignature=' "$UPDATES/appcast.xml"
+          grep -q "<relay:backendCommit>$(git rev-parse HEAD)</relay:backendCommit>" "$UPDATES/appcast.xml"
 
       - name: Publish immutable GitHub Release assets
         env:

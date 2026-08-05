@@ -29,6 +29,14 @@ test("defines the complete private three-service Railway topology", () => {
   assert.equal(spec.services.backend.configFilePath, "/backend/railway.json");
   assert.equal(spec.services.backend.publicHttpDomain, true);
   assert.equal(
+    spec.services.backend.source,
+    "https://github.com/insitektalay/relay-console",
+  );
+  assert.equal(
+    spec.services.backend.variables.RELAY_SOURCE_REPOSITORY,
+    "insitektalay/relay-console",
+  );
+  assert.equal(
     spec.services.Postgres.volumeMountPath,
     "/var/lib/postgresql/data",
   );

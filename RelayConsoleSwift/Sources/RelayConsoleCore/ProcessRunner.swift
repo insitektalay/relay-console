@@ -9,6 +9,10 @@ public enum CommandTerminationReason: String, Sendable, Equatable {
     case lineLimit
 }
 
+public enum CommandResourceLimits {
+    public static let maximumTimeoutMs = 3_660_000
+}
+
 public struct CommandResult: Sendable, Equatable {
     public var code: Int32
     public var stdout: String
@@ -481,7 +485,7 @@ public final class ProcessCommandRunner: CommandRunning {
     }
 
     private func validate(_ options: CommandOptions) throws {
-        guard (100...3_600_000).contains(options.timeoutMs),
+        guard (100...CommandResourceLimits.maximumTimeoutMs).contains(options.timeoutMs),
               (1_024...64 * 1_024 * 1_024).contains(options.maximumOutputBytes),
               (1_024...options.maximumOutputBytes).contains(options.maximumCapturedBytesPerStream),
               (256...options.maximumOutputBytes).contains(options.maximumLineBytes),

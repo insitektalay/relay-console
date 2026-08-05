@@ -1652,6 +1652,12 @@ func normalizeOpenClawRuntimeFailure(_ message: String) -> NormalizedRuntimeFail
         message.isEmpty ? "OpenClaw run failed." : message,
         runtimeName: "OpenClaw"
     )
+    if RuntimeFailureClassifier.isOpenClawModelAvailabilityFailure(trimmed) {
+        return NormalizedRuntimeFailure(
+            category: "model_unavailable",
+            message: "The selected OpenClaw model is unavailable. Choose a supported model and try again."
+        )
+    }
     if isAuthError(trimmed) || trimmed.range(of: "no usable profile|not configured|models auth login|provider.*openai", options: [.regularExpression, .caseInsensitive]) != nil {
         return NormalizedRuntimeFailure(category: "auth_required", message: "Authenticate in OpenClaw, then re-check Relay Console before trying again.")
     }
@@ -1675,6 +1681,13 @@ func isOpenClawAgentDatabaseOwnerMismatch(_ message: String) -> Bool {
 }
 
 public enum RuntimeFailureClassifier {
+    public static func isOpenClawModelAvailabilityFailure(_ message: String) -> Bool {
+        message.range(
+            of: #"unknown model|no matching models\.providers|model[_ -]?not[_ -]?found"#,
+            options: [.regularExpression, .caseInsensitive]
+        ) != nil
+    }
+
     public static func isAuthenticationFailure(_ message: String) -> Bool {
         message.range(
             of: #"\b(?:auth|authentication|credentials?|tokens?|login|unauthorized|forbidden)\b|not\s+logged\s+in|sign[ -]?in"#,
