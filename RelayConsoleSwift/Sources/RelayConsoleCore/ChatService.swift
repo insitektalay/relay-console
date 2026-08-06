@@ -318,18 +318,23 @@ public final class ChatService {
 
     public func createTeamThread(
         context: ServiceRequestContext,
-        departmentId: String,
+        departmentId: String?,
         title: String,
         selectedAgentIds: [String]
     ) throws -> ThreadDetail {
         try requireRoles([.owner, .admin, .member], context: context, message: "Creating a team chat requires member access.")
-        let department = try data.getAgentOrgDepartment(departmentId)
-        guard department.workspaceId == context.workspaceId else {
-            try deny(
-                ServiceGuard.invalidInput(context: context, message: "Selected department does not belong to this workspace."),
-                threadId: nil,
-                category: "chat-service"
-            )
+        var department: AgentOrgDepartment?
+        if let departmentId = departmentId?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !departmentId.isEmpty {
+            let selectedDepartment = try data.getAgentOrgDepartment(departmentId)
+            guard selectedDepartment.workspaceId == context.workspaceId else {
+                try deny(
+                    ServiceGuard.invalidInput(context: context, message: "Selected department does not belong to this workspace."),
+                    threadId: nil,
+                    category: "chat-service"
+                )
+            }
+            department = selectedDepartment
         }
         let trimmedTitle = try requireNonEmptyString(title, field: "Team chat name", maxLength: 160)
         var uniqueAgentIds: [String] = []
@@ -365,17 +370,20 @@ public final class ChatService {
                 participantType: .agent,
                 participantId: agent.id,
                 displayName: agent.name,
-                role: department.headAgentId == agent.id ? .manager : .member,
-                isManager: department.headAgentId == agent.id
+                role: department?.headAgentId == agent.id ? .manager : .member,
+                isManager: department?.headAgentId == agent.id
             )
         }
         let updatedThread = try data.getThread(thread.id)
-        emit(.chatThreadUpdate, thread: updatedThread, detail: [
+        var detail: JSONRecord = [
             "action": .string("created"),
             "threadType": .string(ThreadType.team.rawValue),
-            "departmentId": .string(department.id),
             "participantCount": .number(Double(selectedAgents.count))
-        ])
+        ]
+        if let department {
+            detail["departmentId"] = .string(department.id)
+        }
+        emit(.chatThreadUpdate, thread: updatedThread, detail: detail)
         return updatedThread
     }
 

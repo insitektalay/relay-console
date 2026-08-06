@@ -7,6 +7,7 @@ struct AgentKnowledgePanel: View {
     @EnvironmentObject var model: AppViewModel
     let agent: AgentWithBinding
     let section: RuntimeWorkspaceUserSection
+    let navigationPanelsVisible: Bool
 
     @State private var groups: [RuntimeWorkspaceUserFileGroup] = []
     @State private var selectedItem: RuntimeWorkspaceUserFileItem?
@@ -30,7 +31,8 @@ struct AgentKnowledgePanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            AgentKnowledgeHeader(agent: agent)
+            AgentKnowledgeHeader(
+                agent: agent, navigationPanelsVisible: navigationPanelsVisible)
 
             if let status {
                 AgentKnowledgeNoticeView(notice: status) {
@@ -1075,6 +1077,7 @@ private struct AgentKnowledgeNotice: Identifiable {
 private struct AgentKnowledgeHeader: View {
     @EnvironmentObject var model: AppViewModel
     let agent: AgentWithBinding
+    let navigationPanelsVisible: Bool
 
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
@@ -1102,6 +1105,7 @@ private struct AgentKnowledgeHeader: View {
         }
         .padding(.bottom, RCChromeMetrics.topHeaderContentBottomPadding)
         .frame(height: RCChromeMetrics.topReservedHeight, alignment: .bottom)
+        .padding(.leading, navigationPanelsVisible ? 0 : 44)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RCTheme.page)
     }

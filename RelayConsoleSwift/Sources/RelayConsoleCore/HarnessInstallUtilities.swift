@@ -334,11 +334,17 @@ extension HarnessInstallManager {
                     )
                 )
             )
-            guard result.code == 0,
-                  let parsed = parseJSONObject(from: result.stdout),
-                  boolValue(parsed["logged_in"]) == true
-            else {
+            guard result.code == 0, let parsed = parseJSONObject(from: result.stdout) else {
                 return ModelAuthCheck(connected: false, error: trimForStorage(result.diagnosticTail))
+            }
+            guard boolValue(parsed["logged_in"]) == true else {
+                let authError = stringValue(parsed["error"]).map {
+                    trimForStorage(CommandOutputRedactor.redact($0))
+                }
+                return ModelAuthCheck(
+                    connected: false,
+                    error: authError ?? trimForStorage(result.diagnosticTail)
+                )
             }
             return ModelAuthCheck(connected: true, error: nil)
         }

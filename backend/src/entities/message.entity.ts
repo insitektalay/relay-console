@@ -20,6 +20,10 @@ export enum MessageProvenance {
 
 @Entity('messages')
 @Index(['threadId', 'createdAt'])
+@Index(['runtimeDispatchId', 'runtimeToolCallId'], {
+  unique: true,
+  where: '"runtimeDispatchId" IS NOT NULL AND "runtimeToolCallId" IS NOT NULL',
+})
 export class MessageEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
@@ -63,6 +67,12 @@ export class MessageEntity {
 
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, unknown> | null
+
+  @Column('uuid', { nullable: true })
+  runtimeDispatchId: string | null
+
+  @Column({ type: 'varchar', length: 160, nullable: true })
+  runtimeToolCallId: string | null
 
   @Column({ default: false })
   isFromUser: boolean

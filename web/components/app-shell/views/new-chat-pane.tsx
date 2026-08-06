@@ -202,27 +202,24 @@ function NewChatTeamOptions({
         ) : (
           <EmptyState
             title="No teams"
-            description="Use the form below to create your first team."
+            description="Use the form below to create a team chat."
           />
         ))}
       {controller.newChatMode === "team" &&
         !controller.teamsQuery.isLoading &&
         (controller.newChatShowNewTeamForm ? (
           <div className="mt-8 space-y-3">
-            {controller.departments.length > 1 && (
+            {controller.departments.length > 0 && (
               <label className="flex items-center gap-3 text-sm font-medium text-[var(--claw-text-primary)]">
-                <span>Department</span>
+                <span>Department (optional)</span>
                 <select
                   className="h-9 min-w-0 flex-1 rounded-[4px] border border-[color-mix(in_srgb,var(--claw-border)_62%,transparent)] bg-[var(--claw-bg-inset)] px-2.5 text-sm text-[var(--claw-text-primary)] outline-none focus:border-[var(--claw-accent-blue)]"
-                  value={
-                    controller.newChatNewTeamDeptId ??
-                    controller.departments[0]?.id ??
-                    ""
-                  }
+                  value={controller.newChatNewTeamDeptId ?? ""}
                   onChange={(e) =>
-                    controller.setNewChatNewTeamDeptId(e.target.value)
+                    controller.setNewChatNewTeamDeptId(e.target.value || null)
                   }
                 >
+                  <option value="">No department</option>
                   {controller.departments.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.name}
@@ -230,11 +227,6 @@ function NewChatTeamOptions({
                   ))}
                 </select>
               </label>
-            )}
-            {controller.departments.length === 0 && (
-              <p className="claw-meta text-zinc-500">
-                You need a department before creating a team.
-              </p>
             )}
             <label className="block">
               <span className="mb-2 block text-xs font-semibold text-[var(--claw-text-muted)]">
@@ -364,7 +356,7 @@ function NewChatTeamOptions({
                 className="h-10 w-full rounded-[4px]"
                 disabled={
                   !controller.newChatNewTeamName.trim() ||
-                  !controller.departments.length ||
+                  !controller.newChatNewTeamSelectedAgentIds.size ||
                   controller.newChatCreateTeamMutation.isPending
                 }
                 onClick={() =>
@@ -375,7 +367,7 @@ function NewChatTeamOptions({
               >
                 {controller.newChatCreateTeamMutation.isPending
                   ? "Creating…"
-                  : "Create New Chat"}
+                  : "Create New Team Chat"}
               </Button>
             </div>
           </div>
@@ -385,7 +377,7 @@ function NewChatTeamOptions({
             className="claw-caption mt-1 flex w-full items-center gap-2 rounded-[4px] border border-dashed border-[color-mix(in_srgb,var(--claw-border)_42%,transparent)] px-3 py-2.5 text-zinc-500 transition hover:border-white/20 hover:text-zinc-300"
             onClick={() => controller.setNewChatShowNewTeamForm(true)}
           >
-            <span className="text-base leading-none">+</span> New team
+            <span className="text-base leading-none">+</span> New Team Chat
           </button>
         ))}
     </>
@@ -784,7 +776,9 @@ export function RelayConsoleNewChatPane({
         <div className="mb-3 flex h-[60px] items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="text-base font-semibold tracking-[-0.02em] text-[var(--claw-text-primary)]">
-              Create New Chat
+              {newChatMode === "team"
+                ? "Create New Team Chat"
+                : "Create New Chat"}
             </div>
             <div className="text-xs leading-4 text-[var(--claw-text-muted)]">
               Choose agents

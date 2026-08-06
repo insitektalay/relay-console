@@ -59,6 +59,7 @@ public struct RuntimeDispatchRequest: Sendable, Equatable {
     public var artifactContract: RuntimeArtifactContract?
     public var cloudMarketplaceTools: [JSONRecord]
     public var attachmentPaths: [String]
+    public var isTeamChat: Bool
 
     public init(
         dispatchId: String,
@@ -78,7 +79,8 @@ public struct RuntimeDispatchRequest: Sendable, Equatable {
         createdAt: String,
         artifactContract: RuntimeArtifactContract? = nil,
         cloudMarketplaceTools: [JSONRecord] = [],
-        attachmentPaths: [String] = []
+        attachmentPaths: [String] = [],
+        isTeamChat: Bool = false
     ) {
         self.dispatchId = dispatchId
         self.correlationId = correlationId
@@ -98,6 +100,7 @@ public struct RuntimeDispatchRequest: Sendable, Equatable {
         self.artifactContract = artifactContract
         self.cloudMarketplaceTools = cloudMarketplaceTools
         self.attachmentPaths = attachmentPaths
+        self.isTeamChat = isTeamChat
     }
 }
 

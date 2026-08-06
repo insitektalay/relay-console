@@ -6,25 +6,30 @@ public final class DispatchService {
     private let registry: RuntimeBridgeRegistry
     private let entitlement: RelayEntitlementService
     private let eventBus: RelayEventBus
+    private let harnessInstall: HarnessInstallManager
+    private let teamChatTurnQueue = TeamChatRuntimeTurnQueue()
 
     public init(
         paths: RelayConsolePaths,
         data: LocalDataService,
         registry: RuntimeBridgeRegistry,
         entitlement: RelayEntitlementService,
-        eventBus: RelayEventBus
+        eventBus: RelayEventBus,
+        harnessInstall: HarnessInstallManager
     ) {
         self.paths = paths
         self.data = data
         self.registry = registry
         self.entitlement = entitlement
         self.eventBus = eventBus
+        self.harnessInstall = harnessInstall
     }
 
     public func checkHarnessHealth(harnessId: String) async throws -> HarnessHealth {
         let harness = try data.getHarness(harnessId)
         let bridge = try registry.get(harness.runtimeType)
         let health = await bridge.getHealth(harnessId: harness.id, config: harness.config)
+        _ = try? harnessInstall.recordHealth(health)
         _ = try? data.log(
             severity: health.status == .healthy ? "info" : "warn",
             category: "harness",
@@ -408,6 +413,84 @@ public final class DispatchService {
         return agents
     }
 
+    private func teamPublishToolDescriptor(
+        thread: ThreadDetail,
+        publishingAgentId: RelayId
+    ) throws -> JSONRecord {
+        let mentionableAgentIds = try teamParticipantAgents(thread: thread)
+            .map(\.id)
+            .filter { $0 != publishingAgentId }
+        return [
+            "name": .string("relay_publish_message"),
+            "functionName": .string("relay_publish_message"),
+            "appSlug": .string("relay"),
+            "approvalRequired": .bool(false),
+            "action": .string("write"),
+            "description": .string("Publish a visible message to the current Relay team chat. Your ordinary final response is not published. Include only agents who should receive another turn."),
+            "inputSchema": .object([
+                "type": .string("object"),
+                "properties": .object([
+                    "content": .object([
+                        "type": .string("string"),
+                        "minLength": .number(1),
+                        "maxLength": .number(32_000)
+                    ]),
+                    "mentions": .object([
+                        "type": .string("array"),
+                        "maxItems": .number(20),
+                        "items": .object([
+                            "type": .string("object"),
+                            "properties": .object([
+                                "agentId": .object([
+                                    "type": .string("string"),
+                                    "enum": .array(mentionableAgentIds.map(JSONValue.string))
+                                ])
+                            ]),
+                            "required": .array([.string("agentId")]),
+                            "additionalProperties": .bool(false)
+                        ])
+                    ]),
+                    "callId": .object([
+                        "type": .string("string"),
+                        "minLength": .number(1),
+                        "maxLength": .number(160),
+                        "description": .string("Stable unique id for this tool call; reuse it when retrying the same call.")
+                    ])
+                ]),
+                "required": .array([.string("content"), .string("callId")]),
+                "additionalProperties": .bool(false)
+            ]),
+            "execution": .object([
+                "transport": .string("clawchat_bridge_marketplace_tool"),
+                "requiresBridgeAccessToken": .bool(true),
+                "endpointBasePath": .string("/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/relay")
+            ])
+        ]
+    }
+
+    private func teamRuntimeInstruction(
+        thread: ThreadDetail,
+        publishingAgent: AgentWithBinding,
+        sourceMessage: Message
+    ) throws -> String {
+        let roster = try teamParticipantAgents(thread: thread)
+            .map { "- \($0.name): \($0.id)" }
+            .joined(separator: "\n")
+        var instructions = [
+            "This is a Relay team chat. Do not rely on your ordinary final response for communication: it will not be displayed. Call relay_publish_message to publish. Mention only agents who should receive another turn; an empty mentions list publishes without waking anyone.",
+            "Team agents available for structured mentions (use these exact IDs; you may mention multiple agents in one message and assign each different work):\n\(roster)",
+            "If this turn produces a result, answer, deliverable, decision, blocker, substantive progress update, or question that another participant needs to answer, you MUST publish it with relay_publish_message. If a human asked you for work, you MUST eventually publish a substantive response. Otherwise publishing is optional and silence is usually correct.",
+            "When you finish work delegated by another agent, you MUST publish the result, deliverable, or blocker and include that delegating agent in the structured mentions list. This applies to completed work only. Do not mention the delegator merely to accept the assignment, confirm receipt, or close a conversational loop. If you have nothing substantive to report yet, publish nothing and report when you do.",
+            "Never publish a bare acknowledgement. A message whose only content confirms, accepts, agrees, aligns, signs off, says you are standing by, or announces your own silence adds nothing and can retrigger mentioned agents. If your draft contains nothing beyond acknowledgement, publish nothing."
+        ]
+        if sourceMessage.senderType == .agent,
+           let delegatorId = sourceMessage.senderId,
+           delegatorId != publishingAgent.id {
+            instructions.append("This turn was triggered by \(sourceMessage.senderName) (Relay agent ID \(delegatorId)). When delegated work is complete or blocked, include exactly that agent ID in relay_publish_message.mentions so the delegator receives the callback.")
+        }
+        return instructions.joined(separator: "\n\n")
+    }
+
     private func mentionedTeamAgent(
         in content: String,
         candidates: [AgentWithBinding]
@@ -485,12 +568,17 @@ public final class DispatchService {
         var prepared: [(agent: AgentWithBinding, bridge: DesktopRuntimeBridge)] = []
         for agent in agents {
             let bridge = try registry.get(agent.binding.runtimeType)
-            let health = await bridge.getHealth(harnessId: agent.harness.id, config: agent.harness.config)
+            let health = try await checkHarnessHealth(harnessId: agent.harness.id)
             guard health.status == .healthy else {
+                let message = health.status == .authRequired
+                    ? "\(agent.name)'s harness authentication is required. \(health.message)"
+                    : "\(agent.name)'s harness is not ready. \(health.message)"
                 throw RelayError(
                     .harnessUnhealthy,
-                    "\(agent.name)'s harness is not ready.",
-                    recovery: "Open Harnesses and run a health check."
+                    message,
+                    recovery: health.status == .authRequired
+                        ? "Authenticate in the runtime, then run a health check."
+                        : "Open Harnesses and run a health check."
                 )
             }
             prepared.append((agent, bridge))
@@ -639,12 +727,18 @@ public final class DispatchService {
             originalContent: inputContent,
             bundle: catchUpBundle
         )
+        let teamInstruction = thread.threadType == .team
+            ? try teamRuntimeInstruction(thread: thread, publishingAgent: agent, sourceMessage: sourceMessage)
+            : nil
+        let instructedRuntimeInputContent = teamInstruction.map {
+            "[Relay team-chat instructions]\n\($0)\n\n[Turn input]\n\(runtimeInputContent)"
+        } ?? runtimeInputContent
         let session = try data.createRuntimeSession(threadId: thread.id, agentId: agent.id, runtimeBindingId: agent.binding.id)
         let createdAt = nowIso()
         let correlationId = UUID().uuidString
         let artifactContract = try createArtifactContract(correlationId: correlationId, createdAt: createdAt)
         var inputSnapshot: JSONRecord = [
-            "content": .string(runtimeInputContent),
+            "content": .string(instructedRuntimeInputContent),
             "sourceContent": .string(inputContent),
             "agentId": .string(agent.id),
             "harnessId": .string(agent.harness.id),
@@ -720,14 +814,18 @@ public final class DispatchService {
             agent: agent,
             runtimeBinding: agent.binding,
             harness: agent.harness,
-            inputContent: runtimeInputContent,
+            inputContent: instructedRuntimeInputContent,
             inputFormat: inputFormat,
             recentMessages: recentMessages,
             approvalMode: approvalMode,
             timeoutMs: RuntimeDispatchTimeouts.chatTurnMs,
             createdAt: createdAt,
             artifactContract: artifactContract,
-            attachmentPaths: try nativeImageAttachmentPaths(from: sourceMetadata)
+            cloudMarketplaceTools: thread.threadType == .team
+                ? [try teamPublishToolDescriptor(thread: thread, publishingAgentId: agent.id)]
+                : [],
+            attachmentPaths: try nativeImageAttachmentPaths(from: sourceMetadata),
+            isTeamChat: thread.threadType == .team
         )
         if requiresRunConfirmation {
             return try markRunConfirmationPending(
@@ -738,6 +836,173 @@ public final class DispatchService {
         }
         launchRuntimeDispatch(request, bridge: bridge, data: data, eventBus: eventBus)
         return dispatch
+    }
+
+    public func publishTeamRuntimeMessage(
+        dispatchId: RelayId,
+        payload: JSONRecord,
+        runtime: MarketplaceRuntimeToolExecutionContext
+    ) throws -> JSONRecord {
+        let dispatch = try data.getDispatch(dispatchId)
+        guard dispatch.id == runtime.dispatchId,
+              dispatch.agentId == runtime.agentId,
+              dispatch.threadId == runtime.threadId
+        else {
+            throw RelayError(.permissionDenied, "Relay publish context does not match the authoritative runtime dispatch.")
+        }
+        guard !dispatch.isTerminal else {
+            throw RelayError(.invalidInput, "Runtime dispatch is no longer active.")
+        }
+        let thread = try data.getThread(dispatch.threadId)
+        guard thread.threadType == .team else {
+            throw RelayError(.invalidInput, "Relay message publishing is available only in team chats.")
+        }
+        let sourceMessage = try data.getMessage(dispatch.messageId)
+        guard sourceMessage.threadSessionId == thread.activeSessionId else {
+            throw RelayError(.invalidInput, "Thread session is no longer active.")
+        }
+        let publishingAgent = try data.getAgent(dispatch.agentId)
+        let members = try teamParticipantAgents(thread: thread)
+        guard members.contains(where: { $0.id == publishingAgent.id }) else {
+            throw RelayError(.permissionDenied, "Runtime agent is not a member of this team chat.")
+        }
+
+        let content = (payload["content"]?.string ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !content.isEmpty, content.count <= 32_000 else {
+            throw RelayError(.invalidInput, "Published message content is invalid.")
+        }
+        let callId = (payload["callId"]?.string ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !callId.isEmpty, callId.count <= 160 else {
+            throw RelayError(.invalidInput, "A valid tool call id is required.")
+        }
+        let rawMentions: [JSONValue]
+        if case .array(let values)? = payload["mentions"] {
+            rawMentions = values
+        } else {
+            rawMentions = []
+        }
+        guard rawMentions.count <= 20 else {
+            throw RelayError(.invalidInput, "Too many agent mentions.")
+        }
+        var seenMentionIds = Set<RelayId>()
+        let requestedMentionIds = rawMentions.compactMap { value -> RelayId? in
+            guard case .object(let mention) = value,
+                  let id = mention["agentId"]?.string?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !id.isEmpty,
+                  seenMentionIds.insert(id).inserted
+            else { return nil }
+            return id
+        }
+        let memberIds = Set(members.map(\.id))
+        guard requestedMentionIds.allSatisfy({ $0 != publishingAgent.id && memberIds.contains($0) }) else {
+            throw RelayError(.invalidInput, "Mentions must identify other agents in the current team chat.")
+        }
+        let membersById = Dictionary(uniqueKeysWithValues: members.map { ($0.id, $0) })
+        let displayedContent = contentWithVisibleTeamMentions(
+            content,
+            mentionedAgents: requestedMentionIds.compactMap { membersById[$0] }
+        )
+        guard displayedContent.count <= 32_000 else {
+            throw RelayError(.invalidInput, "Published message content is invalid.")
+        }
+
+        if let existing = try data.listMessagesInThreadOrder(threadId: thread.id).first(where: {
+            $0.metadata["runtimeDispatchId"] == .string(dispatch.id)
+                && $0.metadata["runtimeToolCallId"] == .string(callId)
+        }) {
+            return [
+                "success": .bool(true),
+                "duplicate": .bool(true),
+                "messageId": .string(existing.id),
+                "mentionedAgentIds": existing.metadata["mentionedAgentIds"] ?? .array([])
+            ]
+        }
+
+        let posted = try data.createMessage(
+            threadId: thread.id,
+            senderType: .agent,
+            senderId: publishingAgent.id,
+            senderName: publishingAgent.name,
+            content: displayedContent,
+            contentFormat: .markdown,
+            metadata: [
+                "runtimeDispatchId": .string(dispatch.id),
+                "runtimeToolCallId": .string(callId),
+                "publicationMode": .string("relay_publish_tool"),
+                "mentionedAgentIds": .array(requestedMentionIds.map(JSONValue.string)),
+                "nativeRuntime": .string(publishingAgent.binding.runtimeType.rawValue)
+            ]
+        )
+        var resultSnapshot = dispatch.resultSnapshot ?? [:]
+        if resultSnapshot["postedMessageId"] == nil {
+            resultSnapshot["postedMessageId"] = .string(posted.id)
+        }
+        resultSnapshot["publicationMode"] = .string("relay_publish_tool")
+        _ = try data.updateDispatch(
+            dispatchId: dispatch.id,
+            status: dispatch.status,
+            resultSnapshot: resultSnapshot
+        )
+        Task {
+            do {
+                try await self.routeAgentMentionFollowUps(
+                    sourceMessage: posted,
+                    sourceAgent: publishingAgent
+                )
+            } catch {
+                _ = try? self.data.log(
+                    severity: "warn",
+                    category: "dispatch",
+                    message: "Structured team publication routing failed.",
+                    correlationId: dispatch.correlationId,
+                    dispatchId: dispatch.id,
+                    harnessId: publishingAgent.harness.id,
+                    threadId: thread.id,
+                    detail: [
+                        "sourceMessageId": .string(posted.id),
+                        "sourceAgentId": .string(publishingAgent.id),
+                        "error": .string(error.localizedDescription)
+                    ]
+                )
+            }
+        }
+        return [
+            "success": .bool(true),
+            "duplicate": .bool(false),
+            "messageId": .string(posted.id),
+            "mentionedAgentIds": .array(requestedMentionIds.map(JSONValue.string))
+        ]
+    }
+
+    private func contentWithVisibleTeamMentions(
+        _ content: String,
+        mentionedAgents: [AgentWithBinding]
+    ) -> String {
+        let pattern = #"(?<![A-Za-z0-9_])@([A-Za-z0-9][A-Za-z0-9._-]{0,159})"#
+        let visibleTokens: Set<String>
+        if let regex = try? NSRegularExpression(pattern: pattern) {
+            let range = NSRange(content.startIndex..<content.endIndex, in: content)
+            visibleTokens = Set(regex.matches(in: content, range: range).compactMap { match in
+                guard match.numberOfRanges > 1,
+                      let tokenRange = Range(match.range(at: 1), in: content)
+                else { return nil }
+                return String(content[tokenRange]).lowercased()
+            })
+        } else {
+            visibleTokens = []
+        }
+        let missingTokens = mentionedAgents.compactMap { agent -> String? in
+            let preferred = agent.binding.externalAgentId?.trimmingCharacters(in: .whitespacesAndNewlines)
+                ?? agent.binding.hermesProfileSlug?.trimmingCharacters(in: .whitespacesAndNewlines)
+                ?? agent.name
+            let handle = slugifyAgentId(preferred)
+            guard !handle.isEmpty, !visibleTokens.contains(handle) else { return nil }
+            return "@\(handle)"
+        }
+        guard !missingTokens.isEmpty else { return content }
+        return "\(missingTokens.joined(separator: " "))\n\n\(content)"
     }
 
     public func cancel(dispatchId: String, context: ServiceRequestContext? = nil) async throws -> RuntimeDispatch {
@@ -1207,7 +1472,11 @@ public final class DispatchService {
             timeoutMs: 60_000,
             createdAt: nowIso(),
             artifactContract: artifactContract(from: dispatch.inputSnapshot),
-            attachmentPaths: try nativeImageAttachmentPaths(from: sourceMessage.metadata)
+            cloudMarketplaceTools: thread.threadType == .team
+                ? [try teamPublishToolDescriptor(thread: thread, publishingAgentId: agent.id)]
+                : [],
+            attachmentPaths: try nativeImageAttachmentPaths(from: sourceMessage.metadata),
+            isTeamChat: thread.threadType == .team
         )
     }
 
@@ -1275,7 +1544,28 @@ public final class DispatchService {
             eventBus.emit(.runtimeEvent, runtimeEvent)
         }
 
-        let result = await bridge.dispatchTurn(request, sink: sink)
+        let execute: TeamChatRuntimeTurnQueue.Execute = { effectiveInput in
+            var effectiveRequest = request
+            effectiveRequest.inputContent = effectiveInput
+            return await bridge.dispatchTurn(effectiveRequest, sink: sink)
+        }
+        let result: RuntimeDispatchTerminalResult
+        if request.isTeamChat {
+            result = await teamChatTurnQueue.submit(
+                key: "\(request.agent.id):\(request.threadId)",
+                input: request.inputContent,
+                cancel: {
+                    let cancellation = await bridge.cancelDispatch(
+                        dispatchId: request.dispatchId,
+                        correlationId: request.correlationId
+                    )
+                    return cancellation.status == "cancelled"
+                },
+                execute: execute
+            )
+        } else {
+            result = await execute(request.inputContent)
+        }
         do {
             let current = try data.getDispatch(request.dispatchId)
             if current.status == .cancelled {
@@ -1286,6 +1576,21 @@ public final class DispatchService {
             }
             if result.status == "completed" {
                 let finalText = result.finalText ?? ""
+                if request.isTeamChat {
+                    var resultSnapshot = current.resultSnapshot ?? [:]
+                    resultSnapshot["finalText"] = .string(finalText)
+                    resultSnapshot["finalResponsePublication"] = .string("suppressed_team_tool_only")
+                    resultSnapshot["runtimeType"] = .string(request.harness.runtimeType.rawValue)
+                    resultSnapshot["attempt"] = .number(Double(request.attempt))
+                    resultSnapshot["retrySourceMessageId"] = .string(request.messageId)
+                    resultSnapshot["metadata"] = .object(result.metadata)
+                    _ = try data.updateDispatch(
+                        dispatchId: request.dispatchId,
+                        status: .completed,
+                        resultSnapshot: resultSnapshot
+                    )
+                    return
+                }
                 let existingMessage = try terminalAgentMessage(dispatchId: request.dispatchId, threadId: request.threadId)
                 let createdTerminalMessage = existingMessage == nil
                 let posted: Message
@@ -1390,12 +1695,35 @@ public final class DispatchService {
             .contains { $0.messageId == sourceMessage.id }
         guard !alreadyQueued else { return }
         guard try teamRelayShouldRouteFollowUp(thread: thread, sourceMessage: sourceMessage) else { return }
-        let route = try resolveDispatchRoute(
-            thread: thread,
-            fallbackAgent: sourceAgent,
-            content: sourceMessage.content,
-            excludingAgentId: sourceAgent.id
-        )
+        let route: DispatchRoute
+        if sourceMessage.metadata["publicationMode"] == .string("relay_publish_tool") {
+            let explicitIds: [RelayId]
+            if case .array(let values)? = sourceMessage.metadata["mentionedAgentIds"] {
+                explicitIds = values.compactMap(\.string)
+            } else {
+                explicitIds = []
+            }
+            let participantAgents = try teamParticipantAgents(thread: thread)
+            let byId = Dictionary(uniqueKeysWithValues: participantAgents.map { ($0.id, $0) })
+            var seen = Set<RelayId>()
+            let explicitAgents = explicitIds.compactMap { id -> AgentWithBinding? in
+                guard id != sourceAgent.id, seen.insert(id).inserted else { return nil }
+                return byId[id]
+            }
+            route = DispatchRoute(
+                agents: explicitAgents,
+                mode: "team_structured_mentions",
+                mentionedAgentIds: explicitAgents.map(\.id),
+                mentionTokens: []
+            )
+        } else {
+            route = try resolveDispatchRoute(
+                thread: thread,
+                fallbackAgent: sourceAgent,
+                content: sourceMessage.content,
+                excludingAgentId: sourceAgent.id
+            )
+        }
         guard !route.agents.isEmpty else { return }
         let preparedTargets = try await prepareDispatchTargets(route.agents)
         for prepared in preparedTargets {

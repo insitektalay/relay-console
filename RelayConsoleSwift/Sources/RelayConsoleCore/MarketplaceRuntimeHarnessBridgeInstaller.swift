@@ -21,6 +21,9 @@ extension HarnessInstallManager {
         let snapshotPath = try writeMarketplaceRuntimeSnapshot(mount)
         let command = marketplaceRuntimeBridgeCommandSpec()
         let brokerTokenPath = try MarketplaceRuntimeBrokerEndpoint.ensureTokenFile(forRoot: paths.root)
+        let openClawContextPath = paths.root
+            .appendingPathComponent("marketplace-runtime", isDirectory: true)
+            .appendingPathComponent("openclaw-dispatch-contexts.json")
         let env: [String: String] = [
             RelayConsoleServices.temporaryUserDataPathEnvironmentKey: paths.root.path,
             "RELAY_MARKETPLACE_RUNTIME_SNAPSHOT_PATH": snapshotPath.path,
@@ -35,6 +38,7 @@ extension HarnessInstallManager {
             "RELAY_MARKETPLACE_THREAD_ID": request.threadId,
             "RELAY_MARKETPLACE_RUNTIME_SESSION_ID": request.sessionId,
             "RELAY_MARKETPLACE_CORRELATION_ID": request.correlationId,
+            "RELAY_MARKETPLACE_RUNTIME_CONTEXT_PATH": openClawContextPath.path,
             "RELAY_MARKETPLACE_RAW_PROVIDER_TOOL_EXPOSURE": "false"
         ]
 
@@ -45,6 +49,17 @@ extension HarnessInstallManager {
             try writeHermesMarketplaceRuntimeToolModule(harnessPath: harnessPath)
             registeredToolNames = Set(mount.mountedToolNames)
         case .openclaw:
+            let slug = agent.binding.externalAgentId ?? openClawSlug(for: agent)
+            let sessionKey = openClawSessionKey(
+                slug: slug,
+                threadId: request.threadId,
+                mount: mount
+            )
+            try writeOpenClawDispatchContext(
+                sessionKey: sessionKey,
+                environment: env,
+                to: openClawContextPath
+            )
             let pluginDir = try writeOpenClawMarketplaceRuntimeToolPlugin(mount: mount)
             requiresHarnessRefresh = try ensureOpenClawMarketplacePluginEnabled(
                 pluginDir: pluginDir,
@@ -64,6 +79,31 @@ extension HarnessInstallManager {
             registeredToolNames: registeredToolNames,
             requiresHarnessRefresh: requiresHarnessRefresh
         )
+    }
+
+    private func writeOpenClawDispatchContext(
+        sessionKey: String,
+        environment: [String: String],
+        to url: URL
+    ) throws {
+        openClawMarketplaceContextLock.lock()
+        defer { openClawMarketplaceContextLock.unlock() }
+        try FileManager.default.createDirectory(
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        var root = parseJSONObject(
+            from: (try? String(contentsOf: url, encoding: .utf8)) ?? ""
+        ) ?? [:]
+        var contexts = objectValue(root["contexts"]) ?? [:]
+        contexts[sessionKey] = .object(
+            environment.reduce(into: JSONRecord()) { record, pair in
+                record[pair.key] = .string(pair.value)
+            }
+        )
+        root["contexts"] = .object(contexts)
+        root["updatedAt"] = .string(nowIso())
+        try (encodeJSONRecord(root) + "\n").write(to: url, atomically: true, encoding: .utf8)
     }
 
     private func writeMarketplaceRuntimeSnapshot(_ mount: MarketplaceRuntimeCapabilitySnapshot) throws -> URL {
@@ -193,6 +233,7 @@ extension HarnessInstallManager {
             "RELAY_MARKETPLACE_AGENT_ID",
             "RELAY_MARKETPLACE_WORKSPACE_ID",
             "RELAY_MARKETPLACE_RUNTIME_TYPE",
+            "RELAY_MARKETPLACE_RUNTIME_CONTEXT_PATH",
             "RELAY_MARKETPLACE_RAW_PROVIDER_TOOL_EXPOSURE"
         ])
         let persistentEnvironment = environment
@@ -479,13 +520,27 @@ function parametersSchema(inputSchema) {
   return { type: "object", properties, required, additionalProperties: false };
 }
 
-function runBridge(toolName, params) {
+function dispatchEnvironment(toolContext) {
+  const contextPath = runtimeString(process.env.RELAY_MARKETPLACE_RUNTIME_CONTEXT_PATH)
+    || runtimeString(runtimeConfig.bridgeEnvironment && runtimeConfig.bridgeEnvironment.RELAY_MARKETPLACE_RUNTIME_CONTEXT_PATH);
+  const sessionKey = runtimeString(toolContext && toolContext.sessionKey);
+  if (!contextPath || !sessionKey) return {};
+  try {
+    const root = JSON.parse(fs.readFileSync(contextPath, "utf8"));
+    return runtimeStringRecord(root && root.contexts && root.contexts[sessionKey]);
+  } catch {
+    return {};
+  }
+}
+
+function runBridge(toolName, params, toolContext) {
   const command = runtimeString(process.env.RELAY_MARKETPLACE_TOOL_BRIDGE_COMMAND) || runtimeString(runtimeConfig.bridgeCommand);
   if (!command) return { ok: false, error: "Relay Marketplace bridge command is not configured." };
   const bridgeArgs = parseBridgeArgs(runtimeConfig);
   const bridgeEnvironment = {
     ...runtimeStringRecord(runtimeConfig.bridgeEnvironment),
     ...process.env,
+    ...dispatchEnvironment(toolContext),
     RELAY_MARKETPLACE_TOOL_BRIDGE_COMMAND: command,
     RELAY_MARKETPLACE_TOOL_BRIDGE_ARGS_JSON: JSON.stringify(bridgeArgs),
   };
@@ -535,21 +590,23 @@ module.exports = {
       for (const tool of app.tools || []) {
         const name = tool.toolName;
         if (!name) continue;
-        api.registerTool({
-          name,
-          label: tool.displayName || name,
-          description: `${tool.displayName || name}. ${tool.summary || ""}`.trim(),
-          parameters: parametersSchema(tool.inputSchema || {}),
-          execute: async (_toolCallId, params) => {
-            const result = runBridge(name, params || {});
-            return {
-              content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-              details: result,
-            };
-          },
-        }, { name });
+        api.registerTool((toolContext) => ({
+            name,
+            label: tool.displayName || name,
+            description: `${tool.displayName || name}. ${tool.summary || ""}`.trim(),
+            parameters: parametersSchema(tool.inputSchema || {}),
+            execute: async (_toolCallId, params) => {
+              const result = runBridge(name, params || {}, toolContext);
+              return {
+                content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+                details: result,
+              };
+            },
+          }), { name });
       }
     }
   },
 };
 """#
+
+private let openClawMarketplaceContextLock = NSLock()

@@ -48,6 +48,7 @@ export class LocalAppConnectorAgentApiBridgeToolsController {
     private readonly linkedApplicationRepo: Repository<LinkedApplicationEntity>,
     private readonly connectorExecutionService: MarketplaceConnectorExecutionService,
     private readonly runtimeBindingService: RuntimeBindingService,
+    private readonly messageService: MessageService,
   ) {}
 
   @Post("localappconnector-agent-api/:appSlug/:toolName")
@@ -75,6 +76,21 @@ export class LocalAppConnectorAgentApiBridgeToolsController {
     @Headers() headers: Record<string, string>,
     @Body() body: Record<string, unknown>,
   ) {
+    if (appSlug === "relay" && toolName === "relay_publish_message") {
+      const bridge = await this.bridgeService.authenticateBridgeAccessToken(
+        headers.authorization,
+      );
+      const dispatch = await this.requireBridgeAuthorizedDispatch(
+        dispatchId,
+        bridge,
+      );
+      if (dispatch.workspaceId !== bridge.workspaceId) {
+        throw new ForbiddenException(
+          "Runtime dispatch belongs to another workspace",
+        );
+      }
+      return this.messageService.publishTeamRuntimeMessage(dispatchId, body);
+    }
     if (this.isLocalAppRuntimeTool(toolName)) {
       return this.executeLocalAppRuntimeTool(
         dispatchId,

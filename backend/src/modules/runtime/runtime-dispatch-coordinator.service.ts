@@ -55,7 +55,7 @@ export interface ExecuteRuntimeDispatchInput {
   persistFinalReply: (
     finalText: string,
     metadata?: Record<string, unknown>,
-  ) => Promise<{ id: string }>;
+  ) => Promise<{ id: string } | null>;
   onSettled?: () => Promise<void> | void;
 }
 
@@ -403,7 +403,7 @@ export class RuntimeDispatchCoordinator {
               await this.runtimeDispatchService.markCompleted(
                 input.dispatch.id,
                 {
-                  postedMessageId: posted.id,
+                  postedMessageId: posted?.id ?? null,
                   resultSummary: finalText.slice(0, 500),
                   resultMetadata: finalMetadata,
                 },
@@ -420,7 +420,7 @@ export class RuntimeDispatchCoordinator {
               );
               await this.runtimeEventService.emitDispatchCompleted({
                 ...baseEventPayload,
-                postedMessageId: posted.id,
+                postedMessageId: posted?.id ?? null,
                 metadata: event.metadata ?? {},
               });
             } finally {
@@ -773,6 +773,58 @@ export class RuntimeDispatchCoordinator {
       });
     }
 
+    return this.runtimeDispatchService.findById(dispatch.id);
+  }
+
+  async completeDispatchWithoutMessage(input: {
+    dispatchId: string;
+    resultSummary?: string | null;
+    resultMetadata?: Record<string, unknown>;
+  }): Promise<RuntimeDispatchEntity | null> {
+    const dispatch = await this.runtimeDispatchService.findById(
+      input.dispatchId,
+    );
+    if (!dispatch) return null;
+    if (["completed", "failed", "cancelled"].includes(dispatch.status)) {
+      return dispatch;
+    }
+    const binding = await this.runtimeBindingService.findById(
+      dispatch.runtimeBindingId,
+    );
+    if (!binding) return null;
+
+    this.clearBridgeDispatchTimeout(dispatch.id);
+    const completedAt = new Date();
+    await this.runtimeDispatchService.markCompleted(dispatch.id, {
+      postedMessageId: dispatch.postedMessageId ?? null,
+      resultSummary: input.resultSummary ?? null,
+      resultMetadata: input.resultMetadata ?? {},
+      completedAt,
+    });
+    await this.runtimeThreadSessionService.touch(
+      dispatch.runtimeThreadSessionId,
+      {
+        lastRunFinishedAt: completedAt,
+        lastErrorCode: null,
+        lastErrorMessage: null,
+      },
+    );
+    await this.runtimeEventService.emitDispatchCompleted({
+      workspaceId: dispatch.workspaceId,
+      threadId: dispatch.threadId,
+      threadSessionId: dispatch.threadSessionId,
+      dispatchId: dispatch.id,
+      messageId: dispatch.messageId,
+      agentId: dispatch.agentId,
+      runtimeType: binding.runtimeType,
+      runtimeBindingId: binding.id,
+      runtimeHostId: dispatch.runtimeHostId,
+      assignmentEpoch: dispatch.assignmentEpoch,
+      runtimeThreadSessionId: dispatch.runtimeThreadSessionId,
+      postedMessageId: dispatch.postedMessageId ?? null,
+      metadata: input.resultMetadata ?? {},
+      timestamp: completedAt.toISOString(),
+    });
     return this.runtimeDispatchService.findById(dispatch.id);
   }
 

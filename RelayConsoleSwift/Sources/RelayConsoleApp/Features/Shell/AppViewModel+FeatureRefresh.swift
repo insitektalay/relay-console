@@ -149,6 +149,7 @@ extension AppViewModel {
       )
       let nextAgents = try services.data.listAgents(workspaceId: workspace.id)
         .filter { [.hermes, .openclaw].contains($0.harness.runtimeType) }
+      let nextRecords = try services.harnessInstall.listRecords()
       let nextVisibleAgents =
         showRelayCloudAgents ? nextAgents : nextAgents.filter { !isRelayCloudAgent($0) }
       let nextSelectedAgentId =
@@ -208,6 +209,7 @@ extension AppViewModel {
       )
 
       agents = nextAgents
+      records = nextRecords
       selectedAgentId = nextSelectedAgentId
       agentPreferences = Dictionary(uniqueKeysWithValues: nextPreferences.map { ($0.agentId, $0) })
       provisioningJobs = nextProvisioningJobs

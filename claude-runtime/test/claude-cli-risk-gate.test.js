@@ -5,7 +5,40 @@ const {
   buildClaudeStructuredPromptArgs,
   buildCodexExecArgs,
   isRuntimeCommandRiskAccepted,
+  parseClaudeStructuredOutput,
 } = require("../dist/claude-cli");
+
+test("parses Relay team publication tool calls separately from the ordinary final", () => {
+  const result = parseClaudeStructuredOutput(
+    JSON.stringify({
+      structured_output: {
+        status: "completed",
+        final_reply_markdown: "hidden final",
+        tool_calls: [
+          {
+            name: "relay_publish_message",
+            call_id: "call-1",
+            arguments: {
+              content: "Visible update",
+              mentions: [{ agentId: "agent-2" }],
+            },
+          },
+        ],
+      },
+    }),
+  );
+  assert.equal(result.final_reply_markdown, "hidden final");
+  assert.deepEqual(result.tool_calls, [
+    {
+      name: "relay_publish_message",
+      call_id: "call-1",
+      arguments: {
+        content: "Visible update",
+        mentions: [{ agentId: "agent-2" }],
+      },
+    },
+  ]);
+});
 
 const acceptedRisk = {
   dangerousBypassAccepted: true,

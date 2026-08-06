@@ -29,6 +29,163 @@ public enum CloudRuntimeDeviceError: Error, Equatable, Sendable {
     case malformedDispatch
 }
 
+actor TeamChatRuntimeTurnQueue {
+    typealias Execute = @Sendable (String) async -> RuntimeDispatchTerminalResult
+    typealias Cancel = @Sendable () async -> Bool
+
+    private struct Request {
+        let input: String
+        let execute: Execute
+        let cancel: Cancel
+        let continuation: CheckedContinuation<RuntimeDispatchTerminalResult, Never>
+    }
+
+    private struct ActiveTurn {
+        let id: UUID
+        let effectiveInput: String
+        let requests: [Request]
+        let cancel: Cancel
+        var cancelRequested: Bool
+        var cancellationSucceeded: Bool?
+        var terminalResult: RuntimeDispatchTerminalResult?
+    }
+
+    private struct TurnState {
+        var active: ActiveTurn
+        var pending: [Request]
+    }
+
+    private var turns: [String: TurnState] = [:]
+
+    func submit(
+        key: String,
+        input: String,
+        cancel: @escaping Cancel,
+        execute: @escaping Execute
+    ) async -> RuntimeDispatchTerminalResult {
+        await withCheckedContinuation { continuation in
+            let request = Request(
+                input: input,
+                execute: execute,
+                cancel: cancel,
+                continuation: continuation
+            )
+            guard var state = turns[key] else {
+                launch(key: key, requests: [request], effectiveInput: input)
+                return
+            }
+            state.pending.append(request)
+            if !state.active.cancelRequested {
+                state.active.cancelRequested = true
+                let activeID = state.active.id
+                let cancelActive = state.active.cancel
+                Task {
+                    let succeeded = await cancelActive()
+                    self.recordCancellation(
+                        key: key,
+                        activeID: activeID,
+                        succeeded: succeeded
+                    )
+                }
+            }
+            turns[key] = state
+        }
+    }
+
+    private func launch(key: String, requests: [Request], effectiveInput: String) {
+        guard let leader = requests.first else { return }
+        turns[key] = TurnState(
+            active: ActiveTurn(
+                id: UUID(),
+                effectiveInput: effectiveInput,
+                requests: requests,
+                cancel: leader.cancel,
+                cancelRequested: false,
+                cancellationSucceeded: nil,
+                terminalResult: nil
+            ),
+            pending: []
+        )
+        Task {
+            let result = await leader.execute(effectiveInput)
+            self.finish(key: key, result: result)
+        }
+    }
+
+    private func finish(key: String, result: RuntimeDispatchTerminalResult) {
+        guard var state = turns[key] else { return }
+        if state.active.cancelRequested && state.active.cancellationSucceeded == nil {
+            state.active.terminalResult = result
+            turns[key] = state
+            return
+        }
+        complete(key: key, state: state, result: result)
+    }
+
+    private func recordCancellation(key: String, activeID: UUID, succeeded: Bool) {
+        guard var state = turns[key], state.active.id == activeID else { return }
+        state.active.cancellationSucceeded = succeeded
+        if let terminalResult = state.active.terminalResult {
+            complete(key: key, state: state, result: terminalResult)
+        } else {
+            turns[key] = state
+        }
+    }
+
+    private func complete(
+        key: String,
+        state: TurnState,
+        result: RuntimeDispatchTerminalResult
+    ) {
+        turns.removeValue(forKey: key)
+        for request in state.active.requests {
+            request.continuation.resume(returning: result)
+        }
+        guard !state.pending.isEmpty else { return }
+
+        let newMessages = state.pending.map(\.input)
+        let effectiveInput: String
+        if state.active.cancellationSucceeded == true {
+            effectiveInput = Self.steeredPrompt(
+                prior: state.active.effectiveInput,
+                newMessages: newMessages
+            )
+        } else {
+            effectiveInput = Self.queuedPrompt(newMessages)
+        }
+        launch(key: key, requests: state.pending, effectiveInput: effectiveInput)
+    }
+
+    private static func steeredPrompt(prior: String, newMessages: [String]) -> String {
+        """
+        [What you were working on]
+        \(prior)
+
+        \(newMessageBlock(newMessages))
+
+        Note: A new message arrived while you were working. Continue your in-progress work and incorporate the new message if it's relevant; if it's unrelated, you may briefly acknowledge it and carry on.
+        """
+    }
+
+    private static func queuedPrompt(_ messages: [String]) -> String {
+        """
+        \(newMessageBlock(messages))
+
+        Continue with the newly arrived message or messages.
+        """
+    }
+
+    private static func newMessageBlock(_ messages: [String]) -> String {
+        if messages.count == 1 {
+            return "[New message — arrived while you were working]\n\(messages[0])"
+        }
+        return "[New messages — arrived while you were working — \(messages.count) events]\n" +
+            messages.enumerated().map { index, message in
+                "[Event \(index + 1)]\n\(message)"
+            }.joined(separator: "\n\n")
+    }
+}
+
 public protocol CloudMarketplaceAuthorityBroker: Sendable {
     var authority: CloudExecutionAuthority { get }
     func execute(tool: String, request: [String: JSONValue], idempotencyKey: String) async throws -> [String: JSONValue]
@@ -53,7 +210,7 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
     private static let bridgeCapabilities = [
         "clawchat.runtime.hermes", "hermes", "openclaw", "dispatch_backfill", "terminal_ack",
         "marketplace_authority", "event_sequence", "hermes_cancellation",
-        "openclaw_cancellation_unsupported", "clawchat.host.cron_management",
+        "openclaw_cancellation", "clawchat.host.cron_management",
         "clawchat.runtime_connector.v3",
         "clawchat.bridge.rotating_credentials.v1",
         "clawchat.marketplace.tools",
@@ -76,6 +233,7 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
     private let transport: RelayCloudTransport
     private let marketplaceToolProxy: CloudMarketplaceRuntimeToolProxy
     private let attachmentStore: CloudAttachmentStore
+    private let teamChatTurnQueue = TeamChatRuntimeTurnQueue()
     private var websocket: URLSessionWebSocketTask?
     private var websocketLoop: Task<Void, Never>?
     private var inventoryLoop: Task<Void, Never>?
@@ -129,7 +287,7 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
         try database.run("""
         INSERT INTO cloud_runtime_devices(id,sync_link_id,remote_device_id,device_public_id,credential_secret_reference_id,label,state,capability_json,created_at,updated_at)
         VALUES(?,?,?,?,?,?,'enrolled',?, ?, ?)
-        """, [.text(localId), .text(syncLinkId), .text(remoteId), .text(publicId), .text(secret.id), .text(deviceLabel), .text("{\"runtimes\":[\"hermes\",\"openclaw\"],\"hermesCancellation\":true,\"openclawCancellation\":false}"), .text(timestamp), .text(timestamp)])
+        """, [.text(localId), .text(syncLinkId), .text(remoteId), .text(publicId), .text(secret.id), .text(deviceLabel), .text("{\"runtimes\":[\"hermes\",\"openclaw\"],\"hermesCancellation\":true,\"openclawCancellation\":true}"), .text(timestamp), .text(timestamp)])
         return localId
     }
 
@@ -312,7 +470,17 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
             for key in ["dispatchId", "externalAgentId", "status", "timeoutAt", "expiresAt"] where dispatch[key] == nil {
                 dispatch[key] = envelope[key]
             }
-            _ = try await handle(dispatch: dispatch, session: session)
+            let isTeamChat = (dispatch["threadType"] as? String) == "team"
+                || (dispatch["threadClassification"] as? String) == "team_chat"
+                || (dispatch["isTeamThread"] as? Bool) == true
+            if isTeamChat {
+                Task { [weak self] in
+                    guard let self else { return }
+                    _ = try? await self.handle(dispatch: dispatch, session: session)
+                }
+            } else {
+                _ = try await handle(dispatch: dispatch, session: session)
+            }
         }
     }
 
@@ -356,6 +524,12 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
             )
         }
         let timestamp = nowIso()
+        let isTeamChat = (dispatch["threadType"] as? String) == "team"
+            || (dispatch["threadClassification"] as? String) == "team_chat"
+            || (dispatch["isTeamThread"] as? Bool) == true
+        let teamRuntimeInstruction = isTeamChat
+            ? (dispatch["runtimeInstruction"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            : nil
         try database.run("""
         INSERT INTO cloud_dispatch_receipts(cloud_dispatch_id,runtime_device_id,local_dispatch_id,remote_agent_id,thread_id,runtime_session_id,state,received_at,updated_at)
         VALUES(?,?,?,?,?,?, 'accepted',?,?) ON CONFLICT(cloud_dispatch_id) DO NOTHING
@@ -376,13 +550,45 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
             dispatchId: localDispatchId, correlationId: "cloud:\(cloudDispatchId)", threadId: localThreadId, messageId: localMessageId, sessionId: runtimeSessionId, attempt: dispatch["attemptNumber"] as? Int ?? 1, agent: agent, runtimeBinding: binding, harness: harness, inputContent: input,
             inputFormat: .plain, recentMessages: [], timeoutMs: RuntimeDispatchTimeouts.chatTurnMs, createdAt: Self.text(dispatch["createdAt"], timestamp), cloudMarketplaceTools: cloudMarketplaceTools, attachmentPaths: attachmentPaths)
         let sink = CloudRuntimeEventPostbackSink(database: database, transport: transport, session: session, cloudDispatchId: cloudDispatchId)
-        let result = await (try registry.get(binding.runtimeType)).dispatchTurn(request, sink: sink)
+        let runtimeBridge = try registry.get(binding.runtimeType)
+        let execute: TeamChatRuntimeTurnQueue.Execute = { effectiveInput in
+            var effectiveRequest = request
+            if let teamRuntimeInstruction, !teamRuntimeInstruction.isEmpty {
+                effectiveRequest.inputContent = """
+                [Relay team-chat instructions]
+                \(teamRuntimeInstruction)
+
+                [Turn input]
+                \(effectiveInput)
+                """
+            } else {
+                effectiveRequest.inputContent = effectiveInput
+            }
+            return await runtimeBridge.dispatchTurn(effectiveRequest, sink: sink)
+        }
+        let result: RuntimeDispatchTerminalResult
+        if isTeamChat {
+            result = await teamChatTurnQueue.submit(
+                key: "\(localAgentId):\(runtimeSessionId)",
+                input: input,
+                cancel: {
+                    let cancellation = await runtimeBridge.cancelDispatch(
+                        dispatchId: localDispatchId,
+                        correlationId: request.correlationId
+                    )
+                    return cancellation.status == "cancelled"
+                },
+                execute: execute
+            )
+        } else {
+            result = await execute(input)
+        }
         let terminalType = result.status == "completed" ? "run.completed" : result.status == "cancelled" ? "run.cancelled" : "run.failed"
         await sink.emit(
             RuntimeBridgeEvent(
                 id: createRelayId("evt"), type: result.status == "completed" ? .completed : result.status == "cancelled" ? .cancelled : .failed, dispatchId: localDispatchId, correlationId: request.correlationId, timestamp: nowIso(), text: result.finalText, status: result.status,
                 detail: result.metadata))
-        if binding.runtimeType == .openclaw, let finalText = result.finalText, result.status == "completed" {
+        if binding.runtimeType == .openclaw, !isTeamChat, let finalText = result.finalText, result.status == "completed" {
             _ = try await transport.send(
                 method: "POST", path: "bridge/messages",
                 body: [
@@ -1013,8 +1219,23 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
                     await handleAttachmentControl(type: type, payload: dispatch, session: session)
                     continue
                 }
-                if type.contains("dispatch") || dispatch["dispatchId"] != nil { _ = try? await handle(dispatch: dispatch, session: session) }
-                if type.contains("cancel"), let id = dispatch["dispatchId"] as? String { _ = try? await cancel(cloudDispatchId: id, session: session) }
+                if type.contains("cancel"), let id = dispatch["dispatchId"] as? String {
+                    _ = try? await cancel(cloudDispatchId: id, session: session)
+                    continue
+                }
+                if type.contains("dispatch") || dispatch["dispatchId"] != nil {
+                    let isTeamChat = (dispatch["threadType"] as? String) == "team"
+                        || (dispatch["threadClassification"] as? String) == "team_chat"
+                        || (dispatch["isTeamThread"] as? Bool) == true
+                    if isTeamChat {
+                        Task { [weak self] in
+                            guard let self else { return }
+                            _ = try? await self.handle(dispatch: dispatch, session: session)
+                        }
+                    } else {
+                        _ = try? await handle(dispatch: dispatch, session: session)
+                    }
+                }
                 if type.contains("drain") || type.contains("revoked") { _ = try? database.run("UPDATE cloud_runtime_devices SET state=?,updated_at=? WHERE id=?", [.text(type.contains("revoked") ? "revoked" : "draining"), .text(nowIso()), .text(session.localDeviceId)]) }
             } catch {
                 _ = try? database.run("UPDATE cloud_runtime_devices SET state='offline',updated_at=? WHERE id=?", [.text(nowIso()), .text(session.localDeviceId)])

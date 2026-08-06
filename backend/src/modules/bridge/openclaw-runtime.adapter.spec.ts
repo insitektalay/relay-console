@@ -49,8 +49,37 @@ describe("OpenClawRuntimeAdapter", () => {
       expect.objectContaining({
         bridgeBacked: true,
         streamText: false,
-        cancelRun: false,
+        cancelRun: true,
       }),
+    );
+  });
+
+  it("routes cancellation to the active OpenClaw bridge agent", async () => {
+    const emitToBridgeAgents = jest.fn();
+    const adapter = new OpenClawRuntimeAdapter(
+      { register: jest.fn() } as never,
+      { upsertByAgentId: jest.fn() } as never,
+      {} as never,
+      { emitToBridgeAgents } as never,
+      {
+        findOne: jest.fn().mockResolvedValue({
+          id: "agent_1",
+          workspaceId: "ws_1",
+          externalId: "coordinator",
+        }),
+      } as never,
+    );
+
+    await adapter.cancelDispatch({
+      dispatchId: "dispatch_1",
+      runtimeSessionId: "openclaw:agent_1:thread_session_1",
+    });
+
+    expect(emitToBridgeAgents).toHaveBeenCalledWith(
+      "ws_1",
+      ["coordinator"],
+      "runtime.dispatch.cancel",
+      expect.objectContaining({ dispatchId: "dispatch_1" }),
     );
   });
 
@@ -273,6 +302,20 @@ describe("OpenClawRuntimeAdapter", () => {
       }),
     );
     expect(runtimeEventService.emitDispatchCompleted).toHaveBeenCalled();
+
+    runtimeDispatchService.markCompleted.mockClear();
+    await coordinator.completeDispatchWithoutMessage({
+      dispatchId: "dispatch_openclaw_1",
+      resultSummary: "hidden team final",
+      resultMetadata: { publicationMode: "tool_only" },
+    });
+    expect(runtimeDispatchService.markCompleted).toHaveBeenCalledWith(
+      "dispatch_openclaw_1",
+      expect.objectContaining({
+        postedMessageId: null,
+        resultSummary: "hidden team final",
+      }),
+    );
   });
 
   it("fails fast when the target agent is not live-registered", async () => {

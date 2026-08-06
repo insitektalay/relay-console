@@ -6,6 +6,17 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 extension AppViewModel {
+  func marketplaceRuntimeIsOnline(_ runtimeType: RuntimeType) -> Bool {
+    switch runtimeType {
+    case .hermes:
+      return setupBridgeOnlineRuntimes.contains(.hermes)
+    case .openclaw:
+      return setupBridgeOnlineRuntimes.contains(.openClaw)
+    default:
+      return true
+    }
+  }
+
   func marketplaceConnection(for app: MarketplaceCatalogApp) -> MarketplaceProviderConnection? {
     if let snapshot = providerConnectionSnapshot, snapshot.appId == app.id {
       return snapshot.selectedConnection

@@ -67,6 +67,8 @@ public final class HarnessInstallManager {
     let hermesProfileBackups: HermesProfileBackupService
     let lock = NSLock()
     var activeHermesDispatches: [String: HermesGatewayDispatch] = [:]
+    var activeOpenClawDispatches: [String: Process] = [:]
+    var cancelledOpenClawDispatches = Set<String>()
     var hermesGatewayClients: [String: HermesGatewayClient] = [:]
     var openClawGatewayProcesses: [String: Process] = [:]
     var openClawGatewayKeepAliveTask: Task<Void, Never>?
@@ -111,9 +113,12 @@ public final class HarnessInstallManager {
         lock.lock()
         let hermes = Array(hermesGatewayClients.values)
         let gateways = openClawGatewayProcesses.values
+        let openClawDispatches = activeOpenClawDispatches.values
         let keepAlive = openClawGatewayKeepAliveTask
         let securityScopedURLs = Array(securityScopedRuntimeURLs.values)
         activeHermesDispatches.removeAll()
+        activeOpenClawDispatches.removeAll()
+        cancelledOpenClawDispatches.removeAll()
         hermesGatewayClients.removeAll()
         openClawGatewayProcesses.removeAll()
         openClawGatewayKeepAliveTask = nil
@@ -125,6 +130,9 @@ public final class HarnessInstallManager {
         }
         for process in gateways where process.isRunning {
             process.terminate()
+        }
+        for process in openClawDispatches where process.isRunning {
+            ProcessExecutionPolicy.terminate(process)
         }
         for url in securityScopedURLs {
             url.stopAccessingSecurityScopedResource()
@@ -214,6 +222,32 @@ public final class HarnessInstallManager {
         lock.lock()
         activeHermesDispatches[dispatchId] = nil
         lock.unlock()
+    }
+
+    func registerOpenClawDispatch(_ process: Process, dispatchId: String) {
+        lock.lock()
+        activeOpenClawDispatches[dispatchId] = process
+        lock.unlock()
+    }
+
+    func clearOpenClawDispatch(_ dispatchId: String) {
+        lock.lock()
+        activeOpenClawDispatches[dispatchId] = nil
+        lock.unlock()
+    }
+
+    func takeOpenClawDispatch(_ dispatchId: String) -> Process? {
+        lock.lock()
+        let process = activeOpenClawDispatches.removeValue(forKey: dispatchId)
+        lock.unlock()
+        return process
+    }
+
+    func consumeOpenClawCancellation(_ dispatchId: String) -> Bool {
+        lock.lock()
+        let cancelled = cancelledOpenClawDispatches.remove(dispatchId) != nil
+        lock.unlock()
+        return cancelled
     }
 
     func hermesGatewayClient(pythonPath: String, harnessPath: URL, hermesHome: URL, env: [String: String]) -> HermesGatewayClient {
@@ -535,6 +569,38 @@ public final class HarnessInstallManager {
             _ = try? await check(harnessKey: record.harnessKey)
         }
         await maintainHermesCronSchedulersForActiveWorkspace()
+    }
+
+    @discardableResult
+    public func recordHealth(_ health: HarnessHealth) throws -> HarnessInstallRecord {
+        guard let harnessKey = HarnessKey(rawValue: health.runtimeType.rawValue) else {
+            throw RelayError(.unsupported, "Health persistence is unavailable for this runtime.")
+        }
+        let entry = catalogEntry(harnessKey)
+        let record = try getRecord(harnessKey)
+        guard record.harnessId == health.harnessId else { return record }
+        let lifecycle: HarnessLifecycleState = health.status == .healthy
+            ? .connected
+            : (health.status == .authRequired ? .authRequired : .error)
+        var update: JSONRecord = [
+            "lifecycleState": .string(lifecycle.rawValue),
+            "modelAuthStatus": .string(
+                health.status == .authRequired
+                    ? HarnessModelAuthStatus.notConfigured.rawValue
+                    : (health.status == .healthy
+                        ? HarnessModelAuthStatus.connected.rawValue
+                        : record.modelAuthStatus.rawValue)
+            ),
+            "lastError": health.status == .healthy ? .null : .string(health.message),
+            "lastCheckedAt": .string(health.checkedAt)
+        ]
+        if harnessKey == .hermes {
+            update["hermesHome"] = .string(
+                stringValue(try data.getHarness(health.harnessId).config["hermesHome"])
+                    ?? defaultHermesHome(source: record.source).path
+            )
+        }
+        return try saveRecord(entry: entry, update: update)
     }
 
     /// Connects Relay Console to a runtime the user installed and owns. This
@@ -1207,7 +1273,11 @@ public final class HarnessInstallManager {
                 hermesHome: hermesHome
             )
             guard auth.connected else {
-                return HarnessHealth(harnessId: harnessId, runtimeType: .hermes, status: .authRequired, message: "Authenticate with your model provider in Hermes Agent, then re-check.", capabilities: [], checkedAt: nowIso(), detail: [:])
+                let authMessage = auth.error?.trimmingCharacters(in: .whitespacesAndNewlines)
+                let message = authMessage?.isEmpty == false
+                    ? "Hermes Agent authentication is unavailable: \(authMessage!)"
+                    : "Authenticate with your model provider in Hermes Agent, then re-check."
+                return HarnessHealth(harnessId: harnessId, runtimeType: .hermes, status: .authRequired, message: message, capabilities: [], checkedAt: nowIso(), detail: [:])
             }
             return HarnessHealth(harnessId: harnessId, runtimeType: .hermes, status: .healthy, message: "Hermes Agent is ready.", version: stringValue(config["installedVersion"]), capabilities: ["chat", "streaming", "sessions", "tools", "openai-auth"], checkedAt: nowIso(), detail: [:])
         }
@@ -1880,14 +1950,28 @@ public final class HarnessInstallManager {
         for agent: AgentWithBinding,
         request: RuntimeDispatchRequest
     ) async throws -> MarketplaceRuntimeCapabilitySnapshot {
+        let railwayInstalls = try data.listMarketplaceInstalls(
+            workspaceId: agent.workspaceId,
+            limit: 500
+        ).filter {
+            $0.agentId == agent.id
+                && $0.installStatus == .installed
+                && $0.removedAt == nil
+                && $0.resolvedExecutionAuthority == .railway
+        }
         var railwayTools = request.cloudMarketplaceTools
-        if railwayTools.isEmpty, let cloudMarketplaceRuntimeToolProxy {
+        if let cloudMarketplaceRuntimeToolProxy {
             do {
-                railwayTools = try await cloudMarketplaceRuntimeToolProxy.prepareLocalDispatch(
+                let assignedTools = try await cloudMarketplaceRuntimeToolProxy.prepareLocalDispatch(
                     localDispatchId: request.dispatchId,
                     workspaceId: agent.workspaceId,
                     localAgentId: agent.id
                 )
+                let requestedNames = Set(railwayTools.compactMap { $0["functionName"]?.string ?? $0["name"]?.string })
+                railwayTools.append(contentsOf: assignedTools.filter {
+                    guard let name = $0["functionName"]?.string ?? $0["name"]?.string else { return true }
+                    return !requestedNames.contains(name)
+                })
             } catch {
                 _ = try? data.log(
                     severity: "warning",
@@ -1895,6 +1979,18 @@ public final class HarnessInstallManager {
                     message: "Railway Marketplace runtime context could not be loaded for local dispatch \(request.dispatchId): \(redactedTechnicalError(error))"
                 )
             }
+        }
+        let mountedRailwayAppSlugs = Set(railwayTools.compactMap { $0["appSlug"]?.string })
+        let missingRailwayInstalls = railwayInstalls.filter {
+            !mountedRailwayAppSlugs.contains($0.appSlug)
+        }
+        if !missingRailwayInstalls.isEmpty {
+            let appNames = missingRailwayInstalls.map(\.appSlug).sorted().joined(separator: ", ")
+            throw RelayError(
+                .dispatchFailed,
+                "\(appNames) is assigned to \(agent.name), but \(agent.binding.runtimeType.rawValue) Remote Access did not provide its runtime tools.",
+                recovery: "Open Setup & Connections > Remote Access, reconnect the agent runtime, then try again."
+            )
         }
         return try marketplaceRuntimeMounts.snapshot(
             context: runtimeMountContext(for: agent, request: request),
@@ -1929,7 +2025,7 @@ public final class HarnessInstallManager {
         return String(raw.prefix(16))
     }
 
-    private func openClawSessionKey(
+    func openClawSessionKey(
         slug: String,
         threadId: RelayId,
         mount: MarketplaceRuntimeCapabilitySnapshot
@@ -2228,11 +2324,44 @@ public final class HarnessInstallManager {
                 "marketplaceToolCount": .number(Double(confirmedMarketplaceMount.toolCount)),
                 "marketplaceMountFingerprint": .string(confirmedMarketplaceMount.fingerprint)
             ]))
-            var result = await runner.run(node.path, args, options: CommandOptions(cwd: harnessPath, env: runtimeEnv, timeoutMs: request.timeoutMs + 60_000, executableAuthorization: .exact(node)))
+            var spawned = try await runner.spawn(
+                node.path,
+                args,
+                options: CommandOptions(cwd: harnessPath, env: runtimeEnv, timeoutMs: request.timeoutMs + 60_000, executableAuthorization: .exact(node)),
+                stdin: nil
+            )
+            registerOpenClawDispatch(spawned.process, dispatchId: request.dispatchId)
+            defer { clearOpenClawDispatch(request.dispatchId) }
+            var result = await spawned.result.value
+            if consumeOpenClawCancellation(request.dispatchId) {
+                return RuntimeDispatchTerminalResult(
+                    status: "cancelled",
+                    finalText: nil,
+                    contentFormat: .plain,
+                    error: nil,
+                    metadata: ["harness": .string("openclaw"), "cancelledForSteering": .bool(true)]
+                )
+            }
             if result.code != 0,
                isOpenClawAgentDatabaseOwnerMismatch(result.diagnosticTail),
                (try? repairOpenClawAgentDatabaseIfNeeded(slug: slug)) == true {
-                result = await runner.run(node.path, args, options: CommandOptions(cwd: harnessPath, env: runtimeEnv, timeoutMs: request.timeoutMs + 60_000, executableAuthorization: .exact(node)))
+                spawned = try await runner.spawn(
+                    node.path,
+                    args,
+                    options: CommandOptions(cwd: harnessPath, env: runtimeEnv, timeoutMs: request.timeoutMs + 60_000, executableAuthorization: .exact(node)),
+                    stdin: nil
+                )
+                registerOpenClawDispatch(spawned.process, dispatchId: request.dispatchId)
+                result = await spawned.result.value
+            }
+            if consumeOpenClawCancellation(request.dispatchId) {
+                return RuntimeDispatchTerminalResult(
+                    status: "cancelled",
+                    finalText: nil,
+                    contentFormat: .plain,
+                    error: nil,
+                    metadata: ["harness": .string("openclaw"), "cancelledForSteering": .bool(true)]
+                )
             }
             if result.code != 0 {
                 let normalized = normalizeOpenClawRuntimeFailure(result.diagnosticTail)
@@ -2272,6 +2401,17 @@ public final class HarnessInstallManager {
         let dispatch = takeHermesDispatch(dispatchId)
         guard let dispatch else { return false }
         return await dispatch.client.interrupt(sessionId: dispatch.liveSessionId)
+    }
+
+    public func cancelOpenClaw(dispatchId: String) -> Bool {
+        guard let process = takeOpenClawDispatch(dispatchId), process.isRunning else {
+            return false
+        }
+        lock.lock()
+        cancelledOpenClawDispatches.insert(dispatchId)
+        lock.unlock()
+        ProcessExecutionPolicy.terminate(process)
+        return true
     }
 
     public func resolveHermesApproval(

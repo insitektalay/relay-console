@@ -12,6 +12,27 @@ const detail = readFileSync(
   new URL("../components/threads/thread-detail-pane.tsx", import.meta.url),
   "utf8"
 )
+const macNewChat = readFileSync(
+  new URL(
+    "../../RelayConsoleSwift/Sources/RelayConsoleApp/Features/Chats/ConversationSidebarViews.swift",
+    import.meta.url
+  ),
+  "utf8"
+)
+const macChatService = readFileSync(
+  new URL(
+    "../../RelayConsoleSwift/Sources/RelayConsoleCore/ChatService.swift",
+    import.meta.url
+  ),
+  "utf8"
+)
+const iosNewThread = readFileSync(
+  new URL(
+    "../../ios/ClawChat/Features/Thread/NewThreadView.swift",
+    import.meta.url
+  ),
+  "utf8"
+)
 
 test("Chats sidebar matches the Swift hierarchy", () => {
   assert.match(list, />\s*Conversations\s*</)
@@ -67,6 +88,30 @@ test("new chat exposes only Direct and Team in the parity flow", () => {
   assert.match(app, /Create an agent to start/)
   assert.match(app, /Choose an agent to start/)
   assert.match(app, /setSection\("agents"\)/)
+})
+
+test("new team chats are named consistently and do not require departments", () => {
+  assert.match(app, /Create New Team Chat/)
+  assert.doesNotMatch(app, /You need a department before creating a team/)
+  assert.doesNotMatch(
+    app,
+    /if \(!deptId\) throw new Error\("Create a department first"\)/
+  )
+
+  const macCanCreate = macNewChat.slice(
+    macNewChat.indexOf("var canCreateTeam"),
+    macNewChat.indexOf("func filter")
+  )
+  assert.match(macCanCreate, /newChatTeamName/)
+  assert.match(macCanCreate, /newChatTeamAgentIds/)
+  assert.doesNotMatch(macCanCreate, /newChatTeamDepartmentId/)
+  assert.match(macNewChat, /Create New Team Chat/)
+  assert.match(macChatService, /departmentId: String\?/)
+
+  assert.match(iosNewThread, /New Team Chat/)
+  assert.match(iosNewThread, /let departmentId = selectedDept\?\.id/)
+  assert.match(iosNewThread, /departmentId: departmentId/)
+  assert.doesNotMatch(iosNewThread, /You need a department first\./)
 })
 
 test("empty chat retains Swift start copy and composer geometry", () => {

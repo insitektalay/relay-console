@@ -9,7 +9,9 @@ struct ConversationPanel: View {
   var body: some View {
     VStack(spacing: 12) {
       SidebarSectionHeader(
-        title: model.isStartingChat ? "Create New Chat" : "Conversations",
+        title: model.isStartingChat
+          ? (model.newChatKind == .team ? "Create New Team Chat" : "Create New Chat")
+          : "Conversations",
         subtitle: model.isStartingChat ? "Choose agents" : nil,
         icon: model.isStartingChat ? "square.and.pencil" : "bubble.left.and.bubble.right"
       ) {
@@ -134,8 +136,7 @@ struct NewChatPanel: View {
   }
 
   var canCreateTeam: Bool {
-    !model.newChatTeamDepartmentId.isEmpty
-      && model.newChatTeamName.nilIfEmpty != nil
+    model.newChatTeamName.nilIfEmpty != nil
       && !model.newChatTeamAgentIds.isEmpty
       && model.busy != "create-team-chat"
   }
@@ -223,20 +224,20 @@ struct NewChatPanel: View {
   var teamWorkflow: some View {
     VStack(alignment: .leading, spacing: 10) {
       Picker(
-        "Department",
+        "Department (Optional)",
         selection: Binding(
           get: { model.newChatTeamDepartmentId },
           set: { model.setNewChatTeamDepartment($0) }
         )
       ) {
-        Text("Select department").tag("")
+        Text("No department").tag("")
         ForEach(model.orgDepartments) { department in
           Text(department.name).tag(department.id)
         }
       }
       .pickerStyle(.menu)
-      .help("Department")
-      .accessibilityLabel("Department")
+      .help("Optional department context")
+      .accessibilityLabel("Department, optional")
 
       NewChatTextField(title: "Name", text: $model.newChatTeamName, placeholder: "Team chat name")
 
@@ -284,15 +285,15 @@ struct NewChatPanel: View {
         model.createSelectedTeamChat()
       } label: {
         Label(
-          model.busy == "create-team-chat" ? "Creating..." : "Create New Chat",
+          model.busy == "create-team-chat" ? "Creating..." : "Create New Team Chat",
           systemImage: "plus.circle"
         )
         .frame(maxWidth: .infinity)
       }
       .buttonStyle(PrimaryLightButtonStyle())
       .disabled(!canCreateTeam)
-      .help("Create New Chat")
-      .accessibilityLabel("Create New Chat")
+      .help("Create New Team Chat")
+      .accessibilityLabel("Create New Team Chat")
     }
   }
 }

@@ -32,11 +32,18 @@ public struct MarketplaceRuntimeToolExecutionContext: Codable, Equatable, Sendab
 }
 
 public final class MarketplaceRuntimeToolBridgeService {
+    public typealias TeamMessagePublisher = (
+        _ dispatchId: RelayId,
+        _ payload: JSONRecord,
+        _ runtime: MarketplaceRuntimeToolExecutionContext
+    ) throws -> JSONRecord
+
     private let data: LocalDataService
     private let runtimeMounts: MarketplaceRuntimeMountService
     private let broker: MarketplaceProviderActionBrokerService
     private let cloudProxy: CloudMarketplaceRuntimeToolProxy?
     private let openExternal: (String) -> Void
+    private var teamMessagePublisher: TeamMessagePublisher?
 
     public init(
         data: LocalDataService,
@@ -50,6 +57,10 @@ public final class MarketplaceRuntimeToolBridgeService {
         self.broker = broker
         self.cloudProxy = cloudProxy
         self.openExternal = openExternal
+    }
+
+    public func setTeamMessagePublisher(_ publisher: @escaping TeamMessagePublisher) {
+        teamMessagePublisher = publisher
     }
 
     public func execute(
@@ -70,6 +81,18 @@ public final class MarketplaceRuntimeToolBridgeService {
         }
         if let runtimeType = runtime.runtimeType, agent.binding.runtimeType != runtimeType {
             throw ServiceGuard.invalidInput(context: context, message: "Runtime tool bridge agent runtime does not match the current capability snapshot.")
+        }
+
+        if toolName == "relay_publish_message" {
+            guard let dispatchId = runtime.dispatchId,
+                  let teamMessagePublisher
+            else {
+                throw ServiceGuard.invalidInput(
+                    context: context,
+                    message: "Relay team message publishing requires an authoritative local runtime dispatch."
+                )
+            }
+            return try teamMessagePublisher(dispatchId, payload, runtime)
         }
 
         if isRelayConsoleResidentAgent(agent),

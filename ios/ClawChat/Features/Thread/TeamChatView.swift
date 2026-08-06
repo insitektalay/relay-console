@@ -220,12 +220,14 @@ struct TeamChatView: View {
                     }
                 }
                 .onAppear { positionInitialScrollIfNeeded(proxy: proxy) }
-                .onChange(of: viewModel.messages.count) {
+                .onChange(of: viewModel.messages.map(\.id)) { previousIds, currentIds in
                     if !hasPositionedInitialScroll {
                         positionInitialScrollIfNeeded(proxy: proxy)
                         return
                     }
-                    if isAtBottom || viewModel.messages.last?.isFromUser == true {
+                    let appendedUserMessage = previousIds.last != currentIds.last
+                        && viewModel.messages.last?.isFromUser == true
+                    if isAtBottom || appendedUserMessage {
                         scrollToBottom(proxy: proxy, animated: true)
                     }
                 }

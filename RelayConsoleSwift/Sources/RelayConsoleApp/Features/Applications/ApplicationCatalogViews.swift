@@ -535,6 +535,7 @@ struct ApplicationsSidebarAppRow: View {
 
 struct ApplicationsScreen: View {
   @EnvironmentObject var model: AppViewModel
+  let navigationPanelsVisible: Bool
 
   var body: some View {
     VStack(spacing: 0) {
@@ -543,7 +544,7 @@ struct ApplicationsScreen: View {
           if model.selectedMarketplaceApp != nil {
             ApplicationsDetailPanel()
           } else {
-            ApplicationsCatalogPanel()
+            ApplicationsCatalogPanel(navigationPanelsVisible: navigationPanelsVisible)
           }
         }
         .padding(24)
@@ -555,6 +556,7 @@ struct ApplicationsScreen: View {
 
 struct ApplicationsCatalogPanel: View {
   @EnvironmentObject var model: AppViewModel
+  let navigationPanelsVisible: Bool
 
   private var snapshot: ApplicationsCatalogSnapshot? {
     model.applicationsCatalogSnapshot
@@ -574,6 +576,7 @@ struct ApplicationsCatalogPanel: View {
           .font(.system(size: 13, weight: .medium))
           .foregroundStyle(RCTheme.muted)
       }
+      .padding(.leading, navigationPanelsVisible ? 0 : 44)
 
       HStack(spacing: 10) {
         SearchField(

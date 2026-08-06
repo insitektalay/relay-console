@@ -671,6 +671,7 @@ export function ThreadDetailPane({
 }) {
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const previousThreadIdRef = useRef<string | null>(null)
+  const isMessageTimelineAtBottomRef = useRef(true)
   const addAgentDropdownRef = useRef<HTMLDivElement | null>(null)
   const teamMembersDropdownRef = useRef<HTMLDivElement | null>(null)
   const wrapUpHistoryDropdownRef = useRef<HTMLDivElement | null>(null)
@@ -1650,15 +1651,34 @@ export function ThreadDetailPane({
   }, [onOpenWrapUpReport])
 
   useEffect(() => {
+    const bottom = bottomRef.current
+    const viewport = bottom?.closest<HTMLElement>(
+      '[data-slot="scroll-area-viewport"]'
+    )
+    if (!bottom || !viewport) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isMessageTimelineAtBottomRef.current = entry?.isIntersecting ?? false
+      },
+      { root: viewport, rootMargin: "0px 0px 96px 0px", threshold: 0 }
+    )
+    observer.observe(bottom)
+    return () => observer.disconnect()
+  }, [selectedThreadId])
+
+  useEffect(() => {
     if (!selectedThreadId) {
       previousThreadIdRef.current = null
+      isMessageTimelineAtBottomRef.current = true
       setShowWrapUpConfirm(false)
       return
     }
 
-    const behavior =
-      previousThreadIdRef.current === selectedThreadId ? "smooth" : "auto"
+    const threadChanged = previousThreadIdRef.current !== selectedThreadId
+    const behavior = threadChanged ? "auto" : "smooth"
     previousThreadIdRef.current = selectedThreadId
+    if (!threadChanged && !isMessageTimelineAtBottomRef.current) return
 
     requestAnimationFrame(() => {
       bottomRef.current?.scrollIntoView({ behavior, block: "end" })

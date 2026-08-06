@@ -273,7 +273,7 @@ test("generic agent switches persist assignments directly on all three clients",
 
   assert.match(
     macView,
-    /setSharedMarketplaceAgentConnection\(target\.agentId, enabled: !isOn, for: app\)/
+    /setSharedMarketplaceAgentConnection\(target\.agentId, enabled: !isAssigned, for: app\)/
   )
   assert.doesNotMatch(macView, /@State private var confirming/)
   assert.match(macViewModel, /resolvedExecutionAuthority == \.railway/)
@@ -293,6 +293,34 @@ test("generic agent switches persist assignments directly on all three clients",
     iphone,
     /connection: selectedConnection \?\? preferredConnection/
   )
+})
+
+test("assigned apps are not presented as ready when the agent runtime is unavailable", async () => {
+  const [macView, macViewModel, mountCompiler, web, iphone] = await Promise.all([
+    source(
+      "RelayConsoleSwift/Sources/RelayConsoleApp/Features/Applications/ApplicationCredentialFormsA.swift"
+    ),
+    source(
+      "RelayConsoleSwift/Sources/RelayConsoleApp/Features/Applications/AppViewModel+ApplicationKnowledgeBusiness.swift"
+    ),
+    source(
+      "RelayConsoleSwift/Sources/RelayConsoleCore/HarnessInstallManager.swift"
+    ),
+    source("web/components/marketplace/marketplace-screen.tsx"),
+    source("ios/ClawChat/Features/Marketplace/MarketplaceView.swift"),
+  ])
+
+  assert.match(macViewModel, /marketplaceRuntimeIsOnline/)
+  assert.match(macViewModel, /Remote Access is not connected/)
+  assert.match(macView, /Assigned — [^\n]* Remote Access unavailable/)
+  assert.match(macView, /ApplicationsExaSwitch\(isOn: isReady\)/)
+  assert.match(macView, /Each selected agent is ready only while its Remote Access runtime is online/)
+  assert.match(mountCompiler, /throw RelayError\(\s*\.dispatchFailed/)
+  assert.match(mountCompiler, /mountedRailwayAppSlugs/)
+  assert.match(mountCompiler, /missingRailwayInstalls/)
+  assert.match(mountCompiler, /Remote Access did not provide its runtime tools/)
+  assert.match(web, /Assigned — runtime unavailable/)
+  assert.match(iphone, /Assigned — runtime unavailable/)
 })
 
 test("the Mac connected-app and conversation projections survive catalog filtering", async () => {

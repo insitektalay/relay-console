@@ -1086,6 +1086,8 @@ export function MarketplaceScreen({
                           const selected =
                             Boolean(activeInstall) ||
                             (!connectionId && selectedAgentIds.has(agent.id))
+                          const assignmentReady =
+                            selected && agent.executionAvailable !== false
                           const assignmentPending =
                             (assignAgentMutation.isPending &&
                               assignAgentMutation.variables === agent.id) ||
@@ -1102,8 +1104,10 @@ export function MarketplaceScreen({
                                 assignmentPending || assignmentUnavailable
                               }
                               className={`flex items-center gap-3 rounded-[4px] border p-3 text-left ${
-                                selected
+                                assignmentReady
                                   ? "border-[var(--claw-accent-blue)] bg-[color-mix(in_srgb,var(--claw-accent-blue)_10%,transparent)]"
+                                  : selected
+                                    ? "border-amber-500/60 bg-amber-500/10"
                                   : "border-[var(--claw-border)] bg-[var(--claw-bg-surface)]"
                               } disabled:cursor-wait disabled:opacity-60`}
                               onClick={() => {
@@ -1131,17 +1135,19 @@ export function MarketplaceScreen({
                                   {agent.name}
                                 </span>
                                 <span className="block truncate text-xs text-[var(--claw-text-muted)]">
-                                  {agent.role}
+                                  {selected && !assignmentReady
+                                    ? "Assigned — runtime unavailable"
+                                    : agent.role}
                                 </span>
                               </span>
                               {assignmentPending ? (
                                 <RefreshCw className="size-4 animate-spin text-[var(--claw-text-muted)]" />
                               ) : (
                                 <span
-                                  className={`h-5 w-9 rounded-full p-0.5 ${selected ? "bg-emerald-500" : "bg-zinc-700"}`}
+                                  className={`h-5 w-9 rounded-full p-0.5 ${assignmentReady ? "bg-emerald-500" : selected ? "bg-amber-500" : "bg-zinc-700"}`}
                                 >
                                   <span
-                                    className={`block size-4 rounded-full bg-white transition ${selected ? "translate-x-4" : ""}`}
+                                    className={`block size-4 rounded-full bg-white transition ${assignmentReady ? "translate-x-4" : ""}`}
                                   />
                                 </span>
                               )}

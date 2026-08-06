@@ -69,7 +69,7 @@ public final class OpenClawAdapter: DesktopRuntimeBridge {
         RuntimeCapabilities(
             runtimeType: .openclaw,
             supportsStreaming: false,
-            supportsCancellation: false,
+            supportsCancellation: true,
             supportsSessions: true,
             supportsTools: true,
             requiresWorkspaceFolder: false,
@@ -84,6 +84,8 @@ public final class OpenClawAdapter: DesktopRuntimeBridge {
     }
 
     public func cancelDispatch(dispatchId: String, correlationId: String) async -> CancelRuntimeDispatchResult {
-        CancelRuntimeDispatchResult(status: "not_supported", message: "OpenClaw cancellation is not wired yet.")
+        installManager.cancelOpenClaw(dispatchId: dispatchId)
+            ? CancelRuntimeDispatchResult(status: "cancelled", message: "Cancel requested.")
+            : CancelRuntimeDispatchResult(status: "already_terminal", message: "No active OpenClaw run found.")
     }
 }

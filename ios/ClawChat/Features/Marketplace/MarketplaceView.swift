@@ -1163,12 +1163,15 @@ private struct MarketplaceAgentAccessView: View {
     private func accessRow(_ agent: Agent) -> some View {
         let agentInstalls = installs.filter { $0.agentId == agent.id }
         let enabled = !agentInstalls.isEmpty
+        let ready = enabled && agent.executionAvailable != false
         let install = agentInstalls.first
         return HStack(spacing: RelaySpacing.sm) {
             AvatarView(name: agent.name, imageUrl: agent.avatarUrl, size: .medium, status: agent.status)
             VStack(alignment: .leading, spacing: 4) {
                 Text(agent.name).font(.system(size: 13, weight: .semibold)).foregroundStyle(RelayColors.textPrimary)
-                Text(agent.runtimeType?.rawValue.capitalized ?? "Agent").font(.system(size: 10)).foregroundStyle(RelayColors.textSecondary)
+                Text(enabled && !ready ? "Assigned — runtime unavailable" : (agent.runtimeType?.rawValue.capitalized ?? "Agent"))
+                    .font(.system(size: 10))
+                    .foregroundStyle(enabled && !ready ? RelayColors.accentOrange : RelayColors.textSecondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             HStack(spacing: 4) {
@@ -1187,7 +1190,7 @@ private struct MarketplaceAgentAccessView: View {
                     set: { newValue in _Concurrency.Task { await setAccess(newValue, for: agent) } }
                 ))
                 .labelsHidden()
-                .tint(RelayColors.accentGreen)
+                .tint(ready ? RelayColors.accentGreen : RelayColors.accentOrange)
             }
         }
         .padding(RelaySpacing.sm)

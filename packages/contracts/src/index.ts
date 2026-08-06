@@ -1188,8 +1188,17 @@ export interface Message {
   isEdited: boolean;
   replyToId?: string | null;
   metadata?: Record<string, unknown> | null;
+  runtimeDispatchId?: string | null;
+  runtimeToolCallId?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TeamMessagePublicationMetadata {
+  publicationMode: "relay_publish_tool";
+  runtimeDispatchId: string;
+  runtimeToolCallId: string;
+  mentionedAgentIds: string[];
 }
 
 export type MessageContentFormat = "markdown" | "html";

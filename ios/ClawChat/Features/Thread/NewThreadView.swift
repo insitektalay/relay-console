@@ -90,12 +90,14 @@ struct NewThreadView: View {
                 }
             }
             .sheet(isPresented: $showCreateTeam) {
-                CreateTeamSheet(
+                CreateTeamChatSheet(
                     isPresented: $showCreateTeam,
                     departments: appStore.departments,
-                    onCreated: { team in
-                        appStore.teams.insert(team, at: 0)
-                        selectedTeam = team
+                    onCreated: { thread in
+                        appStore.threads.insert(thread, at: 0)
+                        isPresented = false
+                        dismiss()
+                        coordinator.navigateToThread(thread)
                     }
                 )
                 .environmentObject(appStore)
@@ -196,7 +198,7 @@ struct NewThreadView: View {
                     }
                 }
 
-                createRowButton(label: "New Team", icon: "plus.circle.fill") {
+                createRowButton(label: "New Team Chat", icon: "plus.circle.fill") {
                     showCreateTeam = true
                 }
             }
@@ -481,34 +483,30 @@ struct NewThreadView: View {
     }
 }
 
-// MARK: - CreateTeamSheet
+// MARK: - CreateTeamChatSheet
 
 @MainActor
-struct CreateTeamSheet: View {
+struct CreateTeamChatSheet: View {
     @Binding var isPresented: Bool
     let departments: [Department]
-    let onCreated: (Team) -> Void
+    let onCreated: (Thread) -> Void
     @EnvironmentObject private var appStore: AppStore
 
     @State private var name = ""
     @State private var selectedDept: Department?
     @State private var selectedAgentIds: Set<String> = []
-    @State private var showCreateDept = false
-    @State private var localDepts: [Department]
     @State private var isCreating = false
     @State private var errorMessage: String?
     @FocusState private var nameFocused: Bool
 
-    init(isPresented: Binding<Bool>, departments: [Department], onCreated: @escaping (Team) -> Void) {
+    init(isPresented: Binding<Bool>, departments: [Department], onCreated: @escaping (Thread) -> Void) {
         self._isPresented = isPresented
         self.departments = departments
         self.onCreated = onCreated
-        self._localDepts = State(initialValue: departments)
-        self._selectedDept = State(initialValue: departments.first)
     }
 
     private var canCreate: Bool {
-        !name.trimmingCharacters(in: .whitespaces).isEmpty && selectedDept != nil && !isCreating
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && !selectedAgentIds.isEmpty && !isCreating
     }
 
     var body: some View {
@@ -540,36 +538,28 @@ struct CreateTeamSheet: View {
                         .fill(ClawColors.separator.opacity(0.6))
                         .frame(height: 0.5)
 
-                    // Department picker
+                    // Optional department context
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Department")
+                        Text("Department (Optional)")
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(ClawColors.textSecondary)
                             .padding(.horizontal, 20)
                             .padding(.top, 16)
                     }
 
-                    if localDepts.isEmpty {
-                        VStack(spacing: 12) {
-                            Text("You need a department first.")
-                                .font(.system(size: 14))
-                                .foregroundStyle(ClawColors.textSecondary)
-                                .padding(.horizontal, 20)
-                                .padding(.top, 8)
-                            Button("Create a Department") {
-                                showCreateDept = true
-                            }
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(ClawColors.accent)
-                            .padding(.bottom, 8)
-                        }
+                    if departments.isEmpty {
+                        Text("No department needed for a team chat.")
+                            .font(.system(size: 14))
+                            .foregroundStyle(ClawColors.textSecondary)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
                     } else {
                         ScrollView {
                             LazyVStack(spacing: 0) {
-                                ForEach(localDepts) { dept in
+                                noDepartmentRow
+                                ForEach(departments) { dept in
                                     deptPickRow(dept)
                                 }
-                                createDeptButton
                             }
                         }
                     }
@@ -613,14 +603,14 @@ struct CreateTeamSheet: View {
                             .padding(.top, 8)
                     }
 
-                    Button(action: createTeam) {
+                    Button(action: createTeamChat) {
                         HStack(spacing: 8) {
                             if isCreating {
                                 ProgressView()
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                     .scaleEffect(0.85)
                             }
-                            Text(isCreating ? "Creating..." : "Create Team")
+                            Text(isCreating ? "Creating..." : "Create New Team Chat")
                                 .font(.system(size: 16, weight: .semibold))
                         }
                         .foregroundStyle(.white)
@@ -634,7 +624,7 @@ struct CreateTeamSheet: View {
                     .padding(.vertical, 16)
                 }
             }
-            .navigationTitle("New Team")
+            .navigationTitle("New Team Chat")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -642,20 +632,34 @@ struct CreateTeamSheet: View {
                         .foregroundStyle(ClawColors.accent)
                 }
             }
-            .sheet(isPresented: $showCreateDept) {
-                CreateDepartmentSheet(
-                    isPresented: $showCreateDept,
-                    onCreated: { dept in
-                        localDepts.insert(dept, at: 0)
-                        selectedDept = dept
-                        appStore.departments.insert(dept, at: 0)
-                    }
-                )
-                .environmentObject(appStore)
-            }
         }
         .preferredColorScheme(.dark)
         .onAppear { nameFocused = true }
+    }
+
+    private var noDepartmentRow: some View {
+        Button { selectedDept = nil } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "person.3.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(ClawColors.textSecondary)
+                    .frame(width: 36, height: 36)
+                Text("No department")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(ClawColors.textPrimary)
+                Spacer()
+                if selectedDept == nil {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(ClawColors.accent)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(selectedDept == nil ? ClawColors.accent.opacity(0.08) : Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
@@ -691,24 +695,6 @@ struct CreateTeamSheet: View {
         .animation(.easeInOut(duration: 0.12), value: isSelected)
     }
 
-    private var createDeptButton: some View {
-        Button { showCreateDept = true } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(ClawColors.accent)
-                Text("New Department")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(ClawColors.accent)
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
     @ViewBuilder
     private func agentToggleRow(_ agent: Agent) -> some View {
         let isSelected = selectedAgentIds.contains(agent.id)
@@ -742,30 +728,35 @@ struct CreateTeamSheet: View {
         .animation(.easeInOut(duration: 0.1), value: isSelected)
     }
 
-    private func createTeam() {
-        guard canCreate, let dept = selectedDept else { return }
+    private func createTeamChat() {
+        guard canCreate else { return }
         isCreating = true
         errorMessage = nil
-        let teamName = name.trimmingCharacters(in: .whitespaces)
-        let agentIdsToAdd = selectedAgentIds
+        let chatName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let agentIds = appStore.agents.filter { selectedAgentIds.contains($0.id) }.map(\.id)
+        let departmentId = selectedDept?.id
+
+        guard let workspaceId = appStore.selectedWorkspace?.id,
+              let userId = appStore.currentUser?.id else {
+            errorMessage = "Select a workspace and sign in again."
+            isCreating = false
+            return
+        }
 
         _Concurrency.Task {
             defer { isCreating = false }
             do {
-                let team: Team = try await APIClient.shared.request(
-                    .createTeam(departmentId: dept.id, name: teamName, description: nil)
+                let thread: Thread = try await APIClient.shared.request(
+                    .createThread(
+                        workspaceId: workspaceId,
+                        title: chatName,
+                        type: "team",
+                        participantIds: [userId],
+                        agentIds: agentIds,
+                        departmentId: departmentId
+                    )
                 )
-                // Assign each selected agent to this team
-                for agentId in agentIdsToAdd {
-                    if let updated: Agent = try? await APIClient.shared.request(
-                        .updateAgent(id: agentId, params: ["teamId": team.id])
-                    ) {
-                        if let idx = appStore.agents.firstIndex(where: { $0.id == updated.id }) {
-                            appStore.agents[idx] = updated
-                        }
-                    }
-                }
-                onCreated(team)
+                onCreated(thread)
                 isPresented = false
             } catch {
                 errorMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription

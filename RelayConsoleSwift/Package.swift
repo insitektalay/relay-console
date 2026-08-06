@@ -22,6 +22,8 @@ let package = Package(
     .executable(
       name: "RelayConsoleSourceHygieneTests", targets: ["RelayConsoleSourceHygieneTests"]),
     .executable(
+      name: "RelayConsoleChatScrollTests", targets: ["RelayConsoleChatScrollTests"]),
+    .executable(
       name: "RelayConsoleShellNavigationTests", targets: ["RelayConsoleShellNavigationTests"]),
     .executable(
       name: "RelayConsoleComponentBaselineTests", targets: ["RelayConsoleComponentBaselineTests"]),
@@ -148,6 +150,11 @@ let package = Package(
       name: "RelayConsoleSourceHygieneTests",
       dependencies: ["RelayConsoleCore", "RelayConsoleSourceTestSupport"],
       path: "Tests/RelayConsoleSourceHygieneTests"
+    ),
+    .executableTarget(
+      name: "RelayConsoleChatScrollTests",
+      dependencies: [],
+      path: "Tests/RelayConsoleChatScrollTests"
     ),
     .executableTarget(
       name: "RelayConsoleShellNavigationTests",

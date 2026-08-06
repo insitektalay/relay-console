@@ -418,6 +418,11 @@ struct ApplicationsSharedMarketplaceAgentsCard: View {
           )
       }
     }
+    .task(id: selected?.id) {
+      if selected?.resolvedExecutionAuthority == .railway {
+        await model.refreshSetupBridgeStatus()
+      }
+    }
   }
   private var heading: some View {
     ApplicationsExaSectionHeading(
@@ -455,13 +460,20 @@ struct ApplicationsSharedMarketplaceAgentRow: View {
   let install: MarketplaceInstallRecord?
   let selectedConnection: MarketplaceProviderConnection?
 
-  private var isOn: Bool {
+  private var isAssigned: Bool {
     guard let install, let selectedConnection else { return false }
     return install.connectionId == selectedConnection.id
   }
-  private var ready: Bool {
+  private var runtimeReady: Bool {
+    selectedConnection?.resolvedExecutionAuthority != .railway
+      || model.marketplaceRuntimeIsOnline(target.runtimeType)
+  }
+  private var isReady: Bool {
+    isAssigned && runtimeReady
+  }
+  private var canAssign: Bool {
     selectedConnection?.status == .connected && selectedConnection?.health.state == .ready
-      && target.status == .compatible
+      && target.status == .compatible && runtimeReady
   }
   var body: some View {
     VStack(alignment: .leading, spacing: 9) {
@@ -471,31 +483,41 @@ struct ApplicationsSharedMarketplaceAgentRow: View {
         VStack(alignment: .leading, spacing: 3) {
           Text(target.agentName).font(.system(size: 13, weight: .semibold)).lineLimit(1)
           Text(
-            target.status == .compatible
-              ? exaRuntimeLabel(target.runtimeType) : (target.unavailableReason ?? "Unavailable")
-          ).font(.system(size: 12, weight: .semibold)).foregroundStyle(RCTheme.muted)
+            isAssigned && !runtimeReady
+              ? "Assigned — \(exaRuntimeLabel(target.runtimeType)) Remote Access unavailable"
+              : target.status == .compatible
+                ? exaRuntimeLabel(target.runtimeType) : (target.unavailableReason ?? "Unavailable")
+          ).font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(isAssigned && !runtimeReady ? RCTheme.accentAmber : RCTheme.muted)
         }
         Spacer()
+        if isAssigned && !runtimeReady {
+          Button("Remote Access") {
+            model.presentSetupAssistant(at: .remoteInstallation)
+          }
+          .buttonStyle(.borderless)
+          .font(.system(size: 11, weight: .semibold))
+        }
         Button {
-          model.setSharedMarketplaceAgentConnection(target.agentId, enabled: !isOn, for: app)
+          model.setSharedMarketplaceAgentConnection(target.agentId, enabled: !isAssigned, for: app)
         } label: {
-          ApplicationsExaSwitch(isOn: isOn)
+          ApplicationsExaSwitch(isOn: isReady)
         }.buttonStyle(.plain)
           .disabled(
-            (!ready && !isOn) || model.providerConnectionSnapshot?.readOnly == true
+            (!canAssign && !isAssigned) || model.providerConnectionSnapshot?.readOnly == true
               || app.availability != .available
               || model.busy == "toggle-shared-marketplace-agent-\(app.slug)-\(target.agentId)")
       }
       ApplicationsAgentAuthorityRow(
         app: app, install: install,
         selectedPreset: install.flatMap { model.marketplaceActionPolicyPreset(for: $0) }
-          ?? .approvalRequired, muted: !isOn)
+          ?? .approvalRequired, muted: !isReady)
     }
     .padding(.horizontal, 12).padding(.vertical, 10).frame(minHeight: 86)
-    .background(isOn ? RCTheme.sidebarSelected.opacity(0.48) : RCTheme.surfaceInset)
+    .background(isReady ? RCTheme.sidebarSelected.opacity(0.48) : RCTheme.surfaceInset)
     .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(
       RoundedRectangle(cornerRadius: 8).stroke(
-        isOn ? RCTheme.accentGreen.opacity(0.35) : RCTheme.borderSoft)
+        isReady ? RCTheme.accentGreen.opacity(0.35) : RCTheme.borderSoft)
     )
   }
 }
@@ -532,7 +554,9 @@ struct ApplicationsProviderConnectionPanel: View {
         icon: "key",
         title: "Manage Connection",
         subtitle: connectionReady
-          ? "This account is ready for the agents selected above."
+          ? connection?.resolvedExecutionAuthority == .railway
+            ? "The account credentials are connected. Each selected agent is ready only while its Remote Access runtime is online."
+            : "This account is ready for the agents selected above."
           : "Connect your \(app.name) account so selected agents can use it."
       )
       if connection != nil {

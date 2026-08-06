@@ -13,6 +13,7 @@ import { TeamEntity } from "../../entities/team.entity";
 import { DepartmentEntity } from "../../entities/department.entity";
 import { AgentEntity } from "../../entities/agent.entity";
 import { TaskEntity } from "../../entities/task.entity";
+import { RuntimeDispatchEntity } from "../../entities/runtime-dispatch.entity";
 import { MessageService } from "./message.service";
 import { MessageController } from "./message.controller";
 import { EventsModule } from "../../gateways/events.module";
@@ -43,6 +44,7 @@ import { MESSAGE_CONDENSING_QUEUE } from "./message-condensed.types";
       MeetingRulePackSnapshotEntity,
       MeetingSessionEntity,
       TaskEntity,
+      RuntimeDispatchEntity,
     ]),
     EventsModule,
     forwardRef(() => ThreadModule),

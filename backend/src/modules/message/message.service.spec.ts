@@ -22,6 +22,7 @@ import {
   MeetingStatus,
   MessageEntity,
   MessageProvenance,
+  RuntimeDispatchEntity,
   TaskEntity,
   TeamEntity,
   ThreadEntity,
@@ -62,6 +63,7 @@ function makeRepoMock(overrides: Partial<any> = {}) {
 
 async function buildService() {
   const messageRepo = makeRepoMock();
+  const runtimeDispatchRepo = makeRepoMock();
   const threadRepo = makeRepoMock({
     findOne: jest
       .fn()
@@ -220,6 +222,10 @@ async function buildService() {
       MessageService,
       { provide: getRepositoryToken(MessageEntity), useValue: messageRepo },
       { provide: getRepositoryToken(ThreadEntity), useValue: threadRepo },
+      {
+        provide: getRepositoryToken(RuntimeDispatchEntity),
+        useValue: runtimeDispatchRepo,
+      },
       { provide: getRepositoryToken(TeamEntity), useValue: teamRepo },
       {
         provide: getRepositoryToken(DepartmentEntity),
@@ -287,6 +293,8 @@ async function buildService() {
   return {
     service: module.get(MessageService),
     messageRepo,
+    runtimeDispatchRepo,
+    agentRepo,
     threadRepo,
     reactionRepo,
     teamRepo,
@@ -345,6 +353,48 @@ function makeSignedOpenClawAttachment(
 }
 
 describe("MessageService", () => {
+  it("adds Buzz-style callback and no-ack instructions only to team turns", async () => {
+    const { service } = await buildService();
+    const agents = [
+      { id: "agent-1", name: "Coordinator" },
+      { id: "agent-2", name: "Worker" },
+    ];
+    const teamContext = service.buildTeamPublishRuntimeContext(
+      { id: "thread-1", type: "team" } as ThreadEntity,
+      agents,
+      {},
+      "agent-2",
+      { id: "agent-1", name: "Coordinator", isAgent: true },
+    );
+
+    expect(teamContext.runtimeInstruction).toContain(
+      "When you finish work delegated by another agent",
+    );
+    expect(teamContext.runtimeInstruction).toContain(
+      "Never publish a bare acknowledgement",
+    );
+    expect(teamContext.runtimeInstruction).toContain("Relay agent ID agent-1");
+    expect(teamContext.runtimeInstruction).toContain(
+      '"agentId":"agent-2","name":"Worker"',
+    );
+    expect(
+      (teamContext.marketplaceTools as Array<{ name: string }>).map(
+        (tool) => tool.name,
+      ),
+    ).toContain("relay_publish_message");
+
+    const directContext = service.buildTeamPublishRuntimeContext(
+      { id: "thread-2", type: "direct" } as ThreadEntity,
+      agents,
+      { runtimeInstruction: "Direct chat behavior" },
+      "agent-2",
+      { id: "agent-1", name: "Coordinator", isAgent: true },
+    );
+    expect(directContext).toEqual({
+      runtimeInstruction: "Direct chat behavior",
+    });
+  });
+
   it("searches message content only after checking workspace access", async () => {
     const { service, messageRepo, workspaceMembershipService } =
       await buildService();
@@ -2329,14 +2379,14 @@ describe("MessageService", () => {
     });
     threadMembershipService.listMemberAgents.mockResolvedValue([
       {
-        id: "execution-manager",
-        name: "Execution Optimizer",
-        externalId: "execution_optimizer",
-      },
-      {
         id: "targeting-worker",
         name: "Targeting & Maintenance",
         externalId: "targeting_maintenance",
+      },
+      {
+        id: "execution-manager",
+        name: "Execution Optimizer",
+        externalId: "execution_optimizer",
       },
     ]);
     (eventsGateway.getWorkspaceBridgeRuntime as jest.Mock).mockReturnValue({
@@ -2887,6 +2937,141 @@ describe("MessageService", () => {
         content: "Atlas is offline on the OpenClaw runtime.",
         type: "system",
       }),
+    );
+  });
+
+  it("publishes a team runtime tool message without waking unmentioned agents", async () => {
+    const {
+      service,
+      threadRepo,
+      messageRepo,
+      runtimeDispatchRepo,
+      threadMembershipService,
+      eventsGateway,
+    } = await buildService();
+    runtimeDispatchRepo.findOne.mockResolvedValue({
+      id: "dispatch-team-1",
+      workspaceId: "ws-1",
+      threadId: "thread-team-1",
+      threadSessionId: "session-1",
+      agentId: "agent-1",
+      status: "started",
+      postedMessageId: null,
+    });
+    threadRepo.findOne.mockReset();
+    threadRepo.findOne.mockResolvedValue({
+      id: "thread-team-1",
+      workspaceId: "ws-1",
+      title: "Team",
+      type: "team",
+      status: "active",
+      teamId: "team-1",
+    });
+    messageRepo.findOne.mockResolvedValue(null);
+    threadMembershipService.listMemberAgents.mockResolvedValue([
+      { id: "agent-1", name: "Lead", responsePresentation: "standard" },
+      { id: "agent-2", name: "Peer", externalId: "peer" },
+    ]);
+
+    await expect(
+      service.publishTeamRuntimeMessage("dispatch-team-1", {
+        content: "Visible update",
+        callId: "call-1",
+        mentions: [],
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        success: true,
+        duplicate: false,
+        mentionedAgentIds: [],
+      }),
+    );
+
+    expect(messageRepo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        senderId: "agent-1",
+        threadId: "thread-team-1",
+        runtimeDispatchId: "dispatch-team-1",
+        runtimeToolCallId: "call-1",
+      }),
+    );
+    expect(eventsGateway.emitToBridgeAgents).not.toHaveBeenCalled();
+  });
+
+  it("routes a team publication to every structured mention and deduplicates retries", async () => {
+    const {
+      service,
+      threadRepo,
+      messageRepo,
+      runtimeDispatchRepo,
+      threadMembershipService,
+      eventsGateway,
+    } = await buildService();
+    runtimeDispatchRepo.findOne.mockResolvedValue({
+      id: "dispatch-team-2",
+      workspaceId: "ws-1",
+      threadId: "thread-team-2",
+      threadSessionId: "session-1",
+      agentId: "agent-1",
+      status: "started",
+      postedMessageId: null,
+    });
+    threadRepo.findOne.mockReset();
+    threadRepo.findOne.mockResolvedValue({
+      id: "thread-team-2",
+      workspaceId: "ws-1",
+      title: "Team",
+      type: "team",
+      status: "active",
+      teamId: "team-1",
+    });
+    messageRepo.findOne.mockResolvedValue(null);
+    threadMembershipService.listMemberAgents.mockResolvedValue([
+      { id: "agent-1", name: "Lead", responsePresentation: "standard" },
+      { id: "agent-2", name: "Peer A", externalId: "peer-a" },
+      { id: "agent-3", name: "Peer B", externalId: "peer-b" },
+    ]);
+    (eventsGateway.getWorkspaceBridgeRuntime as jest.Mock).mockReturnValue({
+      connectedBridgeDeviceCount: 1,
+      liveRegisteredAgentCount: 2,
+      liveRegisteredExternalAgentIds: ["peer-a", "peer-b"],
+    });
+
+    const published = await service.publishTeamRuntimeMessage(
+      "dispatch-team-2",
+      {
+        content: "Please compare notes",
+        callId: "call-2",
+        mentions: [{ agentId: "agent-2" }, { agentId: "agent-3" }],
+      },
+    );
+    expect(published.mentionedAgentIds).toEqual(["agent-2", "agent-3"]);
+    expect(messageRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: "@peer_a @peer_b\n\nPlease compare notes",
+      }),
+    );
+    for (const externalAgentId of ["peer-a", "peer-b"]) {
+      expect(eventsGateway.emitToBridgeAgents).toHaveBeenCalledWith(
+        "ws-1",
+        [externalAgentId],
+        "agent.dispatch",
+        expect.objectContaining({ threadId: "thread-team-2" }),
+      );
+    }
+
+    messageRepo.findOne.mockResolvedValueOnce({
+      id: published.messageId,
+      metadata: { mentionedAgentIds: ["agent-2", "agent-3"] },
+    });
+    await expect(
+      service.publishTeamRuntimeMessage("dispatch-team-2", {
+        content: "Please compare notes",
+        callId: "call-2",
+        mentions: [{ agentId: "agent-2" }, { agentId: "agent-3" }],
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({ duplicate: true, messageId: published.messageId }),
     );
   });
 });

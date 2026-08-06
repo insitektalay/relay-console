@@ -749,6 +749,14 @@ export class BridgeController {
           runtimeDispatch,
         )
       : null;
+    if (
+      runtimeDispatch &&
+      (await this.messageService.isTeamThread(runtimeDispatch.threadId))
+    ) {
+      throw new BadRequestException(
+        "Team runtime messages must be published with relay_publish_message",
+      );
+    }
     if (body.dispatchId && runtimeBinding?.runtimeType === "claude_code") {
       const claudeDispatch = await this.claudeService.getDispatchOrThrow(
         body.dispatchId,
@@ -879,6 +887,23 @@ export class BridgeController {
       };
     }
     if (body.type === "run.completed") {
+      if (await this.messageService.isTeamThread(dispatch.threadId)) {
+        await this.runtimeDispatchCoordinator.completeDispatchWithoutMessage({
+          dispatchId,
+          resultSummary: body.finalText?.slice(0, 500) ?? null,
+          resultMetadata: {
+            ...(body.metadata ?? {}),
+            publicationMode: "tool_only",
+          },
+        });
+        return {
+          success: true,
+          dispatchId,
+          type: body.type,
+          terminalAcknowledged: true,
+          requiresMessagePostback: false,
+        };
+      }
       // OpenClaw completes through the idempotent bridge/messages postback so the
       // canonical reply and dispatch transition happen in one coordinator path.
       return {

@@ -130,27 +130,15 @@ export function useRelayConsoleRuntimeActions(
 
   const newChatCreateTeamMutation = useMutation({
     mutationFn: async (selectedAgentIds: string[]) => {
-      const deptId = newChatNewTeamDeptId ?? departments[0]?.id
-      if (!deptId) throw new Error("Create a department first")
+      const deptId = newChatNewTeamDeptId?.trim() || undefined
       const name = newChatNewTeamName.trim()
       if (!name) throw new Error("Enter a team name")
+      if (!selectedAgentIds.length) throw new Error("Select at least one agent")
       if (!effectiveWorkspaceId) throw new Error("Workspace unavailable")
-      const team = await sdk.teams.create({ name, departmentId: deptId })
-      await Promise.all(
-        selectedAgentIds.map((agentId) =>
-          sdk.agents.update(agentId, { teamId: team.id })
-        )
-      )
-      await queryClient.invalidateQueries({
-        queryKey: ["teams", effectiveWorkspaceId],
-      })
-      await queryClient.invalidateQueries({
-        queryKey: ["agents", effectiveWorkspaceId],
-      })
       return sdk.threads.create(effectiveWorkspaceId, {
-        title: team.name,
+        title: name,
         type: "team",
-        teamId: team.id,
+        departmentId: deptId,
         agentIds: selectedAgentIds,
         workspaceId: effectiveWorkspaceId,
       })
@@ -160,7 +148,7 @@ export function useRelayConsoleRuntimeActions(
       setNewChatNewTeamName("")
       setNewChatNewTeamSelectedAgentIds(new Set())
       setNewChatShowNewTeamForm(false)
-      toast.success("Team created and chat opened")
+      toast.success("Team chat created")
     },
     onError: (error: Error) => toast.error(error.message),
   })

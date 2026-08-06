@@ -16,6 +16,14 @@ export type ClaudeStructuredResult = {
   final_reply_markdown: string;
   summary?: string;
   changed_files?: string[];
+  tool_calls?: Array<{
+    name: "relay_publish_message";
+    call_id: string;
+    arguments: {
+      content: string;
+      mentions?: Array<{ agentId: string }>;
+    };
+  }>;
 };
 
 type ClaudeCliEnvelope = {
@@ -118,7 +126,51 @@ export async function runClaudeCommand(input: {
   stderrPath: string;
   onStarted?: (pid: number | null) => Promise<void> | void;
   runtimeCommandRiskAcceptance?: RuntimeCommandRiskAcceptance;
+  teamPublishAgentIds?: string[];
 }) {
+  const properties: Record<string, unknown> = {
+    status: { type: "string", enum: ["completed", "failed"] },
+    final_reply_markdown: { type: "string" },
+    summary: { type: "string" },
+    changed_files: { type: "array", items: { type: "string" } },
+  };
+  if (input.teamPublishAgentIds) {
+    properties.tool_calls = {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["name", "call_id", "arguments"],
+        properties: {
+          name: { type: "string", enum: ["relay_publish_message"] },
+          call_id: { type: "string", minLength: 1, maxLength: 160 },
+          arguments: {
+            type: "object",
+            additionalProperties: false,
+            required: ["content"],
+            properties: {
+              content: { type: "string", minLength: 1, maxLength: 50_000 },
+              mentions: {
+                type: "array",
+                maxItems: 20,
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["agentId"],
+                  properties: {
+                    agentId: {
+                      type: "string",
+                      enum: input.teamPublishAgentIds,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+  }
   const parsed = await runClaudeStructuredPrompt({
     repoPath: input.repoPath,
     sessionId: input.sessionId,
@@ -128,12 +180,7 @@ export async function runClaudeCommand(input: {
       type: "object",
       additionalProperties: false,
       required: ["final_reply_markdown", "status"],
-      properties: {
-        status: { type: "string", enum: ["completed", "failed"] },
-        final_reply_markdown: { type: "string" },
-        summary: { type: "string" },
-        changed_files: { type: "array", items: { type: "string" } },
-      },
+      properties,
     },
     claudeCommand: input.claudeCommand,
     model: input.model,
@@ -641,7 +688,27 @@ export function parseClaudeStructuredOutput(
           (entry): entry is string => typeof entry === "string",
         )
       : undefined,
+    tool_calls: Array.isArray(candidate.tool_calls)
+      ? candidate.tool_calls.filter(isRelayPublishToolCall)
+      : undefined,
   };
+}
+
+function isRelayPublishToolCall(value: unknown): value is NonNullable<
+  ClaudeStructuredResult["tool_calls"]
+>[number] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const call = value as Record<string, unknown>;
+  if (
+    call.name !== "relay_publish_message" ||
+    typeof call.call_id !== "string" ||
+    !call.arguments ||
+    typeof call.arguments !== "object" ||
+    Array.isArray(call.arguments)
+  ) {
+    return false;
+  }
+  return typeof (call.arguments as Record<string, unknown>).content === "string";
 }
 
 export function parseClaudeGenericStructuredOutput(stdout: string) {

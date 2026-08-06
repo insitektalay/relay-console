@@ -33,6 +33,10 @@ type DispatchPayload = {
   model?: string | null;
   timeoutSeconds?: number;
   resume?: boolean;
+  threadType?: string;
+  threadClassification?: string;
+  isTeamThread?: boolean;
+  threadParticipants?: Array<{ agentId?: string | null }>;
 };
 
 export class DispatchRunner {
@@ -150,6 +154,11 @@ export class DispatchRunner {
         stdoutPath,
         stderrPath,
         runtimeCommandRiskAcceptance: this.config.runtimeCommandRiskAcceptance,
+        teamPublishAgentIds: this.isTeamChat(payload)
+          ? (payload.threadParticipants ?? [])
+              .map((participant) => participant.agentId)
+              .filter((agentId): agentId is string => Boolean(agentId))
+          : undefined,
         onStarted: async (pid) => {
           await this.journal.add({
             dispatchId,
@@ -177,18 +186,33 @@ export class DispatchRunner {
         ) + "\n",
       );
 
-      await this.railway.postFinalMessage({
-        threadId: payload.threadId,
-        threadSessionId: payload.threadSessionId,
-        dispatchId,
-        senderId: payload.externalAgentId,
-        senderName: payload.agentName ?? payload.externalAgentId,
-        content: run.result.final_reply_markdown,
-        metadata: {
-          changedFiles: run.result.changed_files ?? [],
-          summary: run.result.summary ?? null,
-        },
-      });
+      if (this.isTeamChat(payload)) {
+        for (const toolCall of run.result.tool_calls ?? []) {
+          await this.railway.executeRuntimeTool(
+            dispatchId,
+            "relay",
+            toolCall.name,
+            {
+              content: toolCall.arguments.content,
+              mentions: toolCall.arguments.mentions ?? [],
+              callId: toolCall.call_id,
+            },
+          );
+        }
+      } else {
+        await this.railway.postFinalMessage({
+          threadId: payload.threadId,
+          threadSessionId: payload.threadSessionId,
+          dispatchId,
+          senderId: payload.externalAgentId,
+          senderName: payload.agentName ?? payload.externalAgentId,
+          content: run.result.final_reply_markdown,
+          metadata: {
+            changedFiles: run.result.changed_files ?? [],
+            summary: run.result.summary ?? null,
+          },
+        });
+      }
 
       await this.railway.postDispatchCompleted(dispatchId, {
         resultSummary: run.result.summary ?? null,
@@ -244,10 +268,20 @@ export class DispatchRunner {
       `Current request: ${payload.content}`,
       recentMessages ? `Recent thread context:\n${recentMessages}` : "",
       `Do the required coding work in this repo if needed.`,
-      `Return a concise user-facing final reply in final_reply_markdown.`,
+      this.isTeamChat(payload)
+        ? `This is a team chat. Your ordinary final_reply_markdown is not displayed. To publish a visible message, add a relay_publish_message entry to tool_calls with a stable call_id, content, and only the agent IDs that should receive another turn. Omit tool_calls to publish nothing.`
+        : `Return a concise user-facing final reply in final_reply_markdown.`,
       `If you changed files, include them in changed_files.`,
     ]
       .filter(Boolean)
       .join("\n\n");
+  }
+
+  private isTeamChat(payload: DispatchPayload) {
+    return (
+      payload.threadType === "team" ||
+      payload.threadClassification === "team_chat" ||
+      payload.isTeamThread === true
+    );
   }
 }

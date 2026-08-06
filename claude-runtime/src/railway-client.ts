@@ -246,6 +246,18 @@ export class RailwayClient {
     });
   }
 
+  async executeRuntimeTool(
+    dispatchId: string,
+    appSlug: string,
+    toolName: string,
+    input: Record<string, unknown>,
+  ) {
+    return this.request(
+      `/bridge/runtime-dispatches/${encodeURIComponent(dispatchId)}/marketplace-tools/${encodeURIComponent(appSlug)}/${encodeURIComponent(toolName)}`,
+      { method: "POST", body: input },
+    );
+  }
+
   async heartbeat(payload: {
     deviceLabel: string;
     activeDispatchCount: number;

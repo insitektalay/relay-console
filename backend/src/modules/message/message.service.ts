@@ -21,7 +21,9 @@ import {
   MeetingStatus,
   MessageEntity,
   MessageProvenance,
+  RuntimeDispatchEntity,
   TaskEntity,
+  TeamEntity,
   ThreadEntity,
 } from "../../entities";
 import { MessageReactionEntity } from "../../entities/message-reaction.entity";
@@ -79,12 +81,45 @@ export interface CanonicalMessageInput extends Partial<MessageEntity> {
 export interface CanonicalMessageOptions {
   routeToAgents?: boolean;
   routeToAgentsAsync?: boolean;
+  routingTargetAgentIds?: string[];
 }
 
 const DEFAULT_CLAUDE_TIMEOUT_SECONDS = 60 * 60;
 const DEFAULT_RUNTIME_TIMEOUT_MS = 60 * 60 * 1000;
 const DEFAULT_RUNTIME_RECENT_MESSAGES_LIMIT = 8;
 const DEFAULT_TRIVIAL_RUNTIME_RECENT_MESSAGES_LIMIT = 6;
+
+function visibleTeamMentionHandle(agent: Partial<AgentEntity>): string {
+  const preferred =
+    agent.externalId?.trim() ||
+    agent.name?.trim() ||
+    agent.id?.trim() ||
+    "agent";
+  const normalized = preferred
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 80);
+  return normalized || "agent";
+}
+
+function contentWithVisibleTeamMentions(
+  content: string,
+  mentionedAgents: Array<Partial<AgentEntity>>,
+): string {
+  const visibleTokens = new Set(
+    Array.from(
+      content.matchAll(/(?<![A-Za-z0-9_])@([A-Za-z0-9][A-Za-z0-9._-]{0,159})/g),
+    ).map((match) => match[1].toLowerCase()),
+  );
+  const missingTokens = mentionedAgents
+    .map((agent) => visibleTeamMentionHandle(agent))
+    .filter((handle) => !visibleTokens.has(handle))
+    .map((handle) => `@${handle}`);
+  return missingTokens.length > 0
+    ? `${missingTokens.join(" ")}\n\n${content}`
+    : content;
+}
 const MAX_RUNTIME_RECENT_MESSAGES_LIMIT = 20;
 const DEFAULT_RUNTIME_RECENT_MESSAGES_CHAR_BUDGET = 14_000;
 const DEFAULT_TRIVIAL_RUNTIME_RECENT_MESSAGES_CHAR_BUDGET = 10_000;
@@ -92,6 +127,8 @@ const MAX_RUNTIME_RECENT_MESSAGES_CHAR_BUDGET = 50_000;
 const MAX_ATTACHMENTS_PER_MESSAGE = 10;
 const THREAD_LAST_MESSAGE_PREVIEW_LENGTH = 500;
 const DEFAULT_SHARED_AGENT_TURN_LIMIT = 50;
+const TEAM_PUBLISH_TOOL_NAME = "relay_publish_message";
+const MAX_TEAM_PUBLISH_CONTENT_LENGTH = 50_000;
 const HERMES_BROWSER_TOOL_NAMES = [
   "browser_navigate",
   "browser_snapshot",
@@ -143,6 +180,12 @@ export class MessageService {
 
     @InjectRepository(ThreadEntity)
     private readonly threadRepo: Repository<ThreadEntity>,
+
+    @InjectRepository(TeamEntity)
+    private readonly teamRepo: Repository<TeamEntity>,
+
+    @InjectRepository(RuntimeDispatchEntity)
+    private readonly runtimeDispatchRepo: Repository<RuntimeDispatchEntity>,
 
     @InjectRepository(MeetingSessionEntity)
     private readonly meetingRepo: Repository<MeetingSessionEntity>,
@@ -636,6 +679,291 @@ export class MessageService {
     options: CanonicalMessageOptions = {},
   ): Promise<MessageEntity> {
     return this.createCanonicalMessage(threadId, data, options);
+  }
+
+  async isTeamThread(threadId: string) {
+    const thread = await this.threadRepo.findOne({ where: { id: threadId } });
+    return thread?.type === "team";
+  }
+
+  async findFirstRuntimePublication(runtimeDispatchId: string) {
+    return this.messageRepo.findOne({
+      where: { runtimeDispatchId },
+      order: { createdAt: "ASC" },
+    });
+  }
+
+  buildTeamPublishRuntimeContext(
+    thread: ThreadEntity,
+    agents: Array<Partial<AgentEntity>>,
+    base: Record<string, unknown> = {},
+    publishingAgentId?: string,
+    triggeringSender?: {
+      id?: string | null;
+      name?: string | null;
+      isAgent: boolean;
+    },
+  ) {
+    if (thread.type !== "team") return base;
+    const tool = {
+      name: TEAM_PUBLISH_TOOL_NAME,
+      functionName: TEAM_PUBLISH_TOOL_NAME,
+      aliases: [TEAM_PUBLISH_TOOL_NAME],
+      approvalRequired: false,
+      description:
+        "Publish a visible message to the current Relay team chat. Your ordinary final response is not published. Include only agents who should receive another turn.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          content: {
+            type: "string",
+            minLength: 1,
+            maxLength: MAX_TEAM_PUBLISH_CONTENT_LENGTH,
+          },
+          mentions: {
+            type: "array",
+            maxItems: 20,
+            items: {
+              type: "object",
+              properties: {
+                agentId: {
+                  type: "string",
+                  enum: agents
+                    .filter((agent) => agent.id !== publishingAgentId)
+                    .map((agent) => agent.id)
+                    .filter((id): id is string => Boolean(id)),
+                },
+              },
+              required: ["agentId"],
+              additionalProperties: false,
+            },
+          },
+          callId: {
+            type: "string",
+            minLength: 1,
+            maxLength: 160,
+            description:
+              "Stable unique id for this tool call; reuse it when retrying the same call.",
+          },
+        },
+        required: ["content", "callId"],
+        additionalProperties: false,
+      },
+      execution: {
+        transport: "clawchat_bridge_marketplace_tool",
+        requiresBridgeAccessToken: true,
+        endpointBasePath:
+          "/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/relay",
+      },
+    };
+    const marketplaceRuntimeContext =
+      base.marketplaceRuntimeContext &&
+      typeof base.marketplaceRuntimeContext === "object" &&
+      !Array.isArray(base.marketplaceRuntimeContext)
+        ? { ...(base.marketplaceRuntimeContext as Record<string, unknown>) }
+        : {};
+    const existingTools = Array.isArray(marketplaceRuntimeContext.tools)
+      ? marketplaceRuntimeContext.tools
+      : [];
+    const tools = [
+      ...existingTools.filter(
+        (entry) =>
+          !entry ||
+          typeof entry !== "object" ||
+          (entry as Record<string, unknown>).name !== TEAM_PUBLISH_TOOL_NAME,
+      ),
+      tool,
+    ];
+    return {
+      ...base,
+      marketplaceRuntimeContext: {
+        ...marketplaceRuntimeContext,
+        tools,
+        toolCount: tools.length,
+        toolNames: tools
+          .map((entry) =>
+            entry && typeof entry === "object"
+              ? (entry as Record<string, unknown>).name
+              : null,
+          )
+          .filter(Boolean),
+      },
+      marketplaceTools: tools,
+      availableMarketplaceTools: tools,
+      teamMessagePublishing: {
+        mode: "tool_only",
+        toolName: TEAM_PUBLISH_TOOL_NAME,
+      },
+      runtimeInstruction: [
+        typeof base.runtimeInstruction === "string"
+          ? base.runtimeInstruction
+          : null,
+        "This is a Relay team chat. Do not rely on your ordinary final response for communication: it will not be displayed. Call relay_publish_message to publish. Mention only agents who should receive another turn; an empty mentions list publishes without waking anyone.",
+        `Team agents available for structured mentions: ${JSON.stringify(
+          agents
+            .filter((agent) => Boolean(agent.id))
+            .map((agent) => ({
+              agentId: agent.id,
+              name: agent.name ?? null,
+            })),
+        )}. Use these exact agent IDs in relay_publish_message.mentions. You may mention multiple agents in one published message and give each a distinct assignment.`,
+        "If this turn produces a result, answer, deliverable, decision, blocker, substantive progress update, or question that another participant needs to answer, you MUST publish it with relay_publish_message. If a human asked you for work, you MUST eventually publish a substantive response. Otherwise publishing is optional and silence is usually correct.",
+        "When you finish work delegated by another agent, you MUST publish the result, deliverable, or blocker and include that delegating agent in the structured mentions list. This applies to completed work only. Do not mention the delegator merely to accept the assignment, confirm receipt, or close a conversational loop. If you have nothing substantive to report yet, publish nothing and report when you do.",
+        "Never publish a bare acknowledgement. A message whose only content confirms, accepts, agrees, aligns, signs off, says you are standing by, or announces your own silence adds nothing and can retrigger mentioned agents. If your draft contains nothing beyond acknowledgement, publish nothing.",
+        triggeringSender?.isAgent && triggeringSender.id
+          ? `This turn was triggered by ${JSON.stringify(triggeringSender.name ?? "another agent")} (Relay agent ID ${triggeringSender.id}). When the delegated work is complete or blocked, include exactly that agent ID in relay_publish_message.mentions so the delegator receives the callback.`
+          : null,
+      ]
+        .filter(Boolean)
+        .join("\n\n"),
+    };
+  }
+
+  async publishTeamRuntimeMessage(
+    dispatchId: string,
+    input: {
+      content?: unknown;
+      callId?: unknown;
+      mentions?: unknown;
+    },
+  ) {
+    const dispatch = await this.runtimeDispatchRepo.findOne({
+      where: { id: dispatchId },
+    });
+    if (!dispatch) throw new NotFoundException("Runtime dispatch not found");
+    if (["completed", "failed", "cancelled"].includes(dispatch.status)) {
+      throw new ConflictException("Runtime dispatch is no longer active");
+    }
+    const thread = await this.threadRepo.findOne({
+      where: { id: dispatch.threadId },
+    });
+    if (!thread || thread.type !== "team") {
+      throw new BadRequestException(
+        "Relay message publishing is available only in team chats",
+      );
+    }
+    if (thread.status === "archived") {
+      throw new ConflictException("Thread is archived");
+    }
+    const activeSession = await this.threadSessionService.ensureActiveSession(
+      thread,
+    );
+    if (activeSession.id !== dispatch.threadSessionId) {
+      throw new ConflictException("Thread session is no longer active");
+    }
+    const content = typeof input.content === "string" ? input.content.trim() : "";
+    if (!content || content.length > MAX_TEAM_PUBLISH_CONTENT_LENGTH) {
+      throw new BadRequestException("Published message content is invalid");
+    }
+    const callId = typeof input.callId === "string" ? input.callId.trim() : "";
+    if (!callId || callId.length > 160) {
+      throw new BadRequestException("A valid tool call id is required");
+    }
+    const memberAgents = await this.threadMembershipService.listMemberAgents(
+      thread.id,
+    );
+    const publishingAgent = memberAgents.find(
+      (agent) => agent.id === dispatch.agentId,
+    );
+    if (!publishingAgent) {
+      throw new ForbiddenException(
+        "Runtime agent is not a member of this team thread",
+      );
+    }
+    const rawMentions = Array.isArray(input.mentions) ? input.mentions : [];
+    if (rawMentions.length > 20) {
+      throw new BadRequestException("Too many agent mentions");
+    }
+    const requestedMentionIds = Array.from(
+      new Set(
+        rawMentions.map((mention) =>
+          mention && typeof mention === "object" &&
+          typeof (mention as Record<string, unknown>).agentId === "string"
+            ? ((mention as Record<string, unknown>).agentId as string).trim()
+            : "",
+        ),
+      ),
+    ).filter(Boolean);
+    const memberIds = new Set(memberAgents.map((agent) => agent.id));
+    if (
+      requestedMentionIds.some(
+        (agentId) => agentId === dispatch.agentId || !memberIds.has(agentId),
+      )
+    ) {
+      throw new BadRequestException(
+        "Mentions must identify other agents in the current team thread",
+      );
+    }
+
+    const agentsById = new Map(
+      memberAgents.map((agent) => [agent.id, agent] as const),
+    );
+    const displayedContent = contentWithVisibleTeamMentions(
+      content,
+      requestedMentionIds
+        .map((agentId) => agentsById.get(agentId))
+        .filter((agent): agent is AgentEntity => Boolean(agent)),
+    );
+    if (displayedContent.length > MAX_TEAM_PUBLISH_CONTENT_LENGTH) {
+      throw new BadRequestException("Published message content is invalid");
+    }
+
+    const existing = await this.messageRepo.findOne({
+      where: {
+        runtimeDispatchId: dispatch.id,
+        runtimeToolCallId: callId,
+      },
+    });
+    if (existing) {
+      return {
+        success: true,
+        duplicate: true,
+        messageId: existing.id,
+        mentionedAgentIds:
+          (existing.metadata?.mentionedAgentIds as string[] | undefined) ?? [],
+      };
+    }
+
+    const prepared = prepareAgentReplyForStorage({
+      rawContent: displayedContent,
+      responsePresentation: publishingAgent.responsePresentation,
+    });
+    const saved = await this.injectMessage(
+      thread.id,
+      {
+        senderId: publishingAgent.id,
+        senderName: publishingAgent.name,
+        senderAvatarUrl: publishingAgent.avatarUrl ?? null,
+        content: prepared.content,
+        contentFormat: prepared.contentFormat,
+        provenance: MessageProvenance.AGENT,
+        isFromUser: false,
+        runtimeDispatchId: dispatch.id,
+        runtimeToolCallId: callId,
+        metadata: {
+          runtimeDispatchId: dispatch.id,
+          runtimeToolCallId: callId,
+          publicationMode: "relay_publish_tool",
+          mentionedAgentIds: requestedMentionIds,
+          ...prepared.metadata,
+        },
+      },
+      {
+        routeToAgents: requestedMentionIds.length > 0,
+        routingTargetAgentIds: requestedMentionIds,
+      },
+    );
+    if (!dispatch.postedMessageId) {
+      await this.runtimeDispatchRepo.update(dispatch.id, {
+        postedMessageId: saved.id,
+      });
+    }
+    return {
+      success: true,
+      duplicate: false,
+      messageId: saved.id,
+      mentionedAgentIds: requestedMentionIds,
+    };
   }
 
   async buildOutboundContext(
@@ -2342,7 +2670,21 @@ export class MessageService {
       metadata: data.metadata ?? null,
       isFromUser: data.isFromUser ?? false,
     });
-    const saved = await this.messageRepo.save(message);
+    let saved: MessageEntity;
+    try {
+      saved = await this.messageRepo.save(message);
+    } catch (error) {
+      if (data.runtimeDispatchId && data.runtimeToolCallId) {
+        const duplicate = await this.messageRepo.findOne({
+          where: {
+            runtimeDispatchId: data.runtimeDispatchId,
+            runtimeToolCallId: data.runtimeToolCallId,
+          },
+        });
+        if (duplicate) return duplicate;
+      }
+      throw error;
+    }
 
     await this.threadRepo.update(threadId, {
       lastMessage: {
@@ -2393,7 +2735,11 @@ export class MessageService {
 
     if (shouldRouteToAgents) {
       if (options.routeToAgentsAsync) {
-        void this.routeMessageToAgents(thread, saved).catch((error) => {
+        void this.routeMessageToAgents(
+          thread,
+          saved,
+          options.routingTargetAgentIds,
+        ).catch((error) => {
           this.logger.error(
             `Failed to route message ${saved.id} to agents after it was persisted: ${
               error instanceof Error ? error.message : String(error)
@@ -2401,7 +2747,11 @@ export class MessageService {
           );
         });
       } else {
-        await this.routeMessageToAgents(thread, saved);
+        await this.routeMessageToAgents(
+          thread,
+          saved,
+          options.routingTargetAgentIds,
+        );
       }
     } else if (!saved.isFromUser) {
       await this.stopTypingForThread(thread, saved.senderId);
@@ -2588,6 +2938,7 @@ export class MessageService {
   private async routeMessageToAgents(
     thread: ThreadEntity,
     saved: MessageEntity,
+    explicitTargetAgentIds?: string[],
   ) {
     if (
       !saved.isFromUser &&
@@ -2653,11 +3004,12 @@ export class MessageService {
       saved.content,
       effectiveAgents,
     );
-    const routeableAgents = this.resolveSharedThreadRouteableAgents({
+    const routeableAgents = await this.resolveSharedThreadRouteableAgents({
       thread,
       saved,
       effectiveAgents,
       mentionedAgentIds,
+      explicitTargetAgentIds,
     });
     const routingMentionedAgentIds = this.isSharedAgentThread(thread)
       ? new Set(routeableAgents.map((agent) => agent.id))
@@ -2668,13 +3020,22 @@ export class MessageService {
       }
       return;
     }
-    if (this.isSharedAgentThread(thread) && routeableAgents[0]) {
-      recentMessagesPayload = await this.buildTeamCatchUpPayload(
-        thread,
-        saved,
-        routeableAgents[0].id,
+    const recentMessagesByAgentId = new Map<
+      string,
+      Array<Record<string, unknown>>
+    >();
+    if (this.isSharedAgentThread(thread)) {
+      await Promise.all(
+        routeableAgents.map(async (agent) => {
+          recentMessagesByAgentId.set(
+            agent.id,
+            await this.buildTeamCatchUpPayload(thread, saved, agent.id),
+          );
+        }),
       );
     }
+    const recentMessagesForAgent = (agentId: string) =>
+      recentMessagesByAgentId.get(agentId) ?? recentMessagesPayload;
     const runtimeBindings =
       await this.runtimeDispatchCoordinator.resolveEligibleBindings(
         routeableAgents.map((agent) => agent.id),
@@ -2710,13 +3071,6 @@ export class MessageService {
       )
       .map((agent) => agent.id);
 
-    if (mentionedClaudeAgents.length > 1) {
-      await this.sendSystemMessage(
-        thread.id,
-        "Ambiguous Claude target. Mention exactly one Claude repo agent.",
-      );
-    }
-
     const nonClaudeTargetAgentIds = routingMentionedAgentIds.size
       ? mentionedNonClaudeAgentIds
       : nonClaudeAgents.map((agent) => agent.id);
@@ -2726,8 +3080,8 @@ export class MessageService {
       claudeAgents.length === 1 &&
       nonClaudeAgents.length === 0
         ? [claudeAgents[0]]
-        : mentionedClaudeAgents.length === 1
-          ? [mentionedClaudeAgents[0]]
+        : mentionedClaudeAgents.length > 0
+          ? mentionedClaudeAgents
           : [];
     const isSingleRuntimeDirectUserMessage =
       thread.type === "direct" &&
@@ -2802,12 +3156,10 @@ export class MessageService {
       }
 
       if (liveBridgeTargets.length) {
-        for (const group of this.groupBridgeTargetsByPresentation(
-          liveBridgeTargets,
-        )) {
+        for (const target of liveBridgeTargets) {
           this.eventsGateway.emitToBridgeAgents(
             thread.workspaceId,
-            group.externalAgentIds,
+            [target.externalAgentId],
             "agent.dispatch",
             {
               threadId: thread.id,
@@ -2824,9 +3176,9 @@ export class MessageService {
               attachments: saved.attachments ?? [],
               runtimeApprovalMode,
               artifactContract,
-              recentMessages: recentMessagesPayload,
+              recentMessages: recentMessagesForAgent(target.agentId),
               ...buildRuntimeResponsePresentationContext(
-                group.responsePresentation,
+                target.responsePresentation,
               ),
               ...outboundContext,
             },
@@ -2868,6 +3220,25 @@ export class MessageService {
       if (!dispatchOutcome.created) {
         continue;
       }
+      const claudeRuntimeContext = this.buildTeamPublishRuntimeContext(
+        thread,
+        effectiveAgents,
+        await this.buildAgentMarketplaceRuntimeContext(
+          thread.workspaceId,
+          agent.id,
+          dispatchOutcome.dispatch.id,
+        ),
+        agent.id,
+        {
+          id: saved.senderId,
+          name: saved.senderName,
+          isAgent:
+            !saved.isFromUser &&
+            effectiveAgents.some(
+              (candidate) => candidate.id === saved.senderId,
+            ),
+        },
+      );
 
       if (!binding || !binding.isEnabled || !agent.externalId) {
         await this.claudeService.markDispatchFailed({
@@ -2927,7 +3298,8 @@ export class MessageService {
           repoKey: binding.repoKey,
           routingMode: binding.routingMode,
           resume: Boolean(existingClaudeThreadSession),
-          recentMessages: recentMessagesPayload,
+          recentMessages: recentMessagesForAgent(agent.id),
+          ...claudeRuntimeContext,
           ...buildRuntimeResponsePresentationContext(
             agent.responsePresentation,
           ),
@@ -2966,6 +3338,27 @@ export class MessageService {
 
       this.eventsGateway.emitAgentTyping(thread.id, [agent.id], true);
 
+      const agentRuntimeContext = this.buildTeamPublishRuntimeContext(
+        thread,
+        effectiveAgents,
+        await this.buildAgentMarketplaceRuntimeContext(
+          thread.workspaceId,
+          agent.id,
+          dispatch.id,
+          this.resolveNativeRuntimeToolNames(runtimeBinding),
+        ),
+        agent.id,
+        {
+          id: saved.senderId,
+          name: saved.senderName,
+          isAgent:
+            !saved.isFromUser &&
+            effectiveAgents.some(
+              (candidate) => candidate.id === saved.senderId,
+            ),
+        },
+      );
+
       void this.runtimeDispatchCoordinator
         .executeDispatch({
           runtimeBinding,
@@ -2974,7 +3367,7 @@ export class MessageService {
           agent,
           inputText: runtimeInputContent,
           recentMessages: this.boundRuntimeRecentMessages(
-            recentMessagesPayload,
+            recentMessagesForAgent(agent.id),
             saved,
             runtimeBinding,
           ),
@@ -2991,15 +3384,16 @@ export class MessageService {
               agent.responsePresentation,
             ),
             ...outboundContext,
-            ...(await this.buildAgentMarketplaceRuntimeContext(
-              thread.workspaceId,
-              agent.id,
-              dispatch.id,
-              this.resolveNativeRuntimeToolNames(runtimeBinding),
-            )),
+            ...agentRuntimeContext,
           },
           timeoutMs,
           persistFinalReply: async (finalText, metadata) => {
+            if (thread.type === "team") {
+              const publication = await this.findFirstRuntimePublication(
+                dispatch.id,
+              );
+              return publication ? { id: publication.id } : null;
+            }
             const prepared = prepareAgentReplyForStorage({
               rawContent: finalText,
               responsePresentation: agent.responsePresentation,
@@ -3194,7 +3588,18 @@ export class MessageService {
     pending.metadata = routingMetadata;
     await this.messageRepo.update(pending.id, { metadata: routingMetadata });
     try {
-      await this.routeMessageToAgents(thread, pending);
+      const pendingMentionIds = Array.isArray(
+        pending.metadata?.mentionedAgentIds,
+      )
+        ? (pending.metadata?.mentionedAgentIds as unknown[]).filter(
+            (value): value is string => typeof value === "string",
+          )
+        : undefined;
+      await this.routeMessageToAgents(
+        thread,
+        pending,
+        pendingMentionIds,
+      );
       const routedMetadata = {
         ...(pending.metadata ?? {}),
         teamRelayRoutingState: "routed",
@@ -3303,13 +3708,20 @@ export class MessageService {
       }));
   }
 
-  private resolveSharedThreadRouteableAgents(input: {
+  private async resolveSharedThreadRouteableAgents(input: {
     thread: ThreadEntity;
     saved: MessageEntity;
     effectiveAgents: AgentEntity[];
     mentionedAgentIds: Set<string>;
-  }): AgentEntity[] {
-    const { thread, saved, effectiveAgents, mentionedAgentIds } = input;
+    explicitTargetAgentIds?: string[];
+  }): Promise<AgentEntity[]> {
+    const {
+      thread,
+      saved,
+      effectiveAgents,
+      mentionedAgentIds,
+      explicitTargetAgentIds,
+    } = input;
     if (!this.isSharedAgentThread(thread)) {
       return effectiveAgents;
     }
@@ -3318,8 +3730,22 @@ export class MessageService {
       ? effectiveAgents
       : effectiveAgents.filter((agent) => agent.id !== saved.senderId);
     if (!eligible.length) return [];
+    if (explicitTargetAgentIds !== undefined) {
+      const targets = new Set(explicitTargetAgentIds);
+      return eligible.filter((agent) => targets.has(agent.id));
+    }
     const mentioned = eligible.find((agent) => mentionedAgentIds.has(agent.id));
     if (mentioned) return [mentioned];
+    if (saved.isFromUser && thread.type === "team" && thread.teamId) {
+      const team = await this.teamRepo.findOne({
+        where: { id: thread.teamId },
+        select: ["id", "leadAgentId"],
+      });
+      const lead = team?.leadAgentId
+        ? eligible.find((agent) => agent.id === team.leadAgentId)
+        : null;
+      if (lead) return [lead];
+    }
     return [eligible[Math.floor(Math.random() * eligible.length)]];
   }
 

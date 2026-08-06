@@ -1,7 +1,7 @@
 import CryptoKit
 import Foundation
 import RelayConsoleSourceTestSupport
-import RelayConsoleCore
+@testable import RelayConsoleCore
 import SQLite3
 
 @main
@@ -958,6 +958,9 @@ struct RelayConsoleServiceTests {
       "dispatch local failure marks source message without fake output",
       testDispatchLocalFailureMarksSourceMessageWithoutFakeOutput)
     try run(
+      "dispatch live auth failure updates harness readiness",
+      testDispatchLiveAuthFailureUpdatesHarnessReadiness)
+    try run(
       "runtime dispatch terminal messages retain document references",
       testRuntimeDispatchTerminalMessagesRetainDocumentReferences)
     try run(
@@ -978,20 +981,8 @@ struct RelayConsoleServiceTests {
     try run(
       "team user messages use single relay routing", testTeamUserMessagesUseSingleRelayRouting)
     try run(
-      "team agent messages without mentions pass baton to one teammate",
-      testTeamAgentMessagesWithoutMentionsPassBatonToOneTeammate)
-    try run(
-      "team agent mentions route follow-up to first eligible mentioned agent",
-      testTeamAgentMentionsRouteFollowUpToFirstEligibleMentionedAgent)
-    try run(
-      "team dispatches include incremental catch-up context",
-      testTeamDispatchesIncludeIncrementalCatchUpContext)
-    try run(
-      "team relay manual pause stops baton until continue",
-      testTeamRelayManualPauseStopsBatonUntilContinue)
-    try run(
-      "team relay reply limit pauses and continue bumps limit",
-      testTeamRelayReplyLimitPausesAndContinueBumpsLimit)
+      "team runtime publication is tool-only structured and idempotent",
+      testTeamRuntimePublicationIsToolOnlyStructuredAndIdempotent)
     try run(
       "runtime sessions persist external Hermes session ids",
       testRuntimeSessionsPersistExternalHermesSessionIds)
@@ -3003,6 +2994,22 @@ struct RelayConsoleServiceTests {
       leadParticipant.role == .manager && leadParticipant.isManager,
       "department head should be marked manager in team participants")
 
+    let departmentlessThread = try services.chat.createTeamThread(
+      context: owner,
+      departmentId: nil,
+      title: "Independent Team Chat",
+      selectedAgentIds: [peer.id, outside.id]
+    )
+    try expect(
+      departmentlessThread.threadType == .team,
+      "team chats without departments should retain the team thread type")
+    try expect(
+      Set(departmentlessThread.participants.compactMap(\.participantId)) == Set([peer.id, outside.id]),
+      "team chats without departments should persist their selected participants")
+    try expect(
+      departmentlessThread.participants.allSatisfy { !$0.isManager },
+      "departmentless team chat participants should not gain an implicit manager role")
+
     let beforeDeniedCount = try services.data.listThreads(workspaceId: workspace.id).count
     do {
       _ = try services.chat.createTeamThread(
@@ -3225,6 +3232,52 @@ struct RelayConsoleServiceTests {
     try expect(
       !messages.contains { $0.senderType == .agent },
       "failed local send must not fabricate an agent reply")
+    let record = try services.harnessInstall.getRecord(.hermes)
+    try expect(record.lifecycleState == .error, "live unhealthy send should update stored harness readiness")
+    try expect(
+      record.lastError == "Harness unavailable for local-send failure test.",
+      "live unhealthy send should retain the health diagnostic")
+  }
+
+  private static func testDispatchLiveAuthFailureUpdatesHarnessReadiness() throws {
+    let services = try makeServices()
+    services.registry.register(
+      UnhealthyRuntimeBridge(
+        status: .authRequired,
+        message: "Hermes Agent authentication is unavailable: refresh_token_reused."
+      )
+    )
+    let workspace = try unwrap(services.data.getAppState().activeWorkspace, "missing workspace")
+    let agent = try createServiceAgent(services: services, workspaceId: workspace.id)
+    let thread = try services.data.createThread(
+      workspaceId: workspace.id,
+      title: "Live Auth Failure Thread",
+      selectedAgentId: agent.id,
+      threadType: .direct
+    )
+    let sendError = waitForAsync {
+      _ = try await services.dispatch.sendMessage(
+        threadId: thread.id,
+        agentId: agent.id,
+        content: "Auth failure should be actionable"
+      )
+    }
+
+    guard case .failure(let error) = sendError else {
+      throw ServiceTestFailure("auth-required bridge send unexpectedly succeeded")
+    }
+    let relay = relayError(error)
+    try expect(relay.code == .harnessUnhealthy, "auth failure should retain the harness error code")
+    try expect(
+      relay.message.contains("authentication is required")
+        && relay.message.contains("refresh_token_reused"),
+      "auth failure should retain an actionable runtime diagnostic")
+    let record = try services.harnessInstall.getRecord(.hermes)
+    try expect(record.lifecycleState == .authRequired, "live auth failure should mark the harness auth-required")
+    try expect(record.modelAuthStatus == .notConfigured, "live auth failure should clear connected auth state")
+    try expect(
+      record.lastError?.contains("refresh_token_reused") == true,
+      "stored harness state should retain the auth diagnostic")
   }
 
   private static func testRuntimeDispatchTerminalMessagesRetainDocumentReferences() throws {
@@ -3992,6 +4045,154 @@ struct RelayConsoleServiceTests {
       mentionedDispatches.first?.inputSnapshot["mentionTokens"]
         == .array([.string("designer_claw"), .string("chan_hermes")]),
       "mention tokens should preserve message order for first-mention routing")
+  }
+
+  private static func testTeamRuntimePublicationIsToolOnlyStructuredAndIdempotent() throws {
+    let services = try makeServices()
+    let coordinatorBridge = ScriptedRuntimeBridge(
+      runtimeType: .hermes,
+      supportsCancellation: true,
+      results: [
+        RuntimeDispatchTerminalResult(
+          status: "completed",
+          finalText: "This ordinary final must stay hidden.",
+          contentFormat: .markdown,
+          error: nil,
+          metadata: ["fixture": .string("hidden-team-final")]
+        )
+      ],
+      responseDelayMilliseconds: 300
+    )
+    let workerBridge = ScriptedRuntimeBridge(
+      runtimeType: .openclaw,
+      supportsCancellation: false,
+      results: [
+        failedResult("route_probe", "Structured mention routing recorded.", recoverable: false)
+      ]
+    )
+    services.registry.register(coordinatorBridge)
+    services.registry.register(workerBridge)
+    let workspace = try unwrap(services.data.getAppState().activeWorkspace, "missing workspace")
+    let hermesHarness = try services.data.upsertHarness(
+      runtimeType: .hermes, displayName: "Hermes Agent", mode: .appManaged, config: [:])
+    let openClawHarness = try services.data.upsertHarness(
+      runtimeType: .openclaw, displayName: "OpenClaw", mode: .appManaged, config: [:])
+    let coordinator = try services.data.createAgent(
+      workspaceId: workspace.id,
+      name: "Coordinator Hermes",
+      harnessId: hermesHarness.id,
+      externalAgentId: "coordinator_hermes",
+      hermesProfileSlug: "coordinator_hermes"
+    )
+    let worker = try services.data.createAgent(
+      workspaceId: workspace.id,
+      name: "Worker Claw",
+      harnessId: openClawHarness.id,
+      externalAgentId: "worker_claw"
+    )
+    let company = try services.data.createAgentOrgCompany(
+      workspaceId: workspace.id, name: "Tool Publication Company")
+    let department = try services.data.createAgentOrgDepartment(
+      workspaceId: workspace.id,
+      companyId: company.id,
+      name: "Tool Publication Department",
+      headAgentId: coordinator.id
+    )
+    let thread = try services.chat.createTeamThread(
+      context: context(roles: [.owner], workspaceId: workspace.id),
+      departmentId: department.id,
+      title: "Tool Publication Team",
+      selectedAgentIds: [coordinator.id, worker.id]
+    )
+
+    let send = try awaitResult {
+      try await services.dispatch.sendMessage(
+        threadId: thread.id,
+        agentId: coordinator.id,
+        content: "@coordinator_hermes delegate this"
+      )
+    }
+    try waitUntil("team coordinator request should reach the runtime") {
+      coordinatorBridge.dispatchCallCount() == 1
+    }
+    let runtime = MarketplaceRuntimeToolExecutionContext(
+      agentId: coordinator.id,
+      workspaceId: workspace.id,
+      runtimeType: .hermes,
+      dispatchId: send.dispatch.id,
+      threadId: thread.id,
+      runtimeSessionId: send.dispatch.sessionId,
+      actorId: "relay-runtime-tool",
+      correlationId: send.dispatch.correlationId
+    )
+    let payload: JSONRecord = [
+      "content": .string("Worker, calculate the requested value."),
+      "mentions": .array([.object(["agentId": .string(worker.id)])]),
+      "callId": .string("publish-delegation-1")
+    ]
+    let published = try services.marketplaceRuntimeToolBridge.execute(
+      toolName: "relay_publish_message",
+      payload: payload,
+      runtime: runtime
+    )
+    let duplicate = try services.marketplaceRuntimeToolBridge.execute(
+      toolName: "relay_publish_message",
+      payload: payload,
+      runtime: runtime
+    )
+    try expect(published["success"] == .bool(true), "team publication should succeed")
+    try expect(published["duplicate"] == .bool(false), "first publication should not be duplicate")
+    try expect(duplicate["duplicate"] == .bool(true), "repeated call id should deduplicate")
+    try expect(
+      duplicate["messageId"] == published["messageId"],
+      "duplicate publication should return the original message")
+
+    try waitUntil("structured team publication should route only to the mentioned worker") {
+      try services.data.listDispatchesForThread(thread.id).contains {
+        $0.messageId == published["messageId"]?.string && $0.agentId == worker.id
+      }
+    }
+    try waitUntil("team publication dispatches should settle") {
+      try services.data.listDispatchesForThread(thread.id).allSatisfy { !$0.isActive }
+    }
+    let messages = try services.data.listMessagesInThreadOrder(threadId: thread.id)
+    let agentMessages = messages.filter { $0.senderType == .agent }
+    try expect(agentMessages.count == 1, "ordinary team finals must not create visible messages")
+    let visible = try unwrap(agentMessages.first, "missing published team message")
+    try expect(visible.senderId == coordinator.id, "Relay should control the publishing sender")
+    try expect(
+      visible.content == "@worker_claw\n\nWorker, calculate the requested value.",
+      "structured team mentions should also be visible in the published message")
+    try expect(
+      visible.metadata["mentionedAgentIds"] == .array([.string(worker.id)]),
+      "published message should retain only structured mention ids")
+    try expect(
+      visible.metadata["runtimeToolCallId"] == .string("publish-delegation-1"),
+      "published message should retain duplicate-call identity")
+    let routed = try services.data.listDispatchesForThread(thread.id).filter {
+      $0.messageId == visible.id
+    }
+    try expect(
+      routed.count == 1 && routed.first?.agentId == worker.id,
+      "only explicitly mentioned agents should receive another turn")
+
+    let request = try unwrap(coordinatorBridge.lastRequest(), "missing coordinator request")
+    try expect(request.isTeamChat, "team request should carry tool-only publication mode")
+    try expect(
+      request.cloudMarketplaceTools.contains {
+        $0["functionName"] == .string("relay_publish_message")
+      },
+      "team request should mount relay_publish_message")
+    try expect(
+      request.inputContent.contains("[Relay team-chat instructions]")
+        && request.inputContent.contains("Never publish a bare acknowledgement")
+        && request.inputContent.contains(worker.id),
+      "team request should carry the Buzz callback and no-acknowledgement rules")
+    let completed = try services.data.getDispatch(send.dispatch.id)
+    try expect(
+      completed.resultSnapshot?["finalResponsePublication"]
+        == .string("suppressed_team_tool_only"),
+      "team dispatch should explicitly record ordinary-final suppression")
   }
 
   private static func testTeamAgentMessagesWithoutMentionsPassBatonToOneTeammate() throws {
@@ -37625,6 +37826,9 @@ struct RelayConsoleServiceTests {
       openClawMarketplaceBridgeEnvironment[MarketplaceRuntimeBrokerEndpoint.tokenPathEnvironmentKey]
         != nil, "OpenClaw marketplace plugin config must include the Relay broker token path")
     try expect(
+      openClawMarketplaceBridgeEnvironment["RELAY_MARKETPLACE_RUNTIME_CONTEXT_PATH"] != nil,
+      "OpenClaw marketplace plugin config must include the per-session dispatch context path")
+    try expect(
       openClawMarketplaceBridgeEnvironment["RELAY_MARKETPLACE_DISPATCH_ID"] == nil,
       "OpenClaw marketplace plugin config should not persist per-turn dispatch ids")
     var openClawProbeConfig = openClawMarketplaceConfig
@@ -37643,9 +37847,13 @@ struct RelayConsoleServiceTests {
       }
       const plugin = require(pluginPath);
       const calls = [];
+      const contextPath = config.bridgeEnvironment.RELAY_MARKETPLACE_RUNTIME_CONTEXT_PATH;
+      const contextRoot = JSON.parse(require("node:fs").readFileSync(contextPath, "utf8"));
+      const sessionKey = Object.keys(contextRoot.contexts || {})[0];
       plugin.register({
         pluginConfig: config,
         registerTool(definition, options) {
+          if (typeof definition === "function") definition = definition({ sessionKey });
           calls.push({ definition, options });
         },
       });
@@ -49474,16 +49682,26 @@ private final class StubCommandRunner: CommandRunning {
 }
 
 private final class UnhealthyRuntimeBridge: DesktopRuntimeBridge {
-  let runtimeType: RuntimeType = .hermes
-  let adapterId = "test-unhealthy-hermes"
-  let displayName = "Test Unhealthy Hermes"
+    let runtimeType: RuntimeType = .hermes
+    let adapterId = "test-unhealthy-hermes"
+    let displayName = "Test Unhealthy Hermes"
+    private let status: HarnessHealthStatus
+    private let healthMessage: String
 
-  func getHealth(harnessId: String, config: JSONRecord) async -> HarnessHealth {
-    HarnessHealth(
-      harnessId: harnessId,
-      runtimeType: .hermes,
-      status: .unhealthy,
-      message: "Harness unavailable for local-send failure test.",
+    init(
+      status: HarnessHealthStatus = .unhealthy,
+      message: String = "Harness unavailable for local-send failure test."
+    ) {
+      self.status = status
+      self.healthMessage = message
+    }
+
+    func getHealth(harnessId: String, config: JSONRecord) async -> HarnessHealth {
+        HarnessHealth(
+            harnessId: harnessId,
+            runtimeType: .hermes,
+            status: status,
+            message: healthMessage,
       version: nil,
       capabilities: [],
       checkedAt: "2026-01-01T00:00:00Z",

@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 
 struct AgentsScreen: View {
   @EnvironmentObject var model: AppViewModel
+  let navigationPanelsVisible: Bool
 
   var body: some View {
     Group {
@@ -29,7 +30,9 @@ struct AgentsScreen: View {
           switch model.agentSubview {
           case .instructions:
             if let agent = model.selectedAgent {
-              AgentKnowledgePanel(agent: agent, section: .instructions)
+              AgentKnowledgePanel(
+                agent: agent, section: .instructions,
+                navigationPanelsVisible: navigationPanelsVisible)
             } else {
               EmptyStage(
                 title: "Create an agent",
@@ -42,7 +45,9 @@ struct AgentsScreen: View {
             }
           case .memory:
             if let agent = model.selectedAgent {
-              AgentKnowledgePanel(agent: agent, section: .memory)
+              AgentKnowledgePanel(
+                agent: agent, section: .memory,
+                navigationPanelsVisible: navigationPanelsVisible)
             } else {
               EmptyStage(
                 title: "Create an agent",
@@ -55,7 +60,9 @@ struct AgentsScreen: View {
             }
           case .skills:
             if let agent = model.selectedAgent {
-              AgentKnowledgePanel(agent: agent, section: .skills)
+              AgentKnowledgePanel(
+                agent: agent, section: .skills,
+                navigationPanelsVisible: navigationPanelsVisible)
             } else {
               EmptyStage(
                 title: "Create an agent",

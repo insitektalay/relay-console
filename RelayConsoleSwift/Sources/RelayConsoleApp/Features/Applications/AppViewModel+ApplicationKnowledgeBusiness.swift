@@ -760,6 +760,15 @@ extension AppViewModel {
       }
       let agent = try services.data.getAgent(agentId)
       if connection.resolvedExecutionAuthority == .railway {
+        if enabled {
+          await self.refreshSetupBridgeStatus()
+          guard self.marketplaceRuntimeIsOnline(agent.binding.runtimeType) else {
+            throw RelayError(
+              .unsupported,
+              "\(exaRuntimeLabel(agent.binding.runtimeType)) Remote Access is not connected. The application credentials are connected, but Relay cannot assign its tools to this agent until that runtime is online."
+            )
+          }
+        }
         let remoteConnectionId = try services.cloudSync.remoteMarketplaceConnectionId(
           localWorkspaceId: workspace.id,
           localConnectionId: connection.id

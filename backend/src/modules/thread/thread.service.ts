@@ -542,8 +542,11 @@ export class ThreadService {
             select: ["id", "headAgentId"],
           })
         : null;
+      // Team leads coordinate human-started team conversations and must be
+      // present in the thread to receive the first routed turn. Department
+      // heads remain excluded unless they are explicitly added.
       const excludedManagerIds = new Set(
-        [team?.leadAgentId, department?.headAgentId].filter(Boolean),
+        [department?.headAgentId].filter(Boolean),
       );
       const teamAgents = await this.agentRepo.find({
         where: { workspaceId: dto.workspaceId, teamId: dto.teamId } as any,

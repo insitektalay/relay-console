@@ -17,12 +17,11 @@ extension View {
 
 struct ChatScreen: View {
   @EnvironmentObject var model: AppViewModel
+  @Binding var navigationPanelsVisible: Bool
   @State private var showWrapUpConfirm = false
   @State private var showTranscriptHistory = false
   @State private var isMessageStreamAtBottom = true
   @State private var historyPagingReady = false
-  @State private var initialScrollGeneration = 0
-  @State private var isInitialScrollSettling = false
   @State private var showCustomRelayLimit = false
   @State private var customRelayLimitText = ""
 
@@ -117,16 +116,12 @@ struct ChatScreen: View {
                   .chatTimelineRow(verticalPadding: 10)
               }
               .listStyle(.plain)
+              .defaultScrollAnchor(.bottom)
               .scrollContentBackground(.hidden)
               .coordinateSpace(name: "chat-message-scroll")
               .id(messageTimelineIdentity)
               .onPreferenceChange(ChatMessageEndOffsetPreferenceKey.self) { markerY in
                 let isAtBottom = markerY <= scrollArea.size.height + 48
-                if isInitialScrollSettling {
-                  isMessageStreamAtBottom = true
-                  scrollToLatest(proxy, animated: false)
-                  return
-                }
                 if isMessageStreamAtBottom != isAtBottom {
                   isMessageStreamAtBottom = isAtBottom
                 }
@@ -162,7 +157,8 @@ struct ChatScreen: View {
           }
           .onChange(of: model.messageHistoryRevision) { _, _ in
             if let anchorId = model.messageHistoryPrependAnchorId {
-              cancelInitialScrollSettlement()
+              historyPagingReady = true
+              isMessageStreamAtBottom = false
               DispatchQueue.main.async { proxy.scrollTo(anchorId, anchor: .top) }
             } else if !model.messageHistoryHasNewer {
               settleInitialScroll(proxy)
@@ -173,7 +169,11 @@ struct ChatScreen: View {
               scrollToLatest(proxy, animated: false)
             }
           }
-          .onChange(of: activeDispatch?.status) { _, _ in scrollToLatest(proxy, animated: false) }
+          .onChange(of: activeDispatch?.status) { _, _ in
+            if isMessageStreamAtBottom && !model.messageHistoryHasNewer {
+              scrollToLatest(proxy, animated: false)
+            }
+          }
         }
         .padding(.top, 0)
         if !model.composerMentionSuggestions.isEmpty {
@@ -426,6 +426,7 @@ struct ChatScreen: View {
     .padding(.bottom, RCChromeMetrics.topHeaderContentBottomPadding)
     .frame(height: RCChromeMetrics.topReservedHeight, alignment: .bottom)
     .padding(.horizontal, 16)
+    .padding(.leading, navigationPanelsVisible ? 0 : 44)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(RCTheme.chatCanvas)
     .alert("Reset this \(isTeamThread ? "team" : "direct") chat?", isPresented: $showWrapUpConfirm)
@@ -640,31 +641,12 @@ struct ChatScreen: View {
   }
 
   func settleInitialScroll(_ proxy: ScrollViewProxy) {
-    initialScrollGeneration &+= 1
-    let generation = initialScrollGeneration
-    isInitialScrollSettling = true
     historyPagingReady = false
     isMessageStreamAtBottom = true
-
-    for delay in [0.0, 0.08, 0.24, 0.55, 1.0] {
-      DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-        guard generation == initialScrollGeneration else { return }
-        scrollToLatest(proxy, animated: false)
-      }
-    }
-
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1.15) {
-      guard generation == initialScrollGeneration else { return }
-      scrollToLatest(proxy, animated: false)
-      isInitialScrollSettling = false
+    DispatchQueue.main.async {
+      proxy.scrollTo("end", anchor: .bottom)
       historyPagingReady = true
     }
-  }
-
-  func cancelInitialScrollSettlement() {
-    initialScrollGeneration &+= 1
-    isInitialScrollSettling = false
-    historyPagingReady = true
   }
 
   func cycleMenuTitle(_ report: ThreadWrapUpReport) -> String {

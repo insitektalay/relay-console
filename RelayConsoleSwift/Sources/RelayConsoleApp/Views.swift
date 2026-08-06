@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
   @EnvironmentObject var model: AppViewModel
+  @State private var navigationPanelsVisible = true
 
   var body: some View {
     ZStack {
@@ -19,15 +20,29 @@ struct ContentView: View {
         RelayEntitlementGateView(access: model.relayEntitlementAccess)
       } else {
         HStack(spacing: 0) {
-          ShellIconRail()
-            .frame(width: RCChromeMetrics.railWidth)
-          Sidebar()
-            .frame(width: RCComponentBaseline.sidebarWidth)
-          MainStage()
+          if navigationPanelsVisible {
+            ShellIconRail()
+              .frame(width: RCChromeMetrics.railWidth)
+              .transition(.move(edge: .leading).combined(with: .opacity))
+            Sidebar()
+              .frame(width: RCComponentBaseline.sidebarWidth)
+              .transition(.move(edge: .leading).combined(with: .opacity))
+          }
+          MainStage(navigationPanelsVisible: $navigationPanelsVisible)
             .frame(minWidth: 0, maxWidth: .infinity)
             .layoutPriority(-1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .overlay(alignment: .topLeading) {
+          NavigationPanelsToggle(isVisible: $navigationPanelsVisible)
+            .padding(
+              .top,
+              RCChromeMetrics.topReservedHeight - ChatHeaderControlStyle.height
+                - RCChromeMetrics.topHeaderContentBottomPadding
+            )
+            .padding(.leading, 14)
+        }
+        .animation(.easeInOut(duration: 0.18), value: navigationPanelsVisible)
       }
       if model.commandPalettePresented {
         CommandPaletteOverlay()
@@ -55,6 +70,22 @@ struct ContentView: View {
     }
     .foregroundStyle(RCTheme.text)
     .ignoresSafeArea(.container, edges: .top)
+  }
+}
+
+private struct NavigationPanelsToggle: View {
+  @Binding var isVisible: Bool
+
+  var body: some View {
+    Button {
+      isVisible.toggle()
+    } label: {
+      HeaderIconControl(symbolName: "sidebar.left")
+    }
+    .buttonStyle(.plain)
+    .help(isVisible ? "Hide navigation panels" : "Show navigation panels")
+    .accessibilityLabel(isVisible ? "Hide navigation panels" : "Show navigation panels")
+    .accessibilityIdentifier("navigationPanelsToggle")
   }
 }
 
@@ -1228,20 +1259,21 @@ struct Sidebar: View {
 
 struct MainStage: View {
   @EnvironmentObject var model: AppViewModel
+  @Binding var navigationPanelsVisible: Bool
 
   var body: some View {
     Group {
       switch model.nav {
       case .chat:
-        ChatScreen()
+        ChatScreen(navigationPanelsVisible: $navigationPanelsVisible)
       case .agents:
-        AgentsScreen()
+        AgentsScreen(navigationPanelsVisible: navigationPanelsVisible)
       case .agentOps:
         AgentOpsHQScreen()
       case .artifacts:
         ArtifactsScreen()
       case .applications:
-        ApplicationsScreen()
+        ApplicationsScreen(navigationPanelsVisible: navigationPanelsVisible)
       case .approvals:
         ApprovalsScreen()
       case .insights:

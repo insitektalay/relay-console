@@ -134,11 +134,25 @@ export class OpenClawRuntimeAdapter implements RuntimeAdapter, OnModuleInit {
     );
   }
 
-  async cancelDispatch(_input: {
+  async cancelDispatch(input: {
     dispatchId: string;
     runtimeSessionId: string;
   }): Promise<void> {
-    // Current OpenClaw bridge transport does not expose a generic cancel path.
+    const [, agentId] = input.runtimeSessionId.split(":");
+    if (!agentId) return;
+    const agent = await this.agentRepo.findOne({ where: { id: agentId } });
+    const externalAgentId = agent?.externalId?.trim();
+    if (!agent || !externalAgentId) return;
+    this.eventsGateway.emitToBridgeAgents(
+      agent.workspaceId,
+      [externalAgentId],
+      "runtime.dispatch.cancel",
+      {
+        dispatchId: input.dispatchId,
+        runtimeSessionId: input.runtimeSessionId,
+        externalAgentId,
+      },
+    );
   }
 
   async closeSession(_input: {
@@ -194,7 +208,6 @@ export class OpenClawRuntimeAdapter implements RuntimeAdapter, OnModuleInit {
   ): Promise<RuntimeCapabilities> {
     return {
       streamText: false,
-      cancelRun: false,
       resumeSession: false,
       toolActivity: "none",
       bridgeBacked: true,
@@ -202,6 +215,7 @@ export class OpenClawRuntimeAdapter implements RuntimeAdapter, OnModuleInit {
       structuredJobs: binding.capabilities?.structuredJobs === true,
       structuredOutput: binding.capabilities?.structuredOutput === true,
       ...(binding.capabilities ?? {}),
+      cancelRun: true,
     } as RuntimeCapabilities;
   }
 

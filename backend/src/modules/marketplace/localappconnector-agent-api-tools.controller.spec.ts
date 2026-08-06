@@ -119,6 +119,12 @@ function createController(
         return { ok: true };
       }),
   };
+  const messageService = {
+    publishTeamRuntimeMessage: jest.fn(async () => ({
+      success: true,
+      messageId: "message-1",
+    })),
+  };
 
   const controller = new LocalAppConnectorAgentApiBridgeToolsController(
     bridgeService as any,
@@ -127,6 +133,7 @@ function createController(
     linkedApplicationRepo as any,
     connectorExecutionService as any,
     runtimeBindingService as any,
+    messageService as any,
   );
 
   return {
@@ -137,6 +144,7 @@ function createController(
     marketplaceInstallRepo,
     linkedApplicationRepo,
     connectorExecutionService,
+    messageService,
   };
 }
 
@@ -148,6 +156,27 @@ describe("LocalAppConnectorAgentApiBridgeToolsController", () => {
       await routeApp.close();
       routeApp = null;
     }
+  });
+
+  it("executes the Relay team publication tool against the authorized dispatch", async () => {
+    const { controller, messageService } = createController();
+    await expect(
+      controller.executeGenericTool(
+        "dispatch-id",
+        "relay",
+        "relay_publish_message",
+        { authorization: "Bearer bridge-token" },
+        {
+          content: "Visible team update",
+          callId: "call-1",
+          mentions: [{ agentId: "peer-1" }],
+        },
+      ),
+    ).resolves.toEqual({ success: true, messageId: "message-1" });
+    expect(messageService.publishTeamRuntimeMessage).toHaveBeenCalledWith(
+      "dispatch-id",
+      expect.objectContaining({ callId: "call-1" }),
+    );
   });
 
   it("mounts the exact Hermes generic route under the api/v1 bridge prefix", async () => {
@@ -184,6 +213,15 @@ describe("LocalAppConnectorAgentApiBridgeToolsController", () => {
           provide: RuntimeBindingService,
           useValue: {
             findById: jest.fn(async () => null),
+          },
+        },
+        {
+          provide: MessageService,
+          useValue: {
+            publishTeamRuntimeMessage: jest.fn(async () => ({
+              success: true,
+              messageId: "message-1",
+            })),
           },
         },
       ],

@@ -77,6 +77,7 @@ function buildController() {
   };
   const runtimeDispatchCoordinator = {
     completeDispatchFromPostback: jest.fn(async () => undefined),
+    completeDispatchWithoutMessage: jest.fn(async () => undefined),
     emitProgressFromPostback: jest.fn(async () => undefined),
     documentMetadataForPostback: jest.fn(
       async (_dispatchId, metadata) => metadata,
@@ -101,13 +102,16 @@ function buildController() {
       synchronized: body.artifacts.length,
     })),
   };
+  const messageService = {
+    isTeamThread: jest.fn(async () => false),
+  };
 
   const controller = new BridgeController(
     bridgeService as any,
     agentService as any,
     {} as any,
     claudeService as any,
-    {} as any,
+    messageService as any,
     runtimeDispatchService as any,
     runtimeBindingService as any,
     runtimeDispatchCoordinator as any,
@@ -129,6 +133,7 @@ function buildController() {
     agentHostSyncService,
     agentService,
     workspaceArtifacts,
+    messageService,
   };
 }
 
@@ -377,6 +382,26 @@ describe("BridgeController workspace scope", () => {
     );
   });
 
+  it("rejects ordinary final-message postbacks for team runtime dispatches", async () => {
+    const { controller, bridgeService, messageService } = buildController();
+    messageService.isTeamThread.mockResolvedValueOnce(true);
+
+    await expect(
+      controller.postMessage(
+        {
+          threadId: "thread-1",
+          dispatchId: "dispatch-1",
+          content: "hidden final",
+          senderId: "external-agent-1",
+        },
+        { authorization: "Bearer bridge-token" },
+      ),
+    ).rejects.toThrow(
+      "Team runtime messages must be published with relay_publish_message",
+    );
+    expect(bridgeService.postBridgeMessage).not.toHaveBeenCalled();
+  });
+
   it("binds Claude callback ownership to an admitted Claude device and runtime binding", async () => {
     const { controller, bridgeService, claudeService, runtimeBindingService } =
       buildController();
@@ -555,6 +580,43 @@ describe("BridgeController workspace scope", () => {
         ],
       }),
     });
+  });
+
+  it("completes a team runtime turn without requiring a final-message postback", async () => {
+    const { controller, messageService, runtimeDispatchCoordinator } =
+      buildController();
+    messageService.isTeamThread.mockResolvedValueOnce(true);
+
+    await expect(
+      controller.postRuntimeDispatchEvent(
+        "dispatch-1",
+        {
+          type: "run.completed",
+          finalText: "hidden final",
+          metadata: { model: "runtime-model" },
+        },
+        { authorization: "Bearer bridge-token" },
+      ),
+    ).resolves.toEqual({
+      success: true,
+      dispatchId: "dispatch-1",
+      type: "run.completed",
+      terminalAcknowledged: true,
+      requiresMessagePostback: false,
+    });
+    expect(
+      runtimeDispatchCoordinator.completeDispatchWithoutMessage,
+    ).toHaveBeenCalledWith({
+      dispatchId: "dispatch-1",
+      resultSummary: "hidden final",
+      resultMetadata: {
+        model: "runtime-model",
+        publicationMode: "tool_only",
+      },
+    });
+    expect(
+      runtimeDispatchCoordinator.completeDispatchFromPostback,
+    ).not.toHaveBeenCalled();
   });
 
   it("forwards structured Hermes todo snapshots without inventing task plans", async () => {

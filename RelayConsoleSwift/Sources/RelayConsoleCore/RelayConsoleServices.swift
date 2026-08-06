@@ -759,8 +759,16 @@ public final class RelayConsoleServices {
             data: data,
             registry: registry,
             entitlement: entitlement,
-            eventBus: eventBus
+            eventBus: eventBus,
+            harnessInstall: harnessInstall
         )
+        marketplaceRuntimeToolBridge.setTeamMessagePublisher { dispatchId, payload, runtime in
+            try dispatch.publishTeamRuntimeMessage(
+                dispatchId: dispatchId,
+                payload: payload,
+                runtime: runtime
+            )
+        }
         self.paths = paths
         self.database = database
         self.eventBus = eventBus

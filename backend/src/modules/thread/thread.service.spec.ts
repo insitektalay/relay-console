@@ -422,7 +422,7 @@ describe("ThreadService", () => {
     ]);
   });
 
-  it("does not add the configured manager to new team thread memberships", async () => {
+  it("adds the team lead but not the department head to new team thread memberships", async () => {
     const {
       service,
       threadRepo,
@@ -462,7 +462,11 @@ describe("ThreadService", () => {
       title: "Target & Execute",
       type: "team",
       teamId: "team-target-execute",
-      agentIds: ["targeting_maintenance", "research_worker"],
+      agentIds: [
+        "targeting_maintenance",
+        "research_worker",
+        "execution_optimizer",
+      ],
       status: "active",
     });
 
@@ -479,7 +483,7 @@ describe("ThreadService", () => {
 
     expect(threadMembershipService.syncMemberships).toHaveBeenCalledWith(
       expect.objectContaining({ id: "thread-target-execute" }),
-      ["targeting_maintenance", "research_worker"],
+      ["targeting_maintenance", "research_worker", "execution_optimizer"],
     );
   });
 
