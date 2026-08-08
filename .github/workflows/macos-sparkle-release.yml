@@ -212,11 +212,20 @@ jobs:
           element.text = commit
           File.open(path, "w") { |file| document.write(file, 2) }
           serialized = REXML::Document.new(File.read(path))
-          verified = REXML::XPath.first(
-            serialized,
-            "//item[sparkle:version='#{build}' and sparkle:shortVersionString='#{version}']/relay:backendCommit",
-            namespaces
-          )
+          item = REXML::XPath.each(serialized, "//*[local-name()='item']").find do |candidate|
+            version_element = REXML::XPath.first(candidate, "*[local-name()='version']")
+            short_version_element = REXML::XPath.first(candidate, "*[local-name()='shortVersionString']")
+            version_element && short_version_element &&
+              version_element.namespace == namespaces.fetch("sparkle") &&
+              short_version_element.namespace == namespaces.fetch("sparkle") &&
+              version_element.text.to_s.strip == build &&
+              short_version_element.text.to_s.strip == version
+          end
+          abort("Serialized appcast does not contain the release item") unless item
+
+          verified = REXML::XPath.each(item, "*[local-name()='backendCommit']").find do |candidate|
+            candidate.namespace == namespaces.fetch("relay")
+          end
           abort("Serialized appcast backend commit is missing") unless verified
           abort("Serialized appcast backend commit does not match the checked-out commit") unless verified.text.to_s.strip == commit
           RUBY
