@@ -259,6 +259,72 @@ test("web and iPhone clients can update saved generic connections", async () => 
   assert.match(iphoneView, /Replace saved credentials/)
 })
 
+test("all generic connection forms keep create visible and offer confirmed delete", async () => {
+  const [
+    mac,
+    macActions,
+    macRunAction,
+    iphone,
+    webSdk,
+    backendController,
+    iphoneEndpoint,
+    iphoneViewModel,
+  ] =
+    await Promise.all([
+      source(
+        "RelayConsoleSwift/Sources/RelayConsoleApp/Features/Applications/ApplicationCredentialFormsA.swift"
+      ),
+      source(
+        "RelayConsoleSwift/Sources/RelayConsoleApp/Features/Applications/AppViewModel+ApplicationCatalogCredentials.swift"
+      ),
+      source(
+        "RelayConsoleSwift/Sources/RelayConsoleApp/Features/Chats/AppViewModel+Chats.swift"
+      ),
+      source("ios/ClawChat/Features/Marketplace/MarketplaceView.swift"),
+      source("packages/web-sdk/src/index.ts"),
+      source("backend/src/modules/marketplace/marketplace.controller.ts"),
+      source("ios/ClawChat/Infrastructure/Network/APIEndpoints.swift"),
+      source("ios/ClawChat/Features/Marketplace/MarketplaceViewModel.swift"),
+    ])
+  const form = mac.slice(
+    mac.indexOf("struct ApplicationsManifestCredentialForm"),
+    mac.indexOf("struct ApplicationsConnectionFormGrid")
+  )
+
+  assert.match(form, /Button\("Create a new connection"/)
+  assert.doesNotMatch(
+    form,
+    /if editingConnectionId != nil \{\s*Button\("Create a new connection"/
+  )
+  assert.match(form, /Button\("Delete connection"/)
+  assert.match(form, /confirmationDialog\(/)
+  const deleteAction = macActions.slice(
+    macActions.indexOf("func deleteManifestDefinedConnection"),
+    macActions.indexOf("func loadManifestDefinedConnections")
+  )
+  assert.match(deleteAction, /remoteMarketplaceConnectionId/)
+  assert.match(deleteAction, /relativePath: "connections\/\\\(remoteConnectionId\)"/)
+  assert.match(
+    macRunAction,
+    /value\.hasPrefix\("delete-manifest-provider-"\)[\s\S]*marketplaceManifestConnectionStatus/
+  )
+  assert.match(marketplaceSource, /Create a new connection/)
+  assert.match(marketplaceSource, /Delete connection/)
+  assert.match(marketplaceSource, /deleteConnectionMutation/)
+  assert.match(iphone, /Button\("Create a new connection"/)
+  assert.match(iphone, /Button\("Delete connection"/)
+  assert.match(webSdk, /deleteConnection:[\s\S]*method: "DELETE"/)
+  assert.match(
+    backendController,
+    /@Delete\("connections\/:id"\)[\s\S]*@Param\("id", ParseUUIDPipe\)/
+  )
+  assert.match(iphoneEndpoint, /case deleteMarketplaceConnection/)
+  assert.match(
+    iphoneViewModel,
+    /func delete\([\s\S]*\.deleteMarketplaceConnection/
+  )
+})
+
 test("generic agent switches persist assignments directly on all three clients", async () => {
   const [macView, macViewModel, webConnect, iphone] = await Promise.all([
     source(
@@ -318,7 +384,7 @@ test("assigned apps are not presented as ready when the agent runtime is unavail
   assert.match(mountCompiler, /throw RelayError\(\s*\.dispatchFailed/)
   assert.match(mountCompiler, /mountedRailwayAppSlugs/)
   assert.match(mountCompiler, /missingRailwayInstalls/)
-  assert.match(mountCompiler, /Remote Access did not provide its runtime tools/)
+  assert.match(mountCompiler, /Railway did not provide its callable tools/)
   assert.match(web, /Assigned — runtime unavailable/)
   assert.match(iphone, /Assigned — runtime unavailable/)
 })

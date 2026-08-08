@@ -667,6 +667,7 @@ struct ApplicationsManifestCredentialForm: View {
   @State private var authType: String
   @State private var credentials: [String: String] = [:]
   @State private var editingConnectionId: RelayId?
+  @State private var deleteRequested = false
 
   init(app: MarketplaceCatalogApp) {
     self.app = app
@@ -701,17 +702,27 @@ struct ApplicationsManifestCredentialForm: View {
     model.busy == "connect-manifest-provider-\(app.slug)"
   }
 
+  private var deleteInProgress: Bool {
+    guard let editingConnectionId else { return false }
+    return model.busy == "delete-manifest-provider-\(editingConnectionId)"
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       ApplicationsUniversalSavedConnectionsCard(app: app) { connection in
         editingConnectionId = connection.id
         displayName = connection.accountLabel?.nilIfEmpty ?? app.name
-        credentials = Dictionary(
-          uniqueKeysWithValues: (app.credentialRequirements ?? []).compactMap { requirement in
-            guard let defaultValue = requirement.defaultValue else { return nil }
-            return (requirement.name, defaultValue)
-          }
-        )
+        credentials = defaultCredentials()
+      }
+      HStack(spacing: 10) {
+        Text(editingConnectionId == nil ? "New connection" : "Edit connection")
+          .font(.system(size: 13, weight: .bold))
+        Spacer()
+        Button("Create a new connection") {
+          resetForm()
+        }
+        .buttonStyle(SecondaryLightButtonStyle())
+        .help("Open a blank form for another Railway connection")
       }
       Divider()
       ApplicationsConnectionFormGrid {
@@ -770,34 +781,45 @@ struct ApplicationsManifestCredentialForm: View {
         .font(.system(size: 11, weight: .semibold))
         .foregroundStyle(RCTheme.muted)
       }
-      Button {
-        model.saveManifestDefinedConnection(
-          for: app,
-          connectionId: editingConnectionId,
-          displayName: displayName,
-          authType: authType,
-          credentials: credentials
-        )
-      } label: {
-        HStack(spacing: 8) {
-          if saveInProgress {
-            ProgressView()
-              .controlSize(.small)
-          }
-          Text(
-            saveInProgress
-              ? "Saving connection…"
-              : editingConnectionId == nil ? "Save connection" : "Update connection"
+      HStack(spacing: 8) {
+        Button {
+          model.saveManifestDefinedConnection(
+            for: app,
+            connectionId: editingConnectionId,
+            displayName: displayName,
+            authType: authType,
+            credentials: credentials
           )
+        } label: {
+          HStack(spacing: 8) {
+            if saveInProgress {
+              ProgressView()
+                .controlSize(.small)
+            }
+            Text(
+              saveInProgress
+                ? "Saving connection…"
+                : editingConnectionId == nil ? "Save connection" : "Update connection"
+            )
+          }
+        }
+        .buttonStyle(PrimaryLightButtonStyle())
+        .disabled(
+          !canSave
+            || saveInProgress
+            || model.providerConnectionSnapshot?.readOnly == true
+            || app.availability != .available
+        )
+        if editingConnectionId != nil {
+          Button("Cancel") { resetForm() }
+            .buttonStyle(SecondaryLightButtonStyle())
+          Button("Delete connection", role: .destructive) {
+            deleteRequested = true
+          }
+          .buttonStyle(SecondaryLightButtonStyle())
+          .disabled(deleteInProgress || model.providerConnectionSnapshot?.readOnly == true)
         }
       }
-      .buttonStyle(PrimaryLightButtonStyle())
-      .disabled(
-        !canSave
-          || saveInProgress
-          || model.providerConnectionSnapshot?.readOnly == true
-          || app.availability != .available
-      )
       if let status = model.marketplaceManifestConnectionStatus?.nilIfEmpty {
         Text(status)
           .font(.caption)
@@ -821,6 +843,38 @@ struct ApplicationsManifestCredentialForm: View {
     .task(id: app.slug) {
       await model.loadManifestDefinedConnections(for: app)
     }
+    .confirmationDialog(
+      "Delete this connection?",
+      isPresented: $deleteRequested,
+      titleVisibility: .visible
+    ) {
+      Button("Delete connection", role: .destructive) {
+        guard let connectionId = editingConnectionId else { return }
+        model.deleteManifestDefinedConnection(connectionId, for: app)
+        resetForm()
+      }
+      Button("Cancel", role: .cancel) {}
+    } message: {
+      Text(
+        "Relay will delete this Railway connection and remove it from all assigned agents. Revoke the credential or authorization in the provider dashboard if you do not want it to remain valid."
+      )
+    }
+  }
+
+  private func defaultCredentials() -> [String: String] {
+    Dictionary(
+      uniqueKeysWithValues: (app.credentialRequirements ?? []).compactMap { requirement in
+        guard let defaultValue = requirement.defaultValue else { return nil }
+        return (requirement.name, defaultValue)
+      }
+    )
+  }
+
+  private func resetForm() {
+    editingConnectionId = nil
+    displayName = app.name
+    authType = app.connectionTypes?.first ?? app.authType
+    credentials = defaultCredentials()
   }
 
   private func credentialBinding(_ name: String) -> Binding<String> {

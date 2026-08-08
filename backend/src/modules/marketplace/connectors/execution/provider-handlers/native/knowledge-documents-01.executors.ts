@@ -3,6 +3,10 @@ import type { MarketplaceConnectorExecutionService } from "../../../connector-ex
 import { MarketplaceConnectionEntity } from "../../../../../../entities";
 import { type MarketplaceConnectorExecutorRequest } from "../../../types";
 import { ConnectorExecutionError } from "../../connector-execution.error";
+import {
+  CRAFT_MANAGE_OPERATIONS,
+  CRAFT_READ_OPERATIONS,
+} from "../../../craft/craft-api.adapter";
 
 export const KnowledgeDocumentsExecutors1 = {
   async executeAdobeAcrobatSign(
@@ -881,27 +885,44 @@ export const KnowledgeDocumentsExecutors1 = {
       "craft",
       input.connectionId,
     );
-    const credentials = this.craftCredentials(
-      this.credentials.decrypt(connection),
-    );
+    const stored = this.credentials.decrypt(connection);
+    const legacyApiUrl = this.stringOrNull(stored.CRAFT_API_URL);
     const tool = this.registry.getTool("craft", input.toolName)!;
     const name = tool.name;
     let data: unknown;
-    if (name === "craft.read")
-      data = await this.craftApi.callRead(credentials, input.input);
-    else if (name === "craft.manage") {
+    if (name === "craft.manage") {
       await this.requireConnectorApproval(
         input,
         connection,
         "craft_api_manage",
         "craft",
       );
-      data = await this.craftApi.callManage(credentials, input.input);
-    } else
+    } else if (!["craft.read", "craft.discoverTools"].includes(name))
       return this.safeError(
         "tool_unavailable",
         `${input.toolName} is not implemented`,
       );
+    if (legacyApiUrl) {
+      const credentials = this.craftCredentials(stored);
+      data =
+        name === "craft.discoverTools"
+          ? {
+              readTools: [...CRAFT_READ_OPERATIONS],
+              manageTools: [...CRAFT_MANAGE_OPERATIONS],
+              transport: "legacy_api_url",
+            }
+          : name === "craft.read"
+            ? await this.craftApi.callRead(credentials, input.input)
+            : await this.craftApi.callManage(credentials, input.input);
+    } else {
+      const token = await this.oauth.refreshIfNeeded(connection);
+      data =
+        name === "craft.discoverTools"
+          ? await this.craftMcp.discoverTools(token.accessToken)
+          : name === "craft.read"
+            ? await this.craftMcp.callRead(token.accessToken, input.input)
+            : await this.craftMcp.callManage(token.accessToken, input.input);
+    }
     await this.recordAudit({
       workspaceId: input.workspaceId,
       actorId: input.agentId,
@@ -910,8 +931,11 @@ export const KnowledgeDocumentsExecutors1 = {
       metadata: {
         toolName: name,
         capability: tool.capability,
-        operation: this.stringOrNull(input.input.operation),
+        operation:
+          this.stringOrNull(input.input.toolName) ??
+          this.stringOrNull(input.input.operation),
         authorityBound: true,
+        transport: legacyApiUrl ? "legacy_api_url" : "hosted_mcp_oauth",
       },
     });
     return this.ok(data, `Craft ${name.split(".")[1]} completed.`);

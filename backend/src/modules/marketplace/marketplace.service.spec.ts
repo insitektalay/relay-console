@@ -41,6 +41,7 @@ type MarketplaceServiceTestOptions = {
   bridgeService?: Record<string, unknown>;
   linkedApplicationRepo?: Record<string, unknown>;
   connectionRepo?: Record<string, unknown>;
+  marketplaceInstallRepo?: Record<string, unknown>;
   auditLogService?: Record<string, unknown>;
 };
 
@@ -114,7 +115,7 @@ function createMarketplaceService(options: MarketplaceServiceTestOptions = {}) {
     (options.bridgeService ?? defaultTestBridgeService) as any,
     {} as any,
     (options.connectionRepo ?? {}) as any,
-    {} as any,
+    (options.marketplaceInstallRepo ?? {}) as any,
     {} as any,
     {} as any,
     {} as any,
@@ -209,6 +210,59 @@ describe("Marketplace credential verification reconciliation", () => {
         secretKeyVersion: null,
       }),
     );
+  });
+
+  it("deletes a connection and removes each agent assignment that uses it", async () => {
+    const connection = {
+      id: "connection-1",
+      workspaceId: "workspace-1",
+      appSlug: "exa-search",
+      displayName: "Exa Search",
+      executionAuthority: "railway",
+    };
+    const installs = [
+      {
+        id: "install-1",
+        workspaceId: "workspace-1",
+        appSlug: "exa-search",
+        agentId: "agent-1",
+        connectionId: "connection-1",
+        installStatus: "installed",
+        driftStatus: "current",
+        metadata: {},
+      },
+    ];
+    const connectionRepo = {
+      findOne: jest.fn().mockResolvedValue(connection),
+      remove: jest.fn().mockResolvedValue(connection),
+    };
+    const marketplaceInstallRepo = {
+      find: jest.fn().mockResolvedValue(installs),
+      save: jest.fn(async (value) => value),
+    };
+    const auditLogService = { record: jest.fn().mockResolvedValue(undefined) };
+    const service = createMarketplaceService({
+      connectionRepo,
+      marketplaceInstallRepo,
+      auditLogService,
+    });
+
+    await expect(
+      service.deleteConnection("workspace-1", "connection-1", "user-1"),
+    ).resolves.toEqual({
+      id: "connection-1",
+      appSlug: "exa-search",
+      deleted: true,
+      removedInstallIds: ["install-1"],
+    });
+    expect(installs[0]).toEqual(
+      expect.objectContaining({
+        connectionId: null,
+        installStatus: "removed",
+        driftStatus: "unconfigured",
+      }),
+    );
+    expect(connectionRepo.remove).toHaveBeenCalledWith(connection);
   });
 
   it("retains a no-probe credential only with explicit consent and labels it unverified", async () => {

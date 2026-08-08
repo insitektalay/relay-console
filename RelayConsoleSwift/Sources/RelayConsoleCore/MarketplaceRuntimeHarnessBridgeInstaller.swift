@@ -60,11 +60,19 @@ extension HarnessInstallManager {
                 environment: env,
                 to: openClawContextPath
             )
-            let pluginDir = try writeOpenClawMarketplaceRuntimeToolPlugin(mount: mount)
+            let snapshotDirectory = snapshotPath.deletingLastPathComponent()
+            let catalog = try openClawMarketplaceToolCatalog(
+                snapshotDirectory: snapshotDirectory,
+                including: mount
+            )
+            let pluginDir = try writeOpenClawMarketplaceRuntimeToolPlugin(
+                toolNames: catalog.toolNames
+            )
             requiresHarnessRefresh = try ensureOpenClawMarketplacePluginEnabled(
                 pluginDir: pluginDir,
                 runtimeConfig: openClawMarketplacePluginRuntimeConfig(
-                    snapshotPath: snapshotPath,
+                    snapshotDirectory: snapshotDirectory,
+                    catalogVersion: catalog.version,
                     command: command,
                     environment: env
                 )
@@ -130,12 +138,40 @@ extension HarnessInstallManager {
         try hermesMarketplaceRuntimeToolModuleSource.write(to: modulePath, atomically: true, encoding: .utf8)
     }
 
-    private func writeOpenClawMarketplaceRuntimeToolPlugin(mount: MarketplaceRuntimeCapabilitySnapshot) throws -> URL {
+    private func openClawMarketplaceToolCatalog(
+        snapshotDirectory: URL,
+        including current: MarketplaceRuntimeCapabilitySnapshot
+    ) throws -> (toolNames: [String], version: String) {
+        var snapshots = [current]
+        let urls = (try? FileManager.default.contentsOfDirectory(
+            at: snapshotDirectory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        )) ?? []
+        for url in urls where url.pathExtension == "json" {
+            guard let data = try? Data(contentsOf: url),
+                  let snapshot = try? jsonDecoder.decode(
+                    MarketplaceRuntimeCapabilitySnapshot.self,
+                    from: data
+                  ),
+                  snapshot.runtimeType == .openclaw
+            else { continue }
+            snapshots.append(snapshot)
+        }
+        let names = Array(Set(snapshots.flatMap(\.mountedToolNames))).sorted()
+        let fingerprints = Array(Set(snapshots.map(\.fingerprint))).sorted()
+        let version = RelayProviderWrapperToolCompilerService.stableSuffix(
+            (names + fingerprints).joined(separator: "|")
+        )
+        return (names, version)
+    }
+
+    private func writeOpenClawMarketplaceRuntimeToolPlugin(toolNames: [String]) throws -> URL {
         let pluginDir = paths.root
             .appendingPathComponent("marketplace-runtime", isDirectory: true)
             .appendingPathComponent("openclaw-relay-marketplace-plugin", isDirectory: true)
         try FileManager.default.createDirectory(at: pluginDir, withIntermediateDirectories: true)
-        let toolContracts = mount.mountedToolNames.map(JSONValue.string)
+        let toolContracts = toolNames.map(JSONValue.string)
         let manifest: JSONRecord = [
             "id": .string("relay-marketplace"),
             "name": .string("Relay Marketplace"),
@@ -145,7 +181,10 @@ extension HarnessInstallManager {
                 "type": .string("object"),
                 "additionalProperties": .bool(false),
                 "properties": .object([
-                    "snapshotPath": .object([
+                    "snapshotDirectory": .object([
+                        "type": .string("string")
+                    ]),
+                    "catalogVersion": .object([
                         "type": .string("string")
                     ]),
                     "bridgeCommand": .object([
@@ -221,13 +260,13 @@ extension HarnessInstallManager {
     }
 
     private func openClawMarketplacePluginRuntimeConfig(
-        snapshotPath: URL,
+        snapshotDirectory: URL,
+        catalogVersion: String,
         command: MarketplaceRuntimeBridgeCommandSpec,
         environment: [String: String]
     ) -> JSONRecord {
         let persistentEnvironmentKeys = Set([
             RelayConsoleServices.temporaryUserDataPathEnvironmentKey,
-            "RELAY_MARKETPLACE_RUNTIME_SNAPSHOT_PATH",
             MarketplaceRuntimeBrokerEndpoint.socketPathEnvironmentKey,
             MarketplaceRuntimeBrokerEndpoint.tokenPathEnvironmentKey,
             "RELAY_MARKETPLACE_AGENT_ID",
@@ -242,7 +281,8 @@ extension HarnessInstallManager {
                 partial[pair.key] = .string(pair.value)
             }
         return [
-            "snapshotPath": .string(snapshotPath.path),
+            "snapshotDirectory": .string(snapshotDirectory.path),
+            "catalogVersion": .string(catalogVersion),
             "bridgeCommand": .string(command.command),
             "bridgeArgs": .array(command.args.map(JSONValue.string)),
             "bridgeEnvironment": .object(persistentEnvironment)
@@ -456,14 +496,33 @@ const { spawnSync } = require("node:child_process");
 
 let runtimeConfig = {};
 
-function loadSnapshot() {
-  const snapshotPath = runtimeString(process.env.RELAY_MARKETPLACE_RUNTIME_SNAPSHOT_PATH) || runtimeString(runtimeConfig.snapshotPath);
+function loadSnapshot(path) {
+  const snapshotPath = runtimeString(path);
   if (!snapshotPath) return {};
   try {
     return JSON.parse(fs.readFileSync(snapshotPath, "utf8"));
   } catch {
     return {};
   }
+}
+
+function loadCatalog() {
+  const directory = runtimeString(runtimeConfig.snapshotDirectory);
+  if (!directory) return [];
+  const byName = new Map();
+  try {
+    for (const entry of fs.readdirSync(directory)) {
+      if (!entry.endsWith(".json")) continue;
+      const snapshot = loadSnapshot(`${directory}/${entry}`);
+      if (runtimeString(snapshot.runtimeType) !== "openclaw") continue;
+      for (const app of snapshot.apps || []) {
+        for (const tool of app.tools || []) {
+          if (runtimeString(tool && tool.toolName)) byName.set(tool.toolName, tool);
+        }
+      }
+    }
+  } catch {}
+  return Array.from(byName.values());
 }
 
 function runtimeString(value) {
@@ -533,6 +592,17 @@ function dispatchEnvironment(toolContext) {
   }
 }
 
+function toolForSession(name, toolContext) {
+  const environment = dispatchEnvironment(toolContext);
+  const snapshot = loadSnapshot(environment.RELAY_MARKETPLACE_RUNTIME_SNAPSHOT_PATH);
+  for (const app of snapshot.apps || []) {
+    for (const tool of app.tools || []) {
+      if (tool && tool.toolName === name) return tool;
+    }
+  }
+  return null;
+}
+
 function runBridge(toolName, params, toolContext) {
   const command = runtimeString(process.env.RELAY_MARKETPLACE_TOOL_BRIDGE_COMMAND) || runtimeString(runtimeConfig.bridgeCommand);
   if (!command) return { ok: false, error: "Relay Marketplace bridge command is not configured." };
@@ -575,7 +645,8 @@ module.exports = {
     type: "object",
     additionalProperties: false,
     properties: {
-      snapshotPath: { type: "string" },
+      snapshotDirectory: { type: "string" },
+      catalogVersion: { type: "string" },
       bridgeCommand: { type: "string" },
       bridgeArgs: { type: "array", items: { type: "string" } },
       bridgeEnvironment: { type: "object", additionalProperties: { type: "string" } },
@@ -585,12 +656,13 @@ module.exports = {
     runtimeConfig = api && api.pluginConfig && typeof api.pluginConfig === "object" && !Array.isArray(api.pluginConfig)
       ? api.pluginConfig
       : {};
-    const snapshot = loadSnapshot();
-    for (const app of snapshot.apps || []) {
-      for (const tool of app.tools || []) {
-        const name = tool.toolName;
+    for (const catalogTool of loadCatalog()) {
+        const name = catalogTool.toolName;
         if (!name) continue;
-        api.registerTool((toolContext) => ({
+        api.registerTool((toolContext) => {
+          const tool = toolForSession(name, toolContext);
+          if (!tool) return null;
+          return {
             name,
             label: tool.displayName || name,
             description: `${tool.displayName || name}. ${tool.summary || ""}`.trim(),
@@ -602,8 +674,8 @@ module.exports = {
                 details: result,
               };
             },
-          }), { name });
-      }
+          };
+        }, { name });
     }
   },
 };

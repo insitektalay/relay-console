@@ -1548,6 +1548,9 @@ struct RelayConsoleComponentBaselineTests {
     let refresh = try readPackageFile(
       "Sources/RelayConsoleApp/Features/Applications/AppViewModel+ApplicationRefresh.swift"
     )
+    let coordination = try readPackageFile(
+      "Sources/RelayConsoleApp/Features/Shell/AppViewModel+Coordination.swift"
+    )
 
     try expect(
       sourceContainsIgnoringWhitespace(
@@ -1566,7 +1569,7 @@ struct RelayConsoleComponentBaselineTests {
     try expect(
       refresh.components(separatedBy:
         "guard applicationsSelectedAppId.nilIfEmpty == requestedSelectedAppId else"
-      ).count == 3,
+      ).count == 5,
       "Marketplace refresh must reject a stale selection before loading detail state and before publishing it"
     )
     try expect(
@@ -1587,6 +1590,36 @@ struct RelayConsoleComponentBaselineTests {
           """
       ),
       "Cancelled marketplace refreshes must not surface as user-facing failures"
+    )
+    try expect(
+      sourceContainsIgnoringWhitespace(
+        coordination,
+        containsIgnoringWhitespace: """
+          let requestedApplicationsSelectedAppId = applicationsSelectedAppId
+          """
+      ),
+      "Full refresh must capture the Applications selection before loading its snapshot"
+    )
+    try expect(
+      sourceContainsIgnoringWhitespace(
+        coordination,
+        containsIgnoringWhitespace: """
+          if applicationsSelectedAppId == requestedApplicationsSelectedAppId {
+            applicationsCatalogSnapshot = nextApplicationsCatalog
+          """
+      ),
+      "Full refresh must not replace a newer Applications selection with its stale snapshot"
+    )
+    try expect(
+      sourceContainsIgnoringWhitespace(
+        coordination,
+        containsIgnoringWhitespace: """
+          if applicationsSelectedAppId != requestedApplicationsSelectedAppId {
+            scheduleApplicationsRefresh()
+          } else if nextApplicationsCatalog.selectedApp?.slug == "exa-search" {
+          """
+      ),
+      "Full refresh must leave newer connection selection state intact and refresh it separately"
     )
   }
 

@@ -1437,6 +1437,48 @@ const oauthProviderMetadataHandler146: OAuthProviderMetadataHandler = function (
   };
 };
 
+const oauthProviderMetadataHandler147: OAuthProviderMetadataHandler = function (
+  this: MarketplaceConnectorOAuthService,
+  _appSlug,
+  clientId,
+  grantedScopes,
+  profileObject,
+) {
+  if (profileObject.liveToolsVerified !== true)
+    throw new BadRequestException("Craft hosted MCP binding is invalid");
+  return {
+    provider: "craft",
+    connectorStandardVersion: "v1",
+    oauthFlow:
+      "dynamic_confidential_authorization_code_pkce_refresh_revocation",
+    tokenStatus: "valid",
+    clientId,
+    displayName: "Craft space",
+    grantedScopes,
+    railwayCallbackOnly: true,
+    stateVerified: true,
+    pkceS256: true,
+    providerPermissionsEnforced: true,
+    mcpVerified: true,
+    liveToolsVerified: true,
+    toolCount:
+      typeof profileObject.toolCount === "number"
+        ? profileObject.toolCount
+        : null,
+    readToolCount:
+      typeof profileObject.readToolCount === "number"
+        ? profileObject.readToolCount
+        : null,
+    manageToolCount:
+      typeof profileObject.manageToolCount === "number"
+        ? profileObject.manageToolCount
+        : null,
+    mcpResource: "https://mcp.craft.do/my/mcp",
+    rawToolsEnabled: false,
+    lastHealthCheck: null,
+  };
+};
+
 export const OAuthProviderMetadataHandlers05: OAuthProviderMetadataHandlerMap =
   Object.freeze({
     confluence: oauthProviderMetadataHandler113,
@@ -1475,4 +1517,5 @@ export const OAuthProviderMetadataHandlers05: OAuthProviderMetadataHandlerMap =
     "microsoft-teams": oauthProviderMetadataHandler144,
     twist: oauthProviderMetadataHandler145,
     jotform: oauthProviderMetadataHandler146,
+    craft: oauthProviderMetadataHandler147,
   });

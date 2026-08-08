@@ -15,6 +15,7 @@ CONTENTS_PATH="$APP_PATH/Contents"
 INFO_PLIST="$CONTENTS_PATH/Info.plist"
 MAIN_EXECUTABLE="$CONTENTS_PATH/MacOS/Relay Console"
 BRIDGE_EXECUTABLE="$CONTENTS_PATH/MacOS/RelayMarketplaceToolBridge"
+HOST_EXECUTABLE="$CONTENTS_PATH/MacOS/RelayHostService"
 RESOURCES_PATH="$CONTENTS_PATH/Resources"
 SPARKLE_FRAMEWORK="$CONTENTS_PATH/Frameworks/Sparkle.framework"
 
@@ -22,6 +23,7 @@ SPARKLE_FRAMEWORK="$CONTENTS_PATH/Frameworks/Sparkle.framework"
 [[ -f "$INFO_PLIST" ]] || { echo "Info.plist missing" >&2; exit 1; }
 [[ -x "$MAIN_EXECUTABLE" ]] || { echo "Standalone main executable missing" >&2; exit 1; }
 [[ -x "$BRIDGE_EXECUTABLE" ]] || { echo "Marketplace bridge missing" >&2; exit 1; }
+[[ -x "$HOST_EXECUTABLE" ]] || { echo "Relay Host service missing" >&2; exit 1; }
 [[ -f "$RESOURCES_PATH/PrivacyInfo.xcprivacy" ]] || { echo "Privacy manifest missing from Contents/Resources" >&2; exit 1; }
 [[ -f "$RESOURCES_PATH/THIRD_PARTY_NOTICES.md" ]] || { echo "Third-party notices missing" >&2; exit 1; }
 [[ -f "$RESOURCES_PATH/swift-cmark-COPYING" ]] || { echo "swift-cmark component notices missing" >&2; exit 1; }

@@ -30,7 +30,7 @@ export type RelaySyncObjectType = (typeof RELAY_SYNC_OBJECT_TYPES)[number];
 
 export const MARKETPLACE_EXECUTION_AUTHORITY_VERSION =
   "marketplace-execution-authority.v1";
-export const MARKETPLACE_EXECUTION_AUTHORITIES = ["swift", "railway"] as const;
+export const MARKETPLACE_EXECUTION_AUTHORITIES = ["railway"] as const;
 export type MarketplaceExecutionAuthority =
   (typeof MARKETPLACE_EXECUTION_AUTHORITIES)[number];
 
@@ -104,6 +104,9 @@ export function assertMarketplaceExecutionAuthorityPayload(
   ) {
     throw new Error("MARKETPLACE_EXECUTION_AUTHORITY_INVALID");
   }
+  if (payload.executionAuthority !== "railway") {
+    throw new Error("MARKETPLACE_EXECUTION_AUTHORITY_RAILWAY_REQUIRED");
+  }
   if (
     payload.executionAuthorityVersion !==
     MARKETPLACE_EXECUTION_AUTHORITY_VERSION
@@ -112,12 +115,6 @@ export function assertMarketplaceExecutionAuthorityPayload(
   }
   if (payload.secretMaterialSynchronized !== false) {
     throw new Error("MARKETPLACE_SYNC_SECRET_BOUNDARY_INVALID");
-  }
-  if (
-    payload.executionAuthority === "swift" &&
-    payload.executionAvailability !== "device_runtime_required"
-  ) {
-    throw new Error("MARKETPLACE_SWIFT_AUTHORITY_AVAILABILITY_INVALID");
   }
   if (
     payload.executionAuthority === "railway" &&

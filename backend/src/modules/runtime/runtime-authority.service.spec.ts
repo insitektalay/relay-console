@@ -1,6 +1,67 @@
 import { RuntimeAuthorityService } from "./runtime-authority.service";
 
 describe("RuntimeAuthorityService observations", () => {
+  it("merges runtime adapters into the existing stable Relay Host", async () => {
+    const sharedHost = {
+      id: "host-1",
+      workspaceId: "workspace-1",
+      hostInstallationId:
+        "relayhost_11111111-1111-4111-8111-111111111111",
+      bridgeDeviceId: "device-hermes",
+      supportedRuntimes: ["hermes"],
+      capabilities: { existing: true },
+      platform: "macos",
+    };
+    const hosts = {
+      findOne: jest.fn(async ({ where }: any) =>
+        where.hostInstallationId ? sharedHost : null,
+      ),
+      create: jest.fn((value) => value),
+      save: jest.fn(async (value) => value),
+    } as any;
+    const bridgeDevices = {
+      findOne: jest.fn(async () => ({
+        id: "device-openclaw",
+        workspaceId: "workspace-1",
+        label: "Office Mac · OpenClaw bridge",
+        hostType: "macos-launchd",
+        hostInstallationId:
+          "relayhost_11111111-1111-4111-8111-111111111111",
+        pluginVersion: "2026.7.31-rc.4",
+      })),
+    } as any;
+    const service = new RuntimeAuthorityService(
+      {} as any,
+      hosts,
+      {} as any,
+      {} as any,
+      bridgeDevices,
+      {} as any,
+      {} as any,
+    );
+
+    await expect(
+      service.ensureBridgeHost({
+        workspaceId: "workspace-1",
+        bridgeDeviceId: "device-openclaw",
+        runtimeType: "openclaw",
+        capabilities: { openclaw: true },
+      }),
+    ).resolves.toMatchObject({
+      id: "host-1",
+      bridgeDeviceId: "device-hermes",
+      supportedRuntimes: ["hermes", "openclaw"],
+      capabilities: { existing: true, openclaw: true },
+    });
+    expect(hosts.findOne).toHaveBeenCalledWith({
+      where: {
+        workspaceId: "workspace-1",
+        hostInstallationId:
+          "relayhost_11111111-1111-4111-8111-111111111111",
+      },
+    });
+  });
+
   function build(
     input: {
       mappedAgent?: any;

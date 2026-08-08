@@ -37,6 +37,9 @@ export class BridgeEnrollmentEntity {
   @Column({ nullable: true })
   deviceLabel: string | null
 
+  @Column({ nullable: true })
+  hostInstallationId: string | null
+
   @Column({
     type: 'enum',
     enum: BridgeEnrollmentStatus,

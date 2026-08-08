@@ -50,6 +50,7 @@ import { GrainMcpAdapter } from "./grain/grain-mcp.adapter";
 import { WhimsicalMcpAdapter } from "./whimsical/whimsical-mcp.adapter";
 import { CognitoFormsMcpAdapter } from "./cognito-forms/cognito-forms-mcp.adapter";
 import { JotformMcpAdapter } from "./jotform/jotform-mcp.adapter";
+import { CraftMcpAdapter } from "./craft/craft-mcp.adapter";
 import { XMindMcpAdapter } from "./xmind/xmind-mcp.adapter";
 import { AdobeAnalyticsMcpAdapter } from "./adobe-analytics/adobe-analytics-mcp.adapter";
 import { CloudinaryMcpAdapter } from "./cloudinary/cloudinary-mcp.adapter";
@@ -353,6 +354,7 @@ export class MarketplaceConnectorOAuthService {
   readonly whimsicalMcp = new WhimsicalMcpAdapter();
   readonly cognitoFormsMcp = new CognitoFormsMcpAdapter();
   readonly jotformMcp = new JotformMcpAdapter();
+  readonly craftMcp = new CraftMcpAdapter();
   readonly xmindMcp = new XMindMcpAdapter();
   readonly adobeAnalyticsMcp = new AdobeAnalyticsMcpAdapter();
   readonly cloudinaryMcp = new CloudinaryMcpAdapter();

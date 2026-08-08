@@ -14873,24 +14873,24 @@ public final class ApplicationsService {
     private static func marketplaceCraftApp(workspaceId: RelayId, timestamp: IsoTimestamp) -> MarketplaceCatalogApp {
         let blocked = ["craft_raw_api", "craft_secret_exposure", "craft_unbounded_transfer", "paperclip"]
         return MarketplaceCatalogApp(
-            id: "mapp-craft", workspaceId: workspaceId, slug: "craft", name: "Craft", summary: "Search and read scoped Craft knowledge, then manage authorized content through bounded stable API operations.",
+            id: "mapp-craft", workspaceId: workspaceId, slug: "craft", name: "Craft", summary: "Connect one Craft space with OAuth, then use bounded tools from Craft's official hosted MCP server.",
             description:
                 """
                     Craft is a collaborative writing and knowledge workspace for documents, linked pages, daily notes, tasks, folders, and structured collections. Individuals and teams use its native apps and web editor to capture ideas, \
                     organize projects, publish polished documents, and keep shared knowledge connected.
                     """,
-            category: "Knowledge & Documents", sourceType: .externalProvider, riskLevel: .high, authType: "Encrypted customer-scoped Craft API connection URL", connectionType: "Railway cloud API connector with exact connect.craft.do authority",
-            capabilities: ["Fetch and search authorized documents and blocks", "List authorized collections, documents, folders, and tasks", "Insert, update, move, or delete authorized content under policy", "Keep the secret connection URL outside agent-visible data"],
+            category: "Knowledge & Documents", sourceType: .externalProvider, riskLevel: .high, authType: "Craft OAuth with dynamic client registration and PKCE", connectionType: "Railway MCP client pinned to mcp.craft.do/my/mcp",
+            capabilities: ["Discover live read and management tools for the selected Craft space", "Read authorized Craft knowledge", "Manage authorized content under Relay approval policy", "Keep OAuth tokens outside agent-visible data"],
             runtimeSupport: [.hermes, .openclaw],
             roleManifest: MarketplaceRoleManifest(
                 primaryRole: "knowledge-operator", supportedRoles: ["knowledge-operator"], compatibleRuntimeTypes: [.hermes, .openclaw], approvalRequired: true,
                 roleDefinitions: [
                     MarketplaceInstallRoleDefinition(
-                        roleId: "knowledge-operator", label: "Craft knowledge operator", purpose: "Use two bounded operation wrappers against one exact customer-scoped Craft API Connection without exposing its secret URL.", canWrite: true, readOnly: false,
-                        approvalRequiredActions: ["craft_api_manage"], blockedActions: blocked, required: true, installAfterSetup: true, installable: true, notInstallableReason: nil, recommendedAgentRole: "knowledge-operator", source: "official-craft-scoped-api-marketplace",
+                        roleId: "knowledge-operator", label: "Craft knowledge operator", purpose: "Use bounded read and manage wrappers against Craft's official hosted MCP server without exposing OAuth credentials.", canWrite: true, readOnly: false,
+                        approvalRequiredActions: ["craft_api_manage"], blockedActions: blocked, required: true, installAfterSetup: true, installable: true, notInstallableReason: nil, recommendedAgentRole: "knowledge-operator", source: "official-craft-hosted-mcp-marketplace",
                         redactionStatus: "private-scoped-workspace-content")
-                ], redactionStatus: "private-scoped-workspace-content"), availability: .available, availabilityReason: nil, connectionState: .none, installState: .notInstalled, installedAgentCount: 0, installedAgentIds: [], docsURL: "https://connect.craft.do/api-docs/space",
-            websiteURL: "https://www.craft.do/", betaNotice: "Create a least-privilege API Connection in Craft's Imagine tab and paste its secret URL into Relay. The selected content and read/write permissions remain the provider-enforced authority boundary.",
+                ], redactionStatus: "private-scoped-workspace-content"), availability: .available, availabilityReason: nil, connectionState: .none, installState: .notInstalled, installedAgentCount: 0, installedAgentIds: [], docsURL: "https://support.craft.do/en/integrate/mcp",
+            websiteURL: "https://www.craft.do/", betaNotice: "Relay opens Craft's browser authorization page. Select one Craft space. Relay then uses only the tools and permissions that Craft exposes for that connection.",
             iconFallback: iconFallback(slug: "craft", name: "Craft"), readOnly: false, localAppExcluded: false, reviewExcluded: false, createdAt: timestamp, updatedAt: timestamp, redactionStatus: "private-scoped-workspace-content")
     }
 

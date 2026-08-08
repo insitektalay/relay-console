@@ -401,53 +401,68 @@ struct ThreadRow: View {
       thread.threadType == .direct
       ? model.resolveAgentRoleText(threadAgents.first)
       : nil
-    Button {
-      model.selectThread(thread.id)
-    } label: {
-      HStack(spacing: 10) {
-        ThreadAvatarStack(
-          title: model.resolveThreadDisplayTitle(thread),
-          agents: threadAgents,
-          isTeamThread: thread.threadType == .team
-        )
-        VStack(alignment: .leading, spacing: 3) {
-          Text(model.resolveThreadDisplayTitle(thread))
-            .font(RCTypography.sidebarName)
-            .lineLimit(1)
-          if let directAgentRole {
-            Text(directAgentRole)
-              .font(.system(size: 10.5, weight: .regular))
-              .foregroundStyle(RCTheme.muted)
-              .lineLimit(1)
-          }
-          ThreadInstalledAppsRow(apps: installedApps)
-        }
-        .frame(minHeight: directAgentRole == nil ? 40 : 54, alignment: .top)
-        Spacer()
-        VStack(alignment: .trailing, spacing: 5) {
-          ThreadRuntimeKindLabel(
-            runtimeTypes: runtimeTypes(for: threadAgents),
-            text: thread.threadType == .team ? "TEAM" : "DIRECT",
-            tone: thread.threadType == .team ? RCTheme.accentPurple : RCTheme.accentBlue
+    HStack(spacing: 4) {
+      Button {
+        model.selectThread(thread.id)
+      } label: {
+        HStack(spacing: 10) {
+          ThreadAvatarStack(
+            title: model.resolveThreadDisplayTitle(thread),
+            agents: threadAgents,
+            isTeamThread: thread.threadType == .team
           )
-          Text(relativeTime(thread.lastMessageAt ?? thread.updatedAt))
-            .font(.system(size: 10))
-            .foregroundStyle(RCTheme.muted)
+          VStack(alignment: .leading, spacing: 3) {
+            Text(model.resolveThreadDisplayTitle(thread))
+              .font(RCTypography.sidebarName)
+              .lineLimit(1)
+            if let directAgentRole {
+              Text(directAgentRole)
+                .font(.system(size: 10.5, weight: .regular))
+                .foregroundStyle(RCTheme.muted)
+                .lineLimit(1)
+            }
+            ThreadInstalledAppsRow(apps: installedApps)
+          }
+          .frame(minHeight: directAgentRole == nil ? 40 : 54, alignment: .top)
+          Spacer()
+          VStack(alignment: .trailing, spacing: 5) {
+            ThreadRuntimeKindLabel(
+              runtimeTypes: runtimeTypes(for: threadAgents),
+              text: thread.threadType == .team ? "TEAM" : "DIRECT",
+              tone: thread.threadType == .team ? RCTheme.accentPurple : RCTheme.accentBlue
+            )
+            Text(relativeTime(thread.lastMessageAt ?? thread.updatedAt))
+              .font(.system(size: 10))
+              .foregroundStyle(RCTheme.muted)
+          }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
       }
-      .padding(12)
-      .rcHoverFocusSurface(selected: model.selectedThreadId == thread.id)
+      .buttonStyle(.plain)
+      .help("Open conversation \(model.resolveThreadDisplayTitle(thread))")
+      .accessibilityLabel(
+        "Open \(thread.threadType == .team ? "team" : "direct") conversation \(model.resolveThreadDisplayTitle(thread))"
+      )
+      .accessibilityValue(
+        threadAccessibilityValue(
+          role: directAgentRole,
+          apps: installedApps,
+          selected: model.selectedThreadId == thread.id))
+
+      Button {
+        model.archiveThread(thread.id)
+      } label: {
+        Image(systemName: "archivebox")
+          .font(.system(size: 12, weight: .semibold))
+          .foregroundStyle(RCTheme.muted)
+          .frame(width: 26, height: 26)
+      }
+      .buttonStyle(.plain)
+      .help("Archive conversation \(model.resolveThreadDisplayTitle(thread))")
+      .accessibilityLabel("Archive conversation \(model.resolveThreadDisplayTitle(thread))")
     }
-    .buttonStyle(.plain)
-    .help("Open conversation \(model.resolveThreadDisplayTitle(thread))")
-    .accessibilityLabel(
-      "Open \(thread.threadType == .team ? "team" : "direct") conversation \(model.resolveThreadDisplayTitle(thread))"
-    )
-    .accessibilityValue(
-      threadAccessibilityValue(
-        role: directAgentRole,
-        apps: installedApps,
-        selected: model.selectedThreadId == thread.id))
+    .padding(12)
+    .rcHoverFocusSurface(selected: model.selectedThreadId == thread.id)
   }
 
   private func threadAccessibilityValue(

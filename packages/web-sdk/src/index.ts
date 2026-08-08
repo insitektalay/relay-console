@@ -1841,7 +1841,11 @@ export class ClawChatWebSdk {
       ),
     createEnrollment: (
       workspaceId: string,
-      input: { deviceLabel?: string; expiresInMinutes?: number } = {},
+      input: {
+        deviceLabel?: string
+        expiresInMinutes?: number
+        hostInstallationId?: string
+      } = {},
     ) =>
       this.request<BridgeEnrollment>(
         `/bridge/workspaces/${workspaceId}/enrollments`,
@@ -2323,6 +2327,15 @@ export class ClawChatWebSdk {
         `/workspaces/${workspaceId}/marketplace/connections/${id}`,
         { method: "PATCH", body: JSON.stringify(input) },
       ),
+    deleteConnection: (workspaceId: string, id: string) =>
+      this.request<{
+        id: string;
+        appSlug: string;
+        deleted: true;
+        removedInstallIds: string[];
+      }>(`/workspaces/${workspaceId}/marketplace/connections/${id}`, {
+        method: "DELETE",
+      }),
     installs: (workspaceId: string) =>
       this.request<MarketplaceInstall[]>(
         `/workspaces/${workspaceId}/marketplace/installs`,

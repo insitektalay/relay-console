@@ -10,6 +10,9 @@ private struct CloudBridgeDeviceItem: Identifiable {
     let health: String
     let runtimeType: String
     let hostType: String
+    let hostInstallationId: String
+    let hostDisplayName: String
+    let adapterRole: String
     let pluginVersion: String
     let runtimeVersion: String
     let lastSeenAt: String?
@@ -27,6 +30,9 @@ private struct CloudBridgeDeviceItem: Identifiable {
         health = row["health"] as? String ?? (row["revokedAt"] == nil ? "offline" : "revoked")
         runtimeType = row["runtimeType"] as? String ?? "unknown"
         hostType = row["hostType"] as? String ?? "unknown"
+        hostInstallationId = row["hostInstallationId"] as? String ?? id
+        hostDisplayName = row["hostDisplayName"] as? String ?? label
+        adapterRole = row["adapterRole"] as? String ?? "runtime"
         pluginVersion = row["pluginVersion"] as? String ?? "unknown"
         runtimeVersion = row["openCoreVersion"] as? String ?? "unknown"
         lastSeenAt = row["lastSeenAt"] as? String
@@ -37,6 +43,27 @@ private struct CloudBridgeDeviceItem: Identifiable {
         compatible = compatibility?["compatible"] as? Bool ?? false
         compatibilityCode = compatibility?["code"] as? String
     }
+}
+
+private struct CloudRelayHostGroup: Identifiable {
+    let id: String
+    let displayName: String
+    let devices: [CloudBridgeDeviceItem]
+
+    var controller: CloudBridgeDeviceItem? {
+        devices.first { $0.adapterRole == "host" }
+    }
+
+    var adapters: [CloudBridgeDeviceItem] {
+        let explicit = devices.filter { $0.adapterRole != "host" }
+        return explicit.isEmpty ? devices : explicit
+    }
+
+    var health: String {
+        devices.contains { $0.health == "online" } ? "online" : "offline"
+    }
+
+    var compatible: Bool { devices.allSatisfy(\.compatible) }
 }
 
 private struct CloudAccountSessionItem: Identifiable {
@@ -243,6 +270,21 @@ struct CloudRelaySettingsPanel: View {
     @State private var links: [CloudSavedLink] = []
     @State private var status: CloudSyncStatus?
     @State private var bridgeDevices: [CloudBridgeDeviceItem] = []
+    @State private var bridgeDevicesLoaded = false
+
+    private var relayHosts: [CloudRelayHostGroup] {
+        Dictionary(grouping: bridgeDevices.filter { $0.revokedAt == nil }) {
+            $0.hostInstallationId
+        }
+        .map { id, devices in
+            CloudRelayHostGroup(
+                id: id,
+                displayName: devices.first?.hostDisplayName ?? "Runtime host",
+                devices: devices.sorted { $0.runtimeType < $1.runtimeType }
+            )
+        }
+        .sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
+    }
     @State private var runtimeAuthority: CloudRuntimeAuthoritySnapshot?
     @State private var nativeAgentObservations: [CloudRuntimeObservationItem] = []
     @State private var runtimeProvisioningTargets: [CloudRuntimeProvisioningTargetItem] = []
@@ -834,8 +876,7 @@ struct CloudRelaySettingsPanel: View {
     private var runtimeHostHealthSection: some View {
         GroupBox("Runtime host") {
             VStack(alignment: .leading, spacing: 10) {
-                let activeDevices = bridgeDevices.filter { $0.revokedAt == nil }
-                if activeDevices.isEmpty {
+                if relayHosts.isEmpty {
                     Label("No active runtime host is connected", systemImage: "desktopcomputer.trianglebadge.exclamationmark")
                         .foregroundStyle(.orange)
                     Text("Connect or update the Relay bridge on the computer that runs Hermes or OpenClaw.")
@@ -843,23 +884,36 @@ struct CloudRelaySettingsPanel: View {
                         .foregroundStyle(.secondary)
                     Link("Open runtime host setup", destination: URL(string: "https://relayconsole.work/install")!)
                 } else {
-                    ForEach(activeDevices) { device in
-                        HStack(alignment: .top, spacing: 10) {
-                            Image(systemName: bridgeDeviceSymbol(device))
-                                .foregroundStyle(runtimeHostColor(device))
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(device.label).font(.headline)
-                                Text("\(friendlyRuntime(device.runtimeType)) · \(runtimeHostSummary(device))")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                    ForEach(relayHosts) { host in
+                        VStack(alignment: .leading, spacing: 7) {
+                            HStack(alignment: .top, spacing: 10) {
+                                Image(systemName: host.health == "online" ? "checkmark.circle.fill" : "wifi.slash")
+                                    .foregroundStyle(runtimeHostColor(host))
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(host.displayName).font(.headline)
+                                    Text(host.health == "online" ? "Available for remote agent execution" : "This computer must be online for agents to run")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Text(runtimeHostStatus(host))
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(runtimeHostColor(host))
                             }
-                            Spacer()
-                            Text(runtimeHostStatus(device))
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(runtimeHostColor(device))
+                            ForEach(host.adapters) { adapter in
+                                HStack {
+                                    Text(friendlyRuntime(adapter.runtimeType))
+                                        .font(.caption.weight(.medium))
+                                    Spacer()
+                                    Text(runtimeHostStatus(adapter))
+                                        .font(.caption)
+                                        .foregroundStyle(runtimeHostColor(adapter))
+                                }
+                                .padding(.leading, 30)
+                            }
                         }
                     }
-                    if activeDevices.contains(where: { !$0.compatible }) {
+                    if relayHosts.contains(where: { !$0.compatible }) {
                         Link("Update runtime host", destination: URL(string: "https://relayconsole.work/install")!)
                     }
                 }
@@ -884,6 +938,15 @@ struct CloudRelaySettingsPanel: View {
         device.compatible && device.health == "online" ? .green : .orange
     }
 
+    private func runtimeHostStatus(_ host: CloudRelayHostGroup) -> String {
+        if !host.compatible { return "Update required" }
+        return host.health == "online" ? "Ready" : "Offline"
+    }
+
+    private func runtimeHostColor(_ host: CloudRelayHostGroup) -> Color {
+        host.compatible && host.health == "online" ? .green : .orange
+    }
+
     private var cloudAgentVisibilitySection: some View {
         GroupBox("Agent visibility on this Mac") {
             VStack(alignment: .leading, spacing: 8) {
@@ -905,7 +968,7 @@ struct CloudRelaySettingsPanel: View {
     private var connectAgentOwnershipSection: some View {
         GroupBox("Agent availability") {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Choose which current agents run on this Mac when you use them from web, iPhone, or iPad.")
+                Text("Relay automatically makes active local agents available through this Mac. You can stop or restore access for an individual agent here.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 let candidates = model.agents.filter {
@@ -1264,33 +1327,45 @@ struct CloudRelaySettingsPanel: View {
                 Text("Install the Relay bridge beside each user-managed Hermes Agent or OpenClaw runtime. It connects outbound to Relay. Agent execution is unavailable whenever that host is offline.")
                     .font(.callout).foregroundStyle(.secondary)
                 Link("Open bridge installation guide", destination: URL(string: "https://relayconsole.work/install")!)
-                if bridgeDevices.isEmpty {
+                if !bridgeDevicesLoaded {
+                    Label("Bridge status is not available", systemImage: "arrow.clockwise.circle")
+                        .foregroundStyle(.orange)
+                } else if bridgeDevices.isEmpty {
                     Label("No runtime bridge is paired with this workspace", systemImage: "link.badge.plus")
                         .foregroundStyle(.orange)
                 } else {
-                    ForEach(bridgeDevices) { device in
-                        VStack(alignment: .leading, spacing: 6) {
+                    ForEach(relayHosts) { host in
+                        VStack(alignment: .leading, spacing: 9) {
                             HStack {
-                                Label(device.label, systemImage: bridgeDeviceSymbol(device))
+                                Label(host.displayName, systemImage: host.health == "online" ? "checkmark.circle.fill" : "wifi.slash")
                                     .font(.headline)
                                 Spacer()
-                                statusBadge(device.health)
-                                if device.revokedAt == nil {
-                                    Button("Revoke", role: .destructive) {
-                                        Task { await revokeBridgeDevice(device, link: link) }
-                                    }
-                                    .disabled(busy)
-                                }
+                                statusBadge(host.health)
                             }
-                            Text("\(friendlyRuntime(device.runtimeType)) · \(friendlyHost(device.hostType))")
+                            Text("Relay Host · \(friendlyHost(host.devices.first?.hostType ?? "unknown"))")
                                 .font(.callout)
-                            Text("Bridge \(device.pluginVersion) · Runtime \(device.runtimeVersion)")
-                                .font(.caption).foregroundStyle(.secondary)
-                            Text("Last seen \(friendlyTimestamp(device.lastSeenAt)) · Credential v\(device.credentialVersion)\(device.credentialRotatedAt.map { " · rotated \(friendlyTimestamp($0))" } ?? "")")
-                                .font(.caption).foregroundStyle(.secondary)
-                            if !device.compatible {
-                                Label("Update required\(device.compatibilityCode.map { ": \($0)" } ?? "")", systemImage: "exclamationmark.triangle.fill")
-                                    .font(.caption).foregroundStyle(.orange)
+                            ForEach(host.devices) { device in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text(device.adapterRole == "host" ? "Connection service" : friendlyRuntime(device.runtimeType))
+                                            .font(.callout.weight(.semibold))
+                                        Spacer()
+                                        statusBadge(device.health)
+                                        Button("Revoke", role: .destructive) {
+                                            Task { await revokeBridgeDevice(device, link: link) }
+                                        }
+                                        .disabled(busy)
+                                    }
+                                    Text("Bridge \(device.pluginVersion) · Runtime \(device.runtimeVersion)")
+                                        .font(.caption).foregroundStyle(.secondary)
+                                    Text("Last seen \(friendlyTimestamp(device.lastSeenAt)) · Credential v\(device.credentialVersion)\(device.credentialRotatedAt.map { " · rotated \(friendlyTimestamp($0))" } ?? "")")
+                                        .font(.caption).foregroundStyle(.secondary)
+                                    if !device.compatible {
+                                        Label("Update required\(device.compatibilityCode.map { ": \($0)" } ?? "")", systemImage: "exclamationmark.triangle.fill")
+                                            .font(.caption).foregroundStyle(.orange)
+                                    }
+                                }
+                                .padding(.leading, 12)
                             }
                         }
                         .padding(10)
@@ -1722,11 +1797,21 @@ struct CloudRelaySettingsPanel: View {
             let rawManifest = try await transport.send(method: "GET", path: "deployment/manifest", body: nil, accessToken: nil)
             let decoded = try JSONDecoder().decode(CloudDeploymentManifest.self, from: JSONSerialization.data(withJSONObject: rawManifest))
             _ = try services.cloudConnections.saveDeployment(manifest: decoded)
+            let workspaceResponse = try await services.cloudConnections.withValidAccessToken(
+                accountId: account.id,
+                transport: transport
+            ) { token in
+                try await transport.send(
+                    method: "GET",
+                    path: "workspaces",
+                    body: nil,
+                    accessToken: token
+                )
+            }
             let token = try await services.cloudConnections.validAccessToken(
                 accountId: account.id,
                 transport: transport
             )
-            let workspaceResponse = try await transport.send(method: "GET", path: "workspaces", body: nil, accessToken: token)
             let workspaces = (workspaceResponse["data"] as? [[String: Any]]) ?? (workspaceResponse["workspaces"] as? [[String: Any]]) ?? []
             let entitlementWorkspaceId = try services.entitlement.currentAccess().workspaceId
             let linkedWorkspaceId = activeLink?.remoteWorkspaceId
@@ -2051,20 +2136,29 @@ struct CloudRelaySettingsPanel: View {
     }
 
     private func loadBridgeDevices() async {
-        guard let transport, let token = accessToken, let link = activeLink else {
+        guard let services = model.services,
+              let transport,
+              let accountId,
+              let link = activeLink else {
             bridgeDevices = []
+            bridgeDevicesLoaded = false
             return
         }
         do {
-            let rows = try await transport.sendArray(
-                method: "GET",
-                path: "bridge/workspaces/\(link.remoteWorkspaceId)/devices",
-                body: nil,
-                accessToken: token
-            )
+            let rows = try await services.cloudConnections.withValidAccessToken(
+                accountId: accountId,
+                transport: transport
+            ) { token in
+                try await transport.sendArray(
+                    method: "GET",
+                    path: "bridge/workspaces/\(link.remoteWorkspaceId)/devices",
+                    body: nil,
+                    accessToken: token
+                )
+            }
             bridgeDevices = rows.compactMap(CloudBridgeDeviceItem.init)
+            bridgeDevicesLoaded = true
         } catch {
-            bridgeDevices = []
             message = "Bridge status could not be refreshed: \(error.localizedDescription)"
         }
     }
@@ -2081,31 +2175,34 @@ struct CloudRelaySettingsPanel: View {
             return
         }
         do {
+            let (observations, targets) = try await services.cloudConnections.withValidAccessToken(
+                accountId: accountId,
+                transport: transport
+            ) { token in
+                async let observationRows = transport.sendArray(
+                    method: "GET",
+                    path: "agents/native-observations?workspaceId=\(link.remoteWorkspaceId)",
+                    body: nil,
+                    accessToken: token
+                )
+                async let targetRows = transport.sendArray(
+                    method: "GET",
+                    path: "workspaces/\(link.remoteWorkspaceId)/runtime-authority/provisioning-targets",
+                    body: nil,
+                    accessToken: token
+                )
+                return try await (observationRows, targetRows)
+            }
             let token = try await services.cloudConnections.validAccessToken(
                 accountId: accountId,
                 transport: transport
             )
             accessToken = token
-            async let observationRows = transport.sendArray(
-                method: "GET",
-                path: "agents/native-observations?workspaceId=\(link.remoteWorkspaceId)",
-                body: nil,
-                accessToken: token
-            )
-            async let targetRows = transport.sendArray(
-                method: "GET",
-                path: "workspaces/\(link.remoteWorkspaceId)/runtime-authority/provisioning-targets",
-                body: nil,
-                accessToken: token
-            )
-            let (observations, targets) = try await (observationRows, targetRows)
             nativeAgentObservations = observations.compactMap(CloudRuntimeObservationItem.init)
             runtimeProvisioningTargets = targets.compactMap(CloudRuntimeProvisioningTargetItem.init)
             let candidateIds = Set(existingNativeCandidates.map(\.id))
             selectedNativeObservationIds.formIntersection(candidateIds)
         } catch {
-            nativeAgentObservations = []
-            runtimeProvisioningTargets = []
             if showFailure {
                 message = "Existing agents could not be refreshed: \(error.localizedDescription)"
             }
@@ -2308,25 +2405,35 @@ struct CloudRelaySettingsPanel: View {
             return
         }
         do {
+            let authority = try await services.cloudConnections.withValidAccessToken(
+                accountId: accountId,
+                transport: transport
+            ) { token in
+                try await transport.send(
+                    method: "GET",
+                    path: "workspaces/\(link.remoteWorkspaceId)/runtime-authority",
+                    body: nil,
+                    accessToken: token
+                )
+            }
             let token = try await services.cloudConnections.validAccessToken(
                 accountId: accountId,
                 transport: transport
             )
             accessToken = token
-            let authority = try await transport.send(
-                method: "GET",
-                path: "workspaces/\(link.remoteWorkspaceId)/runtime-authority",
-                body: nil,
-                accessToken: token
-            )
             runtimeAuthority = CloudRuntimeAuthoritySnapshot(authority)
             do {
-                let reportObject = try await transport.send(
-                    method: "POST",
-                    path: "workspaces/\(link.remoteWorkspaceId)/runtime-authority/reconcile",
-                    body: ["apply": false],
-                    accessToken: token
-                )
+                let reportObject = try await services.cloudConnections.withValidAccessToken(
+                    accountId: accountId,
+                    transport: transport
+                ) { token in
+                    try await transport.send(
+                        method: "POST",
+                        path: "workspaces/\(link.remoteWorkspaceId)/runtime-authority/reconcile",
+                        body: ["apply": false],
+                        accessToken: token
+                    )
+                }
                 runtimeReconciliation = CloudRuntimeReconciliationReport(reportObject)
             } catch {
                 runtimeReconciliation = nil
@@ -2335,8 +2442,6 @@ struct CloudRelaySettingsPanel: View {
                 }
             }
         } catch {
-            runtimeAuthority = nil
-            runtimeReconciliation = nil
             if showFailure {
                 message = "Runtime authority could not be refreshed: \(error.localizedDescription)"
             }

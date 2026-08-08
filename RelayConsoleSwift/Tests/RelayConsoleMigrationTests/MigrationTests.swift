@@ -56,7 +56,7 @@ struct RelayConsoleMigrationTests {
             let expectedSignatures = expected.map { "\($0.0):\($0.1)" }
 
             try expect(pairSignatures == expectedSignatures, "schema_migrations did not match migration registry")
-            try expect(pairs.last?.0 == 42, "expected schema version 42")
+            try expect(pairs.last?.0 == 44, "expected schema version 44")
         }
     }
 
@@ -335,6 +335,7 @@ struct RelayConsoleMigrationTests {
                 "runtime authority tables are missing after the schema 38 upgrade"
             )
             try expect(indexes.contains("idx_runtime_bindings_connect_linked"), "Relay Connect link index is missing after migration 40")
+            try expect(indexes.contains("idx_runtime_bindings_connect_auto_link"), "automatic Relay Connect link index is missing after migration 43")
             try expect(
                 try columns(database: database, table: "agents").isSuperset(of: ["lifecycle_status", "lifecycle_reason", "retired_at"]),
                 "agent lifecycle columns are missing after migration 39"
@@ -342,7 +343,8 @@ struct RelayConsoleMigrationTests {
             try expect(
                 try columns(database: database, table: "runtime_bindings").isSuperset(of: [
                     "runtime_host_id", "canonical_agent_id", "assignment_epoch", "ownership_state",
-                    "host_status", "connect_linked", "connect_remote_agent_id"
+                    "host_status", "connect_linked", "connect_remote_agent_id",
+                    "connect_auto_link_suppressed"
                 ]),
                 "runtime authority or Relay Connect binding columns are missing"
             )
@@ -361,10 +363,11 @@ struct RelayConsoleMigrationTests {
             try expect(try text(binding, "ownership_state") == "local", "existing binding lost local execution ownership")
             try expect(try text(binding, "host_status") == "online", "existing binding did not receive the local host state")
             try expect(try integer(binding, "connect_linked") == 0, "existing binding was incorrectly linked to Relay Connect")
+            try expect(try scalarCount(database, "SELECT COUNT(*) AS count FROM runtime_bindings WHERE id='binding-authority' AND connect_auto_link_suppressed=0") == 1, "existing binding did not receive the automatic Relay Connect default")
             try expect(try scalarCount(database, "SELECT COUNT(*) AS count FROM runtime_hosts WHERE id='local_host_workspace-authority' AND product_mode='local' AND status='online'") == 1, "local runtime host was not created")
             try expect(try scalarCount(database, "SELECT COUNT(*) AS count FROM agent_documents WHERE id='document-authority' AND desired_version='1' AND applied_version='0' AND sync_state='saved'") == 1, "existing agent document was not preserved with reconciliation defaults")
             try expect(try scalarCount(database, "SELECT COUNT(*) AS count FROM agents WHERE id='agent-authority' AND lifecycle_status='active'") == 1, "existing agent was not preserved with active lifecycle state")
-            try expect(try scalarCount(database, "SELECT COUNT(*) AS count FROM schema_migrations WHERE version IN (39,40)") == 2, "migrations 39 and 40 were not recorded")
+            try expect(try scalarCount(database, "SELECT COUNT(*) AS count FROM schema_migrations WHERE version IN (39,40,43,44)") == 4, "runtime authority, automatic Relay Connect, and Relay Host identity migrations were not recorded")
         }
     }
 

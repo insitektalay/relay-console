@@ -19,6 +19,7 @@ import { ConnectorExecutionError } from "./connectors/execution/connector-execut
 import {
   BridgeAgentMarketplaceToolsController,
   LocalAppConnectorAgentApiBridgeToolsController,
+  UserAgentMarketplaceToolsController,
 } from "./localappconnector-agent-api-tools.controller";
 
 function repoMock(overrides: Record<string, unknown> = {}) {
@@ -80,7 +81,8 @@ function createController(
   };
   const marketplaceInstallRepo = repoMock({
     findOne: jest.fn(async ({ where }) => {
-      const expectedSlug = overrides.requestedInstallSlug ?? "local-localappconnector";
+      const expectedSlug =
+        overrides.requestedInstallSlug ?? "local-localappconnector";
       if (where.appSlug !== expectedSlug) return null;
       return {
         id: "install-id",
@@ -243,7 +245,9 @@ describe("LocalAppConnectorAgentApiBridgeToolsController", () => {
       "/api/v1/bridge/runtime-dispatches/:dispatchId/marketplace-tools/:appSlug/:toolName",
     );
 
-    const controller = moduleRef.get(LocalAppConnectorAgentApiBridgeToolsController);
+    const controller = moduleRef.get(
+      LocalAppConnectorAgentApiBridgeToolsController,
+    );
     await expect(
       controller.executeGenericTool(
         "test-dispatch",
@@ -402,22 +406,23 @@ describe("LocalAppConnectorAgentApiBridgeToolsController", () => {
     });
   });
 
-  it.each(["localappconnector.agentApi", "localappconnector-agent-api", "agentApi"])(
-    "accepts LocalAppConnector tool name alias %s",
-    async (toolName) => {
-      const { controller, bridgeService } = createController();
+  it.each([
+    "localappconnector.agentApi",
+    "localappconnector-agent-api",
+    "agentApi",
+  ])("accepts LocalAppConnector tool name alias %s", async (toolName) => {
+    const { controller, bridgeService } = createController();
 
-      await controller.executeGenericTool(
-        "dispatch-id",
-        "localappconnector",
-        toolName,
-        { authorization: "Bearer bridge-token" },
-        { arguments: { path: "tasks" } },
-      );
+    await controller.executeGenericTool(
+      "dispatch-id",
+      "localappconnector",
+      toolName,
+      { authorization: "Bearer bridge-token" },
+      { arguments: { path: "tasks" } },
+    );
 
-      expect(bridgeService.callLocalAppConnectorAgentApi).toHaveBeenCalled();
-    },
-  );
+    expect(bridgeService.callLocalAppConnectorAgentApi).toHaveBeenCalled();
+  });
 
   it("keeps dedicated secret fetch route behavior", async () => {
     const { controller, bridgeService } = createController();
@@ -515,9 +520,10 @@ describe("BridgeAgentMarketplaceToolsController", () => {
       authenticateBridgeAccessToken: jest.fn(async () => ({
         workspaceId: "workspace-id",
         deviceId: "bridge-device-id",
+        devicePublicId: "bridge-device-public-id",
         runtimeType: "hermes",
       })),
-      assertBridgeDeviceRuntimeDispatchBinding: jest.fn(async () => undefined),
+      assertBridgeDeviceAgentMarketplaceBinding: jest.fn(async () => undefined),
       getBridgeDevice: jest.fn(async () => ({
         id: "bridge-device-id",
         createdByUserId: "user-id",
@@ -616,30 +622,31 @@ describe("BridgeAgentMarketplaceToolsController", () => {
       messageService.buildAgentMarketplaceRuntimeContext,
     ).toHaveBeenCalledWith("workspace-id", "agent-id");
     expect(
-      bridgeService.assertBridgeDeviceRuntimeDispatchBinding,
+      bridgeService.assertBridgeDeviceAgentMarketplaceBinding,
     ).toHaveBeenCalledWith(
       expect.objectContaining({
         bridgeDeviceId: "bridge-device-id",
-        dispatch: expect.objectContaining({
-          agentId: "agent-id",
-          runtimeBindingId: "runtime-binding-id",
-          assignmentEpoch: "4",
+        devicePublicId: "bridge-device-public-id",
+        agentId: "agent-id",
+        runtimeBinding: expect.objectContaining({
+          id: "runtime-binding-id",
+          runtimeType: "hermes",
         }),
       }),
     );
   });
 
-  it("executes a local Hermes tool as the bridge-device owner", async () => {
+  it("keeps nested provider arguments when it executes a bridge-owned tool", async () => {
     const { controller, connectorExecutionService } = createAgentController();
 
     const result = await controller.executeTool(
       "agent-id",
       "jotform",
-      "jotform_create_form",
+      "jotform_read",
       { authorization: "Bearer bridge-token" },
       {
         localDispatchId: "local-dispatch-id",
-        arguments: { title: "Relay Console Integration Test" },
+        arguments: { toolName: "form_list", arguments: {} },
       },
     );
 
@@ -652,9 +659,128 @@ describe("BridgeAgentMarketplaceToolsController", () => {
       userId: "user-id",
       dispatchId: "bridge-local:bridge-device-id:local-dispatch-id",
       appSlug: "jotform",
-      toolName: "jotform_create_form",
+      toolName: "jotform_read",
       connectionId: "connection-id",
-      body: { title: "Relay Console Integration Test" },
+      body: {
+        localDispatchId: "local-dispatch-id",
+        arguments: { toolName: "form_list", arguments: {} },
+      },
+    });
+  });
+});
+
+describe("UserAgentMarketplaceToolsController", () => {
+  function createUserAgentController() {
+    const workspaceMembershipService = {
+      ensureWorkspaceAccess: jest.fn(async () => undefined),
+    };
+    const messageService = {
+      buildAgentMarketplaceRuntimeContext: jest.fn(async () => ({
+        marketplaceRuntimeContext: {
+          tools: [
+            {
+              name: "exa_search",
+              functionName: "exa_search",
+              appSlug: "exa-search",
+              execution: {
+                transport: "clawchat_bridge_marketplace_tool",
+                endpointBasePath:
+                  "/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/exa-search",
+                requiresBridgeAccessToken: true,
+              },
+            },
+          ],
+        },
+      })),
+    };
+    const marketplaceInstallRepo = repoMock({
+      find: jest.fn(async () => [
+        {
+          workspaceId: "workspace-id",
+          agentId: "agent-id",
+          appSlug: "exa-search",
+          connectionId: "connection-id",
+          installStatus: "installed",
+        },
+      ]),
+    });
+    const connectorExecutionService = {
+      executeInstalledAgentTool: jest.fn(async () => ({ ok: true })),
+    };
+    const controller = new UserAgentMarketplaceToolsController(
+      workspaceMembershipService as any,
+      messageService as unknown as MessageService,
+      marketplaceInstallRepo as any,
+      connectorExecutionService as any,
+    );
+    return {
+      controller,
+      workspaceMembershipService,
+      messageService,
+      connectorExecutionService,
+    };
+  }
+
+  it("returns local dispatch tools through a refreshable user session", async () => {
+    const { controller, workspaceMembershipService } =
+      createUserAgentController();
+
+    const result = await controller.listTools(
+      "workspace-id",
+      "agent-id",
+      { id: "user-id" } as any,
+    );
+
+    expect(workspaceMembershipService.ensureWorkspaceAccess).toHaveBeenCalledWith(
+      "workspace-id",
+      "user-id",
+    );
+    expect(result).toEqual(
+      expect.objectContaining({
+        success: true,
+        toolCount: 1,
+        tools: [
+          expect.objectContaining({
+            execution: expect.objectContaining({
+              transport: "clawchat_control_plane_marketplace_tool",
+              endpointBasePath:
+                "/api/v1/workspaces/workspace-id/marketplace/agents/{agentId}/runtime-tools/exa-search",
+              requiresUserAccessToken: true,
+            }),
+          }),
+        ],
+      }),
+    );
+  });
+
+  it("executes a local dispatch tool as the signed-in workspace user", async () => {
+    const { controller, connectorExecutionService } =
+      createUserAgentController();
+
+    await controller.executeTool(
+      "workspace-id",
+      "agent-id",
+      "exa-search",
+      "exa_search",
+      { id: "user-id" } as any,
+      {
+        localDispatchId: "local-dispatch-id",
+        arguments: { query: "Relay Console" },
+      },
+    );
+
+    expect(connectorExecutionService.executeInstalledAgentTool).toHaveBeenCalledWith({
+      workspaceId: "workspace-id",
+      agentId: "agent-id",
+      userId: "user-id",
+      dispatchId: "native-local:user-id:local-dispatch-id",
+      appSlug: "exa-search",
+      toolName: "exa_search",
+      connectionId: "connection-id",
+      body: {
+        localDispatchId: "local-dispatch-id",
+        arguments: { query: "Relay Console" },
+      },
     });
   });
 });

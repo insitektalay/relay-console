@@ -209,90 +209,9 @@ struct RelayMarkdownView: View {
 
 struct RelayMarkdownChatView: View {
     let markdown: String
-    @State private var renderedHeight: CGFloat = 24
 
     var body: some View {
-        RelayMarkdownChatWebView(
-            html: RelayMarkdownHTMLRenderer.chatHTML(markdown: markdown),
-            renderedHeight: $renderedHeight
-        )
-        .frame(height: max(renderedHeight, 24))
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityLabel(markdown)
-    }
-}
-
-private struct RelayMarkdownChatWebView: NSViewRepresentable {
-    let html: String
-    @Binding var renderedHeight: CGFloat
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(renderedHeight: $renderedHeight)
-    }
-
-    func makeNSView(context: Context) -> WKWebView {
-        let configuration = WKWebViewConfiguration()
-        configuration.defaultWebpagePreferences.allowsContentJavaScript = false
-        let webView = WKWebView(frame: .zero, configuration: configuration)
-        webView.setValue(false, forKey: "drawsBackground")
-        webView.navigationDelegate = context.coordinator
-        webView.allowsMagnification = false
-        webView.allowsBackForwardNavigationGestures = false
-        webView.loadHTMLString(html, baseURL: nil)
-        context.coordinator.lastHTML = html
-        return webView
-    }
-
-    func updateNSView(_ webView: WKWebView, context: Context) {
-        context.coordinator.renderedHeight = $renderedHeight
-        guard context.coordinator.lastHTML != html else {
-            context.coordinator.measure(webView)
-            return
-        }
-        context.coordinator.lastHTML = html
-        webView.loadHTMLString(html, baseURL: nil)
-    }
-
-    final class Coordinator: NSObject, WKNavigationDelegate {
-        var lastHTML = ""
-        var renderedHeight: Binding<CGFloat>
-
-        init(renderedHeight: Binding<CGFloat>) {
-            self.renderedHeight = renderedHeight
-        }
-
-        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            measure(webView)
-        }
-
-        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-            if navigationAction.navigationType == .linkActivated,
-               let url = navigationAction.request.url {
-                NSWorkspace.shared.open(url)
-                decisionHandler(.cancel)
-                return
-            }
-            decisionHandler(.allow)
-        }
-
-        func measure(_ webView: WKWebView) {
-            webView.evaluateJavaScript("Math.ceil(document.documentElement.scrollHeight)") { [weak self] result, _ in
-                guard let self else { return }
-                let height: CGFloat
-                if let number = result as? NSNumber {
-                    height = CGFloat(truncating: number)
-                } else if let value = result as? CGFloat {
-                    height = value
-                } else {
-                    return
-                }
-                DispatchQueue.main.async {
-                    if abs(self.renderedHeight.wrappedValue - height) > 0.5 {
-                        self.renderedHeight.wrappedValue = height
-                    }
-                }
-            }
-        }
+        RelayMarkdownView(markdown: markdown)
     }
 }
 

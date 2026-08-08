@@ -65,6 +65,7 @@ public final class RelayConsoleServices {
         applicationsBetaPolicyOverride: ApplicationsBetaPolicy? = nil,
         refreshInstalledHarnessesOnLaunch: Bool = true,
         startRuntimeBrokerServer: Bool? = nil,
+        startAutomaticCloudSync: Bool = true,
         environment: [String: String] = ProcessInfo.processInfo.environment,
         openExternal: @escaping (String) -> Void = { url in
             if let parsed = URL(string: url) {
@@ -733,6 +734,60 @@ public final class RelayConsoleServices {
             hermesProfileBackups: hermesProfileBackups,
             openExternal: openExternal
         )
+        cloudMarketplaceRuntimeToolProxy.setLocalDispatchSessionLoader {
+            localWorkspaceId in
+            guard let link = try database.get(
+                """
+                SELECT l.account_id,l.remote_workspace_id,d.api_base_url
+                FROM workspace_sync_links l
+                JOIN cloud_deployments d ON d.id=l.deployment_id
+                WHERE l.local_workspace_id=?
+                  AND l.state NOT IN ('unlinked','revoked')
+                  AND d.api_base_url=?
+                ORDER BY l.updated_at DESC
+                LIMIT 1
+                """,
+                [.text(localWorkspaceId), .text(RelayCloudLaunchContract.apiOrigin)]
+            ), let accountId = link["account_id"]?.string,
+              let remoteWorkspaceId = link["remote_workspace_id"]?.string,
+              let apiBaseURL = link["api_base_url"]?.string,
+              let apiURL = URL(string: apiBaseURL)
+            else {
+                throw RelayError(
+                    .permissionDenied,
+                    "This workspace has no authenticated Railway connection."
+                )
+            }
+            let transport = try URLSessionRelayCloudTransport(apiBaseURL: apiURL)
+            let accessToken = try await cloudConnections.validAccessToken(
+                accountId: accountId,
+                transport: transport
+            )
+            var remoteAgentIds: [String: String] = [:]
+            for row in try database.all(
+                """
+                SELECT rb.agent_id,rb.connect_remote_agent_id
+                FROM runtime_bindings rb
+                JOIN agents a ON a.id=rb.agent_id
+                WHERE a.workspace_id=?
+                  AND rb.connect_linked=1
+                  AND rb.connect_remote_agent_id IS NOT NULL
+                  AND rb.connect_remote_agent_id<>''
+                """,
+                [.text(localWorkspaceId)]
+            ) {
+                guard let localAgentId = row["agent_id"]?.string,
+                      let remoteAgentId = row["connect_remote_agent_id"]?.string
+                else { continue }
+                remoteAgentIds[localAgentId] = remoteAgentId
+            }
+            return CloudMarketplaceLocalDispatchSession(
+                transport: transport,
+                accessToken: accessToken,
+                remoteWorkspaceId: remoteWorkspaceId,
+                remoteAgentIds: remoteAgentIds
+            )
+        }
         let bridgeInstaller = RelayBridgeInstaller(cacheDirectory: paths.cacheDir, runner: runner)
         harnessInstall.runHermesLegacyRuntimeOverrideMigrationIfNeeded()
         let provisioning = AgentProvisioningService(data: data, harnessInstall: harnessInstall)
@@ -818,7 +873,9 @@ public final class RelayConsoleServices {
         self.cloudConnections = cloudConnections
         self.entitlement = entitlement
         self.cloudSync = cloudSync
-        cloudSync.startAutomaticSync()
+        if startAutomaticCloudSync {
+            cloudSync.startAutomaticSync()
+        }
         _ = try? data.log(severity: "info", category: "app", message: "Relay Console initialized.")
         if startRuntimeBrokerServer ?? refreshInstalledHarnessesOnLaunch {
             let brokerServer = MarketplaceRuntimeBrokerServer(root: paths.root, bridge: marketplaceRuntimeToolBridge)

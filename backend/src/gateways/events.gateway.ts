@@ -448,11 +448,20 @@ export class EventsGateway
         );
         break;
       case "register_bridge_agent":
-        await this.handleRegisterBridgeAgent(
-          socketId,
-          (message as { externalAgentId: string }).externalAgentId,
-          (message as { capabilities?: string[] }).capabilities,
-        );
+        {
+          const externalAgentId = (message as { externalAgentId: string })
+            .externalAgentId;
+          const accepted = await this.handleRegisterBridgeAgent(
+            socketId,
+            externalAgentId,
+            (message as { capabilities?: string[] }).capabilities,
+          );
+          this.sendBridgeAgentRegistrationResult(
+            socketId,
+            externalAgentId,
+            accepted,
+          );
+        }
         break;
       case "unregister_bridge_agent":
         this.handleUnregisterBridgeAgent(
@@ -461,11 +470,20 @@ export class EventsGateway
         );
         break;
       case "register_hermes_agent":
-        await this.handleRegisterHermesAgent(
-          socketId,
-          (message as { externalAgentId: string }).externalAgentId,
-          (message as { capabilities?: string[] }).capabilities,
-        );
+        {
+          const externalAgentId = (message as { externalAgentId: string })
+            .externalAgentId;
+          const accepted = await this.handleRegisterHermesAgent(
+            socketId,
+            externalAgentId,
+            (message as { capabilities?: string[] }).capabilities,
+          );
+          this.sendBridgeAgentRegistrationResult(
+            socketId,
+            externalAgentId,
+            accepted,
+          );
+        }
         break;
       case "unregister_hermes_agent":
         this.handleUnregisterHermesAgent(
@@ -806,14 +824,16 @@ export class EventsGateway
     externalAgentId: string,
     liveCapabilities?: string[],
   ) {
-    if (!externalAgentId || this.socketKinds.get(socketId) !== "bridge") return;
+    if (!externalAgentId || this.socketKinds.get(socketId) !== "bridge") {
+      return false;
+    }
     const workspaceId = this.socketScopedWorkspaces.get(socketId);
     const runtimeType = this.socketBridgeRuntimeTypes.get(socketId);
     if (
       !workspaceId ||
       (runtimeType !== "openclaw" && runtimeType !== "claude_code")
     ) {
-      return;
+      return false;
     }
 
     const agent =
@@ -841,11 +861,11 @@ export class EventsGateway
         null,
         "bridge_agent",
       );
-      return;
+      return false;
     }
 
     const key = this.buildBridgeAgentKey(workspaceId, externalAgentId);
-    if (!key) return;
+    if (!key) return false;
 
     if (!this.bridgeAgentSubscriptions.has(key)) {
       this.bridgeAgentSubscriptions.set(key, new Set());
@@ -865,6 +885,7 @@ export class EventsGateway
         liveCapabilities,
       );
     }
+    return true;
   }
 
   private async persistOpenClawBridgeRuntimeCapabilities(
@@ -927,11 +948,13 @@ export class EventsGateway
     externalAgentId: string,
     liveCapabilities?: string[],
   ) {
-    if (!externalAgentId || this.socketKinds.get(socketId) !== "bridge") return;
-    if (this.socketBridgeRuntimeTypes.get(socketId) !== "hermes") return;
-    if (!this.hasHermesBridgeCapability(socketId)) return;
+    if (!externalAgentId || this.socketKinds.get(socketId) !== "bridge") {
+      return false;
+    }
+    if (this.socketBridgeRuntimeTypes.get(socketId) !== "hermes") return false;
+    if (!this.hasHermesBridgeCapability(socketId)) return false;
     const workspaceId = this.socketScopedWorkspaces.get(socketId);
-    if (!workspaceId) return;
+    if (!workspaceId) return false;
 
     const agent = await this.agentRepository.findOne({
       where: {
@@ -948,11 +971,11 @@ export class EventsGateway
         null,
         "hermes_bridge_agent",
       );
-      return;
+      return false;
     }
 
     const key = this.buildHermesBridgeAgentKey(workspaceId, externalAgentId);
-    if (!key) return;
+    if (!key) return false;
     if (!this.hermesBridgeAgentSubscriptions.has(key)) {
       this.hermesBridgeAgentSubscriptions.set(key, new Set());
     }
@@ -977,6 +1000,20 @@ export class EventsGateway
       status: "ready",
       message: "Hermes bridge agent connected",
       timestamp: new Date().toISOString(),
+    });
+    return true;
+  }
+
+  private sendBridgeAgentRegistrationResult(
+    socketId: string,
+    externalAgentId: string,
+    accepted: boolean,
+  ) {
+    const runtimeType = this.socketBridgeRuntimeTypes.get(socketId);
+    if (!runtimeType) return;
+    this.sendToSocket(socketId, {
+      type: "bridge_agent_registration",
+      data: { accepted, externalAgentId, runtimeType },
     });
   }
 

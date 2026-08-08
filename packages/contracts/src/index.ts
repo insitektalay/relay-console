@@ -2917,6 +2917,7 @@ export interface BridgeEnrollment {
   workspaceName: string;
   code: string;
   deviceLabel?: string | null;
+  hostInstallationId?: string | null;
   expiresAt: string;
   status: string;
 }
@@ -2932,6 +2933,9 @@ export interface BridgeDevice {
   pluginVersion?: string | null;
   runtimeType?: "hermes" | "openclaw" | null;
   hostType?: "macos-launchd" | "linux-systemd" | null;
+  hostInstallationId?: string | null;
+  hostDisplayName?: string | null;
+  adapterRole?: "host" | "runtime";
   health?: "online" | "offline" | "revoked";
   compatibility?: {
     compatible: boolean;

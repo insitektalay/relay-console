@@ -135,6 +135,18 @@ public protocol MarketplaceProviderActionAdapter: Sendable {
     func execute(request: MarketplaceProviderActionAdapterRequest) throws -> MarketplaceProviderActionAdapterResult
 }
 
+public struct RailwayRequiredMarketplaceProviderActionAdapter: MarketplaceProviderActionAdapter {
+    public init() {}
+
+    public func execute(request: MarketplaceProviderActionAdapterRequest) throws -> MarketplaceProviderActionAdapterResult {
+        throw ServiceGuard.unavailable(
+            context: request.context,
+            reasonCode: .featureUnavailable,
+            message: "External Marketplace apps execute through Railway. Relay did not create fallback provider output."
+        )
+    }
+}
+
 public struct FakeMarketplaceProviderActionAdapter: MarketplaceProviderActionAdapter {
     public init() {}
 
@@ -275,6 +287,13 @@ public final class MarketplaceProviderActionBrokerService {
         try requireExecutionAccess(context: context)
         let timestamp = ISO8601DateFormatter.relayConsole.string(from: now)
         let app = try requireProviderActionApp(context: context, appIdOrSlug: request.appIdOrSlug)
+        guard MarketplaceExecutionAuthority.currentSwiftAdapterAuthority(for: app.slug) != .railway else {
+            throw ServiceGuard.unavailable(
+                context: context,
+                reasonCode: .featureUnavailable,
+                message: "External Marketplace apps execute through Railway. The local Swift broker will not run an adapter or create fallback output."
+            )
+        }
         let definition = try requireActionDefinition(context: context, app: app, actionKey: request.actionKey)
         let install = try validateInstall(request.installId, app: app, context: context)
         let effectiveConnectionId = request.connectionId ?? install?.connectionId

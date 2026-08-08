@@ -33,7 +33,6 @@ import {
   RelaySyncConflictEntity,
   RelaySyncObjectEntity,
   RelayWorkspaceChangeEntity,
-  MarketplaceConnectionEntity,
   RuntimeBindingEntity,
   RelayWorkspaceImportEntity,
   RelayWorkspaceSyncLinkEntity,
@@ -1640,59 +1639,10 @@ export class RelaySyncService {
     const { record, workspaceId, userId } = input;
     const p = record.payload;
     if (record.objectType === "application_connection") {
-      if (p.executionAuthority !== "swift") return input.existingCanonicalId;
-      if (input.operation === "delete") {
-        if (input.existingCanonicalId)
-          await manager.delete(
-            MarketplaceConnectionEntity,
-            input.existingCanonicalId,
-          );
-        return input.existingCanonicalId;
+      if (p.executionAuthority !== "railway") {
+        throw new Error("MARKETPLACE_EXECUTION_AUTHORITY_RAILWAY_REQUIRED");
       }
-      const repo = manager.getRepository(MarketplaceConnectionEntity);
-      const entity = input.existingCanonicalId
-        ? await repo.findOne({
-            where: { id: input.existingCanonicalId, workspaceId },
-          })
-        : null;
-      const saved = await repo.save(
-        repo.create({
-          ...entity,
-          workspaceId,
-          appSlug: this.text(p.appSlug),
-          displayName: this.text(
-            p.providerName ?? p.accountLabel ?? p.appSlug,
-            "Device-local connection",
-          ),
-          environment: "device-local",
-          authType: "device_local",
-          executionAuthority: "swift",
-          credentialNames: [],
-          secretCiphertext: null,
-          secretIv: null,
-          secretAuthTag: null,
-          secretKeyVersion: null,
-          selectedCapabilities: this.stringArray(p.selectedCapabilities),
-          status: "needs_credentials",
-          lastValidatedAt: null,
-          lastErrorCode: "DEVICE_RUNTIME_REQUIRED",
-          lastErrorMessage:
-            "This connection executes on its owning Mac or runtime host. Railway will not fall back to another credential authority.",
-          metadata: {
-            relaySync: {
-              sourceInstallationId: input.installationId,
-              sourceObjectId: record.objectId,
-            },
-            executionAuthorityVersion: p.executionAuthorityVersion,
-            executionAvailability: "device_runtime_required",
-            secretMaterialSynchronized: false,
-            sourceConnectionStatus: p.connectionStatus ?? p.status ?? null,
-          },
-          createdByUserId: userId,
-          updatedByUserId: userId,
-        }),
-      );
-      return saved.id;
+      return input.existingCanonicalId;
     }
     if (record.objectType === "agent") {
       if (input.operation === "delete") {

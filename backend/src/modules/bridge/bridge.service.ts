@@ -136,6 +136,7 @@ export interface BridgeDeviceAuthContext {
 }
 
 export interface BridgeDeviceMetadata {
+  hostInstallationId?: string;
   pluginVersion?: string;
   openCoreVersion?: string;
   runtimeType?: string;
@@ -2143,6 +2144,7 @@ export class BridgeService {
     deviceLabel?: string,
     expiresInMinutes: number = 10,
     requestContext?: AuditLogRequestContext,
+    hostInstallationId?: string,
   ) {
     const workspace = await this.workspaceRepo.findOne({
       where: { id: workspaceId },
@@ -2159,6 +2161,7 @@ export class BridgeService {
         createdByUserId: userId,
         codeHash: this.bridgeCredentials.hashOpaqueSecret(enrollmentCode),
         deviceLabel: deviceLabel?.trim() || null,
+        hostInstallationId: hostInstallationId?.trim() || null,
         expiresAt: new Date(Date.now() + normalizedMinutes * 60 * 1000),
         status: BridgeEnrollmentStatus.ACTIVE,
       }),
@@ -2185,6 +2188,7 @@ export class BridgeService {
       workspaceName: workspace.name,
       code: enrollmentCode,
       deviceLabel: enrollment.deviceLabel,
+      hostInstallationId: enrollment.hostInstallationId,
       expiresAt: enrollment.expiresAt,
       status: enrollment.status,
     };
@@ -2217,6 +2221,10 @@ export class BridgeService {
     }
 
     const compatibility = this.assertBridgeCompatibility(input);
+    const hostInstallationId =
+      input.hostInstallationId?.trim() ||
+      enrollment.hostInstallationId?.trim() ||
+      `relayhost_${randomUUID()}`;
 
     const usedAt = new Date();
     const redemption = await this.bridgeEnrollmentRepo.update(
@@ -2240,15 +2248,32 @@ export class BridgeService {
     enrollment.status = BridgeEnrollmentStatus.USED;
     enrollment.usedAt = usedAt;
 
+    const deviceLabel =
+      input.deviceLabel?.trim() ||
+      enrollment.deviceLabel ||
+      "Local Open Core";
+    const adapterRole =
+      (input.capabilities ?? []).includes("clawchat.relay_host.v1") &&
+      !/ · (Hermes Agent|OpenClaw) bridge$/i.test(deviceLabel)
+        ? "host"
+        : "runtime";
+    const supersededDevices = await this.bridgeDeviceRepo.find({
+      where: {
+        workspaceId: enrollment.workspaceId,
+        hostInstallationId,
+        adapterRole,
+        runtimeType: compatibility.runtimeType,
+        hostType: compatibility.hostType,
+        status: BridgeDeviceStatus.ACTIVE,
+      },
+    });
+
     const deviceToken = this.bridgeCredentials.generateCredential();
     const device = await this.bridgeDeviceRepo.save(
       this.bridgeDeviceRepo.create({
         workspaceId: enrollment.workspaceId,
         createdByUserId: enrollment.createdByUserId,
-        label:
-          input.deviceLabel?.trim() ||
-          enrollment.deviceLabel ||
-          "Local Open Core",
+        label: deviceLabel,
         devicePublicId: `bdev_${randomUUID()}`,
         credentialHash: this.bridgeCredentials.hashOpaqueSecret(deviceToken),
         status: BridgeDeviceStatus.ACTIVE,
@@ -2257,6 +2282,8 @@ export class BridgeService {
         pluginVersion: input.pluginVersion ?? null,
         runtimeType: compatibility.runtimeType,
         hostType: compatibility.hostType,
+        hostInstallationId,
+        adapterRole,
         credentialVersion: 1,
         credentialRotatedAt: null,
         previousCredentialHash: null,
@@ -2265,6 +2292,31 @@ export class BridgeService {
         lastSeenAt: new Date(),
       }),
     );
+
+    const supersededAt = new Date();
+    for (const supersededDevice of supersededDevices) {
+      await this.bridgeDeviceRepo.update(supersededDevice.id, {
+        status: BridgeDeviceStatus.REVOKED,
+        revokedAt: supersededAt,
+      });
+      this.eventsGateway.disconnectBridgeDevice(supersededDevice.id);
+      await this.auditLogService.record({
+        actorType: "bridge_device",
+        actorId: device.id,
+        workspaceId: device.workspaceId,
+        eventType: "bridge.device.superseded",
+        resourceType: "bridge_device",
+        resourceId: supersededDevice.id,
+        ipAddress: requestContext?.ipAddress ?? null,
+        userAgent: requestContext?.userAgent ?? null,
+        metadata: {
+          replacementDeviceId: device.id,
+          label: device.label,
+          runtimeType: device.runtimeType,
+          hostType: device.hostType,
+        },
+      });
+    }
 
     const tokens = await this.issueBridgeTokens(device);
     await this.auditLogService.record({
@@ -2326,6 +2378,7 @@ export class BridgeService {
         "openCoreVersion",
         "runtimeType",
         "hostType",
+        "hostInstallationId",
         "credentialVersion",
         "credentialRotatedAt",
         "lastSeenAt",
@@ -2380,7 +2433,11 @@ export class BridgeService {
     }
 
     const compatibility = this.assertBridgeCompatibility(metadata ?? {});
-    this.assertStableBridgeIdentity(device, compatibility);
+    this.assertStableBridgeIdentity(
+      device,
+      compatibility,
+      metadata?.hostInstallationId,
+    );
 
     return this.rotateBridgeCredentialAndIssueTokens(
       device,
@@ -2415,6 +2472,7 @@ export class BridgeService {
         "openCoreVersion",
         "runtimeType",
         "hostType",
+        "hostInstallationId",
         "credentialVersion",
         "credentialRotatedAt",
         "lastSeenAt",
@@ -2446,7 +2504,11 @@ export class BridgeService {
     }
 
     const compatibility = this.assertBridgeCompatibility(metadata);
-    this.assertStableBridgeIdentity(device, compatibility);
+    this.assertStableBridgeIdentity(
+      device,
+      compatibility,
+      metadata.hostInstallationId,
+    );
     return this.rotateBridgeCredentialAndIssueTokens(
       device,
       metadata,
@@ -2474,7 +2536,7 @@ export class BridgeService {
 
   async listBridgeDevices(workspaceId: string) {
     const devices = await this.bridgeDeviceRepo.find({
-      where: { workspaceId },
+      where: { workspaceId, status: BridgeDeviceStatus.ACTIVE },
       order: { updatedAt: "DESC" },
     });
     const connectedDeviceIds =
@@ -5724,6 +5786,64 @@ export class BridgeService {
     });
   }
 
+  async assertBridgeDeviceAgentMarketplaceBinding(input: {
+    workspaceId: string;
+    bridgeDeviceId: string;
+    devicePublicId: string;
+    agentId: string;
+    runtimeBinding: {
+      id: string;
+      workspaceId: string;
+      agentId: string;
+      runtimeType: string;
+      adapterKind?: string | null;
+      capabilities?: Record<string, unknown> | null;
+      configMetadata?: Record<string, unknown> | null;
+    } | null;
+  }) {
+    const { runtimeBinding } = input;
+    if (
+      !runtimeBinding ||
+      runtimeBinding.agentId !== input.agentId ||
+      !this.isBridgeBackedRuntimeBinding(runtimeBinding)
+    ) {
+      throw new ForbiddenException(
+        "Marketplace tools are not bound to an authorized bridge runtime",
+      );
+    }
+    await this.assertWorkspaceScope(
+      input.workspaceId,
+      runtimeBinding.workspaceId,
+    );
+    const publishedDevicePublicId =
+      typeof runtimeBinding.configMetadata?.devicePublicId === "string"
+        ? runtimeBinding.configMetadata.devicePublicId.trim()
+        : "";
+    const runtimeHostKind =
+      typeof runtimeBinding.configMetadata?.runtimeHostKind === "string"
+        ? runtimeBinding.configMetadata.runtimeHostKind.trim().toLowerCase()
+        : "";
+    if (
+      runtimeHostKind === "relay_console_swift" &&
+      publishedDevicePublicId &&
+      publishedDevicePublicId === input.devicePublicId
+    ) {
+      return;
+    }
+    const agent = await this.agentRepo.findOne({
+      where: {
+        id: input.agentId,
+        workspaceId: input.workspaceId,
+      } as any,
+    });
+    const externalAgentId = agent ? this.resolveBridgeExternalId(agent) : null;
+    await this.assertBridgeDeviceExternalAgentBinding({
+      workspaceId: input.workspaceId,
+      bridgeDeviceId: input.bridgeDeviceId,
+      externalAgentId,
+    });
+  }
+
   private isBridgeBackedRuntimeBinding(binding: {
     runtimeType?: string | null;
     adapterKind?: string | null;
@@ -6058,6 +6178,7 @@ export class BridgeService {
         "createdByUserId",
         "codeHash",
         "deviceLabel",
+        "hostInstallationId",
         "status",
         "expiresAt",
         "usedAt",
@@ -6115,7 +6236,16 @@ export class BridgeService {
       runtimeType: string | null;
       hostType: string | null;
     },
+    requestedHostInstallationId?: string,
   ) {
+    if (
+      requestedHostInstallationId &&
+      device.hostInstallationId !== requestedHostInstallationId
+    ) {
+      throw new UnauthorizedException(
+        "Relay Host installation identity cannot change after enrollment",
+      );
+    }
     this.bridgeCredentials.assertStableIdentity(device, compatibility);
   }
 
@@ -6159,6 +6289,12 @@ export class BridgeService {
       pluginVersion: device.pluginVersion ?? null,
       runtimeType: device.runtimeType ?? null,
       hostType: device.hostType ?? null,
+      hostInstallationId: device.hostInstallationId ?? null,
+      adapterRole: device.adapterRole ?? "runtime",
+      hostDisplayName: device.label.replace(
+        / · (Hermes Agent|OpenClaw) bridge$/i,
+        "",
+      ),
       health,
       compatibility: {
         compatible: compatibility.compatible,

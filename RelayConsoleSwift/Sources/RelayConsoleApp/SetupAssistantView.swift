@@ -421,7 +421,7 @@ struct SetupAssistantView: View {
       }
     }
     .task {
-      await model.refreshSetupBridgeStatus()
+      await model.recoverSetupBridgeConnections()
       while !Task.isCancelled {
         try? await Task.sleep(nanoseconds: 5_000_000_000)
         guard !Task.isCancelled else { break }
@@ -558,7 +558,9 @@ struct SetupAssistantView: View {
   private func compactBridgeStatus(_ pairing: SetupPairingCode, isOnline: Bool) -> String {
     if isOnline { return "Connected" }
     switch pairing.state {
-    case .connected, .bridgeOffline, .ready: return "Connecting"
+    case .ready: return "Ready to install"
+    case .connecting: return "Connecting"
+    case .connected, .bridgeOffline: return "Offline"
     case .notGenerated: return "Not connected"
     case .incompatible: return "Update needed"
     default: return "Needs attention"
@@ -568,7 +570,7 @@ struct SetupAssistantView: View {
   private func compactBridgeStatusColor(_ pairing: SetupPairingCode, isOnline: Bool) -> Color {
     if isOnline { return RCTheme.accentGreen }
     switch pairing.state {
-    case .connected, .bridgeOffline, .ready: return RCTheme.accentAmber
+    case .connecting, .connected, .bridgeOffline, .ready: return RCTheme.accentAmber
     case .notGenerated: return RCTheme.muted
     default: return RCTheme.accentAmber
     }
@@ -584,10 +586,14 @@ struct SetupAssistantView: View {
       return "Remote access is ready. Relay can reach this runtime and assign Marketplace apps to its live agents."
     }
     switch pairing.state {
+    case .connecting:
+      return "Relay is reconnecting this runtime automatically. No action is required."
     case .connected:
-      return "Relay is confirming that this bridge is still online. This page checks automatically."
-    case .bridgeOffline, .ready:
-      return "The bridge is starting and making a secure connection to Relay. This page checks automatically."
+      return "The bridge is paired but offline. Reconnect it to Relay to restore remote access. This page checks automatically."
+    case .bridgeOffline:
+      return "The bridge is paired but offline. Reconnect it to Relay to enable remote access. This page checks automatically."
+    case .ready:
+      return "The pairing is ready. Install the bridge to enable remote access."
     case .incompatible:
       return "This bridge version must be updated before remote access can work."
     case .notGenerated:
@@ -602,8 +608,10 @@ struct SetupAssistantView: View {
   private func compactBridgeActionTitle(_ pairing: SetupPairingCode, isOnline: Bool) -> String {
     if isOnline { return "Update or Reinstall Bridge" }
     switch pairing.state {
-    case .notGenerated: return "Install Bridge"
-    default: return "Try Setup Again"
+    case .notGenerated, .ready: return "Install Bridge"
+    case .connected, .bridgeOffline: return "Reconnect Bridge"
+    case .connecting: return "Connecting"
+    default: return "Retry Setup"
     }
   }
 
@@ -617,12 +625,12 @@ struct SetupAssistantView: View {
     if pairing.recoveryAction == .reconnectRailway {
       Button("Reconnect Railway") { model.presentSetupAssistant(at: .relayAccount) }
         .buttonStyle(PrimaryLightButtonStyle())
-    } else if canInstallLocally {
+    } else if canInstallLocally && pairing.state != .connecting {
       Button(compactBridgeActionTitle(pairing, isOnline: isOnline)) {
         Task { await model.installSetupBridgeOnThisMac(for: runtime) }
       }
       .buttonStyle(PrimaryLightButtonStyle())
-    } else if pairing.state != .connected {
+    } else if pairing.state != .connected && pairing.state != .connecting {
       Button("Set Up on Another Computer") {
         showsRemoteComputerInstaller = true
       }

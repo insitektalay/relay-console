@@ -486,7 +486,7 @@ public final class DispatchService {
         if sourceMessage.senderType == .agent,
            let delegatorId = sourceMessage.senderId,
            delegatorId != publishingAgent.id {
-            instructions.append("This turn was triggered by \(sourceMessage.senderName) (Relay agent ID \(delegatorId)). When delegated work is complete or blocked, include exactly that agent ID in relay_publish_message.mentions so the delegator receives the callback.")
+            instructions.append("This turn was triggered by \(sourceMessage.senderName) (Relay agent ID \(delegatorId)). If that message assigns you work, include exactly that agent ID in relay_publish_message.mentions when the work is complete or blocked. If it instead reports work that you assigned to them, do not mention them merely to acknowledge the callback; publish your synthesis with an empty mentions list unless you are deliberately assigning new work.")
         }
         return instructions.joined(separator: "\n\n")
     }

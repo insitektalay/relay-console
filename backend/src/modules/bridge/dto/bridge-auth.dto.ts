@@ -15,6 +15,11 @@ import {
 export class BridgeCompatibilityMetadataDto {
   @IsOptional()
   @IsString()
+  @Matches(/^relayhost_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+  hostInstallationId?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(64)
   pluginVersion?: string;
 
@@ -80,6 +85,11 @@ export class CreateBridgeEnrollmentDto {
   @IsString()
   @MaxLength(128)
   deviceLabel?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^relayhost_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+  hostInstallationId?: string;
 
   @IsOptional()
   @IsInt()

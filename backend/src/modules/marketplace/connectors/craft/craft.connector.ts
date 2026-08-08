@@ -13,26 +13,26 @@ const reads = [
   action(
     "craft_api_read",
     "Read Craft content",
-    "Use one stable, allowlisted Craft Space API read against the connection's selected content.",
+    "Use one live-schema-verified read tool from Craft's official hosted MCP server.",
   ),
 ];
 const manages = [
   action(
     "craft_api_manage",
     "Manage Craft content",
-    "Use one stable, allowlisted Craft Space API mutation; Safe mode requires approval.",
+    "Use one live-schema-verified mutation from Craft's official hosted MCP server; Safe mode requires approval.",
   ),
 ];
 const blockedActions = [
   blocked(
     "craft_raw_api",
-    "Call arbitrary Craft APIs",
-    "Agents choose only an enumerated stable operation; raw paths, methods, and experimental endpoints are unavailable.",
+    "Mount raw Craft MCP",
+    "Relay separates provider-declared read-only tools from mutations and does not expose an ungoverned MCP surface.",
   ),
   blocked(
     "craft_secret_exposure",
-    "Expose the API connection URL",
-    "The secret Craft connection URL remains encrypted and never enters tool inputs, results, logs, or audits.",
+    "Expose Craft credentials",
+    "OAuth tokens and legacy API connection URLs remain encrypted and never enter tool inputs, results, logs, or audits.",
   ),
   blocked(
     "craft_unbounded_transfer",
@@ -56,14 +56,14 @@ export const CRAFT_CONNECTOR_MANIFEST: MarketplaceConnectorManifest = {
   slug: "craft",
   name: "Craft",
   connectorType: "native_clawchat",
-  providerDocsUrl: "https://connect.craft.do/api-docs/space",
+  providerDocsUrl: "https://support.craft.do/en/integrate/mcp",
   providerWebsiteUrl: "https://www.craft.do/",
   capabilities: [
     {
       ...capability(
         "knowledge_read",
         "Read workspace knowledge",
-        "Fetch and search selected documents and blocks, then list authorized collections, folders, documents, and tasks.",
+        "Use provider-declared read-only MCP tools for the Craft space selected during authorization.",
         true,
       ),
       platformCapability: "craft_knowledge_read",
@@ -72,14 +72,23 @@ export const CRAFT_CONNECTOR_MANIFEST: MarketplaceConnectorManifest = {
       ...capability(
         "knowledge_manage",
         "Manage workspace knowledge",
-        "Insert, update, move, and delete authorized blocks, collection items, documents, folders, and tasks.",
+        "Use provider-declared MCP mutations in the Craft space selected during authorization.",
         true,
       ),
       platformCapability: "craft_knowledge_manage",
     },
   ],
   auth: {
-    type: "api_key",
+    type: "oauth2_authorization_code",
+    oauth: {
+      authorizationUrl: "https://mcp.craft.do/my/auth/authorize",
+      tokenUrl: "https://mcp.craft.do/my/auth/token",
+      userInfoUrl: "https://mcp.craft.do/my/mcp",
+      requiredScopes: [],
+      optionalScopes: [],
+      pkce: true,
+      supportsRefresh: true,
+    },
     credentialSchema: [
       {
         name: "CRAFT_API_URL",
@@ -87,13 +96,29 @@ export const CRAFT_CONNECTOR_MANIFEST: MarketplaceConnectorManifest = {
         required: true,
         secret: true,
         storedIn: "encrypted_secret",
-        requiredForAuthTypes: ["api_key"],
+        requiredForAuthTypes: ["customer_scoped_api_url", "api_key"],
         helpText:
-          "Create a least-privilege API Connection in Craft's Imagine tab and paste its full https://connect.craft.do/links/.../api/v1 URL.",
+          "Compatibility only: existing Craft API connection URLs remain supported. New connections use Craft's official hosted MCP OAuth flow.",
       },
     ],
   },
   tools: [
+    {
+      name: "craft.discoverTools",
+      functionName: "craft_mcp_discover_tools",
+      aliases: ["craft.discoverTools", "craft_mcp_discover_tools"],
+      capability: "knowledge_read",
+      platformCapability: "craft_knowledge_read",
+      action: "read",
+      approvalRequired: false,
+      description:
+        "List the current bounded Craft MCP tool names, input schemas, and read-only classification for the selected space.",
+      inputSchema: {
+        type: "object",
+        properties: {},
+        additionalProperties: false,
+      },
+    },
     {
       name: "craft.read",
       functionName: "craft_api_read",
@@ -103,14 +128,19 @@ export const CRAFT_CONNECTOR_MANIFEST: MarketplaceConnectorManifest = {
       action: "read",
       approvalRequired: false,
       description:
-        "Run one enumerated stable Craft read with bounded path parameters and query fields.",
+        "Invoke one provider-declared read-only Craft MCP tool with its live object schema. Existing API URL connections keep the stable REST operation shape.",
       inputSchema: {
         type: "object",
         properties: {
           operation: { type: "string", enum: [...CRAFT_READ_OPERATIONS] },
+          toolName: { type: "string", minLength: 1, maxLength: 200 },
+          arguments: { type: "object" },
           ...commonProperties,
         },
-        required: ["operation"],
+        anyOf: [
+          { required: ["toolName", "arguments"] },
+          { required: ["operation"] },
+        ],
         additionalProperties: false,
       },
     },
@@ -123,16 +153,21 @@ export const CRAFT_CONNECTOR_MANIFEST: MarketplaceConnectorManifest = {
       action: "write",
       approvalRequired: true,
       description:
-        "Run one enumerated stable Craft mutation with bounded parameters and a JSON body.",
+        "Invoke one provider-declared Craft MCP mutation with its live object schema. Existing API URL connections keep the stable REST operation shape.",
       inputSchema: {
         type: "object",
         properties: {
           operation: { type: "string", enum: [...CRAFT_MANAGE_OPERATIONS] },
+          toolName: { type: "string", minLength: 1, maxLength: 200 },
+          arguments: { type: "object" },
           ...commonProperties,
           body: { type: "object" },
           approvalId: { type: "string", maxLength: 200 },
         },
-        required: ["operation", "body"],
+        anyOf: [
+          { required: ["toolName", "arguments"] },
+          { required: ["operation", "body"] },
+        ],
         additionalProperties: false,
       },
     },
@@ -142,7 +177,7 @@ export const CRAFT_CONNECTOR_MANIFEST: MarketplaceConnectorManifest = {
       id: "craft_safe",
       label: "Safe",
       description:
-        "Bounded reads run directly; every Craft content or organization mutation requires approval.",
+        "Provider-declared read-only MCP tools run directly; every Craft mutation requires approval.",
       defaultSelected: true,
       allowedActions: reads,
       approvalRequiredActions: manages,
@@ -161,8 +196,8 @@ export const CRAFT_CONNECTOR_MANIFEST: MarketplaceConnectorManifest = {
   ],
   healthChecks: [
     {
-      id: "scoped_api_connection",
-      label: "Craft scoped API connection and folder-list validation",
+      id: "oauth_and_mcp_tools",
+      label: "Craft OAuth and hosted MCP live-tool validation",
     },
   ],
 };

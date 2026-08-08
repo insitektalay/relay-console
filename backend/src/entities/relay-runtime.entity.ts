@@ -57,6 +57,7 @@ export type AgentLifecycleStatus = (typeof AGENT_LIFECYCLE_STATUSES)[number];
 @Entity("runtime_hosts")
 @Index(["workspaceId", "status"])
 @Index(["workspaceId", "hostKind"])
+@Index(["workspaceId", "hostInstallationId"], { unique: true })
 export class RuntimeHostEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
@@ -72,6 +73,9 @@ export class RuntimeHostEntity {
 
   @Column({ nullable: true })
   platform: string | null;
+
+  @Column({ nullable: true })
+  hostInstallationId: string | null;
 
   @Column({ default: "offline" })
   status: RuntimeHostStatus;

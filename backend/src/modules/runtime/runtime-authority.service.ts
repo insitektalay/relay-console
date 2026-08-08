@@ -9,6 +9,7 @@ import {
   AgentEntity,
   AgentIdentitySuppressionEntity,
   BridgeDeviceEntity,
+  BridgeDeviceStatus,
   RelayExecutionOwnerLeaseEntity,
   RuntimeHostEntity,
   RuntimeObservationEntity,
@@ -70,9 +71,18 @@ export class RuntimeAuthorityService {
       where: { id: input.bridgeDeviceId, workspaceId: input.workspaceId },
     });
     if (!device) throw new NotFoundException("RUNTIME_HOST_DEVICE_NOT_FOUND");
-    const existing = await this.hosts.findOne({
-      where: { bridgeDeviceId: input.bridgeDeviceId },
-    });
+    const existing =
+      (device.hostInstallationId
+        ? await this.hosts.findOne({
+            where: {
+              workspaceId: input.workspaceId,
+              hostInstallationId: device.hostInstallationId,
+            },
+          })
+        : null) ??
+      (await this.hosts.findOne({
+        where: { bridgeDeviceId: input.bridgeDeviceId },
+      }));
     const seenAt = input.seenAt ?? new Date();
     const supportedRuntimes = new Set(existing?.supportedRuntimes ?? []);
     if (input.runtimeType) supportedRuntimes.add(input.runtimeType);
@@ -83,8 +93,10 @@ export class RuntimeAuthorityService {
         displayName: device.label,
         hostKind: device.hostType?.trim() || "bridge",
         platform: existing?.platform ?? null,
+        hostInstallationId:
+          device.hostInstallationId ?? existing?.hostInstallationId ?? null,
         status: "online",
-        bridgeDeviceId: device.id,
+        bridgeDeviceId: existing?.bridgeDeviceId ?? device.id,
         clientInstallationId: existing?.clientInstallationId ?? null,
         managedRuntimeId: existing?.managedRuntimeId ?? null,
         softwareVersion:
@@ -677,6 +689,24 @@ export class RuntimeAuthorityService {
       if (!host || host.status === "retired" || host.status === "quarantined") {
         throw new ConflictException("RUNTIME_HOST_INELIGIBLE");
       }
+      const runtimeDevice = host.hostInstallationId
+        ? await manager.findOne(BridgeDeviceEntity, {
+            where: {
+              workspaceId: input.workspaceId,
+              hostInstallationId: host.hostInstallationId,
+              runtimeType: input.runtimeType,
+              status: BridgeDeviceStatus.ACTIVE,
+              revokedAt: IsNull(),
+            },
+            order: {
+              adapterRole: "DESC",
+              lastSeenAt: "DESC",
+              updatedAt: "DESC",
+            },
+          })
+        : null;
+      const executionBridgeDeviceId =
+        runtimeDevice?.id ?? host.bridgeDeviceId ?? null;
       const observation = await manager.findOne(RuntimeObservationEntity, {
         where: {
           workspaceId: input.workspaceId,
@@ -742,7 +772,7 @@ export class RuntimeAuthorityService {
         configMetadata: {
           ...(binding?.configMetadata ?? {}),
           runtimeHostId: host.id,
-          bridgeDeviceId: host.bridgeDeviceId,
+          bridgeDeviceId: executionBridgeDeviceId,
           runtimeHostKind: host.hostKind,
         },
       });
@@ -758,7 +788,7 @@ export class RuntimeAuthorityService {
         ...lease,
         workspaceId: input.workspaceId,
         agentId: agent.id,
-        bridgeDeviceId: host.bridgeDeviceId,
+        bridgeDeviceId: executionBridgeDeviceId,
         runtimeHostId: host.id,
         assignmentEpoch: nextEpoch,
         ownerKind: host.hostKind,

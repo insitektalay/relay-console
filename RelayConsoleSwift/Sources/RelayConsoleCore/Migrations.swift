@@ -2391,6 +2391,24 @@ public let migrations: [Migration] = [
             AND id <> NEW.id;
         END;
         """)
+    },
+
+    Migration(version: 43, name: "automatic_relay_connect_agent_links") { database in
+        try? database.exec(
+            "ALTER TABLE runtime_bindings ADD COLUMN connect_auto_link_suppressed INTEGER NOT NULL DEFAULT 0;"
+        )
+        try database.exec(
+            "CREATE INDEX IF NOT EXISTS idx_runtime_bindings_connect_auto_link ON runtime_bindings(connect_auto_link_suppressed,connect_linked,agent_id);"
+        )
+    },
+
+    Migration(version: 44, name: "stable_relay_host_installation_identity") { database in
+        try? database.exec(
+            "ALTER TABLE cloud_runtime_devices ADD COLUMN host_installation_id TEXT;"
+        )
+        try database.exec(
+            "CREATE INDEX IF NOT EXISTS idx_cloud_runtime_devices_host_installation ON cloud_runtime_devices(host_installation_id);"
+        )
     }
 ]
 

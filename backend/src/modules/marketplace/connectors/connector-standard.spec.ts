@@ -1216,6 +1216,19 @@ describe("Marketplace Connector Standard v1", () => {
           }),
           { status: 200 },
         ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: 3,
+            result: {
+              content: [{ type: "text", text: "No forms found." }],
+              isError: false,
+            },
+          }),
+          { status: 200 },
+        ),
       );
     const completed = await service.completeOAuth("jotform", {
       state: url.searchParams.get("state")!,

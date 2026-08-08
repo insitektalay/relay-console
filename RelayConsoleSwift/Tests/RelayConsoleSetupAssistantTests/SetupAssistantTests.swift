@@ -395,6 +395,12 @@ enum SetupAssistantTests {
       setup.contains("title: \"Remote Access\"")
         && setup.contains("compactBridgeCard(runtime)")
         && setup.contains("case .remotePairing: remoteInstallationStep")
+        && setup.contains("case .ready: return \"Ready to install\"")
+        && setup.contains("case .connecting: return \"Connecting\"")
+        && setup.contains("case .connected, .bridgeOffline: return \"Reconnect Bridge\"")
+        && setup.contains("The bridge is paired but offline.")
+        && setup.contains("Relay is reconnecting this runtime automatically.")
+        && !setup.contains("return \"Try Setup Again\"")
         && setup.contains("Update or Reinstall Bridge")
         && setup.contains("Reconnect Railway")
         && setup.contains("Install on another computer")
@@ -405,13 +411,18 @@ enum SetupAssistantTests {
         && model.contains("installSetupBridgeOnThisMac")
         && model.contains("setupBridgeStatusLastCheckedAt = Date()")
         && model.contains("waitForConnection: true")
+        && model.contains("func recoverSetupBridgeConnections() async")
+        && model.contains("ensureAutomaticCloudLinkIfPossible()")
+        && model.contains("setupBridgeDeviceSupportsRuntime")
+        && model.contains("state: .connecting")
         && model.contains("setupBridgeOnlineRuntimes")
+        && setup.contains("await model.recoverSetupBridgeConnections()")
         && setup.contains("await model.refreshSetupBridgeStatus()")
         && setup.contains("Task.sleep(nanoseconds: 5_000_000_000)")
         && installer.contains("externalAgentIds")
         && installer.contains("--agent")
         && model.contains("RelayBridgeInstallRequest"),
-      "bridge setup does not poll to a shared online state or register selected runtime agents"
+      "bridge setup does not start recovery, poll to a shared online state, or register selected runtime agents"
     )
     try expect(
       model.contains("func setupBridgeCloudContext()")

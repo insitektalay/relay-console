@@ -73,12 +73,17 @@ extension MarketplaceRuntimeCapabilitySnapshot {
     ) -> RelayProviderWrapperTool? {
         guard let toolName = descriptor["functionName"]?.string ?? descriptor["name"]?.string,
               !toolName.isEmpty,
-              case .object(let execution)? = descriptor["execution"],
-              execution["transport"]?.string == "clawchat_bridge_marketplace_tool",
-              execution["requiresBridgeAccessToken"]?.bool == true
+              case .object(let execution)? = descriptor["execution"]
         else {
             return nil
         }
+        let transport = execution["transport"]?.string
+        let hasScopedCredential =
+            transport == "clawchat_bridge_marketplace_tool"
+                ? execution["requiresBridgeAccessToken"]?.bool == true
+                : transport == "clawchat_control_plane_marketplace_tool"
+                    && execution["requiresUserAccessToken"]?.bool == true
+        guard hasScopedCredential else { return nil }
         let action = descriptor["action"]?.string ?? "read"
         let requiresApproval = descriptor["approvalRequired"]?.bool == true
         let readOnly = action == "read"

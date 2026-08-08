@@ -350,10 +350,15 @@ const apiKeyHealthHandler160: ApiKeyHealthHandler = async function (
 
 const apiKeyHealthHandler161: ApiKeyHealthHandler = async function (
   _manifest,
-  _connection,
+  connection,
   stored,
 ) {
-  await this.craftApi.health(this.craftCredentials(stored));
+  if (this.stringOrNull(stored.CRAFT_API_URL))
+    await this.craftApi.health(this.craftCredentials(stored));
+  else {
+    const token = await this.oauth.refreshIfNeeded(connection);
+    await this.craftMcp.health(token.accessToken);
+  }
 };
 
 const apiKeyHealthHandler162: ApiKeyHealthHandler = async function (

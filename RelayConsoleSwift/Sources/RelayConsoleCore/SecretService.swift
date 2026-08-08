@@ -155,7 +155,8 @@ public final class KeychainSecretStore: SecretStore {
 
     private func keychainError(_ status: OSStatus, fallback: String) -> RelayError {
         let message = SecCopyErrorMessageString(status, nil) as String? ?? fallback
-        return RelayError(.secretStoreUnavailable, "\(fallback) macOS Keychain returned \(status): \(message)")
+        let code: RelayErrorCode = status == errSecItemNotFound ? .notFound : .secretStoreUnavailable
+        return RelayError(code, "\(fallback) macOS Keychain returned \(status): \(message)")
     }
 }
 
@@ -169,7 +170,7 @@ public final class MemorySecretStore: SecretStore {
     public func set(account: String, value: String) throws { values[account] = value }
     public func get(account: String) throws -> String {
         guard let value = values[account] else {
-            throw RelayError(.secretStoreUnavailable, "The saved secret is missing from the OS secret store.")
+            throw RelayError(.notFound, "The saved secret is missing from the OS secret store.")
         }
         return value
     }

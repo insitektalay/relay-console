@@ -1694,14 +1694,14 @@ private struct RelaySecurityShowcase: View {
 
     private var connections: some View {
         VStack(alignment: .leading, spacing: RelaySpacing.md) {
-            RelaySectionHeader(title: "Runtime bridges", subtitle: "Outbound Relay connections, not a runtime installer")
-            RelayStatusStrip(title: "Desktop-host responsibility", detail: "Install and update harnesses, plugins, credentials, and host processes on the machine that runs them.", tone: .info, icon: "desktopcomputer")
+            RelaySectionHeader(title: "Relay Hosts", subtitle: "One computer with Hermes and OpenClaw adapters")
+            RelayStatusStrip(title: "Background service", detail: "Relay Host keeps runtime recovery active when Relay Console is closed.", tone: .info, icon: "desktopcomputer")
             RelayPanel {
-                RelayNavRow(title: "Studio Mac", subtitle: "OpenClaw · Online · Last 5m ago", icon: "checkmark.circle.fill", badge: "CONNECTED")
-                RelayNavRow(title: "Office PC", subtitle: "Hermes Agent · Offline", icon: "exclamationmark.triangle.fill", badge: "OFFLINE")
+                RelayNavRow(title: "Studio Mac", subtitle: "Hermes Ready · OpenClaw Ready", icon: "checkmark.circle.fill", badge: "CONNECTED")
+                RelayNavRow(title: "Office PC", subtitle: "Hermes Offline · OpenClaw Offline", icon: "exclamationmark.triangle.fill", badge: "OFFLINE")
             }
-            RelayInlineEmptyState(icon: "link", title: "No paired runtime bridges", subtitle: "Install and pair the bridge on the computer that runs your agent.")
-            RelayStatusStrip(title: "Bridge offline", detail: "Start the user-installed runtime and Relay bridge on its computer, then wait for its outbound connection.", tone: .failure, icon: "wifi.exclamationmark")
+            RelayInlineEmptyState(icon: "link", title: "No Relay Hosts", subtitle: "Install Relay Host on the computer that runs your agents.")
+            RelayStatusStrip(title: "Host offline", detail: "Start the computer and wait for Relay Host to reconnect automatically.", tone: .failure, icon: "wifi.exclamationmark")
             RelayPanel { Text("Relay Console never asks the iPhone app for a public runtime URL or API key.").font(RelayFonts.caption).foregroundStyle(RelayColors.textSecondary) }
         }
     }

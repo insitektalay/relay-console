@@ -217,16 +217,7 @@ jobs:
           xmllint --noout "$UPDATES/appcast.xml"
           grep -q "https://github.com/insitektalay/relay-console/releases/download/${RELEASE_TAG}/${ARCHIVE}" "$UPDATES/appcast.xml"
           grep -q 'sparkle:edSignature=' "$UPDATES/appcast.xml"
-          ruby <<'RUBY'
-          require "rexml/document"
-          path = ENV.fetch("RELAY_APPCAST_PATH")
-          commit = ENV.fetch("RELAY_BACKEND_COMMIT")
-          document = REXML::Document.new(File.read(path))
-          document.root.add_namespace("relay", "https://relayconsole.work/xml-namespaces/update")
-          element = REXML::XPath.first(document, "//relay:backendCommit")
-          abort("Published appcast is missing the backend commit binding") unless element
-          abort("Published appcast backend commit binding differs from the checked-out commit") unless element.text.to_s.strip == commit
-          RUBY
+          grep -q "<relay:backendCommit>$(git rev-parse HEAD)</relay:backendCommit>" "$UPDATES/appcast.xml"
 
       - name: Publish immutable GitHub Release assets
         env:

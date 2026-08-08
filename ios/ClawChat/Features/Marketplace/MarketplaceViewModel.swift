@@ -208,6 +208,21 @@ final class MarketplaceViewModel: ObservableObject {
         }
     }
 
+    func delete(_ connection: MarketplaceConnection) async -> Bool {
+        await performAction {
+            let result: MarketplaceConnectionDeletion = try await api.request(
+                .deleteMarketplaceConnection(
+                    workspaceId: workspaceId,
+                    id: connection.id
+                )
+            )
+            connections.removeAll { $0.id == connection.id }
+            installs.removeAll { result.removedInstallIds.contains($0.id) }
+            notice = "\(connection.displayName) connection deleted."
+            return true
+        } ?? false
+    }
+
     func startOAuth(app: MarketplaceApp, capabilities: [String], credentials: [String: String] = [:]) async -> URL? {
         guard app.connectEligible else {
             error = app.unavailableReason ?? "This provider has not passed release acceptance."

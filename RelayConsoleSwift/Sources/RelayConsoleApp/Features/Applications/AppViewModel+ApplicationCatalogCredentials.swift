@@ -1360,6 +1360,43 @@ extension AppViewModel {
     }
   }
 
+  func deleteManifestDefinedConnection(
+    _ connectionId: RelayId,
+    for app: MarketplaceCatalogApp
+  ) {
+    marketplaceManifestConnectionStatus = "Deleting \(app.name) connection…"
+    runAction("delete-manifest-provider-\(connectionId)", refresh: .none) {
+      guard let services = self.services, let workspace = self.workspace else {
+        throw RelayError(.workspaceMissing, "Workspace unavailable.")
+      }
+      let remoteConnectionId = try services.cloudSync.remoteMarketplaceConnectionId(
+        localWorkspaceId: workspace.id,
+        localConnectionId: connectionId
+      )
+      let response = try await services.cloudSync.railwayMarketplaceRequest(
+        localWorkspaceId: workspace.id,
+        method: "DELETE",
+        relativePath: "connections/\(remoteConnectionId)"
+      )
+      guard response["deleted"] as? Bool == true else {
+        throw RelayError(
+          .internalError,
+          "Railway did not confirm deletion of the \(app.name) connection."
+        )
+      }
+      let context = self.chatContext(workspaceId: workspace.id)
+      _ = try? services.providerConnections.deleteConnection(
+        context: context,
+        connectionId: connectionId
+      )
+      self.marketplaceManifestConnectionStatus =
+        "\(app.name) connection deleted. Its agent assignments were removed."
+      self.applicationsSelectedAppId = app.id
+      await self.refreshApplicationsState(selectedConnectionId: nil)
+      return self.selectedThreadId
+    }
+  }
+
   func loadManifestDefinedConnections(for app: MarketplaceCatalogApp) async {
     guard let services, let workspace else { return }
     do {

@@ -1,17 +1,36 @@
 import Foundation
 
-public final class CloudMarketplaceRuntimeToolProxy: @unchecked Sendable {
-    private final class ResultBox: @unchecked Sendable {
-        private let lock = NSLock()
-        private var storage: Result<JSONRecord, Error>?
+public struct CloudMarketplaceLocalDispatchSession: Sendable {
+    public var transport: RelayCloudTransport
+    public var accessToken: String
+    public var remoteWorkspaceId: String
+    public var remoteAgentIds: [String: String]
 
-        func set(_ value: Result<JSONRecord, Error>) {
+    public init(
+        transport: RelayCloudTransport,
+        accessToken: String,
+        remoteWorkspaceId: String,
+        remoteAgentIds: [String: String]
+    ) {
+        self.transport = transport
+        self.accessToken = accessToken
+        self.remoteWorkspaceId = remoteWorkspaceId
+        self.remoteAgentIds = remoteAgentIds
+    }
+}
+
+public final class CloudMarketplaceRuntimeToolProxy: @unchecked Sendable {
+    private final class ResultBox<Value>: @unchecked Sendable {
+        private let lock = NSLock()
+        private var storage: Result<Value, Error>?
+
+        func set(_ value: Result<Value, Error>) {
             lock.lock()
             storage = value
             lock.unlock()
         }
 
-        func get() -> Result<JSONRecord, Error>? {
+        func get() -> Result<Value, Error>? {
             lock.lock()
             defer { lock.unlock() }
             return storage
@@ -27,6 +46,9 @@ public final class CloudMarketplaceRuntimeToolProxy: @unchecked Sendable {
         var tools: [String: JSONRecord]
         var transport: RelayCloudTransport
         var accessToken: String
+        var expectedEndpointPrefix: String
+        var expectedTransport: String
+        var requiredAccessTokenFlag: String
     }
 
     private struct BridgeSession {
@@ -38,6 +60,8 @@ public final class CloudMarketplaceRuntimeToolProxy: @unchecked Sendable {
     private let lock = NSLock()
     private var contexts: [String: Context] = [:]
     private var bridgeSession: BridgeSession?
+    private var localDispatchSessionLoader:
+        (@Sendable (String) async throws -> CloudMarketplaceLocalDispatchSession)?
 
     public init() {}
 
@@ -65,7 +89,11 @@ public final class CloudMarketplaceRuntimeToolProxy: @unchecked Sendable {
             agentId: agentId,
             tools: indexed,
             transport: transport,
-            accessToken: accessToken
+            accessToken: accessToken,
+            expectedEndpointPrefix:
+                "/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/",
+            expectedTransport: "clawchat_bridge_marketplace_tool",
+            requiredAccessTokenFlag: "requiresBridgeAccessToken"
         )
         lock.unlock()
     }
@@ -96,28 +124,92 @@ public final class CloudMarketplaceRuntimeToolProxy: @unchecked Sendable {
         lock.unlock()
     }
 
+    public func setLocalDispatchSessionLoader(
+        _ loader: @escaping @Sendable (String) async throws
+            -> CloudMarketplaceLocalDispatchSession
+    ) {
+        lock.withLock {
+            localDispatchSessionLoader = loader
+        }
+    }
+
     public func prepareLocalDispatch(
         localDispatchId: String,
         workspaceId: String,
         localAgentId: String
     ) async throws -> [JSONRecord] {
-        let session = lock.withLock { bridgeSession }
-        guard let session,
-              let remoteAgentId = session.remoteAgentIds[localAgentId],
-              !remoteAgentId.isEmpty
-        else {
-            return []
+        let loader = lock.withLock { localDispatchSessionLoader }
+        let currentBridgeSession = lock.withLock { bridgeSession }
+        let localSession: CloudMarketplaceLocalDispatchSession?
+        if let loader {
+            do {
+                localSession = try await loader(workspaceId)
+            } catch {
+                guard currentBridgeSession != nil else { throw error }
+                localSession = nil
+            }
+        } else {
+            localSession = nil
+        }
+        guard localSession != nil || currentBridgeSession != nil else {
+            throw RelayError(
+                .dispatchFailed,
+                "RAILWAY_TOOL_DELIVERY_FAILED: No authenticated Railway session is available."
+            )
+        }
+        let remoteAgentIds = localSession?.remoteAgentIds
+            ?? currentBridgeSession?.remoteAgentIds
+            ?? [:]
+        guard let remoteAgentId = remoteAgentIds[localAgentId],
+              !remoteAgentId.isEmpty else {
+            throw RelayError(
+                .dispatchFailed,
+                "RAILWAY_ASSIGNMENT_MISSING: This local agent has no active Railway agent mapping."
+            )
         }
         guard let encodedAgentId = remoteAgentId.addingPercentEncoding(
             withAllowedCharacters: .urlPathAllowed
         ) else {
             throw RelayError(.invalidInput, "The Railway runtime agent identifier is invalid.")
         }
-        let response = try await session.transport.send(
+        let transport: RelayCloudTransport
+        let accessToken: String
+        let path: String
+        let expectedEndpointPrefix: String
+        let expectedTransport: String
+        let requiredAccessTokenFlag: String
+        if let localSession {
+            guard let encodedWorkspaceId = localSession.remoteWorkspaceId.addingPercentEncoding(
+                withAllowedCharacters: .urlPathAllowed
+            ) else {
+                throw RelayError(.invalidInput, "The Railway workspace identifier is invalid.")
+            }
+            transport = localSession.transport
+            accessToken = localSession.accessToken
+            path =
+                "workspaces/\(encodedWorkspaceId)/marketplace/agents/\(encodedAgentId)/runtime-tools"
+            expectedEndpointPrefix =
+                "/api/v1/workspaces/\(encodedWorkspaceId)/marketplace/agents/{agentId}/runtime-tools/"
+            expectedTransport = "clawchat_control_plane_marketplace_tool"
+            requiredAccessTokenFlag = "requiresUserAccessToken"
+        } else if let currentBridgeSession {
+            transport = currentBridgeSession.transport
+            accessToken = currentBridgeSession.accessToken
+            path = "bridge/agents/\(encodedAgentId)/marketplace-tools"
+            expectedEndpointPrefix = "/api/v1/bridge/agents/{agentId}/marketplace-tools/"
+            expectedTransport = "clawchat_bridge_marketplace_tool"
+            requiredAccessTokenFlag = "requiresBridgeAccessToken"
+        } else {
+            throw RelayError(
+                .dispatchFailed,
+                "RAILWAY_TOOL_DELIVERY_FAILED: No authenticated Railway session is available."
+            )
+        }
+        let response = try await transport.send(
             method: "GET",
-            path: "bridge/agents/\(encodedAgentId)/marketplace-tools",
+            path: path,
             body: nil,
-            accessToken: session.accessToken
+            accessToken: accessToken
         )
         let tools = try (response["tools"] as? [[String: Any]] ?? []).map(Self.jsonRecord)
         let indexed = tools.reduce(into: [String: JSONRecord]()) { result, tool in
@@ -134,8 +226,11 @@ public final class CloudMarketplaceRuntimeToolProxy: @unchecked Sendable {
                 workspaceId: workspaceId,
                 agentId: localAgentId,
                 tools: indexed,
-                transport: session.transport,
-                accessToken: session.accessToken
+                transport: transport,
+                accessToken: accessToken,
+                expectedEndpointPrefix: expectedEndpointPrefix,
+                expectedTransport: expectedTransport,
+                requiredAccessTokenFlag: requiredAccessTokenFlag
             )
         }
         return tools
@@ -180,13 +275,11 @@ public final class CloudMarketplaceRuntimeToolProxy: @unchecked Sendable {
         else {
             throw RelayError(.permissionDenied, "The Railway Marketplace tool context does not match this runtime.")
         }
-        let expectedPrefix =
-            "/api/v1/bridge/\(context.endpointPlaceholder == "{dispatchId}" ? "runtime-dispatches" : "agents")/\(context.endpointPlaceholder)/marketplace-tools/"
         guard case .object(let execution)? = tool["execution"],
-              execution["transport"]?.string == "clawchat_bridge_marketplace_tool",
-              execution["requiresBridgeAccessToken"]?.bool == true,
+              execution["transport"]?.string == context.expectedTransport,
+              execution[context.requiredAccessTokenFlag]?.bool == true,
               let endpointTemplate = execution["endpointBasePath"]?.string,
-              endpointTemplate.hasPrefix(expectedPrefix)
+              endpointTemplate.hasPrefix(context.expectedEndpointPrefix)
         else {
             throw RelayError(.permissionDenied, "The Railway Marketplace tool endpoint is not allowlisted.")
         }
@@ -210,14 +303,47 @@ public final class CloudMarketplaceRuntimeToolProxy: @unchecked Sendable {
                 "localDispatchId": resolved.localDispatchId,
             ]
             : arguments
-        return try Self.waitForResult {
-            let response = try await context.transport.send(
-                method: "POST",
-                path: "\(endpointBase)/\(encodedName)",
-                body: body,
-                accessToken: context.accessToken
+        do {
+            return try Self.executeRequest(
+                context: context,
+                endpointBase: endpointBase,
+                encodedName: encodedName,
+                body: body
             )
-            return try Self.jsonRecord(response)
+        } catch let error as RelayError
+            where error.code == .permissionDenied
+                && context.expectedTransport == "clawchat_control_plane_marketplace_tool"
+        {
+            guard let loader = lock.withLock({ localDispatchSessionLoader }) else {
+                throw error
+            }
+            let refreshed = try Self.waitForResult {
+                try await loader(context.workspaceId)
+            }
+            guard refreshed.remoteAgentIds[context.agentId] == context.executionTargetId,
+                  let encodedWorkspaceId = refreshed.remoteWorkspaceId.addingPercentEncoding(
+                    withAllowedCharacters: .urlPathAllowed
+                  ),
+                  context.expectedEndpointPrefix
+                    == "/api/v1/workspaces/\(encodedWorkspaceId)/marketplace/agents/{agentId}/runtime-tools/"
+            else {
+                throw RelayError(
+                    .permissionDenied,
+                    "The refreshed Railway session does not match this runtime dispatch."
+                )
+            }
+            var refreshedContext = context
+            refreshedContext.transport = refreshed.transport
+            refreshedContext.accessToken = refreshed.accessToken
+            lock.withLock {
+                contexts[resolved.localDispatchId] = refreshedContext
+            }
+            return try Self.executeRequest(
+                context: refreshedContext,
+                endpointBase: endpointBase,
+                encodedName: encodedName,
+                body: body
+            )
         }
     }
 
@@ -262,13 +388,30 @@ public final class CloudMarketplaceRuntimeToolProxy: @unchecked Sendable {
         return Array(Set(names))
     }
 
-    private static func waitForResult(
-        _ operation: @escaping @Sendable () async throws -> JSONRecord
+    private static func executeRequest(
+        context: Context,
+        endpointBase: String,
+        encodedName: String,
+        body: [String: Any]
     ) throws -> JSONRecord {
+        try waitForResult {
+            let response = try await context.transport.send(
+                method: "POST",
+                path: "\(endpointBase)/\(encodedName)",
+                body: body,
+                accessToken: context.accessToken
+            )
+            return try jsonRecord(response)
+        }
+    }
+
+    private static func waitForResult<Value>(
+        _ operation: @escaping @Sendable () async throws -> Value
+    ) throws -> Value {
         let semaphore = DispatchSemaphore(value: 0)
-        let result = ResultBox()
+        let result = ResultBox<Value>()
         Task {
-            let completed: Result<JSONRecord, Error>
+            let completed: Result<Value, Error>
             do {
                 completed = .success(try await operation())
             } catch {

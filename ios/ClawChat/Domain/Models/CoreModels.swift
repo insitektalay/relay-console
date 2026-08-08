@@ -1460,6 +1460,9 @@ struct BridgeDeviceSummary: Codable, Identifiable, Hashable, Sendable {
     let pluginVersion: String?
     let runtimeType: String?
     let hostType: String?
+    let hostInstallationId: String?
+    let hostDisplayName: String?
+    let adapterRole: String?
     let health: String
     let compatibility: BridgeDeviceCompatibility
     let credentialVersion: Int
@@ -1856,6 +1859,13 @@ struct MarketplaceConnection: Codable, Identifiable, Hashable, Sendable {
             ? "Available when your Mac and bridge are online"
             : "Available through Relay"
     }
+}
+
+struct MarketplaceConnectionDeletion: Codable, Hashable, Sendable {
+    let id: String
+    let appSlug: String
+    let deleted: Bool
+    let removedInstallIds: [String]
 }
 
 struct MarketplaceConnectorHealth: Codable, Hashable, Sendable {

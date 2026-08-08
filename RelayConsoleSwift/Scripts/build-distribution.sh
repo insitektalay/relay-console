@@ -170,28 +170,32 @@ mkdir -p "$WORK_ROOT" "$DMG_STAGE"
 
 MAIN_EXECUTABLE="$APP_PATH/Contents/MacOS/Relay Console"
 BRIDGE_EXECUTABLE="$APP_PATH/Contents/MacOS/RelayMarketplaceToolBridge"
+HOST_EXECUTABLE="$APP_PATH/Contents/MacOS/RelayHostService"
+RELAY_SIGNING_IDENTIFIER="Relay Console"
 SPARKLE_FRAMEWORK="$APP_PATH/Contents/Frameworks/Sparkle.framework"
 [[ -d "$SPARKLE_FRAMEWORK" ]] || { echo "Sparkle.framework missing from packaged app" >&2; exit 1; }
 MAIN_ARCHS="$(/usr/bin/lipo -archs "$MAIN_EXECUTABLE")"
 BRIDGE_ARCHS="$(/usr/bin/lipo -archs "$BRIDGE_EXECUTABLE")"
+HOST_ARCHS="$(/usr/bin/lipo -archs "$HOST_EXECUTABLE")"
 if [[ "$ARCHITECTURE_POLICY" == "universal2" ]]; then
   for architecture in arm64 x86_64; do
-    [[ " $MAIN_ARCHS " == *" $architecture "* && " $BRIDGE_ARCHS " == *" $architecture "* ]] || { echo "Missing universal architecture: $architecture" >&2; exit 1; }
+    [[ " $MAIN_ARCHS " == *" $architecture "* && " $BRIDGE_ARCHS " == *" $architecture "* && " $HOST_ARCHS " == *" $architecture "* ]] || { echo "Missing universal architecture: $architecture" >&2; exit 1; }
   done
 else
-  [[ "$MAIN_ARCHS" == "$ARCHITECTURE_POLICY" && "$BRIDGE_ARCHS" == "$ARCHITECTURE_POLICY" ]] || { echo "Architecture policy does not match embedded executables" >&2; exit 1; }
+  [[ "$MAIN_ARCHS" == "$ARCHITECTURE_POLICY" && "$BRIDGE_ARCHS" == "$ARCHITECTURE_POLICY" && "$HOST_ARCHS" == "$ARCHITECTURE_POLICY" ]] || { echo "Architecture policy does not match embedded executables" >&2; exit 1; }
 fi
 
 codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --sign "$SIGN_IDENTITY" "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate"
 codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --sign "$SIGN_IDENTITY" "$SPARKLE_FRAMEWORK/Versions/B/Updater.app"
 codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --sign "$SIGN_IDENTITY" "$SPARKLE_FRAMEWORK"
 codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --sign "$SIGN_IDENTITY" "$BRIDGE_EXECUTABLE"
-codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --sign "$SIGN_IDENTITY" "$MAIN_EXECUTABLE"
+codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --identifier "$RELAY_SIGNING_IDENTIFIER" --sign "$SIGN_IDENTITY" "$HOST_EXECUTABLE"
+codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --identifier "$RELAY_SIGNING_IDENTIFIER" --sign "$SIGN_IDENTITY" "$MAIN_EXECUTABLE"
 codesign --force --options runtime "${TIMESTAMP_ARGS[@]}" --entitlements "$ENTITLEMENTS" --sign "$SIGN_IDENTITY" "$APP_PATH"
 codesign --verify --deep --strict "$APP_PATH"
 SIGN_DETAILS="$(codesign -dv --verbose=4 "$APP_PATH" 2>&1)"
 grep -q 'flags=.*runtime' <<<"$SIGN_DETAILS" || { echo "Hardened runtime flag missing" >&2; exit 1; }
-for SIGNED_EXECUTABLE in "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate" "$SPARKLE_FRAMEWORK/Versions/B/Updater.app" "$SPARKLE_FRAMEWORK" "$BRIDGE_EXECUTABLE" "$MAIN_EXECUTABLE"; do
+for SIGNED_EXECUTABLE in "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate" "$SPARKLE_FRAMEWORK/Versions/B/Updater.app" "$SPARKLE_FRAMEWORK" "$BRIDGE_EXECUTABLE" "$HOST_EXECUTABLE" "$MAIN_EXECUTABLE"; do
   codesign --verify --strict "$SIGNED_EXECUTABLE"
   NESTED_SIGN_DETAILS="$(codesign -dv --verbose=4 "$SIGNED_EXECUTABLE" 2>&1)"
   grep -q 'flags=.*runtime' <<<"$NESTED_SIGN_DETAILS" || { echo "Nested executable hardened runtime flag missing" >&2; exit 1; }

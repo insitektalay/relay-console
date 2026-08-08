@@ -1,5 +1,6 @@
 import { COGNITO_FORMS_MCP_RESOURCE } from "../cognito-forms/cognito-forms-mcp.adapter";
 import { JOTFORM_MCP_RESOURCE } from "../jotform/jotform-mcp.adapter";
+import { CRAFT_MCP_RESOURCE } from "../craft/craft-mcp.adapter";
 import type { MarketplaceOAuthStateEntity } from "../../../../entities";
 import type {
   MarketplaceConnectorOAuthService,
@@ -181,6 +182,7 @@ export async function exchangeOAuthCompletionToken(
                                     "whimsical",
                                     "cognito-forms",
                                     "jotform",
+                                    "craft",
                                     "xmind",
                                     "cloudinary",
                                     "remember-the-milk",
@@ -208,22 +210,25 @@ export async function exchangeOAuthCompletionToken(
                                                             "jotform"
                                                           ? JOTFORM_MCP_RESOURCE
                                                           : manifest.slug ===
-                                                              "xmind"
-                                                            ? "https://app.xmind.com/api/mcp"
+                                                              "craft"
+                                                            ? CRAFT_MCP_RESOURCE
                                                             : manifest.slug ===
-                                                                "cloudinary"
-                                                              ? "https://asset-management.mcp.cloudinary.com"
+                                                                "xmind"
+                                                              ? "https://app.xmind.com/api/mcp"
                                                               : manifest.slug ===
-                                                                  "remember-the-milk"
-                                                                ? "https://www.rememberthemilk.com/mcp"
+                                                                  "cloudinary"
+                                                                ? "https://asset-management.mcp.cloudinary.com"
                                                                 : manifest.slug ===
-                                                                    "jane-app"
-                                                                  ? service.normalizeJaneClinicOrigin(
-                                                                      service.stringOrNull(
-                                                                        callbackProviderSession?.janeClinicOrigin,
-                                                                      ) ?? "",
-                                                                    )
-                                                                  : "https://api.slite.com/mcp",
+                                                                    "remember-the-milk"
+                                                                  ? "https://www.rememberthemilk.com/mcp"
+                                                                  : manifest.slug ===
+                                                                      "jane-app"
+                                                                    ? service.normalizeJaneClinicOrigin(
+                                                                        service.stringOrNull(
+                                                                          callbackProviderSession?.janeClinicOrigin,
+                                                                        ) ?? "",
+                                                                      )
+                                                                    : "https://api.slite.com/mcp",
                                       }
                                     : {}),
                                 },

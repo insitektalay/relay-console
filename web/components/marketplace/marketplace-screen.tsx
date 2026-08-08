@@ -45,6 +45,7 @@ import {
 } from "@/components/marketplace/marketplace-domain"
 import {
   ExistingInstallsPanel,
+  DeleteConnectionDialog,
   NeededToolsPanel,
   PolicyPanel,
   PolicyToggleGroup,
@@ -225,6 +226,8 @@ export function MarketplaceScreen({
     agentName: string
     appName: string
   } | null>(null)
+  const [deleteConnectionRequested, setDeleteConnectionRequested] =
+    useState(false)
   const [localAppDraft, setLocalAppDraft] = useState({
     name: "",
     sourceHostId: "",
@@ -634,7 +637,25 @@ export function MarketplaceScreen({
   const assertCanManageMarketplace = () =>
     assertMarketplaceManagementAllowed(canManageMarketplace)
 
+  const beginNewConnection = () => {
+    if (!selectedApp) return
+    setConnectionId("")
+    setConnectionName(selectedApp.name)
+    setConnectionAuthType(selectedApp.connectionTypes[0] ?? "api_key")
+    setCredentialDrafts(
+      Object.fromEntries(
+        selectedApp.credentialRequirements.flatMap((credential) =>
+          credential.defaultValue === undefined
+            ? []
+            : [[credential.name, credential.defaultValue]]
+        )
+      )
+    )
+    setIsReplacingConnectionCredentials(true)
+  }
+
   const {
+    deleteConnectionMutation,
     disconnectConnectorOAuthMutation,
     disconnectXOAuthMutation,
     reauthorizeXOAuthMutation,
@@ -1633,31 +1654,51 @@ export function MarketplaceScreen({
                             </div>
                           </div>
                           {selectedAppConnections.length ? (
-                            <select
-                              className="h-10 w-full rounded-[4px] border bg-transparent px-3 text-sm"
-                              value={connectionId}
-                              onChange={(event) =>
-                                setConnectionId(event.target.value)
-                              }
+                            <div className="flex items-center gap-2">
+                              <select
+                                className="h-10 w-full rounded-[4px] border bg-transparent px-3 text-sm"
+                                value={connectionId}
+                                onChange={(event) =>
+                                  setConnectionId(event.target.value)
+                                }
+                              >
+                                {selectedAppConnections.map((connection) => (
+                                  <option
+                                    key={connection.id}
+                                    value={connection.id}
+                                  >
+                                    {connection.metadata?.xHandle
+                                      ? `Use @${String(connection.metadata.xHandle)}`
+                                      : `Use ${connection.displayName}`}
+                                    {connection.executionAuthority === "swift"
+                                      ? " (Mac required)"
+                                      : ""}
+                                    {connection.status !== "ready"
+                                      ? ` (${connection.status})`
+                                      : ""}
+                                  </option>
+                                ))}
+                                <option value="">Add a new connection</option>
+                              </select>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="shrink-0"
+                                onClick={beginNewConnection}
+                              >
+                                Create a new connection
+                              </Button>
+                            </div>
+                          ) : null}
+                          {!selectedAppConnections.length ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="mb-2"
+                              onClick={beginNewConnection}
                             >
-                              {selectedAppConnections.map((connection) => (
-                                <option
-                                  key={connection.id}
-                                  value={connection.id}
-                                >
-                                  {connection.metadata?.xHandle
-                                    ? `Use @${String(connection.metadata.xHandle)}`
-                                    : `Use ${connection.displayName}`}
-                                  {connection.executionAuthority === "swift"
-                                    ? " (Mac required)"
-                                    : ""}
-                                  {connection.status !== "ready"
-                                    ? ` (${connection.status})`
-                                    : ""}
-                                </option>
-                              ))}
-                              <option value="">Add a new connection</option>
-                            </select>
+                              Create a new connection
+                            </Button>
                           ) : null}
                           <div
                             key={selectedApp.slug}
@@ -1839,18 +1880,29 @@ export function MarketplaceScreen({
                             )}
                             {connectionId &&
                             !selectedConnectionRequiresDevice ? (
-                              <Button
-                                className="mt-2"
-                                type="button"
-                                disabled={updateConnectionMutation.isPending}
-                                onClick={() =>
-                                  updateConnectionMutation.mutate()
-                                }
-                              >
-                                {updateConnectionMutation.isPending
-                                  ? "Saving changes…"
-                                  : "Save connection changes"}
-                              </Button>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <Button
+                                  type="button"
+                                  disabled={updateConnectionMutation.isPending}
+                                  onClick={() =>
+                                    updateConnectionMutation.mutate()
+                                  }
+                                >
+                                  {updateConnectionMutation.isPending
+                                    ? "Saving changes…"
+                                    : "Save connection changes"}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  disabled={deleteConnectionMutation.isPending}
+                                  onClick={() =>
+                                    setDeleteConnectionRequested(true)
+                                  }
+                                >
+                                  Delete connection
+                                </Button>
+                              </div>
                             ) : null}
                           </div>
                         </div>
@@ -3167,18 +3219,35 @@ export function MarketplaceScreen({
         </section>
       </main>
       {canManageMarketplace ? (
-        <RemoveInstallDialog
-          target={removeInstallTarget}
-          busy={removeInstallMutation.isPending}
-          onCancel={() => {
-            if (!removeInstallMutation.isPending) setRemoveInstallTarget(null)
-          }}
-          onConfirm={() => {
-            if (removeInstallTarget) {
-              removeInstallMutation.mutate(removeInstallTarget.install)
-            }
-          }}
-        />
+        <>
+          <DeleteConnectionDialog
+            appName={selectedApp?.name ?? "app"}
+            connectionName={connectionName || selectedApp?.name || "connection"}
+            open={deleteConnectionRequested}
+            busy={deleteConnectionMutation.isPending}
+            onCancel={() => {
+              if (!deleteConnectionMutation.isPending)
+                setDeleteConnectionRequested(false)
+            }}
+            onConfirm={() => {
+              deleteConnectionMutation.mutate(undefined, {
+                onSuccess: () => setDeleteConnectionRequested(false),
+              })
+            }}
+          />
+          <RemoveInstallDialog
+            target={removeInstallTarget}
+            busy={removeInstallMutation.isPending}
+            onCancel={() => {
+              if (!removeInstallMutation.isPending) setRemoveInstallTarget(null)
+            }}
+            onConfirm={() => {
+              if (removeInstallTarget) {
+                removeInstallMutation.mutate(removeInstallTarget.install)
+              }
+            }}
+          />
+        </>
       ) : null}
     </>
   )

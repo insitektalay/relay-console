@@ -1,6 +1,7 @@
 import { MarketplaceConnectionEntity } from "../../../../../entities";
 import { COGNITO_FORMS_MCP_RESOURCE } from "../../cognito-forms/cognito-forms-mcp.adapter";
 import { JOTFORM_MCP_RESOURCE } from "../../jotform/jotform-mcp.adapter";
+import { CRAFT_MCP_RESOURCE } from "../../craft/craft-mcp.adapter";
 import { RELAY_GOOGLE_OAUTH_SLUGS } from "../google-oauth-providers";
 import type {
   MarketplaceConnectorOAuthService,
@@ -645,6 +646,7 @@ async function runOAuthRefreshPhase3(
         "whimsical",
         "cognito-forms",
         "jotform",
+        "craft",
         "xmind",
         "adobe-analytics",
         "cloudinary",
@@ -669,21 +671,23 @@ async function runOAuthRefreshPhase3(
                             ? COGNITO_FORMS_MCP_RESOURCE
                             : context.manifest.slug === "jotform"
                               ? JOTFORM_MCP_RESOURCE
-                              : context.manifest.slug === "xmind"
-                                ? "https://app.xmind.com/api/mcp"
-                                : context.manifest.slug === "cloudinary"
-                                  ? "https://asset-management.mcp.cloudinary.com"
-                                  : context.manifest.slug ===
-                                      "remember-the-milk"
-                                    ? "https://www.rememberthemilk.com/mcp"
-                                    : context.manifest.slug === "jane-app"
-                                      ? service.normalizeJaneClinicOrigin(
-                                          service.stringOrNull(
-                                            context.credentials
-                                              .janeClinicOrigin,
-                                          ) ?? "",
-                                        )
-                                      : "https://api.slite.com/mcp",
+                              : context.manifest.slug === "craft"
+                                ? CRAFT_MCP_RESOURCE
+                                : context.manifest.slug === "xmind"
+                                  ? "https://app.xmind.com/api/mcp"
+                                  : context.manifest.slug === "cloudinary"
+                                    ? "https://asset-management.mcp.cloudinary.com"
+                                    : context.manifest.slug ===
+                                        "remember-the-milk"
+                                      ? "https://www.rememberthemilk.com/mcp"
+                                      : context.manifest.slug === "jane-app"
+                                        ? service.normalizeJaneClinicOrigin(
+                                            service.stringOrNull(
+                                              context.credentials
+                                                .janeClinicOrigin,
+                                            ) ?? "",
+                                          )
+                                        : "https://api.slite.com/mcp",
           }
         : {}),
     },

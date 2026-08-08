@@ -453,9 +453,33 @@ public final class CloudRelayConnectionService: @unchecked Sendable {
         }
     }
 
+    public func withValidAccessToken<T: Sendable>(
+        accountId: String,
+        transport: RelayCloudTransport,
+        operation: @escaping @Sendable (String) async throws -> T
+    ) async throws -> T {
+        let accessToken = try await validAccessToken(
+            accountId: accountId,
+            transport: transport
+        )
+        do {
+            return try await operation(accessToken)
+        } catch let error as RelayError where error.code == .permissionDenied {
+            let refreshedToken = try await tokenRefreshCoordinator.value(for: accountId) { [self] in
+                try await refreshAccessToken(
+                    accountId: accountId,
+                    transport: transport,
+                    rejectedAccessToken: accessToken
+                )
+            }
+            return try await operation(refreshedToken)
+        }
+    }
+
     private func refreshAccessToken(
         accountId: String,
-        transport: RelayCloudTransport
+        transport: RelayCloudTransport,
+        rejectedAccessToken: String? = nil
     ) async throws -> String {
         guard let row = try database.get(
             "SELECT access_secret_reference_id,refresh_secret_reference_id,access_expires_at,status FROM cloud_accounts WHERE id=?",
@@ -465,11 +489,16 @@ public final class CloudRelayConnectionService: @unchecked Sendable {
         let accessId = row["access_secret_reference_id"]?.string else {
             throw RelayError(.permissionDenied, "The Relay account is signed out.")
         }
+        let currentAccessToken = try secrets.getSecretValue(accessId)
+        if let rejectedAccessToken, currentAccessToken != rejectedAccessToken {
+            return currentAccessToken
+        }
         let expires = row["access_expires_at"]?.string.flatMap(
             ISO8601DateFormatter.relayConsole.date(from:)
         )
-        if expires == nil || expires!.timeIntervalSinceNow > 60 {
-            return try secrets.getSecretValue(accessId)
+        if rejectedAccessToken == nil,
+           expires == nil || expires!.timeIntervalSinceNow > 60 {
+            return currentAccessToken
         }
         guard let refreshId = row["refresh_secret_reference_id"]?.string else {
             throw RelayError(.permissionDenied, "The Relay account refresh credential is unavailable.")
@@ -1266,17 +1295,22 @@ public final class CloudRelaySyncService: @unchecked Sendable {
             throw RelayError(.permissionDenied, "The saved Relay deployment does not match this release.")
         }
         let transport = try Self.interactiveCloudTransport(apiURL: apiURL)
-        let token = try await verifiedControlPlaneToken(
+        _ = try await verifiedControlPlaneToken(
             accountId: accountId,
             workspaceId: remoteWorkspaceId,
             transport: transport
         )
-        return try await transport.send(
-            method: method,
-            path: "workspaces/\(remoteWorkspaceId)/\(relativePath)",
-            body: body,
-            accessToken: token
-        )
+        return try await connections.withValidAccessToken(
+            accountId: accountId,
+            transport: transport
+        ) { token in
+            try await transport.send(
+                method: method,
+                path: "workspaces/\(remoteWorkspaceId)/\(relativePath)",
+                body: body,
+                accessToken: token
+            )
+        }
     }
 
     public func railwayApprovals(
@@ -1419,9 +1453,49 @@ public final class CloudRelaySyncService: @unchecked Sendable {
             ]
         )
         try database.run(
-            "UPDATE runtime_bindings SET connect_linked=1,connect_remote_agent_id=?,updated_at=? WHERE agent_id=?",
+            "UPDATE runtime_bindings SET connect_linked=1,connect_remote_agent_id=?,connect_auto_link_suppressed=0,updated_at=? WHERE agent_id=?",
             [.text(remoteAgentId), .text(nowIso()), .text(localAgentId)]
         )
+    }
+
+    /// Restores Relay Connect ownership for active local Hermes and OpenClaw
+    /// agents after synchronization or bridge recovery. One rejected agent
+    /// must not prevent other valid agents from recovering.
+    @discardableResult
+    public func repairAutomaticConnectAgentLinks(
+        localWorkspaceId: String
+    ) async throws -> [String: String] {
+        let candidates = try database.all(
+            """
+            SELECT binding.agent_id
+            FROM runtime_bindings binding
+            JOIN agents agent ON agent.id=binding.agent_id
+            WHERE agent.workspace_id=?
+              AND agent.status='active'
+              AND agent.lifecycle_status='active'
+              AND binding.runtime_type IN ('hermes','openclaw')
+              AND binding.adapter_kind<>'railway_cloud'
+              AND binding.connect_linked=0
+              AND binding.connect_auto_link_suppressed=0
+              AND binding.external_agent_id IS NOT NULL
+              AND TRIM(binding.external_agent_id)<>''
+            ORDER BY agent.created_at ASC
+            """,
+            [.text(localWorkspaceId)]
+        )
+        var failures: [String: String] = [:]
+        for row in candidates {
+            guard let agentId = row["agent_id"]?.string else { continue }
+            do {
+                try await linkConnectAgent(
+                    localWorkspaceId: localWorkspaceId,
+                    localAgentId: agentId
+                )
+            } catch {
+                failures[agentId] = error.localizedDescription
+            }
+        }
+        return failures
     }
 
     public func unlinkConnectAgent(
@@ -1440,7 +1514,7 @@ public final class CloudRelaySyncService: @unchecked Sendable {
             relativePath: "runtime-authority/connect/\(remoteAgentId)/unlink"
         )
         try database.run(
-            "UPDATE runtime_bindings SET connect_linked=0,connect_remote_agent_id=NULL,updated_at=? WHERE agent_id=?",
+            "UPDATE runtime_bindings SET connect_linked=0,connect_remote_agent_id=NULL,connect_auto_link_suppressed=1,updated_at=? WHERE agent_id=?",
             [.text(nowIso()), .text(localAgentId)]
         )
     }
@@ -1466,16 +1540,22 @@ public final class CloudRelaySyncService: @unchecked Sendable {
         }
         let apiURL = try Self.authenticatedMarketplaceAPIURL(savedOrigin: savedOrigin)
         let transport = try Self.interactiveCloudTransport(apiURL: apiURL)
-        let token = try await verifiedControlPlaneToken(
+        _ = try await verifiedControlPlaneToken(
             accountId: accountId,
             workspaceId: remoteWorkspaceId,
             transport: transport
         )
-        return try await transport.send(
-            method: method,
-            path: "workspaces/\(remoteWorkspaceId)/marketplace/\(relativePath)",
-            body: body,
-            accessToken: token)
+        return try await connections.withValidAccessToken(
+            accountId: accountId,
+            transport: transport
+        ) { token in
+            try await transport.send(
+                method: method,
+                path: "workspaces/\(remoteWorkspaceId)/marketplace/\(relativePath)",
+                body: body,
+                accessToken: token
+            )
+        }
     }
 
     public func railwayMarketplaceArrayRequest(
@@ -1492,20 +1572,26 @@ public final class CloudRelaySyncService: @unchecked Sendable {
         }
         let apiURL = try Self.authenticatedMarketplaceAPIURL(savedOrigin: savedOrigin)
         let transport = try Self.interactiveCloudTransport(apiURL: apiURL)
-        let token = try await verifiedControlPlaneToken(
+        _ = try await verifiedControlPlaneToken(
             accountId: accountId,
             workspaceId: remoteWorkspaceId,
             transport: transport
         )
-        return try await transport.sendArray(
-            method: "GET",
-            path: "workspaces/\(remoteWorkspaceId)/marketplace/\(relativePath)",
-            body: nil,
-            accessToken: token)
+        return try await connections.withValidAccessToken(
+            accountId: accountId,
+            transport: transport
+        ) { token in
+            try await transport.sendArray(
+                method: "GET",
+                path: "workspaces/\(remoteWorkspaceId)/marketplace/\(relativePath)",
+                body: nil,
+                accessToken: token
+            )
+        }
     }
 
     public static func isSupportedRailwayMarketplaceMethod(_ method: String) -> Bool {
-        ["GET", "POST", "DELETE"].contains(method)
+        ["GET", "POST", "PATCH", "DELETE"].contains(method)
     }
 
     public static func marketplaceOAuthConnectionView(
@@ -1613,13 +1699,6 @@ public final class CloudRelaySyncService: @unchecked Sendable {
                 [.text(localWorkspaceId)]),
               let syncLinkId = link["id"]?.string else {
             throw RelayError(.invalidInput, "Railway returned an incomplete Marketplace connection.")
-        }
-        if let existing = try mappedDeviceLocalMarketplaceConnection(
-            syncLinkId: syncLinkId,
-            workspaceId: localWorkspaceId,
-            remoteConnectionId: remoteConnectionId
-        ) {
-            return existing
         }
         let rawStatus = connectionView["status"] as? String ?? "unverified"
         let status: ProviderConnectionStatus
@@ -1741,35 +1820,6 @@ public final class CloudRelaySyncService: @unchecked Sendable {
         }
     }
 
-    private func mappedDeviceLocalMarketplaceConnection(
-        syncLinkId: String,
-        workspaceId: String,
-        remoteConnectionId: String
-    ) throws -> MarketplaceProviderConnection? {
-        guard let localId = try database.get(
-            """
-            SELECT versions.local_object_id
-            FROM remote_object_versions versions
-            JOIN applications_provider_connections connection
-              ON connection.id=versions.local_object_id
-            WHERE versions.sync_link_id=?
-              AND versions.object_type='application_connection'
-              AND versions.canonical_object_id=?
-              AND connection.workspace_id=?
-              AND connection.execution_authority='swift'
-            ORDER BY versions.updated_at DESC
-            LIMIT 1
-            """,
-            [.text(syncLinkId), .text(remoteConnectionId), .text(workspaceId)]
-        )?["local_object_id"]?.string else {
-            return nil
-        }
-        return try data.getProviderConnection(
-            workspaceId: workspaceId,
-            connectionId: localId
-        )
-    }
-
     /// Mirrors Railway Marketplace install views into the local applications
     /// index. Railway remains authoritative; these records exist only so the
     /// native assignment switches can render the current remote state.
@@ -1788,8 +1838,16 @@ public final class CloudRelaySyncService: @unchecked Sendable {
                 "This workspace is not connected to the authenticated Railway deployment."
             )
         }
+        try database.run("UPDATE sync_apply_guard SET active=1 WHERE id=1")
+        defer { _ = try? database.run("UPDATE sync_apply_guard SET active=0 WHERE id=1") }
 
         var mirrored: [MarketplaceInstallRecord] = []
+        let remoteInstallIds = Set(
+            installViews.compactMap { view -> String? in
+                guard (view["appSlug"] as? String) == app.slug else { return nil }
+                return view["id"] as? String
+            }
+        )
         for view in installViews where (view["appSlug"] as? String) == app.slug {
             guard let remoteInstallId = view["id"] as? String,
                   let remoteAgentId = view["agentId"] as? String,
@@ -1809,6 +1867,17 @@ public final class CloudRelaySyncService: @unchecked Sendable {
                 ?? roleId.replacingOccurrences(of: "_", with: " ").capitalized
             let metadataObject = view["metadata"] as? [String: Any] ?? [:]
             let metadata = Self.marketplaceJSONRecord(metadataObject)
+            let remoteConnectionId = view["connectionId"] as? String
+            let localConnectionId: String?
+            if let remoteConnectionId {
+                localConnectionId = try mapRemoteReference(
+                    syncLinkId: syncLinkId,
+                    objectType: "application_connection",
+                    remoteId: remoteConnectionId
+                ) ?? remoteConnectionId
+            } else {
+                localConnectionId = nil
+            }
             let runtimeFormat =
                 RuntimeType(
                     rawValue: (metadataObject["runtimeFormat"] as? String)?.lowercased() ?? ""
@@ -1828,7 +1897,7 @@ public final class CloudRelaySyncService: @unchecked Sendable {
                 workspaceId: localWorkspaceId,
                 appId: app.id,
                 appSlug: app.slug,
-                connectionId: view["connectionId"] as? String,
+                connectionId: localConnectionId,
                 agentId: localAgentId,
                 agentName: agent.name,
                 runtimeBindingId: agent.binding.id,
@@ -1867,6 +1936,21 @@ public final class CloudRelaySyncService: @unchecked Sendable {
             } else {
                 mirrored.append(try data.saveMarketplaceInstall(record))
             }
+        }
+
+        let reconciliationTimestamp = nowIso()
+        for var stale in try data.listMarketplaceInstalls(
+            workspaceId: localWorkspaceId,
+            limit: 500
+        ) where stale.appSlug == app.slug
+            && (stale.installStatus == .installed || stale.installStatus == .requested)
+            && !remoteInstallIds.contains(stale.id)
+        {
+            stale.installStatus = .removed
+            stale.removedAt = reconciliationTimestamp
+            stale.failureMessage = "This assignment no longer exists on Railway."
+            stale.updatedAt = reconciliationTimestamp
+            _ = try data.saveMarketplaceInstall(stale)
         }
 
         let active = mirrored.filter {

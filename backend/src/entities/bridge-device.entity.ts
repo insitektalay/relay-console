@@ -20,6 +20,7 @@ export enum BridgeDeviceStatus {
 @Entity("bridge_devices")
 @Index(["workspaceId"])
 @Index(["devicePublicId"], { unique: true })
+@Index(["workspaceId", "hostInstallationId", "adapterRole"])
 export class BridgeDeviceEntity {
   @PrimaryGeneratedColumn("uuid")
   id: string;
@@ -69,6 +70,12 @@ export class BridgeDeviceEntity {
 
   @Column({ nullable: true })
   hostType: string | null;
+
+  @Column({ nullable: true })
+  hostInstallationId: string | null;
+
+  @Column({ default: "runtime" })
+  adapterRole: "host" | "runtime";
 
   @Column({ type: "jsonb", nullable: true })
   runtimeModelCatalog: {

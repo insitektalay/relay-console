@@ -137,6 +137,8 @@ extension AppViewModel {
           exaConnectionStatus = message
         case let value where value.hasPrefix("connect-manifest-provider-"):
           marketplaceManifestConnectionStatus = "Connection failed: \(message)"
+        case let value where value.hasPrefix("delete-manifest-provider-"):
+          marketplaceManifestConnectionStatus = "Deletion failed: \(message)"
         case let value where value.hasPrefix("start-provider-setup-"):
           marketplaceOAuthConnectionStatus = message
         case let value where value.hasPrefix("disconnect-provider-oauth-"):
@@ -215,6 +217,11 @@ extension AppViewModel {
   ) throws {
     let contextChanged = messageWindowThreadId != threadId || messageWindowSessionId != sessionId
     if contextChanged || messages.isEmpty {
+      ChatScrollDiagnostics.log(
+        "history-refresh-initial-start",
+        threadId: threadId,
+        "contextChanged=\(contextChanged) currentCount=\(messages.count) revision=\(messageHistoryRevision)"
+      )
       let page = try services.data.listMessagePage(
         threadId: threadId,
         sessionId: sessionId,
@@ -228,6 +235,11 @@ extension AppViewModel {
       messageHistoryUnseenNewerCount = 0
       messageHistoryPrependAnchorId = nil
       messageHistoryRevision += 1
+      ChatScrollDiagnostics.log(
+        "history-refresh-initial-complete",
+        threadId: threadId,
+        "count=\(messages.count) hasOlder=\(messageHistoryHasOlder) hasNewer=\(messageHistoryHasNewer) revision=\(messageHistoryRevision)"
+      )
       return
     }
 
@@ -264,6 +276,11 @@ extension AppViewModel {
       threadId == selectedThreadId,
       let first = messages.first
     else { return }
+    ChatScrollDiagnostics.log(
+      "history-load-older-start",
+      threadId: threadId,
+      "count=\(messages.count) first=\(first.id) hasNewer=\(messageHistoryHasNewer) revision=\(messageHistoryRevision)"
+    )
     messageHistoryLoadingOlder = true
     defer { messageHistoryLoadingOlder = false }
     do {
@@ -291,7 +308,17 @@ extension AppViewModel {
       }
       messageHistoryPrependAnchorId = anchorId
       messageHistoryRevision += 1
+      ChatScrollDiagnostics.log(
+        "history-load-older-complete",
+        threadId: threadId,
+        "count=\(messages.count) anchor=\(anchorId) hasOlder=\(messageHistoryHasOlder) hasNewer=\(messageHistoryHasNewer) overflow=\(overflow) revision=\(messageHistoryRevision)"
+      )
     } catch {
+      ChatScrollDiagnostics.log(
+        "history-load-older-failed",
+        threadId: threadId,
+        "error=\(error.localizedDescription)"
+      )
       self.error = error.localizedDescription
     }
   }
@@ -303,6 +330,11 @@ extension AppViewModel {
       threadId == selectedThreadId,
       let last = messages.last
     else { return }
+    ChatScrollDiagnostics.log(
+      "history-load-newer-start",
+      threadId: threadId,
+      "count=\(messages.count) last=\(last.id) revision=\(messageHistoryRevision)"
+    )
     messageHistoryLoadingNewer = true
     defer { messageHistoryLoadingNewer = false }
     do {
@@ -329,7 +361,17 @@ extension AppViewModel {
         ) : 0
       messageHistoryPrependAnchorId = nil
       messageHistoryRevision += 1
+      ChatScrollDiagnostics.log(
+        "history-load-newer-complete",
+        threadId: threadId,
+        "count=\(messages.count) hasOlder=\(messageHistoryHasOlder) hasNewer=\(messageHistoryHasNewer) overflow=\(overflow) revision=\(messageHistoryRevision)"
+      )
     } catch {
+      ChatScrollDiagnostics.log(
+        "history-load-newer-failed",
+        threadId: threadId,
+        "error=\(error.localizedDescription)"
+      )
       self.error = error.localizedDescription
     }
   }
@@ -340,6 +382,11 @@ extension AppViewModel {
       threadId == selectedThreadId
     else { return }
     do {
+      ChatScrollDiagnostics.log(
+        "history-jump-latest-start",
+        threadId: threadId,
+        "count=\(messages.count) revision=\(messageHistoryRevision)"
+      )
       let page = try services.data.listMessagePage(
         threadId: threadId,
         sessionId: messageWindowSessionId,
@@ -351,7 +398,17 @@ extension AppViewModel {
       messageHistoryUnseenNewerCount = 0
       messageHistoryPrependAnchorId = nil
       messageHistoryRevision += 1
+      ChatScrollDiagnostics.log(
+        "history-jump-latest-complete",
+        threadId: threadId,
+        "count=\(messages.count) hasOlder=\(messageHistoryHasOlder) revision=\(messageHistoryRevision)"
+      )
     } catch {
+      ChatScrollDiagnostics.log(
+        "history-jump-latest-failed",
+        threadId: threadId,
+        "error=\(error.localizedDescription)"
+      )
       self.error = error.localizedDescription
     }
   }
@@ -388,6 +445,31 @@ extension AppViewModel {
       selectedAgentId = threadAgentId
     }
     Task { await refreshChatState(preferredThreadId: threadId) }
+  }
+
+  func archiveThread(_ threadId: String) {
+    runAction("archive-thread", refresh: .chat) {
+      guard let services = self.services, let workspace = self.workspace else {
+        throw RelayError(.workspaceMissing, "Select a workspace before archiving a conversation.")
+      }
+
+      _ = try services.chat.archiveThread(
+        context: self.chatContext(
+          workspaceId: workspace.id,
+          profileId: self.appState?.activeProfile?.id
+        ),
+        threadId: threadId
+      )
+
+      if self.selectedThreadId == threadId {
+        self.selectedThreadId = nil
+        self.selectedThreadDetail = nil
+        self.selectedWrapUpReportId = nil
+        self.resetMessageWindowSelection()
+        self.messages = []
+      }
+      return nil
+    }
   }
 
   func viewCurrentChatCycle() {

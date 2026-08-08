@@ -215,7 +215,8 @@ enum RelayConsoleTelemetryReleaseTests {
         )
         try expect(
             builder.contains("--product \"$PRODUCT_NAME\" >&2 || return $?")
-                && builder.contains("--product RelayMarketplaceToolBridge >&2 || return $?"),
+                && builder.contains("--product RelayMarketplaceToolBridge >&2 || return $?")
+                && builder.contains("--product RelayHostService >&2 || return $?"),
             "release product builds do not fail closed"
         )
 

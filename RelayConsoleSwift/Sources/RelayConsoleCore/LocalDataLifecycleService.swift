@@ -156,6 +156,7 @@ public final class LocalDataLifecycleService {
         database.close()
         if kind == .prepareForAppRemoval {
             harnessInstall.stopAll()
+            await RelayHostServiceManager(paths: paths).uninstall()
             await hermesCronScheduler.uninstall(hermesHome: paths.hermesHomeDir)
             if fileManager.fileExists(atPath: root.path) {
                 try fileManager.removeItem(at: root)

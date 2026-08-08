@@ -1946,7 +1946,7 @@ public final class HarnessInstallManager {
         )
     }
 
-    private func compileMarketplaceRuntimeMount(
+    func compileMarketplaceRuntimeMount(
         for agent: AgentWithBinding,
         request: RuntimeDispatchRequest
     ) async throws -> MarketplaceRuntimeCapabilitySnapshot {
@@ -1960,7 +1960,11 @@ public final class HarnessInstallManager {
                 && $0.resolvedExecutionAuthority == .railway
         }
         var railwayTools = request.cloudMarketplaceTools
-        if let cloudMarketplaceRuntimeToolProxy {
+        let requestedRailwayAppSlugs = Set(railwayTools.compactMap { $0["appSlug"]?.string })
+        let needsRailwayLookup = railwayInstalls.contains {
+            !requestedRailwayAppSlugs.contains($0.appSlug)
+        }
+        if needsRailwayLookup, let cloudMarketplaceRuntimeToolProxy {
             do {
                 let assignedTools = try await cloudMarketplaceRuntimeToolProxy.prepareLocalDispatch(
                     localDispatchId: request.dispatchId,
@@ -1973,10 +1977,10 @@ public final class HarnessInstallManager {
                     return !requestedNames.contains(name)
                 })
             } catch {
-                _ = try? data.log(
-                    severity: "warning",
-                    category: "marketplace",
-                    message: "Railway Marketplace runtime context could not be loaded for local dispatch \(request.dispatchId): \(redactedTechnicalError(error))"
+                throw RelayError(
+                    .dispatchFailed,
+                    "RAILWAY_TOOL_DELIVERY_FAILED: Railway could not load the assigned Marketplace tools for \(agent.name).",
+                    recovery: "Reconnect Remote Access, then try again. \(redactedTechnicalError(error))"
                 )
             }
         }
@@ -1986,10 +1990,23 @@ public final class HarnessInstallManager {
         }
         if !missingRailwayInstalls.isEmpty {
             let appNames = missingRailwayInstalls.map(\.appSlug).sorted().joined(separator: ", ")
+            let credentialsRequired = try missingRailwayInstalls.contains { install in
+                guard let connectionId = install.connectionId,
+                      let connection = try data.getProviderConnection(
+                        workspaceId: agent.workspaceId,
+                        connectionId: connectionId
+                      ) else { return true }
+                return connection.status != .connected || connection.health.state != .ready
+            }
+            let code = credentialsRequired
+                ? "RAILWAY_CREDENTIALS_REQUIRED"
+                : "RAILWAY_ASSIGNMENT_MISSING"
             throw RelayError(
                 .dispatchFailed,
-                "\(appNames) is assigned to \(agent.name), but \(agent.binding.runtimeType.rawValue) Remote Access did not provide its runtime tools.",
-                recovery: "Open Setup & Connections > Remote Access, reconnect the agent runtime, then try again."
+                "\(code): \(appNames) is assigned to \(agent.name), but Railway did not provide its callable tools.",
+                recovery: credentialsRequired
+                    ? "Reconnect the app on Railway, then assign it to this agent again."
+                    : "Refresh the Railway assignment for this agent, then try again."
             )
         }
         return try marketplaceRuntimeMounts.snapshot(

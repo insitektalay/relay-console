@@ -1757,7 +1757,10 @@ describe("EventsGateway", () => {
     };
 
     await gateway.handleSubscribeBridgeControl("bridge-socket", "ws-a");
-    await gateway.handleRegisterHermesAgent("bridge-socket", "social_hermes");
+    await gateway.handleMessage("bridge-socket", {
+      type: "register_hermes_agent",
+      externalAgentId: "social_hermes",
+    });
 
     expect(agentRepository.findOne).toHaveBeenCalledWith({
       where: {
@@ -1797,6 +1800,16 @@ describe("EventsGateway", () => {
       JSON.stringify({
         type: "subscribed_bridge_control",
         data: { workspaceId: "ws-a" },
+      }),
+    );
+    expect(bridgeSocket.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: "bridge_agent_registration",
+        data: {
+          accepted: true,
+          externalAgentId: "social_hermes",
+          runtimeType: "hermes",
+        },
       }),
     );
   });
@@ -1842,6 +1855,11 @@ describe("EventsGateway", () => {
 
   it("rejects a bridge agent registration from a different runtime family", async () => {
     const { gateway, agentRepository, auditLogService } = await buildGateway();
+    const bridgeSocket = {
+      readyState: WebSocket.OPEN,
+      send: jest.fn(),
+    };
+    gateway.clients.set("claude-socket", bridgeSocket);
     gateway.registerAuthenticatedSocket(
       "claude-socket",
       "claude-device",
@@ -1862,10 +1880,10 @@ describe("EventsGateway", () => {
       .fn()
       .mockReturnValue(queryBuilder);
 
-    await gateway.handleRegisterBridgeAgent(
-      "claude-socket",
-      "openclaw_external",
-    );
+    await gateway.handleMessage("claude-socket", {
+      type: "register_bridge_agent",
+      externalAgentId: "openclaw_external",
+    });
 
     expect(agentRepository.findOne).toHaveBeenCalledWith({
       where: {
@@ -1880,6 +1898,16 @@ describe("EventsGateway", () => {
       { runtimeType: "claude_code" },
     );
     expect(gateway.socketBridgeAgents.get("claude-socket")).toBeUndefined();
+    expect(bridgeSocket.send).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: "bridge_agent_registration",
+        data: {
+          accepted: false,
+          externalAgentId: "openclaw_external",
+          runtimeType: "claude_code",
+        },
+      }),
+    );
     expect(auditLogService.record).toHaveBeenCalledWith(
       expect.objectContaining({ resourceType: "bridge_agent" }),
     );

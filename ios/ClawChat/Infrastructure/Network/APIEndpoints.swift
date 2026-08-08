@@ -65,6 +65,7 @@ enum APIEndpoint: @unchecked Sendable {
     case updateThread(id: String, params: [String: Any])
     case threadMessages(threadId: String, page: Int, pageSize: Int, before: String?)
     case latestThreadMessages(threadId: String, limit: Int, before: String?)
+    case archiveThread(id: String)
     case sendMessage(
         threadId: String,
         content: String,
@@ -107,6 +108,7 @@ enum APIEndpoint: @unchecked Sendable {
     case marketplaceConnections(workspaceId: String, appSlug: String?)
     case createMarketplaceConnection(workspaceId: String, params: [String: Any])
     case updateMarketplaceConnection(workspaceId: String, id: String, params: [String: Any])
+    case deleteMarketplaceConnection(workspaceId: String, id: String)
     case startMarketplaceOAuth(workspaceId: String, slug: String, params: [String: Any])
     case disconnectMarketplaceOAuth(workspaceId: String, slug: String, connectionId: String)
     case marketplaceConnectorHealth(workspaceId: String, slug: String, connectionId: String)
@@ -347,6 +349,7 @@ extension APIEndpoint {
         case .updateThread(let id, _):              return "threads/\(id)"
         case .threadMessages(let tId, _, _, _):     return "threads/\(tId)/messages"
         case .latestThreadMessages(let tId, _, _):  return "threads/\(tId)/messages/latest"
+        case .archiveThread(let id):                return "threads/\(id)/archive"
         case .sendMessage(let tId, _, _, _, _):     return "threads/\(tId)/messages"
         case .createThread(let wsId, _, _, _, _, _, _): return "workspaces/\(wsId)/threads"
         case .markThreadRead(let tId):              return "threads/\(tId)/read"
@@ -376,6 +379,7 @@ extension APIEndpoint {
         case .marketplaceConnections(let wsId, _): return "workspaces/\(wsId)/marketplace/connections"
         case .createMarketplaceConnection(let wsId, _): return "workspaces/\(wsId)/marketplace/connections"
         case .updateMarketplaceConnection(let wsId, let id, _): return "workspaces/\(wsId)/marketplace/connections/\(id)"
+        case .deleteMarketplaceConnection(let wsId, let id): return "workspaces/\(wsId)/marketplace/connections/\(id)"
         case .startMarketplaceOAuth(let wsId, let slug, _): return "workspaces/\(wsId)/marketplace/connectors/\(slug)/oauth/start"
         case .disconnectMarketplaceOAuth(let wsId, let slug, let connectionId): return "workspaces/\(wsId)/marketplace/connectors/\(slug)/connections/\(connectionId)/disconnect"
         case .marketplaceConnectorHealth(let wsId, let slug, let connectionId): return "workspaces/\(wsId)/marketplace/connectors/\(slug)/connections/\(connectionId)/health"
@@ -549,7 +553,7 @@ extension APIEndpoint {
              .syncAgentDocumentationPackToLibrary, .installAgentDocumentation,
              .refreshAgentDocumentationInstall, .exportAgentDocumentationState,
              .generateWrapUp, .uploadAgentLibraryFile,
-             .pauseTeamRelay, .continueTeamRelay:
+             .pauseTeamRelay, .continueTeamRelay, .archiveThread:
             return .post
         case .cancelDispatch:
             return .post
@@ -573,6 +577,8 @@ extension APIEndpoint {
              .deleteAgent, .deleteAccount:
             return .delete
         case .removeMarketplaceInstall:
+            return .delete
+        case .deleteMarketplaceConnection:
             return .delete
         case .updateIncidentStatus:
             return .patch
@@ -833,6 +839,8 @@ extension APIEndpoint {
             ]
         case .updateThread(_, let params):
             return params
+        case .archiveThread:
+            return [:]
         case .createThread(_, let title, let type, let participantIds, let agentIds, let teamId, let departmentId):
             var d: [String: Any] = ["title": title, "type": type, "participant_ids": participantIds, "agent_ids": agentIds]
             if let teamId { d["team_id"] = teamId }

@@ -373,6 +373,10 @@ describe("MessageService", () => {
     expect(teamContext.runtimeInstruction).toContain(
       "Never publish a bare acknowledgement",
     );
+    expect(teamContext.runtimeInstruction).toContain(
+      "reports work that you assigned to them",
+    );
+    expect(teamContext.runtimeInstruction).toContain("empty mentions list");
     expect(teamContext.runtimeInstruction).toContain("Relay agent ID agent-1");
     expect(teamContext.runtimeInstruction).toContain(
       '"agentId":"agent-2","name":"Worker"',
@@ -778,6 +782,144 @@ describe("MessageService", () => {
             name: "Atlas",
           },
         ],
+      }),
+    );
+  });
+
+  it("includes assigned Railway tools in a legacy bridge agent dispatch", async () => {
+    const {
+      service,
+      eventsGateway,
+      marketplaceInstallRepo,
+      marketplaceConnectionRepo,
+      linkedApplicationRepo,
+    } = await buildService();
+    marketplaceInstallRepo.find.mockResolvedValue([
+      {
+        id: "install-jotform-1",
+        workspaceId: "ws-1",
+        appSlug: "jotform",
+        connectionId: "connection-jotform-1",
+        agentId: "agent-1",
+        role: "worker",
+        selectedCapabilities: ["jotform_read", "jotform_manage"],
+        installStatus: "installed",
+        metadata: {},
+      },
+    ]);
+    marketplaceConnectionRepo.findByIds.mockResolvedValue([
+      {
+        id: "connection-jotform-1",
+        appSlug: "jotform",
+        displayName: "Jotform",
+        environment: "default",
+        authType: "api_key",
+        status: "ready",
+        credentialNames: ["jotform_api_key"],
+        selectedCapabilities: ["jotform_read", "jotform_manage"],
+        metadata: { apiKey: "must-not-leak" },
+      },
+    ]);
+    linkedApplicationRepo.createQueryBuilder.mockReturnValue({
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([{ slug: "jotform", metadata: {} }]),
+    });
+
+    await service.create("thread-1", {
+      content: "List my Jotform forms",
+      senderId: "user-1",
+      senderName: "Alex",
+      isFromUser: true,
+      provenance: MessageProvenance.USER,
+    });
+
+    const legacyDispatchPayload =
+      eventsGateway.emitToBridgeAgents.mock.calls[0]?.[3];
+    expect(legacyDispatchPayload?.marketplaceRuntimeFailures ?? []).toEqual([]);
+
+    expect(eventsGateway.emitToBridgeAgents).toHaveBeenCalledWith(
+      "ws-1",
+      ["main"],
+      "agent.dispatch",
+      expect.objectContaining({
+        marketplaceTools: expect.arrayContaining([
+          expect.objectContaining({
+            appSlug: "jotform",
+            functionName: "jotform_read",
+            connectionId: "connection-jotform-1",
+          }),
+        ]),
+        marketplaceRuntimeContext: expect.objectContaining({ toolCount: 2 }),
+      }),
+    );
+    expect(
+      JSON.stringify(eventsGateway.emitToBridgeAgents.mock.calls),
+    ).not.toContain("must-not-leak");
+  });
+
+  it("stops a legacy bridge dispatch when Railway credentials require repair", async () => {
+    const {
+      service,
+      eventsGateway,
+      messageRepo,
+      marketplaceInstallRepo,
+      marketplaceConnectionRepo,
+      linkedApplicationRepo,
+    } = await buildService();
+    marketplaceInstallRepo.find.mockResolvedValue([
+      {
+        id: "install-exa-1",
+        workspaceId: "ws-1",
+        appSlug: "exa-search",
+        connectionId: "connection-exa-1",
+        agentId: "agent-1",
+        role: "worker",
+        selectedCapabilities: ["exa_search"],
+        installStatus: "installed",
+        metadata: {},
+      },
+    ]);
+    marketplaceConnectionRepo.findByIds.mockResolvedValue([
+      {
+        id: "connection-exa-1",
+        appSlug: "exa-search",
+        displayName: "Exa Search",
+        environment: "default",
+        authType: "api_key",
+        status: "needs_credentials",
+        credentialNames: ["exa_api_key"],
+        selectedCapabilities: ["exa_search"],
+        metadata: {},
+      },
+    ]);
+    linkedApplicationRepo.createQueryBuilder.mockReturnValue({
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getMany: jest
+        .fn()
+        .mockResolvedValue([{ slug: "exa-search", metadata: {} }]),
+    });
+
+    await service.create("thread-1", {
+      content: "Search with Exa",
+      senderId: "user-1",
+      senderName: "Alex",
+      isFromUser: true,
+      provenance: MessageProvenance.USER,
+    });
+
+    expect(eventsGateway.emitToBridgeAgents).not.toHaveBeenCalled();
+    expect(eventsGateway.emitAgentTyping).not.toHaveBeenCalledWith(
+      "thread-1",
+      ["agent-1"],
+      true,
+    );
+    expect(messageRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.stringContaining(
+          "RAILWAY_CREDENTIALS_REQUIRED: exa-search must be reconnected on Railway",
+        ),
       }),
     );
   });
@@ -1305,9 +1447,7 @@ describe("MessageService", () => {
     linkedApplicationRepo.createQueryBuilder.mockReturnValue({
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
-      getMany: jest
-        .fn()
-        .mockResolvedValue([{ slug: "jotform", metadata: {} }]),
+      getMany: jest.fn().mockResolvedValue([{ slug: "jotform", metadata: {} }]),
     });
 
     const context = await (service as any).buildAgentMarketplaceRuntimeContext(
@@ -1336,6 +1476,59 @@ describe("MessageService", () => {
     expect(JSON.stringify(context)).not.toContain("must-not-leak");
     expect(JSON.stringify(context)).toContain(
       "/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/jotform",
+    );
+  });
+
+  it("removes Jotform write tools when the agent authority is read only", async () => {
+    const {
+      service,
+      marketplaceInstallRepo,
+      marketplaceConnectionRepo,
+      linkedApplicationRepo,
+    } = await buildService();
+
+    marketplaceInstallRepo.find.mockResolvedValue([
+      {
+        id: "install-jotform-read-only",
+        workspaceId: "ws-1",
+        appSlug: "jotform",
+        connectionId: "connection-jotform-1",
+        agentId: "agent-1",
+        role: "worker",
+        selectedCapabilities: ["jotform_read", "jotform_manage"],
+        installStatus: "installed",
+        metadata: { providerActionPolicyPreset: "read_only" },
+      },
+    ]);
+    marketplaceConnectionRepo.findByIds.mockResolvedValue([
+      {
+        id: "connection-jotform-1",
+        appSlug: "jotform",
+        displayName: "Jotform",
+        environment: "default",
+        authType: "oauth",
+        status: "ready",
+        credentialNames: ["oauth_access_token"],
+        selectedCapabilities: ["jotform_read", "jotform_manage"],
+        metadata: {},
+      },
+    ]);
+    linkedApplicationRepo.createQueryBuilder.mockReturnValue({
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([{ slug: "jotform", metadata: {} }]),
+    });
+
+    const context = await (service as any).buildAgentMarketplaceRuntimeContext(
+      "ws-1",
+      "agent-1",
+    );
+
+    expect(context.marketplaceRuntimeContext.toolNames).toContain(
+      "jotform.read",
+    );
+    expect(context.marketplaceRuntimeContext.toolNames).not.toContain(
+      "jotform.manage",
     );
   });
 
@@ -1934,9 +2127,13 @@ describe("MessageService", () => {
           metadata: {
             localappconnectorOpenClawBaseUrl: "http://localhost:3052",
             localappconnectorOpenClawConnectionId: "openclaw-connection-1",
-            localappconnectorOpenClawStatus: { hasBearerKey: true, useMockMode: false },
+            localappconnectorOpenClawStatus: {
+              hasBearerKey: true,
+              useMockMode: false,
+            },
             localappconnectorCampaignId: "campaign-1",
-            localappconnectorCampaignName: "AI YouTube Channels Backlink Campaign",
+            localappconnectorCampaignName:
+              "AI YouTube Channels Backlink Campaign",
           },
         },
       ]),
@@ -3071,7 +3268,10 @@ describe("MessageService", () => {
         mentions: [{ agentId: "agent-2" }, { agentId: "agent-3" }],
       }),
     ).resolves.toEqual(
-      expect.objectContaining({ duplicate: true, messageId: published.messageId }),
+      expect.objectContaining({
+        duplicate: true,
+        messageId: published.messageId,
+      }),
     );
   });
 });

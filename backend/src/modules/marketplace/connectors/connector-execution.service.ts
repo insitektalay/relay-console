@@ -336,6 +336,7 @@ import { TettraApiAdapter } from "./tettra/tettra-api.adapter";
 import { KnowledgeOwlApiAdapter } from "./knowledgeowl/knowledgeowl-api.adapter";
 import { CodaApiAdapter } from "./coda/coda-api.adapter";
 import { CraftApiAdapter } from "./craft/craft-api.adapter";
+import { CraftMcpAdapter } from "./craft/craft-mcp.adapter";
 import { TelegramPersonalBotsApiAdapter } from "./telegram-personal-bots/telegram-personal-bots-api.adapter";
 import { MatomoSelfHostedApiAdapter } from "./matomo-self-hosted/matomo-self-hosted-api.adapter";
 import { PlausibleSelfHostedApiAdapter } from "./plausible-self-hosted/plausible-self-hosted-api.adapter";
@@ -1223,6 +1224,7 @@ export class MarketplaceConnectorExecutionService {
   readonly knowledgeOwlApi = new KnowledgeOwlApiAdapter();
   readonly codaApi = new CodaApiAdapter();
   readonly craftApi = new CraftApiAdapter();
+  readonly craftMcp = new CraftMcpAdapter();
   readonly telegramPersonalBotsApi = new TelegramPersonalBotsApiAdapter();
   readonly matomoSelfHostedApi = new MatomoSelfHostedApiAdapter();
   readonly plausibleSelfHostedApi = new PlausibleSelfHostedApiAdapter();

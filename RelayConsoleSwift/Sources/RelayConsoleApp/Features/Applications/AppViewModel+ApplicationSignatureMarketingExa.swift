@@ -1832,26 +1832,25 @@ extension AppViewModel {
         guard let existing = snapshot.selectedConnection else {
           throw RelayError(.invalidInput, "Enter an Exa API key before connecting Exa Search.")
         }
+        guard existing.resolvedExecutionAuthority == .railway else {
+          throw RelayError(
+            .invalidInput,
+            "This old Exa connection used the local Swift authority. Enter the Exa API key again so Railway can replace it.")
+        }
         connection = existing
       } else {
         self.exaConnectionStatus =
-          "Testing the new Exa API key before connecting \(selectedAgentSummary)."
+          "Sending the new Exa API key to Railway before connecting \(selectedAgentSummary)."
         await Task.yield()
-        let validation = await services.providerConnections.validateExaAPIKey(apiKey: trimmedKey)
-        guard validation.isReady else {
-          self.exaConnectionStatus = validation.message
-          throw RelayError(.invalidInput, validation.message)
-        }
-        connection = try services.providerConnections.saveExaAPIKeyConnection(
-          context: context,
-          appIdOrSlug: app.id,
-          apiKey: trimmedKey,
-          validationResult: validation
-        )
+        connection = try await self.saveExaRailwayConnection(for: app, apiKey: trimmedKey)
       }
       self.exaConnectionStatus =
         "Connecting Exa Search to \(selectedAgentSummary)."
       await Task.yield()
+      let remoteConnectionId = try services.cloudSync.remoteMarketplaceConnectionId(
+        localWorkspaceId: workspace.id,
+        localConnectionId: connection.id
+      )
       for agentId in sortedSelectedIds {
         let agentDisplayName = self.exaDisplayName(forAgentId: agentId)
         self.exaConnectionStatus =
@@ -1867,36 +1866,48 @@ extension AppViewModel {
         default:
           throw RelayError(.invalidInput, "Exa Search supports Hermes and OpenClaw agents.")
         }
-        _ = try services.marketplaceInstalls.createInstall(
-          context: context,
-          request: MarketplaceInstallRequest(
-            id: createRelayId("minreq"),
-            workspaceId: workspace.id,
-            appId: app.id,
-            appSlug: app.slug,
-            connectionId: connection.id,
-            targetAgentId: prepared.id,
-            roleId: app.roleManifest.primaryRole,
-            selectedCapabilities: app.capabilities,
-            approvalProfileId: nil,
-            runtimeFormat: prepared.binding.runtimeType,
-            targetMode: .existingAgent,
-            riskAcknowledged: app.riskLevel == .high || app.riskLevel == .critical,
-            metadata: [
-              "source": .string("applications-exa-search-panel"),
-              "requestedAgentId": .string(prepared.id),
-            ],
-            requestedByActorId: context.actorId,
-            requestedAt: nowIso(),
-            redactionStatus: "private-state-excluded"
-          )
+        let remoteAgentId = try services.cloudSync.remoteMarketplaceAgentId(
+          localWorkspaceId: workspace.id,
+          localAgentId: prepared.id
         )
+        let result = try await services.cloudSync.railwayMarketplaceRequest(
+          localWorkspaceId: workspace.id,
+          method: "POST",
+          relativePath: "install",
+          body: [
+            "appSlug": app.slug,
+            "connectionId": remoteConnectionId,
+            "selectedCapabilities": app.capabilityIds ?? app.capabilities,
+            "runtimeFormat": prepared.binding.runtimeType.rawValue,
+            "agentIds": [remoteAgentId],
+            "role": app.roleManifest.primaryRole,
+            "libraryTargetFolder": "marketplace/\(app.slug)",
+            "targetMode": "existing_agents",
+            "acknowledgeGeneratedDraftRisk": true,
+          ]
+        )
+        guard (result["status"] as? String) == "installed" else {
+          throw RelayError(
+            .unsupported,
+            (result["message"] as? String)
+              ?? "Railway could not install Exa Search for \(agentDisplayName)."
+          )
+        }
         self.recordUserManagedRuntimeRestartRequired(
           services: services,
           agent: prepared,
           reason: "Exa Search connection changed"
         )
       }
+      let remoteInstalls = try await services.cloudSync.railwayMarketplaceArrayRequest(
+        localWorkspaceId: workspace.id,
+        relativePath: "installs"
+      )
+      _ = try services.cloudSync.mirrorRailwayMarketplaceInstalls(
+        localWorkspaceId: workspace.id,
+        app: app,
+        installViews: remoteInstalls
+      )
       self.exaAPIKeyDraft = ""
       self.exaSelectedAgentIds.subtract(selectedIds)
       self.exaConnectionStatus = "Exa Search connected to \(selectedAgentSummary)."

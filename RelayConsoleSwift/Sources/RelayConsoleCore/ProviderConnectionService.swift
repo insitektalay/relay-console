@@ -453,6 +453,16 @@ public final class ProviderConnectionService {
     }
     let app = try requireProviderApp(
       context: context, appIdOrSlug: connection.appId, fallbackSlug: connection.appSlug)
+    guard connection.resolvedExecutionAuthority == .railway,
+      connection.secretReferenceIds.isEmpty
+    else {
+      throw ServiceGuard.unavailable(
+        context: context,
+        reasonCode: .featureUnavailable,
+        message:
+          "External Marketplace credentials must be saved and executed by Railway. The macOS Swift credential store is not an execution fallback."
+      )
+    }
     try validateConnection(connection, app: app, context: context)
 
     let saved = try data.saveProviderConnection(connection)

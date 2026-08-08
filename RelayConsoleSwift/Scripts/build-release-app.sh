@@ -114,6 +114,7 @@ RESOURCES_PATH="$CONTENTS_PATH/Resources"
 FRAMEWORKS_PATH="$CONTENTS_PATH/Frameworks"
 MAIN_EXECUTABLE="$MACOS_PATH/$PRODUCT_NAME"
 BRIDGE_EXECUTABLE="$MACOS_PATH/RelayMarketplaceToolBridge"
+HOST_EXECUTABLE="$MACOS_PATH/RelayHostService"
 
 build_architecture() {
   local architecture="$1"
@@ -121,6 +122,7 @@ build_architecture() {
   if [[ "$SKIP_BUILD" == "0" ]]; then
     swift build --package-path "$ROOT_DIR" --scratch-path "$scratch" -c release --arch "$architecture" -Xswiftc -g --product "$PRODUCT_NAME" >&2 || return $?
     swift build --package-path "$ROOT_DIR" --scratch-path "$scratch" -c release --arch "$architecture" -Xswiftc -g --product RelayMarketplaceToolBridge >&2 || return $?
+    swift build --package-path "$ROOT_DIR" --scratch-path "$scratch" -c release --arch "$architecture" -Xswiftc -g --product RelayHostService >&2 || return $?
   fi
   swift build --package-path "$ROOT_DIR" --scratch-path "$scratch" -c release --arch "$architecture" --show-bin-path || return $?
 }
@@ -146,13 +148,14 @@ if [[ "$ARCHITECTURE_POLICY" == "universal2" ]]; then
   ARM_BIN_PATH="$(build_architecture arm64)"
   INTEL_BIN_PATH="$(build_architecture x86_64)"
   BIN_PATH="$ARM_BIN_PATH"
-  for path in "$ARM_BIN_PATH/$PRODUCT_NAME" "$ARM_BIN_PATH/RelayMarketplaceToolBridge" "$INTEL_BIN_PATH/$PRODUCT_NAME" "$INTEL_BIN_PATH/RelayMarketplaceToolBridge"; do
+  for path in "$ARM_BIN_PATH/$PRODUCT_NAME" "$ARM_BIN_PATH/RelayMarketplaceToolBridge" "$ARM_BIN_PATH/RelayHostService" "$INTEL_BIN_PATH/$PRODUCT_NAME" "$INTEL_BIN_PATH/RelayMarketplaceToolBridge" "$INTEL_BIN_PATH/RelayHostService"; do
     [[ -x "$path" ]] || { echo "Missing architecture product: $path" >&2; exit 1; }
   done
 else
   BIN_PATH="$(build_architecture "$ARCHITECTURE_POLICY")"
   [[ -x "$BIN_PATH/$PRODUCT_NAME" ]] || { echo "Missing release executable: $BIN_PATH/$PRODUCT_NAME" >&2; exit 1; }
   [[ -x "$BIN_PATH/RelayMarketplaceToolBridge" ]] || { echo "Missing release bridge: $BIN_PATH/RelayMarketplaceToolBridge" >&2; exit 1; }
+  [[ -x "$BIN_PATH/RelayHostService" ]] || { echo "Missing Relay Host service: $BIN_PATH/RelayHostService" >&2; exit 1; }
 fi
 
 mkdir -p "$OUTPUT_ROOT"
@@ -164,11 +167,13 @@ mkdir -p "$MACOS_PATH" "$RESOURCES_PATH" "$FRAMEWORKS_PATH"
 if [[ "$ARCHITECTURE_POLICY" == "universal2" ]]; then
   /usr/bin/lipo -create "$ARM_BIN_PATH/$PRODUCT_NAME" "$INTEL_BIN_PATH/$PRODUCT_NAME" -output "$MAIN_EXECUTABLE"
   /usr/bin/lipo -create "$ARM_BIN_PATH/RelayMarketplaceToolBridge" "$INTEL_BIN_PATH/RelayMarketplaceToolBridge" -output "$BRIDGE_EXECUTABLE"
+  /usr/bin/lipo -create "$ARM_BIN_PATH/RelayHostService" "$INTEL_BIN_PATH/RelayHostService" -output "$HOST_EXECUTABLE"
 else
   cp "$BIN_PATH/$PRODUCT_NAME" "$MAIN_EXECUTABLE"
   cp "$BIN_PATH/RelayMarketplaceToolBridge" "$BRIDGE_EXECUTABLE"
+  cp "$BIN_PATH/RelayHostService" "$HOST_EXECUTABLE"
 fi
-chmod 755 "$MAIN_EXECUTABLE" "$BRIDGE_EXECUTABLE"
+chmod 755 "$MAIN_EXECUTABLE" "$BRIDGE_EXECUTABLE" "$HOST_EXECUTABLE"
 
 SPARKLE_ARTIFACT_ARCHITECTURE="$ARCHITECTURE_POLICY"
 if [[ "$SPARKLE_ARTIFACT_ARCHITECTURE" == "universal2" ]]; then
@@ -334,7 +339,8 @@ if [[ "$ADHOC_SIGN" == "1" ]] && command -v codesign >/dev/null 2>&1; then
   codesign --force --options runtime --timestamp=none --sign - "$SPARKLE_FRAMEWORK/Versions/B/Updater.app"
   codesign --force --options runtime --timestamp=none --sign - "$SPARKLE_FRAMEWORK"
   codesign --force --sign - "$BRIDGE_EXECUTABLE"
-  codesign --force --sign - "$MAIN_EXECUTABLE"
+  codesign --force --identifier "Relay Console" --sign - "$HOST_EXECUTABLE"
+  codesign --force --identifier "Relay Console" --sign - "$MAIN_EXECUTABLE"
   codesign --force --sign - "$APP_PATH"
 fi
 

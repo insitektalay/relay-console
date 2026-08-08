@@ -260,6 +260,7 @@ export class BridgeController {
     return this.bridgeService.redeemEnrollment(
       body.code,
       {
+        hostInstallationId: body.hostInstallationId,
         deviceLabel: body.deviceLabel,
         pluginVersion: body.pluginVersion,
         openCoreVersion: body.openCoreVersion,
@@ -287,6 +288,7 @@ export class BridgeController {
       body.devicePublicId,
       body.deviceToken,
       {
+        hostInstallationId: body.hostInstallationId,
         pluginVersion: body.pluginVersion,
         openCoreVersion: body.openCoreVersion,
         runtimeType: body.runtimeType,
@@ -313,6 +315,7 @@ export class BridgeController {
       body.devicePublicId,
       body.deviceToken,
       {
+        hostInstallationId: body.hostInstallationId,
         pluginVersion: body.pluginVersion,
         openCoreVersion: body.openCoreVersion,
         runtimeType: body.runtimeType,
@@ -578,6 +581,7 @@ export class BridgeController {
       body.deviceLabel,
       body.expiresInMinutes,
       this.getRequestContext(req),
+      body.hostInstallationId,
     );
   }
 

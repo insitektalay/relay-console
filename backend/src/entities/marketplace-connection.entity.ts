@@ -21,7 +21,7 @@ export const MARKETPLACE_CONNECTION_STATUSES = [
 export type MarketplaceConnectionStatus =
   (typeof MARKETPLACE_CONNECTION_STATUSES)[number];
 
-export type MarketplaceExecutionAuthority = "railway" | "swift";
+export type MarketplaceExecutionAuthority = "railway";
 
 @Entity("marketplace_connections")
 @Index(["workspaceId", "appSlug"])

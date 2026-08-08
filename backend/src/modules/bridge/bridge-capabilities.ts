@@ -1,4 +1,5 @@
 export const SERVER_AUTHORIZED_BRIDGE_CAPABILITIES = new Set<string>([
+  "clawchat.relay_host.v1",
   "clawchat.runtime.hermes",
   "clawchat.runtime.openclaw",
   "clawchat.marketplace.tools",

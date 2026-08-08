@@ -22,6 +22,7 @@ import { CloseApiError } from "../../close/close-api.adapter";
 import { CloudflareApiError } from "../../cloudflare/cloudflare-api.adapter";
 import { CloudinaryMcpError } from "../../cloudinary/cloudinary-mcp.adapter";
 import { CognitoFormsMcpError } from "../../cognito-forms/cognito-forms-mcp.adapter";
+import { CraftMcpError } from "../../craft/craft-mcp.adapter";
 import { ContentfulApiError } from "../../contentful/contentful-api.adapter";
 import { CopperApiError } from "../../copper/copper-api.adapter";
 import { DatadogApiError } from "../../datadog/datadog-api.adapter";
@@ -197,6 +198,8 @@ function mapKnownConnectorErrorChunk3Part1(
   if (error instanceof WhimsicalMcpError)
     return safeError(error.code, error.message, error.statusCode);
   if (error instanceof CognitoFormsMcpError)
+    return safeError(error.code, error.message, error.statusCode);
+  if (error instanceof CraftMcpError)
     return safeError(error.code, error.message, error.statusCode);
   if (error instanceof XMindMcpError)
     return safeError(error.code, error.message, error.statusCode);

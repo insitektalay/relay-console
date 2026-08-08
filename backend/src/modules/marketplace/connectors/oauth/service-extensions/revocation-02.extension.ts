@@ -22,17 +22,20 @@ export const OAuthRevocationExtension02 = {
         "Canva revocation credentials are incomplete",
       );
     }
-    const response = await safeConnectorFetch("https://api.canva.com/rest/v1/oauth/revoke", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+    const response = await safeConnectorFetch(
+      "https://api.canva.com/rest/v1/oauth/revoke",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ token }),
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
       },
-      body: new URLSearchParams({ token }),
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-    });
+    );
     if (!response.ok) {
       throw new BadRequestException("Canva upstream token revocation failed");
     }
@@ -170,16 +173,19 @@ export const OAuthRevocationExtension02 = {
       throw new BadRequestException(
         "Frame.io revocation credentials are incomplete",
       );
-    const response = await safeConnectorFetch("https://ims-na1.adobelogin.com/ims/revoke", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+    const response = await safeConnectorFetch(
+      "https://ims-na1.adobelogin.com/ims/revoke",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+        },
+        body: new URLSearchParams({ token }),
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
       },
-      body: new URLSearchParams({ token }),
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-    });
+    );
     if (!response.ok)
       throw new BadRequestException(
         "Frame.io upstream token revocation failed",
@@ -241,20 +247,23 @@ export const OAuthRevocationExtension02 = {
       throw new BadRequestException(
         "MindMeister revocation credentials are incomplete",
       );
-    const response = await safeConnectorFetch("https://www.mindmeister.com/oauth2/revoke", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
+    const response = await safeConnectorFetch(
+      "https://www.mindmeister.com/oauth2/revoke",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          token,
+        }),
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
       },
-      body: new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        token,
-      }),
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-    });
+    );
     if (!response.ok)
       throw new BadRequestException(
         "MindMeister upstream token revocation failed",
@@ -277,20 +286,23 @@ export const OAuthRevocationExtension02 = {
         "MeisterTask revocation credentials are incomplete",
       );
     }
-    const response = await safeConnectorFetch("https://www.mindmeister.com/oauth2/revoke", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
+    const response = await safeConnectorFetch(
+      "https://www.mindmeister.com/oauth2/revoke",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          token,
+        }),
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
       },
-      body: new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        token,
-      }),
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-    });
+    );
     if (!response.ok) {
       throw new BadRequestException(
         "MeisterTask upstream token revocation failed",
@@ -314,16 +326,19 @@ export const OAuthRevocationExtension02 = {
       throw new BadRequestException(
         "Otter.ai revocation credentials are incomplete",
       );
-    const response = await safeConnectorFetch("https://otter.ai/oauth/revoke_token", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
+    const response = await safeConnectorFetch(
+      "https://otter.ai/oauth/revoke_token",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ token, client_id: clientId }),
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
       },
-      body: new URLSearchParams({ token, client_id: clientId }),
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-    });
+    );
     if (!response.ok)
       throw new BadRequestException(
         "Otter.ai upstream token revocation failed",
@@ -346,16 +361,19 @@ export const OAuthRevocationExtension02 = {
       throw new BadRequestException(
         "Fireflies.ai revocation credentials are incomplete",
       );
-    const response = await safeConnectorFetch("https://api.fireflies.ai/revoke", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
+    const response = await safeConnectorFetch(
+      "https://api.fireflies.ai/revoke",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ token, client_id: clientId }),
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
       },
-      body: new URLSearchParams({ token, client_id: clientId }),
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-    });
+    );
     if (!response.ok)
       throw new BadRequestException(
         "Fireflies.ai upstream token revocation failed",
@@ -420,23 +438,68 @@ export const OAuthRevocationExtension02 = {
         "Sunsama revocation credentials are incomplete",
       );
     }
-    const response = await safeConnectorFetch("https://api.sunsama.com/oauth/revoke", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
+    const response = await safeConnectorFetch(
+      "https://api.sunsama.com/oauth/revoke",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          token,
+          token_type_hint: stored.refreshToken
+            ? "refresh_token"
+            : "access_token",
+          client_id: clientId,
+        }),
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
       },
-      body: new URLSearchParams({
-        token,
-        token_type_hint: stored.refreshToken ? "refresh_token" : "access_token",
-        client_id: clientId,
-      }),
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-    });
+    );
     if (!response.ok) {
       throw new BadRequestException("Sunsama upstream token revocation failed");
     }
+  },
+
+  async revokeCraftSession(
+    this: MarketplaceConnectorOAuthService,
+    stored: Record<string, unknown>,
+    connection: MarketplaceConnectionEntity,
+  ) {
+    const token =
+      this.stringOrNull(stored.refreshToken) ??
+      this.stringOrNull(stored.accessToken);
+    const clientId =
+      this.stringOrNull(stored.clientId) ??
+      this.stringOrNull(connection.metadata?.clientId);
+    const clientSecret = this.stringOrNull(stored.clientSecret);
+    if (!token || !clientId || !clientSecret)
+      throw new BadRequestException(
+        "Craft revocation credentials are incomplete",
+      );
+    const response = await safeConnectorFetch(
+      "https://mcp.craft.do/my/auth/revoke",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          token,
+          token_type_hint: stored.refreshToken
+            ? "refresh_token"
+            : "access_token",
+          client_id: clientId,
+          client_secret: clientSecret,
+        }),
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
+      },
+    );
+    if (!response.ok)
+      throw new BadRequestException("Craft upstream token revocation failed");
   },
 
   async revokeWhimsicalSession(
@@ -456,16 +519,19 @@ export const OAuthRevocationExtension02 = {
         "Whimsical revocation credentials are incomplete",
       );
     }
-    const response = await safeConnectorFetch("https://api.whimsical.com/v1/oauth.revoke", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
+    const response = await safeConnectorFetch(
+      "https://api.whimsical.com/v1/oauth.revoke",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ token, client_id: clientId }),
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
       },
-      body: new URLSearchParams({ token, client_id: clientId }),
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-    });
+    );
     if (!response.ok) {
       throw new BadRequestException(
         "Whimsical upstream token revocation failed",

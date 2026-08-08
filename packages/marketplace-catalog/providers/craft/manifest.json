@@ -4,50 +4,54 @@
   "name": "Craft",
   "category": "knowledge_documents",
   "description": "Craft is a collaborative writing and knowledge workspace for documents, linked pages, daily notes, tasks, folders, and structured collections. Individuals and teams use its native apps and web editor to capture ideas, organize projects, publish polished documents, and keep shared knowledge connected.",
-  "agentUseSummary": "Create a scoped API Connection in Craft, then let selected agents search and read its authorized content or manage blocks, collections, documents, folders, and tasks under Safe or Dangerous policy.",
+  "agentUseSummary": "Connect Relay to Craft's official hosted MCP server with OAuth, select one Craft space, then let agents use its live read or management tools under Safe or Dangerous policy.",
   "icon": {
     "assetName": "marketplace-logo-craft.png",
     "sourceUrl": "https://www.craft.do/favicons/light/light_192.png"
   },
   "provider": {
     "websiteUrl": "https://www.craft.do/",
-    "docsUrl": "https://connect.craft.do/api-docs/space",
-    "developerConsoleUrl": "https://connect.craft.do/api-docs",
+    "docsUrl": "https://support.craft.do/en/integrate/mcp",
+    "developerConsoleUrl": "https://mcp.craft.do/.well-known/oauth-authorization-server/my/auth",
     "termsUrl": "https://www.craft.do/terms",
     "privacyUrl": "https://www.craft.do/privacy"
   },
   "authentication": {
-    "model": "api_key",
+    "model": "remote_mcp_oauth",
     "relayOwned": false,
     "scopes": [],
-    "pkce": false,
-    "refreshTokens": false
+    "pkce": true,
+    "refreshTokens": true,
+    "authorizationUrl": "https://mcp.craft.do/my/auth/authorize",
+    "tokenUrl": "https://mcp.craft.do/my/auth/token",
+    "revocationUrl": "https://mcp.craft.do/my/auth/revoke"
   },
   "connection": {
-    "types": ["customer_scoped_api_url", "api_connector"],
+    "types": ["oauth_connector", "customer_scoped_api_url", "api_connector"],
     "credentialRequirements": [
       {
         "name": "CRAFT_API_URL",
         "label": "Craft API connection URL",
         "required": true,
         "secret": true,
-        "helpText": "Create a least-privilege API Connection in Craft's Imagine tab and paste its full https://connect.craft.do/links/.../api/v1 URL."
+        "requiredForAuthTypes": ["customer_scoped_api_url", "api_key"],
+        "helpText": "Compatibility only: existing Craft API connection URLs remain supported. New connections use Craft's official hosted MCP OAuth flow."
       }
     ],
-    "callbackPath": null,
+    "callbackPath": "/api/v1/marketplace/oauth/craft/callback",
     "webhookRequirements": []
   },
   "capabilities": [
     {
       "id": "knowledge_read",
       "label": "Read workspace knowledge",
-      "description": "Fetch and search selected documents and blocks, then list authorized collections, folders, documents, and tasks.",
+      "description": "Use provider-declared read-only MCP tools for the Craft space selected during authorization.",
       "defaultSelected": true
     },
     {
       "id": "knowledge_manage",
       "label": "Manage workspace knowledge",
-      "description": "Insert, update, move, and delete authorized blocks, collection items, documents, folders, and tasks.",
+      "description": "Use provider-declared MCP mutations in the Craft space selected during authorization.",
       "defaultSelected": true
     }
   ],
@@ -56,26 +60,26 @@
       {
         "id": "craft_api_read",
         "label": "Read Craft content",
-        "description": "Use one stable, allowlisted Craft Space API read against the connection's selected content."
+        "description": "Use one live-schema-verified read tool from Craft's official hosted MCP server."
       }
     ],
     "approvalRequired": [
       {
         "id": "craft_api_manage",
         "label": "Manage Craft content",
-        "description": "Use one stable, allowlisted Craft Space API mutation; Safe mode requires approval."
+        "description": "Use one live-schema-verified mutation from Craft's official hosted MCP server; Safe mode requires approval."
       }
     ],
     "blocked": [
       {
         "id": "craft_raw_api",
-        "label": "Call arbitrary Craft APIs",
-        "description": "Agents choose only an enumerated stable operation; raw paths, methods, and experimental endpoints are unavailable."
+        "label": "Mount raw Craft MCP",
+        "description": "Relay separates provider-declared read-only tools from mutations and does not expose an ungoverned MCP surface."
       },
       {
         "id": "craft_secret_exposure",
-        "label": "Expose the API connection URL",
-        "description": "The secret Craft connection URL remains encrypted and never enters tool inputs, results, logs, or audits."
+        "label": "Expose Craft credentials",
+        "description": "OAuth tokens and legacy API connection URLs remain encrypted and never enter tool inputs, results, logs, or audits."
       },
       {
         "id": "craft_unbounded_transfer",
@@ -88,7 +92,7 @@
     {
       "id": "craft_safe",
       "label": "Safe",
-      "description": "Bounded reads run directly; every Craft content or organization mutation requires approval.",
+      "description": "Provider-declared read-only MCP tools run directly; every Craft mutation requires approval.",
       "defaultSelected": true,
       "allowedActions": ["craft_api_read"],
       "approvalRequiredActions": ["craft_api_manage"],
@@ -117,21 +121,31 @@
     {
       "format": "openclaw",
       "installSupport": "installable",
-      "description": "Railway mounts two bounded Craft wrappers and applies the encrypted scoped connection URL server-side without exposing it to agents."
+      "description": "Railway connects to Craft's official hosted MCP server and mounts bounded read and manage wrappers without exposing OAuth credentials."
     },
     {
       "format": "hermes",
       "installSupport": "installable",
-      "description": "Railway mounts two bounded Craft wrappers and applies the encrypted scoped connection URL server-side without exposing it to agents."
+      "description": "Railway connects to Craft's official hosted MCP server and mounts bounded read and manage wrappers without exposing OAuth credentials."
     }
   ],
   "availability": "awaiting_provider_setup",
   "providerSetup": {
     "status": "not_started",
-    "blocker": "No customer Craft API Connection URL or signed-in provider session was available for live action verification.",
-    "nextAction": "A customer creates a least-privilege API Connection for the intended space or documents, selects read or write access, enters its secret URL in Relay, then verifies health, bounded reads, Safe mutation approval, Dangerous mutation, connection rotation, and disconnect denial."
+    "blocker": "No signed-in Craft account was available for live OAuth consent and authenticated MCP tools/list verification.",
+    "nextAction": "A customer connects Craft in Relay, selects one space in Craft's OAuth consent, then verifies live tool discovery, bounded reads, Safe mutation approval, Dangerous mutation, refresh, revocation, and disconnect denial."
   },
   "evidence": [
+    {
+      "url": "https://www.craft.do/imagine/guide/mcp/codex_desktop",
+      "checkedAt": "2026-08-08",
+      "supports": "Craft's current official client guide publishes the shared https://mcp.craft.do/my/mcp endpoint, Streamable HTTP transport, browser authorization, and one-space selection."
+    },
+    {
+      "url": "https://mcp.craft.do/.well-known/oauth-authorization-server/my/auth",
+      "checkedAt": "2026-08-08",
+      "supports": "Craft's live OAuth metadata publishes authorization, token, dynamic registration, and revocation endpoints with S256 PKCE and refresh-token support."
+    },
     {
       "url": "https://support.craft.do/en/integrate/api",
       "checkedAt": "2026-07-17",

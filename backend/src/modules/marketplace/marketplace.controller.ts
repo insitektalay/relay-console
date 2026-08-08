@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -451,6 +452,19 @@ export class MarketplaceController {
       });
     }
     return connection;
+  }
+
+  @Delete("connections/:id")
+  async deleteConnection(
+    @Param("workspaceId") workspaceId: string,
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: UserEntity,
+  ) {
+    await this.workspaceMembershipService.ensureWorkspaceAdminAccess(
+      workspaceId,
+      user.id,
+    );
+    return this.marketplaceService.deleteConnection(workspaceId, id, user.id);
   }
 
   @Post("connections/:id/disconnect")

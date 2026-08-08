@@ -11,6 +11,13 @@ const navigationSource = readFileSync(
   ),
   "utf8"
 )
+const detailSource = readFileSync(
+  new URL(
+    "../components/app-shell/views/settings-detail-pane.tsx",
+    import.meta.url
+  ),
+  "utf8"
+)
 
 test("Settings navigation exposes the Swift destinations and privacy controls", () => {
   for (const label of [
@@ -44,6 +51,18 @@ test("account, harness and runtime states preserve reference controls", () => {
   assert.match(source, /Action approvals/)
   assert.match(source, /Technical activity/)
   assert.doesNotMatch(source, /Run confirmation/)
+})
+
+test("profile uses the compact orbit composition without a larger font scale", () => {
+  assert.match(detailSource, /Shown in chats and reports\./)
+  assert.match(detailSource, /id="profile-orbit"/)
+  assert.match(detailSource, /getCurrentUserAvatarUrl\(authenticatedUser\)/)
+  assert.match(detailSource, /aria-label="Edit display name"/)
+  assert.match(detailSource, /aria-label="Discard display name changes"/)
+  assert.match(detailSource, /className="claw-title-detail/)
+  assert.match(detailSource, /className="mission-subtle/)
+  assert.match(detailSource, /aria-label="Display name"/)
+  assert.doesNotMatch(detailSource, /profile-display[\s\S]*?text-\[(?:\d|\.)/)
 })
 
 test("privacy settings expose independent PostHog and Sentry choices", () => {

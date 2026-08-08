@@ -478,6 +478,88 @@ describe("BridgeService", () => {
       ).not.toHaveBeenCalled();
     });
 
+    it("allows an enrolled Relay Console device to load tools for its registered cross-runtime agent", async () => {
+      const { service, eventsGateway } = await buildService();
+
+      await service.assertBridgeDeviceAgentMarketplaceBinding({
+        workspaceId: "ws-1",
+        bridgeDeviceId: "device-1",
+        devicePublicId: "bdev-public-1",
+        agentId: "agent-main",
+        runtimeBinding: {
+          id: "binding-1",
+          workspaceId: "ws-1",
+          agentId: "agent-main",
+          runtimeType: "openclaw",
+          capabilities: { bridgeBacked: true },
+        },
+      });
+
+      expect(
+        eventsGateway.isBridgeDeviceRegisteredForExternalAgent,
+      ).toHaveBeenCalledWith({
+        workspaceId: "ws-1",
+        bridgeDeviceId: "device-1",
+        externalAgentId: "main",
+        runtimeType: undefined,
+      });
+    });
+
+    it("allows a Relay Console device to load tools for its published cross-runtime agent", async () => {
+      const { service, eventsGateway } = await buildService();
+
+      await service.assertBridgeDeviceAgentMarketplaceBinding({
+        workspaceId: "ws-1",
+        bridgeDeviceId: "device-1",
+        devicePublicId: "bdev-public-1",
+        agentId: "agent-main",
+        runtimeBinding: {
+          id: "binding-1",
+          workspaceId: "ws-1",
+          agentId: "agent-main",
+          runtimeType: "openclaw",
+          capabilities: { bridgeBacked: true },
+          configMetadata: {
+            runtimeHostKind: "relay_console_swift",
+            devicePublicId: "bdev-public-1",
+          },
+        },
+      });
+
+      expect(
+        eventsGateway.isBridgeDeviceRegisteredForExternalAgent,
+      ).not.toHaveBeenCalled();
+    });
+
+    it("rejects a Relay Console device that does not own the published agent", async () => {
+      const { service, eventsGateway } = await buildService();
+      eventsGateway.isBridgeDeviceRegisteredForExternalAgent.mockReturnValue(
+        false,
+      );
+
+      await expect(
+        service.assertBridgeDeviceAgentMarketplaceBinding({
+          workspaceId: "ws-1",
+          bridgeDeviceId: "device-1",
+          devicePublicId: "other-bdev-public-id",
+          agentId: "agent-main",
+          runtimeBinding: {
+            id: "binding-1",
+            workspaceId: "ws-1",
+            agentId: "agent-main",
+            runtimeType: "openclaw",
+            capabilities: { bridgeBacked: true },
+            configMetadata: {
+              runtimeHostKind: "relay_console_swift",
+              devicePublicId: "bdev-public-1",
+            },
+          },
+        }),
+      ).rejects.toThrow(
+        "Bridge device is not authorized for this external agent",
+      );
+    });
+
     it("scopes bridge task cache keys by workspace", async () => {
       const { service, taskRepo } = await buildService();
       taskRepo.save
@@ -2379,6 +2461,95 @@ describe("BridgeService", () => {
     );
   });
 
+  it("revokes an older active pairing when the same runtime host pairs again", async () => {
+    const {
+      service,
+      bridgeEnrollmentRepo,
+      bridgeDeviceRepo,
+      workspaceRepo,
+      eventsGateway,
+      auditLogService,
+    } = await buildService();
+
+    bridgeEnrollmentRepo.findOne.mockResolvedValue({
+      id: "enroll-1",
+      workspaceId: "ws-1",
+      createdByUserId: "user-1",
+      codeHash: "hash",
+      deviceLabel: "Office Mac · Hermes Agent bridge",
+      hostInstallationId: "relayhost_11111111-1111-4111-8111-111111111111",
+      status: "active",
+      expiresAt: new Date(Date.now() + 60_000),
+      usedAt: null,
+    });
+    workspaceRepo.findOne.mockResolvedValue({
+      id: "ws-1",
+      name: "Workspace One",
+    });
+    bridgeDeviceRepo.find.mockResolvedValue([
+      {
+        id: "device-old",
+        workspaceId: "ws-1",
+        label: "Office Mac · Hermes Agent bridge",
+        runtimeType: "hermes",
+        hostType: "macos-launchd",
+        status: BridgeDeviceStatus.ACTIVE,
+        revokedAt: null,
+      },
+    ]);
+    bridgeDeviceRepo.save.mockImplementation(async (input: any) => ({
+      id: "device-new",
+      devicePublicId: "bdev_public",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...input,
+    }));
+
+    await service.redeemEnrollment("PAIRME", compatibleHermesMetadata());
+
+    expect(bridgeDeviceRepo.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hostInstallationId:
+          "relayhost_11111111-1111-4111-8111-111111111111",
+        adapterRole: "runtime",
+      }),
+    );
+
+    expect(bridgeDeviceRepo.find).toHaveBeenCalledWith({
+      where: {
+        workspaceId: "ws-1",
+        hostInstallationId:
+          "relayhost_11111111-1111-4111-8111-111111111111",
+        adapterRole: "runtime",
+        runtimeType: "hermes",
+        hostType: "macos-launchd",
+        status: BridgeDeviceStatus.ACTIVE,
+      },
+    });
+    expect(bridgeDeviceRepo.update).toHaveBeenCalledWith("device-old", {
+      status: BridgeDeviceStatus.REVOKED,
+      revokedAt: expect.any(Date),
+    });
+    expect(eventsGateway.disconnectBridgeDevice).toHaveBeenCalledWith(
+      "device-old",
+    );
+    expect(auditLogService.record).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorType: "bridge_device",
+        actorId: "device-new",
+        workspaceId: "ws-1",
+        eventType: "bridge.device.superseded",
+        resourceType: "bridge_device",
+        resourceId: "device-old",
+        metadata: expect.objectContaining({
+          replacementDeviceId: "device-new",
+          runtimeType: "hermes",
+          hostType: "macos-launchd",
+        }),
+      }),
+    );
+  });
+
   it("persists only server-authorized bridge capabilities while redeeming enrollment codes", async () => {
     const {
       service,
@@ -2509,7 +2680,9 @@ describe("BridgeService", () => {
       devicePublicId: "bdev_public",
       credentialHash: hashOpaqueSecret("device-token"),
       status: "active",
-      capabilities: ["clawchat.runtime.hermes"],
+      capabilities: ["clawchat.runtime.hermes", "clawchat.relay_host.v1"],
+      hostInstallationId: "relayhost_11111111-1111-4111-8111-111111111111",
+      adapterRole: "host",
       pluginVersion: "0.3.0-rc.2",
       openCoreVersion: "v2026.7.7.2",
       runtimeType: "hermes",
@@ -2603,7 +2776,9 @@ describe("BridgeService", () => {
       devicePublicId: "bdev_public",
       credentialHash: hashOpaqueSecret("old-device-token"),
       status: "active",
-      capabilities: ["clawchat.runtime.hermes"],
+      capabilities: ["clawchat.runtime.hermes", "clawchat.relay_host.v1"],
+      hostInstallationId: "relayhost_11111111-1111-4111-8111-111111111111",
+      adapterRole: "host",
       pluginVersion: "0.3.0-rc.2",
       openCoreVersion: "v2026.7.7.2",
       runtimeType: "hermes",
@@ -2846,14 +3021,16 @@ describe("BridgeService", () => {
     );
   });
 
-  it("returns a complete workspace device inventory with live health and compatibility", async () => {
+  it("returns only authorized workspace devices with live health and compatibility", async () => {
     const { service, bridgeDeviceRepo, eventsGateway } = await buildService();
     const base = {
       workspaceId: "ws-1",
       createdByUserId: "user-1",
       devicePublicId: "bdev_public",
       status: "active",
-      capabilities: ["clawchat.runtime.hermes"],
+      capabilities: ["clawchat.runtime.hermes", "clawchat.relay_host.v1"],
+      hostInstallationId: "relayhost_11111111-1111-4111-8111-111111111111",
+      adapterRole: "host",
       pluginVersion: "0.3.0-rc.2",
       openCoreVersion: "v2026.7.7.2",
       runtimeType: "hermes",
@@ -2865,7 +3042,7 @@ describe("BridgeService", () => {
       createdAt: new Date("2026-07-14T11:00:00.000Z"),
       updatedAt: new Date("2026-07-14T12:05:00.000Z"),
     };
-    bridgeDeviceRepo.find.mockResolvedValue([
+    const storedDevices = [
       { ...base, id: "device-online", label: "Office Mac" },
       {
         ...base,
@@ -2874,7 +3051,14 @@ describe("BridgeService", () => {
         status: "revoked",
         revokedAt: new Date("2026-07-14T12:10:00.000Z"),
       },
-    ]);
+    ];
+    bridgeDeviceRepo.find.mockImplementation(({ where }) =>
+      Promise.resolve(
+        storedDevices.filter(
+          (device) => !where.status || device.status === where.status,
+        ),
+      ),
+    );
     eventsGateway.getConnectedBridgeDeviceIds.mockReturnValue(
       new Set(["device-online"]),
     );
@@ -2886,6 +3070,9 @@ describe("BridgeService", () => {
         health: "online",
         runtimeType: "hermes",
         hostType: "macos-launchd",
+        hostInstallationId: "relayhost_11111111-1111-4111-8111-111111111111",
+        hostDisplayName: "Office Mac",
+        adapterRole: "host",
         pluginVersion: "0.3.0-rc.2",
         openCoreVersion: "v2026.7.7.2",
         credentialVersion: 2,
@@ -2894,11 +3081,11 @@ describe("BridgeService", () => {
           code: null,
         }),
       }),
-      expect.objectContaining({
-        id: "device-revoked",
-        health: "revoked",
-      }),
     ]);
+    expect(bridgeDeviceRepo.find).toHaveBeenCalledWith({
+      where: { workspaceId: "ws-1", status: BridgeDeviceStatus.ACTIVE },
+      order: { updatedAt: "DESC" },
+    });
   });
 
   it("offers only active capable bridge devices as marketplace source hosts", async () => {

@@ -180,52 +180,49 @@ struct AccountSettingsPanel: View {
         title: "Profile", subtitle: "Shown in chats and reports.",
         showsDivider: false
       ) {
-        VStack(alignment: .leading, spacing: 18) {
-          VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .center, spacing: 12) {
-              AgentAvatarView(
-                name: model.profileName, avatarURL: model.userProfile.avatarUrl, size: 78)
-              VStack(alignment: .leading, spacing: 8) {
-                Button {
-                  model.uploadAvatar { avatarCropSource = AvatarCropSource(dataURL: $0) }
-                } label: {
-                  Image(systemName: "pencil")
-                }
-                .buttonStyle(IconLightButtonStyle())
-                .help("Upload avatar")
-                .accessibilityLabel("Upload avatar")
+        VStack(spacing: 20) {
+          ProfileOrbitView(
+            name: model.profileName,
+            avatarURL: model.userProfile.avatarUrl,
+            onUpload: {
+              model.uploadAvatar { avatarCropSource = AvatarCropSource(dataURL: $0) }
+            },
+            onRemove: {
+              model.userProfile.avatarUrl = nil
+              model.scheduleAccountSettingsSave(immediately: true)
+            }
+          )
 
-                Button {
-                  model.userProfile.avatarUrl = nil
-                  model.scheduleAccountSettingsSave(immediately: true)
-                } label: {
-                  Image(systemName: "trash")
-                }
-                .buttonStyle(IconLightButtonStyle())
-                .disabled(model.userProfile.avatarUrl == nil)
-                .help("Remove avatar")
-                .accessibilityLabel("Remove avatar")
-              }
+          TextField("Display name", text: $model.userProfile.displayName)
+            .textFieldStyle(.plain)
+            .font(.system(size: 13, weight: .semibold))
+            .padding(.horizontal, 16)
+            .frame(maxWidth: 640)
+            .frame(height: 48)
+            .background(RCTheme.fieldBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay {
+              RoundedRectangle(cornerRadius: 8)
+                .stroke(
+                  LinearGradient(
+                    colors: [RCTheme.relayPurple, RCTheme.relayBlue, RCTheme.relayCyan],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                  ),
+                  lineWidth: 1.25
+                )
+            }
+            .onChange(of: model.userProfile.displayName) { _, _ in
+              model.scheduleAccountSettingsSave()
             }
 
-            VStack(alignment: .leading, spacing: 10) {
-              TextField("Display name", text: $model.userProfile.displayName)
-                .textFieldStyle(.plain)
-                .rcTextFieldChrome(height: 38)
-                .onChange(of: model.userProfile.displayName) { _, _ in
-                  model.scheduleAccountSettingsSave()
-                }
-            }
-          }
-
-          VStack(alignment: .leading, spacing: 8) {
-            if model.settingsStatus == "Profile updated" {
-              Text("Profile updated")
-                .font(.caption)
-                .foregroundStyle(RCTheme.accentGreen)
-            }
+          if model.settingsStatus == "Profile updated" {
+            Text("Profile updated")
+              .font(.caption)
+              .foregroundStyle(RCTheme.accentGreen)
           }
         }
+        .frame(maxWidth: .infinity)
       }
     }
     .onAppear {
@@ -240,6 +237,119 @@ struct AccountSettingsPanel: View {
         avatarCropSource = nil
       }
     }
+  }
+}
+
+private struct ProfileOrbitView: View {
+  let name: String
+  let avatarURL: String?
+  let onUpload: () -> Void
+  let onRemove: () -> Void
+
+  var body: some View {
+    ZStack {
+      Circle()
+        .stroke(Color.white.opacity(0.025), lineWidth: 1)
+        .frame(width: 320, height: 320)
+      Circle()
+        .stroke(Color.white.opacity(0.055), lineWidth: 1)
+        .frame(width: 280, height: 280)
+      Circle()
+        .stroke(Color.white.opacity(0.04), lineWidth: 1)
+        .frame(width: 232, height: 232)
+
+      Circle()
+        .trim(from: 0.57, to: 0.98)
+        .stroke(
+          LinearGradient(
+            colors: [RCTheme.relayPurple, RCTheme.relayBlue],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+          ),
+          style: StrokeStyle(lineWidth: 1.6, lineCap: .round)
+        )
+        .frame(width: 280, height: 280)
+        .rotationEffect(.degrees(18))
+
+      Circle()
+        .trim(from: 0.02, to: 0.30)
+        .stroke(
+          LinearGradient(
+            colors: [RCTheme.relayBlue, RCTheme.relayCyan],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+          ),
+          style: StrokeStyle(lineWidth: 1.6, lineCap: .round)
+        )
+        .frame(width: 280, height: 280)
+        .rotationEffect(.degrees(18))
+
+      orbitDot(color: RCTheme.relayIndigo, size: 14, x: -134, y: -28)
+      orbitDot(color: RCTheme.relayBlue, size: 10, x: 96, y: -104)
+      orbitDot(color: RCTheme.relayPurple, size: 16, x: 138, y: 18)
+      orbitDot(color: RCTheme.accentGreen, size: 12, x: 100, y: 118)
+      RoundedRectangle(cornerRadius: 2)
+        .fill(RCTheme.relayIndigo)
+        .frame(width: 8, height: 8)
+        .rotationEffect(.degrees(18))
+        .offset(x: -94, y: 112)
+
+      AgentAvatarView(name: name, avatarURL: avatarURL, size: 126)
+        .offset(y: -10)
+
+      HStack(spacing: 16) {
+        ProfileOrbitActionButton(
+          accessibilityLabel: "Upload avatar",
+          borderColor: RCTheme.relayPurple,
+          icon: "pencil",
+          action: onUpload
+        )
+        ProfileOrbitActionButton(
+          accessibilityLabel: "Remove avatar",
+          borderColor: RCTheme.relayCyan,
+          icon: "trash",
+          isDisabled: avatarURL == nil,
+          action: onRemove
+        )
+      }
+      .offset(y: 130)
+    }
+    .frame(width: 340, height: 340)
+    .accessibilityElement(children: .contain)
+  }
+
+  private func orbitDot(color: Color, size: CGFloat, x: CGFloat, y: CGFloat) -> some View {
+    Circle()
+      .fill(color)
+      .frame(width: size, height: size)
+      .shadow(color: color.opacity(0.35), radius: 5)
+      .offset(x: x, y: y)
+  }
+}
+
+private struct ProfileOrbitActionButton: View {
+  let accessibilityLabel: String
+  let borderColor: Color
+  let icon: String
+  var isDisabled = false
+  let action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      Image(systemName: icon)
+        .font(.system(size: 14, weight: .semibold))
+        .frame(width: 42, height: 42)
+        .contentShape(Circle())
+    }
+    .buttonStyle(.plain)
+    .foregroundStyle(isDisabled ? RCTheme.muted.opacity(0.55) : RCTheme.text)
+    .background(RCTheme.surfaceInset)
+    .clipShape(Circle())
+    .overlay(Circle().stroke(borderColor.opacity(isDisabled ? 0.24 : 0.58), lineWidth: 1.25))
+    .shadow(color: Color.black.opacity(0.34), radius: 12, y: 6)
+    .disabled(isDisabled)
+    .help(accessibilityLabel)
+    .accessibilityLabel(accessibilityLabel)
   }
 }
 

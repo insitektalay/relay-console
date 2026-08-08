@@ -685,7 +685,7 @@ describe("RelaySyncService tenant isolation", () => {
     expect(ownerLeases.save).not.toHaveBeenCalled();
   });
 
-  it("materializes a synchronized Swift connection as visible but non-executable", async () => {
+  it("rejects a synchronized Swift Marketplace connection", async () => {
     const { service } = buildService();
     const marketplaceConnections = repository();
     marketplaceConnections.save.mockImplementation(async (value: any) => ({
@@ -697,7 +697,7 @@ describe("RelaySyncService tenant isolation", () => {
       delete: jest.fn(),
     } as any;
 
-    const canonicalId = await (service as any).mirrorCanonicalDomain(manager, {
+    await expect((service as any).mirrorCanonicalDomain(manager, {
       workspaceId: "workspace-a",
       installationId: "installation-a",
       userId: "user-a",
@@ -716,22 +716,8 @@ describe("RelaySyncService tenant isolation", () => {
           secretMaterialSynchronized: false,
         },
       },
-    });
-
-    expect(canonicalId).toBe("cloud-visible-connection");
-    expect(marketplaceConnections.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        executionAuthority: "swift",
-        credentialNames: [],
-        secretCiphertext: null,
-        status: "needs_credentials",
-        lastErrorCode: "DEVICE_RUNTIME_REQUIRED",
-        metadata: expect.objectContaining({
-          secretMaterialSynchronized: false,
-          executionAvailability: "device_runtime_required",
-        }),
-      }),
-    );
+    })).rejects.toThrow("MARKETPLACE_EXECUTION_AUTHORITY_RAILWAY_REQUIRED");
+    expect(marketplaceConnections.save).not.toHaveBeenCalled();
   });
 
   it("materializes a Swift Hermes agent with its runtime identity and binding", async () => {

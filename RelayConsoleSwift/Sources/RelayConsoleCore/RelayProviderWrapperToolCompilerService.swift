@@ -206,6 +206,41 @@ public final class RelayProviderWrapperToolCompilerService {
         let effectiveAgentId = requestedAgent?.id ?? install?.agentId
         let effectiveConnectionId = connectionId ?? install?.connectionId
         let executionAuthority = MarketplaceExecutionAuthority.currentSwiftAdapterAuthority(for: app.slug)
+        if executionAuthority == .railway {
+            let diagnostics = RelayProviderWrapperToolDiagnostics(
+                availableToolCount: 0,
+                approvalRequiredCount: 0,
+                autoExecuteCount: 0,
+                blockedActionCount: 0,
+                unavailableActionCount: 0,
+                suppressedRawProviderToolCount: 0,
+                connected: false,
+                assignedAgentReady: install != nil && effectiveAgentId != nil,
+                rawProviderToolExposure: false,
+                executionAuthority: .railway,
+                executionAuthorityVersion: MarketplaceExecutionAuthority.contractVersion,
+                authorityReady: true,
+                message: "Railway supplies external Marketplace tools. The local Swift compiler exposes no provider wrappers.",
+                redactionStatus: "private-state-excluded"
+            )
+            return RelayProviderWrapperToolSurface(
+                workspaceId: context.workspaceId,
+                appId: app.id,
+                appSlug: app.slug,
+                executionAuthority: .railway,
+                executionAuthorityVersion: MarketplaceExecutionAuthority.contractVersion,
+                connectionId: effectiveConnectionId,
+                installId: install?.id,
+                agentId: effectiveAgentId,
+                permissionMapId: nil,
+                policyPreset: nil,
+                generatedAt: ISO8601DateFormatter.relayConsole.string(from: now),
+                tools: [],
+                diagnostics: diagnostics,
+                readOnly: !context.hasAnyRole([.owner, .admin, .operator]),
+                redactionStatus: "private-state-excluded"
+            )
+        }
         let connection = try effectiveConnectionId.flatMap { try requireConnection(context: context, connectionId: $0, app: app) }
             ?? usableConnection(context: context, app: app, executionAuthority: executionAuthority)
         let connectionAuthorityReady = connection.map { $0.resolvedExecutionAuthority == executionAuthority } ?? true

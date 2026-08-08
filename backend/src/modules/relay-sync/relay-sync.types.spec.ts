@@ -71,7 +71,7 @@ describe("Relay sync contract security", () => {
         name: "Hermes",
         runtimeType: "hermes",
         capability: { supportsCancellation: true },
-        executionAuthority: "swift",
+        executionAuthority: "railway",
         secretMaterialSynchronized: false,
         attachment: { contentType: "image/png", byteSize: 1024, sha256: "abc" },
       }),
@@ -97,9 +97,9 @@ describe("Relay sync contract security", () => {
       expect(() =>
         assertMarketplaceExecutionAuthorityPayload(objectType, "upsert", {
           appSlug: "gmail",
-          executionAuthority: "swift",
+          executionAuthority: "railway",
           executionAuthorityVersion: MARKETPLACE_EXECUTION_AUTHORITY_VERSION,
-          executionAvailability: "device_runtime_required",
+          executionAvailability: "railway_broker_required",
           secretMaterialSynchronized: false,
         }),
       ).not.toThrow();
@@ -107,11 +107,11 @@ describe("Relay sync contract security", () => {
         assertMarketplaceExecutionAuthorityPayload(objectType, "upsert", {
           appSlug: "gmail",
           executionAuthority: "swift",
-          executionAuthorityVersion: "legacy",
+          executionAuthorityVersion: MARKETPLACE_EXECUTION_AUTHORITY_VERSION,
           executionAvailability: "device_runtime_required",
           secretMaterialSynchronized: false,
         }),
-      ).toThrow("MARKETPLACE_EXECUTION_AUTHORITY_VERSION_INVALID");
+      ).toThrow("MARKETPLACE_EXECUTION_AUTHORITY_INVALID");
       expect(() =>
         assertMarketplaceExecutionAuthorityPayload(objectType, "upsert", {
           appSlug: "gmail",
@@ -137,7 +137,7 @@ describe("Relay sync contract security", () => {
           secretMaterialSynchronized: false,
         },
       ),
-    ).toThrow("MARKETPLACE_SWIFT_AUTHORITY_AVAILABILITY_INVALID");
+    ).toThrow("MARKETPLACE_EXECUTION_AUTHORITY_INVALID");
     expect(() =>
       assertMarketplaceExecutionAuthorityPayload(
         "application_connection",

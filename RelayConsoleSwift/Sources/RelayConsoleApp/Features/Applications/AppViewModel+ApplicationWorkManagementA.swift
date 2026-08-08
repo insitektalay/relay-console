@@ -1688,20 +1688,42 @@ extension AppViewModel {
     scheduleApplicationsRefresh(selectedConnectionId: connectionId)
   }
 
-  func testExaAPIKey(for app: MarketplaceCatalogApp) {
-    runAction("test-exa-api-key", refresh: .applications) {
-      guard app.slug == "exa-search" else { return self.selectedThreadId }
-      guard let services = self.services else { return self.selectedThreadId }
-      let result = await services.providerConnections.validateExaAPIKey(apiKey: self.exaAPIKeyDraft)
-      self.exaConnectionStatus = result.message
-      return self.selectedThreadId
+  func saveExaRailwayConnection(
+    for app: MarketplaceCatalogApp,
+    apiKey: String,
+    displayName: String? = nil
+  ) async throws -> MarketplaceProviderConnection {
+    guard app.slug == "exa-search", let services, let workspace else {
+      throw RelayError(.workspaceMissing, "The Railway workspace is unavailable.")
     }
+    let trimmedKey = try requireNonEmptyString(apiKey, field: "Exa API key", maxLength: 10000)
+    let response = try await services.cloudSync.railwayMarketplaceRequest(
+      localWorkspaceId: workspace.id,
+      method: "POST",
+      relativePath: "connections",
+      body: [
+        "appSlug": app.slug,
+        "displayName": displayName?.nilIfEmpty ?? "Exa Search",
+        "authType": "api_key",
+        "credentials": ["EXA_API_KEY": trimmedKey],
+        "selectedCapabilities": app.capabilityIds ?? app.capabilities,
+      ])
+    return try services.cloudSync.mirrorRailwayMarketplaceConnection(
+      localWorkspaceId: workspace.id,
+      app: app,
+      connectionView: response)
+  }
+
+  func testExaAPIKey(for app: MarketplaceCatalogApp) {
+    guard app.slug == "exa-search" else { return }
+    exaConnectionStatus =
+      "Railway verifies the Exa API key when you save the connection. The macOS app does not send the key to Exa."
   }
 
   func addExaAPIConnection(for app: MarketplaceCatalogApp) {
     runAction("add-exa-api-connection", refresh: .applications) {
       guard app.slug == "exa-search" else { return self.selectedThreadId }
-      guard let services = self.services, let workspace = self.workspace else {
+      guard self.services != nil, self.workspace != nil else {
         return self.selectedThreadId
       }
       let connectionName = self.exaAPIConnectionNameDraft.nilIfEmpty
@@ -1712,18 +1734,11 @@ extension AppViewModel {
       guard !trimmedKey.isEmpty else {
         throw RelayError(.invalidInput, "Enter an Exa API key before adding a connection.")
       }
-      self.exaConnectionStatus = "Testing \(connectionName ?? "Exa key") before saving."
+      self.exaConnectionStatus = "Sending \(connectionName ?? "Exa key") to Railway for verification."
       await Task.yield()
-      let validation = await services.providerConnections.validateExaAPIKey(apiKey: trimmedKey)
-      guard validation.isReady else {
-        self.exaConnectionStatus = validation.message
-        throw RelayError(.invalidInput, validation.message)
-      }
-      let connection = try services.providerConnections.saveExaAPIKeyConnection(
-        context: self.chatContext(workspaceId: workspace.id),
-        appIdOrSlug: app.id,
+      let connection = try await self.saveExaRailwayConnection(
+        for: app,
         apiKey: trimmedKey,
-        validationResult: validation,
         displayName: connectionName
       )
       self.exaAPIConnectionNameDraft = ""
@@ -1743,22 +1758,29 @@ extension AppViewModel {
       guard let services = self.services, let workspace = self.workspace else {
         return self.selectedThreadId
       }
+      guard connection.resolvedExecutionAuthority == .railway else {
+        throw RelayError(
+          .invalidInput,
+          "This old Exa connection used the local Swift authority. Enter the API key again to create a Railway connection.")
+      }
       self.exaSelectedConnectionId = connection.id
-      self.exaConnectionStatus = "Testing \(connection.accountLabel ?? "Exa key")."
+      self.exaConnectionStatus = "Asking Railway to test \(connection.accountLabel ?? "Exa key")."
       await Task.yield()
-      let updated = try await services.providerConnections.validateSavedExaAPIKeyConnection(
-        context: self.chatContext(workspaceId: workspace.id),
-        connectionId: connection.id
+      let response = try await services.cloudSync.railwayMarketplaceRequest(
+        localWorkspaceId: workspace.id,
+        method: "GET",
+        relativePath: "connectors/exa-search/connections/\(connection.id)/health"
       )
-      if updated.status == .connected && updated.health.state == .ready {
-        self.exaSelectedConnectionId = updated.id
+      if (response["status"] as? String) == "ready" {
+        self.exaSelectedConnectionId = connection.id
       } else {
         self.exaSelectedConnectionId =
           self.providerConnectionSnapshot?.connections.first {
-            $0.id != updated.id && $0.status == .connected && $0.health.state == .ready
+            $0.id != connection.id && $0.status == .connected && $0.health.state == .ready
           }?.id ?? ""
       }
-      self.exaConnectionStatus = "\(updated.accountLabel ?? "Exa key"): \(updated.health.message)"
+      self.exaConnectionStatus =
+        "\(connection.accountLabel ?? "Exa key"): \((response["message"] as? String) ?? "Railway health check complete.")"
       return self.selectedThreadId
     }
   }
@@ -1770,6 +1792,11 @@ extension AppViewModel {
       guard app.slug == "exa-search" else { return self.selectedThreadId }
       guard let services = self.services, let workspace = self.workspace else {
         return self.selectedThreadId
+      }
+      guard connection.resolvedExecutionAuthority == .railway else {
+        throw RelayError(
+          .invalidInput,
+          "This old Exa connection is not active on Railway. Enter the API key again to replace it.")
       }
       let context = self.chatContext(workspaceId: workspace.id)
       let activeInstalls = (self.exaInstallSnapshot?.installs ?? []).filter {
@@ -1783,8 +1810,8 @@ extension AppViewModel {
             services: services, agent: agent, reason: "Exa Search connection changed")
         }
       }
-      let deleted = try services.providerConnections.deleteConnection(
-        context: context, connectionId: connection.id)
+      let deleted = try await services.cloudSync.disconnectRailwayMarketplaceOAuthConnection(
+        localWorkspaceId: workspace.id, app: app, connectionId: connection.id)
       self.exaSelectedConnectionId =
         self.providerConnectionSnapshot?.connections.first { $0.id != deleted.id }?.id ?? ""
       let disconnectedText =
@@ -1808,8 +1835,18 @@ extension AppViewModel {
         throw RelayError(
           .invalidInput, "Test or replace this Exa API connection before assigning agents.")
       }
-      let context = self.chatContext(workspaceId: workspace.id)
       let displayName = self.exaDisplayName(forAgentId: agentId)
+      guard connection.resolvedExecutionAuthority == .railway else {
+        throw RelayError(
+          .invalidInput,
+          "Reconnect Exa Search so Railway can store the credential before assigning agents."
+        )
+      }
+      let agent = try services.data.getAgent(agentId)
+      let remoteConnectionId = try services.cloudSync.remoteMarketplaceConnectionId(
+        localWorkspaceId: workspace.id,
+        localConnectionId: connection.id
+      )
       if enabled {
         if self.activeExaInstall(agentId: agentId, connectionId: connection.id) != nil {
           return self.selectedThreadId
@@ -1821,33 +1858,42 @@ extension AppViewModel {
         self.exaConnectionStatus =
           "Connecting \(displayName) to \(connection.accountLabel ?? "Exa key")."
         await Task.yield()
+        await self.refreshSetupBridgeStatus()
+        guard self.marketplaceRuntimeIsOnline(agent.binding.runtimeType) else {
+          throw RelayError(
+            .unsupported,
+            "\(exaRuntimeLabel(agent.binding.runtimeType)) Remote Access is not connected. Railway cannot assign Exa Search until this runtime is online."
+          )
+        }
         let prepared = try await self.prepareExaAgentForInstall(
           services: services, agentId: agentId)
-        _ = try services.marketplaceInstalls.createInstall(
-          context: context,
-          request: MarketplaceInstallRequest(
-            id: createRelayId("minreq"),
-            workspaceId: workspace.id,
-            appId: app.id,
-            appSlug: app.slug,
-            connectionId: connection.id,
-            targetAgentId: prepared.id,
-            roleId: app.roleManifest.primaryRole,
-            selectedCapabilities: app.capabilities,
-            approvalProfileId: nil,
-            runtimeFormat: prepared.binding.runtimeType,
-            targetMode: .existingAgent,
-            riskAcknowledged: app.riskLevel == .high || app.riskLevel == .critical,
-            metadata: [
-              "source": .string("applications-exa-search-agent-switch"),
-              "requestedAgentId": .string(prepared.id),
-              "selectedConnectionId": .string(connection.id),
-            ],
-            requestedByActorId: context.actorId,
-            requestedAt: nowIso(),
-            redactionStatus: "private-state-excluded"
-          )
+        let remoteAgentId = try services.cloudSync.remoteMarketplaceAgentId(
+          localWorkspaceId: workspace.id,
+          localAgentId: prepared.id
         )
+        let result = try await services.cloudSync.railwayMarketplaceRequest(
+          localWorkspaceId: workspace.id,
+          method: "POST",
+          relativePath: "install",
+          body: [
+            "appSlug": app.slug,
+            "connectionId": remoteConnectionId,
+            "selectedCapabilities": app.capabilityIds ?? app.capabilities,
+            "runtimeFormat": prepared.binding.runtimeType.rawValue,
+            "agentIds": [remoteAgentId],
+            "role": app.roleManifest.primaryRole,
+            "libraryTargetFolder": "marketplace/\(app.slug)",
+            "targetMode": "existing_agents",
+            "acknowledgeGeneratedDraftRisk": true,
+          ]
+        )
+        guard (result["status"] as? String) == "installed" else {
+          throw RelayError(
+            .unsupported,
+            (result["message"] as? String)
+              ?? "Railway could not install Exa Search for \(displayName)."
+          )
+        }
         self.recordUserManagedRuntimeRestartRequired(
           services: services, agent: prepared, reason: "Exa Search connection changed")
         self.exaConnectionStatus =
@@ -1860,15 +1906,25 @@ extension AppViewModel {
         self.exaConnectionStatus =
           "Disconnecting \(displayName) from \(connection.accountLabel ?? "Exa key")."
         await Task.yield()
-        let agent = try? services.data.getAgent(agentId)
-        _ = try services.marketplaceInstalls.removeInstall(context: context, installId: install.id)
-        if let agent {
-          self.recordUserManagedRuntimeRestartRequired(
-            services: services, agent: agent, reason: "Exa Search connection changed")
-        }
+        _ = try await services.cloudSync.railwayMarketplaceRequest(
+          localWorkspaceId: workspace.id,
+          method: "DELETE",
+          relativePath: "installs/\(install.id)"
+        )
+        self.recordUserManagedRuntimeRestartRequired(
+          services: services, agent: agent, reason: "Exa Search connection changed")
         self.exaConnectionStatus =
           "\(displayName) disconnected from \(connection.accountLabel ?? "Exa key")."
       }
+      let remoteInstalls = try await services.cloudSync.railwayMarketplaceArrayRequest(
+        localWorkspaceId: workspace.id,
+        relativePath: "installs"
+      )
+      _ = try services.cloudSync.mirrorRailwayMarketplaceInstalls(
+        localWorkspaceId: workspace.id,
+        app: app,
+        installViews: remoteInstalls
+      )
       self.exaSelectedConnectionId = connection.id
       self.applicationsSelectedAppId = app.id
       return self.selectedThreadId

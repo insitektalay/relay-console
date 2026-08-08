@@ -11,6 +11,12 @@ final class ParityContractTests: XCTestCase {
         XCTAssertEqual(MainTabView.TabItem.allCases.count, 6)
     }
 
+    func testThreadArchiveUsesTheDedicatedBackendAction() {
+        let endpoint = APIEndpoint.archiveThread(id: "thread-1")
+        XCTAssertEqual(endpoint.path, "threads/thread-1/archive")
+        XCTAssertEqual(endpoint.method, .post)
+    }
+
     func testIPadRailUsesTheSameSixPrimaryDestinationsAsIPhone() {
         XCTAssertEqual(IPadPrimaryNavigationContract.tabs, MainTabView.TabItem.allCases)
         XCTAssertEqual(

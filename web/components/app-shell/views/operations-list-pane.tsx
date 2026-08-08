@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/shared/empty-state"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { RelayConsoleController } from "@/components/clawchat-web-app"
+import { groupRelayHosts } from "@/features/runtime/group-relay-hosts"
 
 export function RelayConsoleOperationsListPane({
   controller,
@@ -26,6 +27,7 @@ export function RelayConsoleOperationsListPane({
     setConnectionApiKeyDraft,
     setConnectionUrlDraft,
   } = controller
+  const relayHosts = groupRelayHosts(bridgeDevices)
 
   return (
     <PanelCard
@@ -67,46 +69,34 @@ export function RelayConsoleOperationsListPane({
             </div>
           ) : null}
           <div className="space-y-3">
-            <SectionListHeader title="Paired devices" />
-            {bridgeDevices.length ? (
-              bridgeDevices.map((device) => (
+            <SectionListHeader title="Relay Hosts" />
+            {relayHosts.length ? (
+              relayHosts.map((host) => (
                 <div
-                  key={device.id}
+                  key={host.id}
                   className="rounded-[4px] border border-[color-mix(in_srgb,var(--claw-border)_34%,transparent)] bg-[var(--claw-bg-surface)] px-4 py-4"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="font-medium">{device.label}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {device.status} ·{" "}
-                        {device.lastSeenAt
-                          ? `last seen ${formatDistanceToNowStrict(
-                              new Date(device.lastSeenAt),
-                              {
-                                addSuffix: true,
-                              }
-                            )}`
-                          : "never connected"}
+                  <div className="font-medium">{host.displayName}</div>
+                  <div className="text-xs text-muted-foreground">Relay Host · {host.health}</div>
+                  <div className="mt-3 space-y-2">
+                    {host.adapters.map((device) => (
+                      <div key={device.id} className="flex items-start justify-between gap-4 border-t border-white/10 pt-2">
+                        <div className="text-xs text-muted-foreground">
+                          {device.runtimeType ?? "Connection service"} · {device.health ?? "offline"} ·{" "}
+                          {device.lastSeenAt
+                            ? `last seen ${formatDistanceToNowStrict(new Date(device.lastSeenAt), { addSuffix: true })}`
+                            : "never connected"}
+                        </div>
+                        <Button disabled={revokeBridgeDeviceMutation.isPending} onClick={() => revokeBridgeDeviceMutation.mutate(device.id)} size="sm" type="button" variant="secondary">Revoke</Button>
                       </div>
-                    </div>
-                    <Button
-                      disabled={revokeBridgeDeviceMutation.isPending}
-                      onClick={() =>
-                        revokeBridgeDeviceMutation.mutate(device.id)
-                      }
-                      size="sm"
-                      type="button"
-                      variant="secondary"
-                    >
-                      Revoke
-                    </Button>
+                    ))}
                   </div>
                 </div>
               ))
             ) : (
               <EmptyState
-                title="No paired devices"
-                description="Generate a code and paste it into the local bridge plugin to pair a machine."
+                title="No Relay Hosts"
+                description="Generate a code and enroll Relay Host on a runtime computer."
               />
             )}
           </div>

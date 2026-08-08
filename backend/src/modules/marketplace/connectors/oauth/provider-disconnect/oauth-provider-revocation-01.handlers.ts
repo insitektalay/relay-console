@@ -364,6 +364,11 @@ const OAuthProviderRevocation067: OAuthProviderRevocationHandler =
     await this.revokeRestreamSession(stored);
   };
 
+const OAuthProviderRevocation068: OAuthProviderRevocationHandler =
+  async function (this: MarketplaceConnectorOAuthService, stored, connection) {
+    await this.revokeCraftSession(stored, connection);
+  };
+
 export const OAuthProviderRevocationHandlers01: OAuthProviderRevocationHandlerMap =
   Object.freeze({
     mastodon: OAuthProviderRevocation001,
@@ -403,6 +408,7 @@ export const OAuthProviderRevocationHandlers01: OAuthProviderRevocationHandlerMa
     "fireflies-ai": OAuthProviderRevocation034,
     "remember-the-milk": OAuthProviderRevocation035,
     sunsama: OAuthProviderRevocation036,
+    craft: OAuthProviderRevocation068,
     whimsical: OAuthProviderRevocation037,
     mindmeister: OAuthProviderRevocation038,
     meistertask: OAuthProviderRevocation039,

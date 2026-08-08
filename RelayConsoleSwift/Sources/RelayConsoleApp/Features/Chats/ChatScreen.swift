@@ -1,17 +1,28 @@
 import AppKit
+import OSLog
 import RelayConsoleCore
 import SwiftUI
 import UniformTypeIdentifiers
+
+enum ChatScrollDiagnostics {
+  private static let logger = Logger(
+    subsystem: Bundle.main.bundleIdentifier ?? "RelayConsole",
+    category: "ChatScroll"
+  )
+
+  static func log(_ event: String, threadId: String?, _ details: String = "") {
+    logger.notice(
+      "[CHAT-SCROLL] event=\(event, privacy: .public) thread=\(threadId ?? "nil", privacy: .public) \(details, privacy: .public)"
+    )
+  }
+}
 
 extension View {
   func chatTimelineRow(verticalPadding: CGFloat = 9) -> some View {
     self
       .frame(maxWidth: .infinity, alignment: .leading)
-      .listRowInsets(
-        EdgeInsets(top: verticalPadding, leading: 24, bottom: verticalPadding, trailing: 24)
-      )
-      .listRowSeparator(.hidden)
-      .listRowBackground(Color.clear)
+      .padding(.horizontal, 24)
+      .padding(.vertical, verticalPadding)
   }
 }
 
@@ -22,6 +33,8 @@ struct ChatScreen: View {
   @State private var showTranscriptHistory = false
   @State private var isMessageStreamAtBottom = true
   @State private var historyPagingReady = false
+  @State private var initialScrollPending = false
+  @State private var initialScrollRequestID = UUID()
   @State private var showCustomRelayLimit = false
   @State private var customRelayLimitText = ""
 
@@ -54,82 +67,112 @@ struct ChatScreen: View {
         ScrollViewReader { proxy in
           GeometryReader { scrollArea in
             ZStack(alignment: .bottomTrailing) {
-              List {
-                if model.messageHistoryHasOlder {
-                  messageHistoryLoadingRow(
-                    text: model.messageHistoryLoadingOlder
-                      ? "Loading earlier messages…" : "Scroll up for earlier messages"
-                  )
-                  .id("older-\(model.messages.first?.id ?? "empty")")
-                  .chatTimelineRow()
-                }
-                if let error = model.error {
-                  Text(error)
-                    .font(.callout)
-                    .foregroundStyle(RCTheme.text)
-                    .padding(12)
-                    .background(RCTheme.accentRed.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                    .overlay(
-                      RoundedRectangle(cornerRadius: 4).stroke(RCTheme.accentRed.opacity(0.34))
+              ScrollView {
+                VStack(spacing: 0) {
+                  if model.messageHistoryHasOlder {
+                    messageHistoryLoadingRow(
+                      text: model.messageHistoryLoadingOlder
+                        ? "Loading earlier messages…" : "Scroll up for earlier messages"
                     )
+                    .id("older-\(model.messages.first?.id ?? "empty")")
                     .chatTimelineRow()
-                }
-                if model.messages.isEmpty {
-                  EmptyMiniLight(title: emptyStateTitle, body: emptyStateBody)
-                    .chatTimelineRow()
-                }
-                ForEach(Array(model.messages.enumerated()), id: \.element.id) { index, message in
-                  MessageGroup(index: index, message: message)
-                    .id(message.id)
-                    .onAppear {
-                      if historyPagingReady, index == 0, model.messageHistoryHasOlder {
-                        model.loadOlderMessages()
-                      }
-                      if historyPagingReady, index == model.messages.count - 1,
-                        model.messageHistoryHasNewer
-                      {
-                        model.loadNewerMessages()
-                      }
-                    }
-                    .chatTimelineRow()
-                }
-                if model.messageHistoryHasNewer {
-                  messageHistoryLoadingRow(
-                    text: model.messageHistoryLoadingNewer
-                      ? "Loading newer messages…" : "Continue toward newer messages"
-                  )
-                  .id("newer-\(model.messages.last?.id ?? "empty")")
-                  .chatTimelineRow()
-                }
-                Color.clear
-                  .frame(height: 1)
-                  .id("end")
-                  .background(
-                    GeometryReader { marker in
-                      Color.clear.preference(
-                        key: ChatMessageEndOffsetPreferenceKey.self,
-                        value: marker.frame(in: .named("chat-message-scroll")).minY
+                  }
+                  if let error = model.error {
+                    Text(error)
+                      .font(.callout)
+                      .foregroundStyle(RCTheme.text)
+                      .padding(12)
+                      .background(RCTheme.accentRed.opacity(0.12))
+                      .clipShape(RoundedRectangle(cornerRadius: 4))
+                      .overlay(
+                        RoundedRectangle(cornerRadius: 4).stroke(RCTheme.accentRed.opacity(0.34))
                       )
+                      .chatTimelineRow()
+                  }
+                  if model.messages.isEmpty {
+                    EmptyMiniLight(title: emptyStateTitle, body: emptyStateBody)
+                      .chatTimelineRow()
+                  }
+                  ForEach(Array(model.messages.enumerated()), id: \.element.id) { index, message in
+                    MessageGroup(index: index, message: message)
+                      .id(message.id)
+                      .onAppear {
+                        if historyPagingReady, index == 0, model.messageHistoryHasOlder {
+                          model.loadOlderMessages()
+                        }
+                        if historyPagingReady, index == model.messages.count - 1,
+                          model.messageHistoryHasNewer
+                        {
+                          model.loadNewerMessages()
+                        }
+                      }
+                      .chatTimelineRow()
+                  }
+                  if model.messageHistoryHasNewer {
+                    messageHistoryLoadingRow(
+                      text: model.messageHistoryLoadingNewer
+                        ? "Loading newer messages…" : "Continue toward newer messages"
+                    )
+                    .id("newer-\(model.messages.last?.id ?? "empty")")
+                    .chatTimelineRow()
+                  }
+                  Color.clear
+                    .frame(height: 1)
+                    .id("end")
+                    .onAppear {
+                      ChatScrollDiagnostics.log(
+                        "end-anchor-appear",
+                        threadId: model.selectedThreadId,
+                        scrollStateDetails()
+                      )
+                      settleInitialScrollIfReady(proxy, reason: "end-anchor-appear")
                     }
-                  )
-                  .chatTimelineRow(verticalPadding: 10)
+                    .background(
+                      GeometryReader { marker in
+                        Color.clear.preference(
+                          key: ChatMessageEndOffsetPreferenceKey.self,
+                          value: marker.frame(in: .named("chat-message-scroll")).minY
+                        )
+                      }
+                    )
+                    .chatTimelineRow(verticalPadding: 10)
+                }
               }
-              .listStyle(.plain)
-              .defaultScrollAnchor(.bottom)
-              .scrollContentBackground(.hidden)
               .coordinateSpace(name: "chat-message-scroll")
               .id(messageTimelineIdentity)
               .onPreferenceChange(ChatMessageEndOffsetPreferenceKey.self) { markerY in
+                guard markerY.isFinite, markerY < .greatestFiniteMagnitude else {
+                  ChatScrollDiagnostics.log(
+                    "bottom-marker-unavailable",
+                    threadId: model.selectedThreadId,
+                    "markerY=\(markerY) \(scrollStateDetails())"
+                  )
+                  return
+                }
                 let isAtBottom = markerY <= scrollArea.size.height + 48
                 if isMessageStreamAtBottom != isAtBottom {
+                  ChatScrollDiagnostics.log(
+                    "bottom-state-change",
+                    threadId: model.selectedThreadId,
+                    "from=\(isMessageStreamAtBottom) to=\(isAtBottom) markerY=\(markerY) viewportHeight=\(scrollArea.size.height) \(scrollStateDetails())"
+                  )
                   isMessageStreamAtBottom = isAtBottom
                 }
               }
               if shouldShowJumpToLatestButton {
                 Button {
-                  if model.messageHistoryHasNewer { model.jumpToLatestMessageWindow() }
-                  scrollToLatest(proxy, animated: true)
+                  ChatScrollDiagnostics.log(
+                    "jump-to-latest-click",
+                    threadId: model.selectedThreadId,
+                    scrollStateDetails()
+                  )
+                  if model.messageHistoryHasNewer {
+                    beginInitialScroll(reason: "jump-button-newer-page")
+                    model.jumpToLatestMessageWindow()
+                    settleInitialScrollIfReady(proxy, reason: "jump-button-newer-page")
+                  } else {
+                    scrollToLatest(proxy, animated: false, reason: "jump-button")
+                  }
                 } label: {
                   HStack(spacing: 5) {
                     Image(systemName: "arrow.down")
@@ -150,28 +193,67 @@ struct ChatScreen: View {
             .animation(.easeOut(duration: 0.14), value: shouldShowJumpToLatestButton)
           }
           .onAppear {
-            settleInitialScroll(proxy)
+            ChatScrollDiagnostics.log(
+              "chat-screen-appear",
+              threadId: model.selectedThreadId,
+              scrollStateDetails()
+            )
+            beginInitialScroll(reason: "chat-screen-appear")
+            settleInitialScrollIfReady(proxy, reason: "chat-screen-appear")
           }
-          .onChange(of: model.selectedThreadId) { _, _ in
-            settleInitialScroll(proxy)
+          .onChange(of: model.selectedThreadId) { previousThreadId, currentThreadId in
+            ChatScrollDiagnostics.log(
+              "selected-thread-change",
+              threadId: currentThreadId,
+              "previousThread=\(previousThreadId ?? "nil") \(scrollStateDetails())"
+            )
+            beginInitialScroll(reason: "selected-thread-change")
           }
-          .onChange(of: model.messageHistoryRevision) { _, _ in
+          .onChange(of: model.selectedWrapUpReportId) { previousReportId, currentReportId in
+            ChatScrollDiagnostics.log(
+              "selected-transcript-change",
+              threadId: model.selectedThreadId,
+              "previousReport=\(previousReportId ?? "nil") currentReport=\(currentReportId ?? "nil") \(scrollStateDetails())"
+            )
+            beginInitialScroll(reason: "selected-transcript-change")
+          }
+          .onChange(of: model.messageHistoryRevision) { previousRevision, currentRevision in
+            ChatScrollDiagnostics.log(
+              "history-revision-change",
+              threadId: model.selectedThreadId,
+              "previous=\(previousRevision) current=\(currentRevision) prependAnchor=\(model.messageHistoryPrependAnchorId ?? "nil") \(scrollStateDetails())"
+            )
             if let anchorId = model.messageHistoryPrependAnchorId {
+              initialScrollPending = false
               historyPagingReady = true
               isMessageStreamAtBottom = false
-              DispatchQueue.main.async { proxy.scrollTo(anchorId, anchor: .top) }
-            } else if !model.messageHistoryHasNewer {
-              settleInitialScroll(proxy)
+              DispatchQueue.main.async {
+                ChatScrollDiagnostics.log(
+                  "scroll-to-prepend-anchor",
+                  threadId: model.selectedThreadId,
+                  "anchor=\(anchorId) \(scrollStateDetails())"
+                )
+                proxy.scrollTo(anchorId, anchor: .top)
+              }
+            } else {
+              settleInitialScrollIfReady(proxy, reason: "history-revision")
             }
           }
-          .onChange(of: messageStreamPositionKey) { _, _ in
-            if isMessageStreamAtBottom && !model.messageHistoryHasNewer {
-              scrollToLatest(proxy, animated: false)
+          .onChange(of: model.messages.map(\.id)) { previousIds, currentIds in
+            ChatScrollDiagnostics.log(
+              "message-ids-change",
+              threadId: model.selectedThreadId,
+              "previousCount=\(previousIds.count) currentCount=\(currentIds.count) previousLast=\(previousIds.last ?? "nil") currentLast=\(currentIds.last ?? "nil") \(scrollStateDetails())"
+            )
+            if initialScrollPending {
+              settleInitialScrollIfReady(proxy, reason: "message-ids-initial-pending")
+              return
             }
-          }
-          .onChange(of: activeDispatch?.status) { _, _ in
-            if isMessageStreamAtBottom && !model.messageHistoryHasNewer {
-              scrollToLatest(proxy, animated: false)
+            let appendedMessage =
+              previousIds.last != currentIds.last
+              && currentIds.count >= previousIds.count
+            if appendedMessage && isMessageStreamAtBottom && !model.messageHistoryHasNewer {
+              scrollToLatest(proxy, animated: false, reason: "message-appended-at-bottom")
             }
           }
         }
@@ -288,16 +370,6 @@ struct ChatScreen: View {
       return "Archived threads are read-only."
     }
     return nil
-  }
-
-  var messageStreamPositionKey: String {
-    [
-      model.selectedThreadId ?? "new-thread",
-      model.selectedWrapUpReportId ?? "current-cycle",
-      model.selectedThreadDetail?.activeSessionId ?? "no-session",
-      model.messages.last?.id ?? "no-message",
-      "\(model.messages.count)",
-    ].joined(separator: ":")
   }
 
   var messageTimelineIdentity: String {
@@ -628,8 +700,15 @@ struct ChatScreen: View {
     model.sendMessage(agentId: agent.id, content: text)
   }
 
-  func scrollToLatest(_ proxy: ScrollViewProxy, animated: Bool) {
+  func scrollToLatest(_ proxy: ScrollViewProxy, animated: Bool, reason: String) {
+    let targetThreadId = model.selectedThreadId
     DispatchQueue.main.async {
+      guard model.selectedThreadId == targetThreadId else { return }
+      ChatScrollDiagnostics.log(
+        "scroll-to-end",
+        threadId: model.selectedThreadId,
+        "reason=\(reason) animated=\(animated) \(scrollStateDetails())"
+      )
       if animated {
         withAnimation(.easeOut(duration: 0.18)) {
           proxy.scrollTo("end", anchor: .bottom)
@@ -640,13 +719,44 @@ struct ChatScreen: View {
     }
   }
 
-  func settleInitialScroll(_ proxy: ScrollViewProxy) {
+  func beginInitialScroll(reason: String) {
+    ChatScrollDiagnostics.log(
+      "begin-initial-scroll",
+      threadId: model.selectedThreadId,
+      "reason=\(reason) \(scrollStateDetails())"
+    )
     historyPagingReady = false
     isMessageStreamAtBottom = true
-    DispatchQueue.main.async {
+    initialScrollRequestID = UUID()
+    initialScrollPending = true
+  }
+
+  func settleInitialScrollIfReady(_ proxy: ScrollViewProxy, reason: String) {
+    guard initialScrollPending,
+      model.messageWindowThreadId == model.selectedThreadId,
+      !model.messageHistoryHasNewer
+    else { return }
+
+    initialScrollPending = false
+    historyPagingReady = true
+    let targetThreadId = model.selectedThreadId
+    let requestID = initialScrollRequestID
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+      guard model.selectedThreadId == targetThreadId,
+        initialScrollRequestID == requestID,
+        !initialScrollPending
+      else { return }
+      ChatScrollDiagnostics.log(
+        "scroll-to-end",
+        threadId: model.selectedThreadId,
+        "reason=settle-initial-scroll:\(reason) \(scrollStateDetails())"
+      )
       proxy.scrollTo("end", anchor: .bottom)
-      historyPagingReady = true
     }
+  }
+
+  func scrollStateDetails() -> String {
+    "messages=\(model.messages.count) first=\(model.messages.first?.id ?? "nil") last=\(model.messages.last?.id ?? "nil") atBottom=\(isMessageStreamAtBottom) initialPending=\(initialScrollPending) pagingReady=\(historyPagingReady) hasOlder=\(model.messageHistoryHasOlder) hasNewer=\(model.messageHistoryHasNewer) revision=\(model.messageHistoryRevision)"
   }
 
   func cycleMenuTitle(_ report: ThreadWrapUpReport) -> String {

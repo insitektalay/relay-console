@@ -13,13 +13,14 @@ export const JOTFORM_MCP_REGISTRATION_URL =
 
 export const JOTFORM_MCP_READ_TOOLS = ["form_list", "get_submissions"] as const;
 
-export const JOTFORM_MCP_WRITE_TOOLS = [
-  "create_form",
-  "edit_form",
-] as const;
+export const JOTFORM_MCP_WRITE_TOOLS = ["create_form", "edit_form"] as const;
 
 const JOTFORM_MCP_TOOL_ALIASES: Readonly<Record<string, readonly string[]>> = {
   form_list: ["form_list", "list_forms", "search"],
+};
+
+const JOTFORM_OPERATION_ALIASES: Readonly<Record<string, string>> = {
+  "user.forms.list": "form_list",
 };
 
 export class JotformMcpError extends Error {
@@ -122,6 +123,26 @@ export class JotformMcpAdapter {
           );
         }
       }
+      const discoveryTool = this.resolveTool(tools, "form_list")!;
+      const discoveryResult = this.object(
+        await this.rpc(accessToken, session, "tools/call", {
+          name: discoveryTool.name,
+          arguments: this.argumentsForResolvedTool(
+            "form_list",
+            discoveryTool,
+            {},
+          ),
+        }),
+      );
+      if (discoveryResult.isError === true) {
+        const providerMessage = this.providerErrorMessage(discoveryResult);
+        throw new JotformMcpError(
+          "provider_validation_error",
+          providerMessage
+            ? `Jotform MCP form discovery failed: ${providerMessage}`
+            : "Jotform MCP form discovery failed.",
+        );
+      }
       return {
         toolCount: tools.length,
         documentedToolsVerified: true,
@@ -153,7 +174,7 @@ export class JotformMcpAdapter {
     input: JsonObject,
     allowed: Set<string>,
   ) {
-    const toolName = this.requiredString(input.toolName, "toolName", 120);
+    const toolName = this.requestedToolName(input);
     if (!allowed.has(toolName)) {
       throw new JotformMcpError(
         "policy_blocked",
@@ -180,16 +201,37 @@ export class JotformMcpAdapter {
           `Jotform MCP did not expose ${toolName} with a valid object schema.`,
         );
       }
+      const toolArguments = this.argumentsForResolvedTool(toolName, tool, args);
       const result = this.object(
         await this.rpc(accessToken, session, "tools/call", {
           name: tool.name,
-          arguments: args,
+          arguments: toolArguments,
         }),
       );
       if (result.isError === true) {
+        const providerMessage = this.providerErrorMessage(result);
+        this.logger.warn(
+          JSON.stringify({
+            event: "jotform.mcp.tool_call_rejected",
+            canonicalTool: toolName,
+            resolvedTool: tool.name,
+            requiredArguments: Array.isArray(tool.inputSchema.required)
+              ? tool.inputSchema.required
+                  .filter((value): value is string => typeof value === "string")
+                  .slice(0, 25)
+              : [],
+            argumentProperties: Object.keys(
+              this.object(tool.inputSchema.properties),
+            ).slice(0, 50),
+            providedArguments: Object.keys(toolArguments).slice(0, 50),
+            structuredProviderMessage: providerMessage ?? null,
+          }),
+        );
         throw new JotformMcpError(
           "provider_validation_error",
-          `Jotform MCP ${toolName} failed.`,
+          providerMessage
+            ? `Jotform MCP ${toolName} failed: ${providerMessage}`
+            : `Jotform MCP ${toolName} failed.`,
         );
       }
       return this.redactAndBound(result);
@@ -201,6 +243,39 @@ export class JotformMcpAdapter {
       canonicalName,
     ];
     return tools.find((tool) => acceptedNames.includes(tool.name));
+  }
+
+  private requestedToolName(input: JsonObject) {
+    const explicitToolName = this.string(input.toolName);
+    if (explicitToolName) {
+      return this.requiredString(explicitToolName, "toolName", 120);
+    }
+    const operation = this.requiredString(input.operation, "operation", 120);
+    return JOTFORM_OPERATION_ALIASES[operation] ?? operation;
+  }
+
+  private argumentsForResolvedTool(
+    canonicalName: string,
+    tool: McpTool,
+    args: JsonObject,
+  ) {
+    if (canonicalName === "form_list" && tool.name === "search") {
+      const required = Array.isArray(tool.inputSchema.required)
+        ? tool.inputSchema.required
+        : [];
+      const query =
+        this.string(args.user_query) ??
+        this.string(args.query) ??
+        "list accessible forms";
+      if (required.includes("user_query")) {
+        const { query: _legacyQuery, ...rest } = args;
+        return { ...rest, user_query: query };
+      }
+      if (required.includes("query") && !this.string(args.query)) {
+        return { ...args, query };
+      }
+    }
+    return args;
   }
 
   private async withSession<T>(
@@ -439,6 +514,23 @@ export class JotformMcpAdapter {
       }
       this.rejectCredentialFields(item, depth + 1);
     }
+  }
+
+  private providerErrorMessage(result: JsonObject) {
+    for (const item of Array.isArray(result.content) ? result.content : []) {
+      const text = this.string(this.object(item).text);
+      if (!text) continue;
+      try {
+        const parsed = this.object(JSON.parse(text));
+        const message =
+          this.string(parsed.message) ??
+          this.string(this.object(parsed.error).message);
+        if (message) return message.slice(0, 300);
+      } catch {
+        // Do not expose unstructured provider text. It can contain user data.
+      }
+    }
+    return undefined;
   }
 
   private object(value: unknown): JsonObject {

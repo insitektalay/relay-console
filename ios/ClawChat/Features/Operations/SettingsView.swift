@@ -18,6 +18,21 @@ private struct NativeAgentScanResponse: Decodable {
     let requested: Bool
 }
 
+fileprivate struct RelayHostDeviceGroup: Identifiable {
+    let id: String
+    let displayName: String
+    let devices: [BridgeDeviceSummary]
+
+    var adapters: [BridgeDeviceSummary] {
+        let explicit = devices.filter { $0.adapterRole != "host" }
+        return explicit.isEmpty ? devices : explicit
+    }
+
+    var health: String {
+        devices.contains { $0.health == "online" } ? "online" : "offline"
+    }
+}
+
 struct RelayCloudAccountExportDocument: FileDocument {
     static var readableContentTypes: [UTType] { [.json] }
 
@@ -59,6 +74,20 @@ final class SettingsViewState: ObservableObject {
     @Published var notice: String?
     @Published var isExportingAccount = false
     @Published var isDeletingAccount = false
+
+    fileprivate var relayHostGroups: [RelayHostDeviceGroup] {
+        Dictionary(grouping: bridgeDevices) { device in
+            device.hostInstallationId ?? device.id
+        }
+        .map { id, devices in
+            RelayHostDeviceGroup(
+                id: id,
+                displayName: devices.first?.hostDisplayName ?? devices.first?.label ?? "Runtime host",
+                devices: devices.sorted { ($0.runtimeType ?? "") < ($1.runtimeType ?? "") }
+            )
+        }
+        .sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
+    }
 
     // Workspace editor
     @Published var workspaceName: String = ""
@@ -680,52 +709,57 @@ struct SettingsView: View {
                 .font(.system(size: 13))
                 .foregroundStyle(ClawColors.textPrimary.opacity(0.86))
 
-            if vm.bridgeDevices.isEmpty {
-                RelayInlineEmptyState(icon: "link", title: "No paired runtime bridges", subtitle: "Install and pair the bridge on the computer that runs your agent.")
+            if vm.relayHostGroups.isEmpty {
+                RelayInlineEmptyState(icon: "link", title: "No Relay Hosts", subtitle: "Install Relay Host on the computer that runs your agents.")
             } else {
-                ForEach(vm.bridgeDevices) { device in
+                ForEach(vm.relayHostGroups) { host in
                     VStack(alignment: .leading, spacing: 7) {
                         HStack(spacing: ClawSpacing.md) {
-                            Image(systemName: bridgeDeviceIcon(device))
-                                .foregroundStyle(bridgeDeviceColor(device))
+                            Image(systemName: host.health == "online" ? "checkmark.circle.fill" : "wifi.slash")
+                                .foregroundStyle(host.health == "online" ? ClawColors.accentGreen : ClawColors.accentOrange)
                                 .frame(width: 20)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(device.label)
+                                Text(host.displayName)
                                     .font(.system(size: 13, weight: .semibold))
                                     .foregroundStyle(ClawColors.textPrimary)
-                                Text("\(bridgeRuntimeLabel(device.runtimeType)) · \(bridgeHostLabel(device.hostType)) · \(device.health.capitalized)")
+                                Text("Relay Host · \(bridgeHostLabel(host.devices.first?.hostType)) · \(host.health.capitalized)")
                                     .font(ClawFonts.caption)
                                     .foregroundStyle(ClawColors.textPrimary.opacity(0.72))
                             }
                             Spacer()
-                            if device.revokedAt == nil {
-                                Button("Revoke", role: .destructive) {
-                                    bridgeDevicePendingRevocation = device
-                                }
-                                .disabled(vm.revokingBridgeDeviceId != nil)
-                            }
                         }
-                        Text("Bridge \(device.pluginVersion ?? "unknown") · Runtime \(device.openCoreVersion ?? "unknown")")
-                            .font(ClawFonts.caption)
-                            .foregroundStyle(ClawColors.textSecondary)
-                        if !device.compatibility.compatible {
-                            Label("Update required", systemImage: "exclamationmark.triangle.fill")
-                                .font(ClawFonts.caption)
-                                .foregroundStyle(ClawColors.accentOrange)
-                        } else if device.compatibility.operatingMode == "safe" {
-                            Label("Compatible · Safe mode", systemImage: "shield.lefthalf.filled")
-                                .font(ClawFonts.caption)
-                                .foregroundStyle(ClawColors.accentOrange)
-                            if let disabled = device.compatibility.disabledCapabilities,
-                               !disabled.isEmpty {
-                                Text("Unverified advanced capabilities disabled: \(disabled.joined(separator: ", "))")
+                        ForEach(host.adapters) { device in
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text(device.adapterRole == "host" ? "Connection service" : bridgeRuntimeLabel(device.runtimeType))
+                                        .font(ClawFonts.caption.weight(.semibold))
+                                    Text(device.health.capitalized)
+                                        .font(ClawFonts.caption)
+                                        .foregroundStyle(bridgeDeviceColor(device))
+                                    Spacer()
+                                    Button("Revoke", role: .destructive) {
+                                        bridgeDevicePendingRevocation = device
+                                    }
+                                    .disabled(vm.revokingBridgeDeviceId != nil)
+                                }
+                                Text("Bridge \(device.pluginVersion ?? "unknown") · Runtime \(device.openCoreVersion ?? "unknown")")
                                     .font(ClawFonts.caption)
                                     .foregroundStyle(ClawColors.textSecondary)
+                                if !device.compatibility.compatible {
+                                    Label("Update required", systemImage: "exclamationmark.triangle.fill")
+                                        .font(ClawFonts.caption)
+                                        .foregroundStyle(ClawColors.accentOrange)
+                                } else if device.compatibility.operatingMode == "safe" {
+                                    Label("Compatible · Safe mode", systemImage: "shield.lefthalf.filled")
+                                        .font(ClawFonts.caption)
+                                        .foregroundStyle(ClawColors.accentOrange)
+                                } else if device.compatibility.level == "verified" {
+                                    Label("Verified · Full functionality", systemImage: "checkmark.seal.fill")
+                                        .font(ClawFonts.caption)
+                                        .foregroundStyle(ClawColors.accentGreen)
+                                }
                             }
-                        } else if device.compatibility.level == "verified" {
-                            Label("Verified · Full functionality", systemImage: "checkmark.seal.fill")
-                                .font(ClawFonts.caption)
-                                .foregroundStyle(ClawColors.accentGreen)
+                            .padding(.leading, 28)
                         }
                     }
                 }

@@ -3156,31 +3156,19 @@ public enum MarketplaceExecutionAuthority: String, Codable, CaseIterable, Sendab
 
     public static let contractVersion = "marketplace-execution-authority.v1"
 
-    public static let railwayBrokeredAppSlugs: Set<String> = [
-        "bluesky",
-        "dialpad",
-        "eventbrite",
-        "goto-meeting",
-        "line",
-        "meetup",
-        "nextdoor",
-        "ringcentral",
-        "twist",
-        "webex",
-        "zoho-mail"
-    ]
+    public static var railwayBrokeredAppSlugs: Set<String> {
+        Set(ApplicationsService.catalogMarketplaceSlugs)
+    }
 
-    public static func currentSwiftAdapterAuthority(for appSlug: String) -> MarketplaceExecutionAuthority {
-        railwayBrokeredAppSlugs.contains(appSlug.lowercased()) ? .railway : .deviceLocal
+    public static func currentSwiftAdapterAuthority(for _: String) -> MarketplaceExecutionAuthority {
+        .railway
     }
 
     public static func inferredLegacyConnectionAuthority(
-        appSlug: String,
+        appSlug _: String,
         secretReferenceIds: [RelayId]
     ) -> MarketplaceExecutionAuthority {
-        secretReferenceIds.isEmpty
-            ? currentSwiftAdapterAuthority(for: appSlug)
-            : .deviceLocal
+        secretReferenceIds.isEmpty ? .railway : .unknown
     }
 
     public init(from decoder: Decoder) throws {

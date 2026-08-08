@@ -55,6 +55,7 @@ public enum SetupPairingState: String, Codable, Sendable {
     case expired
     case used
     case permissionDenied
+    case connecting
     case bridgeOffline
     case incompatible
     case backendUnreachable

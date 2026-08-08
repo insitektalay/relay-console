@@ -436,6 +436,27 @@ export function useMarketplaceConnectionActions({
     onError: showError,
   })
 
+  const deleteConnectionMutation = useMutation({
+    mutationFn: async () => {
+      assertCanManageMarketplace()
+      if (!connectionId) throw new Error("Select a connection to delete.")
+      return sdk.marketplace.deleteConnection(workspaceId, connectionId)
+    },
+    onSuccess: async () => {
+      setConnectionId("")
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["marketplace", workspaceId, "connections"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["marketplace", workspaceId, "installs"],
+        }),
+      ])
+      toast.success(`${selectedApp?.name ?? "App"} connection deleted`)
+    },
+    onError: showError,
+  })
+
   const disconnectConnectorOAuthMutation = useMutation({
     mutationFn: async () => {
       assertCanManageMarketplace()
@@ -461,6 +482,7 @@ export function useMarketplaceConnectionActions({
   })
 
   return {
+    deleteConnectionMutation,
     disconnectConnectorOAuthMutation,
     disconnectXOAuthMutation,
     reauthorizeConnectorOAuthMutation,

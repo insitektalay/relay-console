@@ -9,19 +9,24 @@ import {
   NotFoundException,
   Param,
   Post,
+  UseGuards,
 } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { BridgeAuthenticated } from "../../common/decorators/public.decorator";
+import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import {
   LinkedApplicationEntity,
   MarketplaceInstallEntity,
   RuntimeDispatchEntity,
+  UserEntity,
 } from "../../entities";
 import { BridgeService } from "../bridge/bridge.service";
 import { RuntimeBindingService } from "../runtime/runtime-binding.service";
 import { MessageService } from "../message/message.service";
+import { WorkspaceMembershipService } from "../workspace-membership/workspace-membership.service";
 import { MarketplaceConnectorExecutionService } from "./connectors/connector-execution.service";
 import { ConnectorExecutionError } from "./connectors/execution/connector-execution.error";
 import { resolveLocalAppRuntimeProfile } from "./local-app-runtime-profile";
@@ -347,7 +352,8 @@ export class LocalAppConnectorAgentApiBridgeToolsController {
     await this.assertBridgeAuthorizedDispatch(bridge, dispatch);
     this.logger.log(
       JSON.stringify({
-        event: "marketplace.tool_executor.localappconnector_agent_api.secret_fetch",
+        event:
+          "marketplace.tool_executor.localappconnector_agent_api.secret_fetch",
         dispatchId,
         workspaceId: dispatch.workspaceId,
         agentId: dispatch.agentId,
@@ -357,10 +363,11 @@ export class LocalAppConnectorAgentApiBridgeToolsController {
         tokenExposure: "returned_to_authenticated_hermes_bridge_only",
       }),
     );
-    const secret = await this.bridgeService.getLocalAppConnectorAgentApiRuntimeSecret({
-      workspaceId: dispatch.workspaceId,
-      connectionId,
-    });
+    const secret =
+      await this.bridgeService.getLocalAppConnectorAgentApiRuntimeSecret({
+        workspaceId: dispatch.workspaceId,
+        connectionId,
+      });
     return {
       type: secret.type,
       connectionId: secret.connectionId,
@@ -496,7 +503,9 @@ export class LocalAppConnectorAgentApiBridgeToolsController {
     const appSlugCandidates = [
       input.requestedAppSlug,
       linked?.slug,
-      input.requestedAppSlug === "localappconnector" ? "local-localappconnector" : null,
+      input.requestedAppSlug === "localappconnector"
+        ? "local-localappconnector"
+        : null,
     ]
       .map((value) => this.stringOrNull(value))
       .filter(
@@ -530,7 +539,9 @@ export class LocalAppConnectorAgentApiBridgeToolsController {
       );
     }
     const connectionId =
-      this.stringOrNull(linked?.metadata?.localappconnectorOpenClawConnectionId) ??
+      this.stringOrNull(
+        linked?.metadata?.localappconnectorOpenClawConnectionId,
+      ) ??
       this.stringOrNull(
         linked?.apiStyleMetadata?.localappconnectorOpenClawConnectionId,
       );
@@ -704,12 +715,6 @@ export class BridgeAgentMarketplaceToolsController {
         `${appSlug} is not installed for this runtime agent`,
       );
     }
-    const args =
-      body.arguments &&
-      typeof body.arguments === "object" &&
-      !Array.isArray(body.arguments)
-        ? (body.arguments as Record<string, unknown>)
-        : body;
     const localDispatchId =
       typeof body.localDispatchId === "string" &&
       body.localDispatchId.trim().length > 0
@@ -723,7 +728,7 @@ export class BridgeAgentMarketplaceToolsController {
       appSlug,
       toolName,
       connectionId: install.connectionId,
-      body: args,
+      body,
     });
   }
 
@@ -736,18 +741,11 @@ export class BridgeAgentMarketplaceToolsController {
     );
     const runtimeBinding =
       await this.runtimeBindingService.findEnabledByAgentId(agentId);
-    await this.bridgeService.assertBridgeDeviceRuntimeDispatchBinding({
+    await this.bridgeService.assertBridgeDeviceAgentMarketplaceBinding({
       workspaceId: bridge.workspaceId,
       bridgeDeviceId: bridge.deviceId,
-      bridgeRuntimeType: bridge.runtimeType,
-      dispatch: {
-        id: `bridge-agent-context:${agentId}`,
-        workspaceId: bridge.workspaceId,
-        agentId,
-        runtimeBindingId: runtimeBinding?.id ?? "",
-        runtimeHostId: runtimeBinding?.runtimeHostId ?? null,
-        assignmentEpoch: runtimeBinding?.assignmentEpoch ?? "1",
-      },
+      devicePublicId: bridge.devicePublicId,
+      agentId,
       runtimeBinding,
     });
     return bridge;
@@ -774,6 +772,133 @@ export class BridgeAgentMarketplaceToolsController {
         transport: "clawchat_bridge_marketplace_tool",
         endpointBasePath: `/api/v1/bridge/agents/{agentId}/marketplace-tools/${appSlug}`,
         requiresBridgeAccessToken: true,
+      },
+    };
+  }
+}
+
+@Throttle(MARKETPLACE_RUNTIME_TOOL_RATE_LIMIT)
+@UseGuards(JwtAuthGuard)
+@Controller(
+  "workspaces/:workspaceId/marketplace/agents/:agentId/runtime-tools",
+)
+export class UserAgentMarketplaceToolsController {
+  constructor(
+    private readonly workspaceMembershipService: WorkspaceMembershipService,
+    private readonly messageService: MessageService,
+    @InjectRepository(MarketplaceInstallEntity)
+    private readonly marketplaceInstallRepo: Repository<MarketplaceInstallEntity>,
+    private readonly connectorExecutionService: MarketplaceConnectorExecutionService,
+  ) {}
+
+  @Get()
+  async listTools(
+    @Param("workspaceId") workspaceId: string,
+    @Param("agentId") agentId: string,
+    @CurrentUser() user: UserEntity,
+  ) {
+    await this.workspaceMembershipService.ensureWorkspaceAccess(
+      workspaceId,
+      user.id,
+    );
+    const context =
+      (await this.messageService.buildAgentMarketplaceRuntimeContext(
+        workspaceId,
+        agentId,
+      )) as Record<string, unknown>;
+    const runtimeContext =
+      context.marketplaceRuntimeContext &&
+      typeof context.marketplaceRuntimeContext === "object" &&
+      !Array.isArray(context.marketplaceRuntimeContext)
+        ? (context.marketplaceRuntimeContext as Record<string, unknown>)
+        : {};
+    const tools = Array.isArray(runtimeContext.tools)
+      ? runtimeContext.tools
+          .filter((tool): tool is Record<string, unknown> =>
+            Boolean(tool && typeof tool === "object" && !Array.isArray(tool)),
+          )
+          .map((tool) => this.userSessionDescriptor(workspaceId, tool))
+      : [];
+    return {
+      success: true,
+      workspaceId,
+      agentId,
+      toolCount: tools.length,
+      tools,
+    };
+  }
+
+  @Post(":appSlug/:toolName")
+  async executeTool(
+    @Param("workspaceId") workspaceId: string,
+    @Param("agentId") agentId: string,
+    @Param("appSlug") appSlug: string,
+    @Param("toolName") toolName: string,
+    @CurrentUser() user: UserEntity,
+    @Body() body: Record<string, unknown>,
+  ) {
+    await this.workspaceMembershipService.ensureWorkspaceAccess(
+      workspaceId,
+      user.id,
+    );
+    const install = (
+      await this.marketplaceInstallRepo.find({
+        where: {
+          workspaceId,
+          agentId,
+          appSlug,
+          installStatus: "installed",
+        },
+        order: { updatedAt: "DESC" },
+      })
+    ).find((candidate) => Boolean(candidate.connectionId));
+    if (!install?.connectionId) {
+      throw new ForbiddenException(
+        `${appSlug} is not installed for this runtime agent`,
+      );
+    }
+    const localDispatchId =
+      typeof body.localDispatchId === "string" &&
+      body.localDispatchId.trim().length > 0
+        ? body.localDispatchId.trim()
+        : "unknown";
+    return this.connectorExecutionService.executeInstalledAgentTool({
+      workspaceId,
+      agentId,
+      userId: user.id,
+      dispatchId: `native-local:${user.id}:${localDispatchId}`,
+      appSlug,
+      toolName,
+      connectionId: install.connectionId,
+      body,
+    });
+  }
+
+  private userSessionDescriptor(
+    workspaceId: string,
+    tool: Record<string, unknown>,
+  ) {
+    const appSlug =
+      typeof tool.appSlug === "string" && tool.appSlug.trim()
+        ? tool.appSlug.trim()
+        : typeof tool.provider === "string" && tool.provider.trim()
+          ? tool.provider.trim()
+          : null;
+    if (!appSlug) return tool;
+    const execution =
+      tool.execution &&
+      typeof tool.execution === "object" &&
+      !Array.isArray(tool.execution)
+        ? (tool.execution as Record<string, unknown>)
+        : {};
+    return {
+      ...tool,
+      execution: {
+        ...execution,
+        transport: "clawchat_control_plane_marketplace_tool",
+        endpointBasePath: `/api/v1/workspaces/${workspaceId}/marketplace/agents/{agentId}/runtime-tools/${appSlug}`,
+        requiresBridgeAccessToken: false,
+        requiresUserAccessToken: true,
       },
     };
   }

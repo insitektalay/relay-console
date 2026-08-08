@@ -1084,7 +1084,7 @@ public struct RoutingMarketplaceProviderActionAdapter: MarketplaceProviderAction
         microsoftVivaEngageAdapter: MicrosoftVivaEngageProviderActionAdapter = MicrosoftVivaEngageProviderActionAdapter(),
         zoomAdapter: ZoomProviderActionAdapter = ZoomProviderActionAdapter(),
         discordAdapter: DiscordProviderActionAdapter = DiscordProviderActionAdapter(),
-        fallback: any MarketplaceProviderActionAdapter = FakeMarketplaceProviderActionAdapter()
+        fallback: any MarketplaceProviderActionAdapter = RailwayRequiredMarketplaceProviderActionAdapter()
     ) {
         self.xAdapter = xAdapter
         self.facebookPagesAdapter = facebookPagesAdapter

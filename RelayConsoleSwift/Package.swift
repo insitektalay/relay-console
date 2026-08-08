@@ -12,6 +12,7 @@ let package = Package(
     .library(name: "RelayConsoleAppUI", targets: ["RelayConsoleAppUI"]),
     .executable(name: "Relay Console", targets: ["RelayConsoleApp"]),
     .executable(name: "RelayMarketplaceToolBridge", targets: ["RelayMarketplaceToolBridge"]),
+    .executable(name: "RelayHostService", targets: ["RelayHostService"]),
     .executable(name: "RelayConsoleCoreSmokeTests", targets: ["RelayConsoleCoreSmokeTests"]),
     .executable(name: "RelayConsoleMigrationTests", targets: ["RelayConsoleMigrationTests"]),
     .executable(
@@ -120,6 +121,11 @@ let package = Package(
       name: "RelayMarketplaceToolBridge",
       dependencies: ["RelayConsoleCore"],
       path: "Sources/RelayMarketplaceToolBridge"
+    ),
+    .executableTarget(
+      name: "RelayHostService",
+      dependencies: ["RelayConsoleCore"],
+      path: "Sources/RelayHostService"
     ),
     .executableTarget(
       name: "RelayConsoleCoreSmokeTests",

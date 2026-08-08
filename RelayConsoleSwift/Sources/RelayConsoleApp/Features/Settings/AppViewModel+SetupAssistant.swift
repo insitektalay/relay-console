@@ -317,6 +317,7 @@ extension AppViewModel {
         path: "bridge/workspaces/\(context.link.remoteWorkspaceId)/enrollments",
         body: [
           "deviceLabel": "\(runtime.displayName) remote bridge",
+          "hostInstallationId": try RelayHostIdentity.resolve(using: services.data),
           "expiresInMinutes": 10,
         ],
         accessToken: token
@@ -619,7 +620,7 @@ extension AppViewModel {
       return
     }
     do {
-      let attempts = waitForConnection ? 12 : 1
+      let attempts = waitForConnection ? 30 : 1
       for attempt in 0..<attempts {
         let rows = try await transport.sendArray(
           method: "GET",
@@ -628,18 +629,17 @@ extension AppViewModel {
           accessToken: token
         )
         let onlineRuntimes = Set([SetupRemoteRuntime.hermes, .openClaw].filter { runtime in
-          let runtimeKey = runtime == .hermes ? "hermes" : "openclaw"
           return rows.contains {
-            ($0["runtimeType"] as? String) == runtimeKey
+            setupBridgeDeviceSupportsRuntime($0, runtime: runtime)
               && setupBridgeDeviceIsActive($0)
               && ($0["health"] as? String) == "online"
           }
         })
         setupBridgeOnlineRuntimes = onlineRuntimes
         for runtime in setupAssistant.selectedRemoteRuntimes {
-          let runtimeKey = runtime == .hermes ? "hermes" : "openclaw"
           let devices = rows.filter {
-            ($0["runtimeType"] as? String) == runtimeKey && setupBridgeDeviceIsActive($0)
+            setupBridgeDeviceSupportsRuntime($0, runtime: runtime)
+              && setupBridgeDeviceIsActive($0)
           }
           if let online = devices.first(where: { ($0["health"] as? String) == "online" }) {
             let compatibility = online["compatibility"] as? [String: Any]
@@ -675,7 +675,9 @@ extension AppViewModel {
             setupAssistant.pairing[runtime]?.state = .expired
             setupAssistant.pairing[runtime]?.detailMessage = "The pairing code expired before a bridge connected. Generate a new code and try again."
             setupAssistant.pairing[runtime]?.recoveryAction = .retryPairing
-          } else if waitForConnection && attempt == attempts - 1 && runtime == expectedRuntime {
+          } else if waitForConnection && attempt == attempts - 1
+            && (expectedRuntime == nil || runtime == expectedRuntime)
+          {
             setupAssistant.pairing[runtime] = SetupPairingCode(
               state: .bridgeOffline,
               detailMessage: "The installer completed, but Railway has not recorded the bridge yet. Retry status; if no device appears, reinstall with a new pairing code.",
@@ -685,8 +687,9 @@ extension AppViewModel {
           }
         }
         persistSetupAssistant()
-        let expectedRuntimeIsOnline = expectedRuntime.map(onlineRuntimes.contains) ?? false
-        if !waitForConnection || expectedRuntimeIsOnline {
+        let requestedRuntimes = expectedRuntime.map { Set([$0]) }
+          ?? setupAssistant.selectedRemoteRuntimes
+        if !waitForConnection || requestedRuntimes.isSubset(of: onlineRuntimes) {
           break
         }
         if attempt < attempts - 1 {
@@ -703,5 +706,35 @@ extension AppViewModel {
       }
       persistSetupAssistant()
     }
+  }
+
+  func recoverSetupBridgeConnections() async {
+    for runtime in setupAssistant.selectedRemoteRuntimes
+    where !setupBridgeOnlineRuntimes.contains(runtime) {
+      let state = setupAssistant.pairing[runtime]?.state
+      if state == .connected || state == .bridgeOffline || state == .healthCheckFailed {
+        setupAssistant.pairing[runtime] = SetupPairingCode(
+          state: .connecting,
+          detailMessage: "Relay is restoring remote access automatically.",
+          recoveryAction: nil,
+          compatibility: setupAssistant.pairing[runtime]?.compatibility
+        )
+      }
+    }
+    persistSetupAssistant()
+    _ = await ensureAutomaticCloudLinkIfPossible()
+    await refreshSetupBridgeStatus(waitForConnection: true)
+  }
+
+  private func setupBridgeDeviceSupportsRuntime(
+    _ device: [String: Any],
+    runtime: SetupRemoteRuntime
+  ) -> Bool {
+    let runtimeKey = runtime == .hermes ? "hermes" : "openclaw"
+    if (device["runtimeType"] as? String) == runtimeKey { return true }
+    let capabilities = Set(device["capabilities"] as? [String] ?? [])
+    guard capabilities.contains("clawchat.relay_host.v1") else { return false }
+    return capabilities.contains("clawchat.runtime.\(runtimeKey)")
+      || capabilities.contains(runtimeKey)
   }
 }

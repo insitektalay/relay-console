@@ -49,6 +49,7 @@ import {
 import {
   BridgeAgentMarketplaceToolsController,
   LocalAppConnectorAgentApiBridgeToolsController,
+  UserAgentMarketplaceToolsController,
 } from "./localappconnector-agent-api-tools.controller";
 import { MarketplaceConnectorOAuthCallbackController } from "./connector-oauth-callback.controller";
 import { XMarketplaceService } from "./x-marketplace.service";
@@ -147,6 +148,7 @@ import { KnowledgeOwlApiAdapter } from "./connectors/knowledgeowl/knowledgeowl-a
 import { FreshdeskApiAdapter } from "./connectors/freshdesk/freshdesk-api.adapter";
 import { CodaApiAdapter } from "./connectors/coda/coda-api.adapter";
 import { CraftApiAdapter } from "./connectors/craft/craft-api.adapter";
+import { CraftMcpAdapter } from "./connectors/craft/craft-mcp.adapter";
 import { TelegramPersonalBotsApiAdapter } from "./connectors/telegram-personal-bots/telegram-personal-bots-api.adapter";
 import { LocalWordPressOrgCliAdapter } from "./connectors/local-wordpress-org/local-wordpress-org-cli.adapter";
 import { MatomoSelfHostedApiAdapter } from "./connectors/matomo-self-hosted/matomo-self-hosted-api.adapter";
@@ -551,6 +553,7 @@ import { BlueskyActionService } from "./bluesky/bluesky-action.service";
     MarketplaceConnectorOAuthCallbackController,
     LocalAppConnectorAgentApiBridgeToolsController,
     BridgeAgentMarketplaceToolsController,
+    UserAgentMarketplaceToolsController,
   ],
   providers: [
     MarketplaceService,
@@ -664,6 +667,7 @@ import { BlueskyActionService } from "./bluesky/bluesky-action.service";
     FreshdeskApiAdapter,
     CodaApiAdapter,
     CraftApiAdapter,
+    CraftMcpAdapter,
     TelegramPersonalBotsApiAdapter,
     LocalWordPressOrgCliAdapter,
     MatomoSelfHostedApiAdapter,

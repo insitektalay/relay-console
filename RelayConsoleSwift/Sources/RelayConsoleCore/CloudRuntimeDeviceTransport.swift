@@ -208,7 +208,9 @@ public final class CloudMarketplaceAuthorityRouter: @unchecked Sendable {
 
 public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
     private static let bridgeCapabilities = [
-        "clawchat.runtime.hermes", "hermes", "openclaw", "dispatch_backfill", "terminal_ack",
+        "clawchat.relay_host.v1",
+        "clawchat.runtime.hermes", "clawchat.runtime.openclaw", "hermes", "openclaw",
+        "dispatch_backfill", "terminal_ack",
         "marketplace_authority", "event_sequence", "hermes_cancellation",
         "openclaw_cancellation", "clawchat.host.cron_management",
         "clawchat.runtime_connector.v3",
@@ -263,15 +265,17 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
 
     @discardableResult
     public func enroll(syncLinkId: String, enrollmentCode: String, deviceLabel: String) async throws -> String {
+        let hostInstallationId = try RelayHostIdentity.resolve(using: data)
         let response = try await transport.send(method: "POST", path: "bridge/enroll", body: [
             "code": enrollmentCode,
+            "hostInstallationId": hostInstallationId,
             "deviceLabel": deviceLabel,
-            "pluginVersion": "0.3.0-rc.1",
+            "pluginVersion": RelayBridgeInstaller.pluginVersion(for: .hermes),
             "openCoreVersion": "0.12.0",
             "runtimeType": "hermes",
             "hostType": "macos-launchd",
-            "apiContractVersion": "v2",
-            "websocketContractVersion": "bridge.v1",
+            "apiContractVersion": RelayBridgeInstaller.apiContractVersion,
+            "websocketContractVersion": RelayBridgeInstaller.websocketContractVersion,
             "capabilities": Self.bridgeCapabilities,
         ], accessToken: nil)
         guard let device = (response["device"] as? [String: Any]) ?? response as [String: Any]?,
@@ -285,9 +289,9 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
         let secret = try secrets.set(scope: "cloud_runtime_device", scopeId: localId, label: "Relay runtime device credential", secretValue: token)
         let timestamp = nowIso()
         try database.run("""
-        INSERT INTO cloud_runtime_devices(id,sync_link_id,remote_device_id,device_public_id,credential_secret_reference_id,label,state,capability_json,created_at,updated_at)
-        VALUES(?,?,?,?,?,?,'enrolled',?, ?, ?)
-        """, [.text(localId), .text(syncLinkId), .text(remoteId), .text(publicId), .text(secret.id), .text(deviceLabel), .text("{\"runtimes\":[\"hermes\",\"openclaw\"],\"hermesCancellation\":true,\"openclawCancellation\":true}"), .text(timestamp), .text(timestamp)])
+        INSERT INTO cloud_runtime_devices(id,sync_link_id,remote_device_id,device_public_id,credential_secret_reference_id,label,state,capability_json,host_installation_id,created_at,updated_at)
+        VALUES(?,?,?,?,?,?,'enrolled',?, ?, ?, ?)
+        """, [.text(localId), .text(syncLinkId), .text(remoteId), .text(publicId), .text(secret.id), .text(deviceLabel), .text("{\"runtimes\":[\"hermes\",\"openclaw\"],\"hermesCancellation\":true,\"openclawCancellation\":true}"), .text(hostInstallationId), .text(timestamp), .text(timestamp)])
         return localId
     }
 
@@ -298,6 +302,21 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
         websocketBaseURL: URL,
         deviceLabel: String
     ) async throws {
+        let session = try await ensureAuthenticated(
+            syncLinkId: syncLinkId,
+            workspaceId: workspaceId,
+            userAccessToken: userAccessToken,
+            deviceLabel: deviceLabel
+        )
+        try await connectWebSocket(session: session, websocketBaseURL: websocketBaseURL)
+    }
+
+    public func ensureAuthenticated(
+        syncLinkId: String,
+        workspaceId: String,
+        userAccessToken: String,
+        deviceLabel: String
+    ) async throws -> CloudRuntimeDeviceSession {
         let existingId = try database.get(
             """
             SELECT id
@@ -308,49 +327,138 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
             """,
             [.text(syncLinkId)]
         )?["id"]?.string
-        let localDeviceId: String
         if let existingId {
-            localDeviceId = existingId
-        } else {
-            let enrollment = try await transport.send(
-                method: "POST",
-                path: "bridge/workspaces/\(workspaceId)/enrollments",
-                body: [
-                    "deviceLabel": deviceLabel,
-                    "expiresInMinutes": 10,
-                ],
-                accessToken: userAccessToken
-            )
-            guard let code = enrollment["code"] as? String else {
-                throw RelayError(.internalError, "Relay did not return a runtime bridge enrollment code.")
+            do {
+                return try await authenticateForWorkspace(
+                    localDeviceId: existingId,
+                    workspaceId: workspaceId
+                )
+            } catch {
+                guard Self.isReplaceableDeviceCredential(error) else { throw error }
+                try revokeRejectedLocalDevice(existingId)
             }
-            localDeviceId = try await enroll(
-                syncLinkId: syncLinkId,
-                enrollmentCode: code,
-                deviceLabel: deviceLabel
-            )
         }
+
+        let localDeviceId = try await enrollReplacementDevice(
+            syncLinkId: syncLinkId,
+            workspaceId: workspaceId,
+            userAccessToken: userAccessToken,
+            deviceLabel: deviceLabel
+        )
+        return try await authenticateForWorkspace(
+            localDeviceId: localDeviceId,
+            workspaceId: workspaceId
+        )
+    }
+
+    private func authenticateForWorkspace(
+        localDeviceId: String,
+        workspaceId: String
+    ) async throws -> CloudRuntimeDeviceSession {
         let session = try await authenticate(localDeviceId: localDeviceId)
         guard session.workspaceId == workspaceId else {
             throw RelayError(.permissionDenied, "The runtime bridge credential belongs to another workspace.")
         }
-        try await connectWebSocket(session: session, websocketBaseURL: websocketBaseURL)
+        return session
+    }
+
+    private func enrollReplacementDevice(
+        syncLinkId: String,
+        workspaceId: String,
+        userAccessToken: String,
+        deviceLabel: String
+    ) async throws -> String {
+        let hostInstallationId = try RelayHostIdentity.resolve(using: data)
+        let enrollment = try await transport.send(
+            method: "POST",
+            path: "bridge/workspaces/\(workspaceId)/enrollments",
+            body: [
+                "deviceLabel": deviceLabel,
+                "hostInstallationId": hostInstallationId,
+                "expiresInMinutes": 10,
+            ],
+            accessToken: userAccessToken
+        )
+        guard let code = enrollment["code"] as? String else {
+            throw RelayError(.internalError, "Relay did not return a runtime bridge enrollment code.")
+        }
+        return try await enroll(
+            syncLinkId: syncLinkId,
+            enrollmentCode: code,
+            deviceLabel: deviceLabel
+        )
+    }
+
+    private func revokeRejectedLocalDevice(_ localDeviceId: String) throws {
+        let secretId = try database.get(
+            "SELECT credential_secret_reference_id FROM cloud_runtime_devices WHERE id=?",
+            [.text(localDeviceId)]
+        )?["credential_secret_reference_id"]?.string
+        let timestamp = nowIso()
+        try database.run(
+            """
+            UPDATE cloud_runtime_devices
+            SET state='revoked',revoked_at=?,updated_at=?
+            WHERE id=? AND revoked_at IS NULL
+            """,
+            [.text(timestamp), .text(timestamp), .text(localDeviceId)]
+        )
+        if let secretId {
+            _ = try? secrets.delete(secretId)
+        }
+    }
+
+    private static func isReplaceableDeviceCredential(_ error: Error) -> Bool {
+        if error as? CloudRuntimeDeviceError == .revoked { return true }
+        guard let relay = error as? RelayError else { return false }
+        if relay.code == .notFound { return true }
+        guard relay.code == .permissionDenied else {
+            return false
+        }
+        let message = relay.message.trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        return [
+            "invalid bridge device credentials",
+            "bridge device has been revoked",
+        ].contains(message)
     }
 
     public func authenticate(localDeviceId: String) async throws -> CloudRuntimeDeviceSession {
         guard let row = try database.get("SELECT d.*,l.remote_workspace_id FROM cloud_runtime_devices d JOIN workspace_sync_links l ON l.id=d.sync_link_id WHERE d.id=?", [.text(localDeviceId)]), row["revoked_at"]?.string == nil,
               let secretId = row["credential_secret_reference_id"]?.string else { throw CloudRuntimeDeviceError.revoked }
-        let response = try await transport.send(method: "POST", path: "bridge/device/auth", body: [
+        var authenticationBody: [String: Any] = [
             "devicePublicId": row["device_public_id"]?.string ?? "",
             "deviceToken": try secrets.getSecretValue(secretId),
-            "pluginVersion": "0.3.0-rc.1",
+            "pluginVersion": RelayBridgeInstaller.pluginVersion(for: .hermes),
             "openCoreVersion": "0.12.0",
             "runtimeType": "hermes",
             "hostType": "macos-launchd",
-            "apiContractVersion": "v2",
-            "websocketContractVersion": "bridge.v1",
+            "apiContractVersion": RelayBridgeInstaller.apiContractVersion,
+            "websocketContractVersion": RelayBridgeInstaller.websocketContractVersion,
             "capabilities": Self.bridgeCapabilities
-        ], accessToken: nil)
+        ]
+        if let hostInstallationId = row["host_installation_id"]?.string,
+           !hostInstallationId.isEmpty {
+            authenticationBody["hostInstallationId"] = hostInstallationId
+        }
+        let response = try await transport.send(
+            method: "POST",
+            path: "bridge/device/auth",
+            body: authenticationBody,
+            accessToken: nil
+        )
+        if row["host_installation_id"]?.string == nil,
+           let device = response["device"] as? [String: Any],
+           let adoptedHostInstallationId = device["hostInstallationId"] as? String {
+            try database.run(
+                "UPDATE cloud_runtime_devices SET host_installation_id=?,updated_at=? WHERE id=?",
+                [.text(adoptedHostInstallationId), .text(nowIso()), .text(localDeviceId)]
+            )
+            try data.setAppSetting(
+                RelayHostIdentity.settingKey,
+                value: adoptedHostInstallationId
+            )
+        }
         let tokens = response["tokens"] as? [String: Any]
         if let credentials = response["credentials"] as? [String: Any],
            let rotatedDeviceToken = credentials["deviceToken"] as? String {
@@ -375,7 +483,7 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
         let session = CloudRuntimeDeviceSession(
             localDeviceId: localDeviceId, remoteDeviceId: row["remote_device_id"]?.string ?? "", devicePublicId: row["device_public_id"]?.string ?? "", workspaceId: row["remote_workspace_id"]?.string ?? "", accessToken: accessToken,
             websocketTicket: (response["websocketTicket"] as? String) ?? (tokens?["wsToken"] as? String), expiresAt: response["expiresAt"] as? String)
-        try reconcileSyncedLocalAgentMappings(session: session)
+        try await reconcileSyncedLocalAgentMappings(session: session)
         try? await synchronizeNativeInventory(session: session)
         return session
     }
@@ -417,7 +525,7 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(10))
                 guard !Task.isCancelled else { return }
-                try? self?.reconcileSyncedLocalAgentMappings(session: session)
+                try? await self?.reconcileSyncedLocalAgentMappings(session: session)
                 try? await self?.registerPublishedAgents(session: session)
                 try? await self?.synchronizeNativeInventory(session: session)
             }
@@ -548,7 +656,7 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
         }
         let request = RuntimeDispatchRequest(
             dispatchId: localDispatchId, correlationId: "cloud:\(cloudDispatchId)", threadId: localThreadId, messageId: localMessageId, sessionId: runtimeSessionId, attempt: dispatch["attemptNumber"] as? Int ?? 1, agent: agent, runtimeBinding: binding, harness: harness, inputContent: input,
-            inputFormat: .plain, recentMessages: [], timeoutMs: RuntimeDispatchTimeouts.chatTurnMs, createdAt: Self.text(dispatch["createdAt"], timestamp), cloudMarketplaceTools: cloudMarketplaceTools, attachmentPaths: attachmentPaths)
+            inputFormat: .plain, recentMessages: [], timeoutMs: RuntimeDispatchTimeouts.chatTurnMs, createdAt: Self.text(dispatch["createdAt"], timestamp), cloudMarketplaceTools: cloudMarketplaceTools, attachmentPaths: attachmentPaths, isTeamChat: isTeamChat)
         let sink = CloudRuntimeEventPostbackSink(database: database, transport: transport, session: session, cloudDispatchId: cloudDispatchId)
         let runtimeBridge = try registry.get(binding.runtimeType)
         let execute: TeamChatRuntimeTurnQueue.Execute = { effectiveInput in
@@ -707,72 +815,29 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
 
     private func reconcileSyncedLocalAgentMappings(
         session: CloudRuntimeDeviceSession
-    ) throws {
+    ) async throws {
         guard let link = try database.get(
             """
-            SELECT l.local_workspace_id,l.id AS sync_link_id
+            SELECT l.local_workspace_id
             FROM cloud_runtime_devices d
             JOIN workspace_sync_links l ON l.id=d.sync_link_id
             WHERE d.id=?
             """,
             [.text(session.localDeviceId)]
-        ), let localWorkspaceId = link["local_workspace_id"]?.string,
-           let syncLinkId = link["sync_link_id"]?.string
+        ), let localWorkspaceId = link["local_workspace_id"]?.string
         else { return }
-        let timestamp = nowIso()
         for agent in try data.listAgents(workspaceId: localWorkspaceId) {
             guard [.hermes, .openclaw].contains(agent.binding.runtimeType),
                   let externalId = agent.binding.externalAgentId?
                     .trimmingCharacters(in: .whitespacesAndNewlines),
-                  !externalId.isEmpty,
-                  let canonicalAgentId = try database.get(
-                    """
-                    SELECT canonical_object_id
-                    FROM remote_object_versions
-                    WHERE sync_link_id=? AND object_type='agent'
-                      AND local_object_id=?
-                    ORDER BY updated_at DESC
-                    LIMIT 1
-                    """,
-                    [.text(syncLinkId), .text(agent.id)]
-                  )?["canonical_object_id"]?.string
+                  !externalId.isEmpty
             else { continue }
-            let capabilityJSON = try String(
-                decoding: JSONSerialization.data(
-                    withJSONObject: [
-                        "runtime": agent.binding.runtimeType.rawValue,
-                        "syncedAgent": true,
-                    ],
-                    options: [.sortedKeys]
-                ),
-                as: UTF8.self
+            _ = try await publishAgent(
+                localDeviceId: session.localDeviceId,
+                localAgentId: agent.id,
+                remoteAgentId: externalId,
+                session: session
             )
-            try database.run(
-                """
-                INSERT INTO cloud_runtime_bindings(
-                  id,runtime_device_id,local_agent_id,remote_agent_id,remote_binding_id,
-                  publication_state,owner_lease_state,capability_json,created_at,updated_at
-                ) VALUES(?,?,?,?,?,'published','active',?,?,?)
-                ON CONFLICT(runtime_device_id,local_agent_id) DO UPDATE SET
-                  remote_agent_id=excluded.remote_agent_id,
-                  remote_binding_id=excluded.remote_binding_id,
-                  publication_state='published',
-                  owner_lease_state='active',
-                  capability_json=excluded.capability_json,
-                  updated_at=excluded.updated_at
-                """,
-                [
-                    .text(createRelayId("cloudbind")),
-                    .text(session.localDeviceId),
-                    .text(agent.id),
-                    .text(canonicalAgentId),
-                    .text(externalId),
-                    .text(capabilityJSON),
-                    .text(timestamp),
-                    .text(timestamp),
-                ]
-            )
-            marketplaceToolProxy.setRemoteAgentId(canonicalAgentId, for: agent.id)
         }
     }
 
@@ -790,7 +855,7 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
         ) {
             guard let externalId = row["remote_binding_id"]?.string,
                   !externalId.isEmpty,
-                  registeredExternalAgentIds.insert(externalId).inserted
+                  !registeredExternalAgentIds.contains(externalId)
             else { continue }
             let event = row["runtime_type"]?.string == RuntimeType.hermes.rawValue
                 ? "register_hermes_agent"
@@ -1203,6 +1268,16 @@ public final class CloudRuntimeDeviceTransport: @unchecked Sendable {
                 guard let envelope = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { continue }
                 let type = envelope["type"] as? String ?? ""
                 let dispatch = (envelope["data"] as? [String: Any]) ?? (envelope["payload"] as? [String: Any]) ?? envelope
+                if type == "bridge_agent_registration",
+                   let externalAgentId = dispatch["externalAgentId"] as? String,
+                   let accepted = dispatch["accepted"] as? Bool {
+                    if accepted {
+                        registeredExternalAgentIds.insert(externalAgentId)
+                    } else {
+                        registeredExternalAgentIds.remove(externalAgentId)
+                    }
+                    continue
+                }
                 if type == "clawchat.host.cron.list" {
                     await handleCronList(dispatch, session: session)
                     continue

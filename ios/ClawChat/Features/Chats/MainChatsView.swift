@@ -213,7 +213,7 @@ struct MainChatsView: View {
                             Button(role: .destructive) {
                                 _Concurrency.Task {
                                     _ = try? await APIClient.shared.request(
-                                        .updateThread(id: thread.id, params: ["isArchived": true])
+                                        .archiveThread(id: thread.id)
                                     ) as Thread
                                     try? await appStore.syncThreads()
                                 }

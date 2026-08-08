@@ -18,11 +18,22 @@ const legacyCredentials = {
 describe("Craft connector", () => {
   afterEach(() => jest.restoreAllMocks());
 
-  it("stores one scoped connection URL encrypted and exposes the stable API surface", () => {
+  it("uses hosted MCP OAuth and retains the encrypted legacy API surface", () => {
     expect(new MarketplaceConnectorRegistry().get("craft")).toBe(
       CRAFT_CONNECTOR_MANIFEST,
     );
-    expect(CRAFT_CONNECTOR_MANIFEST.auth.type).toBe("api_key");
+    expect(CRAFT_CONNECTOR_MANIFEST.auth.type).toBe(
+      "oauth2_authorization_code",
+    );
+    expect(CRAFT_CONNECTOR_MANIFEST.auth.oauth).toEqual(
+      expect.objectContaining({
+        authorizationUrl: "https://mcp.craft.do/my/auth/authorize",
+        tokenUrl: "https://mcp.craft.do/my/auth/token",
+        userInfoUrl: "https://mcp.craft.do/my/mcp",
+        pkce: true,
+        supportsRefresh: true,
+      }),
+    );
     expect(CRAFT_CONNECTOR_MANIFEST.auth.credentialSchema).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -34,9 +45,11 @@ describe("Craft connector", () => {
     );
     expect(CRAFT_READ_OPERATIONS).toHaveLength(9);
     expect(CRAFT_MANAGE_OPERATIONS).toHaveLength(16);
-    expect(
-      CRAFT_CONNECTOR_MANIFEST.auth.credentialSchema[0]?.helpText,
-    ).toContain("https://connect.craft.do/links/.../api/v1");
+    expect(CRAFT_CONNECTOR_MANIFEST.auth.credentialSchema[0]).toEqual(
+      expect.objectContaining({
+        requiredForAuthTypes: ["customer_scoped_api_url", "api_key"],
+      }),
+    );
     expect(
       CRAFT_CONNECTOR_MANIFEST.approvalProfiles.find(
         (profile) => profile.id === "dangerously_skip_permissions",
@@ -59,9 +72,11 @@ describe("Craft connector", () => {
   });
 
   it("retains the documented singular connection URL for backward compatibility", async () => {
-    const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue(
-      new Response(JSON.stringify({ items: [] }), { status: 200 }),
-    );
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockResolvedValue(
+        new Response(JSON.stringify({ items: [] }), { status: 200 }),
+      );
     await expect(
       new CraftApiAdapter().health(legacyCredentials),
     ).resolves.toMatchObject({ providerRequestCount: 1 });

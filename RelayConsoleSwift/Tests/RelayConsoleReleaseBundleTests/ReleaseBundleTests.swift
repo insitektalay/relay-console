@@ -29,7 +29,7 @@ struct RelayConsoleReleaseBundleTests {
         let metadata = RelayConsoleReleaseMetadata.current
         try expect(metadata.productName == "Relay Console", "product name mismatch")
         try expect(metadata.bundleIdentifier == "com.relayconsole.app", "production bundle identifier mismatch")
-        try expect(metadata.version == "0.1.1" && metadata.build == "13", "version/build mismatch")
+        try expect(metadata.version == "0.1.1" && metadata.build == "11", "version/build mismatch")
         try expect(metadata.releaseChannel == "public-beta", "release channel mismatch")
         try expect(metadata.minimumMacOSVersion == "14.0", "minimum macOS mismatch")
     }
@@ -196,8 +196,10 @@ struct RelayConsoleReleaseBundleTests {
 
         let main = contents.appendingPathComponent("MacOS/Relay Console")
         let bridge = contents.appendingPathComponent("MacOS/RelayMarketplaceToolBridge")
+        let relayHost = contents.appendingPathComponent("MacOS/RelayHostService")
         try expect(FileManager.default.isExecutableFile(atPath: main.path), "packaged main executable missing")
         try expect(FileManager.default.isExecutableFile(atPath: bridge.path), "packaged bridge missing")
+        try expect(FileManager.default.isExecutableFile(atPath: relayHost.path), "packaged Relay Host service missing")
         try expect(!FileManager.default.fileExists(atPath: contents.appendingPathComponent("MacOS/Relay Console Launcher").path), "development launcher leaked into release app")
 
         let resources = try FileManager.default.contentsOfDirectory(atPath: contents.appendingPathComponent("Resources").path)

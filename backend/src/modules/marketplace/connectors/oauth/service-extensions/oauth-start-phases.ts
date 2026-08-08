@@ -9,6 +9,10 @@ import {
   JotformMcpError,
 } from "../../jotform/jotform-mcp.adapter";
 import {
+  CRAFT_MCP_RESOURCE,
+  CraftMcpError,
+} from "../../craft/craft-mcp.adapter";
+import {
   MastodonApiAdapter,
   MastodonApiError,
 } from "../../mastodon/mastodon-api.adapter";
@@ -43,6 +47,8 @@ async function runOAuthStartPhase1(
     ReturnType<MastodonApiAdapter["registerApp"]>
   > | null = null;
   let jotformRegistration: { clientId: string } | null = null;
+  let craftRegistration: { clientId: string; clientSecret: string } | null =
+    null;
   if (manifest.slug === "mastodon") {
     try {
       const requestedOrigin = service.mastodonApi.normalizeInstanceOrigin(
@@ -100,6 +106,22 @@ async function runOAuthStartPhase1(
       if (error instanceof JotformMcpError) {
         throw new ServiceUnavailableException(error.message);
       }
+      throw error;
+    }
+  }
+  if (
+    manifest.slug === "craft" &&
+    !context.input.clientId?.trim() &&
+    !service.stringOrNull(existingCredentials?.clientId) &&
+    !service.stringOrNull(existing?.metadata?.clientId)
+  ) {
+    try {
+      craftRegistration = await service.craftMcp.registerClient(
+        service.getCallbackUrl("craft"),
+      );
+    } catch (error) {
+      if (error instanceof CraftMcpError)
+        throw new ServiceUnavailableException(error.message);
       throw error;
     }
   }
@@ -322,7 +344,10 @@ async function runOAuthStartPhase1(
       : null;
   const clientId = resolveOAuthStartClientId(service, {
     slug: manifest.slug,
-    explicitClientId: context.input.clientId ?? jotformRegistration?.clientId,
+    explicitClientId:
+      context.input.clientId ??
+      jotformRegistration?.clientId ??
+      craftRegistration?.clientId,
     mastodonClientId: mastodonRegistration?.clientId,
     googleClientId,
     boxClientId,
@@ -354,7 +379,8 @@ async function runOAuthStartPhase1(
       : null;
   const clientSecret = resolveOAuthStartClientSecret(service, {
     slug: manifest.slug,
-    explicitClientSecret: context.input.clientSecret,
+    explicitClientSecret:
+      context.input.clientSecret ?? craftRegistration?.clientSecret,
     mastodonClientSecret: mastodonRegistration?.clientSecret,
     googleClientSecret,
     boxClientSecret,
@@ -373,6 +399,7 @@ async function runOAuthStartPhase1(
     existingCredentials,
     mastodonRegistration,
     jotformRegistration,
+    craftRegistration,
     cloudflareAccountId,
     cloudflareZoneId,
     vercelProjectId,
@@ -1912,6 +1939,7 @@ async function runOAuthStartPhase6(
       "whimsical",
       "cognito-forms",
       "jotform",
+      "craft",
       "xmind",
       "adobe-analytics",
       "cloudinary",
@@ -1936,15 +1964,17 @@ async function runOAuthStartPhase6(
                     ? COGNITO_FORMS_MCP_RESOURCE
                     : context.manifest.slug === "jotform"
                       ? JOTFORM_MCP_RESOURCE
-                      : context.manifest.slug === "xmind"
-                        ? "https://app.xmind.com/api/mcp"
-                        : context.manifest.slug === "adobe-analytics"
-                          ? "https://aa-mcp.adobe.io/mcp"
-                          : context.manifest.slug === "cloudinary"
-                            ? "https://asset-management.mcp.cloudinary.com"
-                            : context.manifest.slug === "remember-the-milk"
-                              ? "https://www.rememberthemilk.com/mcp"
-                              : "https://api.slite.com/mcp",
+                      : context.manifest.slug === "craft"
+                        ? CRAFT_MCP_RESOURCE
+                        : context.manifest.slug === "xmind"
+                          ? "https://app.xmind.com/api/mcp"
+                          : context.manifest.slug === "adobe-analytics"
+                            ? "https://aa-mcp.adobe.io/mcp"
+                            : context.manifest.slug === "cloudinary"
+                              ? "https://asset-management.mcp.cloudinary.com"
+                              : context.manifest.slug === "remember-the-milk"
+                                ? "https://www.rememberthemilk.com/mcp"
+                                : "https://api.slite.com/mcp",
     );
   }
   if (

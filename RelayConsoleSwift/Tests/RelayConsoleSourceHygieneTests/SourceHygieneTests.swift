@@ -114,6 +114,9 @@ struct RelayConsoleSourceHygieneTests {
       "Railway Applications state excludes connections from other workspace links",
       testRailwayApplicationsStateExcludesConnectionsFromOtherWorkspaceLinks)
     try run(
+      "OpenClaw Marketplace tools are selected from each dispatch session",
+      testOpenClawMarketplaceToolsAreSelectedPerSession)
+    try run(
       "AgentOps HQ uses bundled assets without mock or backend drift",
       testAgentOpsHqUsesBundledAssetsWithoutMockOrBackendDrift)
     try run("source hygiene manual manifests match schema", testManualManifestsMatchSchema)
@@ -176,6 +179,19 @@ struct RelayConsoleSourceHygieneTests {
     try expect(
       !views.contains("Toggle(\"Anonymous crash/error reporting\", isOn: .constant(true))"),
       "crash toggle should not be a fixed constant")
+  }
+
+  private static func testOpenClawMarketplaceToolsAreSelectedPerSession() throws {
+    let installer = try readPackageFile(
+      "Sources/RelayConsoleCore/MarketplaceRuntimeHarnessBridgeInstaller.swift")
+    try expect(
+      installer.contains("snapshotDirectory") && installer.contains("catalogVersion"),
+      "OpenClaw Marketplace registration must use a stable tool catalog instead of one agent snapshot")
+    try expect(
+      installer.contains("api.registerTool((toolContext) => {")
+        && installer.contains("toolForSession(name, toolContext)")
+        && installer.contains("if (!tool) return null"),
+      "OpenClaw Marketplace tool factories must hide tools that are not in the current session snapshot")
   }
 
   private static func testCreateAgentFormAvoidsDevelopmentDefaults() throws {

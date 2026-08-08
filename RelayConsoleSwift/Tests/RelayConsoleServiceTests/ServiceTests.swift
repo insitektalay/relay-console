@@ -46,6 +46,27 @@ struct RelayConsoleServiceTests {
       "Hermes local dispatch loads assigned Marketplace tools from Railway",
       testHermesLocalDispatchLoadsAssignedMarketplaceToolsFromRailway)
     try run(
+      "Relay Host-owned local dispatch loads Marketplace tools through the signed-in control plane",
+      testRelayHostOwnedLocalDispatchLoadsMarketplaceToolsThroughControlPlane)
+    try run(
+      "long local dispatch refreshes its signed-in Railway tool session",
+      testLongLocalDispatchRefreshesSignedInRailwayToolSession)
+    try run(
+      "signed-in Railway tool descriptors remain mounted for local runtimes",
+      testSignedInRailwayToolDescriptorsRemainMounted)
+    try run(
+      "Hermes local dispatch fails when its Railway assignment cannot be resolved",
+      testHermesLocalDispatchFailsWithoutRailwayAssignment)
+    try run(
+      "rejected bridge credentials are replaced once through signed-in Railway enrolment",
+      testRejectedBridgeCredentialsAreReplacedOnce)
+    try run(
+      "revoked bridge credentials are replaced once through signed-in Railway enrolment",
+      testRevokedBridgeCredentialsAreReplacedOnce)
+    try run(
+      "missing bridge credentials are replaced once through signed-in Railway enrolment",
+      testMissingBridgeCredentialsAreReplacedOnce)
+    try run(
       "Hermes approved Marketplace action rebinds stale gateway dispatch context",
       testHermesApprovedMarketplaceActionRebindsStaleGatewayDispatchContext)
     try run(
@@ -57,6 +78,9 @@ struct RelayConsoleServiceTests {
     try run(
       "Railway mirroring preserves an existing device-local Marketplace connection identity",
       testRailwayMirrorPreservesDeviceLocalMarketplaceConnectionIdentity)
+    try run(
+      "Railway mirroring saves agent assignments through synchronization authority",
+      testRailwayInstallMirrorUsesSynchronizationAuthority)
     try run(
       "Railway Marketplace approvals decode for the macOS action queue",
       testRailwayMarketplaceApprovalsDecodeForMacActionQueue)
@@ -72,6 +96,9 @@ struct RelayConsoleServiceTests {
     try run(
       "Marketplace cloud export is authority versioned and secret free",
       testMarketplaceCloudExportIsAuthorityVersionedAndSecretFree)
+    try run(
+      "all external Marketplace apps require Railway execution",
+      testAllExternalMarketplaceAppsRequireRailwayExecution)
     try run("canonical guard reason codes match service standard", testCanonicalGuardReasonCodes)
     try run(
       "denied direct-call mutation does not change persistence",
@@ -1963,6 +1990,182 @@ struct RelayConsoleServiceTests {
     )
   }
 
+  private static func testRelayHostOwnedLocalDispatchLoadsMarketplaceToolsThroughControlPlane()
+    throws
+  {
+    let transport = RecordingMarketplaceToolCloudTransport(
+      endpointBasePath:
+        "/api/v1/workspaces/remote-workspace/marketplace/agents/{agentId}/runtime-tools/jotform",
+      executionTransport: "clawchat_control_plane_marketplace_tool",
+      requiredAccessTokenFlag: "requiresUserAccessToken"
+    )
+    let proxy = CloudMarketplaceRuntimeToolProxy()
+    proxy.setLocalDispatchSessionLoader { localWorkspaceId in
+      try expect(
+        localWorkspaceId == "local-workspace",
+        "local Marketplace session loader used the wrong workspace"
+      )
+      return CloudMarketplaceLocalDispatchSession(
+        transport: transport,
+        accessToken: "signed-in-user-token",
+        remoteWorkspaceId: "remote-workspace",
+        remoteAgentIds: ["local-agent": "railway-agent"]
+      )
+    }
+
+    let tools = try awaitResult {
+      try await proxy.prepareLocalDispatch(
+        localDispatchId: "local-dispatch",
+        workspaceId: "local-workspace",
+        localAgentId: "local-agent"
+      )
+    }
+    defer { proxy.unregister(localDispatchId: "local-dispatch") }
+
+    try expect(tools.count == 1, "Relay Host-owned dispatch did not load its Railway tool")
+    _ = try proxy.execute(
+      localDispatchId: "local-dispatch",
+      toolName: "jotform_create_form",
+      payload: ["title": .string("Relay Console Integration Test")],
+      runtime: MarketplaceRuntimeToolExecutionContext(
+        agentId: "local-agent",
+        workspaceId: "local-workspace",
+        runtimeType: .openclaw,
+        dispatchId: "local-dispatch"
+      )
+    )
+
+    let request = try unwrap(
+      transport.lastRequest,
+      "Relay Host-owned dispatch did not call the signed-in Railway control plane"
+    )
+    try expect(
+      request.path
+        == "workspaces/remote-workspace/marketplace/agents/railway-agent/runtime-tools/jotform/jotform_create_form",
+      "Relay Host-owned dispatch used the wrong Railway tool route"
+    )
+    try expect(
+      request.accessToken == "signed-in-user-token",
+      "Relay Host-owned dispatch did not use the refreshable signed-in user token"
+    )
+  }
+
+  private static func testLongLocalDispatchRefreshesSignedInRailwayToolSession() throws {
+    let transport = RefreshingMarketplaceToolCloudTransport()
+    let loaderCount = EventCounter()
+    let proxy = CloudMarketplaceRuntimeToolProxy()
+    proxy.setLocalDispatchSessionLoader { _ in
+      let count = loaderCount.incrementAndGet()
+      return CloudMarketplaceLocalDispatchSession(
+        transport: transport,
+        accessToken: count == 1 ? "expired-user-token" : "refreshed-user-token",
+        remoteWorkspaceId: "remote-workspace",
+        remoteAgentIds: ["local-agent": "railway-agent"]
+      )
+    }
+    _ = try awaitResult {
+      try await proxy.prepareLocalDispatch(
+        localDispatchId: "local-dispatch",
+        workspaceId: "local-workspace",
+        localAgentId: "local-agent"
+      )
+    }
+    defer { proxy.unregister(localDispatchId: "local-dispatch") }
+
+    let result = try proxy.execute(
+      localDispatchId: "local-dispatch",
+      toolName: "exa_search",
+      payload: ["query": .string("Relay Console")],
+      runtime: MarketplaceRuntimeToolExecutionContext(
+        agentId: "local-agent",
+        workspaceId: "local-workspace",
+        runtimeType: .openclaw,
+        dispatchId: "local-dispatch"
+      )
+    )
+
+    try expect(result["ok"] == .bool(true), "refreshed Railway tool call did not succeed")
+    try expect(loaderCount.value == 2, "expired user session did not refresh exactly once")
+    try expect(
+      transport.postAccessTokens == ["expired-user-token", "refreshed-user-token"],
+      "Railway tool retry did not replace the expired user token"
+    )
+  }
+
+  private static func testSignedInRailwayToolDescriptorsRemainMounted() throws {
+    let baseline = MarketplaceRuntimeCapabilitySnapshot(
+      workspaceId: "local-workspace",
+      agentId: "local-agent",
+      runtimeType: .openclaw,
+      generatedAt: "2026-08-08T14:00:00Z",
+      fingerprint: "baseline",
+      apps: [],
+      toolCount: 0,
+      rawProviderToolExposure: false,
+      redactionStatus: "private-state-excluded"
+    )
+    let mounted = baseline.mergingCloudMarketplaceTools([[
+      "name": .string("exa_search"),
+      "functionName": .string("exa_search"),
+      "appSlug": .string("exa-search"),
+      "action": .string("read"),
+      "execution": .object([
+        "transport": .string("clawchat_control_plane_marketplace_tool"),
+        "endpointBasePath": .string(
+          "/api/v1/workspaces/remote-workspace/marketplace/agents/{agentId}/runtime-tools/exa-search"
+        ),
+        "requiresUserAccessToken": .bool(true),
+      ]),
+    ]])
+
+    try expect(
+      mounted.mountedToolNames == ["exa_search"],
+      "the signed-in Railway descriptor was loaded but removed from the runtime mount"
+    )
+  }
+
+  private static func testHermesLocalDispatchFailsWithoutRailwayAssignment() throws {
+    let proxy = CloudMarketplaceRuntimeToolProxy()
+    do {
+      _ = try awaitResult {
+        try await proxy.prepareLocalDispatch(
+          localDispatchId: "local-dispatch",
+          workspaceId: "local-workspace",
+          localAgentId: "local-agent"
+        )
+      }
+      throw ServiceTestFailure("local dispatch continued without a Railway bridge session")
+    } catch let error as RelayError {
+      try expect(
+        error.message.contains("RAILWAY_TOOL_DELIVERY_FAILED"),
+        "missing Railway bridge session returned the wrong error"
+      )
+    }
+
+    let transport = RecordingMarketplaceToolCloudTransport()
+    proxy.configureBridgeSession(
+      transport: transport,
+      accessToken: "bridge-access-token",
+      remoteAgentIds: [:]
+    )
+    defer { proxy.clearBridgeSession() }
+    do {
+      _ = try awaitResult {
+        try await proxy.prepareLocalDispatch(
+          localDispatchId: "local-dispatch",
+          workspaceId: "local-workspace",
+          localAgentId: "local-agent"
+        )
+      }
+      throw ServiceTestFailure("local dispatch continued without a Railway agent assignment")
+    } catch let error as RelayError {
+      try expect(
+        error.message.contains("RAILWAY_ASSIGNMENT_MISSING"),
+        "missing Railway agent assignment returned the wrong error"
+      )
+    }
+  }
+
   private static func testHermesApprovedMarketplaceActionRebindsStaleGatewayDispatchContext()
     throws
   {
@@ -2037,14 +2240,14 @@ struct RelayConsoleServiceTests {
   }
 
   private static func testMarketplaceRequestsUseAuthenticatedSavedDeployment() throws {
-    for method in ["GET", "POST", "DELETE"] {
+    for method in ["GET", "POST", "PATCH", "DELETE"] {
       try expect(
         CloudRelaySyncService.isSupportedRailwayMarketplaceMethod(method),
         "Marketplace transport rejected the supported \(method) request method"
       )
     }
     try expect(
-      !CloudRelaySyncService.isSupportedRailwayMarketplaceMethod("PATCH"),
+      !CloudRelaySyncService.isSupportedRailwayMarketplaceMethod("PUT"),
       "Marketplace transport accepted an unsupported request method"
     )
     let resolved = try CloudRelaySyncService.authenticatedMarketplaceAPIURL(
@@ -2297,6 +2500,97 @@ struct RelayConsoleServiceTests {
     try expect(
       presentableRailwayOnlyIds.contains(railwayOnlyConnectionId),
       "a genuine Railway-only connection was hidden from its linked local workspace"
+    )
+  }
+
+  private static func testRailwayInstallMirrorUsesSynchronizationAuthority() throws {
+    let services = try makeServices()
+    let workspace = try unwrap(
+      services.data.getAppState().activeWorkspace,
+      "missing Railway install mirror workspace"
+    )
+    let owner = context(roles: [.owner], workspaceId: workspace.id)
+    let foundation = try services.providerFoundations.registerExaSearchFoundation(context: owner)
+    let app = try unwrap(
+      try services.data.getMarketplaceCatalogApp(
+        workspaceId: workspace.id, appIdOrSlug: foundation.appId),
+      "missing Exa Search app"
+    )
+    let deployment = try unwrap(
+      services.cloudConnections.listDeployments().first,
+      "missing Relay deployment"
+    )
+    let account = try unwrap(
+      services.cloudConnections.listAccounts().first,
+      "missing Relay account"
+    )
+    let linkId = try services.cloudSync.createLocalLink(
+      localWorkspaceId: workspace.id,
+      deploymentId: deployment.id,
+      accountId: account.id,
+      remoteInstallationId: "remote-installation",
+      remoteWorkspaceId: "remote-workspace",
+      remoteSyncLinkId: "remote-link",
+      attachmentPolicy: .metadataOnly,
+      offlineRetention: true
+    )
+    let remoteConnectionId = "remote-exa-connection"
+    let connection = try services.cloudSync.mirrorRailwayMarketplaceConnection(
+      localWorkspaceId: workspace.id,
+      app: app,
+      connectionView: [
+        "id": remoteConnectionId,
+        "status": "ready",
+        "displayName": "Railway Exa Search",
+        "credentialNames": ["EXA_API_KEY"],
+        "selectedCapabilities": app.capabilityIds ?? [],
+        "updatedAt": "2026-08-07T12:00:00.000Z",
+      ]
+    )
+    let harness = try prepareInstalledHarness(services: services, key: .hermes)
+    let agent = try services.data.createAgent(
+      workspaceId: workspace.id,
+      name: "Railway Exa agent",
+      harnessId: harness.id,
+      externalAgentId: "railway-exa-agent",
+      hermesProfileSlug: "railway-exa-agent",
+      hermesHomePath: services.paths.hermesHomeDir
+        .appendingPathComponent("profiles/railway-exa-agent", isDirectory: true).path
+    )
+    let remoteAgentId = "remote-exa-agent"
+    try services.database.run(
+      """
+      INSERT INTO remote_object_versions(
+        sync_link_id,object_type,local_object_id,canonical_object_id,server_version,updated_at
+      ) VALUES(?,'agent',?,?, '1',?)
+      """,
+      [
+        .text(linkId), .text(agent.id), .text(remoteAgentId),
+        .text("2026-08-07T12:00:00.000Z"),
+      ]
+    )
+
+    let installs = try services.cloudSync.mirrorRailwayMarketplaceInstalls(
+      localWorkspaceId: workspace.id,
+      app: app,
+      installViews: [[
+        "id": "remote-exa-install",
+        "appSlug": app.slug,
+        "connectionId": remoteConnectionId,
+        "agentId": remoteAgentId,
+        "role": app.roleManifest.primaryRole,
+        "selectedCapabilities": app.capabilityIds ?? [],
+        "installStatus": "installed",
+        "driftStatus": "current",
+        "metadata": ["runtimeFormat": "hermes"],
+        "updatedAt": "2026-08-07T12:00:00.000Z",
+      ]]
+    )
+
+    try expect(installs.count == 1, "Railway assignment was not mirrored")
+    try expect(
+      installs.first?.connectionId == connection.id,
+      "Railway assignment did not retain its mapped connection identity"
     )
   }
 
@@ -2554,6 +2848,145 @@ struct RelayConsoleServiceTests {
           "Marketplace cloud export leaked forbidden secret material or field: \(forbidden)")
       }
     }
+  }
+
+  private static func testRejectedBridgeCredentialsAreReplacedOnce() throws {
+    try assertRejectedBridgeCredentialIsReplaced(
+      rejectionMessage: "Invalid bridge device credentials")
+  }
+
+  private static func testRevokedBridgeCredentialsAreReplacedOnce() throws {
+    try assertRejectedBridgeCredentialIsReplaced(
+      rejectionMessage: "Bridge device has been revoked")
+  }
+
+  private static func assertRejectedBridgeCredentialIsReplaced(
+    rejectionMessage: String
+  ) throws {
+    let services = try makeServices()
+    let workspace = try unwrap(services.data.getAppState().activeWorkspace, "missing workspace")
+    let timestamp = "2026-08-07T10:00:00Z"
+    let deploymentId = try unwrap(
+      try services.database.get(
+        "SELECT id FROM cloud_deployments ORDER BY is_active DESC,updated_at DESC LIMIT 1")?["id"]?.string,
+      "missing configured Railway deployment")
+    try services.database.run(
+      """
+      INSERT INTO cloud_accounts(id,deployment_id,remote_user_id,display_name,status,created_at,updated_at)
+      VALUES(?,?,?,?,'signed_in',?,?)
+      """,
+      [.text("cacc-recovery"), .text(deploymentId), .text("user-recovery"),
+       .text("Recovery User"), .text(timestamp), .text(timestamp)])
+    try services.database.run(
+      """
+      INSERT INTO workspace_sync_links(
+        id,local_workspace_id,deployment_id,account_id,remote_installation_id,
+        remote_workspace_id,state,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,'linked',?,?)
+      """,
+      [.text("csync-recovery"), .text(workspace.id), .text(deploymentId),
+       .text("cacc-recovery"), .text("installation-recovery"),
+       .text("workspace-recovery"), .text(timestamp), .text(timestamp)])
+    let oldSecret = try services.secrets.set(
+      scope: "cloud_runtime_device", scopeId: "clouddev-old",
+      label: "Old bridge credential", secretValue: "old-rejected-token")
+    try services.database.run(
+      """
+      INSERT INTO cloud_runtime_devices(
+        id,sync_link_id,remote_device_id,device_public_id,credential_secret_reference_id,
+        label,state,capability_json,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,'offline','{}',?,?)
+      """,
+      [.text("clouddev-old"), .text("csync-recovery"), .text("remote-old"),
+       .text("public-old"), .text(oldSecret.id), .text("Alex's Mac"),
+       .text(timestamp), .text(timestamp)])
+
+    let transport = BridgeCredentialRecoveryTransport(
+      rejectionMessage: rejectionMessage)
+    let bridge = CloudRuntimeDeviceTransport(
+      database: services.database, data: services.data, secrets: services.secrets,
+      registry: services.registry, harnessInstall: services.harnessInstall, transport: transport)
+    let session = try awaitResult {
+      try await bridge.ensureAuthenticated(
+        syncLinkId: "csync-recovery", workspaceId: "workspace-recovery",
+        userAccessToken: "signed-in-user-token", deviceLabel: "Alex's Mac")
+    }
+
+    try expect(session.localDeviceId != "clouddev-old", "recovery reused the rejected device")
+    try expect(session.remoteDeviceId == "remote-new", "recovery did not enrol the new device")
+    try expect(transport.enrollmentCount == 1, "recovery must request one enrollment")
+    try expect(transport.enrollCount == 1, "recovery must enrol one replacement device")
+    try expect(transport.authenticationCount == 2, "recovery must make only two auth attempts")
+    let oldRow = try services.database.get(
+      "SELECT state,revoked_at FROM cloud_runtime_devices WHERE id='clouddev-old'")
+    try expect(
+      oldRow?["state"]?.string == "revoked" && oldRow?["revoked_at"]?.string != nil,
+      "recovery must mark the rejected local device as revoked")
+  }
+
+  private static func testMissingBridgeCredentialsAreReplacedOnce() throws {
+    let secretStore = MemorySecretStore()
+    let services = try makeServices(secretStore: secretStore)
+    let workspace = try unwrap(services.data.getAppState().activeWorkspace, "missing workspace")
+    let timestamp = "2026-08-08T11:00:00Z"
+    let deploymentId = try unwrap(
+      try services.database.get(
+        "SELECT id FROM cloud_deployments ORDER BY is_active DESC,updated_at DESC LIMIT 1")?["id"]?.string,
+      "missing configured Railway deployment")
+    try services.database.run(
+      """
+      INSERT INTO cloud_accounts(id,deployment_id,remote_user_id,display_name,status,created_at,updated_at)
+      VALUES(?,?,?,?,'signed_in',?,?)
+      """,
+      [.text("cacc-missing-credential"), .text(deploymentId), .text("user-missing-credential"),
+       .text("Missing Credential User"), .text(timestamp), .text(timestamp)])
+    try services.database.run(
+      """
+      INSERT INTO workspace_sync_links(
+        id,local_workspace_id,deployment_id,account_id,remote_installation_id,
+        remote_workspace_id,state,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,'linked',?,?)
+      """,
+      [.text("csync-missing-credential"), .text(workspace.id), .text(deploymentId),
+       .text("cacc-missing-credential"), .text("installation-missing-credential"),
+       .text("workspace-recovery"), .text(timestamp), .text(timestamp)])
+    let missingSecret = try services.secrets.set(
+      scope: "cloud_runtime_device", scopeId: "clouddev-missing-credential",
+      label: "Missing bridge credential", secretValue: "missing-device-token")
+    try secretStore.delete(account: missingSecret.keychainAccount)
+    try services.database.run(
+      """
+      INSERT INTO cloud_runtime_devices(
+        id,sync_link_id,remote_device_id,device_public_id,credential_secret_reference_id,
+        label,state,capability_json,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,'offline','{}',?,?)
+      """,
+      [.text("clouddev-missing-credential"), .text("csync-missing-credential"),
+       .text("remote-missing-credential"), .text("public-missing-credential"),
+       .text(missingSecret.id), .text("Alex's Mac"), .text(timestamp), .text(timestamp)])
+
+    let transport = BridgeCredentialRecoveryTransport(rejectFirstAuthentication: false)
+    let bridge = CloudRuntimeDeviceTransport(
+      database: services.database, data: services.data, secrets: services.secrets,
+      registry: services.registry, harnessInstall: services.harnessInstall, transport: transport)
+    let session = try awaitResult {
+      try await bridge.ensureAuthenticated(
+        syncLinkId: "csync-missing-credential", workspaceId: "workspace-recovery",
+        userAccessToken: "signed-in-user-token", deviceLabel: "Alex's Mac")
+    }
+
+    try expect(
+      session.localDeviceId != "clouddev-missing-credential",
+      "recovery reused the device with a missing credential")
+    try expect(session.remoteDeviceId == "remote-new", "recovery did not enrol the new device")
+    try expect(transport.enrollmentCount == 1, "recovery must request one enrollment")
+    try expect(transport.enrollCount == 1, "recovery must enrol one replacement device")
+    try expect(transport.authenticationCount == 1, "recovery must authenticate only the replacement")
+    let oldRow = try services.database.get(
+      "SELECT state,revoked_at FROM cloud_runtime_devices WHERE id='clouddev-missing-credential'")
+    try expect(
+      oldRow?["state"]?.string == "revoked" && oldRow?["revoked_at"]?.string != nil,
+      "recovery must mark the missing-credential device as revoked")
   }
 
   private static func testDeniedMutationDoesNotChangePersistence() throws {
@@ -4090,6 +4523,52 @@ struct RelayConsoleServiceTests {
       harnessId: openClawHarness.id,
       externalAgentId: "worker_claw"
     )
+    let jotform = try services.data.upsertMarketplaceCatalogApp(
+      marketplaceApp(
+        workspaceId: workspace.id,
+        slug: "jotform",
+        name: "Jotform",
+        summary: "Unrelated Railway-authority test assignment.",
+        category: "Forms",
+        riskLevel: .medium,
+        connectionState: .connected,
+        installState: .installed
+      )
+    )
+    let timestamp = "2026-08-06T20:00:00Z"
+    _ = try services.data.saveMarketplaceInstall(
+      MarketplaceInstallRecord(
+        id: "minst-team-worker-unrelated-jotform",
+        workspaceId: workspace.id,
+        appId: jotform.id,
+        appSlug: jotform.slug,
+        connectionId: nil,
+        agentId: worker.id,
+        agentName: worker.name,
+        runtimeBindingId: worker.binding.id,
+        harnessId: worker.harness.id,
+        runtimeType: worker.binding.runtimeType,
+        roleId: jotform.roleManifest.primaryRole,
+        roleLabel: "Operator",
+        selectedCapabilities: jotform.capabilities,
+        approvalProfileId: nil,
+        runtimeFormat: worker.binding.runtimeType,
+        targetMode: .existingAgent,
+        riskAcknowledged: true,
+        installStatus: .installed,
+        driftStatus: .current,
+        lastInstalledAt: timestamp,
+        removedAt: nil,
+        failureMessage: nil,
+        metadata: [:],
+        createdByActorId: "test-owner",
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        executionAuthority: .railway,
+        executionAuthorityVersion: MarketplaceExecutionAuthority.contractVersion,
+        redactionStatus: "private-state-excluded"
+      )
+    )
     let company = try services.data.createAgentOrgCompany(
       workspaceId: workspace.id, name: "Tool Publication Company")
     let department = try services.data.createAgentOrgDepartment(
@@ -4104,6 +4583,68 @@ struct RelayConsoleServiceTests {
       title: "Tool Publication Team",
       selectedAgentIds: [coordinator.id, worker.id]
     )
+    let mountProbeRequest = RuntimeDispatchRequest(
+      dispatchId: "rtd-team-worker-unrelated-marketplace-tool",
+      correlationId: "corr-team-worker-unrelated-marketplace-tool",
+      threadId: thread.id,
+      messageId: "msg-team-worker-unrelated-marketplace-tool",
+      sessionId: "rts-team-worker-unrelated-marketplace-tool",
+      attempt: 1,
+      agent: worker,
+      runtimeBinding: worker.binding,
+      harness: worker.harness,
+      inputContent: "Return the reasoning-only result to the coordinator.",
+      inputFormat: .plain,
+      recentMessages: [],
+      timeoutMs: 30_000,
+      createdAt: timestamp,
+      cloudMarketplaceTools: [[
+        "name": .string("relay_publish_message"),
+        "functionName": .string("relay_publish_message"),
+        "appSlug": .string("relay"),
+        "action": .string("write"),
+        "execution": .object([
+          "transport": .string("clawchat_bridge_marketplace_tool"),
+          "requiresBridgeAccessToken": .bool(true),
+        ]),
+      ]],
+      isTeamChat: true
+    )
+    let reasoningOnlyMount = try awaitResult {
+      try await services.harnessInstall.compileMarketplaceRuntimeMount(
+        for: worker,
+        request: mountProbeRequest
+      )
+    }
+    try expect(
+      reasoningOnlyMount.mountedToolNames.contains("relay_publish_message"),
+      "team callback should retain relay_publish_message"
+    )
+    try expect(
+      reasoningOnlyMount.apps.first { $0.appSlug == "jotform" }?.tools.isEmpty == true,
+      "an unavailable unrelated assignment must not expose callable team tools"
+    )
+    var directMountProbeRequest = mountProbeRequest
+    directMountProbeRequest.dispatchId = "rtd-direct-worker-unrelated-marketplace-tool"
+    directMountProbeRequest.isTeamChat = false
+    do {
+      _ = try awaitResult {
+        try await services.harnessInstall.compileMarketplaceRuntimeMount(
+          for: worker,
+          request: directMountProbeRequest
+        )
+      }
+      throw ServiceTestFailure(
+        "direct chat unexpectedly ignored an unavailable assigned Marketplace tool"
+      )
+    } catch let failure as ServiceTestFailure {
+      throw failure
+    } catch let error as RelayError {
+      try expect(
+        error.code == .dispatchFailed && error.message.contains("jotform is assigned"),
+        "direct chat should retain strict assigned Marketplace tool validation"
+      )
+    }
 
     let send = try awaitResult {
       try await services.dispatch.sendMessage(
@@ -4188,6 +4729,12 @@ struct RelayConsoleServiceTests {
         && request.inputContent.contains("Never publish a bare acknowledgement")
         && request.inputContent.contains(worker.id),
       "team request should carry the Buzz callback and no-acknowledgement rules")
+    let workerRequest = try unwrap(workerBridge.lastRequest(), "missing worker request")
+    try expect(
+      workerRequest.inputContent.contains("If that message assigns you work")
+        && workerRequest.inputContent.contains("reports work that you assigned to them")
+        && workerRequest.inputContent.contains("empty mentions list"),
+      "agent-triggered turns should distinguish worker callbacks from new delegation")
     let completed = try services.data.getDispatch(send.dispatch.id)
     try expect(
       completed.resultSnapshot?["finalResponsePublication"]
@@ -35682,6 +36229,54 @@ struct RelayConsoleServiceTests {
       "partially versioned authority must fail closed with zero wrapper tools")
   }
 
+  private static func testAllExternalMarketplaceAppsRequireRailwayExecution() throws {
+    let services = try makeServices()
+    let workspace = try unwrap(services.data.getAppState().activeWorkspace, "missing workspace")
+    let owner = Self.context(
+      roles: [.owner], workspaceId: workspace.id,
+      correlationId: "marketplace-railway-only-owner")
+    let catalog = try services.applications.catalogSnapshot(context: owner)
+    let externalApps = catalog.apps.filter {
+      $0.sourceType == .externalProvider && !$0.localAppExcluded && !$0.reviewExcluded
+    }
+    try expect(!externalApps.isEmpty, "Marketplace catalog did not contain external apps")
+    try expect(
+      externalApps.allSatisfy {
+        MarketplaceExecutionAuthority.currentSwiftAdapterAuthority(for: $0.slug) == .railway
+      },
+      "every external Marketplace app must resolve to Railway execution")
+    try expect(
+      MarketplaceExecutionAuthority.inferredLegacyConnectionAuthority(
+        appSlug: "exa-search", secretReferenceIds: ["sec-local-exa"]) == .unknown,
+      "legacy Keychain connections must require Railway reconnection instead of relabeling")
+
+    let x = try unwrap(externalApps.first { $0.slug == "x" }, "missing X app")
+    let localSurface = try services.providerWrapperTools.compileSurface(
+      context: owner, appIdOrSlug: x.id)
+    try expect(
+      localSurface.tools.isEmpty
+        && localSurface.diagnostics.message.contains("local Swift compiler exposes no"),
+      "local Swift compiler must not expose Railway Marketplace wrappers")
+    do {
+      _ = try services.providerActionBroker.execute(
+        context: owner,
+        request: MarketplaceProviderActionBrokerRequest(
+          appIdOrSlug: x.id, actionKey: "x_own_posts_list", payload: [:],
+          idempotencyKey: "railway-only-no-swift-fallback"))
+      throw ServiceTestFailure("external app unexpectedly executed in the local Swift broker")
+    } catch let denied as ServiceGuardResult {
+      try expect(
+        denied.stateKind == .unavailable && denied.message.contains("Railway"),
+        "local Swift broker must fail closed and direct external apps to Railway")
+    }
+    try expect(
+      sqliteInteger(
+        try services.database.get(
+          "SELECT COUNT(*) AS count FROM marketplace_provider_action_executions")?["count"])
+        == 0,
+      "Railway authority rejection must occur before fake adapter output is saved")
+  }
+
   private static func testProviderActionBrokerEnforcesPolicyAndFakeAdapter() throws {
     let services = try makeServices()
     let workspace = try unwrap(services.data.getAppState().activeWorkspace, "missing workspace")
@@ -39539,6 +40134,7 @@ struct RelayConsoleServiceTests {
   private static func makeServices(
     root: URL? = nil,
     runner: CommandRunning = StubCommandRunner(),
+    secretStore: any SecretStore = MemorySecretStore(),
     providerActionAdapter: (any MarketplaceProviderActionAdapter)? =
       RoutingMarketplaceProviderActionAdapter(
         xAdapter: XProviderActionAdapter(client: FakeXProviderActionClient())
@@ -39559,7 +40155,7 @@ struct RelayConsoleServiceTests {
       userDataPath: root,
       appVersion: "test",
       runner: runner,
-      secretStore: MemorySecretStore(),
+      secretStore: secretStore,
       providerActionAdapter: providerActionAdapter,
       applicationsBetaPolicyOverride: usePublicBetaPolicy ? nil : betaPolicy,
       refreshInstalledHarnessesOnLaunch: refreshInstalledHarnessesOnLaunch,
@@ -49137,6 +49733,14 @@ private final class EventCounter: @unchecked Sendable {
     count += 1
     lock.unlock()
   }
+
+  func incrementAndGet() -> Int {
+    lock.lock()
+    count += 1
+    let value = count
+    lock.unlock()
+    return value
+  }
 }
 
 private final class ChatEventCollector: @unchecked Sendable {
@@ -49981,6 +50585,70 @@ private struct UnavailableRelayCloudTransport: RelayCloudTransport {
   }
 }
 
+private final class BridgeCredentialRecoveryTransport:
+  RelayCloudTransport, @unchecked Sendable
+{
+  private let rejectFirstAuthentication: Bool
+  private let rejectionMessage: String
+  private let lock = NSLock()
+  private var authenticationAttempts = 0
+  private var enrollmentRequests = 0
+  private var enrollRequests = 0
+
+  var authenticationCount: Int { lock.withLock { authenticationAttempts } }
+  var enrollmentCount: Int { lock.withLock { enrollmentRequests } }
+  var enrollCount: Int { lock.withLock { enrollRequests } }
+
+  init(
+    rejectFirstAuthentication: Bool = true,
+    rejectionMessage: String = "Invalid bridge device credentials"
+  ) {
+    self.rejectFirstAuthentication = rejectFirstAuthentication
+    self.rejectionMessage = rejectionMessage
+  }
+
+  func send(
+    method: String,
+    path: String,
+    body: [String: Any]?,
+    accessToken: String?
+  ) async throws -> [String: Any] {
+    switch path {
+    case "bridge/device/auth":
+      let attempt = lock.withLock {
+        authenticationAttempts += 1
+        return authenticationAttempts
+      }
+      if rejectFirstAuthentication && attempt == 1 {
+        throw RelayError(.permissionDenied, rejectionMessage)
+      }
+      return [
+        "accessToken": "new-device-access-token",
+        "websocketTicket": "new-device-websocket-ticket",
+      ]
+    case "bridge/workspaces/workspace-recovery/enrollments":
+      lock.withLock { enrollmentRequests += 1 }
+      guard accessToken == "signed-in-user-token" else {
+        throw RelayError(.permissionDenied, "Enrollment did not use the signed-in user token")
+      }
+      return ["code": "replacement-enrollment-code"]
+    case "bridge/enroll":
+      lock.withLock { enrollRequests += 1 }
+      return [
+        "device": ["id": "remote-new"],
+        "credentials": [
+          "devicePublicId": "public-new",
+          "deviceToken": "new-device-token",
+        ],
+      ]
+    case "bridge/execution-owner-leases/heartbeat", "bridge/runtime-model-catalog":
+      return [:]
+    default:
+      return [:]
+    }
+  }
+}
+
 private final class RecordingMarketplaceToolCloudTransport:
   RelayCloudTransport, @unchecked Sendable
 {
@@ -49993,6 +50661,20 @@ private final class RecordingMarketplaceToolCloudTransport:
 
   private let lock = NSLock()
   private var request: Request?
+  private let endpointBasePath: String
+  private let executionTransport: String
+  private let requiredAccessTokenFlag: String
+
+  init(
+    endpointBasePath: String =
+      "/api/v1/bridge/agents/{agentId}/marketplace-tools/jotform",
+    executionTransport: String = "clawchat_bridge_marketplace_tool",
+    requiredAccessTokenFlag: String = "requiresBridgeAccessToken"
+  ) {
+    self.endpointBasePath = endpointBasePath
+    self.executionTransport = executionTransport
+    self.requiredAccessTokenFlag = requiredAccessTokenFlag
+  }
 
   var lastRequest: Request? {
     lock.withLock { request }
@@ -50019,10 +50701,9 @@ private final class RecordingMarketplaceToolCloudTransport:
           "functionName": "jotform_create_form",
           "appSlug": "jotform",
           "execution": [
-            "transport": "clawchat_bridge_marketplace_tool",
-            "endpointBasePath":
-              "/api/v1/bridge/agents/{agentId}/marketplace-tools/jotform",
-            "requiresBridgeAccessToken": true,
+            "transport": executionTransport,
+            "endpointBasePath": endpointBasePath,
+            requiredAccessTokenFlag: true,
           ] as [String: Any],
         ] as [String: Any]],
       ]
@@ -50031,6 +50712,50 @@ private final class RecordingMarketplaceToolCloudTransport:
       "ok": true,
       "provider": "jotform",
     ]
+  }
+}
+
+private final class RefreshingMarketplaceToolCloudTransport:
+  RelayCloudTransport, @unchecked Sendable
+{
+  private let lock = NSLock()
+  private var recordedPostAccessTokens: [String] = []
+
+  var postAccessTokens: [String] {
+    lock.withLock { recordedPostAccessTokens }
+  }
+
+  func send(
+    method: String,
+    path: String,
+    body: [String: Any]?,
+    accessToken: String?
+  ) async throws -> [String: Any] {
+    if method == "GET" {
+      return [
+        "tools": [[
+          "name": "exa_search",
+          "functionName": "exa_search",
+          "appSlug": "exa-search",
+          "execution": [
+            "transport": "clawchat_control_plane_marketplace_tool",
+            "endpointBasePath":
+              "/api/v1/workspaces/remote-workspace/marketplace/agents/{agentId}/runtime-tools/exa-search",
+            "requiresUserAccessToken": true,
+          ] as [String: Any],
+        ] as [String: Any]],
+      ]
+    }
+    lock.withLock {
+      recordedPostAccessTokens.append(accessToken ?? "")
+    }
+    if accessToken == "expired-user-token" {
+      throw RelayError(.permissionDenied, "The signed-in Railway session expired.")
+    }
+    guard accessToken == "refreshed-user-token" else {
+      throw ServiceTestFailure("Railway tool retry used an unexpected token")
+    }
+    return ["ok": true]
   }
 }
 

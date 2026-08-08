@@ -360,6 +360,7 @@ private struct MarketplaceAppDetailView: View {
     @State private var replacingSavedCredentials = false
     @State private var installToRemove: MarketplaceInstall?
     @State private var connectionToDisconnect: MarketplaceConnection?
+    @State private var connectionToDelete: MarketplaceConnection?
     @State private var healthByConnectionId: [String: MarketplaceConnectorHealth] = [:]
 
     private var app: MarketplaceApp {
@@ -542,6 +543,16 @@ private struct MarketplaceAppDetailView: View {
                             if !requirement.helpText.isEmpty { Text(requirement.helpText).font(.caption).foregroundStyle(.secondary) }
                         }
                     }
+                    if let editingConnection = appConnections.first(where: { $0.id == editingConnectionId }),
+                       !usesOAuthAsPrimaryConnection {
+                        Section {
+                            Button("Delete connection", role: .destructive) {
+                                connectionToDelete = editingConnection
+                            }
+                        } footer: {
+                            Text("Relay will remove this connection and its agent assignments.")
+                        }
+                    }
                 }
                 .navigationTitle(editingConnectionId == nil ? "Connect \(app.name)" : "Edit \(app.name)")
                 .toolbar {
@@ -616,6 +627,28 @@ private struct MarketplaceAppDetailView: View {
             Button("Cancel", role: .cancel) { connectionToDisconnect = nil }
         } message: {
             Text("Relay will revoke provider access when supported and remove its stored credentials. Agent assignments remain in place but cannot use \(app.name) until you connect again.")
+        }
+        .confirmationDialog(
+            "Delete this connection?",
+            isPresented: Binding(
+                get: { connectionToDelete != nil },
+                set: { if !$0 { connectionToDelete = nil } }
+            )
+        ) {
+            Button("Delete connection", role: .destructive) {
+                guard let connection = connectionToDelete else { return }
+                connectionToDelete = nil
+                _Concurrency.Task {
+                    if await viewModel.delete(connection) {
+                        selectedConnectionId = appConnections.first { $0.id != connection.id }?.id
+                        editingConnectionId = nil
+                        showCredentialSheet = false
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) { connectionToDelete = nil }
+        } message: {
+            Text("Relay will delete this Railway connection and remove it from all assigned agents. Revoke the credential or authorization in the provider dashboard if you do not want it to remain valid.")
         }
         .alert("Marketplace", isPresented: Binding(get: { viewModel.error != nil }, set: { if !$0 { viewModel.error = nil } })) {
             Button("OK", role: .cancel) { viewModel.error = nil }
@@ -757,45 +790,34 @@ private struct MarketplaceAppDetailView: View {
                         .foregroundStyle(RelayColors.textSecondary)
                 }
             }
-            if !usesOAuthAsPrimaryConnection || !isConnected {
-                Button {
-                    if usesOAuthAsPrimaryConnection {
-                        beginOAuth()
-                        return
-                    }
-                    let connection = selectedConnection ?? preferredConnection
-                    editingConnectionId = connection?.requiresDeviceRuntime == false ? connection?.id : nil
-                    replacingSavedCredentials = editingConnectionId == nil
-                    displayName = connection?.requiresDeviceRuntime == false
-                        ? connection?.displayName ?? app.name
-                        : app.name
-                    credentials = Dictionary(
-                        uniqueKeysWithValues: activeCredentialRequirements.compactMap { requirement in
-                            guard let defaultValue = requirement.defaultValue else { return nil }
-                            return (requirement.name, defaultValue)
-                        }
-                    )
-                    showCredentialSheet = true
-                } label: {
-                    if usesOAuthAsPrimaryConnection && viewModel.actionInProgress {
-                        HStack(spacing: 7) {
-                            ProgressView().tint(.white)
-                            Text("Preparing secure sign-in…")
-                        }
-                    } else {
-                        Text(
-                            usesOAuthAsPrimaryConnection
-                                ? "Connect \(app.name)"
-                                : (appConnections.isEmpty || selectedConnectionRequiresDevice
-                                    ? "Connect \(app.name)"
-                                    : "Edit saved connection")
-                        )
-                    }
+            if usesOAuthAsPrimaryConnection {
+                if !isConnected {
+                    Button("Connect \(app.name)") { beginOAuth() }
+                        .font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
+                        .padding(.horizontal, RelaySpacing.md).padding(.vertical, 8)
+                        .background(RelayColors.accent).clipShape(RoundedRectangle(cornerRadius: 6))
+                        .disabled(!isAvailable || viewModel.actionInProgress)
                 }
+            } else {
+                HStack {
+                    Button("Create a new connection") {
+                        prepareNewConnection()
+                        showCredentialSheet = true
+                    }
                     .font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
                     .padding(.horizontal, RelaySpacing.md).padding(.vertical, 8)
                     .background(RelayColors.accent).clipShape(RoundedRectangle(cornerRadius: 6))
                     .disabled(!isAvailable || viewModel.actionInProgress)
+                    if let connection = selectedConnection ?? preferredConnection,
+                       !connection.requiresDeviceRuntime {
+                        Button("Edit") {
+                            prepareEditConnection(connection)
+                            showCredentialSheet = true
+                        }
+                        .font(.system(size: 12, weight: .semibold))
+                        .accessibilityLabel("Edit saved connection")
+                    }
+                }
             }
             if usesOAuthAsPrimaryConnection && viewModel.actionInProgress {
                 Text("Relay is asking \(app.name) to prepare a secure sign-in window. It will open automatically; this can take up to 20 seconds.")
@@ -1047,6 +1069,32 @@ private struct MarketplaceAppDetailView: View {
 
     private func credentialBinding(_ name: String) -> Binding<String> {
         Binding(get: { credentials[name, default: ""] }, set: { credentials[name] = $0 })
+    }
+
+    private func prepareNewConnection() {
+        editingConnectionId = nil
+        replacingSavedCredentials = true
+        displayName = app.name
+        authType = app.connectionTypes.first ?? "api_key"
+        credentials = Dictionary(
+            uniqueKeysWithValues: app.credentialRequirements.compactMap { requirement in
+                guard let defaultValue = requirement.defaultValue else { return nil }
+                return (requirement.name, defaultValue)
+            }
+        )
+    }
+
+    private func prepareEditConnection(_ connection: MarketplaceConnection) {
+        editingConnectionId = connection.id
+        replacingSavedCredentials = false
+        displayName = connection.displayName
+        authType = connection.authType
+        credentials = Dictionary(
+            uniqueKeysWithValues: app.credentialRequirements.compactMap { requirement in
+                guard let defaultValue = requirement.defaultValue else { return nil }
+                return (requirement.name, defaultValue)
+            }
+        )
     }
 
     private func capabilityBinding(_ id: String) -> Binding<Bool> {

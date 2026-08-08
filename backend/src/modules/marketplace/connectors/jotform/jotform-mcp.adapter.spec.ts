@@ -67,6 +67,42 @@ describe("JotformMcpAdapter", () => {
     );
   });
 
+  it("returns a bounded structured provider error message", async () => {
+    jest
+      .spyOn(global, "fetch")
+      .mockResolvedValueOnce(initialize())
+      .mockResolvedValueOnce(new Response(null, { status: 202 }))
+      .mockResolvedValueOnce(list())
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: 3,
+            result: {
+              isError: true,
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify({ message: "Authorization expired" }),
+                },
+              ],
+            },
+          }),
+          { status: 200 },
+        ),
+      );
+
+    await expect(
+      new JotformMcpAdapter().callRead("oauth-token", {
+        toolName: "form_list",
+        arguments: {},
+      }),
+    ).rejects.toMatchObject({
+      code: "provider_validation_error",
+      message: "Jotform MCP form_list failed: Authorization expired",
+    });
+  });
+
   it("registers a fresh public PKCE client for each authorization attempt", async () => {
     const fetchMock = jest
       .spyOn(global, "fetch")
@@ -174,7 +210,7 @@ describe("JotformMcpAdapter", () => {
   });
 
   it("accepts the documented read tools for a read-only grant", async () => {
-    jest
+    const fetchMock = jest
       .spyOn(global, "fetch")
       .mockResolvedValueOnce(initialize())
       .mockResolvedValueOnce(new Response(null, { status: 202 }))
@@ -194,9 +230,26 @@ describe("JotformMcpAdapter", () => {
                 "analyze_submissions",
               ].map((name) => ({
                 name,
-                inputSchema: { type: "object" },
+                inputSchema:
+                  name === "search"
+                    ? {
+                        type: "object",
+                        properties: { query: { type: "string" } },
+                        required: ["query"],
+                      }
+                    : { type: "object" },
               })),
             },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: 3,
+            result: { content: [{ type: "text", text: "[]" }] },
           }),
           { status: 200 },
         ),
@@ -210,6 +263,15 @@ describe("JotformMcpAdapter", () => {
       readToolCount: JOTFORM_MCP_READ_TOOLS.length,
       writeToolCount: 0,
     });
+    expect(JSON.parse(String(fetchMock.mock.calls[3][1]?.body))).toEqual(
+      expect.objectContaining({
+        method: "tools/call",
+        params: {
+          name: "search",
+          arguments: { query: "list accessible forms" },
+        },
+      }),
+    );
   });
 
   it("accepts Jotform's live full-scope tool surface", async () => {
@@ -236,6 +298,16 @@ describe("JotformMcpAdapter", () => {
                 inputSchema: { type: "object" },
               })),
             },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: 3,
+            result: { content: [{ type: "text", text: "[]" }] },
           }),
           { status: 200 },
         ),
@@ -298,6 +370,157 @@ describe("JotformMcpAdapter", () => {
           name: "search",
           arguments: { query: "active forms" },
         },
+      }),
+    );
+  });
+
+  it("adds the required query when form_list resolves to Jotform's live search tool", async () => {
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockResolvedValueOnce(initialize())
+      .mockResolvedValueOnce(new Response(null, { status: 202 }))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: 2,
+            result: {
+              tools: [
+                {
+                  name: "search",
+                  inputSchema: {
+                    type: "object",
+                    properties: { query: { type: "string" } },
+                    required: ["query"],
+                  },
+                },
+                {
+                  name: "get_submissions",
+                  inputSchema: { type: "object" },
+                },
+              ],
+            },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: 3,
+            result: { content: [{ type: "text", text: "form-42" }] },
+          }),
+          { status: 200 },
+        ),
+      );
+
+    await expect(
+      new JotformMcpAdapter().callRead("oauth-token", {
+        toolName: "form_list",
+        arguments: {},
+      }),
+    ).resolves.toEqual({ content: [{ type: "text", text: "form-42" }] });
+    expect(JSON.parse(String(fetchMock.mock.calls[3][1]?.body))).toEqual(
+      expect.objectContaining({
+        method: "tools/call",
+        params: {
+          name: "search",
+          arguments: { query: "list accessible forms" },
+        },
+      }),
+    );
+  });
+
+  it("maps the legacy query to Jotform's current required user_query", async () => {
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockResolvedValueOnce(initialize())
+      .mockResolvedValueOnce(new Response(null, { status: 202 }))
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: 2,
+            result: {
+              tools: [
+                {
+                  name: "search",
+                  inputSchema: {
+                    type: "object",
+                    properties: {
+                      user_query: { type: "string" },
+                      filter: { type: "object" },
+                      order_by: { type: "string" },
+                      limit: { type: "number" },
+                    },
+                    required: ["user_query"],
+                  },
+                },
+                {
+                  name: "get_submissions",
+                  inputSchema: { type: "object" },
+                },
+              ],
+            },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: 3,
+            result: { content: [{ type: "text", text: "form-42" }] },
+          }),
+          { status: 200 },
+        ),
+      );
+
+    await expect(
+      new JotformMcpAdapter().callRead("oauth-token", {
+        toolName: "form_list",
+        arguments: { query: "active forms" },
+      }),
+    ).resolves.toEqual({ content: [{ type: "text", text: "form-42" }] });
+    expect(JSON.parse(String(fetchMock.mock.calls[3][1]?.body))).toEqual(
+      expect.objectContaining({
+        method: "tools/call",
+        params: {
+          name: "search",
+          arguments: { user_query: "active forms" },
+        },
+      }),
+    );
+  });
+
+  it("accepts the documented user.forms.list operation alias", async () => {
+    const fetchMock = jest
+      .spyOn(global, "fetch")
+      .mockResolvedValueOnce(initialize())
+      .mockResolvedValueOnce(new Response(null, { status: 202 }))
+      .mockResolvedValueOnce(list())
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: 3,
+            result: { content: [{ type: "text", text: "form-42" }] },
+          }),
+          { status: 200 },
+        ),
+      );
+
+    await expect(
+      new JotformMcpAdapter().callRead("oauth-token", {
+        operation: "user.forms.list",
+      }),
+    ).resolves.toEqual({ content: [{ type: "text", text: "form-42" }] });
+    expect(JSON.parse(String(fetchMock.mock.calls[3][1]?.body))).toEqual(
+      expect.objectContaining({
+        method: "tools/call",
+        params: { name: "form_list", arguments: {} },
       }),
     );
   });

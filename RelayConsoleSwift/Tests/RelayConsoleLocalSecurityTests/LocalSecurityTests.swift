@@ -12,6 +12,7 @@ enum RelayConsoleLocalSecurityTests {
         try testDatabaseModesArePrivate()
         try testSecretContinuityAcrossServiceReopen()
         try testProductionKeychainUsesModernStableAttributes()
+        try await testRelayHostRequiresAReadyConnectedWorkspace()
         try testExternalArtifactURLPolicy()
         try testExternalArtifactSourceBoundary()
         try await testProcessRunnerRejectsPathAndUnknownExecutables()
@@ -175,6 +176,89 @@ enum RelayConsoleLocalSecurityTests {
         for deprecated in ["SecTrustedApplicationCreateFromPath", "SecAccessCreate", "kSecAttrAccess as String"] {
             try expect(!source.contains(deprecated), "deprecated per-binary Keychain ACL remains: \(deprecated)")
         }
+    }
+
+    private static func testRelayHostRequiresAReadyConnectedWorkspace() async throws {
+        let root = temporaryRoot("relay-host-health")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let paths = try AppPathsService(basePath: root).ensure()
+        let statusURL = RelayHostServiceManager.statusURL(paths: paths)
+        try FileManager.default.createDirectory(
+            at: statusURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        let pid = Int32(ProcessInfo.processInfo.processIdentifier)
+        let executable = root.appendingPathComponent("RelayHostService")
+        try Data("first host build".utf8).write(to: executable)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o700],
+            ofItemAtPath: executable.path
+        )
+        let manager = RelayHostServiceManager(
+            paths: paths,
+            executableURL: executable
+        )
+        guard let executableIdentity = RelayHostServiceManager.executableIdentity(at: executable)
+        else {
+            throw LocalSecurityTestFailure(
+                description: "host executable identity was unavailable"
+            )
+        }
+        try Data("first host build".utf8).write(to: executable)
+        try expect(
+            RelayHostServiceManager.executableIdentity(at: executable) == executableIdentity,
+            "an unchanged Relay Host binary received a new executable identity"
+        )
+
+        func writeStatus(
+            state: String,
+            connectedWorkspaceCount: Int,
+            executableIdentity: String? = nil
+        ) throws {
+            let status = RelayHostDaemonStatus(
+                state: state,
+                pid: pid,
+                connectedWorkspaceCount: connectedWorkspaceCount,
+                updatedAt: ISO8601DateFormatter.relayConsole.string(from: Date()),
+                lastError: state == "recovering" ? "retrying" : nil,
+                executableIdentity: executableIdentity
+            )
+            try JSONEncoder().encode(status).write(to: statusURL, options: .atomic)
+        }
+
+        try writeStatus(
+            state: "recovering",
+            connectedWorkspaceCount: 1,
+            executableIdentity: executableIdentity
+        )
+        try expect(!manager.isHealthy(), "a recovering Relay Host claimed connection ownership")
+        try expect(manager.isActiveOwner(), "a recovering Relay Host was not kept as the active owner")
+        let preservedExistingOwner = await manager.ensureRunning()
+        try expect(
+            preservedExistingOwner,
+            "automatic recovery did not preserve the existing Relay Host owner"
+        )
+        try writeStatus(state: "starting", connectedWorkspaceCount: 0)
+        try expect(manager.isActiveOwner(), "a starting Relay Host was not kept as the active owner")
+        try writeStatus(state: "ready", connectedWorkspaceCount: 0)
+        try expect(!manager.isHealthy(), "a zero-connection Relay Host claimed connection ownership")
+        try expect(manager.isActiveOwner(), "a ready Relay Host was not kept as the active owner")
+        try writeStatus(state: "ready", connectedWorkspaceCount: 1)
+        try expect(manager.isHealthy(), "a ready connected Relay Host did not claim ownership")
+        try writeStatus(
+            state: "ready",
+            connectedWorkspaceCount: 1,
+            executableIdentity: executableIdentity
+        )
+        try expect(
+            manager.isCurrentOwner(executable: executable),
+            "the current Relay Host executable was treated as stale"
+        )
+        try Data("second and different host build".utf8).write(to: executable)
+        try expect(
+            !manager.isCurrentOwner(executable: executable),
+            "a replaced Relay Host executable was not detected"
+        )
     }
 
     private static func testProcessRunnerRejectsPathAndUnknownExecutables() async throws {

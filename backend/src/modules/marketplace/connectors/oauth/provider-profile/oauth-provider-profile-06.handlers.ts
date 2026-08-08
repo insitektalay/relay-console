@@ -14,16 +14,19 @@ const oauthProviderProfileHandler135: OAuthProviderProfileHandler =
     _providerSession,
     _tokenResponse,
   ) {
-    const response = await safeConnectorFetch("https://reflect.app/api/users/me", {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${accessToken}`,
+    const response = await safeConnectorFetch(
+      "https://reflect.app/api/users/me",
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
+        cache: "no-store",
       },
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-      cache: "no-store",
-    });
+    );
     const body = (await response.json().catch(() => ({}))) as Record<
       string,
       unknown
@@ -42,15 +45,18 @@ const oauthProviderProfileHandler136: OAuthProviderProfileHandler =
     _providerSession,
     _tokenResponse,
   ) {
-    const response = await safeConnectorFetch("https://api.raindrop.io/rest/v1/user", {
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${accessToken}`,
+    const response = await safeConnectorFetch(
+      "https://api.raindrop.io/rest/v1/user",
+      {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        redirect: "error",
+        signal: AbortSignal.timeout(20000),
+        cache: "no-store",
       },
-      redirect: "error",
-      signal: AbortSignal.timeout(20000),
-      cache: "no-store",
-    });
+    );
     const body = (await response.json().catch(() => ({}))) as Record<
       string,
       unknown
@@ -109,15 +115,18 @@ const oauthProviderProfileHandler138: OAuthProviderProfileHandler =
     _providerSession,
     _tokenResponse,
   ) {
-    const response = await safeConnectorFetch("https://api.getguru.com/api/v1/teams", {
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${accessToken}`,
+    const response = await safeConnectorFetch(
+      "https://api.getguru.com/api/v1/teams",
+      {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
+        cache: "no-store",
       },
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-      cache: "no-store",
-    });
+    );
     const teams = (await response.json().catch(() => [])) as unknown;
     if (
       !response.ok ||
@@ -139,15 +148,18 @@ const oauthProviderProfileHandler139: OAuthProviderProfileHandler =
     _providerSession,
     _tokenResponse,
   ) {
-    const response = await safeConnectorFetch("https://api.resourceguruapp.com/v1/me", {
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${accessToken}`,
+    const response = await safeConnectorFetch(
+      "https://api.resourceguruapp.com/v1/me",
+      {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
+        cache: "no-store",
       },
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-      cache: "no-store",
-    });
+    );
     const body = (await response.json().catch(() => ({}))) as Record<
       string,
       unknown
@@ -179,15 +191,18 @@ const oauthProviderProfileHandler140: OAuthProviderProfileHandler =
     _providerSession,
     _tokenResponse,
   ) {
-    const response = await safeConnectorFetch("https://api.timelyapp.com/1.1/accounts", {
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${accessToken}`,
+    const response = await safeConnectorFetch(
+      "https://api.timelyapp.com/1.1/accounts",
+      {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
+        cache: "no-store",
       },
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-      cache: "no-store",
-    });
+    );
     const body = (await response.json().catch(() => [])) as unknown;
     const accounts = (
       Array.isArray(body)
@@ -284,16 +299,19 @@ const oauthProviderProfileHandler142: OAuthProviderProfileHandler =
     _providerSession,
     _tokenResponse,
   ) {
-    const response = await safeConnectorFetch("https://api.hubstaff.com/v2/users/me", {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${accessToken}`,
+    const response = await safeConnectorFetch(
+      "https://api.hubstaff.com/v2/users/me",
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        redirect: "error",
+        signal: AbortSignal.timeout(20_000),
+        cache: "no-store",
       },
-      redirect: "error",
-      signal: AbortSignal.timeout(20_000),
-      cache: "no-store",
-    });
+    );
     const body = (await response.json().catch(() => ({}))) as Record<
       string,
       unknown
@@ -499,6 +517,15 @@ const oauthProviderProfileHandler164: OAuthProviderProfileHandler =
     );
   };
 
+const oauthProviderProfileHandler165: OAuthProviderProfileHandler =
+  async function (
+    this: MarketplaceConnectorOAuthService,
+    _appSlug,
+    accessToken,
+  ) {
+    return this.craftMcp.health(accessToken);
+  };
+
 const oauthProviderProfileHandler157: OAuthProviderProfileHandler =
   async function (
     this: MarketplaceConnectorOAuthService,
@@ -697,6 +724,7 @@ export const OAuthProviderProfileHandlers06: OAuthProviderProfileHandlerMap =
     whimsical: oauthProviderProfileHandler155,
     "cognito-forms": oauthProviderProfileHandler156,
     jotform: oauthProviderProfileHandler164,
+    craft: oauthProviderProfileHandler165,
     xmind: oauthProviderProfileHandler157,
     "adobe-analytics": oauthProviderProfileHandler158,
     cloudinary: oauthProviderProfileHandler159,

@@ -5099,6 +5099,69 @@ export class MarketplaceService {
     return this.toConnectionView(saved);
   }
 
+  async deleteConnection(
+    workspaceId: string,
+    connectionId: string,
+    userId: string,
+  ) {
+    const connection = await this.getConnectionEntity(
+      workspaceId,
+      connectionId,
+    );
+    const installs = await this.marketplaceInstallRepo.find({
+      where: { workspaceId, connectionId },
+    });
+    const removedAt = new Date().toISOString();
+    for (const install of installs) {
+      install.connectionId = null;
+      install.installStatus = "removed";
+      install.driftStatus = "unconfigured";
+      install.metadata = {
+        ...(install.metadata ?? {}),
+        removedAt,
+        removedByUserId: userId,
+        removalReason: "connection_deleted",
+        runtimeCleanup: "not_performed",
+        runtimeCleanupNote:
+          "ClawChat removed the Railway assignment. Runtime files and local skill folders were not deleted.",
+      };
+      await this.marketplaceInstallRepo.save(install);
+      await this.auditLogService.record({
+        actorType: "user",
+        actorId: userId,
+        workspaceId,
+        eventType: "marketplace.install.unconfigured",
+        resourceType: "marketplace_install",
+        resourceId: install.id,
+        metadata: {
+          appSlug: install.appSlug,
+          agentId: install.agentId,
+          removalReason: "connection_deleted",
+        },
+      });
+    }
+    await this.connectionRepo.remove(connection);
+    await this.auditLogService.record({
+      actorType: "user",
+      actorId: userId,
+      workspaceId,
+      eventType: "marketplace.connection.deleted",
+      resourceType: "marketplace_connection",
+      resourceId: connection.id,
+      metadata: {
+        appSlug: connection.appSlug,
+        encryptedCredentialDeleted: true,
+        removedInstallIds: installs.map((install) => install.id),
+      },
+    });
+    return {
+      id: connection.id,
+      appSlug: connection.appSlug,
+      deleted: true,
+      removedInstallIds: installs.map((install) => install.id),
+    };
+  }
+
   private safeCredentialVerificationErrorCode(value?: string | null) {
     const allowed = new Set([
       "credential_missing",

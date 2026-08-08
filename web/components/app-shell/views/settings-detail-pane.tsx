@@ -1,25 +1,28 @@
 "use client"
+import { useRef } from "react"
 import type { OpenClawIntegrationStatus } from "@clawchat/contracts"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { CreditCard, Download, RefreshCcw, Trash2 } from "lucide-react"
+import { CreditCard, Download, Pencil, RefreshCcw, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import {
   CompactNotice,
   LabeledField,
 } from "@/components/shared/relay-compact-fields"
-import { relativeTime } from "@/lib/relay-presentation-utils"
+import { initials, relativeTime } from "@/lib/relay-presentation-utils"
 import { PaperclipIntegrationCard } from "@/components/integrations/paperclip-integration-card"
 import { EmptyState } from "@/components/shared/empty-state"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { RelayConsoleController } from "@/components/clawchat-web-app"
 import { RelayConsoleBridgePairingPanel } from "@/components/app-shell/views/bridge-pairing-panel"
 import { RelayConsoleBridgeInstallPanel } from "@/components/app-shell/views/bridge-install-panel"
 import { RelayConsoleExistingAgentsPanel } from "@/components/app-shell/views/existing-agents-panel"
 import { sdk } from "@/lib/sdk"
 import { appConfig } from "@/lib/config"
+import { getCurrentUserAvatarUrl } from "@/lib/current-user-avatar"
 
 function SettingsBillingSection({
   controller,
@@ -738,6 +741,7 @@ export function RelayConsoleSettingsDetailPane({
 }: {
   controller: RelayConsoleController
 }) {
+  const profileNameInputRef = useRef<HTMLInputElement>(null)
   const {
     APP_THEME_STORAGE_KEY,
     DetailCard,
@@ -835,39 +839,171 @@ export function RelayConsoleSettingsDetailPane({
     case "account":
       return (
         <DetailCard
-          title="Account"
+          title="Profile"
           subtitle="Manage the profile details shown across your workspace."
-        >
-          <div className="space-y-6">
-            <div className="rounded-[4px] border border-[color-mix(in_srgb,var(--claw-border)_34%,transparent)] bg-[var(--claw-bg-surface)] p-4">
-              <div className="mb-4 text-sm font-medium text-zinc-100">
+          headerLeft={
+            <div>
+              <div className="claw-title-detail font-semibold tracking-[-0.03em]">
                 Profile
               </div>
-              <div className="space-y-4">
-                <LabeledField label="Name">
+              <p className="mission-subtle mt-1">Shown in chats and reports.</p>
+            </div>
+          }
+        >
+          <div className="space-y-6">
+            <section aria-label="Profile display" className="pb-2">
+              <div className="mx-auto flex w-full max-w-xl flex-col items-center">
+                <div className="relative flex size-72 items-center justify-center sm:size-80">
+                  <svg
+                    aria-hidden="true"
+                    className="absolute inset-0 size-full"
+                    viewBox="0 0 320 320"
+                  >
+                    <defs>
+                      <linearGradient
+                        id="profile-orbit"
+                        x1="34"
+                        y1="48"
+                        x2="286"
+                        y2="272"
+                      >
+                        <stop offset="0" stopColor="#6d38a5" />
+                        <stop offset="0.48" stopColor="#316fca" />
+                        <stop offset="1" stopColor="#43d6bc" />
+                      </linearGradient>
+                    </defs>
+                    <circle
+                      cx="160"
+                      cy="144"
+                      r="126"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      className="text-white/[0.035]"
+                    />
+                    <circle
+                      cx="160"
+                      cy="144"
+                      r="110"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      className="text-white/[0.06]"
+                    />
+                    <circle
+                      cx="160"
+                      cy="144"
+                      r="92"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                      className="text-white/[0.045]"
+                    />
+                    <path
+                      d="M55 111a110 110 0 0 1 206 76"
+                      fill="none"
+                      stroke="url(#profile-orbit)"
+                      strokeLinecap="round"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M78 222a110 110 0 0 0 183-35"
+                      fill="none"
+                      stroke="url(#profile-orbit)"
+                      strokeLinecap="round"
+                      strokeWidth="1.5"
+                    />
+                    <circle cx="55" cy="111" r="7" fill="#4967aa" />
+                    <circle cx="241" cy="69" r="5" fill="#367bd5" />
+                    <circle cx="270" cy="142" r="8" fill="#7141b0" />
+                    <circle cx="247" cy="226" r="6" fill="#55ddc5" />
+                    <rect
+                      x="84"
+                      y="218"
+                      width="7"
+                      height="7"
+                      rx="2"
+                      fill="#6547c5"
+                      transform="rotate(18 87.5 221.5)"
+                    />
+                  </svg>
+
+                  <Avatar className="size-28 border border-white/10 bg-[var(--claw-bg-surface)] shadow-[0_18px_48px_rgba(0,0,0,0.45)] after:border-white/10 sm:size-32">
+                    <AvatarImage
+                      alt={authenticatedUser.name}
+                      src={getCurrentUserAvatarUrl(authenticatedUser)}
+                    />
+                    <AvatarFallback className="claw-title-pane bg-[var(--claw-bg-elevated)] text-zinc-300">
+                      {initials(authenticatedUser.name)}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="absolute bottom-3 flex items-center gap-4">
+                    <button
+                      aria-label="Edit display name"
+                      className="flex size-11 items-center justify-center rounded-full border border-violet-500/45 bg-[var(--claw-bg-surface)] text-zinc-300 shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-colors hover:border-violet-400/70 hover:text-white focus-visible:ring-2 focus-visible:ring-violet-400/60 focus-visible:outline-none"
+                      onClick={() => profileNameInputRef.current?.focus()}
+                      type="button"
+                    >
+                      <Pencil className="size-4" />
+                    </button>
+                    <button
+                      aria-label="Discard display name changes"
+                      className="flex size-11 items-center justify-center rounded-full border border-teal-400/35 bg-[var(--claw-bg-surface)] text-zinc-300 shadow-[0_8px_24px_rgba(0,0,0,0.35)] transition-colors focus-visible:ring-2 focus-visible:ring-teal-300/50 focus-visible:outline-none enabled:hover:border-teal-300/65 enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                      disabled={
+                        settingsUserNameDraft === authenticatedUser.name
+                      }
+                      onClick={() =>
+                        setSettingsUserNameDraft(authenticatedUser.name)
+                      }
+                      type="button"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-5 w-full rounded-[10px] bg-gradient-to-r from-violet-600/70 via-blue-500/55 to-cyan-400/65 p-px shadow-[0_10px_32px_rgba(0,0,0,0.24)]">
                   <Input
+                    aria-label="Display name"
+                    className="h-12 rounded-[9px] border-0 bg-[var(--claw-bg-page)] px-4 font-medium focus-visible:border-0"
+                    id="profile-display-name-input"
+                    ref={profileNameInputRef}
                     value={settingsUserNameDraft}
                     onChange={(event) =>
                       setSettingsUserNameDraft(event.target.value)
                     }
+                    onKeyDown={(event) => {
+                      if (
+                        event.key === "Enter" &&
+                        settingsUserNameDraft.trim() &&
+                        settingsUserNameDraft.trim() !==
+                          authenticatedUser.name &&
+                        !profileUpdateMutation.isPending
+                      ) {
+                        profileUpdateMutation.mutate()
+                      }
+                    }}
                   />
-                </LabeledField>
-                <div className="flex justify-end">
-                  <Button
-                    disabled={
-                      profileUpdateMutation.isPending ||
-                      !settingsUserNameDraft.trim() ||
-                      settingsUserNameDraft.trim() === authenticatedUser.name
-                    }
-                    onClick={() => profileUpdateMutation.mutate()}
-                  >
-                    {profileUpdateMutation.isPending
-                      ? "Saving..."
-                      : "Save name"}
-                  </Button>
+                </div>
+                <div className="mt-3 flex min-h-8 w-full justify-end">
+                  {profileUpdateMutation.isPending ||
+                  settingsUserNameDraft.trim() !== authenticatedUser.name ? (
+                    <Button
+                      disabled={
+                        profileUpdateMutation.isPending ||
+                        !settingsUserNameDraft.trim()
+                      }
+                      onClick={() => profileUpdateMutation.mutate()}
+                    >
+                      {profileUpdateMutation.isPending
+                        ? "Saving..."
+                        : "Save name"}
+                    </Button>
+                  ) : null}
                 </div>
               </div>
-            </div>
+            </section>
             <div className="rounded-[4px] border border-[color-mix(in_srgb,var(--claw-border)_34%,transparent)] bg-[var(--claw-bg-surface)] p-4">
               <div className="mb-1 text-sm font-medium text-zinc-100">
                 Change email

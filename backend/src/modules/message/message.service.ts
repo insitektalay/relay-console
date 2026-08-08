@@ -811,7 +811,7 @@ export class MessageService {
         "When you finish work delegated by another agent, you MUST publish the result, deliverable, or blocker and include that delegating agent in the structured mentions list. This applies to completed work only. Do not mention the delegator merely to accept the assignment, confirm receipt, or close a conversational loop. If you have nothing substantive to report yet, publish nothing and report when you do.",
         "Never publish a bare acknowledgement. A message whose only content confirms, accepts, agrees, aligns, signs off, says you are standing by, or announces your own silence adds nothing and can retrigger mentioned agents. If your draft contains nothing beyond acknowledgement, publish nothing.",
         triggeringSender?.isAgent && triggeringSender.id
-          ? `This turn was triggered by ${JSON.stringify(triggeringSender.name ?? "another agent")} (Relay agent ID ${triggeringSender.id}). When the delegated work is complete or blocked, include exactly that agent ID in relay_publish_message.mentions so the delegator receives the callback.`
+          ? `This turn was triggered by ${JSON.stringify(triggeringSender.name ?? "another agent")} (Relay agent ID ${triggeringSender.id}). If that message assigns you work, include exactly that agent ID in relay_publish_message.mentions when the work is complete or blocked. If it instead reports work that you assigned to them, do not mention them merely to acknowledge the callback; publish your synthesis with an empty mentions list unless you are deliberately assigning new work.`
           : null,
       ]
         .filter(Boolean)
@@ -845,13 +845,13 @@ export class MessageService {
     if (thread.status === "archived") {
       throw new ConflictException("Thread is archived");
     }
-    const activeSession = await this.threadSessionService.ensureActiveSession(
-      thread,
-    );
+    const activeSession =
+      await this.threadSessionService.ensureActiveSession(thread);
     if (activeSession.id !== dispatch.threadSessionId) {
       throw new ConflictException("Thread session is no longer active");
     }
-    const content = typeof input.content === "string" ? input.content.trim() : "";
+    const content =
+      typeof input.content === "string" ? input.content.trim() : "";
     if (!content || content.length > MAX_TEAM_PUBLISH_CONTENT_LENGTH) {
       throw new BadRequestException("Published message content is invalid");
     }
@@ -877,7 +877,8 @@ export class MessageService {
     const requestedMentionIds = Array.from(
       new Set(
         rawMentions.map((mention) =>
-          mention && typeof mention === "object" &&
+          mention &&
+          typeof mention === "object" &&
           typeof (mention as Record<string, unknown>).agentId === "string"
             ? ((mention as Record<string, unknown>).agentId as string).trim()
             : "",
@@ -1115,9 +1116,12 @@ export class MessageService {
         installMetadata: install.metadata ?? {},
       });
       const connectorToolReason =
-        install.appSlug === "x" && !connectorTools.length
-          ? this.describeXToolEligibility(connection)
-          : null;
+        install.metadata?.providerActionPolicyPreset === "blocked" &&
+        !connectorTools.length
+          ? "agent_authority_blocked"
+          : install.appSlug === "x" && !connectorTools.length
+            ? this.describeXToolEligibility(connection)
+            : null;
       const approvalRequiredCapabilities =
         this.approvalRequiredCapabilitiesForTools(connectorTools);
       const effectiveAutonomyPolicy =
@@ -1227,6 +1231,44 @@ export class MessageService {
 
     const tools = installedApplications.flatMap(
       (application) => application.connectorTools ?? [],
+    );
+    const marketplaceRuntimeFailures = installedApplications.flatMap(
+      (application) => {
+        const usesRailwayConnector =
+          application.appSlug === "x" ||
+          Boolean(this.marketplaceConnectorRegistry.get(application.appSlug));
+        if (application.connectorToolReason === "agent_authority_blocked") {
+          return [];
+        }
+        if (!usesRailwayConnector || application.connectorTools.length > 0) {
+          return [];
+        }
+        if (!application.connectionLayer.id) {
+          return [
+            {
+              appSlug: application.appSlug,
+              code: "RAILWAY_ASSIGNMENT_MISSING",
+              message: `${application.appSlug} has no Railway connection for this assignment.`,
+            },
+          ];
+        }
+        if (application.connectionLayer.status !== "ready") {
+          return [
+            {
+              appSlug: application.appSlug,
+              code: "RAILWAY_CREDENTIALS_REQUIRED",
+              message: `${application.appSlug} must be reconnected on Railway before its tools can run.`,
+            },
+          ];
+        }
+        return [
+          {
+            appSlug: application.appSlug,
+            code: "RAILWAY_TOOL_DELIVERY_FAILED",
+            message: `${application.appSlug} is ready on Railway, but Railway produced no callable tools for this assignment.`,
+          },
+        ];
+      },
     );
     this.logger.log(
       JSON.stringify({
@@ -1361,6 +1403,9 @@ export class MessageService {
       },
     );
     return {
+      marketplaceRuntimeFailures,
+      marketplaceTools: tools,
+      availableMarketplaceTools: tools,
       marketplaceRuntimeContext: {
         agentId,
         installedApplications: compactInstalledApplications,
@@ -1727,6 +1772,21 @@ export class MessageService {
       : [];
   }
 
+  private firstMarketplaceRuntimeFailure(
+    context: Record<string, unknown>,
+  ): { code: string; message: string } | null {
+    const failures = Array.isArray(context.marketplaceRuntimeFailures)
+      ? context.marketplaceRuntimeFailures
+      : [];
+    const failure = failures.find(
+      (entry) => entry && typeof entry === "object" && !Array.isArray(entry),
+    ) as Record<string, unknown> | undefined;
+    if (!failure) return null;
+    const code = this.stringOrNull(failure.code);
+    const message = this.stringOrNull(failure.message);
+    return code && message ? { code, message } : null;
+  }
+
   private buildMarketplaceConnectorTools(input: {
     workspaceId: string;
     appSlug: string;
@@ -2027,6 +2087,14 @@ export class MessageService {
     });
     const descriptors = toolStates
       .filter((state) => state.installSelected && state.providerSelected)
+      .filter((state) => {
+        const preset = this.stringOrNull(
+          input.installMetadata?.providerActionPolicyPreset,
+        );
+        if (preset === "blocked") return false;
+        if (preset === "read_only") return state.tool.action === "read";
+        return true;
+      })
       .map(({ tool }) => {
         const approvalSkippable =
           tool.approvalRequired &&
@@ -2387,7 +2455,10 @@ export class MessageService {
         : apiMetadata.localappconnectorOpenClawStatus &&
             typeof apiMetadata.localappconnectorOpenClawStatus === "object" &&
             !Array.isArray(apiMetadata.localappconnectorOpenClawStatus)
-          ? (apiMetadata.localappconnectorOpenClawStatus as Record<string, unknown>)
+          ? (apiMetadata.localappconnectorOpenClawStatus as Record<
+              string,
+              unknown
+            >)
           : {};
     const endpointBasePath = `/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/${input.appSlug}`;
     const dedicatedEndpointBasePath = `/api/v1/bridge/runtime-dispatches/{dispatchId}/marketplace-tools/localappconnector-agent-api/${input.appSlug}`;
@@ -2444,9 +2515,18 @@ export class MessageService {
       },
     };
     const aliases = [
-      { name: "localappconnector.agentApi", functionName: "localappconnector_agent_api" },
-      { name: "localappconnector_agent_api", functionName: "localappconnector_agent_api" },
-      { name: "localappconnector-agent-api", functionName: "localappconnector_agent_api" },
+      {
+        name: "localappconnector.agentApi",
+        functionName: "localappconnector_agent_api",
+      },
+      {
+        name: "localappconnector_agent_api",
+        functionName: "localappconnector_agent_api",
+      },
+      {
+        name: "localappconnector-agent-api",
+        functionName: "localappconnector_agent_api",
+      },
       { name: "agentApi", functionName: "localappconnector_agent_api" },
     ];
     return aliases.map((alias) => ({
@@ -3156,7 +3236,37 @@ export class MessageService {
       }
 
       if (liveBridgeTargets.length) {
+        const dispatchedBridgeAgentIds: string[] = [];
         for (const target of liveBridgeTargets) {
+          const marketplaceContext =
+            await this.buildAgentMarketplaceRuntimeContext(
+              thread.workspaceId,
+              target.agentId,
+            );
+          const marketplaceFailure =
+            this.firstMarketplaceRuntimeFailure(marketplaceContext);
+          if (marketplaceFailure) {
+            await this.sendSystemMessage(
+              thread.id,
+              `${target.agentName}: ${marketplaceFailure.code}: ${marketplaceFailure.message}`,
+            );
+            continue;
+          }
+          const agentRuntimeContext = this.buildTeamPublishRuntimeContext(
+            thread,
+            effectiveAgents,
+            marketplaceContext,
+            target.agentId,
+            {
+              id: saved.senderId,
+              name: saved.senderName,
+              isAgent:
+                !saved.isFromUser &&
+                effectiveAgents.some(
+                  (candidate) => candidate.id === saved.senderId,
+                ),
+            },
+          );
           this.eventsGateway.emitToBridgeAgents(
             thread.workspaceId,
             [target.externalAgentId],
@@ -3181,15 +3291,19 @@ export class MessageService {
                 target.responsePresentation,
               ),
               ...outboundContext,
+              ...agentRuntimeContext,
             },
           );
+          dispatchedBridgeAgentIds.push(target.agentId);
         }
 
-        this.eventsGateway.emitAgentTyping(
-          thread.id,
-          liveBridgeTargets.map((target) => target.agentId),
-          true,
-        );
+        if (dispatchedBridgeAgentIds.length) {
+          this.eventsGateway.emitAgentTyping(
+            thread.id,
+            dispatchedBridgeAgentIds,
+            true,
+          );
+        }
       }
     }
 
@@ -3220,14 +3334,31 @@ export class MessageService {
       if (!dispatchOutcome.created) {
         continue;
       }
-      const claudeRuntimeContext = this.buildTeamPublishRuntimeContext(
-        thread,
-        effectiveAgents,
+      const claudeMarketplaceContext =
         await this.buildAgentMarketplaceRuntimeContext(
           thread.workspaceId,
           agent.id,
           dispatchOutcome.dispatch.id,
-        ),
+        );
+      const claudeMarketplaceFailure = this.firstMarketplaceRuntimeFailure(
+        claudeMarketplaceContext,
+      );
+      if (claudeMarketplaceFailure) {
+        await this.claudeService.markDispatchFailed({
+          dispatchId: dispatchOutcome.dispatch.id,
+          errorCode: claudeMarketplaceFailure.code,
+          errorMessage: claudeMarketplaceFailure.message,
+        });
+        await this.sendSystemMessage(
+          thread.id,
+          `${agent.name}: ${claudeMarketplaceFailure.code}: ${claudeMarketplaceFailure.message}`,
+        );
+        continue;
+      }
+      const claudeRuntimeContext = this.buildTeamPublishRuntimeContext(
+        thread,
+        effectiveAgents,
+        claudeMarketplaceContext,
         agent.id,
         {
           id: saved.senderId,
@@ -3336,17 +3467,34 @@ export class MessageService {
         timeoutAt: new Date(Date.now() + timeoutMs),
       });
 
+      const marketplaceContext = await this.buildAgentMarketplaceRuntimeContext(
+        thread.workspaceId,
+        agent.id,
+        dispatch.id,
+        this.resolveNativeRuntimeToolNames(runtimeBinding),
+      );
+      const marketplaceFailure =
+        this.firstMarketplaceRuntimeFailure(marketplaceContext);
+      if (marketplaceFailure) {
+        await this.runtimeDispatchCoordinator.failDispatchById({
+          dispatchId: dispatch.id,
+          code: marketplaceFailure.code,
+          message: marketplaceFailure.message,
+          retryable: true,
+        });
+        await this.sendSystemMessage(
+          thread.id,
+          `${agent.name}: ${marketplaceFailure.code}: ${marketplaceFailure.message}`,
+        );
+        continue;
+      }
+
       this.eventsGateway.emitAgentTyping(thread.id, [agent.id], true);
 
       const agentRuntimeContext = this.buildTeamPublishRuntimeContext(
         thread,
         effectiveAgents,
-        await this.buildAgentMarketplaceRuntimeContext(
-          thread.workspaceId,
-          agent.id,
-          dispatch.id,
-          this.resolveNativeRuntimeToolNames(runtimeBinding),
-        ),
+        marketplaceContext,
         agent.id,
         {
           id: saved.senderId,
@@ -3595,11 +3743,7 @@ export class MessageService {
             (value): value is string => typeof value === "string",
           )
         : undefined;
-      await this.routeMessageToAgents(
-        thread,
-        pending,
-        pendingMentionIds,
-      );
+      await this.routeMessageToAgents(thread, pending, pendingMentionIds);
       const routedMetadata = {
         ...(pending.metadata ?? {}),
         teamRelayRoutingState: "routed",

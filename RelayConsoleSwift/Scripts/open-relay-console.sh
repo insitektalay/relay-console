@@ -95,6 +95,7 @@ FRAMEWORKS_DIR="$CONTENTS_DIR/Frameworks"
 LAUNCHER_NAME="Relay Console Launcher"
 RUNTIME_NAME="Relay Console.bin"
 BRIDGE_NAME="RelayMarketplaceToolBridge"
+HOST_NAME="RelayHostService"
 RESOURCE_BUNDLE_GLOB="RelayConsoleSwift_*.bundle"
 SPARKLE_FRAMEWORK_SOURCE="$ROOT_DIR/.build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
 SPARKLE_FRAMEWORK_DESTINATION="$FRAMEWORKS_DIR/Sparkle.framework"
@@ -233,10 +234,12 @@ install_sparkle_framework() {
 run_swift_build_once() {
   if [[ "$CONFIGURATION" == "release" ]]; then
     swift build --jobs 2 -c release --product "Relay Console" || return $?
-    swift build --jobs 2 -c release --product "$BRIDGE_NAME"
+    swift build --jobs 2 -c release --product "$BRIDGE_NAME" || return $?
+    swift build --jobs 2 -c release --product "$HOST_NAME"
   else
     swift build --jobs 2 --product "Relay Console" || return $?
-    swift build --jobs 2 --product "$BRIDGE_NAME"
+    swift build --jobs 2 --product "$BRIDGE_NAME" || return $?
+    swift build --jobs 2 --product "$HOST_NAME"
   fi
 }
 
@@ -289,6 +292,15 @@ find_built_bridge() {
   find "$ROOT_DIR/.build" -path "*/$CONFIGURATION/$BRIDGE_NAME" -type f -perm -111 | head -n 1
 }
 
+find_built_host() {
+  local executable="$ROOT_DIR/.build/$CONFIGURATION/$HOST_NAME"
+  if [[ -x "$executable" ]]; then
+    printf '%s\n' "$executable"
+    return 0
+  fi
+  find "$ROOT_DIR/.build" -path "*/$CONFIGURATION/$HOST_NAME" -type f -perm -111 | head -n 1
+}
+
 find_resource_bundles() {
   find "$ROOT_DIR/.build" -path "*/$CONFIGURATION/$RESOURCE_BUNDLE_GLOB" -type d | sort
 }
@@ -319,6 +331,7 @@ FRAMEWORKS_DIR="\$CONTENTS_DIR/Frameworks"
 RESOURCE_BUNDLE_GLOB="$RESOURCE_BUNDLE_GLOB"
 RUNTIME_EXECUTABLE="\$MACOS_DIR/$RUNTIME_NAME"
 BRIDGE_EXECUTABLE="\$MACOS_DIR/$BRIDGE_NAME"
+HOST_EXECUTABLE="\$MACOS_DIR/$HOST_NAME"
 SPARKLE_FRAMEWORK_SOURCE="\$ROOT_DIR/.build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework"
 SPARKLE_FRAMEWORK_DESTINATION="\$FRAMEWORKS_DIR/Sparkle.framework"
 LOG_DIR="\$HOME/Library/Logs/Relay Console"
@@ -461,10 +474,12 @@ install_sparkle_framework() {
 run_swift_build_once() {
   if [[ "\$CONFIGURATION" == "release" ]]; then
     swift build --jobs 2 --package-path "\$ROOT_DIR" -c release --product "Relay Console" || return \$?
-    swift build --jobs 2 --package-path "\$ROOT_DIR" -c release --product "$BRIDGE_NAME"
+    swift build --jobs 2 --package-path "\$ROOT_DIR" -c release --product "$BRIDGE_NAME" || return \$?
+    swift build --jobs 2 --package-path "\$ROOT_DIR" -c release --product "$HOST_NAME"
   else
     swift build --jobs 2 --package-path "\$ROOT_DIR" --product "Relay Console" || return \$?
-    swift build --jobs 2 --package-path "\$ROOT_DIR" --product "$BRIDGE_NAME"
+    swift build --jobs 2 --package-path "\$ROOT_DIR" --product "$BRIDGE_NAME" || return \$?
+    swift build --jobs 2 --package-path "\$ROOT_DIR" --product "$HOST_NAME"
   fi
 }
 
@@ -523,6 +538,10 @@ BRIDGE_SOURCE="\$ROOT_DIR/.build/\$CONFIGURATION/$BRIDGE_NAME"
 if [[ ! -x "\$BRIDGE_SOURCE" ]]; then
   BRIDGE_SOURCE="\$(find "\$ROOT_DIR/.build" -path "*/\$CONFIGURATION/$BRIDGE_NAME" -type f -perm -111 | head -n 1)"
 fi
+HOST_SOURCE="\$ROOT_DIR/.build/\$CONFIGURATION/$HOST_NAME"
+if [[ ! -x "\$HOST_SOURCE" ]]; then
+  HOST_SOURCE="\$(find "\$ROOT_DIR/.build" -path "*/\$CONFIGURATION/$HOST_NAME" -type f -perm -111 | head -n 1)"
+fi
 
 if [[ -z "\${EXECUTABLE:-}" || ! -x "\$EXECUTABLE" ]]; then
   echo "Could not find built Relay Console executable."
@@ -530,6 +549,10 @@ if [[ -z "\${EXECUTABLE:-}" || ! -x "\$EXECUTABLE" ]]; then
 fi
 if [[ -z "\${BRIDGE_SOURCE:-}" || ! -x "\$BRIDGE_SOURCE" ]]; then
   echo "Could not find built Relay Marketplace bridge executable."
+  exit 1
+fi
+if [[ -z "\${HOST_SOURCE:-}" || ! -x "\$HOST_SOURCE" ]]; then
+  echo "Could not find built Relay Host service executable."
   exit 1
 fi
 
@@ -550,6 +573,10 @@ cp "\$BRIDGE_SOURCE" "\$BRIDGE_EXECUTABLE.tmp.\$\$"
 chmod +x "\$BRIDGE_EXECUTABLE.tmp.\$\$"
 sign_local_executable "\$BRIDGE_EXECUTABLE.tmp.\$\$" "$BRIDGE_NAME"
 mv "\$BRIDGE_EXECUTABLE.tmp.\$\$" "\$BRIDGE_EXECUTABLE"
+cp "\$HOST_SOURCE" "\$HOST_EXECUTABLE.tmp.\$\$"
+chmod +x "\$HOST_EXECUTABLE.tmp.\$\$"
+sign_local_executable "\$HOST_EXECUTABLE.tmp.\$\$" "Relay Console"
+mv "\$HOST_EXECUTABLE.tmp.\$\$" "\$HOST_EXECUTABLE"
 find "\$APP_DIR" -maxdepth 1 -type d -name "\$RESOURCE_BUNDLE_GLOB" -exec rm -rf {} +
 find "\$RESOURCES_DIR" -maxdepth 1 -type d -name "\$RESOURCE_BUNDLE_GLOB" -exec rm -rf {} +
 while IFS= read -r RESOURCE_BUNDLE; do
@@ -676,6 +703,11 @@ if [[ -z "${BRIDGE_EXECUTABLE:-}" || ! -x "$BRIDGE_EXECUTABLE" ]]; then
   echo "Could not find built Relay Marketplace bridge executable." >&2
   exit 1
 fi
+HOST_EXECUTABLE="$(find_built_host)"
+if [[ -z "${HOST_EXECUTABLE:-}" || ! -x "$HOST_EXECUTABLE" ]]; then
+  echo "Could not find built Relay Host service executable." >&2
+  exit 1
+fi
 
 RESOURCE_BUNDLES="$(find_resource_bundles)"
 if [[ -z "${RESOURCE_BUNDLES:-}" ]]; then
@@ -698,6 +730,9 @@ sign_local_executable "$MACOS_DIR/$RUNTIME_NAME" "Relay Console"
 cp "$BRIDGE_EXECUTABLE" "$MACOS_DIR/$BRIDGE_NAME"
 chmod +x "$MACOS_DIR/$BRIDGE_NAME"
 sign_local_executable "$MACOS_DIR/$BRIDGE_NAME" "$BRIDGE_NAME"
+cp "$HOST_EXECUTABLE" "$MACOS_DIR/$HOST_NAME"
+chmod +x "$MACOS_DIR/$HOST_NAME"
+sign_local_executable "$MACOS_DIR/$HOST_NAME" "Relay Console"
 find "$APP_DIR" -maxdepth 1 -type d -name "$RESOURCE_BUNDLE_GLOB" -exec rm -rf {} +
 find "$RESOURCES_DIR" -maxdepth 1 -type d -name "$RESOURCE_BUNDLE_GLOB" -exec rm -rf {} +
 while IFS= read -r RESOURCE_BUNDLE; do
@@ -714,8 +749,8 @@ if command -v codesign >/dev/null 2>&1; then
   if [[ -z "$BUNDLE_SIGNING_IDENTITY" ]]; then
     BUNDLE_SIGNING_IDENTITY="-"
   fi
-  codesign --force --deep --timestamp=none --identifier "$RELEASE_BUNDLE_IDENTIFIER.development" --sign "$BUNDLE_SIGNING_IDENTITY" "$APP_DIR" >/dev/null 2>&1 \
-    || codesign --force --deep --sign - "$APP_DIR" >/dev/null 2>&1 \
+  codesign --force --timestamp=none --identifier "$RELEASE_BUNDLE_IDENTIFIER.development" --sign "$BUNDLE_SIGNING_IDENTITY" "$APP_DIR" >/dev/null 2>&1 \
+    || codesign --force --sign - "$APP_DIR" >/dev/null 2>&1 \
     || true
 fi
 

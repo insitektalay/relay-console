@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { RelayConsoleController } from "@/components/clawchat-web-app"
+import { groupRelayHosts } from "@/features/runtime/group-relay-hosts"
 
 export function RelayConsoleBridgePairingPanel({
   controller,
@@ -54,9 +55,7 @@ export function RelayConsoleBridgePairingPanel({
   const pairedDevices = bridgeDevices.filter(
     (device) => device.status !== "revoked"
   )
-  const onlineDevices = pairedDevices.filter(
-    (device) => device.health === "online"
-  )
+  const relayHosts = groupRelayHosts(pairedDevices)
 
   return (
     <div className="rounded-[4px] border border-[color-mix(in_srgb,var(--claw-border)_34%,transparent)] bg-[var(--claw-bg-surface)] p-4">
@@ -72,11 +71,11 @@ export function RelayConsoleBridgePairingPanel({
           </div>
         </div>
         <Badge variant="secondary">
-          {onlineDevices.length
-            ? `${onlineDevices.length} online`
-            : pairedDevices.length
-              ? `${pairedDevices.length} paired · offline`
-              : "No paired devices"}
+          {relayHosts.some((host) => host.health === "online")
+            ? `${relayHosts.filter((host) => host.health === "online").length} host online`
+            : relayHosts.length
+              ? `${relayHosts.length} host · offline`
+              : "No Relay Hosts"}
         </Badge>
       </div>
 
@@ -129,99 +128,49 @@ export function RelayConsoleBridgePairingPanel({
             )}
 
             <div className="space-y-3">
-              <SectionListHeader title="Paired runtime devices" />
+              <SectionListHeader title="Relay Hosts" />
               {bridgeDevicesQuery.isLoading ? (
                 <div className="rounded-[4px] border border-[color-mix(in_srgb,var(--claw-border)_34%,transparent)] bg-black/10 p-4 text-sm text-zinc-400">
                   Loading paired devices...
                 </div>
-              ) : bridgeDevices.length ? (
-                bridgeDevices.map((device: BridgeDevice) => {
-                  const isRevoked = device.status === "revoked"
-                  const runtimeType = bridgeDeviceRuntimeLabel(device)
-                  const compatibility = device.compatibility
-                  const versionDetails = [
-                    device.pluginVersion
-                      ? `plugin ${device.pluginVersion}`
-                      : null,
-                    device.openCoreVersion
-                      ? `Open Core ${device.openCoreVersion}`
-                      : null,
-                  ].filter(Boolean)
+              ) : relayHosts.length ? (
+                relayHosts.map((host) => {
                   return (
                     <div
-                      key={device.id}
+                      key={host.id}
                       className="rounded-[4px] border border-[color-mix(in_srgb,var(--claw-border)_34%,transparent)] bg-[var(--claw-bg-page)] px-4 py-4"
                     >
-                      <div className="flex flex-wrap items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <div className="font-medium text-zinc-100">
-                              {device.label}
-                            </div>
-                            <Badge variant="secondary">{runtimeType}</Badge>
-                            {compatibility ? (
-                              <Badge variant="secondary">
-                                {compatibility.level === "verified"
-                                  ? "Verified · Full"
-                                  : compatibility.level === "compatible"
-                                    ? "Compatible · Safe mode"
-                                    : "Unsupported"}
-                              </Badge>
-                            ) : null}
-                          </div>
-                          <div className="mt-1 text-xs leading-5 text-zinc-500">
-                            {titleCase(device.health ?? "offline")} · {titleCase(device.status)} ·{" "}
-                            {device.lastSeenAt
-                              ? `last seen ${formatDistanceToNowStrict(
-                                  new Date(device.lastSeenAt),
-                                  {
-                                    addSuffix: true,
-                                  }
-                                )}`
-                              : "never connected"}
-                          </div>
-                          {versionDetails.length ? (
-                            <div className="mt-1 text-xs leading-5 text-zinc-500">
-                              {versionDetails.join(" · ")}
-                            </div>
-                          ) : null}
-                          <div className="mt-2 text-xs leading-5 text-zinc-500">
-                            {device.capabilities?.length
-                              ? device.capabilities.join(", ")
-                              : "No capabilities reported"}
-                          </div>
-                          {compatibility?.operatingMode === "safe" ? (
-                            <div className="mt-2 text-xs leading-5 text-amber-300/80">
-                              Core messaging remains enabled. Disabled until
-                              this runtime is verified: {" "}
-                              {compatibility.disabledCapabilities.length
-                                ? compatibility.disabledCapabilities.join(", ")
-                                : "advanced runtime features"}
-                            </div>
-                          ) : null}
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <div className="font-medium text-zinc-100">{host.displayName}</div>
+                          <div className="mt-1 text-xs text-zinc-500">Relay Host · {titleCase(host.health)}</div>
                         </div>
-                        <Button
-                          disabled={
-                            isRevoked || revokeBridgeDeviceMutation.isPending
-                          }
-                          onClick={() =>
-                            revokeBridgeDeviceMutation.mutate(device.id)
-                          }
-                          size="sm"
-                          type="button"
-                          variant="secondary"
-                        >
-                          <Trash2 className="size-4" />
-                          {isRevoked ? "Revoked" : "Revoke this"}
-                        </Button>
+                        <Badge variant="secondary">{titleCase(host.health)}</Badge>
+                      </div>
+                      <div className="mt-4 space-y-3">
+                        {host.adapters.map((device: BridgeDevice) => (
+                          <div key={device.id} className="flex items-start justify-between gap-4 border-t border-white/10 pt-3">
+                            <div>
+                              <div className="text-sm text-zinc-200">
+                                {device.adapterRole === "host" ? "Connection service" : bridgeDeviceRuntimeLabel(device)}
+                              </div>
+                              <div className="mt-1 text-xs text-zinc-500">
+                                {titleCase(device.health ?? "offline")} · bridge {device.pluginVersion ?? "unknown"} · runtime {device.openCoreVersion ?? "unknown"}
+                              </div>
+                            </div>
+                            <Button disabled={revokeBridgeDeviceMutation.isPending} onClick={() => revokeBridgeDeviceMutation.mutate(device.id)} size="sm" type="button" variant="secondary">
+                              <Trash2 className="size-4" /> Revoke
+                            </Button>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )
                 })
               ) : (
                 <EmptyState
-                  title="No paired devices"
-                  description="Generate a code and enroll a local runtime bridge."
+                  title="No Relay Hosts"
+                  description="Generate a code and enroll Relay Host on a runtime computer."
                 />
               )}
             </div>

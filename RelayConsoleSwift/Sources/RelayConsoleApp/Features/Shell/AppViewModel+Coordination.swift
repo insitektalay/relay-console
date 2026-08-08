@@ -403,16 +403,17 @@ extension AppViewModel {
         from: JSONSerialization.data(withJSONObject: rawManifest)
       )
       _ = try services.cloudConnections.saveDeployment(manifest: manifest)
-      let token = try await services.cloudConnections.validAccessToken(
+      let response = try await services.cloudConnections.withValidAccessToken(
         accountId: account.id,
         transport: transport
-      )
-      let response = try await transport.send(
-        method: "GET",
-        path: "workspaces",
-        body: nil,
-        accessToken: token
-      )
+      ) { accessToken in
+        try await transport.send(
+          method: "GET",
+          path: "workspaces",
+          body: nil,
+          accessToken: accessToken
+        )
+      }
       let workspaces =
         (response["data"] as? [[String: Any]])
         ?? (response["workspaces"] as? [[String: Any]])
@@ -433,6 +434,10 @@ extension AppViewModel {
         transport: transport,
         manifest: manifest
       )
+      let token = try await services.cloudConnections.validAccessToken(
+        accountId: account.id,
+        transport: transport
+      )
       let linked = try await services.cloudSync.ensureAutomaticWorkspaceLink(
         localWorkspaceId: localWorkspaceId,
         accountId: account.id,
@@ -440,9 +445,15 @@ extension AppViewModel {
         manifest: manifest,
         transport: transport
       )
-      if automaticRuntimeBridge == nil,
-        let websocketURL = URL(string: manifest.origins.websocket)
-      {
+      let relayHostOwnsRuntime = await RelayHostServiceManager(
+        paths: services.paths
+      ).ensureRunning()
+      if relayHostOwnsRuntime {
+        automaticRuntimeBridge?.disconnectWebSocket()
+        automaticRuntimeBridge = nil
+      } else if !relayHostOwnsRuntime,
+        automaticRuntimeBridge == nil,
+        let websocketURL = URL(string: manifest.origins.websocket) {
         let bridge = services.cloudRuntimeDeviceTransport(using: transport)
         try await bridge.ensureConnected(
           syncLinkId: linked.id,
@@ -452,6 +463,21 @@ extension AppViewModel {
           deviceLabel: Host.current().localizedName ?? "Mac"
         )
         automaticRuntimeBridge = bridge
+      }
+      let automaticLinkFailures = try await services.cloudSync.repairAutomaticConnectAgentLinks(
+        localWorkspaceId: localWorkspaceId
+      )
+      if !automaticLinkFailures.isEmpty {
+        _ = try? services.data.log(
+          severity: "info",
+          category: "relay_cloud",
+          message: "Some agent runtime links will retry automatically.",
+          detail: [
+            "agentFailures": .object(
+              automaticLinkFailures.mapValues { .string($0) }
+            )
+          ]
+        )
       }
       if existingLink?.state != .linked {
         await refresh()
@@ -705,6 +731,7 @@ extension AppViewModel {
         let nextRuntimeMissingTools = try services.runtimeRecovery.missingTools(context: context)
         let nextRuntimeRecoveryRecords = try services.runtimeRecovery.recoveryRecords(
           context: context)
+        let requestedApplicationsSelectedAppId = applicationsSelectedAppId
         let appFilter = ApplicationsCatalogFilter(
           view: .all,
           searchQuery: applicationsSearch,
@@ -1133,14 +1160,17 @@ extension AppViewModel {
         runtimeStructuredJobs = nextRuntimeStructuredJobs
         runtimeMissingTools = nextRuntimeMissingTools
         runtimeRecoveryRecords = nextRuntimeRecoveryRecords
-        applicationsCatalogSnapshot = nextApplicationsCatalog
-        applicationsCatalogApps = nextApplicationsCatalogApps
-        providerConnectionSnapshot = nextProviderConnectionSnapshot
-        providerConnectionsByAppId = nextProviderConnectionsByAppId
-        exaInstallSnapshot = nextExaInstallSnapshot
-        marketplaceActionPermissionMapsByInstallId = nextMarketplaceActionPermissionMapsByInstallId
-        providerApprovalInbox = nextProviderApproval.inbox
-        selectedProviderApprovalId = nextProviderApproval.selectedApprovalId
+        if applicationsSelectedAppId == requestedApplicationsSelectedAppId {
+          applicationsCatalogSnapshot = nextApplicationsCatalog
+          applicationsCatalogApps = nextApplicationsCatalogApps
+          providerConnectionSnapshot = nextProviderConnectionSnapshot
+          providerConnectionsByAppId = nextProviderConnectionsByAppId
+          exaInstallSnapshot = nextExaInstallSnapshot
+          marketplaceActionPermissionMapsByInstallId =
+            nextMarketplaceActionPermissionMapsByInstallId
+          providerApprovalInbox = nextProviderApproval.inbox
+          selectedProviderApprovalId = nextProviderApproval.selectedApprovalId
+        }
         insightsReportList = nextInsightsList
         insightsSelectedReportId = nextInsightsSelectedId
         insightsReportDetail = nextInsightsDetail
@@ -1150,8 +1180,12 @@ extension AppViewModel {
         settingsSecuritySummary = nextSettingsSecuritySummary
         settingsAlerts = nextSettingsAlerts
         settingsUnreadAlertCount = nextSettingsUnreadAlertCount
-        applicationsSelectedAppId = nextApplicationsCatalog.selectedApp?.id ?? ""
-        if nextApplicationsCatalog.selectedApp?.slug == "exa-search" {
+        if applicationsSelectedAppId == requestedApplicationsSelectedAppId {
+          applicationsSelectedAppId = nextApplicationsCatalog.selectedApp?.id ?? ""
+        }
+        if applicationsSelectedAppId != requestedApplicationsSelectedAppId {
+          scheduleApplicationsRefresh()
+        } else if nextApplicationsCatalog.selectedApp?.slug == "exa-search" {
           exaSelectedConnectionId = nextProviderConnectionSnapshot.selectedConnection?.id ?? ""
           xSelectedConnectionId = ""
           gmailSelectedConnectionId = ""

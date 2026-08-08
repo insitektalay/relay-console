@@ -1072,7 +1072,9 @@ export const WorkManagementExecutors2 = {
             );
     } else {
       const token = await this.oauth.refreshIfNeeded(connection);
-      providerOperation = this.requiredString(input.input.toolName, "toolName");
+      providerOperation =
+        this.stringOrNull(input.input.toolName) ??
+        this.requiredString(input.input.operation, "operation");
       data =
         tool.name === "jotform.read"
           ? await this.jotformMcp.callRead(token.accessToken, input.input)
