@@ -197,7 +197,10 @@ jobs:
           abort("Malformed backend commit") unless commit.match?(/\A[0-9a-f]{40}\z/)
           document = REXML::Document.new(File.read(path))
           document.root.add_namespace("relay", "https://relayconsole.work/xml-namespaces/update")
-          namespaces = { "sparkle" => "http://www.andymatuschak.org/xml-namespaces/sparkle" }
+          namespaces = {
+            "sparkle" => "http://www.andymatuschak.org/xml-namespaces/sparkle",
+            "relay" => "https://relayconsole.work/xml-namespaces/update"
+          }
           item = REXML::XPath.first(
             document,
             "//item[sparkle:version='#{build}' and sparkle:shortVersionString='#{version}']",
@@ -208,6 +211,14 @@ jobs:
           element = item.add_element("relay:backendCommit")
           element.text = commit
           File.open(path, "w") { |file| document.write(file, 2) }
+          serialized = REXML::Document.new(File.read(path))
+          verified = REXML::XPath.first(
+            serialized,
+            "//item[sparkle:version='#{build}' and sparkle:shortVersionString='#{version}']/relay:backendCommit",
+            namespaces
+          )
+          abort("Serialized appcast backend commit is missing") unless verified
+          abort("Serialized appcast backend commit does not match the checked-out commit") unless verified.text.to_s.strip == commit
           RUBY
           printf '%s' "$SPARKLE_PRIVATE_KEY" | "$SIGN_APPCAST" \
             --ed-key-file - --disable-signing-warning "$UPDATES/appcast.xml"
@@ -217,7 +228,6 @@ jobs:
           xmllint --noout "$UPDATES/appcast.xml"
           grep -q "https://github.com/insitektalay/relay-console/releases/download/${RELEASE_TAG}/${ARCHIVE}" "$UPDATES/appcast.xml"
           grep -q 'sparkle:edSignature=' "$UPDATES/appcast.xml"
-          grep -q "<relay:backendCommit>$(git rev-parse HEAD)</relay:backendCommit>" "$UPDATES/appcast.xml"
 
       - name: Publish immutable GitHub Release assets
         env:
